@@ -278,7 +278,7 @@ describe('PILAR 3: Security Gate V3 — Attack Simulation', () => {
 
   test('Audit log deve registrar entradas com formato correto', async () => {
     const { getZCCSecurityAuditLog } = await import('@/lib/zcc-security');
-    const log = getZCCSecurityAuditLog();
+    const log = await getZCCSecurityAuditLog();
     expect(Array.isArray(log)).toBe(true);
   });
 
