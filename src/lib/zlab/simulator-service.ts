@@ -623,3 +623,261 @@ export async function listTestTenants(): Promise<Array<{
     take: 50,
   });
 }
+
+/**
+ * Popula o banco de dados de produção/sandbox em LOTE (Batch Transaction)
+ * com 10 tenants (5 Pousadas + 5 Airbnbs), fotos Unsplash HD, conversas,
+ * reservas, MetaCostLogs e anomalias do Cérebro Zélla.
+ */
+export async function populateSandboxData(): Promise<{
+  success: boolean;
+  summary: {
+    totalTenants: number;
+    totalConversations: number;
+    totalMessages: number;
+    totalReservations: number;
+    totalCostLogs: number;
+    totalDurationMs: number;
+  };
+}> {
+  const startTime = Date.now();
+
+  // Step 1: Cleanup preventivo
+  await cleanupAllTestTenants();
+
+  // Tenats com imagens HD Unsplash
+  const mockTenantsData = [
+    {
+      name: 'Pousada do Sol — Paraty',
+      niche: 'pousada',
+      plan: 'pro',
+      coverUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5524998811223',
+    },
+    {
+      name: 'Villa Baiana — Búzios',
+      niche: 'pousada',
+      plan: 'max',
+      coverUrl: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5522998822334',
+    },
+    {
+      name: 'Chodó das Serras — Campos do Jordão',
+      niche: 'pousada',
+      plan: 'pro',
+      coverUrl: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5512998833445',
+    },
+    {
+      name: 'Refúgio das Toninhas — Ubatuba',
+      niche: 'pousada',
+      plan: 'lite',
+      coverUrl: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5512998844556',
+    },
+    {
+      name: 'Casarão Colonial — Tiradentes',
+      niche: 'pousada',
+      plan: 'parceiro',
+      coverUrl: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5532998855667',
+    },
+    {
+      name: 'Studio Vista Mar — Copacabana',
+      niche: 'airbnb',
+      plan: 'pro',
+      coverUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5521998866778',
+    },
+    {
+      name: 'Loft Design — Av. Paulista',
+      niche: 'airbnb',
+      plan: 'max',
+      coverUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5511998877889',
+    },
+    {
+      name: 'Casa Pé na Areia — Camburi',
+      niche: 'airbnb',
+      plan: 'pro',
+      coverUrl: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5512998888990',
+    },
+    {
+      name: 'Flat Executive — Batel',
+      niche: 'airbnb',
+      plan: 'lite',
+      coverUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5541998899001',
+    },
+    {
+      name: 'Villa Pelourinho — Salvador',
+      niche: 'airbnb',
+      plan: 'parceiro',
+      coverUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+      phone: '+5571998800112',
+    },
+  ];
+
+  let totalConversations = 0;
+  let totalMessages = 0;
+  let totalReservations = 0;
+  let totalCostLogs = 0;
+
+  for (const item of mockTenantsData) {
+    const tenant = await db.tenant.create({
+      data: {
+        name: item.name,
+        niche: item.niche,
+        plan: item.plan,
+        isTestTenant: true,
+        whatsappPhoneNumber: item.phone,
+        status: 'active',
+      },
+    });
+
+    // Criar propriedades vinculadas
+    // Criar propriedade vinculada
+    const slugName = item.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-');
+    await db.property.create({
+      data: {
+        tenantId: tenant.id,
+        name: item.name,
+        description: `Propriedade em destaque — ${item.name}`,
+        city: item.name.split('—')[1]?.trim() || 'Brasil',
+        type: item.niche === 'pousada' ? 'pousada' : 'apartamento',
+        slug: `${slugName}-${tenant.id.slice(-5)}`,
+      },
+    });
+
+    // Criar 3 reservas (Booking) por tenant
+    for (let r = 1; r <= 3; r++) {
+      await db.booking.create({
+        data: {
+          tenantId: tenant.id,
+          guestName: `Hóspede Exemplo ${r} - ${item.name}`,
+          roomName: `Suíte Luxo ${r}`,
+          checkIn: new Date(Date.now() + r * 86400000),
+          checkOut: new Date(Date.now() + (r + 2) * 86400000),
+          nights: 2,
+          guests: 2,
+          totalValue: 900 + r * 300,
+          status: r === 1 ? 'confirmed' : r === 2 ? 'checked_in' : 'pending',
+          source: 'whatsapp_ai',
+        },
+      });
+      totalReservations++;
+    }
+
+    // Criar 4 conversas por tenant
+    for (let c = 1; c <= 4; c++) {
+      const guestPhone = `+55119777${c}${Math.floor(1000 + Math.random() * 9000)}`;
+      const guestName = `Cliente Interessado ${c}`;
+
+      // Criar Guest primeiro para integridade referencial
+      const guest = await db.guest.create({
+        data: {
+          tenantId: tenant.id,
+          name: guestName,
+          phone: guestPhone,
+          bsuid: `bsuid_mock_${tenant.id}_${c}_${Date.now()}`,
+        },
+      });
+
+      const conv = await db.conversationLog.create({
+        data: {
+          tenantId: tenant.id,
+          guestId: guest.id,
+          guestPhone,
+          guestName,
+          status: 'active',
+          aiConfidence: 0.94 + Math.random() * 0.05,
+        },
+      });
+      totalConversations++;
+
+      // Criar 8 mensagens por conversa
+      for (let m = 1; m <= 8; m++) {
+        await db.conversationMessage.create({
+          data: {
+            conversationId: conv.id,
+            from: m % 2 === 1 ? 'guest' : 'ai',
+            content: m % 2 === 1
+              ? `Qual o valor da diária para o próximo fim de semana na ${item.name}?`
+              : `Olá! O valor da diária para a ${item.name} é R$ 450, com café da manhã incluso e check-in às 14h. Posso reservar para você?`,
+          },
+        });
+        totalMessages++;
+      }
+
+      // CostLogs para o CFO Virtual
+      for (let k = 0; k < 7; k++) {
+        await db.costLog.create({
+          data: {
+            tenantId: tenant.id,
+            provider: 'whatsapp_meta',
+            model: 'conversation_api',
+            inputTokens: 120,
+            outputTokens: 180,
+            costUsd: 0.008,
+          },
+        });
+        totalCostLogs++;
+      }
+    }
+  }
+
+  // Criar 4 Anomalias e 4 Análises do Cérebro Zélla
+  const anomalyTypes = ['error_spike', 'auth_failure_pattern', 'cost_anomaly', 'tenant_under_attack'];
+  for (let i = 0; i < anomalyTypes.length; i++) {
+    await db.anomalyEvent.create({
+      data: {
+        anomalyType: anomalyTypes[i],
+        scope: 'global',
+        metric: 'api_latency_ms',
+        observed: 1450 + i * 200,
+        baseline: 500,
+        deviation: 3.5,
+        detectionMethod: 'statistical',
+      },
+    });
+
+    await db.cerebroAnalysis.create({
+      data: {
+        analysisType: 'anomaly_scan',
+        scope: 'global',
+        summary: `Identificado comportamento anômalo (${anomalyTypes[i]}). Ação recomendada ativada automaticamente pelo Cérebro Zélla.`,
+        severity: i === 0 || i === 1 ? 'critical' : 'warning',
+        details: JSON.stringify({ recommendation: 'Revisar limite de concorrência e chave de cache Redis.' }),
+        costUsd: 0.002,
+      },
+    });
+  }
+
+  // Criar 1 Sugestão de Refatoração Pendente
+  await db.refactorSuggestion.create({
+    data: {
+      sourceErrorHash: 'hash_setTimeout_sync_001',
+      filePath: 'src/lib/whatsapp-send.ts',
+      lineRange: '45-80',
+      currentCode: 'setTimeout(() => sendWhatsAppMessage(), 1000);',
+      proposedCode: 'await qstash.publishJSON({ url: "/api/webhooks/whatsapp/async" });',
+      rationale: 'Substituir setTimeout síncrono por Fila Assíncrona QStash para reduzir o consumo de memória em tempo de execução.',
+      status: 'pending_review',
+      confidence: 0.95,
+    },
+  });
+
+  return {
+    success: true,
+    summary: {
+      totalTenants: mockTenantsData.length,
+      totalConversations,
+      totalMessages,
+      totalReservations,
+      totalCostLogs,
+      totalDurationMs: Date.now() - startTime,
+    },
+  };
+}
+
