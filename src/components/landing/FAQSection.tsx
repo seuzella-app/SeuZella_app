@@ -6,6 +6,8 @@ import { ChevronDown, HelpCircle } from 'lucide-react';
 import { useNiche } from '@/contexts/NicheContext';
 import { getNicheContent } from '@/data/niche-content';
 
+import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
+
 const easeOut: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
 
 function FAQItem({ q, a, isOpen, onToggle }: { q: string; a: string; isOpen: boolean; onToggle: () => void }) {
@@ -89,7 +91,17 @@ export function FAQSection() {
                 q={faq.question}
                 a={faq.answer}
                 isOpen={openIndex === i}
-                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+                onToggle={() => {
+                  const nextState = openIndex !== i;
+                  if (nextState) {
+                    trackLandingClick({
+                      eventName: 'faq_expand',
+                      category: 'faq_interaction',
+                      label: faq.question,
+                    });
+                  }
+                  setOpenIndex(openIndex === i ? null : i);
+                }}
               />
             ))}
           </motion.div>

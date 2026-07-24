@@ -7,6 +7,8 @@ import { Menu, X, ArrowRight } from 'lucide-react';
 import { ZellaLogo } from '@/components/brand/ZellaLogo';
 import { useNiche } from '@/contexts/NicheContext';
 
+import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
+
 // ─── Niche-aware color tokens ────────────────────────────────────────────────
 // emerald → pousada | blue → airbnb | amber → parceiro (future)
 const NICHE_ACCENT: Record<string, { text: string; bg: string; hoverBg: string; shadow: string; ring: string; dot: string }> = {
@@ -109,6 +111,13 @@ export function Header() {
     (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
       e.preventDefault();
       const id = href.replace('#', '');
+
+      trackLandingClick({
+        eventName: `nav_${id}`,
+        category: 'nav_click',
+        label: href,
+      });
+
       const el = document.getElementById(id);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
