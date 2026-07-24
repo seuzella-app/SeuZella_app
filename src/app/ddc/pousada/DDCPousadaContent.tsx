@@ -30,6 +30,14 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   Table,
   TableBody,
   TableCell,
@@ -275,6 +283,19 @@ export default function DDCPousadaContent() {
   const [activeTab, setActiveTab] = useState<PousadaTab>('financeiro');
   const [trainingUrl, setTrainingUrl] = useState('');
   const [isTraining, setIsTraining] = useState(false);
+  const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [guestsState, setGuestsState] = useState<Record<string, GuestCardData[]>>(kanbanGuests);
+  const [newGuestForm, setNewGuestForm] = useState({
+    name: '',
+    roomType: 'Suíte Master',
+    checkIn: '15/03',
+    checkOut: '18/03',
+    value: 1200,
+    source: 'WhatsApp' as 'WhatsApp' | 'Booking' | 'Airbnb',
+    column: 'atendimento-ia',
+  });
+
   const [scannedData, setScannedData] = useState<MagicScanResult | null>({
     propertyName: 'Pousada Serenity Paraty',
     amenities: ['Wi-Fi', 'Café da manhã', 'Piscina', 'Estacionamento', 'Ar-condicionado', 'Vista mar'],
@@ -301,14 +322,43 @@ export default function DDCPousadaContent() {
     setScannedData(result);
   }, []);
 
+  const handleAddGuest = useCallback(() => {
+    if (!newGuestForm.name.trim()) return;
+    const newEntry: GuestCardData = {
+      id: `g-${Date.now()}`,
+      name: newGuestForm.name,
+      roomType: newGuestForm.roomType,
+      checkIn: newGuestForm.checkIn,
+      checkOut: newGuestForm.checkOut,
+      value: Number(newGuestForm.value) || 1000,
+      source: newGuestForm.source,
+    };
+
+    setGuestsState((prev) => ({
+      ...prev,
+      [newGuestForm.column]: [newEntry, ...prev[newGuestForm.column]],
+    }));
+
+    setNewGuestForm({
+      name: '',
+      roomType: 'Suíte Master',
+      checkIn: '15/03',
+      checkOut: '18/03',
+      value: 1200,
+      source: 'WhatsApp',
+      column: 'atendimento-ia',
+    });
+    setIsAddGuestOpen(false);
+  }, [newGuestForm]);
+
   // Show Magic Scanner if no scan data yet
   if (!scannedData) {
     return <MagicScanner niche="pousada" onComplete={handleScanComplete} />;
   }
 
   const conversionRate = 34.7;
-  const totalGuests = Object.values(kanbanGuests).flat().length;
-  const confirmedCount = kanbanGuests['confirmado'].length + kanbanGuests['checkin-hoje'].length;
+  const totalGuests = Object.values(guestsState).flat().length;
+  const confirmedCount = (guestsState['confirmado']?.length || 0) + (guestsState['checkin-hoje']?.length || 0);
 
   // ─── Tab Content ────────────────────────────────────────────────────────
 
@@ -594,7 +644,11 @@ export default function DDCPousadaContent() {
             <h2 className="text-lg font-semibold text-white">Pipeline de Hóspedes</h2>
             <p className="text-sm text-zinc-500">{totalGuests} hóspedes no funil</p>
           </div>
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+          <Button
+            onClick={() => setIsAddGuestOpen(true)}
+            size="sm"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-95 transition-all"
+          >
             <Plus className="size-4 mr-1" />
             Novo Hóspede
           </Button>
@@ -609,13 +663,13 @@ export default function DDCPousadaContent() {
                 <div className={`size-2.5 rounded-full ${col.dotColor}`} />
                 <span className={`text-sm font-medium ${col.color}`}>{col.title}</span>
                 <Badge variant="outline" className="ml-auto text-xs border-zinc-700 text-zinc-400">
-                  {kanbanGuests[col.id].length}
+                  {(guestsState[col.id] || []).length}
                 </Badge>
               </div>
 
               {/* Column Cards */}
               <div className="space-y-2">
-                {kanbanGuests[col.id].map((guest, idx) => (
+                {(guestsState[col.id] || []).map((guest, idx) => (
                   <motion.div
                     key={guest.id}
                     initial={{ opacity: 0, y: 8 }}
@@ -1006,8 +1060,113 @@ export default function DDCPousadaContent() {
             <BookingSyncPanel niche="pousada" propertyName={scannedData.propertyName} />
           </div>
         )}
-        {activeTab === 'config' && <div key="config">{renderConfig()}</div>}
-      </AnimatePresence>
+      {/* Modal: Novo Hóspede */}
+      <Dialog open={isAddGuestOpen} onOpenChange={setIsAddGuestOpen}>
+        <DialogContent className="bg-[#111118] border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2 text-emerald-400">
+              <Plus className="size-5" /> Novo Hóspede no Funil
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400 text-xs">
+              Cadastre manualmente uma reserva ou pré-reserva para acompanhar no Kanban.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Nome do Hóspede</label>
+              <Input
+                placeholder="Ex: João da Silva"
+                value={newGuestForm.name}
+                onChange={(e) => setNewGuestForm({ ...newGuestForm, name: e.target.value })}
+                className="bg-[#0a0a0f] border-zinc-700 text-white"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Acomodação</label>
+                <Input
+                  placeholder="Ex: Suíte Master"
+                  value={newGuestForm.roomType}
+                  onChange={(e) => setNewGuestForm({ ...newGuestForm, roomType: e.target.value })}
+                  className="bg-[#0a0a0f] border-zinc-700 text-white"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Valor Estimado (R$)</label>
+                <Input
+                  type="number"
+                  placeholder="1200"
+                  value={newGuestForm.value}
+                  onChange={(e) => setNewGuestForm({ ...newGuestForm, value: Number(e.target.value) })}
+                  className="bg-[#0a0a0f] border-zinc-700 text-white"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Check-in</label>
+                <Input
+                  placeholder="15/03"
+                  value={newGuestForm.checkIn}
+                  onChange={(e) => setNewGuestForm({ ...newGuestForm, checkIn: e.target.value })}
+                  className="bg-[#0a0a0f] border-zinc-700 text-white"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Check-out</label>
+                <Input
+                  placeholder="18/03"
+                  value={newGuestForm.checkOut}
+                  onChange={(e) => setNewGuestForm({ ...newGuestForm, checkOut: e.target.value })}
+                  className="bg-[#0a0a0f] border-zinc-700 text-white"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Canal</label>
+                <select
+                  value={newGuestForm.source}
+                  onChange={(e) => setNewGuestForm({ ...newGuestForm, source: e.target.value as any })}
+                  className="w-full h-9 rounded-md bg-[#0a0a0f] border border-zinc-700 text-white px-3 text-sm"
+                >
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Booking">Booking.com</option>
+                  <option value="Airbnb">Airbnb</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Estágio do Funil</label>
+                <select
+                  value={newGuestForm.column}
+                  onChange={(e) => setNewGuestForm({ ...newGuestForm, column: e.target.value })}
+                  className="w-full h-9 rounded-md bg-[#0a0a0f] border border-zinc-700 text-white px-3 text-sm"
+                >
+                  <option value="atendimento-ia">Atendimento IA</option>
+                  <option value="aguardando-pagamento">Aguardando Pagamento</option>
+                  <option value="confirmado">Confirmado</option>
+                  <option value="checkin-hoje">Check-in Hoje</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsAddGuestOpen(false)}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAddGuest}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+            >
+              Salvar Hóspede
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DDCShell>
   );
 }
