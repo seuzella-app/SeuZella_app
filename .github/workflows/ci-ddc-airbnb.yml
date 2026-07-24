@@ -9,10 +9,14 @@ on:
     paths:
       - 'src/app/ddc/airbnb/**'
 
+permissions:
+  contents: read
+
 jobs:
   validate-ddc-airbnb:
     name: Validate DDC Airbnb Component & Types
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       NEXTAUTH_SECRET: 'ci-secret-antigravity-key-32chars'
       NEXTAUTH_URL: 'http://localhost:3000'

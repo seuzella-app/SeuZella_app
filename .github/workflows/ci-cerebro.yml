@@ -11,10 +11,14 @@ on:
       - 'src/lib/cerebro/**'
       - 'src/app/api/zcc/**'
 
+permissions:
+  contents: read
+
 jobs:
   validate-cerebro:
     name: Validate Cérebro Zélla Engine
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout Repository

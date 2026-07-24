@@ -13,10 +13,14 @@ on:
       - 'src/components/zcc/**'
       - 'src/app/api/zcc/**'
 
+permissions:
+  contents: read
+
 jobs:
   validate-zcc-control:
     name: Validate ZCC Command Center Components & APIs
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       NEXTAUTH_SECRET: 'ci-secret-antigravity-key-32chars'
       NEXTAUTH_URL: 'http://localhost:3000'

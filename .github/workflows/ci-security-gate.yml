@@ -13,10 +13,14 @@ on:
       - 'tests/**'
       - 'src/lib/zcc-security.ts'
 
+permissions:
+  contents: read
+
 jobs:
   security-tests:
     name: Run Vitest Security & Messaging Suite
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       NEXTAUTH_SECRET: 'ci-secret-antigravity-key-32chars'
       NEXTAUTH_URL: 'http://localhost:3000'

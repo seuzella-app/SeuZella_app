@@ -9,10 +9,14 @@ on:
     paths:
       - 'src/app/ddc/pousada/**'
 
+permissions:
+  contents: read
+
 jobs:
   validate-ddc-pousada:
     name: Validate DDC Pousadas Component & Types
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       NEXTAUTH_SECRET: 'ci-secret-antigravity-key-32chars'
       NEXTAUTH_URL: 'http://localhost:3000'
