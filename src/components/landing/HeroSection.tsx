@@ -166,47 +166,126 @@ export function HeroSection() {
               <span className="sm:border-l sm:border-white/10 sm:pl-6 text-neutral-300 font-bold tracking-tight">{isPousada ? '+100 pousadas já atendem melhor com o Zélla' : '+100 anfitriões já atendem melhor com o Zélla'}</span>
             </motion.div>
 
-            {/* ── CTA button — compact with shimmer effect ── */}
+            {/* ── CTA buttons & Link Shortcuts ── */}
             <motion.div
               variants={staggerItem}
               key={`cta-${niche}`}
-              className="mt-7"
+              className="mt-8 flex flex-wrap items-center justify-center gap-4"
             >
-              {niche === 'pousada' ? (
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <button
-                    onClick={() => {
-                      const el = document.querySelector('#precos');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-400 hover:to-emerald-500 transition-all duration-200 shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 text-sm active:scale-[0.98] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]"
-                    style={shimmerStyle}
-                  >
-                    Conhecer planos
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" />
-                  </button>
-                  <a
-                    href="/parceiro"
-                    className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-white font-semibold rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all duration-200 shadow-2xl shadow-amber-500/30 hover:shadow-amber-500/50 text-sm active:scale-[0.98] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]"
-                    style={shimmerStyle}
-                  >
-                    Quero ser parceiro
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" />
-                  </a>
+              <button
+                onClick={() => {
+                  const el = document.querySelector('#precos');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`group inline-flex items-center justify-center gap-2 px-8 py-4 ${isPousada ? 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/30' : 'bg-rose-500 hover:bg-rose-400 shadow-rose-500/30'} text-white font-bold rounded-xl transition-all duration-200 shadow-2xl text-sm active:scale-[0.98] hover:scale-[1.02]`}
+              >
+                Conhecer Planos & Preços
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" />
+              </button>
+
+              <a
+                href={isPousada ? "/ddc/pousada" : "/ddc/airbnb"}
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl transition-all duration-200 border border-white/20 text-sm active:scale-[0.98] hover:scale-[1.02] backdrop-blur-md"
+              >
+                Ver Dashboard {isPousada ? "Pousada" : "Airbnb"}
+                <Sparkles className="w-4 h-4 text-amber-400" />
+              </a>
+
+              <a
+                href="/zcc"
+                className="group inline-flex items-center justify-center gap-2 px-6 py-4 bg-slate-900/80 hover:bg-slate-800 text-emerald-400 font-medium rounded-xl transition-all duration-200 border border-emerald-500/30 text-sm backdrop-blur-md"
+              >
+                Painel ZCC Admin
+              </a>
+            </motion.div>
+
+            {/* ── LIVE INTERACTIVE WHATSAPP MOCKUP SIMULATOR ── */}
+            <motion.div
+              variants={staggerItem}
+              className="mt-14 w-full max-w-2xl mx-auto rounded-3xl border border-white/15 bg-gradient-to-b from-zinc-900/90 to-black/95 p-4 sm:p-6 shadow-2xl backdrop-blur-2xl text-left relative overflow-hidden"
+            >
+              {/* Header do WhatsApp Mockup */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-400 text-sm">
+                      ZÉ
+                    </div>
+                    <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-zinc-900"></span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      Zélla IA {isPousada ? '— Pousada Paraty' : '— Flat Copacabana'}
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        Atendimento 24/7
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-zinc-400">Resposta instantânea em &lt; 0.8s • 0% Comissão OTA</p>
+                  </div>
                 </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    const el = document.querySelector('#precos');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-400 hover:to-blue-500 transition-all duration-200 shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/50 text-sm active:scale-[0.98] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]"
-                  style={shimmerStyle}
-                >
-                  Conhecer planos
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" />
-                </button>
-              )}
+                <div className="text-right hidden sm:block">
+                  <span className="text-[10px] text-zinc-500 block">Orçamento Meta</span>
+                  <span className="text-xs font-semibold text-emerald-400">80% Economia</span>
+                </div>
+              </div>
+
+              {/* Corpo da Conversa Animada */}
+              <div className="space-y-3 text-xs sm:text-sm">
+                {/* Balão 1: Hóspede */}
+                <div className="flex justify-start">
+                  <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] border border-zinc-700/50">
+                    <p>Olá! Tem vaga na {isPousada ? 'suíte casal pro próximo fim de semana' : 'acomodação do Airbnb pras próximas datas'}? Qual o valor?</p>
+                    <span className="text-[9px] text-zinc-500 block text-right mt-1">14:32</span>
+                  </div>
+                </div>
+
+                {/* Balão 2: Zélla IA */}
+                <div className="flex justify-end">
+                  <div className="bg-emerald-950/80 text-emerald-100 rounded-2xl rounded-tr-none px-4 py-3 max-w-[88%] border border-emerald-500/30 shadow-lg">
+                    <p className="font-semibold text-emerald-300 mb-1">
+                      {isPousada ? 'Olá! Temos sim! ✨ Suíte Master Luxo disponível.' : 'Olá! Imóvel disponível e limpinho pra você! ✨'}
+                    </p>
+                    <p className="text-zinc-200 leading-relaxed">
+                      {isPousada ? 'R$ 450/noite com café da manhã incluso. Para garantir direto sem taxas adicionais:' : 'R$ 380/noite sem taxa de limpeza extra. Para reservar nativamente:'}
+                    </p>
+                    {isPousada ? (
+                      <div className="mt-2 p-2 rounded-lg bg-black/40 border border-emerald-500/20 text-xs font-mono text-emerald-300">
+                        💳 <strong>PIX (CNPJ):</strong> 12.345.678/0001-90
+                      </div>
+                    ) : (
+                      <div className="mt-2 p-2 rounded-lg bg-black/40 border border-rose-500/20 text-xs font-mono text-rose-300">
+                        🛡️ <strong>Airbnb Direct:</strong> Reserva 100% Nativa protegida
+                      </div>
+                    )}
+                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:32 • Resposta em 0.6s</span>
+                  </div>
+                </div>
+
+                {/* Balão 3: Hóspede */}
+                <div className="flex justify-start">
+                  <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] border border-zinc-700/50">
+                    <p>{isPousada ? 'Show! PIX realizado.' : 'Maravilha, reserva efetuada no aplicativo!'}</p>
+                    <span className="text-[9px] text-zinc-500 block text-right mt-1">14:33</span>
+                  </div>
+                </div>
+
+                {/* Balão 4: Zélla IA (Confirmação + Guia) */}
+                <div className="flex justify-end">
+                  <div className="bg-emerald-950/90 text-emerald-100 rounded-2xl rounded-tr-none px-4 py-3 max-w-[88%] border border-emerald-400/40 shadow-xl">
+                    <p className="font-bold text-emerald-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      Reserva Confirmada com Sucesso!
+                    </p>
+                    <p className="text-zinc-200 mt-1 text-xs">
+                      Seu Guia Digital DDC já está pronto com a senha do Wi-Fi, fechadura eletrônica e passeios da região.
+                    </p>
+                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-medium border border-emerald-500/40">
+                      📱 <span>Acessar Guia Digital do Hóspede</span>
+                    </div>
+                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:33 • Zélla Brain v5.2</span>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
           </motion.div>

@@ -314,8 +314,24 @@ export function DDCShell({
               </div>
             </div>
 
-            {/* Right: User Menu */}
+            {/* Middle: Live Status Ticker */}
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-zinc-300 font-medium">
+                {niche === 'pousada' 
+                  ? '🟢 ZÉLLA ATIVO • Resposta em 0.6s • 80% Economia WhatsApp • Booking.com Sincronizado'
+                  : '🛡️ PIX GATEKEEPER ATIVO • 100% Proteção contra Banimento Airbnb • Selo Superhost'}
+              </span>
+            </div>
+
+            {/* Right: User Menu & Quick Links */}
             <div className="flex items-center gap-2">
+              <Link
+                href="/zcc"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-semibold transition-all"
+              >
+                <span>Painel ZCC</span>
+              </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
