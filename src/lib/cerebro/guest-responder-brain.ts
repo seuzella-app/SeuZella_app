@@ -125,10 +125,7 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
     let pixFiltered = false;
 
     if (channel === 'airbnb_inbox') {
-      const cleaned = filterPixFromResponse(rawResponse, {
-        platform: 'airbnb',
-        conversationMode: 'pre_booking',
-      });
+      const cleaned = filterPixFromResponse(rawResponse, 'airbnb_app');
       pixFiltered = cleaned !== rawResponse;
       finalResponse = cleaned;
     }
