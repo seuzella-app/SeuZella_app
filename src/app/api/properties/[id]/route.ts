@@ -15,8 +15,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const property = await db.airBProperty.findUnique({
-      where: { id, isActive: true },
+    const property = await db.airBProperty.findFirst({
+      where: { id, status: 'active' },
     });
 
     if (!property) {
@@ -98,7 +98,7 @@ export async function DELETE(
     // Soft delete
     await db.airBProperty.update({
       where: { id },
-      data: { isActive: false },
+      data: { status: 'inactive' },
     });
 
     return NextResponse.json({ success: true, message: 'Propriedade removida com sucesso.' });

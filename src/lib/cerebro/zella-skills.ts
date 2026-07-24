@@ -45,6 +45,7 @@ export interface ZellaSkill {
   /** Aplicar apenas a tenants com niche específico? */
   nicheFilter?: 'pousada' | 'airbnb' | 'all';
   /** Aplicar apenas a planos específicos? */
+  planFilter?: string[];
 }
 
 // ── Skills Definitions ────────────────────────────────────────────────────

@@ -12,8 +12,7 @@ export async function GET() {
   try {
     // Get the first active tenant (demo mode)
     const tenant = await db.tenant.findFirst({
-      where: { isActive: true },
-      include: { plan: true },
+      where: { status: 'active' },
     });
 
     if (!tenant) {
@@ -33,25 +32,25 @@ export async function GET() {
       aiMessages,
       recentConversations,
     ] = await Promise.all([
-      db.airBProperty.count({ where: { tenantId: tenant.id, isActive: true } }),
-      db.airBProperty.count({ where: { tenantId: tenant.id, isActive: true, scrapingStatus: 'complete' } }),
-      db.airBProperty.count({ where: { tenantId: tenant.id, isActive: true, scrapingStatus: 'pending' } }),
-      db.conversation.count({ where: { tenantId: tenant.id } }),
-      db.conversation.count({ where: { tenantId: tenant.id, status: 'active' } }),
-      db.conversation.count({ where: { tenantId: tenant.id, conversationMode: 'pre_booking' } }),
-      db.conversation.count({ where: { tenantId: tenant.id, conversationMode: 'post_booking' } }),
-      db.message.count({
+      db.airBProperty.count({ where: { tenantId: tenant.id, status: 'active' } }),
+      db.airBProperty.count({ where: { tenantId: tenant.id, status: 'active' } }),
+      db.airBProperty.count({ where: { tenantId: tenant.id, status: 'inactive' } }),
+      db.airBConversation.count({ where: { tenantId: tenant.id } }),
+      db.airBConversation.count({ where: { tenantId: tenant.id, status: 'active' } }),
+      db.airBConversation.count({ where: { tenantId: tenant.id, mode: 'pre_booking' } }),
+      db.airBConversation.count({ where: { tenantId: tenant.id, mode: 'post_booking' } }),
+      db.airBMessage.count({
         where: {
           conversation: { tenantId: tenant.id },
         },
       }),
-      db.message.count({
+      db.airBMessage.count({
         where: {
           conversation: { tenantId: tenant.id },
           isAiGenerated: true,
         },
       }),
-      db.conversation.findMany({
+      db.airBConversation.findMany({
         where: { tenantId: tenant.id },
         orderBy: { updatedAt: 'desc' },
         take: 5,
@@ -68,7 +67,7 @@ export async function GET() {
     const estimatedLLMCost = aiMessages * 0.005; // Rough estimate
 
     // Plan info
-    const planConfig = PLAN_CONFIG[tenant.planSlug as PlanSlug];
+    const planConfig = PLAN_CONFIG[tenant.plan as PlanSlug];
     const planInfo = planConfig ? {
       slug: planConfig.slug,
       name: planConfig.name,
@@ -82,8 +81,8 @@ export async function GET() {
       tenant: {
         id: tenant.id,
         name: tenant.name,
-        mode: tenant.mode,
-        onboardingComplete: tenant.onboardingComplete,
+        mode: tenant.niche,
+        onboardingComplete: true,
       },
       plan: planInfo,
       properties: {
@@ -108,11 +107,11 @@ export async function GET() {
         estimatedLLMCost: Math.round(estimatedLLMCost * 100) / 100,
         totalEstimated: Math.round((estimatedWhatsappCost + estimatedLLMCost) * 100) / 100,
       },
-      recentConversations: recentConversations.map(c => ({
+      recentConversations: recentConversations.map((c) => ({
         id: c.id,
         guestName: c.guestName,
         guestPhone: c.guestPhone,
-        mode: c.conversationMode,
+        mode: c.mode,
         status: c.status,
         property: c.property?.name ?? 'Sem imóvel',
         lastMessage: c.messages[0]?.content?.substring(0, 80) ?? '',

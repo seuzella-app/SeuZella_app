@@ -10,7 +10,7 @@ import { db } from '@/lib/db';
 export async function GET(request: NextRequest) {
   try {
     // Get the first active tenant (demo mode)
-    const tenant = await db.tenant.findFirst({ where: { isActive: true } });
+    const tenant = await db.tenant.findFirst({ where: { status: 'active' } });
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
     }

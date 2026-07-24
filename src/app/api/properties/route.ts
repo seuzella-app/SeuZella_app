@@ -15,7 +15,7 @@ const DEMO_TENANT_ID = 'demo';
 async function getTenantId(request: NextRequest): Promise<string | null> {
   // TODO: In production, extract from auth session
   // For now, find the first tenant
-  const tenant = await db.tenant.findFirst({ where: { isActive: true } });
+  const tenant = await db.tenant.findFirst({ where: { status: 'active' } });
   return tenant?.id ?? null;
 }
 
@@ -27,32 +27,25 @@ export async function GET(request: NextRequest) {
     }
 
     const properties = await db.airBProperty.findMany({
-      where: { tenantId, isActive: true },
+      where: { tenantId, status: 'active' },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
         airbnbId: true,
-        listingUrl: true,
+        airbnbUrl: true,
         name: true,
         propertyType: true,
-        accommodates: true,
+        maxGuests: true,
         bedrooms: true,
-        beds: true,
         bathrooms: true,
         neighborhood: true,
         city: true,
         state: true,
-        rating: true,
-        reviewCount: true,
-        basePrice: true,
+        pricePerNight: true,
         currency: true,
         amenities: true,
-        photoCount: true,
-        highlights: true,
-        aiSummary: true,
-        scrapingStatus: true,
-        lastScrapedAt: true,
-        isActive: true,
+        status: true,
+        scrapedAt: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -61,17 +54,17 @@ export async function GET(request: NextRequest) {
     // Get tenant info for feature gating
     const tenant = await db.tenant.findUnique({
       where: { id: tenantId },
-      include: { plan: true },
     });
 
     const currentCount = properties.length;
-    const maxCount = tenant ? getMaxProperties(tenant.planSlug) : 0;
+    const planSlug = tenant?.plan || 'gratuito';
+    const maxCount = tenant ? getMaxProperties(planSlug) : 0;
 
     return NextResponse.json({
       properties,
       count: currentCount,
       maxProperties: maxCount,
-      canAddMore: tenant ? canAddProperty(tenant.planSlug, currentCount) : false,
+      canAddMore: tenant ? canAddProperty(planSlug, currentCount) : false,
     });
   } catch (error) {
     console.error('[api/properties] GET Error:', error);
@@ -92,7 +85,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const tenant = await db.tenant.findUnique({
       where: { id: tenantId },
-      include: { plan: true },
     });
 
     if (!tenant) {
@@ -101,73 +93,43 @@ export async function POST(request: NextRequest) {
 
     // Check property limit
     const currentCount = await db.airBProperty.count({
-      where: { tenantId, isActive: true },
+      where: { tenantId, status: 'active' },
     });
 
-    if (!canAddProperty(tenant.planSlug, currentCount)) {
+    const planSlug = tenant.plan || 'gratuito';
+
+    if (!canAddProperty(planSlug, currentCount)) {
       return NextResponse.json(
-        { error: `Limite de ${getMaxProperties(tenant.planSlug)} imóveis atingido para o plano ${tenant.planSlug.toUpperCase()}. Considere fazer upgrade.` },
+        { error: `Limite de ${getMaxProperties(planSlug)} imóveis atingido para o plano ${planSlug.toUpperCase()}. Considere fazer upgrade.` },
         { status: 403 }
       );
     }
 
     const {
-      // From scraping (Camada 1 + 2)
       airbnbId,
-      listingUrl,
+      airbnbUrl,
       name,
       description,
       propertyType,
-      accommodates,
+      maxGuests,
       bedrooms,
-      beds,
       bathrooms,
       neighborhood,
       city,
       state,
-      country,
-      fullAddress,
+      address,
       latitude,
       longitude,
-      rating,
-      reviewCount,
-      basePrice,
+      pricePerNight,
       currency,
       amenities,
-      photos,
-      photoCount,
       houseRules,
-      checkInTime,
-      checkOutTime,
-      hostName,
-      hostIsSuperhost,
-      hostResponseRate,
-      hostResponseTime,
-      aiSummary,
-      highlights,
-      targetAudience,
-      sellingPoints,
-      localTipsFromReviews,
-      reviewSentiment,
-      keywords,
-      // From host (Camada 3)
+      checkinTime,
+      checkoutTime,
       wifiName,
       wifiPassword,
-      lockboxCode,
-      lockboxLocation,
-      accessInstructions,
-      emergencyContact,
-      maintenanceContact,
-      parkingSpot,
-      personalLocalTips,
-      favoriteRestaurants,
-      supermarketLocation,
-      additionalRules,
-      quietHoursStart,
-      quietHoursEnd,
-      customCheckInInstructions,
-      customCheckOutInstructions,
-      internalNotes,
+      lockProvider,
+      lockCode,
     } = body;
 
     if (!airbnbId || !name) {
@@ -178,8 +140,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate
-    const existing = await db.airBProperty.findUnique({
-      where: { tenantId_airbnbId: { tenantId, airbnbId: String(airbnbId) } },
+    const existing = await db.airBProperty.findFirst({
+      where: { tenantId, airbnbId: String(airbnbId) },
     });
 
     if (existing) {
@@ -193,61 +155,31 @@ export async function POST(request: NextRequest) {
       data: {
         tenantId,
         airbnbId: String(airbnbId),
-        listingUrl,
+        airbnbUrl,
         name,
-        description,
-        propertyType,
-        accommodates: accommodates ? Number(accommodates) : null,
-        bedrooms: bedrooms ? Number(bedrooms) : null,
-        beds: beds ? Number(beds) : null,
-        bathrooms: bathrooms ? Number(bathrooms) : null,
-        neighborhood,
-        city,
-        state,
-        country,
-        fullAddress,
-        latitude: latitude ? Number(latitude) : null,
-        longitude: longitude ? Number(longitude) : null,
-        rating: rating ? Number(rating) : null,
-        reviewCount: reviewCount ? Number(reviewCount) : null,
-        basePrice: basePrice ? Number(basePrice) : null,
+        description: description || '',
+        propertyType: propertyType || 'apartment',
+        maxGuests: maxGuests ? Number(maxGuests) : 2,
+        bedrooms: bedrooms ? Number(bedrooms) : 1,
+        bathrooms: bathrooms ? Number(bathrooms) : 1,
+        neighborhood: neighborhood || '',
+        city: city || '',
+        state: state || '',
+        address: address || '',
+        latitude: latitude ? Number(latitude) : undefined,
+        longitude: longitude ? Number(longitude) : undefined,
+        pricePerNight: pricePerNight ? Number(pricePerNight) : undefined,
         currency: currency || 'BRL',
-        amenities: amenities ? (typeof amenities === 'string' ? amenities : JSON.stringify(amenities)) : null,
-        photos: photos ? (typeof photos === 'string' ? photos : JSON.stringify(photos)) : null,
-        photoCount: photoCount ? Number(photoCount) : null,
-        houseRules,
-        checkInTime,
-        checkOutTime,
-        hostName,
-        hostIsSuperhost: hostIsSuperhost ?? false,
-        hostResponseRate: hostResponseRate ? Number(hostResponseRate) : null,
-        hostResponseTime,
-        aiSummary,
-        highlights: highlights ? (typeof highlights === 'string' ? highlights : JSON.stringify(highlights)) : null,
-        targetAudience: targetAudience ? (typeof targetAudience === 'string' ? targetAudience : JSON.stringify(targetAudience)) : null,
-        sellingPoints: sellingPoints ? (typeof sellingPoints === 'string' ? sellingPoints : JSON.stringify(sellingPoints)) : null,
-        localTipsFromReviews: localTipsFromReviews ? (typeof localTipsFromReviews === 'string' ? localTipsFromReviews : JSON.stringify(localTipsFromReviews)) : null,
-        reviewSentiment,
-        keywords: keywords ? (typeof keywords === 'string' ? keywords : JSON.stringify(keywords)) : null,
+        amenities: amenities ? (typeof amenities === 'string' ? amenities : JSON.stringify(amenities)) : '[]',
+        houseRules: houseRules ? (typeof houseRules === 'string' ? houseRules : JSON.stringify(houseRules)) : '[]',
+        checkinTime: checkinTime || '15:00',
+        checkoutTime: checkoutTime || '11:00',
         wifiName,
         wifiPassword,
-        lockboxCode,
-        lockboxLocation,
-        accessInstructions,
-        emergencyContact,
-        maintenanceContact,
-        parkingSpot,
-        personalLocalTips,
-        favoriteRestaurants,
-        supermarketLocation,
-        additionalRules,
-        quietHoursStart,
-        quietHoursEnd,
-        customCheckInInstructions,
-        customCheckOutInstructions,
-        internalNotes,
-        scrapingStatus: body.scrapingStatus || 'complete',
-        lastScrapedAt: new Date(),
+        lockProvider,
+        lockCode,
+        status: 'active',
+        scrapedAt: new Date(),
       },
     });
 

@@ -138,7 +138,8 @@ export async function POST(request: NextRequest) {
     const messageText = message.text?.body || '';
 
     // Resolver Tenant com base no número receptor da pousada
-    const tenantId = await resolveTenantByPhone(displayPhoneNumber);
+    const tenantResult = await resolveTenantByPhone(displayPhoneNumber);
+    const tenantId = tenantResult.tenantId;
 
     // SECURITY: Validate tenant isolation
     const tenantValidation = validateWebhookTenant(displayPhoneNumber, tenantId);

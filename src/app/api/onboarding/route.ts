@@ -10,15 +10,15 @@ import { db } from '@/lib/db';
 
 export async function GET() {
   try {
-    const tenant = await db.tenant.findFirst({ where: { isActive: true } });
+    const tenant = await db.tenant.findFirst({ where: { status: 'active' } });
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
     }
 
     return NextResponse.json({
-      onboardingComplete: tenant.onboardingComplete,
-      mode: tenant.mode,
-      planSlug: tenant.planSlug,
+      onboardingComplete: true,
+      mode: tenant.niche,
+      planSlug: tenant.plan,
       name: tenant.name,
     });
   } catch (error) {
@@ -63,16 +63,17 @@ export async function POST(request: NextRequest) {
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {
       // Update existing user's tenant
-      const existingTenant = await db.tenant.findUnique({ where: { userId: existingUser.id } });
+      const existingTenant = await db.tenant.findFirst({
+        where: { users: { some: { id: existingUser.id } } },
+      });
       if (existingTenant) {
         // Update tenant
         await db.tenant.update({
           where: { id: existingTenant.id },
           data: {
             name,
-            mode,
-            planSlug,
-            onboardingComplete: true,
+            niche: mode,
+            plan: planSlug,
           },
         });
 
@@ -87,10 +88,9 @@ export async function POST(request: NextRequest) {
       const tenant = await db.tenant.create({
         data: {
           name,
-          mode,
-          planSlug,
-          onboardingComplete: true,
-          userId: existingUser.id,
+          niche: mode,
+          plan: planSlug,
+          users: { connect: { id: existingUser.id } },
         },
       });
 
@@ -106,13 +106,11 @@ export async function POST(request: NextRequest) {
       data: {
         email,
         name: name,
-        password: password || null,
         tenant: {
           create: {
             name,
-            mode,
-            planSlug,
-            onboardingComplete: true,
+            niche: mode,
+            plan: planSlug,
           },
         },
       },
@@ -124,8 +122,8 @@ export async function POST(request: NextRequest) {
       tenant: user.tenant ? {
         id: user.tenant.id,
         name: user.tenant.name,
-        mode: user.tenant.mode,
-        planSlug: user.tenant.planSlug,
+        mode: user.tenant.niche,
+        planSlug: user.tenant.plan,
       } : null,
       message: 'Onboarding completado com sucesso!',
     }, { status: 201 });
