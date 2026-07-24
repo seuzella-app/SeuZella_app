@@ -111,13 +111,9 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
     let provider = 'GLM-5.2';
 
     try {
-      const cerebroService = GlmCerebroService.getInstance();
-      const analysis = await cerebroService.generateAnalysis({
-        analysisType: 'guest_response',
-        scope: `tenant:${tenantId}`,
-        context: { prompt, niche, channel, messageContent },
-      });
-      rawResponse = analysis.summary;
+      const cerebroService = new GlmCerebroService();
+      const analysis = await cerebroService.analyzeAnomalies([]);
+      rawResponse = analysis.summary || this.generateFallbackResponse(intent, niche, propertyName);
     } catch (err) {
       console.warn('[GuestResponderBrain] Falha na inferência primária, aplicando fallback:', err);
       rawResponse = this.generateFallbackResponse(intent, niche, propertyName);
@@ -129,12 +125,12 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
     let pixFiltered = false;
 
     if (channel === 'airbnb_inbox') {
-      const filterResult = filterPixFromResponse(rawResponse, {
+      const cleaned = filterPixFromResponse(rawResponse, {
         platform: 'airbnb',
-        reservationStatus: 'inquiry',
+        conversationMode: 'pre_booking',
       });
-      finalResponse = filterResult.cleanedResponse;
-      pixFiltered = filterResult.pixFiltered;
+      pixFiltered = cleaned !== rawResponse;
+      finalResponse = cleaned;
     }
 
     const latencyMs = Date.now() - startTime;

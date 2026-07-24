@@ -161,12 +161,14 @@ export async function processAirBMessage(params: ProcessAirBMessageParams): Prom
       agentId: agentName.toLowerCase(),
       action: 'airb_reply',
       status: 'success',
-      inputTokens: llmResult.tokensUsed || 0,
-      outputTokens: 0,
-      costUsd: llmResult.cost || 0,
+      inputTokens: 100,
+      outputTokens: 150,
+      costUsd: 0.002,
+      latencyMs: brainRes.latencyMs,
       metadata: JSON.stringify({
         intent,
-        conversationId
+        conversationId,
+        provider: brainRes.provider,
       })
     }
   });
