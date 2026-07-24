@@ -600,6 +600,8 @@ export function CerebroVivoPanel() {
               </AnimatePresence>
             </div>
           )}
+        </div>
+
         {/* ── Telemetria da Landing Page (Acoplamento de Vendas) ── */}
         <div className="zcc-panel p-4">
           <div className="flex items-center justify-between mb-3">
