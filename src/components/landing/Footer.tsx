@@ -23,6 +23,7 @@ export function Footer() {
   ];
 
   const legalLinks = [
+    { label: 'Central Jurídica (Hub)', href: '/legal' },
     { label: 'Central de Privacidade', href: '/legal/privacidade-central' },
     { label: 'Termos de Uso', href: '/legal/termos-uso' },
     { label: 'Política de Privacidade', href: '/legal/politica-privacidade' },

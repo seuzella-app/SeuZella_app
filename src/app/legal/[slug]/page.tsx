@@ -1,238 +1,363 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Shield, Scale, CreditCard, Lock, Building2 } from 'lucide-react';
+import { ArrowLeft, FileText, Shield, Scale, CreditCard, Lock, Copy, Check, Download, ExternalLink } from 'lucide-react';
+import { ZellaLogoStatic } from '@/components/brand/ZellaLogo';
 
-const LEGAL_PAGES: Record<string, {
+interface Section {
+  heading: string;
+  content: string;
+}
+
+interface LegalDoc {
   title: string;
   subtitle: string;
   icon: React.ElementType;
   lastUpdated: string;
-  sections: { heading: string; content: string }[];
-}> = {
+  badge: string;
+  sections: Section[];
+  markdownFile: string;
+}
+
+const LEGAL_PAGES: Record<string, LegalDoc> = {
   'privacidade-central': {
     title: 'Central de Privacidade',
-    subtitle: 'Gerencie suas preferências de privacidade',
+    subtitle: 'Gerencie suas preferências e entenda como tratamos dados sob a LGPD',
     icon: Shield,
     lastUpdated: '01 de Julho, 2026',
+    badge: 'LGPD Lei 13.709/2018',
+    markdownFile: '01_CENTRAL_DE_PRIVACIDADE.md',
     sections: [
       {
-        heading: 'Sobre a Central de Privacidade',
-        content: 'A Central de Privacidade do Seu Zélla é o espaço onde você pode gerenciar todas as suas preferências relacionadas ao tratamento dos seus dados pessoais. Nossa plataforma coleta e processa dados estritamente necessários para a prestação dos serviços contratados, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018). Aqui você encontra informações detalhadas sobre quais dados coletamos, por que coletamos, por quanto tempo armazenamos e como pode exercer seus direitos como titular.',
+        heading: '1. Apresentação da Central de Privacidade',
+        content: 'A Central de Privacidade da plataforma [NOME FANTASIA - Ex: Seu Zélla] é o portal dedicado à transparência e à gestão de direitos dos titulares de dados pessoais, em cumprimento à Lei Geral de Proteção de Dados Pessoais (LGPD - Lei Federal nº 13.709/2018). Atuamos com o compromisso de proteger a privacidade dos nossos contratantes (pousadas, hotéis boutique e anfitriões de aluguel por temporada) bem como dos seus respectivos hóspedes cujas interações são intermediadas por nossos agentes de Inteligência Artificial.',
       },
       {
-        heading: 'Dados Coletados',
-        content: 'Coletamos os seguintes dados: (i) Dados de cadastro: nome, e-mail, telefone, CNPJ e endereço da pousada; (ii) Dados operacionais: reservas, check-ins, check-outs e preferências de hóspedes; (iii) Dados de comunicação: histórico de conversas via WhatsApp para atendimento ao hóspede; (iv) Dados de pagamento: informações necessárias para processamento via Mercado Pago. Todos os dados são criptografados em trânsito (TLS 1.3) e em repouso (AES-256-GCM).',
+        heading: '2. Mapa do Tratamento de Dados Pessoais',
+        content: 'Tratamos os dados estritamente necessários para viabilizar os serviços: (i) Dados do Contratante: nome, e-mail, telefone, CPF/CNPJ e endereço da propriedade para faturamento e suporte; (ii) Dados dos Hóspedes: nome, número de telefone (WhatsApp) e preferências de acomodação para atendimento automatizado 24/7; (iii) Dados Financeiros: chaves PIX e histórico de pagamentos via [GATEWAY DE PAGAMENTO - Ex: Mercado Pago]; (iv) Registros de Acesso: IP, data/hora e logs de auditoria com retenção legal de 180 dias.',
       },
       {
-        heading: 'Seus Direitos',
-        content: 'Como titular dos dados, você tem direito a: confirmação da existência de tratamento; acesso aos dados; correção de dados incompletos; anonimização, bloqueio ou eliminação de dados desnecessários; portabilidade dos dados; eliminação dos dados tratados com base no seu consentimento; informação sobre compartilhamento de dados; e revogação do consentimento. Para exercer qualquer direito, entre em contato pelo e-mail privacidade@zehla.com.br.',
+        heading: '3. Direitos do Titular (Art. 18 da LGPD)',
+        content: 'Como titular dos dados, você tem direito a: confirmação da existência de tratamento; acesso aos dados; correção de dados incompletos ou desatualizados; anonimização, bloqueio ou eliminação de dados desnecessários; portabilidade dos dados em formato estruturado (JSON/CSV); eliminação dos dados tratados com base no consentimento; informação sobre compartilhamento; e revogação do consentimento.',
+      },
+      {
+        heading: '4. Segurança e Criptografia da Informação',
+        content: 'Adotamos arquitetura de Zero-Trust Security e controles rígidos de segurança: todas as conexões utilizam HTTPS/TLS 1.3; banco de dados criptografado com algoritmo AES-256-GCM; isolamento multi-tenant estrito entre contas; e expurgo automatizado do histórico de conversas do WhatsApp após [RETENÇÃO DE CONVERSAS - Ex: 90 dias].',
+      },
+      {
+        heading: '5. Contato do Encarregado de Proteção de Dados (DPO)',
+        content: 'Para exercer qualquer direito previsto na LGPD ou esclarecer dúvidas, entre em contato diretamente com o nosso DPO pelo e-mail [E-MAIL DPO / PRIVACIDADE - Ex: privacidade@zehla.com.br]. Prazo de resposta oficial: até [PRAZO DE RESPOSTA - Ex: 15 dias úteis].',
       },
     ],
   },
   'termos-uso': {
     title: 'Termos de Uso',
-    subtitle: 'Condições gerais de utilização da plataforma',
+    subtitle: 'Condições gerais de acesso e utilização da plataforma',
     icon: FileText,
     lastUpdated: '01 de Julho, 2026',
+    badge: 'Condições de Uso',
+    markdownFile: '02_TERMOS_DE_USO.md',
     sections: [
       {
         heading: '1. Aceitação dos Termos',
-        content: 'Ao acessar e utilizar a plataforma Seu Zélla ("Plataforma"), você concorda integralmente com estes Termos de Uso. Caso não concorde com qualquer disposição, deverá cessar imediatamente o uso. A Zélla Tecnologia para Hospitalidade LTDA ("Empresa") reserva-se o direito de atualizar estes termos a qualquer momento, notificando os usuários por e-mail ou through da própria Plataforma. O uso continuado após alterações constitui aceitação dos novos termos.',
+        content: 'Ao criar uma conta ou utilizar qualquer funcionalidade da plataforma [NOME FANTASIA - Ex: Seu Zélla] ("Plataforma"), o CONTRATANTE (pousada, hotel ou anfitrião) declara ter lido, compreendido e aceito integralmente estes Termos de Uso. Caso não concorde com qualquer disposição, deverá cessar imediatamente o uso.',
       },
       {
-        heading: '2. Descrição do Serviço',
-        content: 'O Seu Zélla é uma plataforma de automação inteligente para o setor de hospitalidade, que utiliza inteligência artificial para atendimento via WhatsApp, gestão de reservas, geração de PIX para pagamentos e fornecimento de métricas operacionais. Os serviços são oferecidos em modalidade SaaS (Software as a Service), com planos mensais ou anuais conforme tabela disponível na Plataforma. A Empresa não se responsabiliza por interrupções causadas por terceiros (WhatsApp/Meta, provedores de pagamento, operadoras de internet).',
+        heading: '2. Descrição do Serviço SaaS',
+        content: 'A Plataforma é um software fornecido em nuvem na modalidade SaaS (Software as a Service) para automação de hospitalidade, oferecendo: atendimento 24/7 via WhatsApp com Inteligência Artificial, painel de controle operacioanl (DDC), emissão de cobranças via PIX e sincronização de calendários iCal. A [RAZÃO SOCIAL DA EMPRESA LTDA] reserva-se o direito de atualizar e aprimorar as funcionalidades continuamente.',
       },
       {
-        heading: '3. Conta do Usuário',
-        content: 'É responsabilidade do usuário manter a confidencialidade de suas credenciais de acesso. O usuário é responsável por todas as atividades realizadas em sua conta. Em caso de suspeita de acesso não autorizado, o usuário deve notificar imediatamente a Empresa. Contas inativas por mais de 90 dias consecutivos poderão ser suspensas. A Empresa reserva-se o direito de encerrar contas que violem estes Termos.',
+        heading: '3. Cadastro e Responsabilidade das Contas',
+        content: 'É responsabilidade exclusiva do CONTRATANTE manter a confidencialidade de suas credenciais de acesso (e-mail e senha). O CONTRATANTE responde civil e criminalmente por todas as atividades realizadas em sua conta e compromete-se a não utilizar a Plataforma para envio de SPAM ou conteúdo ilícito.',
       },
       {
-        heading: '4. Limitação de Responsabilidade',
-        content: 'A Plataforma é fornecida "como está" (as is). A Empresa não garante disponibilidade ininterrupta, embora se esforce para manter 99,9% de uptime. A Empresa não se responsabiliza por danos indiretos, incidentais ou consequenciais decorrentes do uso ou incapacidade de uso da Plataforma. O valor máximo de responsabilidade da Empresa é limitado ao total pago pelo usuário nos últimos 3 meses anteriores ao evento.',
+        heading: '4. Agentes de IA e Disponibilidade de APIs',
+        content: 'A IA atua como assistente virtual treinada com informações fornecidas pelo CONTRATANTE. O CONTRATANTE pode supervisionar as conversas e intervir a qualquer momento. A integração com o WhatsApp depende da infraestrutura mantida pela Meta Platforms Inc., não se responsabilizando a Plataforma por indisponibilidades globais dos servidores da Meta.',
+      },
+      {
+        heading: '5. Nível de Serviço (SLA) e Foro',
+        content: 'A Plataforma busca manter disponibilidade mensal de [SLA DE DISPONIBILIDADE - Ex: 99,5%]. Para dirimir eventuais controvérsias, as partes elegem o Foro da Comarca de [CIDADE DO FORO DA COMARCA - Ex: Florianópolis/SC].',
       },
     ],
   },
   'politica-privacidade': {
     title: 'Política de Privacidade',
-    subtitle: 'Como tratamos e protegemos seus dados',
+    subtitle: 'Como tratamos, retemos e protegemos suas informações',
     icon: Lock,
     lastUpdated: '01 de Julho, 2026',
+    badge: 'Proteção de Dados',
+    markdownFile: '03_POLITICA_DE_PRIVACIDADE.md',
     sections: [
       {
-        heading: '1. Controlador dos Dados',
-        content: 'O controlador dos dados pessoais é a Zélla Tecnologia para Hospitalidade LTDA, com sede no Brasil, inscrita no CNPJ sob o nº XX.XXX.XXX/0001-XX, e-mail de contato: privacidade@zehla.com.br. Nossa Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos suas informações pessoais em conformidade com a LGPD (Lei 13.709/2018) e demais normas aplicáveis.',
+        heading: '1. Controlador e Operador dos Dados',
+        content: 'A [RAZÃO SOCIAL DA EMPRESA LTDA], inscrita no CNPJ sob o nº [CNPJ Nº XX.XXX.XXX/0001-XX], atua como Controladora dos dados de cadastro e pagamento dos contratantes, e como Operadora dos dados pessoais de hóspedes processados a mando do contratante.',
       },
       {
-        heading: '2. Base Legal para Tratamento',
-        content: 'Tratamos seus dados pessoais com base nas seguintes hipóteses legais previstas na LGPD: (i) Execução de contrato (art. 7º, V) — para prestação dos serviços contratados; (ii) Legítimo interesse (art. 7º, IX) — para melhoria dos serviços e comunicação sobre novos recursos; (iii) Consentimento (art. 7º, I) — quando necessário para finalidades específicas como marketing; (iv) Cumprimento de obrigação legal (art. 7º, II) — para obrigações fiscais e regulatórias.',
+        heading: '2. Bases Legais (Art. 7º da LGPD)',
+        content: 'O tratamento de dados fundamenta-se nas seguintes hipóteses legais: Execução de contrato (art. 7º, V) para prestação dos serviços; Cumprimento de obrigação legal (art. 7º, II) para retenção de logs fiscais e de acesso; Legítimo interesse (art. 7º, IX) para prevenção a fraudes; e Consentimento (art. 7º, I) para envio de comunicados promocionais.',
       },
       {
-        heading: '3. Compartilhamento de Dados',
-        content: 'Seus dados podem ser compartilhados com: (i) Mercado Pago — exclusivamente para processamento de pagamentos, sob contrato de confidencialidade; (ii) Provedores de infraestrutura em nuvem — para hospedagem e processamento dos dados; (iii) WhatsApp Business API (Meta) — para envio e recebimento de mensagens; (iv) Autoridades competentes — quando exigido por lei. A Empresa não vende, aluga ou comercializa seus dados pessoais com terceiros para fins não relacionados ao serviço.',
+        heading: '3. Compartilhamento de Dados com Terceiros',
+        content: 'Não comercializamos dados pessoais. O compartilhamento ocorre exclusivamente com parceiros operacionais indispensáveis: Meta Platforms Inc. (WhatsApp Business API) para envio de mensagens; [GATEWAY DE PAGAMENTO - Ex: Mercado Pago] para processamento financeiro; e provedores de infraestrutura em nuvem [PROVEDOR DE HOSPEDAGEM - Ex: Vercel / AWS / Upstash].',
       },
       {
-        heading: '4. Retenção de Dados',
-        content: 'Os dados pessoais são retidos pelo período necessário para cumprir as finalidades para as quais foram coletados: (i) Dados de cadastro: enquanto a conta estiver ativa e até 5 anos após encerramento para fins legais; (ii) Dados de comunicação WhatsApp: 90 dias, podendo ser excluídos antes mediante solicitação; (iii) Dados de pagamento: 5 anos conforme exigido pela legislação fiscal brasileira; (iv) Dados de acesso/log: 180 dias para fins de segurança.',
+        heading: '4. Retenção e Expurgo de Dados',
+        content: 'Os dados de cadastro são mantidos durante a vigência do contrato mais [PRAZO FISCAL - Ex: 5 anos] para obrigações tributárias. Históricos de mensagens de atendimento no WhatsApp são retidos por [RETENÇÃO DE CONVERSAS - Ex: 90 dias] e descarte definitivo subsequente. Logs de conexão são guardados por 180 dias nos termos do Marco Civil da Internet.',
+      },
+      {
+        heading: '5. Canal do DPO',
+        content: 'Para solicitações relativas a dados pessoais, entre em contato pelo e-mail [E-MAIL DPO / PRIVACIDADE - Ex: privacidade@zehla.com.br].',
       },
     ],
   },
   'politica-cobranca': {
     title: 'Política de Cobrança',
-    subtitle: 'Regras de faturamento e pagamentos',
+    subtitle: 'Regras de faturamento, trial gratuito e renovações',
     icon: CreditCard,
     lastUpdated: '01 de Julho, 2026',
+    badge: 'Faturamento & Reembolso',
+    markdownFile: '04_POLITICA_DE_COBRANCA.md',
     sections: [
       {
-        heading: '1. Planos e Preços',
-        content: 'O Seu Zélla oferece planos mensais e anuais conforme tabela apresentada na Plataforma. Os preços podem ser alterados com 30 dias de aviso prévio por e-mail. O período trial de 7 dias é gratuito e sem compromisso. Ao final do trial, o usuário deve escolher um plano para continuar utilizando a Plataforma. Caso não escolha, a conta é suspensa automaticamente sem cobranças.',
+        heading: '1. Período de Teste Gratuito (Trial 7 Dias)',
+        content: 'Oferecemos um período de teste gratuito de [DURAÇÃO DO TRIAL - Ex: 7 dias] sem exigência de cadastro de cartão de crédito. Ao final do trial, o usuário poderá escolher um plano mensal ou anual para continuar utilizando a Plataforma.',
       },
       {
-        heading: '2. Métodos de Pagamento',
-        content: 'Aceitamos pagamentos via: (i) PIX — através do Mercado Pago, com confirmação instantânea; (ii) Cartão de crédito — Visa, Mastercard, Elo, American Express, com fatura mensal. O pagamento é processado de forma recorrente (assinatura). A primeira cobrança é realizada na data de escolha do plano, e as subsequentes no mesmo dia de cada mês.',
+        heading: '2. Formas de Pagamento Aceitas',
+        content: 'Aceitamos pagamento via PIX (confirmação instantânea e emissão de QR Code) e Cartão de Crédito recorrente (faturamento mensal ou anual nas bandeiras Visa, Mastercard, Elo e Amex). As notas fiscais (NFS-e) são emitidas em até [PRAZO EMISSÃO NF - Ex: 5 dias úteis] após o pagamento.',
       },
       {
-        heading: '3. Cancelamento e Reembolso',
-        content: 'O usuário pode cancelar sua assinatura a qualquer momento pela Plataforma ou por e-mail. O cancelamento é efetivado ao final do período já pago — não há reembolso proporcional de períodos em curso. Após o cancelamento, os dados são mantidos por 90 dias para possível reativação. Após esse período, os dados são excluídos conforme nossa Política de Privacidade. Não há multa ou taxa de cancelamento. Planos anuais possuem desconto e não geram direito a reembolso diferenciado.',
+        heading: '3. Inadimplência e Tolerância',
+        content: 'Em caso de falha no pagamento da mensalidade, a Plataforma concede [DIAS DE TOLERÂNCIA - Ex: 3 dias úteis] de tolerância para atualização dos dados de pagamento sem pausa do serviço. Transcorrido o prazo, o acesso é suspenso temporariamente até a regularização. Não cobramos multas por atraso.',
       },
       {
-        heading: '4. Inadimplência',
-        content: 'Caso o pagamento não seja aprovado, o usuário tem 3 dias úteis para atualizar os dados de pagamento. Durante esse período, a Plataforma continua funcionando normalmente. Após 3 dias sem pagamento, o acesso é suspenso até a regularização. Não há cobrança de juros ou multa por atraso — o serviço é simplesmente pausado. Após 30 dias de inadimplência, a conta pode ser encerrada.',
+        heading: '4. Cancelamento e Direito de Arrependimento',
+        content: 'O cancelamento pode ser efetuado a qualquer momento no painel do usuário ou pelo e-mail [E-MAIL DE SUPORTE - Ex: suporte@zehla.com.br]. O serviço permanece ativo até o fim do período faturado. Conforme o Art. 49 do CDC, compras por pessoas físicas possuem garantia de reembolso total em até 7 dias da contratação inicial.',
       },
     ],
   },
   'contrato-saas': {
-    title: 'Contrato de Prestação de Serviços SaaS',
-    subtitle: 'Acordo de licença e uso da plataforma',
+    title: 'Contrato SaaS',
+    subtitle: 'Minuta de contrato de licença de software em nuvem',
     icon: Scale,
     lastUpdated: '01 de Julho, 2026',
+    badge: 'Licença de Software',
+    markdownFile: '05_CONTRATO_SAAS.md',
     sections: [
       {
-        heading: 'CLÁUSULA 1 — DAS PARTES',
-        content: 'De um lado, ZÉLLA TECNOLOGIA PARA HOSPITALIDADE LTDA, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº XX.XXX.XXX/0001-XX, com sede na [Endereço], doravante denominada "CONTRATADA". De outro lado, o usuário pessoa jurídica ou física que adere à Plataforma, doravante denominado "CONTRATANTE". As partes agreezam este Contrato de Prestação de Serviços SaaS, mediante as cláusulas e condições seguintes.',
+        heading: 'CLÁUSULA 1ª — DO OBJETO DO CONTRATO',
+        content: 'Licença de uso temporária, não exclusiva e revogável da Plataforma [NOME FANTASIA - Ex: Seu Zélla] (Software as a Service) para automação de atendimento via WhatsApp com IA, gestão de reservas, conciliação PIX e métricas operacionais.',
       },
       {
-        heading: 'CLÁUSULA 2 — DO OBJETO',
-        content: 'O objeto deste contrato é a prestação de serviços de plataforma digital (SaaS) denominada "Seu Zélla", que inclui: (i) Atendimento automatizado via WhatsApp com inteligência artificial; (ii) Dashboard de controle operacional (DDC); (iii) Geração de links de pagamento PIX; (iv) Métricas e relatórios de desempenho; (v) Integração com canais de reserva. Os serviços são fornecidos exclusivamente de forma remota, por meio da internet.',
+        heading: 'CLÁUSULA 2ª — DAS OBRIGAÇÕES DA CONTRATADA',
+        content: 'Garantir disponibilidade da Plataforma com SLA de [SLA DE DISPONIBILIDADE - Ex: 99,5%], manter sigilo dos dados do CONTRATANTE com criptografia AES-256-GCM e prestar suporte técnico nos canais oficiais.',
       },
       {
-        heading: 'CLÁUSULA 3 — DO PRAZO E RESCISÃO',
-        content: 'O contrato tem prazo indeterminado, iniciando-se na data de adesão ao plano escolhido. Qualquer das partes pode rescindir o contrato a qualquer momento, sem necessidade de notificação prévia ou justificativa. O CONTRATANTE não será cobrado por períodos futuros após o cancelamento. A rescisão não exime o CONTRATANTE do pagamento dos valores referentes ao período já utilizado. Os dados do CONTRATANTE serão mantidos por 90 dias após a rescisão para possível reativação.',
+        heading: 'CLÁUSULA 3ª — DAS OBRIGAÇÕES DO CONTRATANTE',
+        content: 'Manter credenciais seguras, utilizar a Plataforma em observância à legislação vigente, proibir o envio de SPAM e efetuar pontualmente o pagamento dos valores do plano contratado.',
       },
       {
-        heading: 'CLÁUSULA 4 — DA PROPRIEDADE INTELECTUAL',
-        content: 'Todos os direitos de propriedade intelectual relacionados à Plataforma, incluindo mas não se limitando a software, design, marca, logotipos, base de conhecimento de IA e documentação, são de titularidade exclusiva da CONTRATADA. O CONTRATANTE recebe uma licença limitada, não exclusiva, intransferível e revogável para utilizar a Plataforma exclusivamente para seus fins internos de hospedagem. É vedada a reprodução, modificação, distribuição ou engenharia reversa de qualquer elemento da Plataforma.',
-      },
-      {
-        heading: 'CLÁUSULA 5 — DA LGPD E PROTEÇÃO DE DADOS',
-        content: 'As partes comprometem-se a observar a Lei Geral de Proteção de Dados (LGPD) e demais normas aplicáveis à proteção de dados pessoais. A CONTRATADA atua como operadora de dados em relação aos dados dos hóspedes do CONTRATANTE, processando-os exclusivamente conforme instruções do CONTRATANTE e para as finalidades descritas neste contrato. A CONTRATADA implementa medidas técnicas e organizacionais adequadas para proteger os dados, incluindo criptografia AES-256-GCM e TLS 1.3.',
+        heading: 'CLÁUSULA 4ª — VIGÊNCIA, RESCISÃO E FORO',
+        content: 'Vigência por prazo indeterminado. Rescisão livre a qualquer momento sem incidência de multa para planos mensais. Foro eleito: Comarca de [CIDADE DO FORO DA COMARCA - Ex: Florianópolis/SC].',
       },
     ],
   },
 };
 
-const FALLBACK = {
-  title: 'Página não encontrada',
-  subtitle: 'O documento jurídico solicitado não existe',
+const FALLBACK: LegalDoc = {
+  title: 'Documento não encontrado',
+  subtitle: 'O documento jurídico solicitado não está disponível',
   icon: FileText,
   lastUpdated: '',
+  badge: 'Erro 404',
+  markdownFile: '',
   sections: [],
 };
 
 const SLUG_LIST = [
-  { slug: 'privacidade-central', label: 'Central de Privacidade' },
-  { slug: 'termos-uso', label: 'Termos de Uso' },
-  { slug: 'politica-privacidade', label: 'Política de Privacidade' },
-  { slug: 'politica-cobranca', label: 'Política de Cobrança' },
-  { slug: 'contrato-saas', label: 'Contrato SaaS' },
+  { slug: 'privacidade-central', label: 'Central de Privacidade', icon: Shield },
+  { slug: 'termos-uso', label: 'Termos de Uso', icon: FileText },
+  { slug: 'politica-privacidade', label: 'Política de Privacidade', icon: Lock },
+  { slug: 'politica-cobranca', label: 'Política de Cobrança', icon: CreditCard },
+  { slug: 'contrato-saas', label: 'Contrato SaaS', icon: Scale },
 ];
 
-export default function LegalPage() {
+export default function LegalDocumentPage() {
   const params = useParams<{ slug: string }>();
   const page = LEGAL_PAGES[params.slug] ?? FALLBACK;
   const Icon = page.icon;
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyMarkdown = () => {
+    const fullText = `# ${page.title}\n${page.subtitle}\n\n` + 
+      page.sections.map(s => `## ${s.heading}\n${s.content}`).join('\n\n');
+    navigator.clipboard.writeText(fullText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/[0.05]">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
-          <Link
-            href="/"
-            className="text-white/30 hover:text-white/60 transition-colors p-1.5 rounded-lg hover:bg-white/[0.04]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-              <Building2 className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-sm font-bold text-white tracking-tight">Seu <span className="text-emerald-400">ZÉLLA</span></span>
+    <div className="min-h-screen bg-[#080808] text-white">
+      {/* Top Header */}
+      <header className="sticky top-0 z-50 bg-[#080808]/90 backdrop-blur-xl border-b border-white/[0.05]">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/legal"
+              className="text-neutral-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/[0.05] flex items-center gap-2 text-xs font-medium"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Central Jurídica</span>
+            </Link>
+            <div className="h-4 w-px bg-white/10 hidden sm:block" />
+            <ZellaLogoStatic />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleCopyMarkdown}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-neutral-300 transition-all"
+              title="Copiar texto do documento para a área de transferência"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400">Copiado!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-neutral-400" />
+                  <span>Copiar Documento</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Content */}
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        {/* Page Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <Icon className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white">{page.title}</h1>
-              <p className="text-sm text-neutral-400 mt-0.5">{page.subtitle}</p>
-            </div>
-          </div>
-          {page.lastUpdated && (
-            <p className="text-xs text-neutral-500 ml-[52px]">Última atualização: {page.lastUpdated}</p>
-          )}
-        </div>
-
-        {/* Sections */}
-        <div className="space-y-8">
-          {page.sections.map((section, i) => (
-            <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-6 md:p-8">
-              <h2 className="text-lg font-semibold text-white mb-3">{section.heading}</h2>
-              <p className="text-sm text-neutral-400 leading-relaxed">{section.content}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* No sections fallback */}
-        {page.sections.length === 0 && (
-          <div className="text-center py-16">
-            <FileText className="w-12 h-12 text-neutral-600 mx-auto mb-4" />
-            <p className="text-neutral-400 text-sm mb-6">Documento não encontrado.</p>
-            <Link href="/" className="text-emerald-400 text-sm font-semibold hover:text-emerald-300 transition-colors">
-              Voltar ao início
-            </Link>
-          </div>
-        )}
-
+      {/* Main Content Layout */}
+      <main className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+        
         {/* Sidebar Navigation */}
-        <div className="mt-12 pt-8 border-t border-white/[0.05]">
-          <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-widest mb-4">Documentos Jurídicos</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {SLUG_LIST.map((item) => (
-              <Link
-                key={item.slug}
-                href={`/legal/${item.slug}`}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all ${
-                  params.slug === item.slug
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-white/[0.02] text-neutral-400 hover:text-white hover:bg-white/[0.04] border border-white/[0.04]'
-                }`}
-              >
-                <FileText className="w-4 h-4 shrink-0" />
-                {item.label}
-              </Link>
+        <aside className="lg:col-span-3 space-y-6">
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 sticky top-24">
+            <h3 className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest px-3 mb-3">
+              Documentos Legais
+            </h3>
+            <nav className="space-y-1">
+              {SLUG_LIST.map((item) => {
+                const ItemIcon = item.icon;
+                const isActive = params.slug === item.slug;
+                return (
+                  <Link
+                    key={item.slug}
+                    href={`/legal/${item.slug}`}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition-all ${
+                      isActive
+                        ? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20'
+                        : 'text-neutral-400 hover:text-white hover:bg-white/[0.03]'
+                    }`}
+                  >
+                    <ItemIcon className="w-4 h-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="mt-6 pt-4 border-t border-white/[0.05] px-3">
+              <div className="flex items-center gap-2 text-[11px] text-neutral-500">
+                <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Arquivo editável: <strong className="text-neutral-400 font-mono">{page.markdownFile}</strong></span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Document Body */}
+        <article className="lg:col-span-9">
+          
+          {/* Header Banner */}
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-8 mb-8">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                <Icon className="w-3.5 h-3.5" />
+                <span>{page.badge}</span>
+              </div>
+              {page.lastUpdated && (
+                <span className="text-xs text-neutral-500 font-medium">
+                  Última atualização: {page.lastUpdated}
+                </span>
+              )}
+            </div>
+
+            <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight mb-2">
+              {page.title}
+            </h1>
+            <p className="text-neutral-400 text-sm md:text-base">
+              {page.subtitle}
+            </p>
+          </div>
+
+          {/* Editable Fields Notice */}
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 mb-8 flex items-start gap-3">
+            <div className="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+            <p className="text-xs text-amber-200/90 leading-relaxed">
+              <strong className="text-amber-400">Campos Editáveis:</strong> As expressões contidas entre colchetes como <code className="bg-amber-400/20 px-1.5 py-0.5 rounded text-amber-300 font-mono text-[11px]">[RAZÃO SOCIAL DA SUA EMPRESA]</code> devem ser personalizadas com os dados reais do seu negócio ao implantar os termos.
+            </p>
+          </div>
+
+          {/* Sections List */}
+          <div className="space-y-6">
+            {page.sections.map((section, index) => (
+              <section key={index} className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-6 md:p-8 hover:border-white/[0.08] transition-colors">
+                <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs flex items-center justify-center font-mono">
+                    {index + 1}
+                  </span>
+                  {section.heading}
+                </h2>
+                <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">
+                  {section.content}
+                </p>
+              </section>
             ))}
           </div>
-        </div>
+
+          {/* Fallback when empty */}
+          {page.sections.length === 0 && (
+            <div className="text-center py-20 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+              <FileText className="w-12 h-12 text-neutral-600 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-white mb-2">Documento não encontrado</h3>
+              <p className="text-neutral-400 text-xs mb-6">O documento solicitado não foi localizado no repositório.</p>
+              <Link href="/legal" className="text-emerald-400 text-xs font-semibold hover:underline">
+                Voltar à Central Jurídica
+              </Link>
+            </div>
+          )}
+
+          {/* Footer Navigation */}
+          <div className="mt-12 pt-8 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Link
+              href="/legal"
+              className="text-xs text-neutral-400 hover:text-white transition-colors flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Ver todos os documentos jurídicos</span>
+            </Link>
+
+            <a
+              href="mailto:privacidade@zehla.com.br"
+              className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5"
+            >
+              <span>Dúvidas jurídicas? Fale com nosso suporte</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+
+        </article>
       </main>
     </div>
   );
