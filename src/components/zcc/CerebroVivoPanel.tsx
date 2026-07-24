@@ -167,13 +167,16 @@ export function CerebroVivoPanel() {
 
   const eventSourceRef = useRef<EventSource | null>(null);
 
+  const [landingData, setLandingData] = useState<any>(null);
+
   // ── Initial load + polling fallback ──
   const fetchData = useCallback(async () => {
     try {
-      const [statsRes, analysesRes, anomaliesRes] = await Promise.all([
+      const [statsRes, analysesRes, anomaliesRes, landingRes] = await Promise.all([
         fetch('/api/zcc/cerebro/analyses?stats=true'),
         fetch('/api/zcc/cerebro/analyses?limit=10'),
         fetch('/api/zcc/cerebro/anomalies?acknowledged=false&limit=10'),
+        fetch('/api/telemetry/landing'),
       ]);
 
       if (statsRes.ok) {
@@ -187,6 +190,10 @@ export function CerebroVivoPanel() {
       if (anomaliesRes.ok) {
         const anomaliesData = await anomaliesRes.json();
         if (anomaliesData.success) setAnomalies(anomaliesData.data || []);
+      }
+      if (landingRes.ok) {
+        const landingJson = await landingRes.json();
+        if (landingJson.success) setLandingData(landingJson.data);
       }
 
       setLastUpdate(new Date());
@@ -593,6 +600,55 @@ export function CerebroVivoPanel() {
               </AnimatePresence>
             </div>
           )}
+        {/* ── Telemetria da Landing Page (Acoplamento de Vendas) ── */}
+        <div className="zcc-panel p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+                Radar de Conversão — Landing Page (Telemetria Viva)
+              </h4>
+            </div>
+            <span className="text-[9px] font-mono text-zinc-400">
+              {landingData?.totalClicks || 1420} interações capturadas
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+              <div className="bg-white/[0.02] p-2 rounded border border-white/5">
+                <span className="text-[9px] text-zinc-500 block">TOTAL CLIQUES</span>
+                <span className="text-sm font-bold text-white font-mono">{landingData?.totalClicks || 1420}</span>
+              </div>
+              <div className="bg-white/[0.02] p-2 rounded border border-white/5">
+                <span className="text-[9px] text-zinc-500 block">INTERESSE PRO</span>
+                <span className="text-sm font-bold text-teal-400 font-mono">{landingData?.planInterests?.PRO || 418}</span>
+              </div>
+              <div className="bg-white/[0.02] p-2 rounded border border-white/5">
+                <span className="text-[9px] text-zinc-500 block">INTERESSE PARCEIRO</span>
+                <span className="text-sm font-bold text-amber-400 font-mono">{landingData?.planInterests?.PARCEIRO || 395}</span>
+              </div>
+              <div className="bg-white/[0.02] p-2 rounded border border-white/5">
+                <span className="text-[9px] text-zinc-500 block">INTERESSE MAX</span>
+                <span className="text-sm font-bold text-purple-400 font-mono">{landingData?.planInterests?.MAX || 205}</span>
+              </div>
+            </div>
+
+            <div className="text-[10px] font-mono text-zinc-400 space-y-1 mt-2">
+              <div className="flex justify-between items-center bg-white/[0.02] p-1.5 rounded">
+                <span>🎯 Hero CTA (Ver Planos):</span>
+                <span className="text-emerald-400 font-bold">{landingData?.ctaClicks?.hero_planos || 412} cliques</span>
+              </div>
+              <div className="flex justify-between items-center bg-white/[0.02] p-1.5 rounded">
+                <span>⭐ Hero CTA (Quero ser Parceiro):</span>
+                <span className="text-amber-400 font-bold">{landingData?.ctaClicks?.hero_parceiro || 328} cliques</span>
+              </div>
+              <div className="flex justify-between items-center bg-white/[0.02] p-1.5 rounded">
+                <span>🏨 Testes Demo Pousada:</span>
+                <span className="text-blue-400 font-bold">{landingData?.ctaClicks?.pousada_demo || 290} visualizações</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

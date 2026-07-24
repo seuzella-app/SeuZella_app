@@ -37,7 +37,9 @@ export type TelemetryType =
   | 'alert'
   | 'llm_call'
   | 'webhook'
-  | 'cron';
+  | 'cron'
+  | 'landing_click'
+  | 'landing_conversion';
 
 export type TelemetrySeverity = 'info' | 'warn' | 'error' | 'critical';
 

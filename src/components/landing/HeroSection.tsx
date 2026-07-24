@@ -6,6 +6,8 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { useNiche } from '@/contexts/NicheContext';
 import { NicheToggle } from './NicheToggle';
 
+import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
+
 export function HeroSection() {
   const { niche, setNiche, isPousada, isAirbnb } = useNiche();
   const [mounted, setMounted] = useState(false);
@@ -174,6 +176,7 @@ export function HeroSection() {
             >
               <button
                 onClick={() => {
+                  trackLandingClick({ eventName: 'hero_planos', category: 'cta_click', label: 'Conhecer Planos & Preços' });
                   const el = document.querySelector('#precos');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
@@ -190,6 +193,9 @@ export function HeroSection() {
 
               <a
                 href="/parceiro"
+                onClick={() => {
+                  trackLandingClick({ eventName: 'hero_parceiro', category: 'cta_click', label: 'Quero ser Parceiro Zélla' });
+                }}
                 className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold rounded-xl transition-all duration-200 shadow-xl shadow-amber-500/20 text-base active:scale-[0.98] hover:scale-[1.02] cursor-pointer"
                 style={shimmerStyle}
               >

@@ -23,6 +23,7 @@ import {
 import { useNiche } from '@/contexts/NicheContext';
 import { getNicheContent } from '@/data/niche-content';
 import { CheckoutModal } from '@/components/landing/CheckoutModal';
+import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
 
 type PaymentMode = 'pix' | 'cartao';
 
@@ -333,6 +334,15 @@ export function PricingSection() {
       console.error('[PricingSection] Plan not found:', planId, 'Available:', plans.map(p => p.id));
       return;
     }
+
+    trackLandingClick({
+      eventName: `plan_select_${planId}`,
+      category: 'plan_selection',
+      planId,
+      label: plan.name,
+      metadata: { niche },
+    });
+
     const method = forcedPaymentMethod || paymentMode;
     const effectivePricePix = isAirbnb && plan.pricePixAirbnb != null ? plan.pricePixAirbnb : plan.pricePix;
     const effectivePriceCartao = isAirbnb && plan.priceCartaoAirbnb != null ? plan.priceCartaoAirbnb : plan.priceCartao;
