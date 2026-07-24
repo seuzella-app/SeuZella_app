@@ -48,9 +48,14 @@ Create `.github/workflows/ci-{{target_module_clean}}.yml` with the following con
 - Header: `Authorization: Bearer {{github_token}}` and `Accept: application/vnd.github.v3+json`.
 - Commit directly to `main` branch.
 
-### Step 4: Trigger and Poll Workflow (`trigger_and_poll_workflow`)
+### Step 4: Self-Healing CI Autonomous Loop (`trigger_and_poll_workflow`)
 - Poll `GET /repos/{{owner}}/{{repo}}/actions/runs` every 10 seconds (up to 3 minutes timeout).
 - Identify the `run_id` matching the newly created workflow run.
 - When `status == "completed"`:
-  - If `conclusion == "success"` -> return status `SUCCESS`.
-  - If `conclusion == "failure"` -> fetch failure logs from `/actions/runs/{run_id}/logs`, diagnose the issue, and attempt ONE auto-remediation commit.
+  - If `conclusion == "success"` -> return status `SUCCESS` (VERDE 🟢).
+  - If `conclusion == "failure"` -> ENTER SELF-HEALING CI LOOP:
+    1. Download run failure logs via API: `GET /repos/{{owner}}/{{repo}}/actions/runs/{run_id}/logs`.
+    2. Identify the exact failing test, lint error, or TypeScript compilation failure.
+    3. Apply the code fix directly in the target module files.
+    4. Make a new commit and push the auto-remediation fix to `main`.
+    5. Re-poll the workflow until the pipeline turns 100% VERDE / SUCCESS.
