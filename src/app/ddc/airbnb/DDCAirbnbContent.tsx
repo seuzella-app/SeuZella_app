@@ -24,6 +24,14 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -235,6 +243,14 @@ function formatCompactBRL(value: number): string {
 export default function DDCAirbnbContent() {
   const [activeTab, setActiveTab] = useState<AirbnbTab>('propriedades');
   const [calendarDays] = useState<CalendarDay[]>(generateCalendarDays);
+  const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
+  const [propertiesState, setPropertiesState] = useState<PropertyData[]>(MOCK_PROPERTIES);
+  const [newPropertyForm, setNewPropertyForm] = useState({
+    name: '',
+    location: '',
+    revenue: 4500,
+  });
+
   const [scannedData, setScannedData] = useState<MagicScanResult | null>({
     propertyName: 'Apartamento Vista Mar — Copacabana',
     amenities: ['Wi-Fi', 'Ar-condicionado', 'Cozinha completa', 'Vista mar', 'Estacionamento', 'Smart TV'],
@@ -261,16 +277,34 @@ export default function DDCAirbnbContent() {
     setScannedData(result);
   }, []);
 
+  const handleAddProperty = useCallback(() => {
+    if (!newPropertyForm.name.trim()) return;
+    const newProp: PropertyData = {
+      id: `p-${Date.now()}`,
+      name: newPropertyForm.name,
+      location: newPropertyForm.location || 'Brasil',
+      connected: true,
+      occupancy: 80,
+      rating: 5.0,
+      reviews: 12,
+      revenue: Number(newPropertyForm.revenue) || 5000,
+    };
+
+    setPropertiesState((prev) => [newProp, ...prev]);
+    setNewPropertyForm({ name: '', location: '', revenue: 4500 });
+    setIsAddPropertyOpen(false);
+  }, [newPropertyForm]);
+
   // Show Magic Scanner if no scan data yet
   if (!scannedData) {
     return <MagicScanner niche="airbnb" onComplete={handleScanComplete} />;
   }
 
   // Summary stats
-  const totalProperties = MOCK_PROPERTIES.length;
-  const totalRevenue = MOCK_PROPERTIES.reduce((sum, p) => sum + p.revenue, 0);
-  const avgRating = (MOCK_PROPERTIES.reduce((sum, p) => sum + p.rating, 0) / MOCK_PROPERTIES.length).toFixed(2);
-  const totalReviews = MOCK_PROPERTIES.reduce((sum, p) => sum + p.reviews, 0);
+  const totalProperties = propertiesState.length;
+  const totalRevenue = propertiesState.reduce((sum, p) => sum + p.revenue, 0);
+  const avgRating = (propertiesState.reduce((sum, p) => sum + p.rating, 0) / (propertiesState.length || 1)).toFixed(2);
+  const totalReviews = propertiesState.reduce((sum, p) => sum + p.reviews, 0);
 
   const now = new Date();
   const monthName = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -330,6 +364,22 @@ export default function DDCAirbnbContent() {
         </CardContent>
       </Card>
 
+      {/* Header bar */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Portfólio de Imóveis Airbnb</h2>
+          <p className="text-sm text-zinc-500">{totalProperties} imóveis conectados e monitorados pela IA</p>
+        </div>
+        <Button
+          onClick={() => setIsAddPropertyOpen(true)}
+          size="sm"
+          className="bg-blue-600 hover:bg-blue-500 text-white cursor-pointer active:scale-95 transition-all"
+        >
+          <Plus className="size-4 mr-1" />
+          Adicionar Imóvel
+        </Button>
+      </div>
+
       {/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div variants={staggerItem}>
@@ -384,7 +434,7 @@ export default function DDCAirbnbContent() {
 
       {/* Property Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {MOCK_PROPERTIES.map((property) => (
+        {propertiesState.map((property) => (
           <motion.div key={property.id} variants={staggerItem}>
             <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-all duration-300 group">
               <CardHeader className="pb-3">
@@ -1114,6 +1164,67 @@ export default function DDCAirbnbContent() {
       <AnimatePresence mode="wait">
         {renderTab()}
       </AnimatePresence>
+
+      {/* Modal: Novo Imóvel Airbnb */}
+      <Dialog open={isAddPropertyOpen} onOpenChange={setIsAddPropertyOpen}>
+        <DialogContent className="bg-[#111118] border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2 text-blue-400">
+              <Plus className="size-5" /> Adicionar Imóvel Airbnb
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400 text-xs">
+              Conecte um novo imóvel do seu portfólio para co-gestão automática via IA.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Nome do Anúncio / Imóvel</label>
+              <Input
+                placeholder="Ex: Loft Design Jardins"
+                value={newPropertyForm.name}
+                onChange={(e) => setNewPropertyForm({ ...newPropertyForm, name: e.target.value })}
+                className="bg-[#0a0a0f] border-zinc-700 text-white"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Localização</label>
+                <Input
+                  placeholder="Ex: São Paulo, SP"
+                  value={newPropertyForm.location}
+                  onChange={(e) => setNewPropertyForm({ ...newPropertyForm, location: e.target.value })}
+                  className="bg-[#0a0a0f] border-zinc-700 text-white"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Receita Média (R$)</label>
+                <Input
+                  type="number"
+                  placeholder="5000"
+                  value={newPropertyForm.revenue}
+                  onChange={(e) => setNewPropertyForm({ ...newPropertyForm, revenue: Number(e.target.value) })}
+                  className="bg-[#0a0a0f] border-zinc-700 text-white"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsAddPropertyOpen(false)}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAddProperty}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold"
+            >
+              Conectar Imóvel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DDCShell>
   );
 }

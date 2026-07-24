@@ -576,13 +576,13 @@ export default function DDCPousadaContent() {
         </Card>
 
         {/* Recent Transactions Table */}
-        <Card className="lg:col-span-2 bg-[#111118] border-zinc-800/60">
+        <Card className="lg:col-span-2 bg-[#111118] border-zinc-800/60 overflow-hidden">
           <CardHeader>
             <CardTitle className="text-base text-white">Transações Recentes</CardTitle>
             <CardDescription className="text-zinc-500">Últimos recebimentos e reembolsos</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="max-h-[280px]">
+          <CardContent className="p-0">
+            <ScrollArea className="h-[240px] w-full px-6 pb-4">
               <Table>
                 <TableHeader>
                   <TableRow className="border-zinc-800 hover:bg-transparent">
