@@ -24,7 +24,7 @@ export default function BookingPlatformsMarquee() {
   const headlineAccent = 'plataformas de hospedagem do Brasil'
 
   return (
-    <section className="py-16 bg-gradient-to-b from-transparent via-zinc-950/50 to-transparent border-y border-zinc-800">
+    <section id="integracoes" className="py-16 bg-gradient-to-b from-transparent via-zinc-950/50 to-transparent border-y border-zinc-800">
       <div className="container mx-auto px-6 mb-12 text-center">
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">

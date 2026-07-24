@@ -42,6 +42,8 @@ function getAccent(niche: string) {
 
 // ─── Nav links (must match section IDs on the landing page) ──────────────────
 const NAV_LINKS = [
+  { name: 'Como Funciona', href: '#como-funciona', lgOnly: false },
+  { name: 'Recursos', href: '#funcionalidades', lgOnly: false },
   { name: 'Integrações', href: '#integracoes', lgOnly: true },
   { name: 'Calculadora', href: '#calculadora', lgOnly: true },
   { name: 'Preços', href: '#precos', lgOnly: false },
