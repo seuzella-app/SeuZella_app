@@ -166,36 +166,35 @@ export function HeroSection() {
               <span className="sm:border-l sm:border-white/10 sm:pl-6 text-neutral-300 font-bold tracking-tight">{isPousada ? '+100 pousadas já atendem melhor com o Zélla' : '+100 anfitriões já atendem melhor com o Zélla'}</span>
             </motion.div>
 
-            {/* ── CTA buttons & Link Shortcuts ── */}
+            {/* ── High-Converting Sales CTAs ── */}
             <motion.div
               variants={staggerItem}
               key={`cta-${niche}`}
-              className="mt-8 flex flex-wrap items-center justify-center gap-4"
+              className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <button
                 onClick={() => {
                   const el = document.querySelector('#precos');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className={`group inline-flex items-center justify-center gap-2 px-8 py-4 ${isPousada ? 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/30' : 'bg-rose-500 hover:bg-rose-400 shadow-rose-500/30'} text-white font-bold rounded-xl transition-all duration-200 shadow-2xl text-sm active:scale-[0.98] hover:scale-[1.02]`}
+                className={`group inline-flex items-center justify-center gap-2 px-8 py-4 ${
+                  isPousada
+                    ? 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-emerald-500/30'
+                    : 'bg-gradient-to-r from-rose-500 via-rose-400 to-rose-600 hover:from-rose-400 hover:to-rose-500 shadow-rose-500/30'
+                } text-white font-bold rounded-xl transition-all duration-200 shadow-2xl text-base active:scale-[0.98] hover:scale-[1.02] cursor-pointer`}
+                style={shimmerStyle}
               >
                 Conhecer Planos & Preços
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" />
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
               </button>
 
               <a
-                href={isPousada ? "/ddc/pousada" : "/ddc/airbnb"}
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl transition-all duration-200 border border-white/20 text-sm active:scale-[0.98] hover:scale-[1.02] backdrop-blur-md"
+                href="/parceiro"
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white font-bold rounded-xl transition-all duration-200 shadow-xl shadow-amber-500/20 text-base active:scale-[0.98] hover:scale-[1.02] cursor-pointer"
+                style={shimmerStyle}
               >
-                Ver Dashboard {isPousada ? "Pousada" : "Airbnb"}
-                <Sparkles className="w-4 h-4 text-amber-400" />
-              </a>
-
-              <a
-                href="/zcc"
-                className="group inline-flex items-center justify-center gap-2 px-6 py-4 bg-slate-900/80 hover:bg-slate-800 text-emerald-400 font-medium rounded-xl transition-all duration-200 border border-emerald-500/30 text-sm backdrop-blur-md"
-              >
-                Painel ZCC Admin
+                Quero ser Parceiro Zélla
+                <Sparkles className="w-5 h-5 text-amber-200" />
               </a>
             </motion.div>
 
