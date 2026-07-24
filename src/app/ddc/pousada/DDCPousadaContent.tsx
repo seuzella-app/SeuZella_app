@@ -1060,6 +1060,9 @@ export default function DDCPousadaContent() {
             <BookingSyncPanel niche="pousada" propertyName={scannedData.propertyName} />
           </div>
         )}
+        {activeTab === 'config' && <div key="config">{renderConfig()}</div>}
+      </AnimatePresence>
+
       {/* Modal: Novo Hóspede */}
       <Dialog open={isAddGuestOpen} onOpenChange={setIsAddGuestOpen}>
         <DialogContent className="bg-[#111118] border-zinc-800 text-white max-w-md">
