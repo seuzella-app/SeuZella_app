@@ -237,6 +237,70 @@ export function SandboxPanel() {
     }
   };
 
+  // ── ZERAR TUDO: remove TODOS os dados de TODOS os módulos ──
+  const resetAllData = async (): Promise<void> => {
+    if (!confirm('⚠️ ZERAR TUDO? Isso remove TODOS os dados de TODOS os módulos (DDC + ZCC + Cérebro). Continuar?')) return;
+    setActionLoading('reset');
+    setLogs([]);
+    addLog('warn', 'ZERANDO TODOS OS MÓDULOS — removendo todos os dados...');
+
+    try {
+      const res = await fetch('/api/zcc/sandbox?action=reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (data.success) {
+        addLog('success', `✓ RESET COMPLETO — ${data.totalDeleted} registros removidos`);
+        if (data.breakdown) {
+          for (const [table, count] of Object.entries(data.breakdown) as [string, number][]) {
+            if (count > 0) addLog('info', `  ${table}: ${count} removidos`);
+          }
+        }
+      } else {
+        addLog('error', `Erro: ${data.error}`);
+      }
+    } catch (err) {
+      addLog('error', `Fetch error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setActionLoading(null);
+      await fetchData();
+    }
+  };
+
+  // ── POPULAR DADOS: cria dados realistas em todos os painéis ──
+  const populateData = async (): Promise<void> => {
+    setActionLoading('populate');
+    setLogs([]);
+    addLog('info', 'POPULANDO DADOS — criando tenants, conversas, reservas, telemetria e ativando Cérebro...');
+
+    try {
+      const res = await fetch('/api/zcc/sandbox?action=populate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const d = data.data;
+        addLog('success', `✓ POPULATE COMPLETO em ${d.durationMs}ms`);
+        addLog('info', `🏨 Pousadas: ${d.pousadas} | 🏠 Airbnbs: ${d.airbnbs}`);
+        addLog('info', `📱 Conversas: ${d.conversations} | 💬 Mensagens: ${d.messages}`);
+        addLog('info', `🎯 Reservas: ${d.bookings} | 💰 Custo Meta: $${d.metaCostUsd}`);
+        addLog('warn', `🧠 Cérebro: ${d.anomalies} anomalias + ${d.analyses} análises + ${d.alerts} alertas + ${d.refactors} refactor`);
+        addLog('success', '→ Dados disponíveis em DDC Pousada, DDC Airbnb e ZCC!');
+      } else {
+        addLog('error', `Erro: ${data.error}`);
+      }
+    } catch (err) {
+      addLog('error', `Fetch error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setActionLoading(null);
+      await fetchData();
+    }
+  };
+
   const cleanupOne = async (tenantId: string, tenantName: string): Promise<void> => {
     try {
       const res = await fetch('/api/zcc/sandbox?action=cleanup-one', {
@@ -418,6 +482,38 @@ export function SandboxPanel() {
               Cleanup All ({testTenants.length})
             </button>
           )}
+
+          {/* RESET + POPULATE — zera e popula todos os módulos */}
+          <button
+            onClick={resetAllData}
+            disabled={!!actionLoading}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider transition-all"
+            style={{
+              background: 'rgba(239,68,68,0.2)',
+              color: '#ef4444',
+              border: '1px solid rgba(239,68,68,0.5)',
+              cursor: actionLoading ? 'wait' : 'pointer',
+              opacity: actionLoading ? 0.5 : 1,
+            }}
+          >
+            {actionLoading === 'reset' ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+            ZERAR TUDO
+          </button>
+          <button
+            onClick={populateData}
+            disabled={!!actionLoading}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider transition-all"
+            style={{
+              background: 'rgba(16,185,129,0.2)',
+              color: '#10b981',
+              border: '1px solid rgba(16,185,129,0.5)',
+              cursor: actionLoading ? 'wait' : 'pointer',
+              opacity: actionLoading ? 0.5 : 1,
+            }}
+          >
+            {actionLoading === 'populate' ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+            POPULAR DADOS
+          </button>
         </div>
       </motion.div>
 
