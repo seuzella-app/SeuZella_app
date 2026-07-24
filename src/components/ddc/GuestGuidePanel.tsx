@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import QRCode from 'qrcode';
 import {
   Card,
   CardContent,
@@ -164,20 +163,7 @@ export function GuestGuidePanel({ niche, tenantId, propertyName }: GuestGuidePan
     const newQrUrls: Record<string, string> = {};
     for (const guide of guideList) {
       const guideUrl = `https://seuzella.com/guide/${guide.slug}`;
-      try {
-        const qrDataUrl = await QRCode.toDataURL(guideUrl, {
-          width: 200,
-          margin: 2,
-          color: {
-            dark: '#ffffff',
-            light: '#00000000', // transparent background
-          },
-        });
-        newQrUrls[guide.id] = qrDataUrl;
-      } catch (err) {
-        console.error(`[GuestGuidePanel] QR generation failed for ${guide.slug}:`, err);
-        // Fallback: skip QR for this guide
-      }
+      newQrUrls[guide.id] = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(guideUrl)}&color=10b981&bgcolor=090d16`;
     }
     setQrCodeUrls(newQrUrls);
   };

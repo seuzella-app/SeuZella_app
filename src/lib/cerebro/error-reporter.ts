@@ -355,11 +355,11 @@ export const errorReporter = {
  */
 export function registerGlobalErrorHandlers(): void {
   // Guard: só registra handlers se estivermos em Node.js runtime (não Edge)
-  if (typeof window !== 'undefined') return;
-  if (typeof process === 'undefined' || !process.on) return;
+  const proc = (globalThis as any).process;
+  if (typeof window !== 'undefined' || !proc || typeof proc.on !== 'function') return;
 
   try {
-    process.on('unhandledRejection', (reason) => {
+    proc.on('unhandledRejection', (reason: any) => {
       errorReporter.capture(reason, {
         level: 'error',
         module: 'process',
@@ -368,17 +368,15 @@ export function registerGlobalErrorHandlers(): void {
       });
     });
 
-    process.on('uncaughtException', (error) => {
+    proc.on('uncaughtException', (error: any) => {
       errorReporter.capture(error, {
         level: 'error',
         module: 'process',
         tags: { type: 'uncaughtException' },
-        extra: { pid: typeof process !== 'undefined' && process.pid ? process.pid : 'unknown' },
+        extra: { pid: proc.pid ? proc.pid : 'unknown' },
       });
-      // NÃO chamamos process.exit() — deixamos o Next.js decidir
     });
-  } catch (err) {
-    // Edge Runtime não suporta process.on — ignora silenciosamente
-    console.warn('[ErrorReporter] process.on not available (Edge Runtime?), skipping global handlers');
+  } catch {
+    // Edge Runtime ignorado silenciosamente
   }
 }

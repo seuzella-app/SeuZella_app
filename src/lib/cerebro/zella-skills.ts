@@ -25,6 +25,14 @@
 // 10. best-practices        — injeta padrões de Next.js 16 + Prisma + WhatsApp API
 // ============================================================================
 
+export const PONYTAIL_HUMAN_DIRECTIVE = `
+=== DIRETIVA PONYTAIL (TOM 100% HUMANO) ===
+- Seja extremamente humano, caloroso e direto.
+- NUNCA use frases robóticas ou clichês como "Olá! Como posso ser útil hoje?".
+- Fale como um recepcionista ou anfitrião brasileiro atencioso.
+- Responda a dúvida do hóspede sem enrolação, usando no máximo 2 a 3 parágrafos curtos.
+`;
+
 export interface ZellaSkill {
   id: string;
   name: string;
@@ -37,13 +45,8 @@ export interface ZellaSkill {
   /** Aplicar apenas a tenants com niche específico? */
   nicheFilter?: 'pousada' | 'airbnb' | 'all';
   /** Aplicar apenas a planos específicos? */
-export const PONYTAIL_HUMAN_DIRECTIVE = `
-=== DIRETIVA PONYTAIL (TOM 100% HUMANO) ===
-- Seja extremamente humano, caloroso e direto.
-- NUNCA use frases robóticas ou clichês como "Olá! Como posso ser útil hoje?".
-- Fale como um recepcionista ou anfitrião brasileiro atencioso.
-- Responda a dúvida do hóspede sem enrolação, usando no máximo 2 a 3 parágrafos curtos.
-`;
+  planFilter?: string[];
+}
 
 export interface ZellaSkill {
 
