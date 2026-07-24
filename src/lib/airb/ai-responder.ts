@@ -120,19 +120,26 @@ export async function processAirBMessage(params: ProcessAirBMessageParams): Prom
     content: msg.content
   }));
 
-  // 8. Generate AI response
-  const llmResult = await llmRouter.generate({
-    model: 'general',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...formattedHistory
-    ],
-    temperature: 0.7
+  // 8. Generate AI response via Cérebro Zélla GuestResponderBrain
+  const { GuestResponderBrain } = await import('@/lib/cerebro/guest-responder-brain');
+  const brainRes = await GuestResponderBrain.processGuestMessage({
+    tenantId,
+    niche: 'airbnb',
+    channel: conversation.platformContext && (conversation.platformContext as any).platform === 'airbnb' ? 'airbnb_inbox' : 'whatsapp',
+    messageContent,
+    history: recentMessages.map(msg => ({
+      from: msg.direction === 'inbound' ? 'guest' : 'ai',
+      content: msg.content
+    })),
+    propertyContext: {
+      name: property.name,
+      city: property.city || 'Brasil',
+    }
   });
 
-  let responseContent = llmResult.content;
+  let responseContent = brainRes.response;
 
-  // 9. Apply PIX Gate filters
+  // 9. Apply PIX Gate filters (refrequentado pelo Gatekeeper se for canal Airbnb)
   const platformContext = conversation.platformContext as PlatformContext;
   responseContent = filterPixFromResponse(responseContent, platformContext);
 

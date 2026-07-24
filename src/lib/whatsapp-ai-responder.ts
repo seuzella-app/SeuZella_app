@@ -499,22 +499,46 @@ Use estas expressões e tom naturalmente. NÃO mencione que isso foi aprendido.
     systemPrompt += antiPatternsBlock;
   }
 
-  // 6. Execute the Cognitive Pipeline
+  // 6. Execute the Cognitive Pipeline (Cérebro Zélla GuestResponderBrain)
   let aiResponseText = '';
   let cognitiveRes: any = null;
 
   try {
-    cognitiveRes = await executeCognitivePipeline({
-      message: messageContent,
+    const { GuestResponderBrain } = await import('./cerebro/guest-responder-brain');
+    const brainResult = await GuestResponderBrain.processGuestMessage({
       tenantId,
-      sessionId: conversationId,
-      systemPrompt,
-      preClassifiedIntent: intentResult,
+      niche: (tenant as any)?.niche === 'airbnb' ? 'airbnb' : 'pousada',
+      channel: 'whatsapp',
+      guestName: guest.name,
+      guestPhone: guestPhone,
+      messageContent,
+      history: recentMessages.map(m => ({
+        from: m.from === 'guest' ? 'guest' : 'ai',
+        content: m.content,
+      })),
+      propertyContext: {
+        name: property?.name || 'Pousada',
+        city: property?.city || 'Brasil',
+        pixKey: property?.pixKey || undefined,
+        pixKeyType: property?.pixKeyType || undefined,
+      },
     });
-    aiResponseText = cognitiveRes.response;
+
+    aiResponseText = brainResult.response;
   } catch (err) {
-    console.error('[processIncomingMessage] Error executing cognitive pipeline:', err);
-    aiResponseText = 'Desculpe, tive um probleminha para processar sua mensagem agora. Posso chamar alguém para te ajudar?';
+    console.error('[processIncomingMessage] Error executing Cérebro Zélla GuestResponderBrain:', err);
+    try {
+      cognitiveRes = await executeCognitivePipeline({
+        message: messageContent,
+        tenantId,
+        sessionId: conversationId,
+        systemPrompt,
+        preClassifiedIntent: intentResult,
+      });
+      aiResponseText = cognitiveRes.response;
+    } catch (fallbackErr) {
+      aiResponseText = 'Desculpe, tive um probleminha para processar sua mensagem agora. Posso chamar alguém para te ajudar?';
+    }
   }
 
   const latency = Date.now() - startTime;
