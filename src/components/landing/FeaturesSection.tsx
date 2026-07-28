@@ -115,7 +115,7 @@ function WhatsAppMockup() {
                 <div>
                   <h4 className="text-white text-[11px] font-bold tracking-tight flex items-center gap-1">
                     {businessName}
-                    <span className="px-1 py-[1px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[7px] font-bold rounded">IA</span>
+                    <span className="px-1 py-[1px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[7px] font-bold rounded">ZÉLLA</span>
                   </h4>
                   <p className="text-emerald-400 text-[8px] font-medium leading-none mt-0.5">ZÉLLA está online</p>
                 </div>

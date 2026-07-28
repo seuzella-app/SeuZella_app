@@ -207,9 +207,9 @@ function PousadaCalculator() {
         </div>
 
         <div className="text-center">
-          <p className="text-neutral-500 text-sm mb-6">Estimativa baseada nos dados informados. Teste grátis por 7 dias e comprove na prática.</p>
+          <p className="text-neutral-500 text-sm mb-6">Estimativa baseada nos dados informados. Escolha o melhor plano e comece hoje mesmo.</p>
           <button onClick={() => { const el = document.querySelector('#precos'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="inline-flex items-center gap-2 px-8 py-3.5 text-white font-bold rounded-xl transition-all duration-200 shadow-xl cursor-pointer bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-emerald-500/30">
-            Começar meu teste grátis <ArrowRight className="w-4 h-4" />
+            Ver Planos e Começar <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>
