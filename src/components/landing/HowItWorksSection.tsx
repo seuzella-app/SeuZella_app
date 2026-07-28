@@ -97,69 +97,71 @@ function StepCard({
       initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 24 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: reducedMotion ? 0.2 : 0.5, delay: reducedMotion ? 0 : index * 0.12, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
-      className="relative group"
+      className="relative group h-full"
     >
       {/* Desktop connector arrow */}
       {index < 2 && (
         <div className="hidden lg:flex absolute top-1/2 -right-5 z-20 items-center justify-center w-10 h-10">
-          <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center group-hover:bg-white/[0.08] group-hover:border-white/[0.15] transition-all duration-300">
-            <ArrowRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-white transition-colors duration-300" />
+          <div className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-all duration-300 shadow-md">
+            <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-emerald-400 transition-colors duration-300" />
           </div>
         </div>
       )}
 
-      <div className={`relative p-7 sm:p-9 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.14] transition-all duration-500 h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]`}>
-        {/* Hover glow */}
-        <div className={`absolute -top-16 -right-16 w-32 h-32 rounded-full ${c.accent} blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
+      <div className={`relative p-8 sm:p-9 rounded-2xl bg-gradient-to-b from-zinc-900/90 to-zinc-950/95 border border-white/10 hover:border-white/20 transition-all duration-300 shadow-xl backdrop-blur-md h-full flex flex-col justify-between overflow-hidden group-hover:shadow-2xl`}>
+        {/* Subtle top border highlight */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white/15 to-transparent group-hover:via-emerald-500/50 transition-all duration-500" />
 
-        {/* Top row: number + icon */}
-        <div className="flex items-start gap-4 mb-6">
-          {/* Step number badge */}
-          <div className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${c.bg} ${c.border} border flex items-center justify-center shadow-lg ${c.glow}`}>
-            <span className={`text-sm font-bold ${c.text}`}>{step.num}</span>
-          </div>
-
-          {/* Icon */}
-          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${c.bg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-            {IconComponent && <IconComponent className={`w-5 h-5 ${c.text}`} />}
-          </div>
-        </div>
-
-        {/* Title */}
-        <h3 className="text-white font-bold text-lg sm:text-xl mb-2">{step.title}</h3>
-        <p className={`text-xs font-medium ${c.text} mb-4 tracking-wide uppercase`}>{step.subtitle}</p>
-
-        {/* Description */}
-        <p className="text-neutral-400 text-sm leading-relaxed mb-6">{step.desc}</p>
-
-        {/* Highlights chips */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {step.highlights.map((h, i) => (
-            <div
-              key={i}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${c.accent} border ${c.ring} text-[11px] font-medium ${c.text}`}
-            >
-              <CheckCircle2 className="w-3 h-3" />
-              {h}
+        <div>
+          {/* Top row: number + icon */}
+          <div className="flex items-center justify-between gap-4 mb-6">
+            {/* Step number badge */}
+            <div className={`w-11 h-11 rounded-2xl bg-zinc-800/80 border border-white/10 flex items-center justify-center shadow-inner`}>
+              <span className={`text-base font-black font-satoshi ${c.text}`}>{step.num}</span>
             </div>
-          ))}
+
+            {/* Icon */}
+            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${c.bg} border ${c.border} flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-md`}>
+              {IconComponent && <IconComponent className={`w-6 h-6 ${c.text}`} />}
+            </div>
+          </div>
+
+          {/* Title */}
+          <h3 className="text-white font-bold text-xl sm:text-2xl mb-2 tracking-tight">{step.title}</h3>
+          <p className={`text-xs font-semibold ${c.text} mb-4 tracking-wider uppercase`}>{step.subtitle}</p>
+
+          {/* Description */}
+          <p className="text-neutral-300 text-sm leading-relaxed mb-6 font-normal">{step.desc}</p>
+
+          {/* Highlights chips */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {step.highlights.map((h, i) => (
+              <div
+                key={i}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/60 border border-white/10 text-[11px] font-medium ${c.text}`}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {h}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Form fields preview (step 1 only) */}
         {step.fields && (
-          <div className="space-y-2.5 pt-5 border-t border-white/[0.04]">
+          <div className="space-y-2 pt-4 border-t border-white/10 mt-auto">
             {step.fields.map((field, idx) => (
               <div
                 key={idx}
                 className="flex items-center gap-2.5"
               >
-                <div className={`w-1.5 h-1.5 rounded-full ${c.text.replace('text-', 'bg-')} opacity-60`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${c.text.replace('text-', 'bg-')} opacity-80`} />
                 <span className="text-neutral-400 text-[12px]">{field}</span>
               </div>
             ))}
-            <div className="flex items-center gap-2 mt-3 text-emerald-400/70 text-[11px]">
-              <Mail className="w-3 h-3" />
-              <Building className="w-3 h-3" />
+            <div className="flex items-center gap-2 mt-3 text-emerald-400 text-[11px] font-medium">
+              <Mail className="w-3.5 h-3.5" />
+              <Building className="w-3.5 h-3.5" />
               <span>Cadastro simples — sem complicações</span>
             </div>
           </div>
@@ -183,8 +185,8 @@ export function HowItWorksSection() {
     : 'Em 3 passos, sem sair do sofá';
 
   const headerDesc = isPousada
-    ? 'Do cadastro à primeira reserva via IA em menos de 24 horas. Sem precisar de técnico ou conhecimento técnico.'
-    : 'Da URL do anúncio ao primeiro check-in virtual automaticamente. Sem precisar de técnico ou conhecimento técnico.';
+    ? 'Do cadastro à primeira reserva automatizada em menos de 24 horas. Sem precisar de conhecimento técnico.'
+    : 'Da URL do anúncio ao primeiro check-in virtual automaticamente. Sem precisar de conhecimento técnico.';
 
   return (
     <section ref={sectionRef} id="como-funciona" className="relative overflow-hidden py-24 sm:py-32 bg-[#09090b]">
@@ -205,7 +207,7 @@ export function HowItWorksSection() {
           className="text-center mb-14"
         >
           {/* Eyebrow */}
-          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${isAirbnb ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'} mb-5`}>
+          <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ${isAirbnb ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'} mb-5`}>
             <Zap className={`w-3.5 h-3.5 ${isAirbnb ? 'text-blue-400' : 'text-emerald-400'}`} />
             <span className={`${isAirbnb ? 'text-blue-400' : 'text-emerald-400'} text-[11px] font-semibold uppercase tracking-[0.04em]`}>Simples como 1-2-3</span>
           </div>
@@ -260,7 +262,7 @@ export function HowItWorksSection() {
           initial={{ opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.7 }}
-          className={`mt-16 p-7 sm:p-8 rounded-2xl bg-gradient-to-r from-emerald-500/[0.06] via-blue-500/[0.04] to-violet-500/[0.06] border border-white/[0.06] text-center`}
+          className={`mt-16 p-7 sm:p-8 rounded-2xl bg-zinc-900/80 border border-white/10 text-center shadow-xl backdrop-blur-md`}
         >
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
             <div className="flex items-center gap-3">
@@ -268,8 +270,8 @@ export function HowItWorksSection() {
                 <Sparkles className={`w-5 h-5 text-emerald-400`} />
               </div>
               <div className="text-left">
-                <div className="text-white font-bold text-sm">Primeira reserva IA</div>
-                <div className="text-neutral-500 text-xs">Em até 24 horas</div>
+                <div className="text-white font-bold text-sm">Primeira reserva automatizada</div>
+                <div className="text-neutral-400 text-xs">Em até 24 horas</div>
               </div>
             </div>
             <div className="hidden sm:block w-px h-10 bg-white/[0.08]" />
@@ -284,7 +286,7 @@ export function HowItWorksSection() {
                   <span className="text-blue-400">ES</span>
                   <span className="text-white ml-1.5">Bilíngue</span>
                 </div>
-                <div className="text-neutral-500 text-xs">Atende em português e espanhol</div>
+                <div className="text-neutral-400 text-xs">Atende em português e espanhol</div>
               </div>
             </div>
             <div className="hidden sm:block w-px h-10 bg-white/[0.08]" />
@@ -293,8 +295,8 @@ export function HowItWorksSection() {
                 <Zap className={`w-5 h-5 text-violet-400`} />
               </div>
               <div className="text-left">
-                <div className="text-white font-bold text-sm">7 dias grátis</div>
-                <div className="text-neutral-500 text-xs">Sem cartão de crédito</div>
+                <div className="text-white font-bold text-sm">Preço Congelado</div>
+                <div className="text-neutral-400 text-xs">Sem fidelidade forçada</div>
               </div>
             </div>
           </div>
@@ -314,7 +316,7 @@ export function HowItWorksSection() {
             }}
             className={`group inline-flex items-center gap-2 px-8 py-4 rounded-xl ${isAirbnb ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-blue-500/25 hover:shadow-blue-500/40' : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-emerald-500/25 hover:shadow-emerald-500/40'} text-white font-bold transition-all duration-300 shadow-lg cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
           >
-            Começar agora - grátis por 7 dias
+            Conhecer Planos & Começar
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </motion.div>

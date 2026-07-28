@@ -65,7 +65,7 @@ const scrollStats = [
   { val: '+35%', label: 'Aumento em reservas diretas' },
   { val: '8s', label: 'Tempo médio de resposta' },
   { val: '64%', label: 'Redução em mensagens da API' },
-  { val: '24/7', label: 'Disponibilidade da IA' },
+  { val: '24/7', label: 'Disponibilidade 24/7' },
   { val: '5 min', label: 'Tempo de setup' },
   { val: 'R$ 197', label: 'A partir de /mês' },
 ];
@@ -258,7 +258,7 @@ export function PainPointsSection() {
           {[
             { icon: Zap, text: 'Setup em 5 minutos' },
             { icon: ShieldCheck, text: 'Sem cartão de crédito' },
-            { icon: Sparkles, text: isPousada ? 'IA treinada para pousadas' : 'IA treinada para anfitriões' },
+            { icon: Sparkles, text: isPousada ? 'Treinado para pousadas' : 'Treinado para anfitriões' },
             { icon: TrendingUp, text: 'Resultados em 48h' },
           ].map((t, i) => (
             <div key={i} className="flex items-center gap-2 text-neutral-500 text-sm">

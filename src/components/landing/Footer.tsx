@@ -57,7 +57,7 @@ export function Footer() {
           </div>
             
             <p className="text-neutral-500 text-xs leading-relaxed max-w-sm">
-              Plataforma inteligente de automação de reservas e atendimento 24/7 com inteligência artificial, {isPousada ? 'feita especificamente para pousadas e hotéis boutique brasileiros' : 'feita especificamente para anfitriões Airbnb e gestores de imóveis'}. Converta mais hóspedes e impulsione seu negócio sem complicação.
+              Plataforma inteligente de automação de reservas e atendimento 24/7 do Seu Zélla, {isPousada ? 'feita especificamente para pousadas e hotéis boutique brasileiros' : 'feita especificamente para anfitriões Airbnb e gestores de imóveis'}. Converta mais hóspedes e impulsione seu negócio sem complicação.
             </p>
 
             {/* Social Links */}

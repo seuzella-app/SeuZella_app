@@ -117,11 +117,11 @@ export function HeroSection() {
 
             {/* Subtitle — compact with relaxed leading */}
             <motion.p variants={staggerItem} className="text-[15px] sm:text-[17px] md:text-lg text-neutral-400 leading-relaxed mb-12 max-w-2xl mx-auto">
-              {!mounted ? 'O Zélla organiza sua pousada e ajuda a lucrar mais com preços inteligentes — e gastar menos no WhatsApp. Responde em 8 segundos com disponibilidade e manda sua chave PIX. Sincroniza Booking.com e entrega Guia Digital automático.' :
+              {!mounted ? 'O Zélla organiza sua pousada e ajuda a lucrar mais e gastar menos no WhatsApp. Responde seus hóspedes com disponibilidade. Sincroniza Booking.com e entrega Guia Digital automático.' :
               isPousada
-                ? 'O Zélla organiza sua pousada e ajuda a lucrar mais com preços inteligentes — e gastar menos no WhatsApp. Responde em 8 segundos com disponibilidade e manda sua chave PIX. Sincroniza Booking.com e entrega Guia Digital automático.'
+                ? 'O Zélla organiza sua pousada e ajuda a lucrar mais e gastar menos no WhatsApp. Responde seus hóspedes com disponibilidade. Sincroniza Booking.com e entrega Guia Digital automático.'
                 : isAirbnb
-                ? 'O Zélla organiza seu imóvel e ajuda a lucrar mais com preços inteligentes — e gastar menos no WhatsApp. Responde em 8 segundos com disponibilidade e manda sua chave PIX. Conecta Airbnb e Booking.com e entrega Guia Digital automático.'
+                ? 'O Zélla organiza seu imóvel e ajuda a lucrar mais e gastar menos no WhatsApp. Responde seus hóspedes com disponibilidade. Conecta Airbnb e Booking.com e entrega Guia Digital automático.'
                 : 'O programa de parceria que congela seu preço por 24 meses. Plano PRO completo por R$247/mês com selo exclusivo de parceiro no Link-in-Bio.'}
             </motion.p>
 
@@ -220,17 +220,17 @@ export function HeroSection() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      Zélla IA {isPousada ? '— Pousada Paraty' : '— Flat Copacabana'}
+                      Seu Zélla {isPousada ? '— Pousada em Itacaré, BA' : '— Flat Copacabana'}
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                         Atendimento 24/7
                       </span>
                     </h4>
-                    <p className="text-[11px] text-zinc-400">Resposta instantânea em &lt; 0.8s • 0% Comissão OTA</p>
+                    <p className="text-[11px] text-zinc-400">Resposta em tempo real • 0% Comissão OTA</p>
                   </div>
                 </div>
                 <div className="text-right hidden sm:block">
-                  <span className="text-[10px] text-zinc-500 block">Orçamento Meta</span>
-                  <span className="text-xs font-semibold text-emerald-400">80% Economia</span>
+                  <span className="text-[10px] text-zinc-500 block">Atendimento</span>
+                  <span className="text-xs font-semibold text-emerald-400">100% Solícito</span>
                 </div>
               </div>
 
@@ -239,55 +239,72 @@ export function HeroSection() {
                 {/* Balão 1: Hóspede */}
                 <div className="flex justify-start">
                   <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] border border-zinc-700/50">
-                    <p>Olá! Tem vaga na {isPousada ? 'suíte casal pro próximo fim de semana' : 'acomodação do Airbnb pras próximas datas'}? Qual o valor?</p>
+                    <p>Olá, boa tarde! Gostaria de saber se vocês têm disponibilidade de suíte para casal no próximo fim de semana aqui em Itacaré?</p>
                     <span className="text-[9px] text-zinc-500 block text-right mt-1">14:32</span>
                   </div>
                 </div>
 
-                {/* Balão 2: Zélla IA */}
+                {/* Balão 2: Seu Zélla */}
                 <div className="flex justify-end">
                   <div className="bg-emerald-950/80 text-emerald-100 rounded-2xl rounded-tr-none px-4 py-3 max-w-[88%] border border-emerald-500/30 shadow-lg">
                     <p className="font-semibold text-emerald-300 mb-1">
-                      {isPousada ? 'Olá! Temos sim! ✨ Suíte Master Luxo disponível.' : 'Olá! Imóvel disponível e limpinho pra você! ✨'}
+                      {isPousada ? 'Olá! Que ótimo ter você por aqui! 🌴' : 'Olá! Seja muito bem-vindo! 🌴'}
                     </p>
                     <p className="text-zinc-200 leading-relaxed">
-                      {isPousada ? 'R$ 450/noite com café da manhã incluso. Para garantir direto sem taxas adicionais:' : 'R$ 380/noite sem taxa de limpeza extra. Para reservar nativamente:'}
+                      {isPousada
+                        ? 'Temos sim! Nossa Suíte Master com varanda e vista para o jardim está disponível para o fim de semana. O valor é R$ 420 a diária, já com o nosso café da manhã baiano completo incluso. Quer que eu segure essa suíte para você?'
+                        : 'Temos sim! Nosso apartamento está limpinho e pronto pra te receber no fim de semana por R$ 380/noite. Posso reservar pra você?'}
                     </p>
-                    {isPousada ? (
-                      <div className="mt-2 p-2 rounded-lg bg-black/40 border border-emerald-500/20 text-xs font-mono text-emerald-300">
-                        💳 <strong>PIX (CNPJ):</strong> 12.345.678/0001-90
-                      </div>
-                    ) : (
-                      <div className="mt-2 p-2 rounded-lg bg-black/40 border border-rose-500/20 text-xs font-mono text-rose-300">
-                        🛡️ <strong>Airbnb Direct:</strong> Reserva 100% Nativa protegida
-                      </div>
-                    )}
-                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:32 • Resposta em 0.6s</span>
+                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:32 • Resposta em tempo real</span>
                   </div>
                 </div>
 
                 {/* Balão 3: Hóspede */}
                 <div className="flex justify-start">
                   <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] border border-zinc-700/50">
-                    <p>{isPousada ? 'Show! PIX realizado.' : 'Maravilha, reserva efetuada no aplicativo!'}</p>
+                    <p>Que maravilha! Tem ar-condicionado e estacionamento? Se sim, pode me enviar a chave PIX que já vou garantir!</p>
                     <span className="text-[9px] text-zinc-500 block text-right mt-1">14:33</span>
                   </div>
                 </div>
 
-                {/* Balão 4: Zélla IA (Confirmação + Guia) */}
+                {/* Balão 4: Seu Zélla com PIX */}
+                <div className="flex justify-end">
+                  <div className="bg-emerald-950/80 text-emerald-100 rounded-2xl rounded-tr-none px-4 py-3 max-w-[88%] border border-emerald-500/30 shadow-lg">
+                    <p className="text-zinc-200 leading-relaxed">
+                      Tem sim! Ar-condicionado split silencioso, Wi-Fi rápido e estacionamento privativo no local. Pra garantir direto com a gente sem taxas extras, você pode usar nossa chave PIX CNPJ:
+                    </p>
+                    <div className="mt-2 p-2 rounded-lg bg-black/40 border border-emerald-500/20 text-xs font-mono text-emerald-300">
+                      💳 <strong>PIX (CNPJ):</strong> 12.345.678/0001-90 (Pousada Itacaré)
+                    </div>
+                    <p className="text-zinc-300 text-xs mt-2">
+                      Assim que fizer, só me mandar o comprovante aqui que já confirmo seu check-in e te envio o Guia Digital de Itacaré! 😊
+                    </p>
+                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:33 • Atendimento carinhoso</span>
+                  </div>
+                </div>
+
+                {/* Balão 5: Hóspede */}
+                <div className="flex justify-start">
+                  <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] border border-zinc-700/50">
+                    <p>Prontinho! PIX realizado. Muito obrigado pela atenção!</p>
+                    <span className="text-[9px] text-zinc-500 block text-right mt-1">14:34</span>
+                  </div>
+                </div>
+
+                {/* Balão 6: Seu Zélla (Confirmação + Guia) */}
                 <div className="flex justify-end">
                   <div className="bg-emerald-950/90 text-emerald-100 rounded-2xl rounded-tr-none px-4 py-3 max-w-[88%] border border-emerald-400/40 shadow-xl">
                     <p className="font-bold text-emerald-300 flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-amber-400" />
-                      Reserva Confirmada com Sucesso!
+                      Reserva Confirmada com Sucesso! 🎉
                     </p>
                     <p className="text-zinc-200 mt-1 text-xs">
-                      Seu Guia Digital DDC já está pronto com a senha do Wi-Fi, fechadura eletrônica e passeios da região.
+                      É um prazer receber vocês em Itacaré. Seu Guia Digital já está liberado com a senha do Wi-Fi, dicas das praias da Resende e Tiririca e ótimos restaurantes!
                     </p>
                     <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-medium border border-emerald-500/40">
-                      📱 <span>Acessar Guia Digital do Hóspede</span>
+                      📱 <span>Acessar Guia Digital de Itacaré</span>
                     </div>
-                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:33 • Zélla Brain v5.2</span>
+                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:34 • Seu Zélla</span>
                   </div>
                 </div>
               </div>
