@@ -94,53 +94,60 @@ function StepCard({
 
   return (
     <motion.div
-      initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 24 }}
+      initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 32 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: reducedMotion ? 0.2 : 0.5, delay: reducedMotion ? 0 : index * 0.12, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
+      transition={{ duration: reducedMotion ? 0.2 : 0.6, delay: reducedMotion ? 0 : index * 0.15, ease: [0.22, 1, 0.36, 1] }}
       className="relative group h-full"
     >
-      {/* Desktop connector arrow */}
+      {/* Desktop connector line */}
       {index < 2 && (
-        <div className="hidden lg:flex absolute top-1/2 -right-5 z-20 items-center justify-center w-10 h-10">
-          <div className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-all duration-300 shadow-md">
-            <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-emerald-400 transition-colors duration-300" />
+        <div className="hidden lg:flex absolute top-1/2 -right-5 z-20 items-center justify-center w-10 h-10 pointer-events-none">
+          <div className="w-8 h-8 rounded-full bg-zinc-900/90 border border-white/20 flex items-center justify-center group-hover:border-emerald-400 group-hover:bg-emerald-500/10 transition-all duration-300 shadow-xl">
+            <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-emerald-400 transition-colors duration-300" />
           </div>
         </div>
       )}
 
-      <div className={`relative p-8 sm:p-9 rounded-2xl bg-gradient-to-b from-zinc-900/90 to-zinc-950/95 border border-white/10 hover:border-white/20 transition-all duration-300 shadow-xl backdrop-blur-md h-full flex flex-col justify-between overflow-hidden group-hover:shadow-2xl`}>
-        {/* Subtle top border highlight */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white/15 to-transparent group-hover:via-emerald-500/50 transition-all duration-500" />
+      <div className={`relative p-8 sm:p-10 rounded-3xl bg-gradient-to-b from-zinc-900/95 via-zinc-900/80 to-zinc-950/95 border border-white/10 hover:border-emerald-500/40 transition-all duration-500 shadow-2xl backdrop-blur-xl h-full flex flex-col justify-between overflow-hidden group-hover:-translate-y-1.5`}>
+        
+        {/* Background Watermark Number */}
+        <span className="absolute -bottom-6 -right-4 text-9xl font-black font-satoshi text-white/[0.04] group-hover:text-white/[0.08] transition-colors duration-500 select-none pointer-events-none tracking-tighter">
+          {step.num}
+        </span>
 
-        <div>
-          {/* Top row: number + icon */}
+        {/* Ambient Glow Gradient Blob */}
+        <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full ${c.accent} blur-[80px] opacity-20 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none`} />
+        
+        {/* Metallic Top Hairline Highlight */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:via-emerald-400 transition-all duration-500" />
+
+        <div className="relative z-10">
+          {/* Top Row: step badge & icon */}
           <div className="flex items-center justify-between gap-4 mb-6">
-            {/* Step number badge */}
-            <div className={`w-11 h-11 rounded-2xl bg-zinc-800/80 border border-white/10 flex items-center justify-center shadow-inner`}>
-              <span className={`text-base font-black font-satoshi ${c.text}`}>{step.num}</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-800/90 border border-white/15 shadow-inner">
+              <span className={`text-xs font-black tracking-widest font-satoshi uppercase ${c.text}`}>PASSO {step.num}</span>
             </div>
 
-            {/* Icon */}
-            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${c.bg} border ${c.border} flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-md`}>
-              {IconComponent && <IconComponent className={`w-6 h-6 ${c.text}`} />}
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${c.bg} border ${c.border} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/40`}>
+              {IconComponent && <IconComponent className={`w-7 h-7 ${c.text}`} />}
             </div>
           </div>
 
-          {/* Title */}
-          <h3 className="text-white font-bold text-xl sm:text-2xl mb-2 tracking-tight">{step.title}</h3>
-          <p className={`text-xs font-semibold ${c.text} mb-4 tracking-wider uppercase`}>{step.subtitle}</p>
+          {/* Title & Subtitle */}
+          <h3 className="text-white font-extrabold text-2xl sm:text-3xl mb-2 tracking-tight">{step.title}</h3>
+          <p className={`text-xs font-bold ${c.text} mb-4 tracking-wider uppercase`}>{step.subtitle}</p>
 
           {/* Description */}
-          <p className="text-neutral-300 text-sm leading-relaxed mb-6 font-normal">{step.desc}</p>
+          <p className="text-neutral-300 text-sm sm:text-base leading-relaxed mb-6 font-normal">{step.desc}</p>
 
-          {/* Highlights chips */}
+          {/* Highlights Chips */}
           <div className="flex flex-wrap gap-2 mb-6">
             {step.highlights.map((h, i) => (
               <div
                 key={i}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/60 border border-white/10 text-[11px] font-medium ${c.text}`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-zinc-800/80 border border-white/10 text-xs font-semibold ${c.text} shadow-sm`}
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                 {h}
               </div>
             ))}
@@ -149,20 +156,20 @@ function StepCard({
 
         {/* Form fields preview (step 1 only) */}
         {step.fields && (
-          <div className="space-y-2 pt-4 border-t border-white/10 mt-auto">
+          <div className="relative z-10 space-y-2 pt-5 border-t border-white/10 mt-auto">
             {step.fields.map((field, idx) => (
               <div
                 key={idx}
                 className="flex items-center gap-2.5"
               >
-                <div className={`w-1.5 h-1.5 rounded-full ${c.text.replace('text-', 'bg-')} opacity-80`} />
-                <span className="text-neutral-400 text-[12px]">{field}</span>
+                <div className={`w-2 h-2 rounded-full ${c.text.replace('text-', 'bg-')} opacity-90`} />
+                <span className="text-neutral-300 text-xs font-medium">{field}</span>
               </div>
             ))}
-            <div className="flex items-center gap-2 mt-3 text-emerald-400 text-[11px] font-medium">
-              <Mail className="w-3.5 h-3.5" />
-              <Building className="w-3.5 h-3.5" />
-              <span>Cadastro simples — sem complicações</span>
+            <div className="flex items-center gap-2 mt-4 pt-2 text-emerald-400 text-xs font-bold">
+              <Mail className="w-4 h-4" />
+              <Building className="w-4 h-4" />
+              <span>Setup rápido — em menos de 5 minutos</span>
             </div>
           </div>
         )}

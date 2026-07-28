@@ -373,10 +373,7 @@ export function PricingSection() {
             </span>
           </h2>
           <p className="text-neutral-400 text-lg max-w-xl mx-auto mb-4">
-            {isAirbnb
-              ? 'Teste grátis por 7 dias. Sem cartão de crédito, sem compromisso. Cancele quando quiser.'
-              : 'Comece grátis por 7 dias. Sem cartão de crédito, sem compromisso. Cancele quando quiser.'
-            }
+            Escolha o plano ideal para alavancar suas reservas diretas e zerar comissões.
           </p>
 
           {/* Pricing Focus */}
@@ -428,27 +425,7 @@ export function PricingSection() {
           )}
         </motion.div>
 
-        {/* Airbnb 7-day trial banner */}
-        <AnimatePresence mode="wait">
-          {isAirbnb && (
-            <motion.div
-              key="airbnb-trial-banner"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.5 }}
-              className="max-w-2xl mx-auto mb-12 px-5 py-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center gap-3"
-            >
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
-                <KeyRound className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-white font-semibold text-sm">7 dias grátis em todos os planos</p>
-                <p className="text-blue-300/70 text-xs mt-0.5">Teste sem compromisso. Sem cartão de crédito. Cancele quando quiser.</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
 
         {/* Pricing Cards Grid */}
         <AnimatePresence mode="wait">
@@ -506,14 +483,14 @@ export function PricingSection() {
                   }}
                 >
                   <div className="relative rounded-2xl bg-[#0a0a0a] p-7 h-full flex flex-col">
-                    {/* Popular / Trial badge */}
+                    {/* Popular / Badge */}
                     {isPopular && (
                       <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-white text-xs font-bold shadow-lg ${
                         isPousada
                           ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-500/30'
                           : 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-blue-500/30'
                       }`}>
-                        {isAirbnb ? '7 Dias Grátis' : 'Mais Popular'}
+                        {isAirbnb ? 'Mais Escolhido' : 'Mais Popular'}
                       </div>
                     )}
 
