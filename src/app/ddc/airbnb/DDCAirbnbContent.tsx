@@ -8,6 +8,9 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 import { DDCShell, type NavItem } from '@/components/ddc/DDCShell';
 import { MagicScanner, type MagicScanResult } from '@/components/ddc/MagicScanner';
@@ -44,6 +47,7 @@ import {
   TrendingUp,
   DollarSign,
   ArrowUpRight,
+  ArrowDownRight,
   CheckCircle2,
   Clock,
   ShieldCheck,
@@ -67,11 +71,13 @@ import {
   Wifi,
   Smartphone,
   QrCode,
+  Users,
+  CreditCard,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type AirbnbTab = 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'guia' | 'config';
+type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'guia' | 'config';
 
 interface PropertyData {
   id: string;
@@ -110,11 +116,11 @@ interface AutomationLog {
 const MOCK_PROPERTIES: PropertyData[] = [
   {
     id: '1',
-    name: 'Flat Copacabana',
-    location: 'Rio de Janeiro, RJ',
+    name: 'Apartamento Vista Mar — Copacabana',
+    location: 'Copacabana, Rio de Janeiro, RJ',
     connected: true,
-    occupancy: 87,
-    rating: 4.92,
+    occupancy: 84,
+    rating: 4.96,
     reviews: 214,
     revenue: 8450,
   },
@@ -138,6 +144,22 @@ const MOCK_PROPERTIES: PropertyData[] = [
     reviews: 89,
     revenue: 3920,
   },
+];
+
+const REVENUE_TREND_DATA = [
+  { day: '01', receita: 1200 },
+  { day: '05', receita: 2400 },
+  { day: '10', receita: 3800 },
+  { day: '15', receita: 5100 },
+  { day: '20', receita: 7200 },
+  { day: '25', receita: 12450 },
+  { day: '30', receita: 18650 },
+];
+
+const PAYMENT_METHOD_DATA = [
+  { name: 'PIX Direto (0% Taxa)', value: 68, color: '#10b981' },
+  { name: 'Airbnb / OTAs', value: 24, color: '#3b82f6' },
+  { name: 'Cartão de Crédito', value: 8, color: '#f59e0b' },
 ];
 
 const MOCK_SYNC_SOURCES: SyncSource[] = [
@@ -198,6 +220,19 @@ const responseTimeChartConfig: ChartConfig = {
   },
 };
 
+const revenueChartConfig: ChartConfig = {
+  receita: {
+    label: 'Receita (R$)',
+    color: '#3b82f6',
+  },
+};
+
+const paymentChartConfig: ChartConfig = {
+  pix: { label: 'PIX Direto', color: '#10b981' },
+  ota: { label: 'Airbnb / OTAs', color: '#3b82f6' },
+  card: { label: 'Cartão', color: '#f59e0b' },
+};
+
 // ─── Animation Variants ─────────────────────────────────────────────────────
 
 const staggerContainer = {
@@ -216,6 +251,7 @@ const staggerItem = {
 // ─── Sidebar Navigation Items ───────────────────────────────────────────────
 
 const airbnbNavItems: NavItem[] = [
+  { id: 'financeiro', label: 'Painel Financeiro', icon: <TrendingUp className="size-4" /> },
   { id: 'propriedades', label: 'Painel de Propriedades', icon: <Home className="size-4" /> },
   { id: 'sincronizacao', label: 'Sincronização', icon: <CalendarDays className="size-4" /> },
   { id: 'automacao', label: 'Automação', icon: <Bot className="size-4" /> },
@@ -241,7 +277,7 @@ function formatCompactBRL(value: number): string {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function DDCAirbnbContent() {
-  const [activeTab, setActiveTab] = useState<AirbnbTab>('propriedades');
+  const [activeTab, setActiveTab] = useState<AirbnbTab>('financeiro');
   const [calendarDays] = useState<CalendarDay[]>(generateCalendarDays);
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
   const [propertiesState, setPropertiesState] = useState<PropertyData[]>(MOCK_PROPERTIES);
@@ -1130,10 +1166,203 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
+  // ─── Tab: Painel Financeiro ──────────────────────────────────────────
+
+  const TabFinanceiro = () => (
+    <motion.div
+      key="financeiro"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
+      {/* Scan Summary Banner */}
+      <Card className="bg-gradient-to-r from-blue-500/[0.08] to-indigo-500/[0.05] border-blue-500/20 overflow-hidden">
+        <CardContent className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-blue-500/15 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-blue-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-white font-semibold text-sm">{scannedData.propertyName}</h3>
+                <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />iCal & WhatsApp Conectados
+                </Badge>
+              </div>
+              <p className="text-zinc-400 text-xs mb-3">{scannedData.description || ''}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-xs text-zinc-300">{scannedData.location || '—'}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-xs text-zinc-300">Check-in {scannedData.checkInTime} / Check-out {scannedData.checkOutTime}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Home className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-xs text-zinc-300">{totalProperties} imóveis monitorados</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Bot className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-xs text-zinc-300 truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {scannedData.amenities.map((amenity) => (
+                  <Badge key={amenity} variant="outline" className="text-[10px] border-blue-500/20 text-blue-300 bg-blue-500/5">
+                    {amenity}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* MRR Card */}
+        <Card className="bg-[#111118] border-zinc-800/60 hover:border-blue-500/30 transition-colors">
+          <CardHeader className="pb-2">
+            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Faturamento Mês (MRR)</CardDescription>
+            <CardTitle className="text-2xl font-bold text-white">
+              {formatBRL(totalRevenue)}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-1.5 text-emerald-400 text-sm">
+              <TrendingUp className="size-4" />
+              <span>+18.4% vs mês anterior</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Taxa de Conversão */}
+        <Card className="bg-[#111118] border-zinc-800/60 hover:border-blue-500/30 transition-colors">
+          <CardHeader className="pb-2">
+            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Conversão Direta WhatsApp</CardDescription>
+            <CardTitle className="text-2xl font-bold text-white">41.2%</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-1.5 text-blue-400 text-sm">
+              <ArrowUpRight className="size-4" />
+              <span>Sem comissão de OTAs</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Imóveis Ativos */}
+        <Card className="bg-[#111118] border-zinc-800/60 hover:border-blue-500/30 transition-colors">
+          <CardHeader className="pb-2">
+            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Portfólio Ativo</CardDescription>
+            <CardTitle className="text-2xl font-bold text-white">{totalProperties} Imóveis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-1.5 text-amber-400 text-sm">
+              <Home className="size-4" />
+              <span>Ocupação média: 73%</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Economia em Comissões Airbnb */}
+        <Card className="bg-[#111118] border-zinc-800/60 hover:border-blue-500/30 transition-colors">
+          <CardHeader className="pb-2">
+            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Economia em Comissões</CardDescription>
+            <CardTitle className="text-2xl font-bold text-emerald-400">R$ 2.797</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-1.5 text-emerald-400 text-sm">
+              <ShieldCheck className="size-4" />
+              <span>15% economizados no PIX</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Revenue Trend Chart - 2 cols */}
+        <Card className="lg:col-span-2 bg-[#111118] border-zinc-800/60">
+          <CardHeader>
+            <CardTitle className="text-base text-white">Evolução de Faturamento (30 Dias)</CardTitle>
+            <CardDescription className="text-zinc-500">Receita acumulada do portfólio de imóveis</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={revenueChartConfig} className="h-[260px] w-full">
+              <LineChart data={REVENUE_TREND_DATA} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e1e2e" />
+                <XAxis dataKey="day" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <ChartTooltip
+                  content={<ChartTooltipContent />}
+                  formatter={(value: number) => [formatBRL(value), 'Receita']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="receita"
+                  stroke="#3b82f6"
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 5, fill: '#3b82f6', stroke: '#0a0a0f', strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Payment Method Donut Chart */}
+        <Card className="bg-[#111118] border-zinc-800/60">
+          <CardHeader>
+            <CardTitle className="text-base text-white">Origem dos Pagamentos</CardTitle>
+            <CardDescription className="text-zinc-500">Distribuição por canal de recebimento</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <ChartContainer config={paymentChartConfig} className="h-[180px] w-full">
+              <PieChart>
+                <Pie
+                  data={PAYMENT_METHOD_DATA}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={75}
+                  strokeWidth={2}
+                  stroke="#111118"
+                >
+                  {PAYMENT_METHOD_DATA.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </PieChart>
+            </ChartContainer>
+            <div className="w-full space-y-2 mt-2">
+              {PAYMENT_METHOD_DATA.map((item) => (
+                <div key={item.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-zinc-300">{item.name}</span>
+                  </div>
+                  <span className="font-semibold text-white">{item.value}%</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </motion.div>
+  );
+
   // ─── Tab Renderer ─────────────────────────────────────────────────────
 
   const renderTab = () => {
     switch (activeTab) {
+      case 'financeiro':
+        return <TabFinanceiro />;
       case 'propriedades':
         return <TabPropriedades />;
       case 'sincronizacao':

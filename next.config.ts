@@ -33,6 +33,15 @@ const nextConfig: NextConfig = {
         ? { exclude: ['error'] }
         : false,
   },
+  async redirects() {
+    return [
+      {
+        source: '/ddc/pousadas',
+        destination: '/ddc/pousada',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
