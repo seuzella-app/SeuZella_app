@@ -2,6 +2,7 @@ import { hasFeature } from '@/lib/brain/feature-guard';
 import type { Plan } from '@prisma/client';
 import { WhatsappPersonaLearner } from '@/lib/brain/whatsapp-persona-learner';
 import type { ClassifiedIntent } from '@/lib/brain/intent-classifier';
+import { detectLanguage } from '@/lib/brain/language-detector';
 
 export interface PropertyData {
   id: string;
@@ -31,7 +32,17 @@ export class PromptBuilder {
       learnedPersonaPrompt = '\n\n[ATENDIMENTO BÁSICO]: Utilize tom neutro, educado e profissional.';
     }
 
-    const systemPrompt = this.buildSystemPrompt(property, intent) + learnedPersonaPrompt;
+    const langResult = detectLanguage(message);
+    let langPrompt = '';
+    if (langResult.detectedLanguage === 'es') {
+      langPrompt = '\n\n[IDIOMA DETECTADO: ESPANHOL]: O hóspede escreveu em Espanhol. RESPONDA INTEGRALMENTE EM ESPANHOL fluente e hospitaleiro.';
+    } else if (langResult.detectedLanguage === 'en') {
+      langPrompt = '\n\n[IDIOMA DETECTADO: INGLÊS]: O hóspede escreveu em Inglês. RESPONDA INTEGRALMENTE EM INGLÊS cortês e profissional.';
+    } else {
+      langPrompt = '\n\n[IDIOMA DETECTADO: PORTUGUÊS]: Responda em Português do Brasil de forma natural e hospitaleira.';
+    }
+
+    const systemPrompt = this.buildSystemPrompt(property, intent) + learnedPersonaPrompt + langPrompt;
     const userPrompt = this.buildUserPrompt(message, classified, context);
     return { systemPrompt, userPrompt };
   }
@@ -42,7 +53,7 @@ Atende pelo WhatsApp de forma calorosa e eficiente.
 Nome: ${property?.name || 'Secretaria'}
 Capacidade: ${property?.capacity ?? '?'} quartos
 Endereço: ${property?.address || 'N/A'}, ${property?.city || ''}/${property?.state || ''}
-REGRAS: Sempre gentil, use emojis com moderação, NÃO negocie preços, NÃO faça estornos.`;
+REGRAS (SUPORTE BILÍNGUE PT/ES): Mantenha o idioma em que o cliente se comunicou (Espanhol ou Português). Sempre gentil, use emojis com moderação, NÃO negocie preços, NÃO faça estornos.`;
 
     const intentSpecific: Record<string, string> = {
       RESERVATION_CREATE: '\nColete: datas, número de hóspedes, tipo de quarto.',
