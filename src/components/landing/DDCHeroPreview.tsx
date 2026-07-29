@@ -84,9 +84,15 @@ export function DDCHeroPreview() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto rounded-2xl border border-emerald-500/30 bg-[#0a0a0f] text-left shadow-[0_0_60px_rgba(16,185,129,0.18)] relative overflow-hidden my-8 select-none font-sans text-white">
+    <div className={`w-full max-w-6xl mx-auto rounded-2xl bg-[#0a0a0f] text-left relative overflow-hidden my-8 select-none font-sans text-white transition-all duration-300 ${
+      isPousada
+        ? 'border border-emerald-500/30 shadow-[0_0_60px_rgba(16,185,129,0.18)]'
+        : 'border border-blue-500/30 shadow-[0_0_60px_rgba(59,130,246,0.18)]'
+    }`}>
       {/* Top Hairline Metallic Accent */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_rgba(16,185,129,0.9)] z-30" />
+      <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_rgba(16,185,129,0.9)] z-30 ${
+        isPousada ? 'via-emerald-400' : 'via-blue-400'
+      }`} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 h-[620px] max-h-[620px] min-h-[620px] overflow-hidden">
         {/* ═══════════════════════════════════════════════════════════════
@@ -103,9 +109,11 @@ export function DDCHeroPreview() {
                 <h3 className="text-xs font-bold text-white tracking-tight">Seu Zélla</h3>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-[9px] text-zinc-400 uppercase tracking-wider font-mono">
-                    CENTRAL DE CONTROLE
+                    {isPousada ? 'CENTRAL DE CONTROLE' : 'CENTRAL DO ANFITRIÃO'}
                   </span>
-                  <span className="text-[8px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono">
+                  <span className={`text-[8px] px-1 py-0.2 rounded font-mono ${
+                    isPousada ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  }`}>
                     GRATUITO
                   </span>
                 </div>
@@ -114,7 +122,7 @@ export function DDCHeroPreview() {
 
             {/* Navigation Links */}
             <nav className="space-y-1 text-xs">
-              {[
+              {(isPousada ? [
                 { id: 'financeiro' as const, label: 'Visão Financeira', icon: LayoutDashboard },
                 { id: 'hospedes' as const, label: 'Controle de Hóspedes', icon: Users },
                 { id: 'cerebro' as const, label: 'Cérebro da Pousada', icon: Brain },
@@ -123,7 +131,15 @@ export function DDCHeroPreview() {
                 { id: 'guia' as const, label: 'Guia Digital', icon: FileText },
                 { id: 'integracoes' as const, label: 'Integrações', icon: Globe },
                 { id: 'config' as const, label: 'Configurações', icon: Settings },
-              ].map((item) => {
+              ] : [
+                { id: 'financeiro' as const, label: 'Painel de Propriedades', icon: LayoutDashboard },
+                { id: 'integracoes' as const, label: 'Sincronização', icon: Globe },
+                { id: 'cerebro' as const, label: 'Automação', icon: Brain },
+                { id: 'simulador' as const, label: 'Simulador Zélla', icon: MessageSquare },
+                { id: 'connection' as const, label: 'Connection Center', icon: Smartphone },
+                { id: 'guia' as const, label: 'Guia Digital', icon: FileText },
+                { id: 'config' as const, label: 'Configurações', icon: Settings },
+              ]).map((item) => {
                 const IconComp = item.icon;
                 const isActive = activeTab === item.id;
                 return (
@@ -132,11 +148,13 @@ export function DDCHeroPreview() {
                     onClick={() => handleTabClick(item.id)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer ${
                       isActive
-                        ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 font-bold shadow-md shadow-emerald-500/10'
+                        ? isPousada
+                          ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 font-bold shadow-md shadow-emerald-500/10'
+                          : 'bg-blue-950/80 border border-blue-500/40 text-blue-400 font-bold shadow-md shadow-blue-500/10'
                         : 'text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'
                     }`}
                   >
-                    <IconComp className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`} />
+                    <IconComp className={`w-4 h-4 ${isActive ? (isPousada ? 'text-emerald-400' : 'text-blue-400') : 'text-zinc-400'}`} />
                     <span>{item.label}</span>
                   </button>
                 );
@@ -169,8 +187,10 @@ export function DDCHeroPreview() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-extrabold text-white flex items-center gap-2">
-                {isPousada ? 'Pousada Serenity Paraty' : 'Flat Copacabana Premium'}
-                <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold uppercase font-mono">
+                {isPousada ? 'Pousada Serenity Paraty' : 'Apartamento Vista Mar — Copacabana'}
+                <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase font-mono ${
+                  isPousada ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                }`}>
                   {isPousada ? 'POUSADA' : 'AIRBNB'}
                 </span>
                 <span className="text-[9px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-white/10 font-mono">
@@ -180,23 +200,27 @@ export function DDCHeroPreview() {
             </div>
 
             {/* Status Pill matching the screenshot */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/90 border border-emerald-500/40 text-[11px] font-bold text-emerald-300 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>ZÉLLA ATIVO • Resposta em 0.6s • 80% Economia WhatsApp • Booking.com Sincronizado</span>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm ${
+              isPousada ? 'bg-emerald-950/90 border border-emerald-500/40 text-emerald-300' : 'bg-blue-950/90 border border-blue-500/40 text-blue-300'
+            }`}>
+              <span className={`w-2 h-2 rounded-full animate-ping ${isPousada ? 'bg-emerald-400' : 'bg-blue-400'}`} />
+              <span>{isPousada ? 'ZÉLLA ATIVO • Resposta em 0.6s • 80% Economia WhatsApp • Booking.com Sincronizado' : '🟢 PIX GATEKEEPER ATIVO • 100% Proteção contra Banimento Airbnb • Selo Superhost'}</span>
             </div>
 
             <div className="hidden xl:flex items-center gap-2">
               <span className="text-[10px] px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-300 font-medium">
-                Painel ZCC
+                {isPousada ? 'Painel ZCC' : 'Painel ZCC'}
               </span>
-              <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold flex items-center justify-center">
+              <div className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                isPousada ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
+              }`}>
                 ZA
               </div>
             </div>
           </div>
 
           <AnimatePresence mode="wait">
-            {/* ── TAB 1: VISÃO FINANCEIRA (EXACT MATCH TO USER SCREENSHOT) ── */}
+            {/* ── TAB 1: VISÃO FINANCEIRA / PAINEL DE PROPRIEDADES ── */}
             {activeTab === 'financeiro' && (
               <motion.div
                 key="financeiro"
@@ -206,27 +230,31 @@ export function DDCHeroPreview() {
                 transition={{ duration: 0.25 }}
                 className="space-y-5"
               >
-                {/* Property Header Card */}
+                {/* Property Header Banner */}
                 <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-3 relative overflow-hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                      <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${
+                        isPousada ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'bg-blue-500/20 border-blue-500/40 text-blue-400'
+                      }`}>
                         <Sparkles className="w-5 h-5" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="text-base font-extrabold text-white">
-                            {isPousada ? 'Pousada Serenity Paraty' : 'Flat Copacabana Premium'}
+                            {isPousada ? 'Pousada Serenity Paraty' : 'Apartamento Vista Mar — Copacabana'}
                           </h3>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium flex items-center gap-1">
-                            <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                            Lido pelo Scanner
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${
+                            isPousada ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                          }`}>
+                            <ShieldCheck className={`w-3 h-3 ${isPousada ? 'text-emerald-400' : 'text-blue-400'}`} />
+                            {isPousada ? 'Lido pelo Scanner' : 'iCal Sincronizado'}
                           </span>
                         </div>
                         <p className="text-xs text-zinc-400">
                           {isPousada
                             ? 'Pousada encantadora no centro histórico de Paraty com vista para a baía.'
-                            : 'Studio moderno a 2 quadras da praia de Copacabana com fechadura inteligente.'}
+                            : 'Apartamento com vista panorâmica para o mar em Copacabana. Perfeito para casais e famílias pequenas.'}
                         </p>
                       </div>
                     </div>
@@ -235,67 +263,188 @@ export function DDCHeroPreview() {
                   {/* Specs & Tags */}
                   <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-300 pt-1">
                     <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/40 border border-white/5">
-                      <MapPin className="w-3 h-3 text-emerald-400" /> {isPousada ? 'Paraty, RJ' : 'Rio de Janeiro, RJ'}
+                      <MapPin className={`w-3 h-3 ${isPousada ? 'text-emerald-400' : 'text-blue-400'}`} /> {isPousada ? 'Paraty, RJ' : 'Copacabana, Rio de Janeiro'}
                     </span>
                     <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/40 border border-white/5">
-                      <Clock className="w-3 h-3 text-emerald-400" /> Check-In 14:00 / Check-out 12:00
+                      <Clock className={`w-3 h-3 ${isPousada ? 'text-emerald-400' : 'text-blue-400'}`} /> Check-In {isPousada ? '14:00' : '15:00'} / Check-out {isPousada ? '12:00' : '11:00'}
                     </span>
                     <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/40 border border-white/5">
-                      <Bed className="w-3 h-3 text-emerald-400" /> {isPousada ? '12 quartos' : '1 imóvel'}
+                      <Bed className={`w-3 h-3 ${isPousada ? 'text-emerald-400' : 'text-blue-400'}`} /> {isPousada ? '12 quartos' : '6 comodidades'}
                     </span>
                     <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/40 border border-white/5">
-                      <Bot className="w-3 h-3 text-emerald-400" /> Acolhedor e profissional
+                      <Bot className={`w-3 h-3 ${isPousada ? 'text-emerald-400' : 'text-blue-400'}`} /> {isPousada ? 'Acolhedor e profissional' : 'Moderno e direto'}
                     </span>
                   </div>
 
                   {/* Amenities Chips */}
                   <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    {['Wi-Fi', 'Café da manhã', 'Piscina', 'Estacionamento', 'Ar-condicionado', 'Vista mar'].map((a, i) => (
-                      <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-medium">
+                    {(isPousada ? ['Wi-Fi', 'Café da manhã', 'Piscina', 'Estacionamento', 'Ar-condicionado', 'Vista mar'] : ['Wi-Fi', 'Ar-condicionado', 'Cozinha completa', 'Vista mar', 'Estacionamento', 'Smart TV']).map((a, i) => (
+                      <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                        isPousada ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-300 border border-blue-500/20'
+                      }`}>
                         {a}
                       </span>
                     ))}
                   </div>
                 </div>
 
-                {/* 4 Real Metrics Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {/* MRR Estimado */}
-                  <div className="p-4 rounded-xl bg-zinc-900/80 border border-white/10 space-y-1">
-                    <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">MRR ESTIMADO</span>
-                    <div className="text-lg sm:text-xl font-mono font-black text-white">R$ 315.000,00</div>
-                    <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
-                      <ArrowUpRight className="w-3 h-3" /> +12.5% vs mês anterior
+                {isPousada ? (
+                  <>
+                    {/* 4 Real Metrics Cards (POUSADA) */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="p-4 rounded-xl bg-zinc-900/80 border border-white/10 space-y-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">MRR ESTIMADO</span>
+                        <div className="text-lg sm:text-xl font-mono font-black text-white">R$ 315.000,00</div>
+                        <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
+                          <ArrowUpRight className="w-3 h-3" /> +12.5% vs mês anterior
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-zinc-900/80 border border-white/10 space-y-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">TAXA DE CONVERSÃO</span>
+                        <div className="text-lg sm:text-xl font-mono font-black text-white">34.7%</div>
+                        <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
+                          <ArrowUpRight className="w-3 h-3" /> Contatos → Reservas
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-zinc-900/80 border border-white/10 space-y-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">HÓSPEDES ATIVOS</span>
+                        <div className="text-lg sm:text-xl font-mono font-black text-white">10</div>
+                        <div className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold">
+                          <Users className="w-3 h-3" /> 5 confirmados
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-zinc-900/80 border border-white/10 space-y-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">TICKET MÉDIO</span>
+                        <div className="text-lg sm:text-xl font-mono font-black text-white">R$ 1.229</div>
+                        <div className="flex items-center gap-1 text-[10px] text-rose-400 font-semibold">
+                          <ArrowDownRight className="w-3 h-3" /> -3.2% vs mês anterior
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    {/* AIRBNB REAL LAYOUT — MATCHES USER SCREENSHOT 100% */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
+                        <h3 className="text-sm font-extrabold text-white">Portfólio de Imóveis Airbnb</h3>
+                        <p className="text-[11px] text-zinc-400">3 imóveis conectados e monitorados pela IA Zélla</p>
+                      </div>
+                      <button className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/20">
+                        + Adicionar Imóvel
+                      </button>
+                    </div>
 
-                  {/* Taxa de Conversão */}
-                  <div className="p-4 rounded-xl bg-zinc-900/80 border border-white/10 space-y-1">
-                    <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">TAXA DE CONVERSÃO</span>
-                    <div className="text-lg sm:text-xl font-mono font-black text-white">34.7%</div>
-                    <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
-                      <ArrowUpRight className="w-3 h-3" /> Contatos → Reservas
+                    {/* 4 Real Metrics Cards (AIRBNB) */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="p-4 rounded-xl bg-zinc-900/90 border border-white/10 space-y-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">TOTAL DE IMÓVEIS</span>
+                        <div className="text-lg sm:text-xl font-mono font-black text-white">3</div>
+                        <div className="text-[10px] text-zinc-400 font-medium">Todos com IA ativa</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-zinc-900/90 border border-white/10 space-y-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">RECEITA DO MÊS</span>
+                        <div className="text-lg sm:text-xl font-mono font-black text-white">R$ 18,6k</div>
+                        <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
+                          <ArrowUpRight className="w-3 h-3" /> +8.2% este mês
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-zinc-900/90 border border-white/10 space-y-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">AVALIAÇÃO MÉDIA</span>
+                        <div className="text-lg sm:text-xl font-mono font-black text-white">4.85 ⭐</div>
+                        <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
+                          <ArrowUpRight className="w-3 h-3" /> +0.03 Superhost
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-zinc-900/90 border border-white/10 space-y-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">TOTAL DE REVIEWS</span>
+                        <div className="text-lg sm:text-xl font-mono font-black text-white">459</div>
+                        <div className="text-[10px] text-zinc-400 font-medium">+12 este mês</div>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Hóspedes Ativos */}
-                  <div className="p-4 rounded-xl bg-zinc-900/80 border border-white/10 space-y-1">
-                    <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">HÓSPEDES ATIVOS</span>
-                    <div className="text-lg sm:text-xl font-mono font-black text-white">10</div>
-                    <div className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold">
-                      <Users className="w-3 h-3" /> 5 confirmados
-                    </div>
-                  </div>
+                    {/* 3 Airbnb Property Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {/* Property 1 */}
+                      <div className="p-4 rounded-xl bg-zinc-900/90 border border-blue-500/30 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-xs font-bold text-white">Flat Copacabana</h4>
+                            <p className="text-[10px] text-zinc-400">Rio de Janeiro, RJ</p>
+                          </div>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold font-mono">
+                            🟢 OAuth Conectado
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px]">
+                            <span className="text-zinc-400">Ocupação mensal</span>
+                            <span className="text-white font-bold">87%</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: '87%' }} />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] pt-1">
+                          <span className="text-zinc-300 font-semibold">★ 4.92 (214)</span>
+                          <span className="text-emerald-400 font-bold font-mono">R$ 8.450,00</span>
+                        </div>
+                      </div>
 
-                  {/* Ticket Médio */}
-                  <div className="p-4 rounded-xl bg-zinc-900/80 border border-white/10 space-y-1">
-                    <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold">TICKET MÉDIO</span>
-                    <div className="text-lg sm:text-xl font-mono font-black text-white">R$ 1.229</div>
-                    <div className="flex items-center gap-1 text-[10px] text-rose-400 font-semibold">
-                      <ArrowDownRight className="w-3 h-3" /> -3.2% vs mês anterior
+                      {/* Property 2 */}
+                      <div className="p-4 rounded-xl bg-zinc-900/90 border border-white/10 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-xs font-bold text-white">Chalé Campos do Jordão</h4>
+                            <p className="text-[10px] text-zinc-400">Campos do Jordão, SP</p>
+                          </div>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold font-mono">
+                            🟢 OAuth Conectado
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px]">
+                            <span className="text-zinc-400">Ocupação mensal</span>
+                            <span className="text-white font-bold">72%</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: '72%' }} />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] pt-1">
+                          <span className="text-zinc-300 font-semibold">★ 4.85 (156)</span>
+                          <span className="text-emerald-400 font-bold font-mono">R$ 6.280,00</span>
+                        </div>
+                      </div>
+
+                      {/* Property 3 */}
+                      <div className="p-4 rounded-xl bg-zinc-900/90 border border-white/10 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-xs font-bold text-white">Studio Paulista</h4>
+                            <p className="text-[10px] text-zinc-400">São Paulo, SP</p>
+                          </div>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold font-mono">
+                            🔴 Desconectado
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px]">
+                            <span className="text-zinc-400">Ocupação mensal</span>
+                            <span className="text-white font-bold">63%</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: '63%' }} />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] pt-1">
+                          <span className="text-zinc-300 font-semibold">★ 4.78 (89)</span>
+                          <span className="text-emerald-400 font-bold font-mono">R$ 3.920,00</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
 
                 {/* Bottom Row Charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
