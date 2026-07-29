@@ -5,6 +5,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    env: {
+      NEXTAUTH_SECRET: 'test-secret-for-vitest-12345678901234567890',
+    },
     include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',

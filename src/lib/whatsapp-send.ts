@@ -17,9 +17,25 @@ export interface SendWhatsAppResponse {
  * @param text - Conteúdo da mensagem
  * @returns Promessa com o resultado do envio
  */
+import { sendOpenWAMessage } from './openwa-client';
+
 export async function sendWhatsAppMessage(toPhone: string, text: string): Promise<SendWhatsAppResponse> {
+  const provider = (process.env.WHATSAPP_PROVIDER || '').toLowerCase();
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const openwaUrl = process.env.OPENWA_SERVER_URL;
+
+  // Se o provedor for explicitamente OpenWA ou houver servidor OpenWA sem credenciais Meta
+  if (provider === 'openwa' || (openwaUrl && !token)) {
+    console.log(`[whatsapp-send] Roteando envio de mensagem via Gateway OpenWA (${toPhone})`);
+    const openwaRes = await sendOpenWAMessage(toPhone, text);
+    return {
+      success: openwaRes.success,
+      messageId: openwaRes.messageId,
+      isMock: openwaRes.isMock,
+      error: openwaRes.error,
+    };
+  }
 
   // Modo DB-only / Mockup (graceful degradation)
   if (!token || !phoneNumberId) {

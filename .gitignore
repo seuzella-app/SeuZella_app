@@ -64,3 +64,4 @@ server.log
 db/*.db
 # Worklog
 worklog.md
+temp_openwa/
