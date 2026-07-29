@@ -87,7 +87,7 @@ export function HeroSection() {
             className="flex flex-col items-center max-w-5xl mx-auto"
           >
             {/* Badge — eyebrow with positive tracking (Linear design) */}
-            <motion.div variants={staggerItem} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] mb-8">
+            <motion.div variants={staggerItem} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] mb-6">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
               <span className="text-emerald-400 text-xs font-medium uppercase tracking-[0.04em]">
                 Deixa com o Zélla
@@ -95,35 +95,43 @@ export function HeroSection() {
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             </motion.div>
 
-            {/* Headline — bold (700) with aggressive negative tracking & tight leading */}
+            {/* Headline — Organize, lucre mais e gaste menos. Reservas diretas. */}
             <motion.h1
               variants={staggerItem}
-              className="text-[2.25rem] sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5.25rem] xl:text-[6rem] font-satoshi font-bold tracking-[-0.03em] md:tracking-[-0.04em] leading-[1.05] md:leading-[1.02] text-white mb-8 text-center"
+              className="text-[2.25rem] sm:text-[3.5rem] md:text-[4.25rem] lg:text-[5rem] xl:text-[5.5rem] font-satoshi font-bold tracking-[-0.03em] md:tracking-[-0.04em] leading-[1.06] md:leading-[1.02] text-white mb-6 text-center max-w-5xl mx-auto"
             >
-              <span className="block">Organize e lucre mais</span>
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={phraseIdx}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.4, ease: 'easeInOut' }}
-                  className="block whitespace-nowrap text-emerald-500 font-bold"
-                >
-                  {rotatingPhrases[phraseIdx]}
-                </motion.span>
-              </AnimatePresence>
+              Organize, lucre mais e gaste menos.{' '}
+              <span className={
+                isPousada
+                  ? 'bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent'
+                  : 'bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent'
+              }>
+                {isPousada ? 'Reservas diretas.' : 'Escale seus imóveis.'}
+              </span>
             </motion.h1>
 
-            {/* Subtitle — compact with relaxed leading */}
-            <motion.p variants={staggerItem} className="text-[15px] sm:text-[17px] md:text-lg text-neutral-400 leading-relaxed mb-12 max-w-2xl mx-auto">
-              {!mounted ? 'O Zélla organiza sua pousada e ajuda a lucrar mais e gastar menos no WhatsApp. Responde seus hóspedes com disponibilidade. Sincroniza Booking.com e entrega Guia Digital automático.' :
-              isPousada
-                ? 'O Zélla organiza sua pousada e ajuda a lucrar mais e gastar menos no WhatsApp. Responde seus hóspedes com disponibilidade. Sincroniza Booking.com e entrega Guia Digital automático.'
-                : isAirbnb
-                ? 'O Zélla organiza seu imóvel e ajuda a lucrar mais e gastar menos no WhatsApp. Responde seus hóspedes com disponibilidade. Conecta Airbnb e Booking.com e entrega Guia Digital automático.'
-                : 'O programa de parceria que congela seu preço por 24 meses. Plano PRO completo por R$247/mês com selo exclusivo de parceiro no Link-in-Bio.'}
+            {/* Subtitle */}
+            <motion.p variants={staggerItem} className="text-[15px] sm:text-[17px] md:text-lg text-neutral-300 leading-relaxed mb-8 max-w-3xl mx-auto font-normal">
+              {content.switcher.subheadline}
             </motion.p>
+
+            {/* Hero stat chip */}
+            <motion.div variants={staggerItem} className="mb-8 flex justify-center">
+              <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-xl border ${
+                isPousada
+                  ? 'bg-emerald-500/[0.08] border-emerald-500/20'
+                  : 'bg-blue-500/[0.08] border-blue-500/20'
+              }`}>
+                <span className={`text-2xl sm:text-3xl font-black tracking-tight ${
+                  isPousada ? 'text-emerald-400' : 'text-blue-400'
+                }`}>
+                  {content.switcher.heroStat.val}
+                </span>
+                <span className="text-neutral-300 text-xs sm:text-sm font-semibold text-left">
+                  {content.switcher.heroStat.label}
+                </span>
+              </div>
+            </motion.div>
 
             {/* ── Niche Switcher — Escolha seu perfil ── */}
             <motion.div

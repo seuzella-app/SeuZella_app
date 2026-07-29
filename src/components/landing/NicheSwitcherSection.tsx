@@ -80,34 +80,41 @@ export function NicheSwitcherSection() {
             >
               {/* Headline */}
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight leading-[1.1] text-white max-w-4xl">
-                {content.switcher.headline}{' '}
+                Organize e lucre mais,{' '}
                 <span className={
                   niche === 'pousada'
                     ? 'bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent'
                     : 'bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent'
                 }>
-                  {niche === 'pousada' ? 'Reservas diretas.' : 'Escale seus imóveis.'}
+                  gaste menos no WhatsApp.
                 </span>
               </h2>
 
               {/* Subheadline */}
-              <p className="text-neutral-400 text-base sm:text-lg md:text-xl leading-relaxed max-w-3xl">
-                {content.switcher.subheadline}
+              <p className="text-neutral-300 text-base sm:text-lg md:text-xl leading-relaxed max-w-3xl font-normal">
+                {niche === 'pousada'
+                  ? 'O Zélla organiza sua pousada e ajuda a lucrar mais e gastar menos no WhatsApp. Responde seus hóspedes com disponibilidade. Sincroniza Booking.com e entrega Guia Digital automático.'
+                  : 'O Zélla organiza seu imóvel e ajuda a lucrar mais e gastar menos no WhatsApp. Responde seus hóspedes com disponibilidade. Conecta Airbnb e Booking.com e entrega Guia Digital automático.'}
               </p>
 
-              {/* Hero stat */}
-              <div className={`inline-flex items-center gap-3 px-5 py-3 rounded-xl border ${
-                niche === 'pousada'
-                  ? 'bg-emerald-500/[0.08] border-emerald-500/20'
-                  : 'bg-blue-500/[0.08] border-blue-500/20'
-              }`}>
-                <span className={`text-3xl sm:text-4xl font-black tracking-tight ${
-                  niche === 'pousada' ? 'text-emerald-400' : 'text-blue-400'
-                }`}>
-                  {content.switcher.heroStat.val}
-                </span>
-                <span className="text-neutral-400 text-sm font-medium text-left">
-                  {content.switcher.heroStat.label}
+              {/* Social proof proof badge */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 text-xs sm:text-sm text-neutral-400 font-medium mt-2">
+                <div className="flex -space-x-2">
+                  {[
+                    { name: niche === 'airbnb' ? 'Flat Copacabana' : 'Pousada Serenity', img: '/avatar-serenity.jpg' },
+                    { name: niche === 'airbnb' ? 'Chalé Campos' : 'Pousada Sol & Mar', img: '/pousada-vista.jpg' },
+                    { name: niche === 'airbnb' ? 'Apartamento Centro' : 'Chalé da Montanha', img: '/pousada-chale.jpg' },
+                    { name: niche === 'airbnb' ? 'Studio Paulista' : 'Recanto Verde', img: '/pousada-jardim.jpg' },
+                  ].map((p, i) => (
+                    <div key={i} className="w-7 h-7 rounded-full p-[1.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-sm relative" style={{ zIndex: 40 - i * 10 }}>
+                      <div className="w-full h-full rounded-full border border-[#09090b] overflow-hidden bg-zinc-900">
+                        <img src={p.img} alt={p.name} className="w-full h-full object-cover select-none" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <span className="sm:border-l sm:border-white/10 sm:pl-6 text-neutral-300 font-bold tracking-tight">
+                  {niche === 'pousada' ? '+100 pousadas já atendem melhor com o Zélla' : '+100 anfitriões já atendem melhor com o Zélla'}
                 </span>
               </div>
             </motion.div>
