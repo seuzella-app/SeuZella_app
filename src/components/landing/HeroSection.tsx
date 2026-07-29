@@ -65,18 +65,51 @@ export function HeroSection() {
 
   return (
     <section className="relative flex items-center overflow-hidden bg-[#09090b]">
+      {/* Dynamic background image with crossfade */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`bg-${niche}`}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] as [number, number, number, number] }}
+            className="absolute inset-0"
+          >
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${content.switcher.backgroundImage})` }}
+            />
+            {/* Dark overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#09090b]/85 to-[#09090b]" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-      {/* Ambient glow — with floating animation */}
-      <motion.div
-        animate={prefersReducedMotion ? {} : { y: [0, -18, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-1/4 -left-32 w-[500px] h-[500px] rounded-full bg-emerald-500/[0.05] blur-[120px]"
-      />
-      <motion.div
-        animate={prefersReducedMotion ? {} : { y: [0, 14, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute bottom-1/4 -right-32 w-[400px] h-[400px] rounded-full bg-purple-500/[0.03] blur-[100px]"
-      />
+      {/* Dynamic glow orbs */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`orbs-${niche}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6 }}
+          className="absolute inset-0 pointer-events-none z-[1]"
+        >
+          <div
+            className="absolute top-1/4 -left-32 w-[500px] h-[500px] rounded-full blur-[120px]"
+            style={{ background: content.switcher.glowColor }}
+          />
+          <div
+            className="absolute bottom-1/4 -right-32 w-[400px] h-[400px] rounded-full blur-[100px]"
+            style={{
+              background: niche === 'pousada'
+                ? 'rgba(20, 184, 166, 0.04)'
+                : 'rgba(139, 92, 246, 0.04)',
+            }}
+          />
+        </motion.div>
+      </AnimatePresence>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 lg:px-10 pt-28 pb-8 sm:pt-36 sm:pb-12 w-full">
         <div className="flex flex-col items-center text-center">
