@@ -100,7 +100,7 @@ export function PainPointsSection() {
               </h3>
 
               <p className="text-neutral-300 text-sm sm:text-base leading-relaxed">
-                Quando o hóspede chama de madrugada ou no fim de semana, o Zélla responde em instantes no tom da sua {isPousada ? 'pousada' : 'hospedagem'}. Envia fotos, tira dúvidas sobre regras, confirma datas e envia o PIX.
+                Quando o hóspede chama de madrugada ou no fim de semana, o Zélla responde em instantes no tom da sua {isPousada ? 'pousada' : 'hospedagem'}. Conversa, tira dúvidas sobre regras, confirma datas e envia a sua chave PIX. Sempre a disposição do hóspede.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -127,27 +127,44 @@ export function PainPointsSection() {
             </div>
 
             {/* Visual Side: Interactive Demo Card */}
-            <div className="lg:col-span-5 p-5 rounded-2xl bg-zinc-950 border border-white/10 shadow-2xl relative space-y-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-bold text-white">Simulador WhatsApp Zélla</span>
+            <div className="lg:col-span-5 p-5 rounded-2xl bg-[#0b141a] border border-white/10 shadow-2xl relative space-y-3 font-sans">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3 bg-[#1f2c34] -mx-5 -mt-5 p-3.5 rounded-t-2xl">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+                    Z
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block">Seu Zélla</span>
+                    <span className="text-[9px] text-emerald-400 font-medium">online</span>
+                  </div>
                 </div>
                 <span className="text-[10px] text-emerald-400 font-mono font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
                   Respondeu em 4s
                 </span>
               </div>
 
-              <div className="space-y-2.5 text-xs">
-                <div className="bg-zinc-800 text-zinc-200 p-3 rounded-xl rounded-tl-none max-w-[90%] border border-zinc-700/50">
-                  Olá! Tem disponibilidade para o próximo feriado? Aceitam PIX?
+              <div className="space-y-3 text-xs pt-1">
+                {/* Guest Outgoing Message (Right green bubble) */}
+                <div className="flex justify-end">
+                  <div className="bg-[#005c4b] text-[#e9edef] p-3 rounded-2xl rounded-tr-none max-w-[85%] relative shadow-sm">
+                    <p className="text-[11.5px] leading-relaxed">Olá! Tem disponibilidade para o próximo feriado? Aceitam PIX?</p>
+                    <span className="text-[8px] text-emerald-200/80 float-right mt-1 ml-2 flex items-center gap-0.5">
+                      09:41 <span className="text-sky-300">✓✓</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="bg-emerald-950/90 text-emerald-100 p-3.5 rounded-xl rounded-tr-none border border-emerald-500/30 shadow-lg">
-                  <p className="font-semibold text-emerald-300 mb-1">Olá! Temos sim! 🌴</p>
-                  <p className="text-zinc-200 text-[11px] leading-relaxed mb-2">
-                    Nossa suíte com café da manhã está disponível por R$ 420/noite. Para garantir com 0% de taxas extras, você pode pagar direto via PIX CNPJ 12.345.678/0001-90. Posso reservar agora?
-                  </p>
-                  <span className="text-[9px] text-emerald-400/80 font-mono">✓✓ Balão único • Meta API Otimizada</span>
+
+                {/* Zélla Incoming Message (Left dark bubble) */}
+                <div className="flex justify-start">
+                  <div className="bg-[#202c33] text-[#e9edef] p-3.5 rounded-2xl rounded-tl-none max-w-[90%] relative shadow-sm">
+                    <p className="text-[11.5px] leading-relaxed">
+                      Olá! Temos disponibilidade sim! 🌴{"\n\n"}
+                      Nossa suíte com café da manhã está disponível por R$ 420/noite. Para garantir com 0% de taxas extras, você pode pagar direto via PIX para nossa chave cadastrada. Posso reservar agora?
+                    </p>
+                    <span className="text-[8px] text-neutral-400 float-right mt-1 ml-2 font-medium">
+                      09:41
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

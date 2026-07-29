@@ -151,19 +151,15 @@ function WhatsAppMockup() {
               )}
               {animationStep >= 3 && (
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex gap-1.5">
-                  <div className="rounded-2xl px-3 py-2 text-[10px] leading-relaxed max-w-[90%] bg-[#202c33] text-[#e9edef] rounded-tl-none relative space-y-1.5">
-                    <p className="font-semibold text-emerald-400 text-[8px] uppercase tracking-wider flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                      ⚡ Resposta completa do Zélla
-                    </p>
+                  <div className="rounded-2xl px-3 py-2 text-[10px] leading-relaxed max-w-[90%] bg-[#202c33] text-[#e9edef] rounded-tl-none relative space-y-1.5 shadow-sm">
                     <p className="whitespace-pre-line text-[#e9edef] text-[9.5px]">
                       Olá, Bernardo! {greeting}{"\n\n"}
-                      Temos disponibilidade sim! O nosso **{roomName}** é perfeito para casal nessa data.{"\n\n"}
-                      💰 **Valor do pacote (2 noites):** R$ 980 no PIX (ou 3x de R$ 350).
+                      Temos disponibilidade sim! O nosso <strong className="font-bold text-white">{roomName}</strong> é perfeito para casal nessa data.{"\n\n"}
+                      💰 <strong className="font-bold text-white">Valor do pacote (2 noites):</strong> R$ 980 no PIX (ou 3x de R$ 350).
                     </p>
                     <div className="bg-[#111b21] p-1.5 rounded-lg border border-white/[0.04] font-mono text-[7px] break-all select-all flex items-center justify-between gap-1 mt-1">
                       <span className="text-neutral-400">00020101021226300014...</span>
-                      <span className="text-emerald-400 text-[6.5px] font-bold bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-500/20 shrink-0">PIX COPIA/COLA</span>
+                      <span className="text-emerald-400 text-[6.5px] font-bold bg-emerald-500/10 px-1 py-0.5 rounded border border-emerald-500/20 shrink-0">CHAVE PIX COPIA/COLA</span>
                     </div>
                     <p className="text-[7.5px] text-neutral-400 leading-snug">Efetue o pagamento acima para garantir a vaga. A confirmação é instantânea!</p>
                     <span className="text-[7px] text-neutral-400/70 float-right mt-1 ml-2 font-medium">09:42</span>
@@ -172,9 +168,11 @@ function WhatsAppMockup() {
               )}
               {animationStep >= 4 && (
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex gap-1.5 justify-end">
-                  <div className="rounded-2xl px-3 py-2 text-[10px] leading-relaxed max-w-[85%] bg-[#005c4b] text-[#e9edef] rounded-tr-none relative">
+                  <div className="rounded-2xl px-3 py-2 text-[10px] leading-relaxed max-w-[85%] bg-[#005c4b] text-[#e9edef] rounded-tr-none relative shadow-sm">
                     <p>Show! Acabei de pagar o PIX.</p>
-                    <span className="text-[7px] text-neutral-400/70 float-right mt-1 ml-2 font-medium">09:43</span>
+                    <span className="text-[7px] text-emerald-200/80 float-right mt-1 ml-2 flex items-center gap-0.5 font-medium">
+                      09:43 <span className="text-sky-300">✓✓</span>
+                    </span>
                   </div>
                 </motion.div>
               )}
@@ -189,12 +187,12 @@ function WhatsAppMockup() {
               )}
               {animationStep >= 6 && (
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex gap-1.5">
-                  <div className="rounded-2xl px-3 py-2 text-[10px] leading-relaxed max-w-[85%] bg-[#202c33] text-[#e9edef] rounded-tl-none relative space-y-1">
+                  <div className="rounded-2xl px-3 py-2 text-[10px] leading-relaxed max-w-[85%] bg-[#202c33] text-[#e9edef] rounded-tl-none relative space-y-1 shadow-sm">
                     <p className="text-emerald-400 font-bold flex items-center gap-1">
                       <span>✓</span> Confirmado! 🎉
                     </p>
                     <p className="text-[9.5px]">
-                      Pagamento de R$ 980 recebido com sucesso! Sua reserva para o **{roomName}** (12 a 14 de setembro) está garantida. Nos vemos lá! 🏝️
+                      Pagamento de R$ 980 recebido com sucesso! Sua reserva para o <strong className="font-bold text-white">{roomName}</strong> (12 a 14 de setembro) está garantida. Nos vemos lá! 🏝️
                     </p>
                     <span className="text-[7px] text-neutral-400/70 float-right mt-1 ml-2 font-medium">09:43</span>
                   </div>
