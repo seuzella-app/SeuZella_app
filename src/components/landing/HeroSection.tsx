@@ -7,6 +7,7 @@ import { useNiche } from '@/contexts/NicheContext';
 import { getNicheContent } from '@/data/niche-content';
 import { NicheToggle } from './NicheToggle';
 import { DDCHeroPreview } from './DDCHeroPreview';
+import { PaymentTrustBadges } from './PaymentTrustBadges';
 
 import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
 
@@ -225,6 +226,11 @@ export function HeroSection() {
                 Quero ser Parceiro Zélla
                 <Sparkles className="w-5 h-5 text-amber-200" />
               </a>
+            </motion.div>
+
+            {/* Selos de Pagamento Asaas & Mercado Pago */}
+            <motion.div variants={staggerItem} className="w-full mt-4">
+              <PaymentTrustBadges />
             </motion.div>
 
           </motion.div>

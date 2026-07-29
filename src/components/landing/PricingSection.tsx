@@ -23,6 +23,7 @@ import {
 import { useNiche } from '@/contexts/NicheContext';
 import { getNicheContent } from '@/data/niche-content';
 import { CheckoutModal } from '@/components/landing/CheckoutModal';
+import { PaymentTrustBadges } from '@/components/landing/PaymentTrustBadges';
 import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
 
 type PaymentMode = 'pix' | 'cartao';
@@ -688,25 +689,14 @@ export function PricingSection() {
           )}
         </AnimatePresence>
 
-        {/* Payment methods info */}
+        {/* Payment methods & Trust Badges */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="flex flex-wrap items-center justify-center gap-6 text-neutral-500 text-xs"
+          className="mt-8"
         >
-          <div className="flex items-center gap-2">
-            <Shield className={`w-4 h-4 ${isPousada ? 'text-emerald-500/50' : 'text-blue-500/50'}`} />
-            <span>Gateway: Mercado Pago (PIX 0,99%)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-neutral-600" />
-            <span>Stripe para cartões internacionais (fallback)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Gift className="w-4 h-4 text-amber-500/50" />
-            <span>Cancele quando quiser — sem multa</span>
-          </div>
+          <PaymentTrustBadges />
         </motion.div>
       </div>
 

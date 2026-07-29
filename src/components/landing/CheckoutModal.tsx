@@ -18,6 +18,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PaymentTrustBadges } from '@/components/landing/PaymentTrustBadges';
 
 import {
   Dialog,
@@ -399,12 +400,9 @@ export function CheckoutModal({
                   )}
                 </Button>
 
-                {/* Security notice */}
-                <div className="flex items-center justify-center gap-1.5 pt-1 pb-1">
-                  <Shield className="w-3 h-3 text-emerald-500/60" />
-                  <span className="text-[11px] text-neutral-500">
-                    Pagamento seguro e dados protegidos
-                  </span>
+                {/* Security notice & Trust Badges */}
+                <div className="pt-2">
+                  <PaymentTrustBadges compact={true} />
                 </div>
               </form>
             </motion.div>
