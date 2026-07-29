@@ -146,7 +146,7 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2 text-neutral-500 text-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                <span>7 dias grátis sem cartão</span>
+                <span>Assinatura via Cartão de Crédito</span>
               </div>
               <div className="flex items-center gap-2 text-neutral-500 text-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />

@@ -103,8 +103,8 @@ export interface NicheContent {
 // ═══════════════════════════════════════════════════════════════
 const pousadaContent: NicheContent = {
   switcher: {
-    headline: 'Organize, lucre mais e gaste menos.',
-    subheadline: 'O Zélla organiza sua pousada e ajuda a lucrar mais com preços inteligentes + gastar menos no WhatsApp (80% economia). Responde 24h com disponibilidade e manda sua chave PIX, envia Guia Digital automático, e nunca mais aluga barato no feriado.',
+    headline: 'Ele responde e organiza. Economiza tempo e dinheiro. Reservas diretas com o Zélla.',
+    subheadline: 'O Zélla ajuda a lucrar mais com preços inteligentes e gastar menos no WhatsApp (sim, o Whatsapp vai cobrar). Responde 24h por dia e manda sua chave PIX para o hóspede. Você vai ter total controle financeiro em seu Dashboard.',
     heroStat: { val: '+47%', label: 'mais receita com preços inteligentes' },
     backgroundImage: '/images/niche-pousadas-bg.jpg',
     ctaText: 'Ver como funciona para Pousadas',
@@ -167,7 +167,7 @@ const pousadaContent: NicheContent = {
       subtitle: '5 minutos é tudo que você precisa',
       desc: 'Informe nome, WhatsApp oficial, endereço e quantidade de quartos. O Zélla cria o perfil da sua pousada e já personaliza as respostas com suas regras, preços e políticas. Sem necessidade de técnico.',
       color: 'emerald',
-      highlights: ['Sem cartão de crédito', 'Onboarding guiado', 'Perfil instantâneo'],
+      highlights: ['Pagamento no Cartão de Crédito', 'Onboarding guiado', 'Perfil instantâneo'],
       fields: ['Nome da pousada', 'WhatsApp oficial', 'Endereço completo', 'Qtd. de quartos', 'Chave PIX (opcional)', 'Regras da pousada'],
     },
     {
@@ -315,7 +315,7 @@ const pousadaContent: NicheContent = {
 // ═══════════════════════════════════════════════════════════════
 const airbnbContent: NicheContent = {
   switcher: {
-    headline: 'Organize, lucre mais e gaste menos.',
+    headline: 'Escale seu imóvel. Lucre mais com reservas diretas.',
     subheadline: 'O Zélla AirB organiza seu imóvel e ajuda a lucrar mais com preços inteligentes + gastar menos no WhatsApp (80% economia). Responde 24h com disponibilidade e manda sua chave PIX, sincroniza Airbnb+Booking, e entrega o Guia Digital automaticamente.',
     heroStat: { val: '+47%', label: 'mais receita com preços inteligentes' },
     backgroundImage: '/images/niche-anfitrioes-bg.jpg',

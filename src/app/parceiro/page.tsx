@@ -99,7 +99,7 @@ const timelineSteps = [
   {
     step: '01',
     title: 'Cadastro Rápido',
-    desc: 'Preencha o formulário em 2 minutos. Sem cartão de crédito, sem burocracia.',
+    desc: 'Preencha o formulário em 2 minutos com ativação simplificada.',
     icon: Zap,
   },
   {
@@ -268,7 +268,7 @@ export default function ParceiroPage() {
                 <h3 className="text-white font-bold text-xl mb-2">Primeiro Mês GRÁTIS</h3>
                 <span className="text-amber-400 text-sm font-bold">R$ 0,00 na fase de validação</span>
                 <p className="text-zinc-500 text-sm leading-relaxed mt-4 group-hover:text-zinc-400 transition-colors">
-                  Comece a atender seus clientes e fechar reservas sem pagar absolutamente nada no primeiro mês. Valide na prática antes do seu primeiro faturamento. Sem cartão de crédito, sem compromisso.
+                  Comece a atender seus clientes e fechar reservas sem pagar absolutamente nada no primeiro mês. Valide na prática antes do seu primeiro faturamento. Ativação via cartão de crédito.
                 </p>
               </div>
             </motion.div>
@@ -499,7 +499,7 @@ export default function ParceiroPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-amber-500/40" />
-                <span>Sem cartão de crédito</span>
+                <span>Pagamento via Cartão de Crédito</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-amber-500/40" />

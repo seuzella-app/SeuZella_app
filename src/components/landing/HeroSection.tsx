@@ -1,46 +1,25 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useNiche } from '@/contexts/NicheContext';
 import { getNicheContent } from '@/data/niche-content';
 import { NicheToggle } from './NicheToggle';
+import { DDCHeroPreview } from './DDCHeroPreview';
 
 import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
 
 export function HeroSection() {
-  const { niche, setNiche, isPousada, isAirbnb } = useNiche();
+  const { niche, setNiche, isPousada } = useNiche();
   const content = getNicheContent(niche);
   const [mounted, setMounted] = useState(false);
-  const [phraseIdx, setPhraseIdx] = useState(0);
   const prefersReducedMotion = useReducedMotion();
-
-  // ── Rotating phrases for the second line of the headline ──
-  const rotatingPhrases = isPousada
-    ? ['gaste menos no WhatsApp.', 'nunca perca uma reserva.', 'tenha preços inteligentes.']
-    : isAirbnb
-    ? ['gaste menos no WhatsApp.', 'nunca perca uma reserva.', 'tenha preços inteligentes.']
-    : ['congela seu preço por 24 meses.', 'plano PRO completo.', 'selo exclusivo de parceiro.'];
-
-  // Rotate phrase every 3 seconds
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    const interval = setInterval(() => {
-      setPhraseIdx((prev) => (prev + 1) % rotatingPhrases.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [rotatingPhrases.length, prefersReducedMotion]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Staggered entrance animation variants
-  // CORREÇÃO v2 — finding 4.1: gate com `mounted` para evitar hydration mismatch.
-  // useReducedMotion() retorna null no SSR (não acessa window.matchMedia), mas boolean
-  // no client. Sem o gate, usuários com prefers-reduced-motion ativado veriam mismatch
-  // entre HTML servido (assumindo y:20) e HTML rehydratado (assumindo sem y).
   const effectiveReducedMotion = mounted ? prefersReducedMotion : false;
 
   const staggerContainer = {
@@ -49,6 +28,7 @@ export function HeroSection() {
       transition: { staggerChildren: effectiveReducedMotion ? 0 : 0.12, delayChildren: effectiveReducedMotion ? 0 : 0.1 },
     },
   };
+
   const staggerItem = {
     hidden: effectiveReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 },
     visible: {
@@ -57,7 +37,6 @@ export function HeroSection() {
     },
   };
 
-  // CTA shimmer keyframe style (também gated por effectiveReducedMotion para consistência)
   const shimmerStyle = effectiveReducedMotion ? undefined : {
     backgroundSize: '200% 100%',
     animation: 'shimmer 3s ease-in-out infinite',
@@ -111,7 +90,7 @@ export function HeroSection() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 lg:px-10 pt-28 pb-8 sm:pt-36 sm:pb-12 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 lg:px-10 pt-28 pb-12 sm:pt-36 sm:pb-16 w-full">
         <div className="flex flex-col items-center text-center">
 
           {/* ── Text Content — Staggered Entrance ── */}
@@ -119,35 +98,32 @@ export function HeroSection() {
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="flex flex-col items-center max-w-5xl mx-auto"
+            className="flex flex-col items-center max-w-5xl mx-auto w-full"
           >
-            {/* Badge — eyebrow with positive tracking (Linear design) */}
+            {/* Badge — eyebrow */}
             <motion.div variants={staggerItem} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] mb-6">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400 text-xs font-medium uppercase tracking-[0.04em]">
+              <span className="text-emerald-400 text-xs font-bold uppercase tracking-[0.05em]">
                 Deixa com o Zélla
               </span>
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             </motion.div>
 
-            {/* Headline — Organize, lucre mais e gaste menos. Reservas diretas. */}
+            {/* Headline — 3 Explicite Lines as requested */}
             <motion.h1
               variants={staggerItem}
-              className="text-[2.25rem] sm:text-[3.5rem] md:text-[4.25rem] lg:text-[5rem] xl:text-[5.5rem] font-satoshi font-bold tracking-[-0.03em] md:tracking-[-0.04em] leading-[1.06] md:leading-[1.02] text-white mb-6 text-center max-w-5xl mx-auto"
+              className="text-[2.2rem] sm:text-[3.2rem] md:text-[4rem] lg:text-[4.75rem] font-satoshi font-extrabold tracking-[-0.03em] md:tracking-[-0.04em] leading-[1.08] text-white mb-6 text-center max-w-5xl mx-auto flex flex-col items-center justify-center gap-1 sm:gap-2"
             >
-              Organize, lucre mais e gaste menos.{' '}
-              <span className={
-                isPousada
-                  ? 'bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent'
-                  : 'bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent'
-              }>
-                {isPousada ? 'Reservas diretas.' : 'Escale seus imóveis.'}
+              <span className="block text-white">Ele responde e organiza.</span>
+              <span className="block text-white/95">Economiza tempo e dinheiro.</span>
+              <span className="block bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent drop-shadow-sm">
+                Reservas diretas com o Zélla.
               </span>
             </motion.h1>
 
-            {/* Subtitle */}
+            {/* Subtitle — Updated copy */}
             <motion.p variants={staggerItem} className="text-[15px] sm:text-[17px] md:text-lg text-neutral-300 leading-relaxed mb-8 max-w-3xl mx-auto font-normal">
-              {content.switcher.subheadline}
+              O Zélla ajuda a lucrar mais com preços inteligentes e gastar menos no WhatsApp (sim, o Whatsapp vai cobrar). Responde 24h por dia e manda sua chave PIX para o hóspede. Você vai ter total controle financeiro em seu Dashboard.
             </motion.p>
 
             {/* Hero stat chip */}
@@ -171,32 +147,29 @@ export function HeroSection() {
             {/* ── Niche Switcher — Escolha seu perfil ── */}
             <motion.div
               variants={staggerItem}
-              className="flex flex-col items-center gap-6"
+              className="flex flex-col items-center gap-4 mb-6"
             >
-              {/* Label */}
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.04]">
                 <Sparkles className="w-3 h-3 text-emerald-400" />
                 <span className="text-neutral-400 text-[11px] font-semibold uppercase tracking-[0.03em]">
                   Escolha seu perfil
                 </span>
               </div>
-
-              {/* 3-toggle buttons */}
               <NicheToggle niche={niche} onNicheChange={setNiche} />
             </motion.div>
 
-            {/* ── Social proof — below toggles ── */}
+            {/* ── Social proof ── */}
             <motion.div
               variants={staggerItem}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 text-xs sm:text-sm text-neutral-400 font-medium mt-8"
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 text-xs sm:text-sm text-neutral-400 font-medium mb-4"
             >
               <div className="flex -space-x-2">
-                {([
-                      { name: isAirbnb ? 'Flat Copacabana' : 'Pousada Serenity', img: '/avatar-serenity.jpg' },
-                      { name: isAirbnb ? 'Chalé Campos' : 'Pousada Sol & Mar', img: '/pousada-vista.jpg' },
-                      { name: isAirbnb ? 'Apartamento Centro' : 'Chalé da Montanha', img: '/pousada-chale.jpg' },
-                      { name: isAirbnb ? 'Studio Paulista' : 'Recanto Verde', img: '/pousada-jardim.jpg' },
-                    ]).map((p, i) => (
+                {[
+                  { name: 'Pousada Serenity', img: '/avatar-serenity.jpg' },
+                  { name: 'Pousada Sol & Mar', img: '/pousada-vista.jpg' },
+                  { name: 'Chalé da Montanha', img: '/pousada-chale.jpg' },
+                  { name: 'Recanto Verde', img: '/pousada-jardim.jpg' },
+                ].map((p, i) => (
                   <div key={i} className="w-7 h-7 rounded-full p-[1.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-sm relative" style={{ zIndex: 40 - i * 10 }}>
                     <div className="w-full h-full rounded-full border border-[#09090b] overflow-hidden bg-zinc-900">
                       <img
@@ -208,14 +181,21 @@ export function HeroSection() {
                   </div>
                 ))}
               </div>
-              <span className="sm:border-l sm:border-white/10 sm:pl-6 text-neutral-300 font-bold tracking-tight">{isPousada ? '+100 pousadas já atendem melhor com o Zélla' : '+100 anfitriões já atendem melhor com o Zélla'}</span>
+              <span className="sm:border-l sm:border-white/10 sm:pl-6 text-neutral-300 font-bold tracking-tight">
+                {isPousada ? '+100 pousadas já atendem melhor com o Zélla' : '+100 anfitriões já atendem melhor com o Zélla'}
+              </span>
             </motion.div>
 
-            {/* ── High-Converting Sales CTAs ── */}
+            {/* ── LIVE INTERACTIVE DDC DASHBOARD DO CLIENTE PREVIEW ── */}
+            <motion.div variants={staggerItem} className="w-full">
+              <DDCHeroPreview />
+            </motion.div>
+
+            {/* ── REPOSICIONADOS: CTAS CONHECER PLANOS & QUERO SER PARCEIRO (ABAIXO DO DDC) ── */}
             <motion.div
               variants={staggerItem}
               key={`cta-${niche}`}
-              className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
+              className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 w-full"
             >
               <button
                 onClick={() => {
@@ -247,117 +227,11 @@ export function HeroSection() {
               </a>
             </motion.div>
 
-            {/* ── LIVE INTERACTIVE WHATSAPP MOCKUP SIMULATOR ── */}
-            <motion.div
-              variants={staggerItem}
-              className="mt-14 w-full max-w-2xl mx-auto rounded-3xl border border-white/15 bg-gradient-to-b from-zinc-900/90 to-black/95 p-4 sm:p-6 shadow-2xl backdrop-blur-2xl text-left relative overflow-hidden"
-            >
-              {/* Header do WhatsApp Mockup */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-400 text-sm">
-                      ZÉ
-                    </div>
-                    <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-zinc-900"></span>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      Seu Zélla {isPousada ? '— Pousada em Itacaré, BA' : '— Flat Copacabana'}
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        Atendimento 24/7
-                      </span>
-                    </h4>
-                    <p className="text-[11px] text-zinc-400">Resposta em tempo real • 0% Comissão OTA</p>
-                  </div>
-                </div>
-                <div className="text-right hidden sm:block">
-                  <span className="text-[10px] text-zinc-500 block">Atendimento</span>
-                  <span className="text-xs font-semibold text-emerald-400">100% Solícito</span>
-                </div>
-              </div>
-
-              {/* Corpo da Conversa Animada */}
-              <div className="space-y-3 text-xs sm:text-sm">
-                {/* Balão 1: Hóspede */}
-                <div className="flex justify-start">
-                  <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] border border-zinc-700/50">
-                    <p>Olá, boa tarde! Gostaria de saber se vocês têm disponibilidade de suíte para casal no próximo fim de semana aqui em Itacaré?</p>
-                    <span className="text-[9px] text-zinc-500 block text-right mt-1">14:32</span>
-                  </div>
-                </div>
-
-                {/* Balão 2: Seu Zélla */}
-                <div className="flex justify-end">
-                  <div className="bg-emerald-950/80 text-emerald-100 rounded-2xl rounded-tr-none px-4 py-3 max-w-[88%] border border-emerald-500/30 shadow-lg">
-                    <p className="font-semibold text-emerald-300 mb-1">
-                      {isPousada ? 'Olá! Que ótimo ter você por aqui! 🌴' : 'Olá! Seja muito bem-vindo! 🌴'}
-                    </p>
-                    <p className="text-zinc-200 leading-relaxed">
-                      {isPousada
-                        ? 'Temos sim! Nossa Suíte Master com varanda e vista para o jardim está disponível para o fim de semana. O valor é R$ 420 a diária, já com o nosso café da manhã baiano completo incluso. Quer que eu segure essa suíte para você?'
-                        : 'Temos sim! Nosso apartamento está limpinho e pronto pra te receber no fim de semana por R$ 380/noite. Posso reservar pra você?'}
-                    </p>
-                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:32 • Resposta em tempo real</span>
-                  </div>
-                </div>
-
-                {/* Balão 3: Hóspede */}
-                <div className="flex justify-start">
-                  <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] border border-zinc-700/50">
-                    <p>Que maravilha! Tem ar-condicionado e estacionamento? Se sim, pode me enviar a chave PIX que já vou garantir!</p>
-                    <span className="text-[9px] text-zinc-500 block text-right mt-1">14:33</span>
-                  </div>
-                </div>
-
-                {/* Balão 4: Seu Zélla com PIX */}
-                <div className="flex justify-end">
-                  <div className="bg-emerald-950/80 text-emerald-100 rounded-2xl rounded-tr-none px-4 py-3 max-w-[88%] border border-emerald-500/30 shadow-lg">
-                    <p className="text-zinc-200 leading-relaxed">
-                      Tem sim! Ar-condicionado split silencioso, Wi-Fi rápido e estacionamento privativo no local. Pra garantir direto com a gente sem taxas extras, você pode usar nossa chave PIX CNPJ:
-                    </p>
-                    <div className="mt-2 p-2 rounded-lg bg-black/40 border border-emerald-500/20 text-xs font-mono text-emerald-300">
-                      💳 <strong>PIX (CNPJ):</strong> 12.345.678/0001-90 (Pousada Itacaré)
-                    </div>
-                    <p className="text-zinc-300 text-xs mt-2">
-                      Assim que fizer, só me mandar o comprovante aqui que já confirmo seu check-in e te envio o Guia Digital de Itacaré! 😊
-                    </p>
-                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:33 • Atendimento carinhoso</span>
-                  </div>
-                </div>
-
-                {/* Balão 5: Hóspede */}
-                <div className="flex justify-start">
-                  <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] border border-zinc-700/50">
-                    <p>Prontinho! PIX realizado. Muito obrigado pela atenção!</p>
-                    <span className="text-[9px] text-zinc-500 block text-right mt-1">14:34</span>
-                  </div>
-                </div>
-
-                {/* Balão 6: Seu Zélla (Confirmação + Guia) */}
-                <div className="flex justify-end">
-                  <div className="bg-emerald-950/90 text-emerald-100 rounded-2xl rounded-tr-none px-4 py-3 max-w-[88%] border border-emerald-400/40 shadow-xl">
-                    <p className="font-bold text-emerald-300 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      Reserva Confirmada com Sucesso! 🎉
-                    </p>
-                    <p className="text-zinc-200 mt-1 text-xs">
-                      É um prazer receber vocês em Itacaré. Seu Guia Digital já está liberado com a senha do Wi-Fi, dicas das praias da Resende e Tiririca e ótimos restaurantes!
-                    </p>
-                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-medium border border-emerald-500/40">
-                      📱 <span>Acessar Guia Digital de Itacaré</span>
-                    </div>
-                    <span className="text-[9px] text-emerald-400/70 block text-right mt-1">14:34 • Seu Zélla</span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
           </motion.div>
         </div>
       </div>
 
-      {/* Shimmer keyframe animation — only rendered when motion is not reduced (gated por mounted p/ evitar hydration mismatch) */}
+      {/* Shimmer keyframe animation */}
       {mounted && !effectiveReducedMotion && (
         <style dangerouslySetInnerHTML={{ __html: `
           @keyframes shimmer {

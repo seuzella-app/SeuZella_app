@@ -99,7 +99,7 @@ export function FinalCTASection() {
             </div>
             <div className="flex items-center gap-2">
               <Shield className={`w-4 h-4 ${isPousada ? 'text-emerald-500/40' : 'text-blue-500/40'}`} />
-              <span>Sem cartão de crédito</span>
+              <span>Pagamento no Cartão de Crédito</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className={`w-4 h-4 ${isPousada ? 'text-emerald-500/40' : 'text-blue-500/40'}`} />
