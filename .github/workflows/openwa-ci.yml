@@ -1,0 +1,57 @@
+name: OpenWA & Hybrid Messaging CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'src/lib/openwa-client.ts'
+      - 'src/lib/whatsapp-send.ts'
+      - 'src/app/api/webhooks/openwa/**'
+      - 'src/app/api/openwa/**'
+      - 'src/components/dashboard/OpenWAConnectionModal.tsx'
+      - 'tests/openwa-*.test.ts'
+      - '.github/workflows/openwa-ci.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'src/lib/openwa-client.ts'
+      - 'src/lib/whatsapp-send.ts'
+      - 'src/app/api/webhooks/openwa/**'
+      - 'src/app/api/openwa/**'
+      - 'src/components/dashboard/OpenWAConnectionModal.tsx'
+      - 'tests/openwa-*.test.ts'
+      - '.github/workflows/openwa-ci.yml'
+
+jobs:
+  test-openwa-gateway:
+    name: OpenWA Gateway & Stress Test Suite
+    runs-on: ubuntu-latest
+
+    env:
+      NEXTAUTH_SECRET: 'ci-secret-key-12345678901234567890'
+      WHATSAPP_PROVIDER: 'openwa'
+      OPENWA_MOCK_MODE: 'true'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun Environment
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run OpenWA Unit & Gateway Tests
+        run: bunx vitest run tests/openwa-gateway.test.ts
+
+      - name: Run OpenWA Stress Load & Component Integration Tests
+        run: bunx vitest run tests/openwa-stress-integration.test.ts
+
+      - name: Run Full Vitest Suite Validation
+        run: bunx vitest run
+
+      - name: Run TypeScript Typecheck Verification
+        run: npm run typecheck
