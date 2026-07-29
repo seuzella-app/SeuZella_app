@@ -2,14 +2,13 @@
 
 import React from 'react'
 import { useNiche } from '@/contexts/NicheContext'
-import { BookingLogo, DecolarLogo, ExpediaLogo, AirbnbLogo } from './OTALogos'
 
-// As 4 Maiores OTAs — Apenas logotipos monocromáticos oficiais
-const otaList = [
-  { id: 'booking', name: 'Booking.com', Component: BookingLogo },
-  { id: 'decolar', name: 'Decolar', Component: DecolarLogo },
-  { id: 'expedia', name: 'Expedia', Component: ExpediaLogo },
-  { id: 'airbnb', name: 'Airbnb', Component: AirbnbLogo },
+// Logotipos PNG oficiais monocromáticos (Booking.com, Decolar, Expedia, Airbnb)
+const otaLogos = [
+  { id: 'booking', name: 'Booking.com', src: '/images/ota-logos/booking.png' },
+  { id: 'decolar', name: 'Decolar', src: '/images/ota-logos/decolar.png' },
+  { id: 'expedia', name: 'Expedia', src: '/images/ota-logos/expedia.png' },
+  { id: 'airbnb', name: 'Airbnb', src: '/images/ota-logos/airbnb.png' },
 ]
 
 export default function BookingPlatformsMarquee() {
@@ -57,8 +56,8 @@ export default function BookingPlatformsMarquee() {
         </div>
       </div>
 
-      {/* Marquee Container com Logotipos Monocromáticos */}
-      <div className="overflow-hidden relative mt-6 py-4">
+      {/* Marquee Container com Logotipos PNG Fiéis e Sem Distorção */}
+      <div className="overflow-hidden relative mt-6 py-6">
         {/* Gradient fade on edges */}
         <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-36 bg-gradient-to-r from-[#09090b] via-[#09090b]/80 to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-36 bg-gradient-to-l from-[#09090b] via-[#09090b]/80 to-transparent z-10 pointer-events-none" />
@@ -66,41 +65,44 @@ export default function BookingPlatformsMarquee() {
         {/* Moving content — 40s slow duration for relaxed movement */}
         <div className="flex items-center marquee-content">
           {/* First set */}
-          {otaList.map((ota) => {
-            const LogoComp = ota.Component
-            return (
-              <div
-                key={ota.id}
-                className="marquee-item mx-12 sm:mx-20 md:mx-24 shrink-0 text-zinc-400 hover:text-zinc-200 transition-colors duration-300 flex items-center justify-center"
-              >
-                <LogoComp className="h-6 sm:h-7 md:h-8 w-auto fill-current opacity-70 hover:opacity-100 transition-opacity" />
-              </div>
-            )
-          })}
+          {otaLogos.map((ota) => (
+            <div
+              key={ota.id}
+              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center"
+            >
+              <img
+                src={ota.src}
+                alt={ota.name}
+                className="h-7 sm:h-8 md:h-9 w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-opacity"
+              />
+            </div>
+          ))}
           {/* Duplicate set 1 for seamless infinite marquee loop */}
-          {otaList.map((ota) => {
-            const LogoComp = ota.Component
-            return (
-              <div
-                key={`${ota.id}-dup1`}
-                className="marquee-item mx-12 sm:mx-20 md:mx-24 shrink-0 text-zinc-400 hover:text-zinc-200 transition-colors duration-300 flex items-center justify-center"
-              >
-                <LogoComp className="h-6 sm:h-7 md:h-8 w-auto fill-current opacity-70 hover:opacity-100 transition-opacity" />
-              </div>
-            )
-          })}
+          {otaLogos.map((ota) => (
+            <div
+              key={`${ota.id}-dup1`}
+              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center"
+            >
+              <img
+                src={ota.src}
+                alt={ota.name}
+                className="h-7 sm:h-8 md:h-9 w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-opacity"
+              />
+            </div>
+          ))}
           {/* Duplicate set 2 for seamless infinite marquee loop on ultra-wide screens */}
-          {otaList.map((ota) => {
-            const LogoComp = ota.Component
-            return (
-              <div
-                key={`${ota.id}-dup2`}
-                className="marquee-item mx-12 sm:mx-20 md:mx-24 shrink-0 text-zinc-400 hover:text-zinc-200 transition-colors duration-300 flex items-center justify-center"
-              >
-                <LogoComp className="h-6 sm:h-7 md:h-8 w-auto fill-current opacity-70 hover:opacity-100 transition-opacity" />
-              </div>
-            )
-          })}
+          {otaLogos.map((ota) => (
+            <div
+              key={`${ota.id}-dup2`}
+              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center"
+            >
+              <img
+                src={ota.src}
+                alt={ota.name}
+                className="h-7 sm:h-8 md:h-9 w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-opacity"
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
