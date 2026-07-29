@@ -1,0 +1,34 @@
+name: 🔒 Smart Locks Integration & Exception Protocol CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tests/smart-locks.test.ts'
+      - 'src/components/landing/SmartLockSecurityProof.tsx'
+      - 'src/lib/strategies/**'
+      - '.github/workflows/smart-locks-ci.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-smart-locks:
+    name: Test Fechaduras Eletrônicas & Protocolo de Exceção
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Smart Locks Test Suite
+        run: npx vitest run tests/smart-locks.test.ts

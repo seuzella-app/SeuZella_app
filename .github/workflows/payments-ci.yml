@@ -1,0 +1,35 @@
+name: 💳 Payment Gateways Integration & Fallback CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tests/payments.test.ts'
+      - 'src/app/api/checkout/**'
+      - 'src/components/landing/PaymentTrustBadges.tsx'
+      - 'src/components/landing/PricingSection.tsx'
+      - '.github/workflows/payments-ci.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-payments:
+    name: Test Payment Gateways & Fallback Mode
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Payment Gateways Test Suite
+        run: npx vitest run tests/payments.test.ts
