@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { processIncomingMessage } from '@/lib/whatsapp-ai-responder';
 import { bufferMessage } from '@/lib/message-bundler';
 import { resolveTenantByPhone } from '@/lib/resolve-tenant-by-phone';
+import { transcribeWhatsAppAudio } from '@/lib/audio-transcriber';
 
 /**
  * OpenWA Webhook Receiver Endpoint (`/api/webhooks/openwa`).
  * Recebe e processa mensagens em tempo real enviadas pelo servidor HTTP OpenWA.
+ * Suporta mensagens de texto e áudio de voz (PTT / Voice Notes).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -29,9 +31,15 @@ export async function POST(request: NextRequest) {
     // Suporte a diferentes formatos de payload do OpenWA
     const payload = data.payload || data;
     const event = data.event || data.type || 'message';
+    const isAudioMsg = 
+      event === 'audio' || 
+      payload.type === 'audio' || 
+      payload.type === 'ptt' || 
+      (payload.mimetype && payload.mimetype.includes('audio')) ||
+      Boolean(payload.mediaUrl || payload.base64);
 
-    // Ignorar eventos que não sejam de mensagem de entrada
-    if (event !== 'message' && event !== 'onMessage' && event !== 'message.create' && !payload.body) {
+    // Ignorar eventos que não sejam de mensagem de entrada nem áudio
+    if (event !== 'message' && event !== 'onMessage' && event !== 'message.create' && !payload.body && !isAudioMsg) {
       return NextResponse.json({ status: 'ignored', reason: 'non_message_event' });
     }
 
@@ -39,7 +47,21 @@ export async function POST(request: NextRequest) {
     const rawFrom = payload.from || payload.sender?.id || payload.chatId || '';
     const guestPhone = rawFrom.replace(/\D/g, '');
     const guestName = payload.sender?.name || payload.pushname || payload.notifyName || payload.name || 'Hóspede WhatsApp';
-    const messageContent = payload.body || payload.text || payload.content || '';
+    
+    let messageContent = payload.body || payload.text || payload.content || '';
+
+    // Se for mensagem de áudio, transcrever para texto automaticamente
+    if (isAudioMsg || (!messageContent && (payload.mediaUrl || payload.base64))) {
+      console.log(`[openwa-webhook] Mensagem de Áudio/Voz detectada do hóspede ${guestPhone}. Transcrevendo via Whisper...`);
+      const audioResult = await transcribeWhatsAppAudio({
+        audioUrl: payload.mediaUrl || payload.url,
+        base64Data: payload.base64 || payload.body,
+        mimeType: payload.mimetype || 'audio/ogg',
+        provider: 'openwa',
+      });
+      
+      messageContent = `[ÁUDIO TRANSCRITO]: "${audioResult.transcript}"`;
+    }
 
     if (!guestPhone || !messageContent) {
       return NextResponse.json({ status: 'ignored', reason: 'missing_phone_or_content' });

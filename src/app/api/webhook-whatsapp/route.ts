@@ -129,13 +129,22 @@ export async function POST(request: NextRequest) {
     const messageType = message.type;
     const displayPhoneNumber = value.metadata?.display_phone_number || '';
 
-    // Tratar somente mensagens de texto. Outros tipos de mensagem são ignorados no momento
-    if (messageType !== 'text') {
+    let messageText = '';
+
+    if (messageType === 'text') {
+      messageText = message.text?.body || '';
+    } else if (messageType === 'audio' || messageType === 'voice') {
+      console.log(`[whatsapp-webhook] Mensagem de Áudio Meta detectada do hóspede ${fromPhone}. Transcrevendo...`);
+      const { transcribeWhatsAppAudio } = await import('@/lib/audio-transcriber');
+      const audioResult = await transcribeWhatsAppAudio({
+        mediaId: message.audio?.id || message.voice?.id,
+        provider: 'meta',
+      });
+      messageText = `[ÁUDIO TRANSCRITO]: "${audioResult.transcript}"`;
+    } else {
       console.warn(`[whatsapp-webhook] Tipo de mensagem não suportado: ${messageType}. Ignorando.`);
       return NextResponse.json({ status: 'ok', processed: 0, reason: 'unsupported_message_type' });
     }
-
-    const messageText = message.text?.body || '';
 
     // Resolver Tenant com base no número receptor da pousada
     const tenantResult = await resolveTenantByPhone(displayPhoneNumber);
