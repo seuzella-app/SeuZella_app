@@ -190,7 +190,7 @@ export function Header() {
             onClick={(e) => handleNavClick(e, '#precos')}
             className={`group relative inline-flex items-center justify-center px-5 py-2 text-[13px] font-semibold text-white ${accent.bg} ${accent.hoverBg} rounded-[8px] shadow-lg ${accent.shadow} transition-all hover:scale-[1.02] active:scale-95 duration-200 focus-visible:outline-none focus-visible:ring-2 ${accent.ring} focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
           >
-            <span>Testar por 7 dias</span>
+            <span>Criar meu Dashboard</span>
             <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
@@ -263,7 +263,7 @@ export function Header() {
                   onClick={(e) => handleNavClick(e, '#precos')}
                   className={`w-full text-center text-[14px] font-semibold text-white ${accent.bg} ${accent.hoverBg} py-3 rounded-xl shadow-lg ${accent.shadow} transition-all active:scale-[0.98]`}
                 >
-                  Testar por 7 dias
+                  Criar meu Dashboard
                 </Link>
               </div>
             </motion.div>

@@ -58,8 +58,8 @@ export function FinalCTASection() {
 
           <p className="text-neutral-400 text-lg sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed">
             {isPousada
-              ? 'Imagine ter um atendente que nunca dorme, nunca erra o preço e ainda envia sua chave PIX na hora. O ZÉLLA cuida do seu WhatsApp enquanto você cuida dos seus hóspedes. Comece grátis e veja resultados em 48 horas.'
-              : 'Imagine ter um co-anfitrião digital que nunca dorme, responde hóspedes instantaneamente e fecha reservas diretas sem comissão. O ZÉLLA cuida do seu WhatsApp enquanto você escala seu portfólio. Comece grátis e veja resultados em 48 horas.'
+              ? 'Imagine ter um atendente que nunca dorme, nunca erra o preço e ainda envia sua chave PIX na hora. O ZÉLLA cuida do seu WhatsApp enquanto você cuida dos seus hóspedes. Assine agora e veja resultados em 48 horas.'
+              : 'Imagine ter um co-anfitrião digital que nunca dorme, responde hóspedes instantaneamente e fecha reservas diretas sem comissão. O ZÉLLA cuida do seu WhatsApp enquanto você escala seu portfólio. Assine agora e veja resultados em 48 horas.'
             }
           </p>
 
@@ -77,7 +77,7 @@ export function FinalCTASection() {
               }`}
             >
               <span className="flex items-center gap-2">
-                {'Grátis por 7 dias'}
+                {'Criar meu Dashboard'}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </button>

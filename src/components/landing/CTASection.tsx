@@ -33,7 +33,7 @@ export function CTASection({ onNavigate }: CTASectionProps) {
             </span>
           </h2>
           <p className="text-neutral-400 text-lg mb-8 max-w-2xl mx-auto">
-            Comece seu teste gratuito de 7 dias. Sem cartão. Sem compromisso.
+            Escolha seu plano e comece a automatizar suas reservas hoje mesmo.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -47,13 +47,13 @@ export function CTASection({ onNavigate }: CTASectionProps) {
                 }`}
               >
                 <Zap className="w-5 h-5" />
-                Testar Grátis por 7 Dias
+                Criar meu Dashboard
                 <ArrowRight className="w-5 h-5" />
               </button>
             </motion.div>
           </div>
           <p className="text-sm text-neutral-600 mt-6">
-            Setup em 10 min • Sem cartão de crédito • Cancele quando quiser
+            Setup em 5 min • Pagamento 100% seguro • Reservas sem comissão
           </p>
         </div>
       </motion.div>

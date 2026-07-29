@@ -45,7 +45,7 @@ export function FloatingCTA() {
         <div className="flex items-center gap-3">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           <p className="text-zinc-200 text-sm sm:text-base font-medium text-center sm:text-left">
-            Teste grátis por 7 dias {isPousada ? 'o zelador de sua pousada.' : isAirbnb ? 'o co-anfitrião dos seus imóveis.' : 'o assistente do seu negócio.'}
+            Atendimento inteligente 24/7 para {isPousada ? 'sua pousada.' : isAirbnb ? 'seus imóveis.' : 'seu negócio.'}
           </p>
         </div>
 
@@ -54,7 +54,7 @@ export function FloatingCTA() {
           href="#precos"
           className="w-full sm:w-auto px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-lg text-center transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 text-sm cursor-pointer whitespace-nowrap active:scale-[0.98]"
         >
-          Teste grátis 7 dias
+          Criar meu Dashboard
         </Link>
       </div>
     </div>
