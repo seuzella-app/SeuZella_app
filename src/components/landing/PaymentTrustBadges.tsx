@@ -12,40 +12,40 @@ export function PaymentTrustBadges({ compact = false }: { compact?: boolean }) {
       </div>
 
       {/* Homogeneous Real Logos Row */}
-      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-1">
+      <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3.5 pt-1">
         {/* ASAAS LOGO */}
-        <div className="flex items-center justify-center px-4 py-2 rounded-xl bg-white shadow-md border border-white/20 hover:scale-105 transition-all duration-200 h-12 sm:h-14">
+        <div className="flex items-center justify-center px-3.5 sm:px-4 py-1.5 rounded-xl bg-white shadow-md border border-white/20 hover:scale-105 transition-all duration-200 h-10 sm:h-11">
           <img
-            src="/images/payments/images_asaas.png"
+            src="/images/payments/asaas_logo.png"
             alt="ASAAS - SaaS Recorrente"
-            className="h-7 sm:h-8 w-auto object-contain"
+            className="h-3.5 sm:h-4 w-auto object-contain max-h-[16px]"
           />
         </div>
 
-        {/* MERCADO PAGO LOGO (Mercado_Pago.svg.webp) */}
-        <div className="flex items-center justify-center px-4 py-2 rounded-xl bg-white shadow-md border border-white/20 hover:scale-105 transition-all duration-200 h-12 sm:h-14">
+        {/* MERCADO PAGO LOGO (TRIMMED HIGH-RES) */}
+        <div className="flex items-center justify-center px-3.5 sm:px-4 py-1.5 rounded-xl bg-white shadow-md border border-white/20 hover:scale-105 transition-all duration-200 h-10 sm:h-11">
           <img
-            src="/images/payments/Mercado_Pago.svg.webp"
+            src="/images/payments/mp_logo.png"
             alt="Mercado Pago"
-            className="h-7 sm:h-8 w-auto object-contain"
+            className="h-5 sm:h-5.5 w-auto object-contain max-h-[22px]"
           />
         </div>
 
         {/* PIX BANCO CENTRAL LOGO */}
-        <div className="flex items-center justify-center px-4 py-2 rounded-xl bg-white shadow-md border border-white/20 hover:scale-105 transition-all duration-200 h-12 sm:h-14">
+        <div className="flex items-center justify-center px-3.5 sm:px-4 py-1.5 rounded-xl bg-white shadow-md border border-white/20 hover:scale-105 transition-all duration-200 h-10 sm:h-11">
           <img
-            src="/images/payments/pix-bc-logo.png"
+            src="/images/payments/pix_logo.png"
             alt="PIX Powered by Banco Central"
-            className="h-7 sm:h-8 w-auto object-contain"
+            className="h-5 sm:h-5.5 w-auto object-contain max-h-[22px]"
           />
         </div>
 
         {/* BANDEIRAS CARTÃO LOGO (VISA, HIPERCARD, ELO, MASTERCARD) */}
-        <div className="flex items-center justify-center px-4 py-2 rounded-xl bg-white shadow-md border border-white/20 hover:scale-105 transition-all duration-200 h-12 sm:h-14">
+        <div className="flex items-center justify-center px-3.5 sm:px-4 py-1.5 rounded-xl bg-white shadow-md border border-white/20 hover:scale-105 transition-all duration-200 h-10 sm:h-11">
           <img
-            src="/images/payments/images_bandeiras.png"
+            src="/images/payments/bandeiras_logo.png"
             alt="Visa, Hipercard, Elo, Mastercard"
-            className="h-6 sm:h-7 w-auto object-contain"
+            className="h-3.5 sm:h-4 w-auto object-contain max-h-[16px]"
           />
         </div>
       </div>
