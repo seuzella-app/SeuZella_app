@@ -302,8 +302,8 @@ export function HowItWorksSection() {
                 <Zap className={`w-5 h-5 text-violet-400`} />
               </div>
               <div className="text-left">
-                <div className="text-white font-bold text-sm">Preço Congelado</div>
-                <div className="text-neutral-400 text-xs">Sem fidelidade forçada</div>
+                <div className="text-white font-bold text-sm">Tom Personalizado</div>
+                <div className="text-neutral-400 text-xs">IA treinada na sua pousada</div>
               </div>
             </div>
           </div>
