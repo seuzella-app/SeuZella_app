@@ -990,6 +990,48 @@ export default function DDCPousadaContent() {
         </CardContent>
       </Card>
 
+      {/* NFS-e Automática Module */}
+      <Card className="bg-[#111118] border-emerald-500/30">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base text-white flex items-center gap-2">
+              <FileText className="size-4 text-emerald-400" />
+              Emissão Automática de Nota Fiscal Eletrônica (NFS-e)
+            </CardTitle>
+            <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-xs">
+              🟢 Ativo via Asaas / Prefeitura
+            </Badge>
+          </div>
+          <CardDescription className="text-zinc-400 text-xs">
+            O Zélla emite a NFS-e automaticamente na prefeitura assim que o hóspede confirma a reserva via PIX ou Cartão.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between text-sm p-3 bg-[#0a0a0f] rounded-xl border border-white/5">
+            <div>
+              <p className="font-bold text-white text-xs">Emitir NFS-e automaticamente após pagamento</p>
+              <p className="text-[11px] text-zinc-400">Envia o PDF/XML da nota direto no WhatsApp do hóspede</p>
+            </div>
+            <Switch defaultChecked />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="p-3 bg-[#0a0a0f] rounded-lg border border-white/5">
+              <span className="text-zinc-400 text-[10px] block">Inscrição Municipal (Prefeitura)</span>
+              <span className="font-mono font-bold text-white text-xs">Paraty / IM-84920</span>
+            </div>
+            <div className="p-3 bg-[#0a0a0f] rounded-lg border border-white/5">
+              <span className="text-zinc-400 text-[10px] block">Alíquota ISS (Hospedagem)</span>
+              <span className="font-mono font-bold text-emerald-400 text-xs">2.0% (Simples Nacional)</span>
+            </div>
+            <div className="p-3 bg-[#0a0a0f] rounded-lg border border-white/5">
+              <span className="text-zinc-400 text-[10px] block">Última NFS-e Emitida</span>
+              <span className="font-mono font-bold text-zinc-300 text-xs">NFS-e #1042 • R$ 1.250,00</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Integration Settings */}
       <Card className="bg-[#111118] border-zinc-800/60">
         <CardHeader>
@@ -1002,6 +1044,7 @@ export default function DDCPousadaContent() {
           {[
             { name: 'Booking.com', status: 'conectado', icon: <Globe className="size-4 text-blue-400" /> },
             { name: 'Airbnb', status: 'conectado', icon: <Globe className="size-4 text-rose-400" /> },
+            { name: 'Emissão NFS-e Prefeitura (Asaas)', status: 'conectado', icon: <FileText className="size-4 text-emerald-400" /> },
             { name: 'Google Calendar', status: 'pendente', icon: <Calendar className="size-4 text-zinc-400" /> },
             { name: 'Mercado Pago', status: 'pendente', icon: <CreditCard className="size-4 text-zinc-400" /> },
           ].map((integration) => (

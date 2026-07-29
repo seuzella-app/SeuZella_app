@@ -88,11 +88,11 @@ export function DDCHeroPreview() {
       {/* Top Hairline Metallic Accent */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_rgba(16,185,129,0.9)] z-30" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 h-[620px] max-h-[620px] min-h-[620px] overflow-hidden">
         {/* ═══════════════════════════════════════════════════════════════
             LEFT SIDEBAR — MATCHES EXACT REAL DDC POUSADA LAYOUT
            ═══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-3 border-r border-white/10 bg-[#0d0e15] flex flex-col justify-between p-3.5 sm:p-4 z-10">
+        <div className="lg:col-span-3 border-r border-white/10 bg-[#0d0e15] flex flex-col justify-between p-3.5 sm:p-4 z-10 h-full overflow-y-auto">
           <div>
             {/* Header Brand */}
             <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-white/10">
@@ -164,7 +164,7 @@ export function DDCHeroPreview() {
         {/* ═══════════════════════════════════════════════════════════════
             MAIN OPERATIONAL AREA — MATCHES EXACT REAL DDC POUSADA
            ═══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-9 p-4 sm:p-6 bg-[#0a0a0f] space-y-5">
+        <div className="lg:col-span-9 p-4 sm:p-6 bg-[#0a0a0f] flex flex-col justify-between h-full overflow-y-auto custom-scrollbar">
           {/* Top Bar Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
             <div className="flex items-center gap-2">
@@ -594,12 +594,9 @@ export function DDCHeroPreview() {
           style={{ top: 0, left: 0 }}
         >
           <div className="relative">
-            <MousePointer2 className="w-6 h-6 text-emerald-400 fill-emerald-400 stroke-zinc-950 stroke-2" />
-            <div className="absolute top-5 left-4 px-2 py-0.5 rounded-md bg-emerald-500 text-zinc-950 font-black text-[10px] whitespace-nowrap shadow-lg">
-              Navegando no DDC...
-            </div>
+            <MousePointer2 className="w-6 h-6 text-emerald-400 fill-emerald-400 stroke-zinc-950 stroke-2 drop-shadow-md" />
             {cursorTarget.clicking && (
-              <span className="absolute -top-1 -left-1 w-8 h-8 rounded-full bg-emerald-400/50 animate-ping" />
+              <span className="absolute -top-1 -left-1 w-8 h-8 rounded-full bg-emerald-400/60 animate-ping" />
             )}
           </div>
         </motion.div>
