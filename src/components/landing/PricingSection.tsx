@@ -24,6 +24,7 @@ import { useNiche } from '@/contexts/NicheContext';
 import { getNicheContent } from '@/data/niche-content';
 import { CheckoutModal } from '@/components/landing/CheckoutModal';
 import { PaymentTrustBadges } from '@/components/landing/PaymentTrustBadges';
+import { SmartLockSecurityProof } from '@/components/landing/SmartLockSecurityProof';
 import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
 
 type PaymentMode = 'pix' | 'cartao';
@@ -110,6 +111,7 @@ const plans: Plan[] = [
       { text: 'Atendimento ilimitado', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
       { text: 'WhatsApp com tom 100% personalizado', included: true },
+      { text: '🔓 Fechaduras Eletrônicas (Tuya, TTLock, Intelbras, Yale)', included: true },
       { text: 'Checkout PIX e Cartão integrados', included: true },
       { text: 'Dashboard completo com campanhas', included: true },
       { text: 'Sugestões de preços inteligentes', included: true },
@@ -124,7 +126,7 @@ const plans: Plan[] = [
       { text: 'Magic Onboarding — URL do anúncio (5 min)', included: true },
       { text: 'Até 4 imóveis cadastrados', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
-      { text: 'Check-in virtual automático', included: true },
+      { text: '🔓 Check-in virtual via Fechadura Eletrônica (PIN Criptografado no WhatsApp)', included: true },
       { text: 'PIX Gatekeeper anti-banimento', included: true },
       { text: 'Dashboard com portfólio completo', included: true },
       { text: 'Suporte prioritário', included: true },
@@ -200,6 +202,7 @@ const plans: Plan[] = [
       { text: 'Link-in-bio profissional liberado', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
       { text: 'WhatsApp com tom 100% personalizado', included: true },
+      { text: '🔓 Fechaduras Eletrônicas (Tuya, TTLock, Intelbras, Yale - PIN Rígido por Minuto)', included: true },
       { text: 'Checkout Cartão integrado', included: true },
       { text: 'Dashboard completo', included: true },
       { text: 'Sugestões de preços inteligentes', included: true },
@@ -213,7 +216,7 @@ const plans: Plan[] = [
       { text: 'Magic Onboarding — cole a URL do anúncio e pronto (5 min)', included: true },
       { text: 'Até 4 imóveis cadastrados', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
-      { text: 'Check-in virtual automático (código da fechadura via WhatsApp)', included: true },
+      { text: '🔓 Check-in virtual automático (Fechaduras Tuya/TTLock/Intelbras/Yale - PIN com Validade Rígida)', included: true },
       { text: 'PIX Gatekeeper — bloqueia PIX p/ hóspedes Airbnb (anti-banimento)', included: true },
       { text: 'Lifecycle Hooks automáticos (regras, check-in, avaliação)', included: true },
       { text: 'Respostas sobre vizinhança incluídas (restaurantes, praias, etc.)', included: true },
@@ -257,6 +260,7 @@ const plans: Plan[] = [
     roiAirbnb: '2 reservas diretas/mês = R$600+ economizados em comissão*',
     features: [
       { text: 'Tudo do plano PRO', included: true },
+      { text: '🔓 Fechaduras Eletrônicas Ilimitadas (PIN Criptografado + Algoritmo Offline Time-Based)', included: true },
       { text: 'Link-in-bio profissional liberado', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
       { text: 'Ajuste de preços inteligente avançado', included: true },
@@ -273,6 +277,7 @@ const plans: Plan[] = [
     featuresAirbnb: [
       { text: 'Tudo do plano PRO (4 imóveis inclusos)', included: true },
       { text: 'Até 12 imóveis cadastrados', included: true },
+      { text: '🔓 Gestão de Fechaduras Eletrônicas Ilimitadas (Multi-propriedades + PIN Criptografado + Fallback Offline)', included: true },
       { text: 'Calendar Sync — sincronização Airbnb, Booking, Vrbo (iCal)', included: true },
       { text: 'Atendimento personalizado — treinamento dedicado p/ seu portfólio', included: true },
       { text: 'Integrações customizadas (Airbnb, Booking, Vrbo)', included: true },
@@ -688,6 +693,9 @@ export function PricingSection() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Smart Lock Security & Proof Banner */}
+        <SmartLockSecurityProof />
 
         {/* Payment methods & Trust Badges */}
         <motion.div
