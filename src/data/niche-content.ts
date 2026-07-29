@@ -163,21 +163,21 @@ const pousadaContent: NicheContent = {
     {
       num: '01',
       icon: 'UserPlus',
-      title: 'Cadastre sua pousada',
-      subtitle: '5 minutos é tudo que você precisa',
-      desc: 'Informe nome, WhatsApp oficial, endereço e quantidade de quartos. O Zélla cria o perfil da sua pousada e já personaliza as respostas com suas regras, preços e políticas. Sem necessidade de técnico.',
+      title: 'Cadastre sua pousada & conecte via QR Code',
+      subtitle: '5 minutos é tudo que você precisa (Zero taxas de mensagem)',
+      desc: 'Informe nome, quantidade de quartos e aponte a câmera do seu celular para o QR Code na tela. O Zélla se conecta ao seu WhatsApp instantaneamente sem burocracia, clona seu tom de voz e personaliza as respostas com suas regras e chave PIX.',
       color: 'emerald',
-      highlights: ['Pagamento no Cartão de Crédito', 'Onboarding guiado', 'Perfil instantâneo'],
-      fields: ['Nome da pousada', 'WhatsApp oficial', 'Endereço completo', 'Qtd. de quartos', 'Chave PIX (opcional)', 'Regras da pousada'],
+      highlights: ['Conexão Instantânea via QR Code', 'Zero Taxas Meta por Conversa', 'Clone Digital de Tom de Voz'],
+      fields: ['Conexão por QR Code', 'Nome da pousada', 'WhatsApp oficial', 'Endereço completo', 'Qtd. de quartos', 'Chave PIX (opcional)', 'Regras da pousada'],
     },
     {
       num: '02',
       icon: 'MessageSquare',
-      title: 'O assistente atende por você',
-      subtitle: 'Seu WhatsApp vira ponto de venda 24/7',
-      desc: 'O assistente inteligente responde perguntas, mostra disponibilidade, negocia preços e envia a chave PIX cadastrada para pagamento — tudo automaticamente, no tom da sua pousada. O primeiro hóspede atendido costuma chegar em menos de 24 horas.',
+      title: 'O assistente atende por você no seu estilo',
+      subtitle: 'Seu WhatsApp vira ponto de venda 24/7 com o seu tom de voz',
+      desc: 'O assistente inteligente responde perguntas, mostra disponibilidade, negocia preços e envia a chave PIX cadastrada — tudo automaticamente, no tom de voz exato do anfitrião. O primeiro hóspede atendido costuma chegar em menos de 24 horas.',
       color: 'blue',
-      highlights: ['Resposta em até 8 segundos', 'Tom personalizado', 'Chave PIX automática'],
+      highlights: ['Resposta em até 8 segundos', 'Tom de voz clonado', 'Chave PIX automática'],
     },
     {
       num: '03',
@@ -193,19 +193,20 @@ const pousadaContent: NicheContent = {
   features: [
     {
       icon: 'MessageSquare',
-      badge: 'WhatsApp Inteligente 24/7',
+      badge: 'WhatsApp Inteligente 24/7 + QR Code Instantâneo',
       heroStat: { val: '8s', label: 'tempo médio de resposta', gradient: 'from-emerald-400 to-cyan-400' },
-      headline: 'Seu hóspede pergunta. O Zélla reserva.',
-      subtitle: 'Não é só chat — é um motor de reservas automático.',
-      desc: 'Cada mensagem que seu hóspede manda é uma oportunidade de reserva que o Zélla não deixa escapar. Disponibilidade, preço e sua chave PIX cadastrada — tudo num único balão, no tom da sua pousada. Resposta densa que resolve tudo de uma vez.',
+      headline: 'Seu hóspede pergunta. O Zélla reserva com o seu tom de voz.',
+      subtitle: 'Não é só chat — é um motor de reservas automático e humanizado.',
+      desc: 'Cada mensagem que seu hóspede manda é uma oportunidade de reserva que o Zélla não deixa escapar. Conecte via QR Code em 5 segundos, sem pagar nada de tarifas Meta. O Zélla clona seu tom de voz e entrega disponibilidade, preço e sua chave PIX num único balão denso.',
       stats: [
         { val: '24/7', label: 'Atendimento ininterrupto', sublabel: 'Sem folga, sem férias', icon: 'Clock' },
         { val: '+35%', label: 'Aumento em reservas', sublabel: 'Média nos primeiros 90 dias', icon: 'TrendingUp' },
       ],
       pills: [
-        { text: '1 balão = tudo resolvido', accent: true },
+        { text: 'Conexão instantânea via QR Code (Zero Taxas)', accent: true },
+        { text: 'Clone Digital de Tom de Voz' },
+        { text: '1 balão = tudo resolvido' },
         { text: 'Chave PIX cadastrada enviada automaticamente' },
-        { text: 'Tom de voz personalizado' },
         { text: 'PT / ES — dois idiomas' },
       ],
       bottomLine: 'Deixe o software fazer o trabalho do software. Você cuide dos hóspedes.',
@@ -298,12 +299,13 @@ const pousadaContent: NicheContent = {
   },
 
   faqs: [
-    { question: 'O Zélla funciona com o WhatsApp Business da minha pousada?', answer: 'Sim! O Zélla se conecta ao seu WhatsApp Business oficial. Seu número continua o mesmo, e você mantém acesso total ao histórico de conversas.' },
+    { question: 'Como funciona a conexão por QR Code e o Clone de Tom de Voz?', answer: 'Você conecta o WhatsApp da sua pousada em 5 segundos simplesmente apontando a câmera do celular para o QR Code no painel. O Zélla analisa o histórico de mensagens antigas e clona seu tom de voz, gírias e expressões — atendendo com a sua personalidade exata, sem burocracia e com ZERO custo por mensagem!' },
+    { question: 'O Zélla funciona com o WhatsApp Business da minha pousada?', answer: 'Sim! O Zélla se conecta ao seu WhatsApp Business oficial ou pessoal via QR Code. Seu número continua o mesmo, e você mantém acesso total ao histórico de conversas.' },
     { question: 'Como o hóspede recebe a chave PIX?', answer: 'O Zélla envia automaticamente a chave PIX cadastrada no momento certo da conversa — quando o hóspede confirma interesse na reserva. Tudo em um único balão, sem fragmentação.' },
     { question: 'Posso intervir na conversa quando quiser?', answer: 'Sim! O painel mostra todas as conversas em tempo real. Com um clique você pausa o assistente e assume o atendimento. A transição é imperceptível para o hóspede.' },
     { question: 'O Zélla funciona com calendário de disponibilidade?', answer: 'Sim. O Zélla consulta seu calendário em tempo real antes de confirmar qualquer reserva. Não há risco de overbooking.' },
-    { question: 'O WhatsApp vai ficar mais caro?', answer: 'Sim, a Meta vai cobrar por mensagem a partir de 2026. O Zélla já se preparou: agrupa mensagens e responde tudo de uma vez, reduzindo o custo em até 80%. Você economiza sem mudar nada.' },
-    { question: 'Qual o custo por mensagem?', answer: 'Nossos planos começam em R$ 197/mês com tudo incluído. Não cobramos por mensagem individual — você define o orçamento e o Zélla otimiza automaticamente.' },
+    { question: 'O WhatsApp vai ficar mais caro?', answer: 'Com a conexão por QR Code do Zélla, você não paga nenhuma tarifa da Meta por mensagem. O Zélla agrupa mensagens e responde tudo de uma vez, reduzindo o custo de operação a zero.' },
+    { question: 'Qual o custo por mensagem?', answer: 'Nossos planos começam em R$ 197/mês com tudo incluído. Não cobramos por mensagem individual — o envio via QR Code é ilimitado e livre de taxas por mensagem.' },
   ],
 };
 
@@ -536,6 +538,7 @@ const airbnbContent: NicheContent = {
   },
 
   faqs: [
+    { question: 'Como funciona a conexão do meu WhatsApp e o Clone de Tom de Voz?', answer: 'Você conecta o WhatsApp do seu imóvel em 5 segundos simplesmente apontando a câmera do celular para o QR Code no painel. O Zélla analisa seu histórico recente de conversas e clona seu tom de voz, estilo de escrita e expressões locais — atendendo seus hóspedes como se fosse você mesmo, sem burocracia e com ZERO custo por mensagem!' },
     { question: 'O Zélla AirB importa mesmo tudo do meu anúncio Airbnb?', answer: 'Sim! O Magic Onboarding extrai fotos, regras, localização, preços, amenidades e políticas automaticamente — preenchendo 78% do painel sem você digitar nada. Você revisa e confirma em 5 minutos.' },
     { question: 'Como funciona o check-in virtual?', answer: 'Quando o hóspede confirma a reserva, o Zélla envia automaticamente as instruções de acesso com o código da fechadura inteligente. Tudo pelo WhatsApp, sem sua interação — nem de madrugada.' },
     { question: 'Como o Zélla me protege de banimento no Airbnb?', answer: 'O Zélla detecta em tempo real se a conversa pertence a um hóspede do Airbnb e bloqueia automaticamente o envio de chaves PIX — protegendo você contra banimento na plataforma por desvio de pagamento.' },

@@ -37,6 +37,14 @@ function getComparisons(niche: 'pousada' | 'airbnb'): ComparisonRow[] {
       cloudbedsBad: true,
     },
     {
+      feature: 'Conexão & Tom de Voz',
+      icon: MessageSquare,
+      zehla: 'QR Code em 5s + Clone de Tom de Voz (Zero Taxas)',
+      zehlaHighlight: true,
+      cloudbeds: 'Configuração genérica / Taxas extras',
+      cloudbedsBad: true,
+    },
+    {
       feature: niche === 'airbnb' ? 'IA Preditiva para Atendimento' : 'IA Preditiva para Hóspedes',
       icon: Brain,
       zehla: true,

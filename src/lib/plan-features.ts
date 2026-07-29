@@ -295,7 +295,9 @@ export const PLAN_HIGHLIGHTS: Record<PlanTier, { headline: string; features: str
   pro: {
     headline: 'Cresça sem limites com IA inteligente',
     features: [
-      'Mensagens ILIMITADAS',
+      'Mensagens ILIMITADAS (Zero Taxas por Mensagem)',
+      'Conexão Instantânea via QR Code (sem burocracia)',
+      'Clone Digital de Tom de Voz (aprende seu estilo exato de fala)',
       'CRM Pipeline com score IA',
       'Centro de Treinamento da IA',
       'Analytics avançado com gráficos',
@@ -311,6 +313,8 @@ export const PLAN_HIGHLIGHTS: Record<PlanTier, { headline: string; features: str
     headline: 'Operação de alto padrão com suporte dedicado',
     features: [
       'TUDO do plano PRO',
+      'Conexão Instantânea via QR Code (Zero Taxas por Mensagem)',
+      'Clone Digital de Tom de Voz Avançado (aprende sotaque e gírias locais)',
       'Gerente de Treinamento IA Dedicado (Zellador)',
       'Split de pagamentos automático',
       'Integrações customizadas',

@@ -105,6 +105,8 @@ const plans: Plan[] = [
     features: [
       { text: 'Plano PRO completo — R$247/mês', included: true },
       { text: 'Preço congelado por 24 meses', included: true },
+      { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
+      { text: '🗣️ Clone Digital de Tom de Voz (aprende seu estilo e tom de fala)', included: true },
       { text: 'Selo exclusivo de Parceiro Zélla no Link-in-Bio', included: true },
       { text: 'Perfil Link-in-Bio fornecido pelo Zélla', included: true },
       { text: 'Link para fixar no perfil do Instagram', included: true },
@@ -122,6 +124,8 @@ const plans: Plan[] = [
     featuresAirbnb: [
       { text: 'Plano PRO completo — R$247/mês', included: true },
       { text: 'Preço congelado por 24 meses', included: true },
+      { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
+      { text: '🗣️ Clone Digital de Tom de Voz (aprende seu estilo e tom de fala)', included: true },
       { text: 'Selo exclusivo de Parceiro Zélla', included: true },
       { text: 'Magic Onboarding — URL do anúncio (5 min)', included: true },
       { text: 'Até 4 imóveis cadastrados', included: true },
@@ -199,6 +203,8 @@ const plans: Plan[] = [
     roiAirbnb: '1 reserva direta/mês já paga o plano*',
     features: [
       { text: 'Hóspedes ilimitados', included: true },
+      { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
+      { text: '🗣️ Clone Digital de Tom de Voz (aprende seu tom de fala e sotaque exato)', included: true },
       { text: 'Link-in-bio profissional liberado', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
       { text: 'WhatsApp com tom 100% personalizado', included: true },
@@ -213,6 +219,8 @@ const plans: Plan[] = [
     ],
     featuresAirbnb: [
       { text: 'Zélla AirB 24/7 no WhatsApp — responde por você', included: true },
+      { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
+      { text: '🗣️ Clone Digital de Tom de Voz (aprende seu tom de fala e estilo exato)', included: true },
       { text: 'Magic Onboarding — cole a URL do anúncio e pronto (5 min)', included: true },
       { text: 'Até 4 imóveis cadastrados', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
@@ -260,6 +268,8 @@ const plans: Plan[] = [
     roiAirbnb: '2 reservas diretas/mês = R$600+ economizados em comissão*',
     features: [
       { text: 'Tudo do plano PRO', included: true },
+      { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
+      { text: '🗣️ Clone Digital de Tom de Voz Avançado (aprende sotaque, gírias e expressões)', included: true },
       { text: '🔓 Fechaduras Eletrônicas Ilimitadas (PIN Criptografado + Algoritmo Offline Time-Based)', included: true },
       { text: 'Link-in-bio profissional liberado', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
@@ -277,6 +287,8 @@ const plans: Plan[] = [
     featuresAirbnb: [
       { text: 'Tudo do plano PRO (4 imóveis inclusos)', included: true },
       { text: 'Até 12 imóveis cadastrados', included: true },
+      { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
+      { text: '🗣️ Clone Digital de Tom de Voz Avançado (aprende sotaque, gírias e expressões)', included: true },
       { text: '🔓 Gestão de Fechaduras Eletrônicas Ilimitadas (Multi-propriedades + PIN Criptografado + Fallback Offline)', included: true },
       { text: 'Calendar Sync — sincronização Airbnb, Booking, Vrbo (iCal)', included: true },
       { text: 'Atendimento personalizado — treinamento dedicado p/ seu portfólio', included: true },
