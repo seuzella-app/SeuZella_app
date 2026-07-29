@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useNiche } from '@/contexts/NicheContext';
+import { getNicheContent } from '@/data/niche-content';
 import { NicheToggle } from './NicheToggle';
 
 import { trackLandingClick } from '@/lib/telemetry/landing-telemetry';
 
 export function HeroSection() {
   const { niche, setNiche, isPousada, isAirbnb } = useNiche();
+  const content = getNicheContent(niche);
   const [mounted, setMounted] = useState(false);
   const [phraseIdx, setPhraseIdx] = useState(0);
   const prefersReducedMotion = useReducedMotion();
