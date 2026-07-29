@@ -3,12 +3,12 @@
 import React from 'react'
 import { useNiche } from '@/contexts/NicheContext'
 
-// Logotipos PNG oficiais monocromáticos (Booking.com, Decolar, Expedia, Airbnb)
+// Logotipos PNG oficiais monocromáticos com altura óptica ajustada individualmente
 const otaLogos = [
-  { id: 'booking', name: 'Booking.com', src: '/images/ota-logos/booking.png' },
-  { id: 'decolar', name: 'Decolar', src: '/images/ota-logos/decolar.png' },
-  { id: 'expedia', name: 'Expedia', src: '/images/ota-logos/expedia.png' },
-  { id: 'airbnb', name: 'Airbnb', src: '/images/ota-logos/airbnb.png' },
+  { id: 'booking', name: 'Booking.com', src: '/images/ota-logos/booking.png', heightClass: 'h-4 sm:h-4.5 md:h-5' },
+  { id: 'decolar', name: 'Decolar', src: '/images/ota-logos/decolar.png', heightClass: 'h-6.5 sm:h-7.5 md:h-8' },
+  { id: 'expedia', name: 'Expedia', src: '/images/ota-logos/expedia.png', heightClass: 'h-10 sm:h-11 md:h-13' },
+  { id: 'airbnb', name: 'Airbnb', src: '/images/ota-logos/airbnb.png', heightClass: 'h-6.5 sm:h-7.5 md:h-8' },
 ]
 
 export default function BookingPlatformsMarquee() {
@@ -56,7 +56,7 @@ export default function BookingPlatformsMarquee() {
         </div>
       </div>
 
-      {/* Marquee Container com Logotipos PNG Fiéis e Sem Distorção */}
+      {/* Marquee Container com Logotipos PNG com Equilíbrio Óptico Definitivo */}
       <div className="overflow-hidden relative mt-6 py-6">
         {/* Gradient fade on edges */}
         <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-36 bg-gradient-to-r from-[#09090b] via-[#09090b]/80 to-transparent z-10 pointer-events-none" />
@@ -68,12 +68,12 @@ export default function BookingPlatformsMarquee() {
           {otaLogos.map((ota) => (
             <div
               key={ota.id}
-              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center"
+              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center h-14"
             >
               <img
                 src={ota.src}
                 alt={ota.name}
-                className="h-7 sm:h-8 md:h-9 w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-opacity"
+                className={`${ota.heightClass} w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-all`}
               />
             </div>
           ))}
@@ -81,12 +81,12 @@ export default function BookingPlatformsMarquee() {
           {otaLogos.map((ota) => (
             <div
               key={`${ota.id}-dup1`}
-              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center"
+              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center h-14"
             >
               <img
                 src={ota.src}
                 alt={ota.name}
-                className="h-7 sm:h-8 md:h-9 w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-opacity"
+                className={`${ota.heightClass} w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-all`}
               />
             </div>
           ))}
@@ -94,12 +94,12 @@ export default function BookingPlatformsMarquee() {
           {otaLogos.map((ota) => (
             <div
               key={`${ota.id}-dup2`}
-              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center"
+              className="marquee-item mx-14 sm:mx-20 md:mx-28 shrink-0 flex items-center justify-center h-14"
             >
               <img
                 src={ota.src}
                 alt={ota.name}
-                className="h-7 sm:h-8 md:h-9 w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-opacity"
+                className={`${ota.heightClass} w-auto object-contain brightness-125 contrast-125 opacity-80 hover:opacity-100 transition-all`}
               />
             </div>
           ))}
