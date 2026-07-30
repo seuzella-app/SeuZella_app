@@ -371,6 +371,18 @@ export default function DDCPousadaContent() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
+      {/* Stitch HUD AI Status Ticker Pill */}
+      <div className="rounded-full py-2.5 px-4 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/30 shadow-lg shadow-emerald-500/10 backdrop-blur-xl">
+        <p className="text-xs font-mono text-zinc-200 flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block" />
+          <span className="font-bold text-emerald-400">ZÉLLA ATIVO</span>
+          <span className="text-zinc-500">•</span>
+          <span>Resposta em 0.6s</span>
+          <span className="text-zinc-500">•</span>
+          <span className="text-emerald-300 font-medium">80% Economia no WhatsApp</span>
+        </p>
+      </div>
+
       {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner */}
       <Card className="bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.05] border-emerald-500/20 overflow-hidden">
         <CardContent className="p-5">
@@ -416,33 +428,53 @@ export default function DDCPousadaContent() {
         </CardContent>
       </Card>
 
-      {/* Top Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Top Metric Cards (Stitch HUD 2x2 Grid) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {/* MRR Card */}
-        <Card className="bg-[#111118] border-zinc-800/60 hover:border-emerald-500/30 transition-colors">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">MRR Estimado</CardDescription>
-            <CardTitle className="text-2xl font-bold text-white">
+        <Card className="bg-[#0c101c]/90 border-white/10 hover:border-emerald-500/40 border-l-4 border-l-emerald-500 transition-colors shadow-lg">
+          <CardHeader className="pb-1 p-3.5">
+            <CardDescription className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">MRR Estimado</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-white">
               {formatCurrency(totalMRR)}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-1.5 text-emerald-400 text-sm">
-              <TrendingUp className="size-4" />
-              <span>+12.5% vs mês anterior</span>
+          <CardContent className="p-3.5 pt-0">
+            <div className="flex items-center gap-1 text-emerald-400 text-xs font-mono">
+              <TrendingUp className="size-3.5" />
+              <span>+12.5% vs anterior</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Economia OTAs Card */}
+        <Card className="bg-[#0c101c]/90 border-white/10 hover:border-emerald-500/40 transition-colors shadow-lg">
+          <CardHeader className="pb-1 p-3.5">
+            <CardDescription className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">Economia OTAs</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-emerald-400">
+              R$ 3.850,00
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3.5 pt-0">
+            <div className="flex items-center gap-1 text-zinc-300 text-[11px] font-mono">
+              <ShieldCheck className="size-3.5 text-emerald-400" />
+              <span>18% salvos no PIX</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Conversion Rate Card */}
-        <Card className="bg-[#111118] border-zinc-800/60 hover:border-emerald-500/30 transition-colors">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Taxa de Conversão</CardDescription>
-            <CardTitle className="text-2xl font-bold text-white">{conversionRate}%</CardTitle>
+        <Card className="bg-[#0c101c]/90 border-white/10 hover:border-emerald-500/40 transition-colors shadow-lg">
+          <CardHeader className="pb-1 p-3.5">
+            <CardDescription className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">Conversão IA</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-white">{conversionRate}%</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-1.5 text-emerald-400 text-sm">
-              <ArrowUpRight className="size-4" />
+          <CardContent className="p-3.5 pt-0">
+            <div className="flex items-center gap-1 text-emerald-400 text-xs font-mono">
+              <ArrowUpRight className="size-3.5" />
+              <span>Fechado via Zélla</span>
+            </div>
+          </CardContent>
+        </Card>
               <span>Contatos → Reservas</span>
             </div>
           </CardContent>
