@@ -1,0 +1,39 @@
+name: CI - Suite 5: AI Prompt Evaluation & LGPD PII Scrubbing Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/ai/**'
+      - 'src/lib/cerebro/**'
+      - 'tests/ai-prompt-eval-lgpd.test.ts'
+      - '.github/workflows/ci-ai-eval-lgpd.yml'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  ai-eval-lgpd-test:
+    name: Run Cérebro Zélla Eval & PII Scrubbing Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Execute AI & LGPD Vitest Suite
+        run: npx vitest run tests/ai-prompt-eval-lgpd.test.ts
