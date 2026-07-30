@@ -191,6 +191,10 @@ function shouldSkipLog(pathname: string): boolean {
 }
 
 function isProtectedPage(pathname: string): boolean {
+  // Allow public preview for /ddc/pousada and /ddc/airbnb client dashboards
+  if (pathname === '/ddc/pousada' || pathname === '/ddc/airbnb') {
+    return false;
+  }
   return PROTECTED_PAGE_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
 }
 
