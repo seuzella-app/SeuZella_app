@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { Key, MessageCircle } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -475,10 +477,6 @@ export default function DDCPousadaContent() {
             </div>
           </CardContent>
         </Card>
-              <span>Contatos → Reservas</span>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Active Guests Card */}
         <Card className="bg-[#111118] border-zinc-800/60 hover:border-emerald-500/30 transition-colors">
@@ -728,9 +726,46 @@ export default function DDCPousadaContent() {
                             <span>{guest.checkIn} → {guest.checkOut}</span>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between pt-1 border-t border-zinc-800/50">
+                        <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
                           <span className="text-sm font-semibold text-emerald-400">{formatCurrency(guest.value)}</span>
-                          <ChevronRight className="size-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              title="Gerar Senha Fechadura Smart"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toast.success(`Senha da Fechadura gerada para ${guest.name}: 849201`, {
+                                  description: 'Enviada via WhatsApp com instrução de check-in.',
+                                });
+                              }}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all active:scale-90"
+                            >
+                              <Key className="size-3.5" />
+                            </button>
+                            <button
+                              title="Atendimento ao Vivo WhatsApp"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toast.info(`Abrindo conversa ao vivo com ${guest.name}...`, {
+                                  description: 'Atendimento assumido pelo anfitrião.',
+                                });
+                              }}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-all active:scale-90"
+                            >
+                              <MessageCircle className="size-3.5" />
+                            </button>
+                            <button
+                              title="Gerar Link PIX Sem Comissão OTA"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toast.success(`Link PIX Direto gerado para ${guest.name}!`, {
+                                  description: `seuzella.com/p/${guest.id} (Economia de R$ ${(guest.value * 0.18).toFixed(2)})`,
+                                });
+                              }}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-all active:scale-90"
+                            >
+                              <CreditCard className="size-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>

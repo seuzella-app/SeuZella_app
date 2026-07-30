@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DDC Pousadas - SeuZélla.com HUD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "glow-emerald": "rgba(16, 185, 129, 0.35)",
+                    "surface-container-highest": "#33343c",
+                    "on-surface-variant": "#bbcabf",
+                    "glass-fill": "rgba(255, 255, 255, 0.05)",
+                    "primary-fixed-dim": "#4edea3",
+                    "on-background": "#e3e1ec",
+                    "on-tertiary-container": "#711419",
+                    "background": "#12131a",
+                    "secondary-container": "#464954",
+                    "on-secondary-fixed": "#181b25",
+                    "surface-container-low": "#1a1b22",
+                    "error-container": "#93000a",
+                    "on-primary": "#003824",
+                    "space-void": "#060913",
+                    "on-tertiary-fixed": "#410005",
+                    "secondary-fixed": "#e0e2ef",
+                    "on-primary-container": "#00422b",
+                    "surface-container": "#1e1f26",
+                    "on-surface": "#e3e1ec",
+                    "error": "#ffb4ab",
+                    "surface": "#12131a",
+                    "surface-container-high": "#292931",
+                    "on-secondary-fixed-variant": "#444651",
+                    "tertiary-fixed-dim": "#ffb3af",
+                    "secondary-fixed-dim": "#c4c6d3",
+                    "inverse-surface": "#e3e1ec",
+                    "surface-variant": "#33343c",
+                    "primary": "#10b981",
+                    "on-primary-fixed": "#002113",
+                    "surface-tint": "#10b981",
+                    "secondary": "#c4c6d3",
+                    "inverse-on-surface": "#2f3038",
+                    "surface-dim": "#12131a",
+                    "primary-fixed": "#6ffbbe",
+                    "tertiary-container": "#fc7c78",
+                    "inverse-primary": "#006c49",
+                    "tertiary-fixed": "#ffdad7",
+                    "outline-variant": "#3c4a42",
+                    "on-tertiary-fixed-variant": "#842225",
+                    "surface-elevated": "#0D1117",
+                    "glass-border": "rgba(255, 255, 255, 0.10)",
+                    "on-primary-fixed-variant": "#005236",
+                    "on-error": "#690005",
+                    "surface-container-lowest": "#0d0e15",
+                    "tertiary": "#ffb3af",
+                    "on-tertiary": "#650911",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary": "#2d303a",
+                    "primary-container": "#10b981",
+                    "outline": "#86948a",
+                    "surface-bright": "#383941",
+                    "on-secondary-container": "#b6b8c5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "margin-desktop": "40px",
+                    "margin-mobile": "20px",
+                    "gutter": "16px",
+                    "container-max": "1200px"
+            },
+            "fontFamily": {
+                    "display-metrics": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "data-mono": ["Inter"],
+                    "headline-lg-mobile": ["Inter"]
+            },
+            "fontSize": {
+                    "display-metrics": ["42px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg": ["30px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "data-mono": ["13px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "30px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #060913;
+            color: #e3e1ec;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-border-emerald {
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .5; transform: scale(1.2); }
+        }
+        .scroll-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden pb-32">
+<!-- TOP APP BAR -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-xl border-b border-glass-border flex items-center justify-between px-margin-mobile h-20 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<img alt="Logo" class="h-6 w-auto brightness-0 invert" src="https://lh3.googleusercontent.com/aida/AP1WRLt5Mt7Z6w2R_J9v_lATizNwK0tQBnhbDTpevNy600GYrQh8CpNpC2LsDHC6jLDDBdxK_4InPWXwX-ioIPXwYhy3nW6hGSf-AdsVm4u3IEeiwkiz0z4S4wkhpiyHIerY6i1pm7TFvhsBojY4I3V6RWInAvNooyIa4iUwWkf0X4XFudM8JCpzhL17VORBYQX_EW79Yt_SBgone4PQpwsjW1BC86PJDwknNgwUkyp40631av2Wr-H_9u5Xbzfu"/>
+<span class="material-symbols-outlined text-primary text-[18px] fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="text-[10px] font-label-caps text-secondary tracking-widest uppercase">POUSADA SERENITY PARATY</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative active:scale-95 transition-transform p-2">
+<span class="material-symbols-outlined text-primary text-[28px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-error rounded-full shadow-[0_0_8px_#ffb4ab]"></span>
+</button>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="mt-24 px-margin-mobile flex flex-col gap-6">
+<!-- AI TICKER PILL -->
+<div class="glass-card rounded-full py-2 px-4 flex items-center justify-center glow-border-emerald bg-primary/5">
+<p class="text-[11px] font-data-mono text-on-surface whitespace-nowrap overflow-hidden">
+<span class="text-primary mr-1">🟢</span> ZÉLLA ATIVO • Resposta em 0.6s • 80% Economia WhatsApp
+            </p>
+</div>
+<!-- KPI GRID -->
+<section class="grid grid-cols-2 gap-3">
+<div class="glass-card rounded-2xl p-4 flex flex-col gap-1 border-l-4 border-l-primary">
+<span class="text-[10px] font-label-caps text-secondary uppercase tracking-wider">MRR Estimado</span>
+<div class="text-headline-md font-display-metrics text-on-surface">R$ 10.500,00</div>
+<span class="text-[11px] font-data-mono text-primary">+12.5% vs last month</span>
+</div>
+<div class="glass-card rounded-2xl p-4 flex flex-col gap-1">
+<span class="text-[10px] font-label-caps text-secondary uppercase tracking-wider">Economia OTAs</span>
+<div class="text-headline-md font-display-metrics text-on-surface">R$ 3.850,00</div>
+<span class="text-[11px] font-data-mono text-secondary-fixed text-[10px] leading-tight">18% saved in Booking.com via PIX</span>
+</div>
+<div class="glass-card rounded-2xl p-4 flex flex-col gap-1">
+<span class="text-[10px] font-label-caps text-secondary uppercase tracking-wider">Taxa de Conversão IA</span>
+<div class="text-headline-md font-display-metrics text-on-surface">34.7%</div>
+<span class="text-[11px] font-data-mono text-primary">Closed by Zélla</span>
+</div>
+<div class="glass-card rounded-2xl p-4 flex flex-col gap-1">
+<span class="text-[10px] font-label-caps text-secondary uppercase tracking-wider">Hóspedes Ativos</span>
+<div class="text-headline-md font-display-metrics text-on-surface">12 Hóspedes</div>
+<span class="text-[11px] font-data-mono text-secondary opacity-60">Today</span>
+</div>
+</section>
+<!-- WHATSAPP SIMULATOR -->
+<section class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<h3 class="text-label-caps font-label-caps text-secondary tracking-widest uppercase">Live AI Assistant</h3>
+<span class="text-[10px] font-data-mono text-primary bg-primary/10 px-2 py-0.5 rounded">WEBHOOK OK</span>
+</div>
+<div class="glass-card rounded-2xl overflow-hidden border border-white/5 shadow-xl">
+<div class="bg-white/5 px-4 py-3 border-b border-white/10 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-cover bg-center border border-white/20" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBXqPSKQ6Od225QM7UkSg02gxQGjlxB1RwoNaPrPB7zF74PJ69MycX-ygdxCmDXW8zjF21fWHB5K5zBKr0pBm8fvKAGWxiLpKRb8iFcI73fSF465XiV4UkQnuJUrzy4YTqJcmYPdQ5MeJsHiolJ-aAkzvO-zqEOBmKm2kIKe3EKqETknNr9MG-1slfjRKU7JMR9vN-qTK0BGx7x4klo0v77bOonlIP4PEexDTAQ2yOyGFSDS_3EgutJYQ')"></div>
+<div>
+<p class="text-[13px] font-bold">Maria Silva</p>
+<p class="text-[10px] text-primary">Chatting now...</p>
+</div>
+</div>
+<div class="bg-primary/20 px-2 py-1 rounded text-[10px] font-data-mono text-primary border border-primary/30">
+                        CONFIDENCE 0.96 (High)
+                    </div>
+</div>
+<div class="p-4 space-y-4">
+<div class="flex flex-col gap-1 items-start max-w-[85%]">
+<div class="bg-white/10 rounded-2xl rounded-tl-none p-3 text-[13px] text-secondary">
+                            Olá! Gostaria de saber se é possível fazer check-in antecipado amanhã às 10h?
+                        </div>
+<span class="text-[9px] text-white/30 ml-1">14:02</span>
+</div>
+<div class="flex flex-col gap-1 items-end ml-auto max-w-[85%]">
+<div class="bg-primary/20 border border-primary/20 rounded-2xl rounded-tr-none p-3 text-[13px] text-on-surface">
+                            Olá Maria! Verifiquei aqui e a Suíte Master 104 estará disponível. Podemos liberar seu check-in às 10h sem custo adicional. Deseja confirmar?
+                        </div>
+<span class="text-[9px] text-primary/60 mr-1">Zélla Assistant • 14:02</span>
+</div>
+</div>
+</div>
+<!-- Funnel Labels Horizontal -->
+<div class="flex gap-2 overflow-x-auto scroll-hide pb-2 px-1">
+<div class="flex-shrink-0 bg-surface-container rounded-xl p-3 border border-glass-border flex flex-col gap-1 min-w-[100px]">
+<span class="text-[8px] font-label-caps text-secondary uppercase opacity-60">Atendimento IA</span>
+<span class="text-xl font-display-metrics">03</span>
+</div>
+<div class="flex-shrink-0 bg-surface-container rounded-xl p-3 border border-glass-border flex flex-col gap-1 min-w-[100px]">
+<span class="text-[8px] font-label-caps text-secondary uppercase opacity-60">Aguardando PIX</span>
+<span class="text-xl font-display-metrics text-tertiary">02</span>
+</div>
+<div class="flex-shrink-0 bg-surface-container rounded-xl p-3 border border-glass-border flex flex-col gap-1 min-w-[100px]">
+<span class="text-[8px] font-label-caps text-secondary uppercase opacity-60">Confirmado</span>
+<span class="text-xl font-display-metrics text-primary">08</span>
+</div>
+<div class="flex-shrink-0 bg-surface-container rounded-xl p-3 border border-glass-border flex flex-col gap-1 min-w-[100px]">
+<span class="text-[8px] font-label-caps text-secondary uppercase opacity-60">Check-in Hoje</span>
+<span class="text-xl font-display-metrics text-primary-fixed">02</span>
+</div>
+</div>
+</section>
+<!-- INTEGRATIONS & ACCESS -->
+<section class="flex flex-col gap-4">
+<h3 class="text-label-caps font-label-caps text-secondary tracking-widest uppercase px-1">System Sync &amp; Access</h3>
+<div class="glass-card rounded-2xl p-4 space-y-3">
+<div class="flex items-center justify-between border-b border-white/5 pb-2">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-white/40 text-sm">sync</span>
+<span class="text-[13px] font-medium text-secondary">Booking.com iCal</span>
+</div>
+<span class="text-[11px] font-data-mono text-primary">Synced 1m ago</span>
+</div>
+<div class="flex items-center justify-between border-b border-white/5 pb-2">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-white/40 text-sm">sync</span>
+<span class="text-[13px] font-medium text-secondary">Airbnb iCal</span>
+</div>
+<span class="text-[11px] font-data-mono text-secondary/60">Synced 3m ago</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<span class="text-[13px] font-medium text-secondary">PIX Direct Gateway</span>
+</div>
+<span class="text-[11px] font-data-mono text-primary">Active</span>
+</div>
+</div>
+<!-- Smart Lock Card -->
+<div class="glass-card rounded-2xl p-5 bg-gradient-to-br from-primary/5 to-transparent border-t border-t-primary/20">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-[10px] font-label-caps text-primary mb-1 uppercase tracking-[0.2em]">Key Management</p>
+<h4 class="text-headline-md font-display-metrics">Suíte Master 104</h4>
+</div>
+<div class="p-2 glass-card rounded-lg">
+<span class="material-symbols-outlined text-primary">vpn_key</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="w-24 h-24 bg-white p-2 rounded-xl flex items-center justify-center">
+<img alt="QR Access" class="w-full h-full object-contain mix-blend-multiply opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArg8O-AEUOh_YzYpw6_FcTPa4tTXlVZasJ7twN_xKPCT5w3H9r504JXyhM6KkYNiM8XmsZhDH1fAe2yaLF5jN0RsIj9_ztqr9GQccAlrbYfKZFDKiPUr9a9RFc46aIuef5vk3BDuorDlg0U_I9D10iD6ZHkT_yodjUrWkjmCc1FvjRkzliahVGj0L45GtddwDPMmIxkS879y8q1mV6yVIGpYlhd-MwSZUo5eiYMghDFyL3Dg1JRpVd5g"/>
+</div>
+<div class="flex-1 flex flex-col gap-2">
+<div class="bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center">
+<span class="text-[10px] font-label-caps text-secondary uppercase">PIN</span>
+<span class="text-xl font-data-mono text-primary tracking-[0.2em]">4821</span>
+</div>
+<button class="w-full bg-primary text-space-void font-bold py-2 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-[0_4px_12px_rgba(16,185,129,0.3)]">
+                            Compartilhar Link
+                        </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- 1-THUMB BOTTOM NAVIGATION -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-[100]">
+<nav class="bg-[#060913]/90 backdrop-blur-2xl border border-glass-border rounded-full flex justify-between items-center px-6 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+<button class="flex flex-col items-center justify-center text-primary filter drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]">
+<span class="material-symbols-outlined text-[24px]">home</span>
+<span class="text-[8px] font-label-caps mt-1">Início</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">chat_bubble</span>
+<span class="text-[8px] font-label-caps mt-1">Conversas</span>
+</button>
+<!-- AI KILL-SWITCH -->
+<div class="relative -top-8">
+<button class="w-16 h-16 rounded-full bg-space-void border-[3px] border-primary shadow-[0_0_20px_rgba(16,185,129,0.5)] flex flex-col items-center justify-center active:scale-90 transition-transform group" id="killSwitch">
+<div class="absolute inset-0 bg-primary/10 rounded-full pulse-dot"></div>
+<span class="material-symbols-outlined text-primary text-[28px] relative z-10" style="font-variation-settings: 'FILL' 1;">power_settings_new</span>
+<span class="text-[8px] font-black text-primary uppercase relative z-10" id="iaStatusLabel">IA ON</span>
+</button>
+</div>
+<button class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">calendar_today</span>
+<span class="text-[8px] font-label-caps mt-1">Calendário</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="text-[8px] font-label-caps mt-1">Ajustes</span>
+</button>
+</nav>
+</div>
+<script>
+        const killSwitch = document.getElementById('killSwitch');
+        const iaStatusLabel = document.getElementById('iaStatusLabel');
+        let iaState = true;
+
+        killSwitch.addEventListener('click', () => {
+            iaState = !iaState;
+            const icon = killSwitch.querySelector('.material-symbols-outlined');
+            const pulse = killSwitch.querySelector('.pulse-dot');
+
+            if(iaState) {
+                killSwitch.classList.remove('border-error');
+                killSwitch.classList.add('border-primary');
+                killSwitch.style.boxShadow = '0 0 20px rgba(16,185,129,0.5)';
+                icon.style.color = '#10b981';
+                iaStatusLabel.innerText = 'IA ON';
+                iaStatusLabel.style.color = '#10b981';
+                pulse.classList.add('bg-primary/10');
+                pulse.classList.remove('bg-error/10');
+            } else {
+                killSwitch.classList.remove('border-primary');
+                killSwitch.classList.add('border-error');
+                killSwitch.style.boxShadow = '0 0 20px rgba(255,180,171,0.5)';
+                icon.style.color = '#ffb4ab';
+                iaStatusLabel.innerText = 'OFF';
+                iaStatusLabel.style.color = '#ffb4ab';
+                pulse.classList.remove('bg-primary/10');
+                pulse.classList.add('bg-error/10');
+            }
+        });
+
+        // Atmospheric effect
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            document.body.style.backgroundImage = `radial-gradient(circle at ${x * 100}% ${y * 100}%, rgba(16, 185, 129, 0.04) 0%, transparent 60%)`;
+        });
+    </script>
+</body></html>

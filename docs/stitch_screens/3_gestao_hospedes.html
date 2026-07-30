@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Celestial Commander | Guests &amp; Reservations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-emerald {
+            box-shadow: 0 0 12px rgba(78, 222, 163, 0.35);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .5; transform: scale(1.2); }
+        }
+        body {
+            background-color: #060913;
+            color: #e3e1ec;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-surface": "#e3e1ec",
+                      "on-surface-variant": "#bbcabf",
+                      "on-primary-fixed": "#002113",
+                      "tertiary-fixed-dim": "#ffb3af",
+                      "tertiary-container": "#fc7c78",
+                      "primary-fixed": "#6ffbbe",
+                      "error-container": "#93000a",
+                      "primary": "#4edea3",
+                      "on-primary": "#003824",
+                      "secondary": "#c4c6d3",
+                      "surface-elevated": "#0D1117",
+                      "outline-variant": "#3c4a42",
+                      "on-error": "#690005",
+                      "background": "#12131a",
+                      "space-void": "#060913",
+                      "on-tertiary": "#650911",
+                      "glow-emerald": "rgba(16, 185, 129, 0.35)",
+                      "glass-fill": "rgba(255, 255, 255, 0.05)",
+                      "inverse-on-surface": "#2f3038",
+                      "surface-container-high": "#292931",
+                      "surface-container-highest": "#33343c",
+                      "tertiary-fixed": "#ffdad7",
+                      "surface-container": "#1e1f26",
+                      "on-secondary-fixed-variant": "#444651",
+                      "on-primary-container": "#00422b",
+                      "secondary-container": "#464954",
+                      "primary-container": "#10b981",
+                      "outline": "#86948a",
+                      "surface-tint": "#4edea3",
+                      "secondary-fixed-dim": "#c4c6d3",
+                      "on-error-container": "#ffdad6",
+                      "glass-border": "rgba(255, 255, 255, 0.10)",
+                      "error": "#ffb4ab",
+                      "surface-dim": "#12131a",
+                      "secondary-fixed": "#e0e2ef",
+                      "on-secondary-fixed": "#181b25",
+                      "on-primary-fixed-variant": "#005236",
+                      "surface-bright": "#383941",
+                      "surface-container-lowest": "#0d0e15",
+                      "on-tertiary-fixed": "#410005",
+                      "on-secondary-container": "#b6b8c5",
+                      "on-tertiary-fixed-variant": "#842225",
+                      "primary-fixed-dim": "#4edea3",
+                      "on-tertiary-container": "#711419",
+                      "on-secondary": "#2d303a",
+                      "surface": "#12131a",
+                      "surface-container-low": "#1a1b22",
+                      "on-background": "#e3e1ec",
+                      "tertiary": "#ffb3af",
+                      "on-surface": "#e3e1ec",
+                      "inverse-primary": "#006c49",
+                      "surface-variant": "#33343c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "40px",
+                      "margin-mobile": "20px",
+                      "unit": "4px",
+                      "gutter": "16px",
+                      "container-max": "1200px"
+              },
+              "fontFamily": {
+                      "label-caps": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "data-mono": ["Inter"],
+                      "display-metrics": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"]
+              },
+              "fontSize": {
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "30px", "fontWeight": "700"}],
+                      "headline-lg": ["30px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "data-mono": ["13px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "display-metrics": ["42px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-primary selection:text-on-primary">
+<!-- Background Layer -->
+
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-xl border-b border-glass-border flex justify-between items-center px-margin-mobile h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-headline-md">hub</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary drop-shadow-[0_0_8px_rgba(78,222,163,0.5)] tracking-wider">CELESTIAL COMMANDER</h1>
+</div>
+<button class="active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary text-headline-md">monitoring</span>
+</button>
+</header>
+<main class="pt-20 pb-32 px-margin-mobile min-h-screen">
+<!-- Search & Filters -->
+<section class="mb-6 space-y-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full h-12 pl-12 pr-4 bg-glass-fill border-b border-white/20 text-on-surface focus:outline-none focus:border-primary transition-all duration-300 placeholder:text-on-surface-variant/50 font-body-md text-body-md rounded-t-lg" placeholder="Search guests or room numbers..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+<button class="px-4 py-1.5 rounded-full bg-primary text-on-primary font-label-caps text-label-caps whitespace-nowrap glow-emerald">ALL GUESTS</button>
+<button class="px-4 py-1.5 rounded-full glass-card text-on-surface-variant font-label-caps text-label-caps whitespace-nowrap">ARRIVING</button>
+<button class="px-4 py-1.5 rounded-full glass-card text-on-surface-variant font-label-caps text-label-caps whitespace-nowrap">ACTIVE</button>
+<button class="px-4 py-1.5 rounded-full glass-card text-on-surface-variant font-label-caps text-label-caps whitespace-nowrap">DEPARTING</button>
+</div>
+</section>
+<!-- Guest List -->
+<section class="space-y-4">
+<!-- Guest Card 1 -->
+<div class="glass-card rounded-xl p-4 flex flex-col gap-4 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-1 h-full bg-primary opacity-50"></div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Maria Silva</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-caps text-label-caps text-primary bg-primary/10 px-2 py-0.5 rounded">ROOM 104</span>
+<span class="flex items-center gap-1 font-data-mono text-data-mono text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-primary status-pulse"></span>
+                                Check-in Today
+                            </span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-primary/20 text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">vpn_key</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-primary/20 text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+<div>
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">IA Status</p>
+<p class="font-body-md text-body-md text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+                            Confirmed via WhatsApp
+                        </p>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Payment</p>
+<p class="font-body-md text-body-md text-on-surface">PIX Paid</p>
+</div>
+</div>
+</div>
+<!-- Guest Card 2 -->
+<div class="glass-card rounded-xl p-4 flex flex-col gap-4 relative overflow-hidden group">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">João Pereira</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-caps text-label-caps text-primary bg-primary/10 px-2 py-0.5 rounded">ROOM 102</span>
+<span class="flex items-center gap-1 font-data-mono text-data-mono text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-on-surface-variant"></span>
+                                Active
+                            </span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-primary/20 text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">vpn_key</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-primary/20 text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+<div>
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">IA Status</p>
+<p class="font-body-md text-body-md text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] animate-spin-slow">sync</span>
+                            In Progress
+                        </p>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Payment</p>
+<p class="font-body-md text-body-md text-tertiary">Pending PIX</p>
+</div>
+</div>
+</div>
+<!-- Guest Card 3 -->
+<div class="glass-card rounded-xl p-4 flex flex-col gap-4 relative overflow-hidden group">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Ana Costa</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-caps text-label-caps text-primary bg-primary/10 px-2 py-0.5 rounded">ROOM 105</span>
+<span class="flex items-center gap-1 font-data-mono text-data-mono text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+                                Check-out Tomorrow
+                            </span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-primary/20 text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">vpn_key</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full glass-card hover:bg-primary/20 text-primary transition-all active:scale-90">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-3 pt-3 border-t border-white/5">
+<div>
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">IA Status</p>
+<p class="font-body-md text-body-md text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">pending_actions</span>
+                            Requested Late Check-out
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Summary Footer Card -->
+<section class="mt-8">
+<div class="glass-card rounded-2xl p-6 border-primary/20 relative overflow-hidden">
+<div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 blur-[60px]"></div>
+<div class="flex justify-between items-end">
+<div class="space-y-4">
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1">TOTAL OCCUPANCY</p>
+<h2 class="font-display-metrics text-display-metrics text-primary leading-none">82%</h2>
+</div>
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<span class="font-body-md text-body-md">Next Check-in: <span class="font-bold">14:00</span></span>
+</div>
+</div>
+<div class="w-16 h-16 flex items-center justify-center rounded-full border-2 border-primary/20">
+<span class="material-symbols-outlined text-primary scale-150">trending_up</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full bg-glass-fill backdrop-blur-2xl border-t border-glass-border flex justify-around items-center px-4 pb-4 pt-2 z-50 rounded-t-xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-1 drop-shadow-[0_0_12px_rgba(78,222,163,0.35)] active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">bolt</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">sync</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">badge</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for glass cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.style.transform = 'scale(0.98)';
+                card.style.transition = 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            });
+            card.addEventListener('touchend', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+
+        // Search input glow effect
+        const searchInput = document.querySelector('input');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('glow-emerald');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('glow-emerald');
+        });
+    </script>
+</body></html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEXUS COMMAND | Calendar &amp; iCal Sync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #060913;
+            color: #e3e1ec;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glow-emerald-text {
+            text-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        }
+
+        .drop-shadow-glow-emerald {
+            filter: drop-shadow(0 0 8px rgba(78, 222, 163, 0.5));
+        }
+
+        @keyframes pulse-emerald {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .animate-pulse-emerald {
+            animation: pulse-emerald 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(78, 222, 163, 0.3);
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#c4c6d3",
+                      "on-secondary-container": "#b6b8c5",
+                      "tertiary": "#ffb3af",
+                      "on-tertiary": "#650911",
+                      "surface-container": "#1e1f26",
+                      "on-tertiary-fixed": "#410005",
+                      "glass-border": "rgba(255, 255, 255, 0.10)",
+                      "error-container": "#93000a",
+                      "surface-variant": "#33343c",
+                      "outline-variant": "#3c4a42",
+                      "primary-fixed-dim": "#4edea3",
+                      "on-primary-fixed-variant": "#005236",
+                      "error": "#ffb4ab",
+                      "glow-emerald": "rgba(16, 185, 129, 0.35)",
+                      "on-tertiary-container": "#711419",
+                      "tertiary-container": "#fc7c78",
+                      "surface-container-high": "#292931",
+                      "surface-bright": "#383941",
+                      "inverse-surface": "#e3e1ec",
+                      "surface-tint": "#4edea3",
+                      "glass-fill": "rgba(255, 255, 255, 0.05)",
+                      "inverse-on-surface": "#2f3038",
+                      "on-primary": "#003824",
+                      "on-surface-variant": "#bbcabf",
+                      "on-background": "#e3e1ec",
+                      "primary": "#4edea3",
+                      "on-surface": "#e3e1ec",
+                      "on-primary-container": "#00422b",
+                      "surface-container-low": "#1a1b22",
+                      "primary-fixed": "#6ffbbe",
+                      "secondary": "#c4c6d3",
+                      "on-secondary": "#2d303a",
+                      "on-secondary-fixed": "#181b25",
+                      "outline": "#86948a",
+                      "on-primary-fixed": "#002113",
+                      "secondary-container": "#464954",
+                      "secondary-fixed": "#e0e2ef",
+                      "tertiary-fixed": "#ffdad7",
+                      "tertiary-fixed-dim": "#ffb3af",
+                      "primary-container": "#10b981",
+                      "on-secondary-fixed-variant": "#444651",
+                      "surface-container-highest": "#33343c",
+                      "surface": "#12131a",
+                      "on-tertiary-fixed-variant": "#842225",
+                      "background": "#12131a",
+                      "surface-container-lowest": "#0d0e15",
+                      "surface-elevated": "#0D1117",
+                      "space-void": "#060913",
+                      "on-error-container": "#ffdad6",
+                      "inverse-primary": "#006c49",
+                      "on-error": "#690005",
+                      "surface-dim": "#12131a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "margin-mobile": "20px",
+                      "margin-desktop": "40px",
+                      "container-max": "1200px",
+                      "unit": "4px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Inter"],
+                      "display-metrics": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "data-mono": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg": ["30px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "display-metrics": ["42px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                      "data-mono": ["13px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "30px", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-space-void">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-xl border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl drop-shadow-glow-emerald">hub</span>
+<h1 class="font-headline-md text-headline-md-mobile font-bold tracking-tighter text-primary drop-shadow-glow-emerald">NEXUS COMMAND</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex bg-white/5 px-3 py-1 rounded-full border border-white/10 items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-primary uppercase">System Active</span>
+</div>
+<span class="material-symbols-outlined text-secondary hover:text-primary transition-colors cursor-pointer">sensors</span>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-24 pb-28 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto space-y-8">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+<div class="space-y-1">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Central de Calendário</h2>
+<p class="font-body-md text-body-md text-secondary-fixed-dim">Gestão de ocupação e sincronização de canais em tempo real.</p>
+</div>
+<div class="flex gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-primary text-on-primary rounded-xl font-headline-md text-headline-md hover:brightness-110 transition-all active:scale-95 shadow-[0_0_20px_rgba(78,222,163,0.3)]" id="sync-button" onclick="syncAll()">
+<span class="material-symbols-outlined text-[20px]" id="sync-icon">sync</span>
+<span>Forçar Sincronização</span>
+</button>
+</div>
+</section>
+<!-- Status Grid (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<!-- Channel Status: Airbnb -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="flex justify-between items-start z-10">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Airbnb iCal</span>
+<span class="material-symbols-outlined text-primary drop-shadow-glow-emerald">check_circle</span>
+</div>
+<div class="z-10">
+<div class="text-display-metrics font-display-metrics text-primary leading-none">98<span class="text-body-lg">%</span></div>
+<div class="text-label-caps font-label-caps text-secondary-fixed-dim">Sincronizado há 2m</div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[80px]">travel_explore</span>
+</div>
+</div>
+<!-- Channel Status: Booking -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="flex justify-between items-start z-10">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Booking.com</span>
+<span class="material-symbols-outlined text-primary drop-shadow-glow-emerald">check_circle</span>
+</div>
+<div class="z-10">
+<div class="text-display-metrics font-display-metrics text-primary leading-none">100<span class="text-body-lg">%</span></div>
+<div class="text-label-caps font-label-caps text-secondary-fixed-dim">Sincronizado há 5m</div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[80px]">apartment</span>
+</div>
+</div>
+<!-- Occupancy Indicator -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between h-32 relative overflow-hidden group border-primary/20">
+<div class="flex justify-between items-start z-10">
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-widest">Ocupação Atual</span>
+<div class="flex gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-emerald"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse-emerald delay-75"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary/20 animate-pulse-emerald delay-150"></span>
+</div>
+</div>
+<div class="z-10">
+<div class="text-display-metrics font-display-metrics text-on-surface leading-none">84<span class="text-body-lg text-primary">%</span></div>
+<div class="text-label-caps font-label-caps text-secondary-fixed-dim">Mês de Outubro</div>
+</div>
+</div>
+<!-- Errors/Alerts -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between h-32 border-error/20 bg-error/5">
+<div class="flex justify-between items-start">
+<span class="font-label-caps text-label-caps text-error uppercase tracking-widest">Conflitos</span>
+<span class="material-symbols-outlined text-error">warning</span>
+</div>
+<div>
+<div class="text-display-metrics font-display-metrics text-error leading-none">0</div>
+<div class="text-label-caps font-label-caps text-secondary-fixed-dim">Nenhum erro de sync</div>
+</div>
+</div>
+</section>
+<!-- Main HUD Calendar -->
+<section class="glass-panel rounded-2xl overflow-hidden shadow-2xl">
+<!-- Calendar Header -->
+<div class="p-6 border-b border-glass-border flex flex-wrap justify-between items-center gap-4 bg-white/[0.02]">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-secondary">chevron_left</span>
+</button>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Outubro 2023</h3>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-secondary">chevron_right</span>
+</button>
+</div>
+<div class="flex items-center gap-2 bg-space-void/50 p-1 rounded-xl border border-white/5">
+<button class="px-4 py-1.5 rounded-lg bg-primary text-on-primary font-label-caps text-label-caps shadow-lg">MÊS</button>
+<button class="px-4 py-1.5 rounded-lg text-secondary-fixed-dim hover:text-primary font-label-caps text-label-caps transition-colors">SEMANA</button>
+<button class="px-4 py-1.5 rounded-lg text-secondary-fixed-dim hover:text-primary font-label-caps text-label-caps transition-colors">LISTA</button>
+</div>
+</div>
+<!-- Calendar Body -->
+<div class="p-2 md:p-4">
+<!-- Day Labels -->
+<div class="calendar-grid mb-2">
+<div class="text-center font-label-caps text-label-caps text-secondary py-2">DOM</div>
+<div class="text-center font-label-caps text-label-caps text-secondary py-2">SEG</div>
+<div class="text-center font-label-caps text-label-caps text-secondary py-2">TER</div>
+<div class="text-center font-label-caps text-label-caps text-secondary py-2">QUA</div>
+<div class="text-center font-label-caps text-label-caps text-secondary py-2">QUI</div>
+<div class="text-center font-label-caps text-label-caps text-secondary py-2">SEX</div>
+<div class="text-center font-label-caps text-label-caps text-secondary py-2">SÁB</div>
+</div>
+<!-- Calendar Cells -->
+<div class="calendar-grid gap-1 md:gap-2">
+<!-- Week 1 -->
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg opacity-40 flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">27</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg opacity-40 flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">28</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg opacity-40 flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">29</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg opacity-40 flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">30</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between border-white/5">
+<span class="font-data-mono text-data-mono text-on-surface">01</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between bg-primary/10 border-primary/30 group">
+<span class="font-data-mono text-data-mono text-primary font-bold">02</span>
+<div class="bg-primary/20 p-1.5 rounded-md border border-primary/40">
+<div class="text-[10px] uppercase font-bold text-primary truncate">Airbnb: Silva</div>
+<div class="w-full bg-white/10 h-1 rounded-full mt-1 overflow-hidden">
+<div class="bg-primary h-full w-full"></div>
+</div>
+</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between bg-primary/10 border-primary/30">
+<span class="font-data-mono text-data-mono text-primary font-bold">03</span>
+<div class="bg-primary/20 p-1.5 rounded-md border border-primary/40">
+<div class="text-[10px] uppercase font-bold text-primary truncate">Airbnb: Silva</div>
+</div>
+</div>
+<!-- Week 2 -->
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between bg-primary/10 border-primary/30">
+<span class="font-data-mono text-data-mono text-primary font-bold">04</span>
+<div class="bg-primary/20 p-1.5 rounded-md border border-primary/40">
+<div class="text-[10px] uppercase font-bold text-primary truncate">Airbnb: Silva</div>
+</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between relative overflow-hidden">
+<span class="font-data-mono text-data-mono">05</span>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-primary/5">
+<span class="material-symbols-outlined text-primary">add_circle</span>
+</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">06</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between bg-secondary-container/20 border-secondary/30">
+<span class="font-data-mono text-data-mono text-secondary-fixed-dim">07</span>
+<div class="bg-white/5 p-1.5 rounded-md border border-white/10">
+<div class="text-[10px] uppercase font-bold text-secondary truncate">Booking: Smith</div>
+</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between bg-secondary-container/20 border-secondary/30">
+<span class="font-data-mono text-data-mono text-secondary-fixed-dim">08</span>
+<div class="bg-white/5 p-1.5 rounded-md border border-white/10">
+<div class="text-[10px] uppercase font-bold text-secondary truncate">Booking: Smith</div>
+</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between bg-secondary-container/20 border-secondary/30">
+<span class="font-data-mono text-data-mono text-secondary-fixed-dim">09</span>
+<div class="bg-white/5 p-1.5 rounded-md border border-white/10">
+<div class="text-[10px] uppercase font-bold text-secondary truncate">Booking: Smith</div>
+</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">10</span>
+</div>
+<!-- Week 3 (Current Date Highlight) -->
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">11</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between ring-1 ring-primary ring-inset bg-white/[0.03]">
+<span class="font-data-mono text-data-mono text-primary font-bold flex items-center gap-1">12 <span class="w-1.5 h-1.5 rounded-full bg-primary"></span></span>
+<div class="text-[10px] uppercase text-secondary-fixed-dim">Hoje</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">13</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">14</span>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between bg-primary/10 border-primary/30">
+<span class="font-data-mono text-data-mono text-primary font-bold">15</span>
+<div class="bg-primary/20 p-1.5 rounded-md border border-primary/40">
+<div class="text-[10px] uppercase font-bold text-primary truncate">Nexus Direct: G.</div>
+</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between bg-primary/10 border-primary/30">
+<span class="font-data-mono text-data-mono text-primary font-bold">16</span>
+<div class="bg-primary/20 p-1.5 rounded-md border border-primary/40">
+<div class="text-[10px] uppercase font-bold text-primary truncate">Nexus Direct: G.</div>
+</div>
+</div>
+<div class="h-24 md:h-32 p-2 glass-panel rounded-lg flex flex-col justify-between">
+<span class="font-data-mono text-data-mono">17</span>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<div class="p-4 bg-white/[0.02] border-t border-glass-border flex justify-between items-center">
+<div class="flex gap-4">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-label-caps font-label-caps text-secondary-fixed-dim uppercase">Ocupado</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full border border-white/20"></span>
+<span class="text-label-caps font-label-caps text-secondary-fixed-dim uppercase">Livre</span>
+</div>
+</div>
+<div class="text-label-caps font-label-caps text-secondary-fixed-dim">
+                    ICal Health Index: <span class="text-primary font-bold">A+ (Stable)</span>
+</div>
+</div>
+</section>
+<!-- Dynamic Logs / Activity -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="glass-panel p-6 rounded-2xl space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary">terminal</span>
+<h4 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">Logs de Sincronização</h4>
+</div>
+<div class="space-y-3 h-48 overflow-y-auto pr-2 custom-scrollbar">
+<div class="flex items-center justify-between text-data-mono text-data-mono p-2 rounded bg-white/5 border border-white/5">
+<span class="text-primary opacity-80">[14:22:01]</span>
+<span class="flex-1 px-3 truncate">AIRBNB API PULL SUCCESSFUL</span>
+<span class="text-secondary opacity-50">#2948</span>
+</div>
+<div class="flex items-center justify-between text-data-mono text-data-mono p-2 rounded bg-white/5 border border-white/5">
+<span class="text-primary opacity-80">[14:20:15]</span>
+<span class="flex-1 px-3 truncate">BOOKING ICAL REFRESHED</span>
+<span class="text-secondary opacity-50">#2947</span>
+</div>
+<div class="flex items-center justify-between text-data-mono text-data-mono p-2 rounded bg-white/5 border border-white/5">
+<span class="text-primary opacity-80">[14:15:00]</span>
+<span class="flex-1 px-3 truncate">NEXUS GLOBAL DATABASE SYNC</span>
+<span class="text-secondary opacity-50">#2946</span>
+</div>
+<div class="flex items-center justify-between text-data-mono text-data-mono p-2 rounded bg-white/5 border border-white/5">
+<span class="text-primary opacity-80">[13:58:33]</span>
+<span class="flex-1 px-3 truncate">USER AGENT UPDATE: COMMANDER</span>
+<span class="text-secondary opacity-50">#2945</span>
+</div>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-2xl relative overflow-hidden flex flex-col justify-center">
+<div class="z-10 space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<h4 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">Projeção de Ocupação</h4>
+</div>
+<div class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between text-label-caps font-label-caps">
+<span class="text-secondary">Novembro 2023</span>
+<span class="text-primary">62%</span>
+</div>
+<div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[62%]"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-label-caps font-label-caps">
+<span class="text-secondary">Dezembro 2023</span>
+<span class="text-primary">91%</span>
+</div>
+<div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[91%] shadow-[0_0_8px_rgba(78,222,163,0.5)]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Subtle HUD Graphic in background -->
+<div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[120px] rotate-12">monitoring</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full h-20 z-50 bg-glass-fill backdrop-blur-2xl border-t border-glass-border flex justify-around items-center px-4 pb-safe">
+<button class="flex flex-col items-center justify-center text-secondary-fixed-dim opacity-60 hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] mt-1 uppercase font-bold tracking-tighter">Panel</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary-fixed-dim opacity-60 hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] mt-1 uppercase font-bold tracking-tighter">Intel</span>
+</button>
+<div class="relative -mt-10">
+<button class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-on-primary shadow-[0_0_20px_rgba(78,222,163,0.4)] transition-transform active:scale-90 border-4 border-space-void">
+<span class="material-symbols-outlined text-3xl">power_settings_new</span>
+</button>
+</div>
+<button class="flex flex-col items-center justify-center text-primary drop-shadow-glow-emerald scale-110 transition-all duration-200">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px] mt-1 uppercase font-bold tracking-tighter">Ops</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary-fixed-dim opacity-60 hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] mt-1 uppercase font-bold tracking-tighter">System</span>
+</button>
+</nav>
+<script>
+        function syncAll() {
+            const btn = document.getElementById('sync-button');
+            const icon = document.getElementById('sync-icon');
+            
+            btn.classList.add('pointer-events-none', 'opacity-80');
+            icon.classList.add('animate-spin');
+            
+            // Simulating a system sync
+            setTimeout(() => {
+                icon.classList.remove('animate-spin');
+                icon.innerText = 'done_all';
+                btn.classList.add('bg-on-primary-container');
+                
+                setTimeout(() => {
+                    icon.innerText = 'sync';
+                    btn.classList.remove('pointer-events-none', 'opacity-80', 'bg-on-primary-container');
+                }, 2000);
+            }, 3000);
+        }
+
+        // Add visual flair to calendar hover
+        document.querySelectorAll('.calendar-grid > div').forEach(cell => {
+            cell.addEventListener('mouseenter', () => {
+                if (!cell.classList.contains('opacity-40')) {
+                    cell.style.borderColor = 'rgba(78, 222, 163, 0.4)';
+                    cell.style.transform = 'translateY(-2px)';
+                    cell.style.transition = 'all 0.2s ease-out';
+                }
+            });
+            cell.addEventListener('mouseleave', () => {
+                cell.style.borderColor = '';
+                cell.style.transform = '';
+            });
+        });
+    </script>
+</body></html>

@@ -116,7 +116,7 @@ describe('SeuZélla E2E Cascade & Enterprise Security Suite', () => {
         LITE: { monthlyMessages: 1765, maxConcurrent: 3, ical: true, zlab: false, multiProperty: false },
         PRO: { monthlyMessages: 5000, maxConcurrent: 10, ical: true, zlab: true, multiProperty: false },
         MAX: { monthlyMessages: 10000, maxConcurrent: Infinity, ical: true, zlab: true, multiProperty: true },
-        PARCEIRO: { monthlyMessages: 10000, maxConcurrent: Prioritário => true, ical: true, zlab: true, multiProperty: true },
+        PARCEIRO: { monthlyMessages: 10000, maxConcurrent: (_prioritario: any) => true, ical: true, zlab: true, multiProperty: true },
       };
 
       expect(planFeatures.LITE.maxConcurrent).toBe(3);
