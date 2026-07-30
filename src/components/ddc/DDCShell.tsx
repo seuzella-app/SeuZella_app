@@ -326,12 +326,6 @@ export function DDCShell({
 
             {/* Right: User Menu & Quick Links */}
             <div className="flex items-center gap-2">
-              <Link
-                href="/zcc"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-semibold transition-all"
-              >
-                <span>Painel ZCC</span>
-              </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

@@ -20,6 +20,7 @@ import { ZellaSimulator } from '@/components/ddc/ZellaSimulator';
 import { WhatsAppDeviceManager } from '@/components/ddc/WhatsAppDeviceManager';
 import { GuestGuidePanel } from '@/components/ddc/GuestGuidePanel';
 import { BookingSyncPanel } from '@/components/ddc/BookingSyncPanel';
+import { LinkInBioEditor } from '@/components/linkinbio/LinkInBioEditor';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,7 +88,7 @@ import {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'guia' | 'integracoes' | 'config';
+type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config';
 
 interface GuestCardData {
   id: string;
@@ -272,6 +273,7 @@ const pousadaNavItems: NavItem[] = [
   { id: 'cerebro', label: 'Cérebro da Pousada', icon: <Brain className="size-4" /> },
   { id: 'simulador', label: 'Simulador Zélla', icon: <MessageSquare className="size-4" /> },
   { id: 'whatsapp', label: 'Connection Center', icon: <Smartphone className="size-4" /> },
+  { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
   { id: 'guia', label: 'Guia Digital', icon: <QrCode className="size-4" /> },
   { id: 'integracoes', label: 'Integrações', icon: <Globe className="size-4" /> },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
@@ -1091,6 +1093,11 @@ export default function DDCPousadaContent() {
         {activeTab === 'whatsapp' && (
           <div key="whatsapp">
             <WhatsAppDeviceManager niche="pousada" propertyName={scannedData.propertyName} />
+          </div>
+        )}
+        {activeTab === 'linkinbio' && (
+          <div key="linkinbio">
+            <LinkInBioEditor initialPropertyName={scannedData.propertyName} niche="pousada" />
           </div>
         )}
         {activeTab === 'guia' && (

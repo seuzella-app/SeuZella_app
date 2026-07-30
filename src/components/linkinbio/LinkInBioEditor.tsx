@@ -53,18 +53,28 @@ const EMPTY_LINK: Omit<LinkInBioLink, 'id'> = {
   isActive: true,
 };
 
-function createEmptyProfile(): LinkInBioProfile {
+function createEmptyProfile(defaultName: string = '', defaultNiche: string = 'pousada'): LinkInBioProfile {
+  const isAirbnb = defaultNiche === 'airbnb';
+  const name = defaultName || (isAirbnb ? 'Apartamento Copacabana' : 'Pousada Serenity Paraty');
+  const slug = generateSlug(name);
   return {
-    id: 'new',
-    slug: '',
-    propertyName: '',
-    subtitle: '',
-    avatarUrl: '',
-    backgroundImageUrl: '',
-    accentColor: '#10b981',
-    links: [],
-    whatsappNumber: '',
-    instagramHandle: '',
+    id: 'profile-ddc',
+    slug: slug,
+    propertyName: name,
+    subtitle: isAirbnb ? 'Hospedagem de Alto Padrão no Rio de Janeiro' : 'Sua pousada no centro histórico com vista para o mar',
+    avatarUrl: isAirbnb ? '/pousada-vista.jpg' : '/avatar-serenity.jpg',
+    backgroundImageUrl: '/pousada-chale.jpg',
+    accentColor: isAirbnb ? '#3b82f6' : '#10b981',
+    rating: 4.9,
+    reviewCount: 148,
+    whatsappNumber: '5511999998888',
+    instagramHandle: isAirbnb ? '@flat.copacabana' : '@pousada.serenity',
+    links: [
+      { id: '1', label: 'Reservar Direto pelo WhatsApp (0% Taxas)', url: 'https://wa.me/5511999998888', icon: '💬', isHighlight: true, order: 0, isActive: true },
+      { id: '2', label: 'Guia Digital & Regras do Imóvel', url: '#guia', icon: '📖', isHighlight: false, order: 1, isActive: true },
+      { id: '3', label: 'Fotos & Comodidades no Instagram', url: 'https://instagram.com', icon: '📸', isHighlight: false, order: 2, isActive: true },
+      { id: '4', label: 'Chave PIX & Pagamento Direto', url: '#pix', icon: '💳', isHighlight: false, order: 3, isActive: true },
+    ],
     isActive: true,
     plan: 'pro',
     isBetaPartner: false,
@@ -73,10 +83,19 @@ function createEmptyProfile(): LinkInBioProfile {
   };
 }
 
+export interface LinkInBioEditorProps {
+  initialPropertyName?: string;
+  niche?: 'pousada' | 'airbnb';
+  initialProfile?: Partial<LinkInBioProfile>;
+}
+
 // ── Main Editor Component ─────────────────────────────────────────────────────
 
-export function LinkInBioEditor() {
-  const [profile, setProfile] = useState<LinkInBioProfile>(createEmptyProfile);
+export function LinkInBioEditor({ initialPropertyName, niche = 'pousada', initialProfile }: LinkInBioEditorProps = {}) {
+  const [profile, setProfile] = useState<LinkInBioProfile>(() => ({
+    ...createEmptyProfile(initialPropertyName, niche),
+    ...initialProfile,
+  }));
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);

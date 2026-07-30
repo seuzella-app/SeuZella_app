@@ -18,6 +18,7 @@ import { ZellaSimulator } from '@/components/ddc/ZellaSimulator';
 import { WhatsAppDeviceManager } from '@/components/ddc/WhatsAppDeviceManager';
 import { GuestGuidePanel } from '@/components/ddc/GuestGuidePanel';
 import { BookingSyncPanel } from '@/components/ddc/BookingSyncPanel';
+import { LinkInBioEditor } from '@/components/linkinbio/LinkInBioEditor';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,11 +74,12 @@ import {
   QrCode,
   Users,
   CreditCard,
+  Link as LinkIcon,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'guia' | 'config';
+type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config';
 
 interface PropertyData {
   id: string;
@@ -257,6 +259,7 @@ const airbnbNavItems: NavItem[] = [
   { id: 'automacao', label: 'Automação', icon: <Bot className="size-4" /> },
   { id: 'simulador', label: 'Simulador Zélla', icon: <MessageSquare className="size-4" /> },
   { id: 'whatsapp', label: 'Connection Center', icon: <Smartphone className="size-4" /> },
+  { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
   { id: 'guia', label: 'Guia Digital', icon: <QrCode className="size-4" /> },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
@@ -1373,6 +1376,8 @@ export default function DDCAirbnbContent() {
         return <ZellaSimulator niche="airbnb" propertyData={scannedData} />;
       case 'whatsapp':
         return <WhatsAppDeviceManager niche="airbnb" propertyName={scannedData.propertyName} />;
+      case 'linkinbio':
+        return <LinkInBioEditor initialPropertyName={scannedData.propertyName} niche="airbnb" />;
       case 'guia':
         return <GuestGuidePanel niche="airbnb" propertyName={scannedData.propertyName} />;
       case 'config':
