@@ -19,11 +19,10 @@ export function MobileBottomNav({
   aiActive,
   onToggleAI,
 }: MobileBottomNavProps) {
-  const accentColor = niche === 'pousada' ? 'emerald' : 'blue';
-  const activeClass =
-    accentColor === 'emerald'
-      ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/20'
-      : 'text-blue-400 bg-blue-500/15 border-blue-500/20';
+  const isPousada = niche === 'pousada';
+  const activeClass = isPousada
+    ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-500/40 shadow-lg shadow-emerald-500/20'
+    : 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-lg shadow-cyan-500/20';
 
   const navItems = [
     { id: 'visao-geral', label: 'Início', icon: Home },
@@ -33,38 +32,48 @@ export function MobileBottomNav({
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0b0f19]/95 backdrop-blur-xl border-t border-white/[0.08] px-3 py-2">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#060913]/90 backdrop-blur-2xl border-t border-white/[0.12] px-3 py-2 shadow-2xl shadow-black/90">
       <div className="flex items-center justify-around max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
-            <button
+            <motion.button
               key={item.id}
+              whileTap={{ scale: 0.94 }}
               onClick={() => onTabChange(item.id)}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200 ${
-                isActive ? activeClass : 'text-slate-400 hover:text-slate-200'
+              className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-xl border transition-all duration-200 ${
+                isActive
+                  ? activeClass
+                  : 'text-zinc-400 hover:text-zinc-200 border-transparent hover:bg-white/[0.04]'
               }`}
             >
-              <Icon className="w-5 h-5 mb-0.5" />
-              <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
-            </button>
+              <Icon className={`w-5 h-5 mb-0.5 ${isActive ? (isPousada ? 'text-emerald-400' : 'text-cyan-400') : ''}`} />
+              <span className="text-[10px] font-semibold tracking-wide">{item.label}</span>
+            </motion.button>
           );
         })}
 
-        {/* 1-Tap Kill Switch Button */}
+        {/* 1-Tap Kill Switch Button (Stitch MCP Celestial Commander Style) */}
         <motion.button
-          whileTap={{ scale: 0.92 }}
+          whileTap={{ scale: 0.90 }}
           onClick={onToggleAI}
-          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl border transition-all duration-200 ${
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-xl border transition-all duration-200 shadow-md ${
             aiActive
-              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-              : 'bg-rose-500/20 border-rose-500/40 text-rose-400'
+              ? 'bg-gradient-to-r from-emerald-500/25 to-emerald-600/25 border-emerald-500/50 text-emerald-300 shadow-emerald-500/20'
+              : 'bg-gradient-to-r from-rose-500/25 to-rose-600/25 border-rose-500/50 text-rose-300 shadow-rose-500/20'
           }`}
           title={aiActive ? 'IA Ativa (Toque para pausar)' : 'IA Pausada (Toque para ativar)'}
         >
-          <Power className="w-5 h-5 mb-0.5 animate-pulse" />
-          <span className="text-[9px] font-bold tracking-wider uppercase">
+          <div className="relative">
+            <Power className="w-5 h-5 mb-0.5" />
+            <span
+              className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${
+                aiActive ? 'bg-emerald-400 animate-ping' : 'bg-rose-500'
+              }`}
+            />
+          </div>
+          <span className="text-[9px] font-extrabold tracking-wider uppercase">
             {aiActive ? 'IA ON' : 'IA OFF'}
           </span>
         </motion.button>
