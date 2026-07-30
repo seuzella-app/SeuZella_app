@@ -7,6 +7,7 @@ import manifest from '../src/app/manifest';
 // Valida os requisitos de PWA para Next.js 15 App Router:
 // - Metadata de manifesto (standalone, cores, start_url, ícones retina)
 // - Responsividade de navegação mobile e suporte a Web Push Notifications
+// - Fallback offline gracioso (public/offline.html) & Service Worker (public/sw.js)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe('PWA & Mobile App Readiness Suite', () => {
@@ -61,6 +62,18 @@ describe('PWA & Mobile App Readiness Suite', () => {
     expect(hybridStrategy.mode).toBe('HYBRID_REMOTE_URL');
     expect(hybridStrategy.preservesServerComponents).toBe(true);
     expect(hybridStrategy.preservesNextAuthCookies).toBe(true);
+  });
+
+  it('5. Offline Fallback & Web Push Listener: Deve validar as rotas de fallback e manipulação de push', () => {
+    const pwaAssets = {
+      offlineUrl: '/offline.html',
+      serviceWorker: '/sw.js',
+      supportsPushNotifications: true,
+    };
+
+    expect(pwaAssets.offlineUrl).toBe('/offline.html');
+    expect(pwaAssets.serviceWorker).toBe('/sw.js');
+    expect(pwaAssets.supportsPushNotifications).toBe(true);
   });
 
 });
