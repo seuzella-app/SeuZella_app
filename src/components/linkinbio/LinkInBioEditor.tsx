@@ -398,23 +398,106 @@ export function LinkInBioEditor({ initialPropertyName, niche = 'pousada', initia
               {/* Divider */}
               <div className="border-t border-white/[0.06]" />
 
-              {/* Section: Aparência */}
+              {/* Section: Aparência & Fotos */}
               <section>
                 <h2 className="text-base font-extrabold text-zinc-200 mb-4 flex items-center gap-2">
                   <Palette className="w-4 h-4 text-emerald-400" />
-                  Aparência
+                  Aparência & Fotos
                 </h2>
 
-                <div className="space-y-4">
+                <div className="space-y-5">
+                  {/* Foto de Perfil / Avatar */}
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                      Foto de Perfil (Avatar da Pousada)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-zinc-800 border border-white/10 overflow-hidden shrink-0">
+                        {profile.avatarUrl ? (
+                          <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xs font-bold">Sem Foto</div>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={profile.avatarUrl || ''}
+                        onChange={(e) => updateField('avatarUrl', e.target.value)}
+                        placeholder="URL da foto (ex: https://... ou /avatar-serenity.jpg)"
+                        className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono"
+                      />
+                    </div>
+                    {/* Presets rápidos de Avatar */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-[10px] text-zinc-500">Opções rápidas:</span>
+                      {[
+                        { label: 'Serenity', url: '/avatar-serenity.jpg' },
+                        { label: 'Vista Mar', url: '/pousada-vista.jpg' },
+                        { label: 'Chalé', url: '/pousada-chale.jpg' },
+                      ].map((preset) => (
+                        <button
+                          key={preset.url}
+                          type="button"
+                          onClick={() => updateField('avatarUrl', preset.url)}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-emerald-500/40 transition-all"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Foto de Fundo / Background */}
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                      Foto de Fundo (Background Suave)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-8 rounded-lg bg-zinc-800 border border-white/10 overflow-hidden shrink-0">
+                        {profile.backgroundImageUrl ? (
+                          <img src={profile.backgroundImageUrl} alt="Background" className="w-full h-full object-cover opacity-60" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-500 text-[10px]">Padrão</div>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={profile.backgroundImageUrl || ''}
+                        onChange={(e) => updateField('backgroundImageUrl', e.target.value)}
+                        placeholder="URL da imagem de fundo"
+                        className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono"
+                      />
+                    </div>
+                    {/* Presets rápidos de Background */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-[10px] text-zinc-500">Opções rápidas:</span>
+                      {[
+                        { label: 'Chalé Paraty', url: '/pousada-chale.jpg' },
+                        { label: 'Vista Suíte', url: '/pousada-vista.jpg' },
+                        { label: 'Piscina', url: '/pousada-piscina.jpg' },
+                      ].map((preset) => (
+                        <button
+                          key={preset.url}
+                          type="button"
+                          onClick={() => updateField('backgroundImageUrl', preset.url)}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-emerald-500/40 transition-all"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Cor de destaque */}
                   <div>
                     <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-                      Cor de destaque
+                      Cor de destaque dos botões
                     </label>
                     <div className="flex flex-wrap gap-2">
                       {ACCENT_PRESETS.map((preset) => (
                         <button
                           key={preset.color}
+                          type="button"
                           onClick={() => updateField('accentColor', preset.color)}
                           title={preset.label}
                           className={`w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 ${
@@ -440,7 +523,7 @@ export function LinkInBioEditor({ initialPropertyName, niche = 'pousada', initia
                   {/* Avaliação */}
                   <div>
                     <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                      <Star className="w-3 h-3 inline mr-1" />
+                      <Star className="w-3 h-3 inline mr-1 text-amber-400" />
                       Avaliação (Google/Booking)
                     </label>
                     <div className="flex items-center gap-3">
@@ -462,7 +545,7 @@ export function LinkInBioEditor({ initialPropertyName, niche = 'pousada', initia
                         placeholder="128"
                         className="w-24 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
                       />
-                      <span className="text-xs text-zinc-500">avaliações</span>
+                      <span className="text-xs text-zinc-500">avaliações ativas</span>
                     </div>
                   </div>
                 </div>
@@ -705,6 +788,10 @@ export function LinkInBioEditor({ initialPropertyName, niche = 'pousada', initia
                     <span className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-400 shrink-0">3</span>
                     <p>Cole o link no perfil do Instagram da sua pousada. Pronto! 🎉</p>
                   </div>
+                  <div className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-400 shrink-0">4</span>
+                    <p className="text-zinc-300 font-semibold">Mande para seus contatos, divulgue seu link!</p>
+                  </div>
                 </div>
 
                 {/* Public link copy (mobile) */}
@@ -735,9 +822,9 @@ export function LinkInBioEditor({ initialPropertyName, niche = 'pousada', initia
                 </div>
               </div>
 
-              {/* Phone frame on desktop */}
+              {/* Phone frame on desktop (com safe-area e respiro refinado) */}
               <div className="lg:py-6 lg:px-6 flex justify-center">
-                <div className="w-full max-w-[390px] rounded-[2.5rem] border-[6px] border-zinc-800 overflow-hidden shadow-2xl shadow-black/50">
+                <div className="w-full max-w-[380px] rounded-[3rem] border-[8px] border-zinc-800 bg-black overflow-hidden shadow-2xl shadow-emerald-950/20 p-1">
                   <LinkInBioPage profile={liveProfile} isPreview={true} />
                 </div>
               </div>
