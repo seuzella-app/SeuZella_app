@@ -28,6 +28,7 @@
     "test:observability-recovery": "vitest run tests/observability-disaster-recovery.test.ts",
     "test:data-governance": "vitest run tests/data-governance-lgpd.test.ts",
     "test:sustainability-growth": "vitest run tests/sustainability-growth-churn.test.ts",
+    "test:pwa-mobile": "vitest run tests/pwa-mobile-manifest.test.ts",
     "test:browser": "echo 'No Playwright tests configured yet'",
     "test:e2e-zella": "bun run scripts/simulate-zella-e2e.ts",
     "ci": "npm run lint && npm run typecheck && npm run test",
