@@ -1,0 +1,38 @@
+name: CI - Cérebro Zélla: Red Teaming & Prompt Injection Security
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/cerebro/**'
+      - 'tests/zella-red-teaming.test.ts'
+      - '.github/workflows/ci-zella-red-teaming.yml'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  red-teaming-test:
+    name: Run Red Teaming & Prompt Injection Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Execute Red Teaming Vitest Suite
+        run: npx vitest run tests/zella-red-teaming.test.ts
