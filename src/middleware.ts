@@ -191,8 +191,8 @@ function shouldSkipLog(pathname: string): boolean {
 }
 
 function isProtectedPage(pathname: string): boolean {
-  // Allow public preview for /ddc/pousada and /ddc/airbnb client dashboards
-  if (pathname === '/ddc/pousada' || pathname === '/ddc/airbnb') {
+  // Allow public preview for all client dashboard demo URLs (/ddc, /ddc/pousada, /ddc/airbnb)
+  if (pathname.startsWith('/ddc')) {
     return false;
   }
   return PROTECTED_PAGE_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
@@ -439,8 +439,9 @@ export async function middleware(request: NextRequest) {
       const redirectUrl = new URL(targetPath, request.url);
       return NextResponse.redirect(redirectUrl);
     } catch {
-      // If token can't be decoded, fall through to normal auth flow
-      // (will redirect to /login if not authenticated)
+      // Unauthenticated fallback: redirect directly to /ddc/pousada public preview
+      const redirectUrl = new URL('/ddc/pousada', request.url);
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
