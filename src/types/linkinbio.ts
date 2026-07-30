@@ -14,6 +14,14 @@ export interface LinkInBioLink {
   isActive: boolean;
 }
 
+export interface LinkInBioReview {
+  id: string;
+  authorName: string;
+  rating: number;          // 1 to 5
+  comment: string;
+  createdAt: Date | string;
+}
+
 export interface LinkInBioProfile {
   id: string;
   slug: string;                   // "pousadaserenity" → seusella.com/pousadaserenity
@@ -25,6 +33,8 @@ export interface LinkInBioProfile {
   accentColor: string;            // hex
   rating?: number;                // e.g. 4.9
   reviewCount?: number;
+  showReviews?: boolean;          // Habilitar/desabilitar exibição de avaliações
+  reviews?: LinkInBioReview[];     // Comentários e notas reais deixados por hóspedes/amigos
   links: LinkInBioLink[];
   whatsappNumber?: string;
   instagramHandle?: string;
