@@ -389,6 +389,7 @@ export function LinkInBioPage({ profile, isPreview = false }: { profile: LinkInB
                     <div className="text-center py-6 text-zinc-500 text-xs border border-dashed border-white/10 rounded-2xl">
                       Nenhuma avaliação enviada ainda. Seja o primeiro!
                     </div>
+                  ) : (
                     reviewsList.map((rev) => (
                       <div
                         key={rev.id}
