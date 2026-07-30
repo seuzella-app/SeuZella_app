@@ -36,6 +36,7 @@ import Link from 'next/link';
 import type { NicheType } from '@/contexts/NicheContext';
 import type { PlanTier } from '@/lib/plan-features';
 import { PLAN_DISPLAY } from '@/lib/plan-features';
+import { MobileBottomNav } from './MobileBottomNav';
 
 // ═══════════════════════════════════════════════════════════════
 // NICHE THEME CONFIG — Centraliza cores e labels por nicho
@@ -224,6 +225,7 @@ export function DDCShell({
 }: DDCShellProps) {
   const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [aiActive, setAiActive] = useState(true);
 
   const resolvedUserName = session?.user?.name || userName;
   const theme = NICHE_THEME[niche];
@@ -382,7 +384,7 @@ export function DDCShell({
         </header>
 
         {/* Page Content */}
-        <main className="p-4 md:p-6 max-w-[1920px] mx-auto">
+        <main className="p-3 pb-24 md:p-6 md:pb-6 max-w-[1920px] mx-auto">
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 8 }}
@@ -392,6 +394,15 @@ export function DDCShell({
             {children}
           </motion.div>
         </main>
+
+        {/* Mobile Bottom Navigation Bar (1-Thumb Control) */}
+        <MobileBottomNav
+          niche={niche}
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          aiActive={aiActive}
+          onToggleAI={() => setAiActive((prev) => !prev)}
+        />
       </div>
     </div>
   );
