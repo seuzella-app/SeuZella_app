@@ -40,3 +40,7 @@ export { ZellaAirBTab } from './ZellaAirBTab';
 
 // Booking Sync
 export { BookingSyncPanel } from './BookingSyncPanel';
+
+// Mobile Navigation
+export { MobileBottomNav } from './MobileBottomNav';
+

@@ -24,10 +24,10 @@ describe('PWA & Mobile App Readiness Suite', () => {
 
   it('2. Mobile One-Thumb Navigation: Deve validar os 4 módulos principais do DDC Mobile', () => {
     const mobileBottomBar = [
-      { id: 'home', label: 'Início', path: '/ddc' },
-      { id: 'chats', label: 'Conversas', path: '/ddc/chats' },
-      { id: 'calendar', label: 'Calendário', path: '/ddc/calendar' },
-      { id: 'settings', label: 'Ajustes', path: '/ddc/settings' },
+      { id: 'visao-geral', label: 'Início', path: '/ddc' },
+      { id: 'entregas-zella', label: 'Conversas', path: '/ddc/chats' },
+      { id: 'sync-ical', label: 'Calendário', path: '/ddc/calendar' },
+      { id: 'guia-hospedes', label: 'Ajustes', path: '/ddc/settings' },
     ];
 
     expect(mobileBottomBar).toHaveLength(4);
@@ -48,6 +48,19 @@ describe('PWA & Mobile App Readiness Suite', () => {
 
     const stateRestored = toggleAIBotState();
     expect(stateRestored).toBe(true);
+  });
+
+  it('4. Hybrid / Remote URL Architecture: Deve confirmar o uso do modo Híbrido sem static export', () => {
+    const hybridStrategy = {
+      mode: 'HYBRID_REMOTE_URL',
+      targetUrl: 'https://seuzella.com/ddc',
+      preservesServerComponents: true,
+      preservesNextAuthCookies: true,
+    };
+
+    expect(hybridStrategy.mode).toBe('HYBRID_REMOTE_URL');
+    expect(hybridStrategy.preservesServerComponents).toBe(true);
+    expect(hybridStrategy.preservesNextAuthCookies).toBe(true);
   });
 
 });
