@@ -1071,14 +1071,24 @@ export default function DDCPousadaContent() {
     </motion.div>
   );
 
-  // ─── Render ─────────────────────────────────────────────────────────────
+  const handleTabChange = useCallback((id: string) => {
+    let normalized: PousadaTab = 'financeiro';
+    if (id === 'visao-geral' || id === 'financeiro') normalized = 'financeiro';
+    else if (id === 'entregas-zella' || id === 'hospedes') normalized = 'hospedes';
+    else if (id === 'sync-ical' || id === 'integracoes') normalized = 'integracoes';
+    else if (id === 'guia-hospedes' || id === 'config') normalized = 'config';
+    else if (['cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia'].includes(id)) {
+      normalized = id as PousadaTab;
+    }
+    setActiveTab(normalized);
+  }, []);
 
   return (
     <DDCShell
       niche="pousada"
       navItems={pousadaNavItems}
       activeTab={activeTab}
-      onTabChange={(id) => setActiveTab(id as PousadaTab)}
+      onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
     >
       <AnimatePresence mode="wait">

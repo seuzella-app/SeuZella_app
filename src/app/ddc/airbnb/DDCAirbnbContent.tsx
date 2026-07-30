@@ -1385,14 +1385,24 @@ export default function DDCAirbnbContent() {
     }
   };
 
-  // ─── Main Layout ──────────────────────────────────────────────────────
+  const handleTabChange = useCallback((id: string) => {
+    let normalized: AirbnbTab = 'financeiro';
+    if (id === 'visao-geral' || id === 'financeiro') normalized = 'financeiro';
+    else if (id === 'entregas-zella' || id === 'propriedades') normalized = 'propriedades';
+    else if (id === 'sync-ical' || id === 'sincronizacao') normalized = 'sincronizacao';
+    else if (id === 'guia-hospedes' || id === 'config' || id === 'guia') normalized = 'config';
+    else if (['automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia'].includes(id)) {
+      normalized = id as AirbnbTab;
+    }
+    setActiveTab(normalized);
+  }, []);
 
   return (
     <DDCShell
       niche="airbnb"
       navItems={airbnbNavItems}
       activeTab={activeTab}
-      onTabChange={(id) => setActiveTab(id as AirbnbTab)}
+      onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
     >
       <AnimatePresence mode="wait">
