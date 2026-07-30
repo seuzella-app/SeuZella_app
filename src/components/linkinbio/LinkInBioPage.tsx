@@ -389,7 +389,6 @@ export function LinkInBioPage({ profile, isPreview = false }: { profile: LinkInB
                     <div className="text-center py-6 text-zinc-500 text-xs border border-dashed border-white/10 rounded-2xl">
                       Nenhuma avaliação enviada ainda. Seja o primeiro!
                     </div>
-                  ) : (
                     reviewsList.map((rev) => (
                       <div
                         key={rev.id}
@@ -397,7 +396,9 @@ export function LinkInBioPage({ profile, isPreview = false }: { profile: LinkInB
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-white">{rev.authorName}</span>
-                          <span className="text-[10px] text-zinc-500">{rev.createdAt}</span>
+                          <span className="text-[10px] text-zinc-500">
+                            {typeof rev.createdAt === 'string' ? rev.createdAt : new Date(rev.createdAt).toLocaleDateString('pt-BR')}
+                          </span>
                         </div>
                         <div className="flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((s) => (
