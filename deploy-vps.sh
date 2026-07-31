@@ -95,6 +95,23 @@ docker compose exec app npx prisma db seed 2>/dev/null || {
 
 echo -e "${GREEN}✓ Banco inicializado${RESET}"
 
+# ── Inicializar Modelos do Ollama AI ─────────────────────────────────────────
+echo ""
+echo -e "${BOLD}${CYAN}═══ Verificando Modelos de IA (Ollama) ═══${RESET}\n"
+
+docker compose up -d ollama
+sleep 3
+
+echo -e "${BOLD}Garantindo modelos de IA de alta capacidade (KVM 4+)...${RESET}"
+docker compose exec ollama ollama pull qwen2.5-coder:14b 2>/dev/null || {
+  echo -e "${YELLOW}⚠ Pull do qwen2.5-coder:14b em andamento ou modelo padrão ativado${RESET}"
+}
+docker compose exec ollama ollama pull deepseek-r1:14b 2>/dev/null || {
+  echo -e "${YELLOW}⚠ Pull do deepseek-r1:14b em andamento ou modelo de raciocínio ativado${RESET}"
+}
+
+echo -e "${GREEN}✓ Motor Ollama AI configurado${RESET}"
+
 # ── Restart limpo ──────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}${CYAN}═══ Reiniciando Container ═══${RESET}\n"

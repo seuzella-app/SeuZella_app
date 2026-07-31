@@ -1,5 +1,5 @@
 # ==============================================================================
-# SEU ZELLA — Docker Compose para VPS (Hostinger)
+# SEU ZELLA — Docker Compose para VPS (Hostinger KVM 4 High-Security)
 # ==============================================================================
 # Subir:        docker compose up -d
 # Logs:         docker compose logs -f app
@@ -22,9 +22,13 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-zeulla_admin}:${POSTGRES_PASSWORD:-ChangeMePostgres2026Sec!}@postgres:5432/${POSTGRES_DB:-seuzella_prod}?schema=public
     volumes:
-      - seuzella-db:/app/db
       - seuzella-uploads:/app/public/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
@@ -34,10 +38,43 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1024M
+          memory: 4096M
+          cpus: "2.5"
+        reservations:
+          memory: 512M
+          cpus: "0.50"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - seuzella-net
+
+  # ── PostgreSQL 16 Dedicado de Alta Segurança (Isolado na VPS) ───────────────
+  # Nenhuma porta externa exposta na internet (Zero IDOR / Zero Leaks)
+  postgres:
+    image: postgres:16-alpine
+    container_name: seuzella-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-zeulla_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMePostgres2026Sec!}
+      POSTGRES_DB: ${POSTGRES_DB:-seuzella_prod}
+    volumes:
+      - seuzella-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zeulla_admin} -d ${POSTGRES_DB:-seuzella_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
           cpus: "1.5"
         reservations:
-          memory: 256M
+          memory: 512M
           cpus: "0.25"
     logging:
       driver: "json-file"
@@ -47,10 +84,42 @@ services:
     networks:
       - seuzella-net
 
+  # ── Ollama AI Server Dedicado (Hostinger KVM 4 High-Security) ─────────────
+  # Motor de IA local de custo zero rodando modelos qwen2.5-coder:14b / deepseek-r1:14b
+  ollama:
+    image: ollama/ollama:latest
+    container_name: seuzella-ollama
+    restart: unless-stopped
+    volumes:
+      - seuzella-ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 10240M
+          cpus: "3.5"
+        reservations:
+          memory: 2048M
+          cpus: "1.0"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - seuzella-net
+
 volumes:
-  seuzella-db:
+  seuzella-postgres-data:
     driver: local
   seuzella-uploads:
+    driver: local
+  seuzella-ollama-data:
     driver: local
 
 networks:

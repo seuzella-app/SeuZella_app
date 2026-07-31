@@ -19,6 +19,7 @@ import { ContactSection } from '@/components/landing/ContactSection';
 import { TrustBadgesSection } from '@/components/landing/TrustBadgesSection';
 import { Footer } from '@/components/landing/Footer';
 import { FloatingCTA } from '@/components/landing/FloatingCTA';
+import { ZellaSalesWidget } from '@/components/landing/ZellaSalesWidget';
 
 function SectionDivider() {
   return (
@@ -73,6 +74,7 @@ export default function HomePage() {
         </footer>
 
         <FloatingCTA />
+        <ZellaSalesWidget />
       </div>
     </NicheProvider>
   );
