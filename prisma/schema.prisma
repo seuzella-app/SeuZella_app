@@ -2022,3 +2022,26 @@ model GraphEdge {
   @@index([tenantId, targetNodeId])
   @@map("graph_edges")
 }
+
+model BrainHealthLog {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  conversionRate     Float
+  humanTakeoverRate  Float
+  createdAt          DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@map("brain_health_logs")
+}
+
+model CompiledPrompt {
+  id               String   @id @default(cuid())
+  tenantId         String
+  version          String
+  compiledJson     String
+  accuracyScore    Float?
+  createdAt        DateTime @default(now())
+
+  @@index([tenantId, version])
+  @@map("compiled_prompts")
+}
