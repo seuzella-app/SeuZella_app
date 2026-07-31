@@ -91,8 +91,8 @@ export class ZellaSalesBrain {
       const llmRes = await llmRouter.generate({
         model: 'general',
         messages: messagesForLlm,
-        temperature: 0.3,
-        maxTokens: 250,
+        temperature: 0.4,
+        maxTokens: 300,
       });
 
       let reply = llmRes.content;
@@ -113,22 +113,17 @@ export class ZellaSalesBrain {
         };
       }
     } catch {
-      // Fallback inteligente conversacional abaixo
+      // Em caso de falha de conexão de rede de IA
     }
 
-    // 5. Motor Conversacional Inteligente para Fallback (Respostas naturais e dinâmicas conforme a pergunta real do lead)
+    // Fallback humano e educado caso a IA esteja temporariamente sem conexão
     let fallbackReply = '';
-
-    if (lowerMsg.includes('como funciona') || lowerMsg.includes('do que se trata') || lowerMsg.includes('curioso') || lowerMsg.includes('o que é o seuzella')) {
-      fallbackReply = 'O SeuZélla é um sistema completo pra cuidar da recepção da sua hospedagem! Eu respondo seus hóspedes 24h no WhatsApp com seu tom de voz, envio senhas de fechadura eletrônica, libero PIX e evito overbooking no Airbnb e Booking. Quer saber como funciona alguma dessas partes? 😊';
-    } else if (lowerMsg.includes('não sou anfitrião') || lowerMsg.includes('nao sou anfitriao') || lowerMsg.includes('o que é anfitrião') || lowerMsg.includes('nem sei o que é isso')) {
-      fallbackReply = 'Ah, sem problemas meu amigo! Anfitrião é quem aluga uma casa de praia, um chalé por temporada ou tem uma pousada. Se você tá só curioso ou quer entender a ferramenta, fica à vontade pra perguntar o que quiser!';
-    } else if (lowerMsg.includes('quanto custa') || lowerMsg.includes('valor') || lowerMsg.includes('preço') || lowerMsg.includes('precos') || lowerMsg.includes('plano')) {
+    if (lowerMsg.includes('anfitri')) {
+      fallbackReply = 'Ah, sem problemas meu amigo! Anfitrião é quem aluga uma casa de praia, um chalé por temporada ou é dono de pousada. Se você tá curioso pra entender como funciona, fica à vontade pra perguntar o que quiser!';
+    } else if (lowerMsg.includes('como funciona') || lowerMsg.includes('do que se trata') || lowerMsg.includes('curioso') || lowerMsg.includes('o que é')) {
+      fallbackReply = 'O SeuZélla é a ferramenta que cuida de toda a recepção da sua hospedagem! Eu respondo seus hóspedes 24h no WhatsApp com seu tom de voz, envio senhas de fechadura eletrônica, confirmo PIX e evito overbooking. Quer saber como funciona alguma dessas partes? 😊';
+    } else if (lowerMsg.includes('quanto custa') || lowerMsg.includes('valor') || lowerMsg.includes('preço') || lowerMsg.includes('plano')) {
       fallbackReply = 'Nossos planos cabem no bolso: o LITE sai por R$ 97/mês (pra quem tem 1 imóvel), o PRO por R$ 197/mês (pousadas até 15 quartos) e o MAX por R$ 397/mês. Você administra quantas acomodações hoje?';
-    } else if (lowerMsg.includes('whatsapp') || lowerMsg.includes('mensagem')) {
-      fallbackReply = 'No WhatsApp, a gente conecta seu número via QR Code sem burocracia. O Seu Zélla aprende seu tom de voz e responde os hóspedes na hora, 24 horas por dia, com zero taxas da Meta!';
-    } else if (lowerMsg.includes('fechadura') || lowerMsg.includes('pin') || lowerMsg.includes('senha')) {
-      fallbackReply = 'A gente integra com fechaduras Tuya, TTLock e Intelbras! Quando a reserva é confirmada, o Zé gera o PIN de acesso e manda pro WhatsApp do hóspede sozinho.';
     } else {
       fallbackReply = 'Olá, meu amigo! Sou o Seu Zélla! Tô por aqui pra te ajudar no que precisar sobre o atendimento do WhatsApp, fechaduras ou planos pro seu imóvel. O que você gostaria de saber?';
     }

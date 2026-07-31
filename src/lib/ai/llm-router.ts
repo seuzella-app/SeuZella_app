@@ -16,8 +16,14 @@ const GLM_URL = 'https://open.bigmodel.cn/api/paas/v4'
 const GLM_KEY = process.env.ZHIPU_API_KEY || ''
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1'
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || ''
+const GROQ_URL = 'https://api.groq.com/openai/v1'
+const GROQ_KEY = process.env.GROQ_API_KEY || ''
+const OPENAI_URL = 'https://api.openai.com/v1'
+const OPENAI_KEY = process.env.OPENAI_API_KEY || ''
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/openai'
+const GEMINI_KEY = process.env.GEMINI_API_KEY || ''
 
-type CloudProvider = 'deepseek' | 'zhipu' | 'openrouter'
+type CloudProvider = 'groq' | 'gemini' | 'openai' | 'deepseek' | 'zhipu' | 'openrouter'
 
 const LOCAL_MODELS = {
   general: 'qwen2.5-coder:14b',
@@ -28,6 +34,27 @@ const LOCAL_MODELS = {
 }
 
 const CLOUD_MODELS: Record<CloudProvider, { model: string; url: string; key: string; costPer1kInput: number; costPer1kOutput: number }> = {
+  groq: {
+    model: 'llama-3.3-70b-versatile',
+    url: GROQ_URL,
+    key: GROQ_KEY,
+    costPer1kInput: 0.00059,
+    costPer1kOutput: 0.00079,
+  },
+  gemini: {
+    model: 'gemini-2.0-flash',
+    url: GEMINI_URL,
+    key: GEMINI_KEY,
+    costPer1kInput: 0.00010,
+    costPer1kOutput: 0.00040,
+  },
+  openai: {
+    model: 'gpt-4o-mini',
+    url: OPENAI_URL,
+    key: OPENAI_KEY,
+    costPer1kInput: 0.00015,
+    costPer1kOutput: 0.00060,
+  },
   deepseek: {
     model: 'deepseek-v4-flash',
     url: DEEPSEEK_URL,
@@ -51,7 +78,7 @@ const CLOUD_MODELS: Record<CloudProvider, { model: string; url: string; key: str
   },
 }
 
-const CLOUD_ORDER: CloudProvider[] = ['deepseek', 'openrouter', 'zhipu']
+const CLOUD_ORDER: CloudProvider[] = ['groq', 'gemini', 'openai', 'deepseek', 'openrouter', 'zhipu']
 
 export class LLMRouter {
   private useLocal: boolean = true
