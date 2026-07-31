@@ -118,7 +118,9 @@ export class ZellaSalesBrain {
 
     // Fallback humano e educado caso a IA esteja temporariamente sem conexão
     let fallbackReply = '';
-    if (lowerMsg.includes('feriado') || lowerMsg.includes('setembro') || lowerMsg.includes('outubro') || lowerMsg.includes('novembro') || lowerMsg.includes('réveillon') || lowerMsg.includes('reveillon')) {
+    if (lowerMsg.includes('airbnb') || lowerMsg.includes('temporada') || lowerMsg.includes('chalé') || lowerMsg.includes('chale')) {
+      fallbackReply = 'Pra quem aluga imóvel por temporada ou Airbnb em praias e hotspots, o Seu Zélla é uma mão na roda! Ele envia as senhas das fechaduras eletrônicas, fornece a chave PIX do anfitrião e atende seus hóspedes 24 horas por dia a distância, sem você precisar ficar grudado no celular!';
+    } else if (lowerMsg.includes('feriado') || lowerMsg.includes('setembro') || lowerMsg.includes('outubro') || lowerMsg.includes('novembro') || lowerMsg.includes('réveillon') || lowerMsg.includes('reveillon')) {
       fallbackReply = 'Ótimo momento pra conversar! Nos feriados prolongados e na pré-alta temporada de Verão, o WhatsApp da pousada enche de mensagens de reservas. Com o Seu Zélla, seus hóspedes são atendidos em segundos 24h por dia, recebem a chave PIX do anfitrião e você aproveita o feriado com tranquilidade!';
     } else if (lowerMsg.includes('anfitri')) {
       fallbackReply = 'Ah, sem problemas meu amigo! Anfitrião é quem aluga uma casa de praia, um chalé por temporada ou é dono de pousada. Se você tá curioso pra entender como funciona, fica à vontade pra perguntar o que quiser!';
