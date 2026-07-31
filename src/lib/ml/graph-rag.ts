@@ -67,8 +67,19 @@ export async function addGraphEdge(params: {
   return id;
 }
 
+const RELATION_WEIGHTS: Record<string, number> = {
+  SUPERSEDES: 4,
+  FORBIDS: 3,
+  REQUIRES: 2,
+  OVERLAPS: 1,
+};
+
 /**
  * Motor de Busca Híbrida (Vetores + Traversal de Grafo) e Resolução de Contradições.
+ * Aplica o Algoritmo Triplo Inteligente de Desempate:
+ * 1. Priority Weight DESC
+ * 2. Relation Precedence DESC (SUPERSEDES > FORBIDS > REQUIRES > OVERLAPS)
+ * 3. Recência Temporal (createdAt DESC)
  */
 export async function hybridGraphSearch(
   tenantId: string,
@@ -101,10 +112,28 @@ export async function hybridGraphSearch(
             ],
           },
           include: { sourceNode: true, targetNode: true },
-          orderBy: { priorityWeight: 'desc' },
+          orderBy: [
+            { priorityWeight: 'desc' },
+            { createdAt: 'desc' },
+          ],
         });
 
-        edges = dbEdges.map((e: any) => ({
+        // Aplicação da ordenação determinística por precedência de relação
+        const sortedDbEdges = [...dbEdges].sort((a: any, b: any) => {
+          if (b.priorityWeight !== a.priorityWeight) {
+            return b.priorityWeight - a.priorityWeight;
+          }
+          const weightA = RELATION_WEIGHTS[a.relationType] || 1;
+          const weightB = RELATION_WEIGHTS[b.relationType] || 1;
+          if (weightB !== weightA) {
+            return weightB - weightA;
+          }
+          const timeA = new Date(a.createdAt || 0).getTime();
+          const timeB = new Date(b.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
+
+        edges = sortedDbEdges.map((e: any) => ({
           relationType: e.relationType,
           priorityWeight: e.priorityWeight,
           sourceContent: e.sourceNode.content,
@@ -140,6 +169,16 @@ export async function hybridGraphSearch(
     ];
   }
 
+  // Ordenação determinística também no fallback em memória
+  edges.sort((a, b) => {
+    if (b.priorityWeight !== a.priorityWeight) {
+      return b.priorityWeight - a.priorityWeight;
+    }
+    const weightA = RELATION_WEIGHTS[a.relationType] || 1;
+    const weightB = RELATION_WEIGHTS[b.relationType] || 1;
+    return weightB - weightA;
+  });
+
   // 3. Montagem do Contexto Resolver sem Contradições (Hierárquico)
   let contextText = "### CONHECIMENTO HIERÁRQUICO DA POUSADA ###\n";
   for (const node of nodes) {
@@ -151,6 +190,7 @@ export async function hybridGraphSearch(
     for (const edge of edges) {
       contextText += `- REGRA: "${edge.sourceContent}" [${edge.relationType}] "${edge.targetContent}" (Prioridade: ${edge.priorityWeight})\n`;
     }
+    contextText += "\n⚠️ NOTA DE DESEMPATE CORTÊS: A regra de maior prioridade/recência prevalece. Em solicitações especiais conflitantes, responda com gentileza informando a regra geral e ofereça consultar a recepção.";
   }
 
   return contextText;
