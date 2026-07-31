@@ -1,4 +1,5 @@
 import { llmRouter } from '@/lib/ai/llm-router';
+import { GoogleMapsService } from '@/lib/maps/google-maps-service';
 
 export interface ZellaSalesChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -64,6 +65,14 @@ export class ZellaSalesBrain {
       recommendedPlan = 'pro';
     }
 
+    // Checar se o usuário mencionou uma cidade conhecida para enriquecer com dicas locais
+    const cityKey = GoogleMapsService.normalizeCityKey(lowerMsg);
+    let locationTips = '';
+    if (cityKey !== 'default') {
+      const places = await GoogleMapsService.getNearbyPlaces(lowerMsg);
+      locationTips = GoogleMapsService.formatPlacesResponse(places, userMessage);
+    }
+
     try {
       const messagesForLlm = [
         { role: 'system' as const, content: SYSTEM_PROMPT_ZELLA_LANDING },
@@ -78,10 +87,13 @@ export class ZellaSalesBrain {
         model: 'general',
         messages: messagesForLlm,
         temperature: 0.3,
-        maxTokens: 250, // Respostas curtas e humanas!
+        maxTokens: 250,
       });
 
-      let reply = llmRes.content || 'Tô por aqui! Como posso te ajudar na sua pousada hoje?';
+      let reply = llmRes.content || 'Olá, meu amigo anfitrião! Sou o Seu Zélla! Tô por aqui pra te ajudar na sua hospedagem hoje!';
+      if (locationTips && !reply.includes('Dicas do Zé')) {
+        reply += locationTips;
+      }
 
       return {
         success: true,
@@ -95,9 +107,13 @@ export class ZellaSalesBrain {
       };
     } catch (error) {
       console.error('[ZellaSalesBrain] Erro ao processar IA de Vendas:', error);
+      let reply = 'Olá, meu amigo anfitrião! Sou o Seu Zélla! Tô por aqui pra te ajudar na sua hospedagem hoje!';
+      if (locationTips) {
+        reply += locationTips;
+      }
       return {
         success: true,
-        reply: 'Olá, meu amigo anfitrião! Sou o Seu Zélla! Tô por aqui pra te ajudar na sua hospedagem hoje!',
+        reply,
         recommendedPlan: recommendedPlan || 'pro',
         suggestedActions: ['Tenho 1 imóvel', 'Tenho uma pousada', 'Ver planos']
       };
