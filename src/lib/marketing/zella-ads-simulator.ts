@@ -1,11 +1,34 @@
 /**
  * SEUZÉLLA — MÓDULO DE INTELIGÊNCIA DE MARKETING & ESTRATÉGIA COMERCIAL (PLAYBOOK)
- * Aplicação contínua da campanha em TODOS OS HOTSPOTS DE ALTO FLUXO DO BRASIL durante os 90 dias (Setembro, Outubro, Novembro).
+ * Aplicação contínua da campanha em TODOS OS HOTSPOTS DE ALTO FLUXO DO BRASIL
+ * durante os 90 dias (Setembro, Outubro, Novembro 2026).
  *
  * REGRA ABSOLUTA DE MARKETING:
  * PROIBIDO o uso das palavras "IA", "Bot" ou "Inteligência Artificial".
  * Usar sempre: "Seu Zélla", "Zelador Virtual", "Recepcionista no WhatsApp 24h por dia", "Atendimento para Pousadas".
+ *
+ * ORÇAMENTO OFICIAL APROVADO PELO FUNDADOR:
+ * ┌──────────────────────────────────────────────────────────────────┐
+ * │  MÊS 1 — SETEMBRO 2026 (Total: R$ 2.200,00)                   │
+ * │    Semana 1: R$ 500  │ Semana 2: R$ 500                        │
+ * │    Semana 3: R$ 600  │ Semana 4: R$ 600                        │
+ * │                                                                 │
+ * │  MÊS 2 — OUTUBRO 2026 (Total: R$ 3.200,00)                    │
+ * │    Semana 1: R$ 600  │ Semana 2: R$ 600                        │
+ * │    Semana 3: R$ 1.000 │ Semana 4: R$ 1.000                     │
+ * │                                                                 │
+ * │  MÊS 3 — NOVEMBRO 2026 (Total: R$ 4.000,00) [+R$200/semana]   │
+ * │    Semana 1: R$ 800  │ Semana 2: R$ 800                        │
+ * │    Semana 3: R$ 1.200 │ Semana 4: R$ 1.200                     │
+ * │                                                                 │
+ * │  ══════════════════════════════════════════════                  │
+ * │  INVESTIMENTO TOTAL 90 DIAS: R$ 9.400,00                       │
+ * └──────────────────────────────────────────────────────────────────┘
  */
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TIPOS E INTERFACES
+// ═══════════════════════════════════════════════════════════════════════════
 
 export interface PermanentHotspotCluster {
   state: string;
@@ -17,22 +40,69 @@ export interface PermanentHotspotCluster {
 }
 
 export interface GoogleAdsKeywordCampaign {
+  groupId: number;
+  groupName: string;
   keyword: string;
   matchType: 'EXACT' | 'PHRASE' | 'BROAD';
-  intentCategory: 'HIGH_INTENTION' | 'PROBLEM_AWARE' | 'COMPETITOR';
+  intentCategory: 'HIGH_INTENTION' | 'PROBLEM_AWARE' | 'COMPETITOR' | 'REMARKETING';
   estimatedCPC: number;
   adCopyHeadline: string;
   adCopyDescription: string;
   targetLandingHook: string;
 }
 
+export interface WeeklyBudgetEntry {
+  weekNumber: number;       // 1 a 12
+  monthLabel: string;       // "Setembro", "Outubro", "Novembro"
+  monthNumber: number;      // 1, 2, 3
+  weeklyBudget: number;     // Valor em R$
+  estimatedClicks: number;
+  estimatedLeads: number;
+  estimatedSales: number;
+  estimatedMRR: number;
+}
+
+export interface MonthlyProjection {
+  month: string;
+  monthNumber: number;
+  totalBudget: number;
+  weeks: WeeklyBudgetEntry[];
+  totalClicks: number;
+  totalLeads: number;
+  landingConvRate: number;
+  salesConvRate: number;
+  totalSales: number;
+  mrrGenerated: number;
+  cumulativeMRR: number;    // MRR acumulado de TODOS os meses anteriores + este
+  cumulativeSales: number;
+}
+
+export interface CampaignFullProjection {
+  campaignName: string;
+  totalInvestment: number;
+  avgCPC: number;
+  totalClicks: number;
+  totalLeads: number;
+  totalSales: number;
+  finalCumulativeMRR: number;
+  roasRatio: number;
+  months: MonthlyProjection[];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SIMULADOR PRINCIPAL
+// ═══════════════════════════════════════════════════════════════════════════
+
 export class ZellaAdsSimulator {
+
+  // ─── HOTSPOTS PERMANENTES ────────────────────────────────────────────
+
   /**
-   * Mapeamento dos Hotspots Permanentes de Alto Fluxo Turístico no Brasil (Ativos em Set, Out e Nov 2026)
+   * Mapeamento dos Hotspots Permanentes de Alto Fluxo Turístico no Brasil
+   * ATIVOS EM TODOS OS MESES: Setembro, Outubro e Novembro 2026
    */
   static getPermanentHotspotClusters(): PermanentHotspotCluster[] {
     return [
-      // 1. Santa Catarina
       {
         state: 'SC',
         regionName: 'Litoral Catarinense & Capital',
@@ -41,7 +111,6 @@ export class ZellaAdsSimulator {
         primaryPain: 'Gestão remota de chalés/pousadas e fornecimento instantâneo de chave PIX do anfitrião.',
         salesPitchAngle: 'Atendimento humanizado 24h no WhatsApp para praias de SC sem perda de reservas de fim de semana.',
       },
-      // 2. Paraná
       {
         state: 'PR',
         regionName: 'Ilha do Mel & Litoral Paranaense',
@@ -50,7 +119,6 @@ export class ZellaAdsSimulator {
         primaryPain: 'Dúvidas de travessia de barco, horários de check-in e atendimento fora do horário comercial.',
         salesPitchAngle: 'Responda dúvidas de passeios e travessia 24h por dia e garanta a reserva do hóspede no ato.',
       },
-      // 3. São Paulo (Litoral Norte & Baixada Santista)
       {
         state: 'SP',
         regionName: 'Litoral Norte SP & Baixada Santista',
@@ -59,7 +127,6 @@ export class ZellaAdsSimulator {
         primaryPain: 'Perda massiva de reservas no WhatsApp durante as sextas-feiras e madrugadas pré-feriado.',
         salesPitchAngle: 'Recepção 24h no WhatsApp com tom acolhedor para a maior concentração de turistas de SP.',
       },
-      // 4. Rio de Janeiro
       {
         state: 'RJ',
         regionName: 'Região dos Lagos & Costa Verde',
@@ -68,16 +135,14 @@ export class ZellaAdsSimulator {
         primaryPain: 'Concorrência acirrada entre pousadas e necessidade de fechamento rápido antes que o hóspede chame outra.',
         salesPitchAngle: 'Atendimento instantâneo de reservas no WhatsApp para não dar margem para a concorrência.',
       },
-      // 5. Bahia
       {
         state: 'BA',
         regionName: 'Costa do Descobrimento & Litoral Baiano',
-        hotspots: ['Porto Seguro', 'Trancoso', 'Arraial d’Ajuda', 'Itacaré', 'Morro de São Paulo', 'Costa do Sauípe'],
+        hotspots: ['Porto Seguro', 'Trancoso', 'Arraial d\'Ajuda', 'Itacaré', 'Morro de São Paulo', 'Costa do Sauípe'],
         propertyFocus: 'POUSADAS_DOMINANTE',
         primaryPain: 'Atendimento a turistas de todo o Brasil e envio de dados de pagamento e confirmação.',
         salesPitchAngle: 'O zelador virtual da sua pousada na Bahia: recepção calorosa e confirmação de reserva 24 horas por dia.',
       },
-      // 6. Alagoas / Pernambuco / Ceará
       {
         state: 'AL_PE_CE',
         regionName: 'Rota das Emoções & Caribe Brasileiro',
@@ -89,76 +154,19 @@ export class ZellaAdsSimulator {
     ];
   }
 
-  /**
-   * Campanhas de Anúncios Direcionadas nos Hotspots — CAMPANHA A (Base: R$ 1.000/semana)
-   * Zero palavras proibidas!
-   */
-  static getGoogleAdsCampaignsA(): GoogleAdsKeywordCampaign[] {
-    return [
-      {
-        keyword: 'automação whatsapp pousada',
-        matchType: 'PHRASE',
-        intentCategory: 'HIGH_INTENTION',
-        estimatedCPC: 3.80,
-        adCopyHeadline: 'Recepcionista no WhatsApp 24h por dia para Pousadas | Seu Zélla',
-        adCopyDescription: 'Responda hóspedes em segundos com tom de voz humano, forneça a chave PIX do anfitrião e evite overbooking.',
-        targetLandingHook: 'Cansado de perder reservas de madrugada no WhatsApp da sua pousada?',
-      },
-      {
-        keyword: 'atendimento whatsapp para airbnb',
-        matchType: 'PHRASE',
-        intentCategory: 'HIGH_INTENTION',
-        estimatedCPC: 3.20,
-        adCopyHeadline: 'Atendimento Automático para Airbnb | Seu Zélla',
-        adCopyDescription: 'O Zelador Virtual que envia senha de fechadura eletrônica e atende seus hóspedes 24 horas por dia.',
-        targetLandingHook: 'Transforme o WhatsApp do seu imóvel de temporada numa máquina de reservas.',
-      },
-      {
-        keyword: 'sistema atendimento pousada whatsapp',
-        matchType: 'EXACT',
-        intentCategory: 'HIGH_INTENTION',
-        estimatedCPC: 4.50,
-        adCopyHeadline: 'Sistema de Atendimento para Pousadas | Seu Zélla',
-        adCopyDescription: 'Plano PRO ideal para 6 a 12 quartos por R$ 397/mês. Experimente o Seu Zélla ao vivo.',
-        targetLandingHook: 'Conheça o Seu Zélla: o zelador da sua pousada 24h por dia.',
-      },
-      {
-        keyword: 'como responder hospedes rapido no whatsapp',
-        matchType: 'PHRASE',
-        intentCategory: 'PROBLEM_AWARE',
-        estimatedCPC: 2.10,
-        adCopyHeadline: 'Nunca Mais Perca uma Reserva de Madrugada',
-        adCopyDescription: 'Deixe o Seu Zélla responder dúvidas de check-in, localização e chave PIX do anfitrião com educação.',
-        targetLandingHook: 'Atendimento instantâneo para hóspedes sem você precisar encostar no celular.',
-      },
-    ];
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CAMPANHA B — ORÇAMENTO REFORÇADO: R$ 1.200/semana (+ R$ 200/semana)
-  // Todos os Hotspots Permanentes Ativos em Set, Out e Nov 2026
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── 8 GRUPOS DE ANÚNCIOS SEGMENTADOS POR DOR ───────────────────────
 
   /**
-   * Campanha B: 8 Grupos de Anúncios Segmentados por Dor do Anfitrião + Remarketing
-   * Investimento: R$ 1.200/semana x 12 semanas = R$ 14.400 em 90 dias
-   *
-   * ESTRUTURA DA CAMPANHA B:
-   * ┌────────────────────────────────────────────────────────────────────┐
-   * │  GRUPO 1: Dor da Madrugada (Pousadas que perdem reservas à noite)│
-   * │  GRUPO 2: Dor da Distância (Airbnb gerido a distância)           │
-   * │  GRUPO 3: Dor do Overbooking (Pousadas sem controle de quartos)  │
-   * │  GRUPO 4: Dor do PIX Manual (Demora no envio de dados de pgto)   │
-   * │  GRUPO 5: Dor da Concorrência (Hóspede vai pra outra pousada)    │
-   * │  GRUPO 6: Dor do Feriado (Explosão de msgs em feriados longos)   │
-   * │  GRUPO 7: Dor da Fechadura (Check-in sem recepção presencial)    │
-   * │  GRUPO 8: Remarketing (Retargeting de quem visitou a landing)    │
-   * └────────────────────────────────────────────────────────────────────┘
+   * 8 Grupos de Anúncios — Cada grupo ataca UMA DOR ESPECÍFICA do anfitrião/dono de pousada.
+   * Ativos em TODOS os Hotspots Permanentes durante TODOS os 3 meses.
+   * ZERO palavras proibidas (IA, Bot, Inteligência Artificial).
    */
-  static getGoogleAdsCampaignsB(): GoogleAdsKeywordCampaign[] {
+  static getGoogleAdsCampaigns(): GoogleAdsKeywordCampaign[] {
     return [
       // ── GRUPO 1: Dor da Madrugada ──
       {
+        groupId: 1,
+        groupName: 'Dor da Madrugada',
         keyword: 'perder reservas madrugada pousada',
         matchType: 'PHRASE',
         intentCategory: 'PROBLEM_AWARE',
@@ -169,6 +177,8 @@ export class ZellaAdsSimulator {
       },
       // ── GRUPO 2: Dor da Distância (Airbnb) ──
       {
+        groupId: 2,
+        groupName: 'Dor da Distância (Airbnb)',
         keyword: 'gerenciar airbnb a distância whatsapp',
         matchType: 'PHRASE',
         intentCategory: 'HIGH_INTENTION',
@@ -179,6 +189,8 @@ export class ZellaAdsSimulator {
       },
       // ── GRUPO 3: Dor do Overbooking ──
       {
+        groupId: 3,
+        groupName: 'Dor do Overbooking',
         keyword: 'evitar overbooking pousada',
         matchType: 'EXACT',
         intentCategory: 'HIGH_INTENTION',
@@ -189,6 +201,8 @@ export class ZellaAdsSimulator {
       },
       // ── GRUPO 4: Dor do PIX Manual ──
       {
+        groupId: 4,
+        groupName: 'Dor do PIX Manual',
         keyword: 'enviar pix automatico hospede pousada',
         matchType: 'PHRASE',
         intentCategory: 'HIGH_INTENTION',
@@ -199,6 +213,8 @@ export class ZellaAdsSimulator {
       },
       // ── GRUPO 5: Dor da Concorrência ──
       {
+        groupId: 5,
+        groupName: 'Dor da Concorrência',
         keyword: 'responder hospede antes da concorrência',
         matchType: 'PHRASE',
         intentCategory: 'PROBLEM_AWARE',
@@ -209,6 +225,8 @@ export class ZellaAdsSimulator {
       },
       // ── GRUPO 6: Dor do Feriado Prolongado ──
       {
+        groupId: 6,
+        groupName: 'Dor do Feriado Prolongado',
         keyword: 'atendimento pousada feriado prolongado',
         matchType: 'PHRASE',
         intentCategory: 'HIGH_INTENTION',
@@ -219,6 +237,8 @@ export class ZellaAdsSimulator {
       },
       // ── GRUPO 7: Dor da Fechadura / Check-in Remoto ──
       {
+        groupId: 7,
+        groupName: 'Dor da Fechadura / Check-in Remoto',
         keyword: 'check-in remoto pousada fechadura eletrônica',
         matchType: 'PHRASE',
         intentCategory: 'HIGH_INTENTION',
@@ -227,11 +247,13 @@ export class ZellaAdsSimulator {
         adCopyDescription: 'O Seu Zélla envia a senha da fechadura eletrônica no horário certo do check-in. Sem atrasos, sem stress.',
         targetLandingHook: 'Hóspede chegou de madrugada? Senha enviada automaticamente. Zero problemas.',
       },
-      // ── GRUPO 8: Remarketing (Retargeting de visitantes da Landing Page) ──
+      // ── GRUPO 8: Remarketing ──
       {
+        groupId: 8,
+        groupName: 'Remarketing (Retargeting Landing Page)',
         keyword: 'remarketing_visitantes_landing_seuzella',
         matchType: 'BROAD',
-        intentCategory: 'COMPETITOR',
+        intentCategory: 'REMARKETING',
         estimatedCPC: 1.50,
         adCopyHeadline: 'Ainda Pensando? Veja o Seu Zélla em Ação Ao Vivo',
         adCopyDescription: 'Você visitou o SeuZélla.com e não fechou. Veja agora uma demonstração ao vivo no WhatsApp da sua pousada.',
@@ -240,10 +262,12 @@ export class ZellaAdsSimulator {
     ];
   }
 
+  // ─── EXTENSÕES DE SITELINK ──────────────────────────────────────────
+
   /**
-   * Extensões de Sitelink da Campanha B (aparecem abaixo do anúncio no Google)
+   * Extensões de Sitelink (aparecem abaixo do anúncio principal no Google)
    */
-  static getCampaignBSitelinks(): Array<{ title: string; description: string; url: string }> {
+  static getSitelinks(): Array<{ title: string; description: string; url: string }> {
     return [
       { title: 'Planos e Preços', description: 'A partir de R$ 197/mês. Veja qual plano é ideal pro seu tamanho.', url: '/planos' },
       { title: 'Teste ao Vivo no WhatsApp', description: 'Mande uma mensagem agora e veja o Seu Zélla responder em segundos.', url: '/demo-whatsapp' },
@@ -252,186 +276,149 @@ export class ZellaAdsSimulator {
     ];
   }
 
+  // ─── ORÇAMENTO SEMANAL OFICIAL (12 SEMANAS) ─────────────────────────
+
   /**
-   * Distribuição Semanal do Orçamento da Campanha B (R$ 1.200/semana x 12 semanas)
-   *
-   * ESTRATÉGIA DE ALOCAÇÃO POR GRUPO:
-   * - 30% → Grupos de Alta Intenção (Overbooking, Fechadura, Feriado) = R$ 360/sem
-   * - 30% → Grupos de Dor Principal (Madrugada, PIX, Concorrência) = R$ 360/sem
-   * - 25% → Grupos de Airbnb/Temporada (Distância, Remarketing) = R$ 300/sem
-   * - 15% → Remarketing puro (Retargeting de visitantes) = R$ 180/sem
+   * Roadmap Semanal OFICIAL — Aprovado pelo Fundador
+   * Retorna as 12 semanas com valor exato de investimento.
    */
-  static getCampaignBWeeklyBudgetAllocation(): Array<{
-    groupName: string;
-    weeklyBudget: number;
-    percentOfTotal: number;
-    targetGroups: string[];
-  }> {
+  static getOfficialWeeklyBudgetRoadmap(): Array<{ week: number; month: string; monthNumber: number; budget: number }> {
     return [
-      {
-        groupName: 'Alta Intenção (Overbooking + Fechadura + Feriado)',
-        weeklyBudget: 360,
-        percentOfTotal: 30,
-        targetGroups: ['Grupo 3: Overbooking', 'Grupo 7: Fechadura', 'Grupo 6: Feriado'],
-      },
-      {
-        groupName: 'Dor Principal (Madrugada + PIX + Concorrência)',
-        weeklyBudget: 360,
-        percentOfTotal: 30,
-        targetGroups: ['Grupo 1: Madrugada', 'Grupo 4: PIX Manual', 'Grupo 5: Concorrência'],
-      },
-      {
-        groupName: 'Airbnb & Temporada (Distância + Captação)',
-        weeklyBudget: 300,
-        percentOfTotal: 25,
-        targetGroups: ['Grupo 2: Distância Airbnb', 'Grupo 8: Remarketing'],
-      },
-      {
-        groupName: 'Remarketing Puro (Retargeting Landing Page)',
-        weeklyBudget: 180,
-        percentOfTotal: 15,
-        targetGroups: ['Grupo 8: Remarketing'],
-      },
+      // ── MÊS 1: SETEMBRO 2026 (R$ 2.200) ──
+      { week: 1,  month: 'Setembro', monthNumber: 1, budget: 500 },
+      { week: 2,  month: 'Setembro', monthNumber: 1, budget: 500 },
+      { week: 3,  month: 'Setembro', monthNumber: 1, budget: 600 },
+      { week: 4,  month: 'Setembro', monthNumber: 1, budget: 600 },
+      // ── MÊS 2: OUTUBRO 2026 (R$ 3.200) ──
+      { week: 5,  month: 'Outubro',  monthNumber: 2, budget: 600 },
+      { week: 6,  month: 'Outubro',  monthNumber: 2, budget: 600 },
+      { week: 7,  month: 'Outubro',  monthNumber: 2, budget: 1000 },
+      { week: 8,  month: 'Outubro',  monthNumber: 2, budget: 1000 },
+      // ── MÊS 3: NOVEMBRO 2026 (R$ 4.000) [+R$ 200/semana vs Outubro] ──
+      { week: 9,  month: 'Novembro', monthNumber: 3, budget: 800 },
+      { week: 10, month: 'Novembro', monthNumber: 3, budget: 800 },
+      { week: 11, month: 'Novembro', monthNumber: 3, budget: 1200 },
+      { week: 12, month: 'Novembro', monthNumber: 3, budget: 1200 },
     ];
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SIMULAÇÕES DE INVESTIMENTO: CAMPANHA A vs. CAMPANHA B
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── PROJEÇÃO COMPLETA DE 90 DIAS ───────────────────────────────────
 
   /**
-   * Simulação CAMPANHA A — R$ 1.000/semana x 12 semanas = R$ 12.000 em 90 dias
-   */
-  static calculate90DaysCampaignA(): {
-    campaignName: string;
-    weeklyBudget: number;
-    totalInvestment: number;
-    avgCPC: number;
-    totalClicks: number;
-    landingConvRate: number;
-    totalLeads: number;
-    salesConvRate: number;
-    totalClosedSalesPRO: number;
-    ticketMensal: number;
-    monthlyMRRGenerated: number;
-    roasRatio: number;
-  } {
-    const weeklyBudget = 1000;
-    const totalInvestment = weeklyBudget * 12;
-    const avgCPC = 3.50;
-    const totalClicks = Math.floor(totalInvestment / avgCPC);
-    const landingConvRate = 0.15;
-    const totalLeads = Math.floor(totalClicks * landingConvRate);
-    const salesConvRate = 0.22;
-    const totalClosedSalesPRO = Math.floor(totalLeads * salesConvRate);
-    const ticketMensal = 397;
-    const monthlyMRRGenerated = totalClosedSalesPRO * ticketMensal;
-    const roasRatio = parseFloat((monthlyMRRGenerated / totalInvestment).toFixed(2));
-
-    return {
-      campaignName: 'CAMPANHA A — Base Hotspots Contínuos',
-      weeklyBudget,
-      totalInvestment,
-      avgCPC,
-      totalClicks,
-      landingConvRate,
-      totalLeads,
-      salesConvRate,
-      totalClosedSalesPRO,
-      ticketMensal,
-      monthlyMRRGenerated,
-      roasRatio,
-    };
-  }
-
-  /**
-   * Simulação CAMPANHA B — R$ 1.200/semana x 12 semanas = R$ 14.400 em 90 dias
+   * Projeção Completa de 90 Dias — Semana a Semana, Mês a Mês
    *
-   * HIPÓTESE DO AUMENTO DE +R$ 200/SEMANA:
-   * → CPC médio cai ligeiramente (de R$ 3,50 para R$ 3,30) porque o remarketing (CPC R$ 1,50) puxa a média para baixo.
-   * → Conversão da Landing Page sobe de 15% para 17% porque o remarketing traz visitantes já aquecidos.
-   * → Taxa de fechamento sobe de 22% para 24% porque os anúncios segmentados por dor específica
-   *   geram leads mais qualificados (quem busca "evitar overbooking" já sabe que TEM o problema).
+   * PREMISSAS POR MÊS:
+   * ┌─────────────┬───────────┬──────────────────┬──────────────────┬──────────────────────────────────────────────┐
+   * │ MÊS         │ CPC MÉDIO │ CONV. LANDING    │ CONV. VENDAS     │ JUSTIFICATIVA                                │
+   * ├─────────────┼───────────┼──────────────────┼──────────────────┼──────────────────────────────────────────────┤
+   * │ Setembro    │ R$ 3,50   │ 14%              │ 20%              │ Mês de entrada: construindo audiência,       │
+   * │             │           │                  │                  │ landing nova, sem remarketing ainda.          │
+   * ├─────────────┼───────────┼──────────────────┼──────────────────┼──────────────────────────────────────────────┤
+   * │ Outubro     │ R$ 3,30   │ 16%              │ 22%              │ Remarketing ativo (CPC R$1,50 puxa média     │
+   * │             │           │                  │                  │ pra baixo), leads mais aquecidos.             │
+   * ├─────────────┼───────────┼──────────────────┼──────────────────┼──────────────────────────────────────────────┤
+   * │ Novembro    │ R$ 3,10   │ 18%              │ 25%              │ Pré-alta temporada (urgência do anfitrião),   │
+   * │             │           │                  │                  │ remarketing maduro, segmentação por dor       │
+   * │             │           │                  │                  │ qualifica mais, +R$ 200/sem amplifica tudo.   │
+   * └─────────────┴───────────┴──────────────────┴──────────────────┴──────────────────────────────────────────────┘
    */
-  static calculate90DaysCampaignB(): {
-    campaignName: string;
-    weeklyBudget: number;
-    totalInvestment: number;
-    avgCPC: number;
-    totalClicks: number;
-    landingConvRate: number;
-    totalLeads: number;
-    salesConvRate: number;
-    totalClosedSalesPRO: number;
-    ticketMensal: number;
-    monthlyMRRGenerated: number;
-    roasRatio: number;
-    incrementalVsCampaignA: {
-      extraInvestment: number;
-      extraClicks: number;
-      extraLeads: number;
-      extraSales: number;
-      extraMRR: number;
-    };
-  } {
-    const weeklyBudget = 1200;
-    const totalInvestment = weeklyBudget * 12; // R$ 14.400
-    const avgCPC = 3.30; // CPC menor graças ao remarketing (CPC R$1,50) puxando a média
-    const totalClicks = Math.floor(totalInvestment / avgCPC); // ~4.363 cliques
-    const landingConvRate = 0.17; // 17% conversão (remarketing traz leads já aquecidos)
-    const totalLeads = Math.floor(totalClicks * landingConvRate); // ~741 leads
-    const salesConvRate = 0.24; // 24% fechamento (anúncios segmentados por dor = lead mais qualificado)
-    const totalClosedSalesPRO = Math.floor(totalLeads * salesConvRate); // ~177 vendas
-    const ticketMensal = 397;
-    const monthlyMRRGenerated = totalClosedSalesPRO * ticketMensal; // R$ 70.269/mês MRR
-    const roasRatio = parseFloat((monthlyMRRGenerated / totalInvestment).toFixed(2));
+  static calculate90DaysFullProjection(): CampaignFullProjection {
+    const roadmap = ZellaAdsSimulator.getOfficialWeeklyBudgetRoadmap();
+    const ticketPRO = 397;
 
-    // Comparação incremental com Campanha A
-    const campA = ZellaAdsSimulator.calculate90DaysCampaignA();
+    // Premissas por mês
+    const monthParams: Record<number, { cpc: number; landingConv: number; salesConv: number }> = {
+      1: { cpc: 3.50, landingConv: 0.14, salesConv: 0.20 },  // Setembro
+      2: { cpc: 3.30, landingConv: 0.16, salesConv: 0.22 },  // Outubro
+      3: { cpc: 3.10, landingConv: 0.18, salesConv: 0.25 },  // Novembro (+R$200/sem)
+    };
+
+    // Calcular semana a semana
+    const weeklyEntries: WeeklyBudgetEntry[] = roadmap.map(w => {
+      const params = monthParams[w.monthNumber];
+      const clicks = Math.floor(w.budget / params.cpc);
+      const leads = Math.floor(clicks * params.landingConv);
+      const sales = Math.floor(leads * params.salesConv);
+      const mrr = sales * ticketPRO;
+
+      return {
+        weekNumber: w.week,
+        monthLabel: w.month,
+        monthNumber: w.monthNumber,
+        weeklyBudget: w.budget,
+        estimatedClicks: clicks,
+        estimatedLeads: leads,
+        estimatedSales: sales,
+        estimatedMRR: mrr,
+      };
+    });
+
+    // Agrupar por mês
+    let cumulativeSales = 0;
+    let cumulativeMRR = 0;
+
+    const months: MonthlyProjection[] = [1, 2, 3].map(mn => {
+      const monthLabel = mn === 1 ? 'Setembro 2026' : mn === 2 ? 'Outubro 2026' : 'Novembro 2026';
+      const weeks = weeklyEntries.filter(w => w.monthNumber === mn);
+      const totalBudget = weeks.reduce((s, w) => s + w.weeklyBudget, 0);
+      const totalClicks = weeks.reduce((s, w) => s + w.estimatedClicks, 0);
+      const totalLeads = weeks.reduce((s, w) => s + w.estimatedLeads, 0);
+      const totalSales = weeks.reduce((s, w) => s + w.estimatedSales, 0);
+      const mrrGenerated = totalSales * ticketPRO;
+
+      cumulativeSales += totalSales;
+      cumulativeMRR += mrrGenerated;
+
+      return {
+        month: monthLabel,
+        monthNumber: mn,
+        totalBudget,
+        weeks,
+        totalClicks,
+        totalLeads,
+        landingConvRate: monthParams[mn].landingConv,
+        salesConvRate: monthParams[mn].salesConv,
+        totalSales,
+        mrrGenerated,
+        cumulativeMRR,
+        cumulativeSales,
+      };
+    });
+
+    const totalInvestment = months.reduce((s, m) => s + m.totalBudget, 0);
+    const totalClicks = months.reduce((s, m) => s + m.totalClicks, 0);
+    const totalLeads = months.reduce((s, m) => s + m.totalLeads, 0);
+    const totalSales = months.reduce((s, m) => s + m.totalSales, 0);
+    const avgCPC = parseFloat((totalInvestment / totalClicks).toFixed(2));
+    const roasRatio = parseFloat((cumulativeMRR / totalInvestment).toFixed(2));
 
     return {
-      campaignName: 'CAMPANHA B — Hotspots + Segmentação por Dor + Remarketing',
-      weeklyBudget,
+      campaignName: 'CAMPANHA HOTSPOTS PERMANENTES — 90 Dias (Set/Out/Nov 2026)',
       totalInvestment,
       avgCPC,
       totalClicks,
-      landingConvRate,
       totalLeads,
-      salesConvRate,
-      totalClosedSalesPRO,
-      ticketMensal,
-      monthlyMRRGenerated,
+      totalSales,
+      finalCumulativeMRR: cumulativeMRR,
       roasRatio,
-      incrementalVsCampaignA: {
-        extraInvestment: totalInvestment - campA.totalInvestment,
-        extraClicks: totalClicks - campA.totalClicks,
-        extraLeads: totalLeads - campA.totalLeads,
-        extraSales: totalClosedSalesPRO - campA.totalClosedSalesPRO,
-        extraMRR: monthlyMRRGenerated - campA.monthlyMRRGenerated,
-      },
+      months,
     };
   }
 
+  // ─── MÉTODO LEGADO (compatibilidade com testes antigos) ─────────────
+
   /**
-   * Método legado — mantido para compatibilidade com testes existentes.
-   * Redireciona para calculate90DaysCampaignA().
+   * Mantido para não quebrar os testes existentes.
    */
   static calculate90DaysContinuousHotspotCampaign() {
-    const a = ZellaAdsSimulator.calculate90DaysCampaignA();
+    const full = ZellaAdsSimulator.calculate90DaysFullProjection();
     return {
-      totalInvestment: a.totalInvestment,
-      totalClicks: a.totalClicks,
-      totalLeads: a.totalLeads,
-      totalClosedSalesPRO: a.totalClosedSalesPRO,
-      monthlyMRRGenerated: a.monthlyMRRGenerated,
-      roasRatio: a.roasRatio,
+      totalInvestment: full.totalInvestment,
+      totalClicks: full.totalClicks,
+      totalLeads: full.totalLeads,
+      totalClosedSalesPRO: full.totalSales,
+      monthlyMRRGenerated: full.finalCumulativeMRR,
+      roasRatio: full.roasRatio,
     };
-  }
-
-  /**
-   * Método legado — mantido para compatibilidade com testes existentes.
-   */
-  static getGoogleAdsCampaigns(): GoogleAdsKeywordCampaign[] {
-    return ZellaAdsSimulator.getGoogleAdsCampaignsA();
   }
 }
