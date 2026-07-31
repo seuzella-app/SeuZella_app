@@ -81,7 +81,7 @@ def optimize(tenant_id):
     compiled_payload = {
         "tenant_id": tenant_id,
         "version": "v3",
-        "instructions": "Gera uma resposta acolhedora, persuasiva e clara para fechar a reserva do hóspede na pousada. Evite repetições e encerre sempre com uma pergunta engajadora.",
+        "instructions": "Gera uma resposta acolhedora e clara para o hóspede, fornecendo a chave PIX da pousada/anfitrião para pagamento. Evite repetições e encerre sempre com uma pergunta engajadora.",
         "signature": "ZellaGuestResponse",
         "metric_score": 0.95,
         "compiled_at": "2026-07-31T12:00:00Z"

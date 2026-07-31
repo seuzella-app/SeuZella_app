@@ -56,7 +56,7 @@ export async function checkAndOptimizePrompts(tenantId: string): Promise<BrainHe
       const compiledPayload = {
         tenant_id: tenantId,
         version: 'v3',
-        instructions: `Gera uma resposta acolhedora, persuasiva e clara para fechar a reserva do hóspede na pousada. Evite repetições e encerre sempre com uma pergunta engajadora.`,
+        instructions: `Gera uma resposta acolhedora e clara para o hóspede, fornecendo a chave PIX da pousada/anfitrião para o hóspede realizar o pagamento. Evite repetições e encerre sempre com uma pergunta engajadora.`,
         metric_score: 0.95,
         compiled_at: new Date().toISOString(),
       };
