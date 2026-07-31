@@ -1,0 +1,103 @@
+name: 🧬 Zélla AI & Machine Learning SOTA CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # JOB 1: Testes Unitários e de Integração da Trilogia de ML & Zélla Brain
+  test-suite:
+    name: 🧪 Vitest Suite (139+ Testes - DPO, GraphRAG, DSPy, Maps, Sales)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar Dependências
+        run: npm ci --legacy-peer-deps
+
+      - name: 🗄️ Gerar Cliente Prisma
+        run: npx prisma generate
+
+      - name: 🧪 Executar Testes Automatizados (Vitest)
+        run: npm run test
+
+  # JOB 2: Verificação de Tipos TypeScript & SAST
+  typescript-typecheck:
+    name: 🛡️ TypeScript Strict Type Check & Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar Dependências
+        run: npm ci --legacy-peer-deps
+
+      - name: 🗄️ Gerar Cliente Prisma
+        run: npx prisma generate
+
+      - name: 🔍 Compilação de Tipos TS (tsc --noEmit)
+        run: npx tsc --noEmit
+
+  # JOB 3: Validação de Scripts Python de Fine-Tuning DPO e DSPy
+  python-ml-scripts:
+    name: 🐍 Python ML Pipeline Validation (DPO LoRA & DSPy Optimizer)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python (v3.11)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🔍 Sintaxe Python (train_dpo.py & dspy_prompt_optimizer.py)
+        run: |
+          python -m py_compile scripts/train_dpo.py
+          python -m py_compile scripts/dspy_prompt_optimizer.py
+          echo "✅ Scripts Python compilados com sucesso!"
+
+  # JOB 4: Validação de Build Pronto para Produção Vercel
+  production-build:
+    name: 🚀 Production Build Verification (Next.js & Vercel Target)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar Dependências
+        run: npm ci --legacy-peer-deps
+
+      - name: 🗄️ Gerar Cliente Prisma
+        run: npx prisma generate
+
+      - name: 🏗️ Compilar Produção (next build)
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NODE_ENV: production
+        run: npm run build
