@@ -421,4 +421,155 @@ export class ZellaAdsSimulator {
       roasRatio: full.roasRatio,
     };
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROJEÇÃO DE FECHAMENTO DE 2026 (SET → DEZ) COM CHURN MENSAL
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Projeção de Fechamento de 2026 — Setembro a Dezembro
+   *
+   * DEZEMBRO: Alta Temporada (+R$ 200/semana seguindo o padrão progressivo)
+   * ┌──────────────────────────────────────────────────────────────────┐
+   * │  DEZEMBRO 2026 (Total: R$ 4.800,00) [+R$ 200/semana vs Nov]    │
+   * │    Semana 13: R$ 1.000  │ Semana 14: R$ 1.000                  │
+   * │    Semana 15: R$ 1.400  │ Semana 16: R$ 1.400                  │
+   * └──────────────────────────────────────────────────────────────────┘
+   *
+   * PREMISSAS DE DEZEMBRO:
+   * → CPC sobe para R$ 3,40 (competição de anúncios de fim de ano)
+   * → Conversão Landing sobe para 20% (urgência MÁXIMA: Réveillon em 3 semanas)
+   * → Conversão Vendas sobe para 28% (dono de pousada PRECISA automatizar antes do pico)
+   *
+   * CHURN MENSAL: 5% (padrão SaaS B2B hoteleiro)
+   * → A cada mês, 5% dos clientes existentes cancelam.
+   * → Novos clientes se somam aos retidos.
+   */
+  static calculate2026ClosingProjection(): {
+    totalInvestment: number;
+    totalNewSalesAllMonths: number;
+    monthlyBreakdown: Array<{
+      month: string;
+      budget: number;
+      weeks: Array<{ week: number; budget: number; clicks: number; leads: number; sales: number }>;
+      cpc: number;
+      landingConvRate: number;
+      salesConvRate: number;
+      newSalesThisMonth: number;
+      retainedFromPrevious: number;
+      churnedThisMonth: number;
+      activePayingClients: number;
+      mrrThisMonth: number;
+    }>;
+    closing2026: {
+      activePayingClients: number;
+      mrr: number;
+      arr: number;
+      totalInvested: number;
+      roasOnMRR: number;
+    };
+  } {
+    const ticketPRO = 397;
+    const churnRate = 0.05; // 5% mensal
+
+    // Parâmetros por mês (1=Set, 2=Out, 3=Nov, 4=Dez)
+    const params: Record<number, { cpc: number; landingConv: number; salesConv: number }> = {
+      1: { cpc: 3.50, landingConv: 0.14, salesConv: 0.20 },
+      2: { cpc: 3.30, landingConv: 0.16, salesConv: 0.22 },
+      3: { cpc: 3.10, landingConv: 0.18, salesConv: 0.25 },
+      4: { cpc: 3.40, landingConv: 0.20, salesConv: 0.28 },
+    };
+
+    // Orçamento semanal completo (16 semanas: Set a Dez)
+    const fullRoadmap = [
+      // Set
+      { week: 1,  monthNum: 1, month: 'Setembro 2026', budget: 500 },
+      { week: 2,  monthNum: 1, month: 'Setembro 2026', budget: 500 },
+      { week: 3,  monthNum: 1, month: 'Setembro 2026', budget: 600 },
+      { week: 4,  monthNum: 1, month: 'Setembro 2026', budget: 600 },
+      // Out
+      { week: 5,  monthNum: 2, month: 'Outubro 2026', budget: 600 },
+      { week: 6,  monthNum: 2, month: 'Outubro 2026', budget: 600 },
+      { week: 7,  monthNum: 2, month: 'Outubro 2026', budget: 1000 },
+      { week: 8,  monthNum: 2, month: 'Outubro 2026', budget: 1000 },
+      // Nov (+R$200/sem)
+      { week: 9,  monthNum: 3, month: 'Novembro 2026', budget: 800 },
+      { week: 10, monthNum: 3, month: 'Novembro 2026', budget: 800 },
+      { week: 11, monthNum: 3, month: 'Novembro 2026', budget: 1200 },
+      { week: 12, monthNum: 3, month: 'Novembro 2026', budget: 1200 },
+      // Dez (+R$200/sem) — ALTA TEMPORADA
+      { week: 13, monthNum: 4, month: 'Dezembro 2026', budget: 1000 },
+      { week: 14, monthNum: 4, month: 'Dezembro 2026', budget: 1000 },
+      { week: 15, monthNum: 4, month: 'Dezembro 2026', budget: 1400 },
+      { week: 16, monthNum: 4, month: 'Dezembro 2026', budget: 1400 },
+    ];
+
+    let previousActiveClients = 0;
+    const monthlyBreakdown: Array<{
+      month: string;
+      budget: number;
+      weeks: Array<{ week: number; budget: number; clicks: number; leads: number; sales: number }>;
+      cpc: number;
+      landingConvRate: number;
+      salesConvRate: number;
+      newSalesThisMonth: number;
+      retainedFromPrevious: number;
+      churnedThisMonth: number;
+      activePayingClients: number;
+      mrrThisMonth: number;
+    }>  = [];
+
+    for (let mn = 1; mn <= 4; mn++) {
+      const p = params[mn];
+      const monthWeeks = fullRoadmap.filter(w => w.monthNum === mn);
+      const monthLabel = monthWeeks[0].month;
+      const budget = monthWeeks.reduce((s, w) => s + w.budget, 0);
+
+      const weeks = monthWeeks.map(w => {
+        const clicks = Math.floor(w.budget / p.cpc);
+        const leads = Math.floor(clicks * p.landingConv);
+        const sales = Math.floor(leads * p.salesConv);
+        return { week: w.week, budget: w.budget, clicks, leads, sales };
+      });
+
+      const newSales = weeks.reduce((s, w) => s + w.sales, 0);
+      const retained = Math.floor(previousActiveClients * (1 - churnRate));
+      const churned = previousActiveClients - retained;
+      const activeClients = retained + newSales;
+      const mrr = activeClients * ticketPRO;
+
+      monthlyBreakdown.push({
+        month: monthLabel,
+        budget,
+        weeks,
+        cpc: p.cpc,
+        landingConvRate: p.landingConv,
+        salesConvRate: p.salesConv,
+        newSalesThisMonth: newSales,
+        retainedFromPrevious: retained,
+        churnedThisMonth: churned,
+        activePayingClients: activeClients,
+        mrrThisMonth: mrr,
+      });
+
+      previousActiveClients = activeClients;
+    }
+
+    const totalInvestment = fullRoadmap.reduce((s, w) => s + w.budget, 0);
+    const totalNewSales = monthlyBreakdown.reduce((s, m) => s + m.newSalesThisMonth, 0);
+    const finalMonth = monthlyBreakdown[monthlyBreakdown.length - 1];
+
+    return {
+      totalInvestment,
+      totalNewSalesAllMonths: totalNewSales,
+      monthlyBreakdown,
+      closing2026: {
+        activePayingClients: finalMonth.activePayingClients,
+        mrr: finalMonth.mrrThisMonth,
+        arr: finalMonth.mrrThisMonth * 12,
+        totalInvested: totalInvestment,
+        roasOnMRR: parseFloat((finalMonth.mrrThisMonth / totalInvestment).toFixed(2)),
+      },
+    };
+  }
 }
