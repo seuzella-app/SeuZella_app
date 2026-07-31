@@ -118,7 +118,9 @@ export class ZellaSalesBrain {
 
     // Fallback humano e educado caso a IA esteja temporariamente sem conexão
     let fallbackReply = '';
-    if (lowerMsg.includes('anfitri')) {
+    if (lowerMsg.includes('feriado') || lowerMsg.includes('setembro') || lowerMsg.includes('outubro') || lowerMsg.includes('novembro') || lowerMsg.includes('réveillon') || lowerMsg.includes('reveillon')) {
+      fallbackReply = 'Ótimo momento pra conversar! Nos feriados prolongados e na pré-alta temporada de Verão, o WhatsApp da pousada enche de mensagens de reservas. Com o Seu Zélla, seus hóspedes são atendidos em segundos 24h por dia, recebem a chave PIX do anfitrião e você aproveita o feriado com tranquilidade!';
+    } else if (lowerMsg.includes('anfitri')) {
       fallbackReply = 'Ah, sem problemas meu amigo! Anfitrião é quem aluga uma casa de praia, um chalé por temporada ou é dono de pousada. Se você tá curioso pra entender como funciona, fica à vontade pra perguntar o que quiser!';
     } else if (lowerMsg.includes('como funciona') || lowerMsg.includes('do que se trata') || lowerMsg.includes('curioso') || lowerMsg.includes('o que é')) {
       fallbackReply = 'O SeuZélla é a ferramenta que cuida de toda a recepção da sua hospedagem! Eu respondo seus hóspedes 24h no WhatsApp com seu tom de voz, envio senhas de fechadura eletrônica, confirmo PIX e evito overbooking. Quer saber como funciona alguma dessas partes? 😊';

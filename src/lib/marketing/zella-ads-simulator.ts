@@ -1,130 +1,120 @@
 /**
- * SEUZÉLLA — MÓDULO DE INTELIGÊNCIA E SIMULAÇÃO DE GOOGLE ADS & FUNIL DE POUSADAS BR
- * Calibrado estritamente conforme a planilha oficial de 10.175 pousadas (Planilha_Funil_pousadas_BR_.xlsx).
+ * SEUZÉLLA — MÓDULO DE INTELIGÊNCIA DE MARKETING: 3 CAMPANHAS DE FERIADOS PROLONGADOS & HOTSPOTS
+ * Estratégia hiper-focada para os Feriados Prolongados de Setembro, Outubro e Novembro de 2026 nos principais polos turísticos do Brasil.
  *
  * REGRA ABSOLUTA DE MARKETING:
  * PROIBIDO o uso das palavras "IA", "Bot" ou "Inteligência Artificial".
  * Usar sempre: "Seu Zélla", "Zelador Virtual", "Recepcionista no WhatsApp 24h por dia", "Atendimento para Pousadas".
  */
 
-export interface GoogleAdsKeywordCampaign {
-  keyword: string;
-  matchType: 'EXACT' | 'PHRASE' | 'BROAD';
-  intentCategory: 'HIGH_INTENTION' | 'PROBLEM_AWARE' | 'COMPETITOR';
-  estimatedCPC: number;
+export interface HolidayCampaignSpec {
+  monthName: 'Setembro' | 'Outubro' | 'Novembro';
+  holidayName: string;
+  targetHotspots: string[];
+  primaryKeyword: string;
   adCopyHeadline: string;
   adCopyDescription: string;
-  targetLandingHook: string;
-}
-
-export interface WeeklyBudgetPlan {
-  month: 1 | 2;
-  week: 1 | 2 | 3 | 4;
-  investmentBRL: number;
-  expectedClicks: number;
-  expectedLeads: number;
-  expectedSalesPRO: number;
-  projectedMRR: number;
+  landingPageHook: string;
+  salesTrigger: string;
 }
 
 export class ZellaAdsSimulator {
   /**
-   * Mapeamento de Campanhas da Rede de Pesquisa (Zero palavras proibidas!)
+   * Retorna as 3 Campanhas Mensais Estratégicas de Feriados Prolongados nos Hotspots do Brasil
    */
-  static getGoogleAdsCampaigns(): GoogleAdsKeywordCampaign[] {
+  static getMonthlyHolidayCampaigns(): HolidayCampaignSpec[] {
     return [
+      // 1. SETEMBRO 2026 — Feriado da Independência (7 de Setembro)
       {
-        keyword: 'automação whatsapp pousada',
-        matchType: 'PHRASE',
-        intentCategory: 'HIGH_INTENTION',
-        estimatedCPC: 3.80,
-        adCopyHeadline: 'Recepcionista no WhatsApp 24h por dia para Pousadas | Seu Zélla',
-        adCopyDescription: 'Responda hóspedes em segundos com tom de voz humano, forneça a chave PIX do anfitrião e evite overbooking.',
-        targetLandingHook: 'Cansado de perder reservas de madrugada no WhatsApp da sua pousada?',
+        monthName: 'Setembro',
+        holidayName: 'Feriado de 7 de Setembro (Independência - Fim de Semana Prolongado)',
+        targetHotspots: [
+          'Ubatuba (SP)',
+          'São Sebastião / Maresias (SP)',
+          'Ilhabela (SP)',
+          'Búzios (RJ)',
+          'Paraty (RJ)',
+          'Praia do Rosa (SC)',
+          'Florianópolis (SC)'
+        ],
+        primaryKeyword: 'recepcionista whatsapp pousada feriado',
+        adCopyHeadline: 'Feriado de 7 de Setembro: Recepção 24h | Seu Zélla',
+        adCopyDescription: 'Não perca reservas de fim de semana prolongado. O Seu Zélla atende seus hóspedes no WhatsApp e fornece a chave PIX do anfitrião.',
+        landingPageHook: 'Sua pousada está pronta para o fluxo de reservas do feriado de 7 de Setembro?',
+        salesTrigger: 'Atendimento instantâneo de reservas durante todo o fim de semana prolongado sem você precisar encostar no celular.',
       },
+
+      // 2. OUTUBRO 2026 — Feriado de 12 de Outubro (Nossa Sra. Aparecida / Dia das Crianças)
       {
-        keyword: 'atendimento whatsapp para airbnb',
-        matchType: 'PHRASE',
-        intentCategory: 'HIGH_INTENTION',
-        estimatedCPC: 3.20,
-        adCopyHeadline: 'Atendimento Automático para Airbnb | Seu Zélla',
-        adCopyDescription: 'O Zelador Virtual que envia senha de fechadura eletrônica e atende seus hóspedes 24 horas por dia.',
-        targetLandingHook: 'Transforme o WhatsApp do seu imóvel de temporada numa máquina de reservas.',
+        monthName: 'Outubro',
+        holidayName: 'Feriado de 12 de Outubro (Aparecida / Crianças - Fim de Semana Prolongado)',
+        targetHotspots: [
+          'Campos do Jordão (SP)',
+          'Monte Verde (MG)',
+          'Caldas Novas (GO)',
+          'Pirenópolis (GO)',
+          'Porto de Galinhas (PE)',
+          'Maragogi (AL)',
+          'Pipa (RN)'
+        ],
+        primaryKeyword: 'atendimento pousada whatsapp 12 outubro',
+        adCopyHeadline: 'Feriado de 12 de Outubro na Pousada | Seu Zélla',
+        adCopyDescription: 'Recepcionista no WhatsApp 24h por dia para atender famílias e confirmar reservas instantaneamente.',
+        landingPageHook: 'Não deixe o WhatsApp da sua hospedagem congestionar no feriado de 12 de Outubro!',
+        salesTrigger: 'Evite filas no check-in e responda dúvidas sobre quartos, localização e senhas de fechadura 24 horas por dia.',
       },
+
+      // 3. NOVEMBRO 2026 — Feriados de 02 e 15/20 de Novembro + Esquenta Alta Temporada de Réveillon
       {
-        keyword: 'sistema atendimento pousada whatsapp',
-        matchType: 'EXACT',
-        intentCategory: 'HIGH_INTENTION',
-        estimatedCPC: 4.50,
-        adCopyHeadline: 'Sistema de Atendimento para Pousadas | Seu Zélla',
-        adCopyDescription: 'Plano PRO ideal para 6 a 12 quartos por R$ 397/mês. Experimente o Seu Zélla ao vivo.',
-        targetLandingHook: 'Conheça o Seu Zélla: o zelador da sua pousada 24h por dia.',
-      },
-      {
-        keyword: 'como responder hospedes rapido no whatsapp',
-        matchType: 'PHRASE',
-        intentCategory: 'PROBLEM_AWARE',
-        estimatedCPC: 2.10,
-        adCopyHeadline: 'Nunca Mais Perca uma Reserva de Madrugada',
-        adCopyDescription: 'Deixe o Seu Zélla responder dúvidas de check-in, localização e chave PIX do anfitrião com educação.',
-        targetLandingHook: 'Atendimento instantâneo para hóspedes sem você precisar encostar no celular.',
+        monthName: 'Novembro',
+        holidayName: 'Feriados de Novembro (Finados & Proclamação) + Esquenta Réveillon / Verão',
+        targetHotspots: [
+          'Trancoso (BA)',
+          'Itacaré (BA)',
+          'Arraial d’Ajuda (BA)',
+          'Gramado (RS)',
+          'Canela (RS)',
+          'Maresias (SP)',
+          'Praia do Rosa (SC)',
+          'Jericoacoara (CE)'
+        ],
+        primaryKeyword: 'sistema atendimento pousada reveillon',
+        adCopyHeadline: 'Esquenta Réveillon & Novembro | Seu Zélla PRO',
+        adCopyDescription: 'Garanta o Seu Zélla na sua pousada por R$ 247/mês antes da explosão de reservas da Alta Temporada de Verão.',
+        landingPageHook: 'Prepare a recepção da sua pousada para a maior Alta Temporada do ano com o Seu Zélla.',
+        salesTrigger: 'Aproveite os feriados de Novembro para testar o Seu Zélla antes da loucura do Réveillon e Janeiro.',
       },
     ];
   }
 
   /**
-   * Retorna os dados estatísticos consolidados da planilha oficial Planilha_Funil_pousadas_BR_.xlsx (10.175 leads)
+   * Simulação de Investimento de R$ 1.000/semana em 90 dias (Set, Out, Nov 2026) nos Hotspots
    */
-  static getFunnelDatabaseSummary() {
-    return {
-      totalLeads: 10175,
-      tierProCount: 1415,    // Pousadas 6-12 quartos (Plano PRO R$ 397/mês)
-      tierMaxCount: 8703,    // Pousadas 13-20 quartos (Plano MAX R$ 797/mês)
-      tierLiteCount: 57,     // Imóveis 1-4 quartos (Plano LITE R$ 197/mês)
-      hotFunnelCount: 8703,  // Leads com alta intenção de contratação
-      warmFunnelCount: 1415,
-      topRegions: ['Bahia (Corumbau, Trancoso, Itacaré)', 'Litoral Norte SP (Ubatuba, Maresias)', 'Santa Catarina (Praia do Rosa, Floripa)'],
-    };
-  }
-
-  /**
-   * Cronograma de Orçamento Semanal Real de Vendas (Mês 1 e Mês 2)
-   */
-  static getWeeklyBudgetRoadmap(): WeeklyBudgetPlan[] {
+  static calculate90DaysHotspotCampaign(): {
+    totalInvestment: number;
+    totalClicks: number;
+    totalLeads: number;
+    totalClosedSalesPRO: number;
+    monthlyMRRGenerated: number;
+    roasRatio: number;
+  } {
+    const totalInvestment = 12000; // R$ 1.000/semana x 12 semanas
     const avgCPC = 3.50;
-    const landingConvRate = 0.12; // 12% conversão na Landing Page
-    const salesConvRate = 0.18;   // 18% fecha Plano PRO (R$ 397/mês) ou Parceiro PRO (R$ 247/mês)
-    const proTicket = 397;
+    const totalClicks = Math.floor(totalInvestment / avgCPC); // ~3.428 cliques
+    const landingConvRate = 0.14; // 14% de conversão nos Hotspots nos Feriados
+    const totalLeads = Math.floor(totalClicks * landingConvRate); // ~480 leads
+    const salesConvRate = 0.20; // 20% fecham o Plano PRO (R$ 397/mês)
+    const totalClosedSalesPRO = Math.floor(totalLeads * salesConvRate); // ~96 vendas
+    const monthlyMRRGenerated = totalClosedSalesPRO * 397; // R$ 38.112/mês MRR
+    const roasRatio = parseFloat((monthlyMRRGenerated / totalInvestment).toFixed(2));
 
-    const rawPlan = [
-      { month: 1, week: 1, investmentBRL: 500 },
-      { month: 1, week: 2, investmentBRL: 500 },
-      { month: 1, week: 3, investmentBRL: 600 },
-      { month: 1, week: 4, investmentBRL: 600 },
-      { month: 2, week: 1, investmentBRL: 600 },
-      { month: 2, week: 2, investmentBRL: 600 },
-      { month: 2, week: 3, investmentBRL: 1000 },
-      { month: 2, week: 4, investmentBRL: 1000 },
-    ];
-
-    let accumulatedSales = 0;
-
-    return rawPlan.map(item => {
-      const clicks = Math.floor(item.investmentBRL / avgCPC);
-      const leads = Math.floor(clicks * landingConvRate);
-      const sales = Math.max(1, Math.floor(leads * salesConvRate));
-      accumulatedSales += sales;
-      const mrr = accumulatedSales * proTicket;
-
-      return {
-        month: item.month as 1 | 2,
-        week: item.week as 1 | 2 | 3 | 4,
-        investmentBRL: item.investmentBRL,
-        expectedClicks: clicks,
-        expectedLeads: leads,
-        expectedSalesPRO: sales,
-        projectedMRR: mrr,
-      };
-    });
+    return {
+      totalInvestment,
+      totalClicks,
+      totalLeads,
+      totalClosedSalesPRO,
+      monthlyMRRGenerated,
+      roasRatio,
+    };
   }
 }
