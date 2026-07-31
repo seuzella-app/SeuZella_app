@@ -1975,3 +1975,17 @@ model CerebroTelemetryEvent {
   @@index([tenantId, timestamp])
   @@map("cerebro_telemetry_events")
 }
+
+model DpoPreferencePair {
+  id              String   @id @default(cuid())
+  tenantId        String
+  prompt          String
+  chosen          String
+  rejected        String
+  similarityScore Float
+  createdAt       DateTime @default(now())
+  status          String   @default("pending") // 'pending', 'exported', 'trained'
+
+  @@index([tenantId, status])
+  @@map("dpo_preference_pairs")
+}
