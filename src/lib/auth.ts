@@ -362,7 +362,9 @@ export const authOptions: NextAuthOptions = {
       // Allows callbackUrl from signIn() calls
       if (url.startsWith('/')) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
-      if (new URL(url).origin === baseUrl) return url;
+      try {
+        if (new URL(url, baseUrl).origin === new URL(baseUrl).origin) return url;
+      } catch {}
       // Default redirect based on niche
       return baseUrl + '/ddc';
     },

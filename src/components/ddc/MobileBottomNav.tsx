@@ -54,7 +54,7 @@ export function MobileBottomNav({
           );
         })}
 
-        {/* 1-Tap Kill Switch Button (Stitch MCP Celestial Commander Style) */}
+        {/* 1-Tap Kill Switch Button (DDC Pousadas Style) */}
         <motion.button
           whileTap={{ scale: 0.90 }}
           onClick={onToggleAI}

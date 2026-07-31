@@ -1,15 +1,9 @@
-// Sanitize NEXTAUTH_URL — Vercel may set it to an empty string or invalid value
-try {
-  if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL === '') {
-    delete process.env.NEXTAUTH_URL;
-  } else {
-    // Validate that it's a proper URL
-    new URL(process.env.NEXTAUTH_URL);
+// Sanitize empty string URL env variables — Vercel local pull sets empty strings ""
+['NEXTAUTH_URL', 'VERCEL_URL', 'NEXT_PUBLIC_APP_URL', 'DATABASE_URL', 'DIRECT_URL'].forEach((key) => {
+  if (process.env[key] === '') {
+    delete process.env[key];
   }
-} catch {
-  console.warn('[next.config] NEXTAUTH_URL is invalid, removing it:', process.env.NEXTAUTH_URL);
-  delete process.env.NEXTAUTH_URL;
-}
+});
 
 import type { NextConfig } from "next";
 
