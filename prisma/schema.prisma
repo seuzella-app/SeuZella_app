@@ -1989,3 +1989,36 @@ model DpoPreferencePair {
   @@index([tenantId, status])
   @@map("dpo_preference_pairs")
 }
+
+model GraphNode {
+  id          String   @id @default(cuid())
+  tenantId    String
+  entityType  String   // 'RULE', 'POLICY', 'AMENITY', 'CHECKIN'
+  name        String
+  content     String
+  embedding   String?  // JSON string para vetores
+  createdAt   DateTime @default(now())
+
+  sourceEdges GraphEdge[] @relation("SourceEdges")
+  targetEdges GraphEdge[] @relation("TargetEdges")
+
+  @@index([tenantId, entityType])
+  @@map("graph_nodes")
+}
+
+model GraphEdge {
+  id             String    @id @default(cuid())
+  tenantId       String
+  sourceNodeId   String
+  targetNodeId   String
+  relationType   String    // 'OVERLAPS', 'REQUIRES', 'FORBIDS', 'SUPERSEDES'
+  priorityWeight Int       @default(1)
+  createdAt      DateTime  @default(now())
+
+  sourceNode     GraphNode @relation("SourceEdges", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode     GraphNode @relation("TargetEdges", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, sourceNodeId])
+  @@index([tenantId, targetNodeId])
+  @@map("graph_edges")
+}
