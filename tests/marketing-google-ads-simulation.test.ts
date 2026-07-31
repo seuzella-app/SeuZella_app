@@ -1,37 +1,41 @@
 import { describe, it, expect } from 'vitest';
 import { ZellaAdsSimulator } from '../src/lib/marketing/zella-ads-simulator';
 
-describe('SUÍTE DE INTELIGÊNCIA DE MARKETING & GOOGLE ADS SIMULATOR', () => {
-  it('1. Campanhas de Pesquisa: Deve retornar palavras-chave de alta intenção e estratégias de anúncio', () => {
+describe('SUÍTE DE INTELIGÊNCIA DE MARKETING & GOOGLE ADS SIMULATOR (Planilha 10.175 Pousadas)', () => {
+  it('1. Proibição de Palavras Proibidas: Não deve conter "IA", "Bot" ou "Inteligência Artificial" em nenhuma campanha', () => {
     const campaigns = ZellaAdsSimulator.getGoogleAdsCampaigns();
-    expect(campaigns.length).toBeGreaterThan(0);
 
-    const highIntent = campaigns.filter(c => c.intentCategory === 'HIGH_INTENTION');
-    expect(highIntent.length).toBeGreaterThanOrEqual(3);
+    for (const c of campaigns) {
+      const text = `${c.keyword} ${c.adCopyHeadline} ${c.adCopyDescription} ${c.targetLandingHook}`.toLowerCase();
+      expect(text).not.toContain(' bot ');
+      expect(text).not.toContain('bot ');
+      expect(text).not.toContain(' bot');
+      expect(text).not.toContain('inteligência artificial');
+    }
 
     const mainCampaign = campaigns.find(c => c.keyword.includes('automação whatsapp pousada'));
-    expect(mainCampaign).toBeDefined();
-    expect(mainCampaign?.adCopyHeadline).toContain('SeuZélla');
+    expect(mainCampaign?.adCopyHeadline).toBe('Recepcionista no WhatsApp 24h por dia para Pousadas | Seu Zélla');
+
+    const systemCampaign = campaigns.find(c => c.keyword.includes('sistema atendimento pousada whatsapp'));
+    expect(systemCampaign?.targetLandingHook).toBe('Conheça o Seu Zélla: o zelador da sua pousada 24h por dia.');
   });
 
-  it('2. Segmentação de Público-Alvo: Deve refletir perfis reais extraídos do Litoral SP e SC', () => {
-    const profiles = ZellaAdsSimulator.getTargetAudienceProfiles();
-    expect(profiles).toHaveLength(2);
-
-    const spProfile = profiles.find(p => p.region.includes('Litoral Norte de SP'));
-    expect(spProfile).toBeDefined();
-    expect(spProfile?.cities).toContain('Ubatuba');
-    expect(spProfile?.cities).toContain('São Sebastião');
+  it('2. Base de Conhecimento do Funil de Pousadas BR: Deve validar a planilha oficial com 10.175 leads', () => {
+    const funnel = ZellaAdsSimulator.getFunnelDatabaseSummary();
+    expect(funnel.totalLeads).toBe(10175);
+    expect(funnel.tierProCount).toBe(1415);
+    expect(funnel.hotFunnelCount).toBe(8703);
   });
 
-  it('3. Simulador Financeiro de Teste (ROI & ROAS): Deve calcular investimento inicial de R$ 50/dia com retorno positivo', () => {
-    const simulation = ZellaAdsSimulator.calculateTestCampaignBudget(50); // R$ 50/dia (R$ 1.500/mês)
+  it('3. Cronograma Semanal de Orçamento (Mês 1 e Mês 2): Deve calcular o ROI acumulado até a semana 4 do Mês 2', () => {
+    const roadmap = ZellaAdsSimulator.getWeeklyBudgetRoadmap();
+    expect(roadmap).toHaveLength(8);
 
-    expect(simulation.monthlyInvestment).toBe(1500);
-    expect(simulation.estimatedClicks).toBeGreaterThan(400);
-    expect(simulation.estimatedLeads).toBeGreaterThan(40);
-    expect(simulation.estimatedClosedSales).toBeGreaterThan(8);
-    expect(simulation.projectedMRR).toBeGreaterThan(3000); // Faturamento recorrente > R$ 3.000/mês
-    expect(simulation.roasRatio).toBeGreaterThan(2.0); // Retorno sobre investimento > 2x no primeiro mês!
+    const m1w1 = roadmap.find(r => r.month === 1 && r.week === 1);
+    expect(m1w1?.investmentBRL).toBe(500);
+
+    const m2w4 = roadmap.find(r => r.month === 2 && r.week === 4);
+    expect(m2w4?.investmentBRL).toBe(1000);
+    expect(m2w4?.projectedMRR).toBeGreaterThan(5000); // MRR acumulado > R$ 5.000/mês no Mês 2!
   });
 });

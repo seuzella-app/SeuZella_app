@@ -1,7 +1,10 @@
 /**
- * SEUZÉLLA — MÓDULO DE SIMULAÇÃO E INTELIGÊNCIA DE GOOGLE ADS & AUDIÊNCIA
- * Treina o Cérebro Zélla para entender termos de busca de alta intenção,
- * segmentação geográfica (ex: Ubatuba, Maresias, Praia do Rosa) e perfis das planilhas reais.
+ * SEUZÉLLA — MÓDULO DE INTELIGÊNCIA E SIMULAÇÃO DE GOOGLE ADS & FUNIL DE POUSADAS BR
+ * Calibrado estritamente conforme a planilha oficial de 10.175 pousadas (Planilha_Funil_pousadas_BR_.xlsx).
+ *
+ * REGRA ABSOLUTA DE MARKETING:
+ * PROIBIDO o uso das palavras "IA", "Bot" ou "Inteligência Artificial".
+ * Usar sempre: "Seu Zélla", "Zelador Virtual", "Recepcionista no WhatsApp 24h por dia", "Atendimento para Pousadas".
  */
 
 export interface GoogleAdsKeywordCampaign {
@@ -14,17 +17,19 @@ export interface GoogleAdsKeywordCampaign {
   targetLandingHook: string;
 }
 
-export interface TargetAudienceProfile {
-  region: string;
-  cities: string[];
-  averageRooms: string;
-  primaryPainPoint: string;
-  winningAngle: string;
+export interface WeeklyBudgetPlan {
+  month: 1 | 2;
+  week: 1 | 2 | 3 | 4;
+  investmentBRL: number;
+  expectedClicks: number;
+  expectedLeads: number;
+  expectedSalesPRO: number;
+  projectedMRR: number;
 }
 
 export class ZellaAdsSimulator {
   /**
-   * Mapeamento de Campanhas de Rede de Pesquisa de Alta Intenção no Google Ads
+   * Mapeamento de Campanhas da Rede de Pesquisa (Zero palavras proibidas!)
    */
   static getGoogleAdsCampaigns(): GoogleAdsKeywordCampaign[] {
     return [
@@ -33,17 +38,17 @@ export class ZellaAdsSimulator {
         matchType: 'PHRASE',
         intentCategory: 'HIGH_INTENTION',
         estimatedCPC: 3.80,
-        adCopyHeadline: 'Recepção 24h no WhatsApp para Pousadas | SeuZélla AI',
-        adCopyDescription: 'Responda hóspedes em segundos com tom de voz humano, forneça a chave PIX e evite overbooking.',
+        adCopyHeadline: 'Recepcionista no WhatsApp 24h por dia para Pousadas | Seu Zélla',
+        adCopyDescription: 'Responda hóspedes em segundos com tom de voz humano, forneça a chave PIX do anfitrião e evite overbooking.',
         targetLandingHook: 'Cansado de perder reservas de madrugada no WhatsApp da sua pousada?',
       },
       {
-        keyword: 'bot whatsapp para airbnb',
+        keyword: 'atendimento whatsapp para airbnb',
         matchType: 'PHRASE',
         intentCategory: 'HIGH_INTENTION',
         estimatedCPC: 3.20,
-        adCopyHeadline: 'Atendimento Automático para Airbnb | SeuZélla',
-        adCopyDescription: 'O Zelador Virtual que envia senha de fechadura eletrônica e atende seus hóspedes 24 horas.',
+        adCopyHeadline: 'Atendimento Automático para Airbnb | Seu Zélla',
+        adCopyDescription: 'O Zelador Virtual que envia senha de fechadura eletrônica e atende seus hóspedes 24 horas por dia.',
         targetLandingHook: 'Transforme o WhatsApp do seu imóvel de temporada numa máquina de reservas.',
       },
       {
@@ -51,9 +56,9 @@ export class ZellaAdsSimulator {
         matchType: 'EXACT',
         intentCategory: 'HIGH_INTENTION',
         estimatedCPC: 4.50,
-        adCopyHeadline: 'Sistema de Atendimento para Pousadas | SeuZélla PRO',
-        adCopyDescription: 'Plano PRO ideal para 6 a 12 quartos por R$ 397/mês. Experimente o SeuZélla ao vivo.',
-        targetLandingHook: 'Conheça o SeuZélla: o zelador inteligente da sua pousada no WhatsApp.',
+        adCopyHeadline: 'Sistema de Atendimento para Pousadas | Seu Zélla',
+        adCopyDescription: 'Plano PRO ideal para 6 a 12 quartos por R$ 397/mês. Experimente o Seu Zélla ao vivo.',
+        targetLandingHook: 'Conheça o Seu Zélla: o zelador da sua pousada 24h por dia.',
       },
       {
         keyword: 'como responder hospedes rapido no whatsapp',
@@ -61,63 +66,65 @@ export class ZellaAdsSimulator {
         intentCategory: 'PROBLEM_AWARE',
         estimatedCPC: 2.10,
         adCopyHeadline: 'Nunca Mais Perca uma Reserva de Madrugada',
-        adCopyDescription: 'Deixe o Seu Zélla responder dúvidas de check-in, localização e chave PIX com educação.',
+        adCopyDescription: 'Deixe o Seu Zélla responder dúvidas de check-in, localização e chave PIX do anfitrião com educação.',
         targetLandingHook: 'Atendimento instantâneo para hóspedes sem você precisar encostar no celular.',
       },
     ];
   }
 
   /**
-   * Perfis de Público-Alvo Extraídos das Planilhas de Leads Validadas
+   * Retorna os dados estatísticos consolidados da planilha oficial Planilha_Funil_pousadas_BR_.xlsx (10.175 leads)
    */
-  static getTargetAudienceProfiles(): TargetAudienceProfile[] {
-    return [
-      {
-        region: 'Litoral Norte de SP (352 Ubatuba, 333 São Sebastião/Maresias, 154 Caraguatatuba)',
-        cities: ['Ubatuba', 'São Sebastião', 'Caraguatatuba', 'Bertioga', 'Ilhabela'],
-        averageRooms: '6 a 12 quartos (Perfil Plano PRO R$ 397/mês)',
-        primaryPainPoint: 'Perda de reservas de fim de semana por demora na resposta no WhatsApp durante a alta temporada.',
-        winningAngle: 'Recepção 24h atenta para garantir reservas de turistas de SP e Vale do Paraíba instantaneamente.',
-      },
-      {
-        region: 'Santa Catarina (Praia do Rosa / Imbituba / Floripa)',
-        cities: ['Imbituba', 'Florianópolis', 'Garopaba'],
-        averageRooms: '4 a 10 chalés/pousadas',
-        primaryPainPoint: 'Gestão remota de hóspedes e fornecimento de senha de fechadura eletrônica/chave PIX.',
-        winningAngle: 'Automatize o atendimento dos seus chalés e pousadas na praia sem perder o atendimento humanizado.',
-      },
-    ];
+  static getFunnelDatabaseSummary() {
+    return {
+      totalLeads: 10175,
+      tierProCount: 1415,    // Pousadas 6-12 quartos (Plano PRO R$ 397/mês)
+      tierMaxCount: 8703,    // Pousadas 13-20 quartos (Plano MAX R$ 797/mês)
+      tierLiteCount: 57,     // Imóveis 1-4 quartos (Plano LITE R$ 197/mês)
+      hotFunnelCount: 8703,  // Leads com alta intenção de contratação
+      warmFunnelCount: 1415,
+      topRegions: ['Bahia (Corumbau, Trancoso, Itacaré)', 'Litoral Norte SP (Ubatuba, Maresias)', 'Santa Catarina (Praia do Rosa, Floripa)'],
+    };
   }
 
   /**
-   * Calcula o Retorno Estimado sobre Investimento (ROAS) em Campanhas de Teste Inicial
+   * Cronograma de Orçamento Semanal Real de Vendas (Mês 1 e Mês 2)
    */
-  static calculateTestCampaignBudget(dailyBudgetBRL: number): {
-    monthlyInvestment: number;
-    estimatedClicks: number;
-    estimatedLeads: number;
-    estimatedClosedSales: number;
-    projectedMRR: number;
-    roasRatio: number;
-  } {
-    const monthlyInvestment = dailyBudgetBRL * 30;
-    const avgCPC = 3.40;
-    const estimatedClicks = Math.floor(monthlyInvestment / avgCPC);
-    const landingPageConvRate = 0.12; // 12% de conversão na Landing Page com o widget do Zélla
-    const estimatedLeads = Math.floor(estimatedClicks * landingPageConvRate);
-    const salesConvRate = 0.20; // 20% dos leads fecham o Plano PRO (R$ 397/mês) ou Oferta Parceiro (R$ 247/mês)
-    const estimatedClosedSales = Math.floor(estimatedLeads * salesConvRate);
-    const avgTicket = 397; // Plano PRO Carro Chefe
-    const projectedMRR = estimatedClosedSales * avgTicket;
-    const roasRatio = projectedMRR > 0 ? projectedMRR / monthlyInvestment : 0;
+  static getWeeklyBudgetRoadmap(): WeeklyBudgetPlan[] {
+    const avgCPC = 3.50;
+    const landingConvRate = 0.12; // 12% conversão na Landing Page
+    const salesConvRate = 0.18;   // 18% fecha Plano PRO (R$ 397/mês) ou Parceiro PRO (R$ 247/mês)
+    const proTicket = 397;
 
-    return {
-      monthlyInvestment,
-      estimatedClicks,
-      estimatedLeads,
-      estimatedClosedSales,
-      projectedMRR,
-      roasRatio: parseFloat(roasRatio.toFixed(2)),
-    };
+    const rawPlan = [
+      { month: 1, week: 1, investmentBRL: 500 },
+      { month: 1, week: 2, investmentBRL: 500 },
+      { month: 1, week: 3, investmentBRL: 600 },
+      { month: 1, week: 4, investmentBRL: 600 },
+      { month: 2, week: 1, investmentBRL: 600 },
+      { month: 2, week: 2, investmentBRL: 600 },
+      { month: 2, week: 3, investmentBRL: 1000 },
+      { month: 2, week: 4, investmentBRL: 1000 },
+    ];
+
+    let accumulatedSales = 0;
+
+    return rawPlan.map(item => {
+      const clicks = Math.floor(item.investmentBRL / avgCPC);
+      const leads = Math.floor(clicks * landingConvRate);
+      const sales = Math.max(1, Math.floor(leads * salesConvRate));
+      accumulatedSales += sales;
+      const mrr = accumulatedSales * proTicket;
+
+      return {
+        month: item.month as 1 | 2,
+        week: item.week as 1 | 2 | 3 | 4,
+        investmentBRL: item.investmentBRL,
+        expectedClicks: clicks,
+        expectedLeads: leads,
+        expectedSalesPRO: sales,
+        projectedMRR: mrr,
+      };
+    });
   }
 }
