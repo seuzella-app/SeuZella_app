@@ -22,8 +22,11 @@ const OPENAI_URL = 'https://api.openai.com/v1'
 const OPENAI_KEY = process.env.OPENAI_API_KEY || ''
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/openai'
 const GEMINI_KEY = process.env.GEMINI_API_KEY || ''
+const ANTHROPIC_URL = 'https://api.anthropic.com/v1'
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || ''
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-3-5-sonnet-20241022'
 
-type CloudProvider = 'groq' | 'gemini' | 'openai' | 'deepseek' | 'zhipu' | 'openrouter'
+type CloudProvider = 'anthropic' | 'groq' | 'gemini' | 'openai' | 'deepseek' | 'zhipu' | 'openrouter'
 
 const LOCAL_MODELS = {
   general: 'qwen2.5-coder:14b',
@@ -34,6 +37,13 @@ const LOCAL_MODELS = {
 }
 
 const CLOUD_MODELS: Record<CloudProvider, { model: string; url: string; key: string; costPer1kInput: number; costPer1kOutput: number }> = {
+  anthropic: {
+    model: CLAUDE_MODEL,
+    url: ANTHROPIC_URL,
+    key: ANTHROPIC_KEY,
+    costPer1kInput: 0.00300,
+    costPer1kOutput: 0.01500,
+  },
   groq: {
     model: 'llama-3.3-70b-versatile',
     url: GROQ_URL,
