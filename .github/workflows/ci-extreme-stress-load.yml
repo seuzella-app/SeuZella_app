@@ -1,0 +1,55 @@
+name: 💥 High Concurrency Stress & Avalanche Load Testing Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # JOB 1: Avalanche de Atendimento (500-1000 Requisições Simultâneas de Mensagens)
+  avalanche-stress-test:
+    name: 💥 Avalanche Load Test (500+ Concurrent Zella Brain & GraphRAG Requests)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar Dependências
+        run: npm ci --legacy-peer-deps
+
+      - name: 🗄️ Gerar Cliente Prisma
+        run: npx prisma generate
+
+      - name: 💥 Executar Teste de Alto Estresse e Concorrência Extrema (Vitest High Stress)
+        run: npx vitest run tests/high-stress-concurrency.test.ts
+
+  # JOB 2: Stress no Roteador de LLMs & Resiliência a Falhas de Rede
+  llm-router-resilience-stress:
+    name: 🧠 LLM Neuro-Router Multi-Cloud Failover Under Stress
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar Dependências
+        run: npm ci --legacy-peer-deps
+
+      - name: 🗄️ Gerar Cliente Prisma
+        run: npx prisma generate
+
+      - name: 🧪 Executar Testes de Stress de Resiliência (NeuroRouter & Avalanche)
+        run: npx vitest run tests/stress-neuro-router.test.ts tests/stress-avalanche-k6.test.ts
