@@ -123,7 +123,7 @@ export class ZellaSalesBrain {
     } else if (lowerMsg.includes('como funciona') || lowerMsg.includes('do que se trata') || lowerMsg.includes('curioso') || lowerMsg.includes('o que é')) {
       fallbackReply = 'O SeuZélla é a ferramenta que cuida de toda a recepção da sua hospedagem! Eu respondo seus hóspedes 24h no WhatsApp com seu tom de voz, envio senhas de fechadura eletrônica, confirmo PIX e evito overbooking. Quer saber como funciona alguma dessas partes? 😊';
     } else if (lowerMsg.includes('quanto custa') || lowerMsg.includes('valor') || lowerMsg.includes('preço') || lowerMsg.includes('plano')) {
-      fallbackReply = 'Nossos planos cabem no bolso: o LITE sai por R$ 97/mês (pra quem tem 1 imóvel), o PRO por R$ 197/mês (pousadas até 15 quartos) e o MAX por R$ 397/mês. Você administra quantas acomodações hoje?';
+      fallbackReply = 'Nossos planos oficiais são: o LITE sai por R$ 197/mês (1 a 4 quartos), o PRO por R$ 397/mês (6 a 12 quartos — nosso carro chefe) e o MAX por R$ 797/mês (13 a 20 quartos). E pros 100 primeiros anfitriões temos a oferta Zélla Parceiro PRO por R$ 247/mês garantido por 24 meses! Quantos quartos você administra hoje?';
     } else {
       fallbackReply = 'Olá, meu amigo! Sou o Seu Zélla! Tô por aqui pra te ajudar no que precisar sobre o atendimento do WhatsApp, fechaduras ou planos pro seu imóvel. O que você gostaria de saber?';
     }
