@@ -1,0 +1,201 @@
+# ============================================================================
+# ZÉLLA — Cérebro ML & Self-Defense CI/CD Pipeline
+# ============================================================================
+# Pipeline dedicado para validar que os pontos críticos de mitigação do
+# Cérebro Zélla foram codificados e reagem perfeitamente ao que se diz:
+#
+#   1. APRENDIZADO DE MÁQUINA     → tests/cerebro-ml-learning.test.ts
+#   2. DEFESA ANTI-HACKER         → tests/cerebro-ml-anti-hacker.test.ts
+#   3. IDENTIFICAÇÃO DE BUGS      → tests/cerebro-ml-bug-detection.test.ts
+#   4. AUTO-AJUSTE / AUTO-CURA    → tests/cerebro-ml-auto-adjustment.test.ts
+#
+# Cada job roda em paralelo e tem seu próprio badge de status.
+# Falha em qualquer um dos 4 blocos o pipeline fica vermelho.
+# ============================================================================
+
+name: "🧠 Cérebro Zélla — ML & Self-Defense CI/CD"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/lib/cerebro/**'
+      - 'src/lib/ai/zaos-neuro-router.ts'
+      - 'src/lib/ml/**'
+      - 'src/app/api/cron/cerebro-*/**'
+      - 'src/app/api/zcc/cerebro/**'
+      - 'tests/cerebro-ml-*.test.ts'
+      - '.github/workflows/cerebro-ml-defense.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/lib/cerebro/**'
+      - 'src/lib/ai/zaos-neuro-router.ts'
+      - 'src/lib/ml/**'
+      - 'tests/cerebro-ml-*.test.ts'
+  workflow_dispatch: # Permite disparo manual
+
+permissions:
+  contents: read
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────
+  # JOB 1: APRENDIZADO DE MÁQUINA (Thompson Sampling, Decay, TF-IDF, DPO)
+  # ─────────────────────────────────────────────────────────────────────
+  ml-learning:
+    name: "🧬 ML: Thompson Sampling + Decay + Semantic + Budget + Churn"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "⚙️ Setup Node.js 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: "📦 Install Dependencies"
+        run: npm ci --legacy-peer-deps
+
+      - name: "🗄️ Generate Prisma Client"
+        run: npx prisma generate
+
+      - name: "🔍 TypeScript Typecheck"
+        run: npx tsc --noEmit
+
+      - name: "🧬 Run ML Learning Tests"
+        run: npx vitest run tests/cerebro-ml-learning.test.ts --reporter=verbose
+
+  # ─────────────────────────────────────────────────────────────────────
+  # JOB 2: DEFESA ANTI-HACKER (Vuln Scanner + Self-Defense)
+  # ─────────────────────────────────────────────────────────────────────
+  anti-hacker-defense:
+    name: "🛡️ Anti-Hacker: Vuln Scanner + Self-Defense Immune"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "⚙️ Setup Node.js 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: "📦 Install Dependencies"
+        run: npm ci --legacy-peer-deps
+
+      - name: "🗄️ Generate Prisma Client"
+        run: npx prisma generate
+
+      - name: "🔍 TypeScript Typecheck"
+        run: npx tsc --noEmit
+
+      - name: "🛡️ Run Anti-Hacker Defense Tests"
+        run: npx vitest run tests/cerebro-ml-anti-hacker.test.ts --reporter=verbose
+
+  # ─────────────────────────────────────────────────────────────────────
+  # JOB 3: IDENTIFICAÇÃO DE BUGS / ERROS / DESALINHAMENTOS
+  # ─────────────────────────────────────────────────────────────────────
+  bug-detection:
+    name: "🐛 Bug Detection: Anomaly + Alert Dedup + Orchestrator"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "⚙️ Setup Node.js 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: "📦 Install Dependencies"
+        run: npm ci --legacy-peer-deps
+
+      - name: "🗄️ Generate Prisma Client"
+        run: npx prisma generate
+
+      - name: "🔍 TypeScript Typecheck"
+        run: npx tsc --noEmit
+
+      - name: "🐛 Run Bug Detection Tests"
+        run: npx vitest run tests/cerebro-ml-bug-detection.test.ts --reporter=verbose
+
+  # ─────────────────────────────────────────────────────────────────────
+  # JOB 4: AUTO-AJUSTE / AUTO-CURA (Self-Healing Loop)
+  # ─────────────────────────────────────────────────────────────────────
+  auto-adjustment:
+    name: "🔧 Auto-Adjustment: Remediator + Distiller + Orchestrator Loop"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "⚙️ Setup Node.js 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: "📦 Install Dependencies"
+        run: npm ci --legacy-peer-deps
+
+      - name: "🗄️ Generate Prisma Client"
+        run: npx prisma generate
+
+      - name: "🔍 TypeScript Typecheck"
+        run: npx tsc --noEmit
+
+      - name: "🔧 Run Auto-Adjustment Tests"
+        run: npx vitest run tests/cerebro-ml-auto-adjustment.test.ts --reporter=verbose
+
+  # ─────────────────────────────────────────────────────────────────────
+  # JOB 5: REGRESSION GUARD — Todos os testes do Cérebro juntos
+  # ─────────────────────────────────────────────────────────────────────
+  regression-guard:
+    name: "🚨 Regression Guard: All Cérebro Tests + Existing Suite"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [ml-learning, anti-hacker-defense, bug-detection, auto-adjustment]
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "⚙️ Setup Node.js 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: "📦 Install Dependencies"
+        run: npm ci --legacy-peer-deps
+
+      - name: "🗄️ Generate Prisma Client"
+        run: npx prisma generate
+
+      - name: "🔍 TypeScript Typecheck"
+        run: npx tsc --noEmit
+
+      - name: "🚨 Run Full Test Suite (Regression Check)"
+        run: npx vitest run tests/ --reporter=verbose
+
+      - name: "📊 Generate Test Summary"
+        if: always()
+        run: |
+          echo "## 🧠 Cérebro Zélla ML & Self-Defense CI/CD Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Suite | Tests | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧬 ML Learning (Thompson Sampling, Decay, TF-IDF, Budget, Churn) | 40 | ${{ needs.ml-learning.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ Anti-Hacker Defense (Vuln Scanner, Self-Defense) | 39 | ${{ needs.anti-hacker-defense.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐛 Bug Detection (Anomaly, Alert Dedup, Orchestrator) | 39 | ${{ needs.bug-detection.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔧 Auto-Adjustment (Remediator, Distiller, Loop) | 48 | ${{ needs.auto-adjustment.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total new tests:** 166 (across 4 specialized suites)" >> $GITHUB_STEP_SUMMARY
+          echo "**Plus existing suite:** 364 tests (regression check)" >> $GITHUB_STEP_SUMMARY

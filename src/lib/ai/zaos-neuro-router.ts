@@ -759,6 +759,122 @@ export class ZaosNeuroRouter {
     }
   }
 
+  /**
+   * Apply exponential decay to all Thompson Sampling posteriors.
+   *
+   * PROBLEM: Standard Thompson Sampling assumes stationary rewards — if a
+   * provider's quality changes (degrades or improves) over time, the
+   * accumulated α/β counts dominate and the sampler can't adapt.
+   *
+   * SOLUTION: Apply exponential decay (γ < 1) to α and β periodically.
+   * This effectively limits the "memory" of the sampler, making it
+   * responsive to recent observations while keeping prior strength bounded.
+   *
+   * RECOMMENDED USAGE:
+   *  - Daily cron with γ = 0.95 (keeps ~95% of historical evidence per day)
+   *  - After 30 days of decay: effective evidence = 0.95^30 ≈ 21% of original
+   *  - Providers that recently degraded will have their posterior mean shift
+   *    downward within ~3-5 days (instead of weeks)
+   *
+   * GUARDRAILS:
+   *  - Never decays below the prior (initialAlpha, initialBeta)
+   *  - Logs decay applied per provider for observability
+   *
+   * @param gamma - Decay factor (default 0.95). Must be in (0, 1).
+   * @returns Stats about decay applied per provider
+   */
+  applyPosteriorDecay(gamma: number = 0.95): {
+    providerId: string;
+    beforeAlpha: number;
+    beforeBeta: number;
+    afterAlpha: number;
+    afterBeta: number;
+    effectiveEvidenceKept: number;
+  }[] {
+    if (gamma <= 0 || gamma >= 1) {
+      throw new Error(`gamma must be in (0, 1), got ${gamma}`);
+    }
+
+    const results: Array<{
+      providerId: string;
+      beforeAlpha: number;
+      beforeBeta: number;
+      afterAlpha: number;
+      afterBeta: number;
+      effectiveEvidenceKept: number;
+    }> = [];
+
+    for (const [providerId, provider] of this.providers) {
+      const beforeAlpha = provider.alpha;
+      const beforeBeta = provider.beta;
+      const priorAlpha = provider.registration.initialAlpha ?? 1.0;
+      const priorBeta = provider.registration.initialBeta ?? 1.0;
+
+      // Decay toward prior (not toward 0 — we want to keep some baseline confidence)
+      const decayedAlpha = priorAlpha + (provider.alpha - priorAlpha) * gamma;
+      const decayedBeta = priorBeta + (provider.beta - priorBeta) * gamma;
+
+      provider.alpha = Math.max(priorAlpha, decayedAlpha);
+      provider.beta = Math.max(priorBeta, decayedBeta);
+
+      // Effective evidence kept (sum of α + β - prior)
+      const beforeEvidence = beforeAlpha + beforeBeta - priorAlpha - priorBeta;
+      const afterEvidence = provider.alpha + provider.beta - priorAlpha - priorBeta;
+      const effectiveKept = beforeEvidence > 0 ? afterEvidence / beforeEvidence : 1;
+
+      results.push({
+        providerId,
+        beforeAlpha,
+        beforeBeta,
+        afterAlpha: provider.alpha,
+        afterBeta: provider.beta,
+        effectiveEvidenceKept: effectiveKept,
+      });
+    }
+
+    // Log observability
+    if (typeof console !== 'undefined') {
+      console.log(`[ZaosNeuroRouter] Posterior decay applied (γ=${gamma}):`, {
+        providers: results.map(r => ({
+          id: r.providerId,
+          α: `${r.beforeAlpha.toFixed(2)} → ${r.afterAlpha.toFixed(2)}`,
+          β: `${r.beforeBeta.toFixed(2)} → ${r.afterBeta.toFixed(2)}`,
+          kept: `${(r.effectiveEvidenceKept * 100).toFixed(1)}%`,
+        })),
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Returns a snapshot of all provider posteriors for observability/dashboard.
+   * Useful for monitoring drift over time and confirming decay is working.
+   */
+  getPosteriorSnapshot(): Array<{
+    providerId: string;
+    providerName: string;
+    tier: number;
+    alpha: number;
+    beta: number;
+    posteriorMean: number; // α / (α + β)
+    totalRequests: number;
+    avgLatencyMs: number;
+    circuitState: string;
+  }> {
+    return Array.from(this.providers.values()).map(p => ({
+      providerId: p.registration.id,
+      providerName: p.registration.name,
+      tier: p.registration.tier,
+      alpha: p.alpha,
+      beta: p.beta,
+      posteriorMean: p.alpha / (p.alpha + p.beta),
+      totalRequests: p.totalRequests,
+      avgLatencyMs: p.totalRequests > 0 ? p.totalLatencyMs / p.totalRequests : 0,
+      circuitState: p.circuitBreaker.getState(),
+    }));
+  }
+
   /* -------------------------------------------------------------- */
   /* Provider Management                                             */
   /* -------------------------------------------------------------- */

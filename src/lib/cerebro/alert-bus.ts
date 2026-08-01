@@ -36,6 +36,85 @@ import {
 } from './types';
 import { logSink } from './log-sink';
 
+// ── Cross-channel deduplication ─────────────────────────────────────────────
+// Evita que o mesmo alerta (subject + scope + severity) seja disparado
+// múltiplas vezes em janela curta. Reduz alert fatigue em cascata de anomalias.
+//
+// Hash: subject + scope + severity (ignora body, que pode variar)
+// Janela: 5 minutos (configurável via CEREBRO_ALERT_DEDUP_WINDOW_MS)
+// Máximo de entradas no tracker: 1000 (LRU eviction)
+
+const DEDUP_WINDOW_MS = parseInt(
+  process.env.CEREBRO_ALERT_DEDUP_WINDOW_MS || String(5 * 60 * 1000),
+  10
+);
+const MAX_DEDUP_ENTRIES = 1000;
+
+const dedupTracker = new Map<string, { count: number; firstSeen: number; lastSeen: number }>();
+
+function hashAlert(payload: AlertPayload): string {
+  // FNV-1a hash sobre (subject + scope + severity)
+  const key = `${payload.subject}|${payload.scope}|${payload.severity}`;
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+function shouldDedupAlert(payload: AlertPayload): { dedup: boolean; count: number } {
+  const hash = hashAlert(payload);
+  const now = Date.now();
+  const existing = dedupTracker.get(hash);
+
+  if (existing) {
+    if (now - existing.firstSeen < DEDUP_WINDOW_MS) {
+      // Ainda dentro da janela — dedup
+      existing.count++;
+      existing.lastSeen = now;
+      return { dedup: true, count: existing.count };
+    }
+    // Janela expirou — reset
+    dedupTracker.set(hash, { count: 1, firstSeen: now, lastSeen: now });
+    return { dedup: false, count: 1 };
+  }
+
+  // Novo hash
+  dedupTracker.set(hash, { count: 1, firstSeen: now, lastSeen: now });
+
+  // LRU eviction: se tracker crescer demais, remove entradas antigas
+  if (dedupTracker.size > MAX_DEDUP_ENTRIES) {
+    const cutoff = now - DEDUP_WINDOW_MS * 2;
+    for (const [k, v] of dedupTracker.entries()) {
+      if (v.lastSeen < cutoff) dedupTracker.delete(k);
+    }
+  }
+
+  return { dedup: false, count: 1 };
+}
+
+/**
+ * Retorna estatísticas de deduplicação (para dashboard).
+ */
+export function getAlertDedupStats(): {
+  uniqueAlertsTracked: number;
+  dedupWindowMs: number;
+  topDedupedAlerts: Array<{ hash: string; count: number }>;
+} {
+  const topDeduped = Array.from(dedupTracker.entries())
+    .map(([hash, info]) => ({ hash, count: info.count }))
+    .filter(e => e.count > 1)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  return {
+    uniqueAlertsTracked: dedupTracker.size,
+    dedupWindowMs: DEDUP_WINDOW_MS,
+    topDedupedAlerts: topDeduped,
+  };
+}
+
 // ── Configuração de canais (env vars) ───────────────────────────────────────
 
 interface AlertBusConfig {
@@ -167,6 +246,33 @@ export async function dispatchAlert(payload: AlertPayload): Promise<AlertDeliver
   const config = loadConfig();
   const mode = getCerebroMode();
   const routing = routeBySeverity(payload, config);
+
+  // ── Cross-channel deduplication ──
+  // Se mesmo (subject + scope + severity) já foi dispatchado nos últimos 5 min,
+  // skipamos o envio mas atualizamos o count (para observabilidade no dashboard).
+  const dedupCheck = shouldDedupAlert(payload);
+  if (dedupCheck.dedup) {
+    logSink.info({
+      module: 'alert-bus',
+      event: 'alert_deduplicated',
+      message: `Alerta "${payload.subject}" suprimido (já enviado ${dedupCheck.count - 1}x em ${DEDUP_WINDOW_MS / 1000}s)`,
+      context: {
+        subject: payload.subject,
+        scope: payload.scope,
+        severity: payload.severity,
+        dedupCount: dedupCheck.count,
+      },
+    });
+
+    // Retorna empty result — caller vê que nada foi enviado
+    return [{
+      channel: 'dashboard',
+      recipient: 'zcc-dashboard',
+      status: 'queued',
+      mode,
+      errorMessage: `Deduplicated (${dedupCheck.count} occurrences in window)`,
+    }];
+  }
 
   const results: AlertDeliveryResult[] = [];
 
