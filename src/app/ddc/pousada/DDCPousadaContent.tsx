@@ -86,16 +86,16 @@ import {
   MapPin,
   Bot,
   Smartphone,
-  Gift,
+  Coins,
   BarChart2,
 } from 'lucide-react';
-import { IndicationsTab } from '@/components/ddc/IndicationsTab';
+import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
 import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'indications' | 'bi' | 'properties';
+type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties';
 
 interface GuestCardData {
   id: string;
@@ -283,7 +283,7 @@ const pousadaNavItems: NavItem[] = [
   { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
   { id: 'guia', label: 'Guia Digital', icon: <QrCode className="size-4" /> },
   { id: 'integracoes', label: 'Integrações', icon: <Globe className="size-4" /> },
-  { id: 'indications', label: 'Indicações', icon: <Gift className="size-4" />, tier: 'parceiro' },
+  { id: 'creditos', label: 'Créditos de Amortização', icon: <Coins className="size-4" />, tier: 'lite' },
   { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
   { id: 'properties', label: 'Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
@@ -1148,7 +1148,7 @@ export default function DDCPousadaContent() {
 
   const handleTabChange = useCallback((id: string) => {
     // Accept the id directly if it's a valid PousadaTab
-    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'indications', 'bi', 'properties'];
+    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties'];
     if (validTabs.includes(id as PousadaTab)) {
       setActiveTab(id as PousadaTab);
     } else {
@@ -1194,9 +1194,9 @@ export default function DDCPousadaContent() {
           </div>
         )}
         {activeTab === 'config' && <div key="config">{renderConfig()}</div>}
-        {activeTab === 'indications' && (
-          <div key="indications">
-            <IndicationsTab />
+        {activeTab === 'creditos' && (
+          <div key="creditos">
+            <CreditsTab plan="pro" niche="pousada" />
           </div>
         )}
         {activeTab === 'bi' && (

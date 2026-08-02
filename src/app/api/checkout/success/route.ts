@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getNextAuthSecret } from '@/lib/env';
+import { registerConversion } from '@/lib/credits/engine';
+import type { PlanTier } from '@/lib/plan-features';
 
 export async function GET(request: NextRequest) {
   try {
@@ -78,6 +80,30 @@ export async function GET(request: NextRequest) {
           type: 'pousada'
         }
       });
+    }
+
+    // ── Programa de Amortização: registra conversão se houver cookie de indicação ──
+    // Anti-fraude: cookie zella_ref presente = lead veio de uma indicação rastreada.
+    // O engine valida auto-indicação (mesmo email/tenant) e bloqueia se for o caso.
+    try {
+      const referrerCode = request.cookies.get('zella_ref')?.value;
+      if (referrerCode && subscription.planType && subscription.planType !== 'gratuito') {
+        await registerConversion({
+          referrerCode,
+          newTenantId: tenant.id,
+          newTenantEmail: tenant.email || session.user.email || '',
+          newTenantPlan: subscription.planType as Exclude<PlanTier, 'gratuito'>,
+          paymentAmountCents: Math.round(subscription.amount * 100),
+        });
+        // Limpa o cookie após registrar a conversão (não pode reusar)
+        const response = NextResponse.redirect(new URL('/ddc?payment=success', request.url));
+        response.cookies.delete('zella_ref');
+        response.cookies.delete('zella_rch');
+        return response;
+      }
+    } catch (convErr) {
+      // Não bloqueia o checkout por erro no tracking de indicação
+      console.error('[checkout/success] conversion tracking error:', convErr);
     }
 
     return NextResponse.redirect(new URL('/ddc?payment=success', request.url));

@@ -29,6 +29,7 @@ export function Footer() {
     { label: 'Política de Privacidade', href: '/legal/politica-privacidade' },
     { label: 'Política de Cobrança', href: '/legal/politica-cobranca' },
     { label: 'Contrato SaaS', href: '/legal/contrato-saas' },
+    { label: 'Programa de Amortização', href: '/legal/programa-amortizacao' },
   ];
 
   const socialLinks = [
@@ -160,6 +161,13 @@ export function Footer() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                 <span>SLA 99.9% no plano MAX</span>
               </div>
+              <Link
+                href="/legal/programa-amortizacao"
+                className="flex items-center gap-2 text-neutral-500 hover:text-emerald-400 text-xs transition-colors"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                <span>Indique e ganhe créditos (até 50% OFF)</span>
+              </Link>
             </div>
           </div>
         </div>

@@ -129,6 +129,11 @@ model Tenant {
   // Zélla — Guia Digital Hóspede
   guestGuides       GuestGuide[]
 
+  // Créditos de Amortização por Indicação
+  referralCodes     ReferralCode[]
+  amortizationCredits AmortizationCredit[]
+  liteMilestone     LiteMilestone?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2044,4 +2049,124 @@ model CompiledPrompt {
 
   @@index([tenantId, version])
   @@map("compiled_prompts")
+}
+
+// ===== CRÉDITOS DE AMORTIZAÇÃO POR INDICAÇÃO =====
+// Sistema de recompensas: indicações convertidas viram créditos que
+// amortizam a mensalidade do referrer. Anti-fraude via fingerprint +
+// janela de 24h + auto-conversão apenas após 30 dias sem chargeback.
+// Não paga via PIX — apenas desconto na próxima fatura.
+
+model ReferralCode {
+  id              String   @id @default(cuid())
+  tenantId        String
+  code            String   @unique // 8-12 chars, alfanumérico
+  channel         String   @default("linkinbio") // linkinbio | email | whatsapp | manual
+  label           String?  // apelido dado pelo referrer (ex: "Campanha Verão")
+  clicksCount     Int      @default(0)
+  conversionsCount Int     @default(0)
+  isActive        Boolean  @default(true)
+  expiresAt       DateTime? // null = sem expiração
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clicks          ReferralClick[]
+  conversions     ReferralConversion[]
+
+  @@index([tenantId])
+  @@index([code])
+  @@map("referral_codes")
+}
+
+model ReferralClick {
+  id              String   @id @default(cuid())
+  referralCodeId  String
+  // Anti-fraud fingerprint — SHA-256(ip + userAgent + acceptLanguage)
+  fingerprint     String
+  ip              String?
+  userAgent       String?
+  referrer        String?  // HTTP Referer header
+  utmSource       String?
+  utmCampaign     String?
+  // Dispositivo/browser coarse-grained para dashboard
+  deviceType      String?  // mobile | desktop | tablet
+  country         String?  // via IP geolocation
+  // Status do clique: pending (ainda não converteu) | converted | expired
+  status          String   @default("pending")
+  convertedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  referralCode    ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  conversion      ReferralConversion?
+
+  @@index([referralCodeId])
+  @@index([fingerprint])
+  @@index([status])
+  @@index([createdAt])
+  @@map("referral_clicks")
+}
+
+model ReferralConversion {
+  id                 String   @id @default(cuid())
+  referralCodeId     String
+  clickId            String   @unique // 1:1 com ReferralClick
+  // Tenant do novo cliente que assinou via indicação
+  newTenantId        String?
+  newTenantEmail     String   // para anti-fraude (não pode == referrer email)
+  newTenantPlan      String   // lite | pro | max | parceiro
+  paymentAmount      Float    // valor pago pelo novo cliente
+  // Quanto de crédito foi gerado para o referrer
+  creditAmountCents  Int      // em centavos para evitar float
+  // pending (30 dias anti-chargeback) | confirmed | reversed | expired
+  status             String   @default("pending")
+  confirmedAt        DateTime? // após 30 dias sem chargeback
+  reversedAt         DateTime?
+  reversalReason     String?
+  createdAt          DateTime @default(now())
+
+  referralCode       ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  click              ReferralClick @relation(fields: [clickId], references: [id], onDelete: Cascade)
+
+  @@index([referralCodeId])
+  @@index([newTenantEmail])
+  @@index([status])
+  @@map("referral_conversions")
+}
+
+model AmortizationCredit {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  amountCents        Int      // valor em centavos
+  source             String   // referral | lite_milestone | parceiro_bonus | signup_bonus
+  sourceReferralId   String?  // FK lógica para ReferralConversion.id
+  description        String
+  status             String   @default("available") // available | applied | expired
+  appliedToSubscriptionId String?
+  expiresAt          DateTime // 12 meses para expirar
+  appliedAt          DateTime?
+  createdAt          DateTime @default(now())
+
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("amortization_credits")
+}
+
+model LiteMilestone {
+  id                 String   @id @default(cuid())
+  tenantId           String   @unique
+  paidReferralsCount Int      @default(0)
+  // Quando atingir 10 → achievedAt é preenchido e libera 12 meses de Link-in-Bio
+  achievedAt         DateTime?
+  linkinbioExtendedUntil DateTime?
+  // Lista de tenantIds que esse LITE indicou e converteram
+  convertedEmailsJson String  @default("[]")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("lite_milestones")
 }
