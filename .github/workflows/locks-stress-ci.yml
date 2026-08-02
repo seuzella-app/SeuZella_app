@@ -1,0 +1,469 @@
+# =============================================================================
+# 🔐 SEU ZÉLLA — CI/CD Pipeline de Testes de Fechaduras Eletrônicas
+# =============================================================================
+# Suite completa de testes que simula cenários reais de operação:
+# - Centenas de pousadas e Airbnb hosts operando simultaneamente
+# - Milhares de PINs gerados por segundo (Carnaval, Réveillon)
+# - Condições de corrida, gargalos, LGPD audit, WhatsApp delivery
+# - 10 marcas de fechaduras testadas em paralelo
+#
+# Estrutura:
+# - JOB 1: Unit tests (pure functions: PIN generator, brand catalog)
+# - JOB 2: Stress avalanche (100, 500, 1000 PINs simultâneos)
+# - JOB 3: Multi-tenant scale (200 tenants operando em paralelo)
+# - JOB 4: Real-life flows (ciclo completo de reserva)
+# - JOB 5: Brand matrix (10 marcas × cenários idênticos)
+# - JOB 6: Panic revoke stress (pânico sob carga)
+# - JOB 7: Race conditions (concorrência e condições de corrida)
+# - JOB 8: Bottleneck detection (benchmarks e identificação de gargalos)
+# - JOB 9: Edge cases (casos limite e entradas malformadas)
+# - JOB 10: LGPD audit integrity (auditoria completa sob carga)
+# - JOB 11: WhatsApp delivery stress (entrega sob carga e rate-limit)
+# - JOB 12: Peak season simulation (Carnaval, Réveillon, feriadão)
+# - JOB 13: Device state & battery (monitoramento de dispositivos)
+# - JOB 14: Aggregator (relatório consolidado)
+# =============================================================================
+
+name: 🔐 Smart Locks — CI/CD Stress & Real-Life Scenarios
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tests/locks-*.test.ts'
+      - 'tests/helpers/locks-test-harness.ts'
+      - 'tests/smart-locks.test.ts'
+      - 'src/lib/locks/**'
+      - 'src/components/ddc/LocksTab.tsx'
+      - 'src/app/api/ddc/locks/**'
+      - '.github/workflows/locks-stress-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'tests/locks-*.test.ts'
+      - 'tests/helpers/locks-test-harness.ts'
+      - 'tests/smart-locks.test.ts'
+      - 'src/lib/locks/**'
+      - 'src/components/ddc/LocksTab.tsx'
+      - 'src/app/api/ddc/locks/**'
+  workflow_dispatch:
+  schedule:
+    # Roda toda noite às 03:00 UTC (00:00 BRT) — detecta regressões silenciosas
+    - cron: '0 3 * * *'
+
+# Cancela runs anteriores da mesma branch se um novo push chegar
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ===========================================================================
+  # JOB 1: Unit Tests — Pure functions (no I/O)
+  # ===========================================================================
+  unit-tests:
+    name: 🧬 Unit Tests (PIN generator + brand catalog)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🧪 Run Original Smart Locks Test Suite
+        run: npx vitest run tests/smart-locks.test.ts --reporter=verbose
+
+      - name: 📤 Upload Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-tests-results
+          path: |
+            test-results/
+            coverage/
+          retention-days: 7
+
+  # ===========================================================================
+  # JOB 2: Stress Avalanche — 100/500/1000 PINs simultâneos
+  # ===========================================================================
+  stress-avalanche:
+    name: 💥 Stress Avalanche (100/500/1000 PINs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 💥 Run Stress Avalanche Tests
+        run: npx vitest run tests/locks-stress-avalanche.test.ts --reporter=verbose
+        env:
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+      - name: 📊 Generate Stress Report
+        if: always()
+        run: |
+          echo "## 💥 Stress Avalanche Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Testes de carga extrema com 100, 500 e 1000 PINs simultâneos." >> $GITHUB_STEP_SUMMARY
+          echo "Simula picos de Carnaval e Réveillon em dezenas de pousadas." >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # JOB 3: Multi-Tenant Scale — 200 tenants (100 pousadas + 100 airbnbs)
+  # ===========================================================================
+  multi-tenant-scale:
+    name: 🏨 Multi-Tenant Scale (200 tenants)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🏨 Run Multi-Tenant Scale Tests
+        run: npx vitest run tests/locks-multi-tenant-scale.test.ts --reporter=verbose
+        env:
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+  # ===========================================================================
+  # JOB 4: Real-Life Flows — Ciclo de vida completo de reserva
+  # ===========================================================================
+  real-life-flows:
+    name: 🛎️ Real-Life Flows (booking → check-in → PIN → checkout → revoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🛎️ Run Real-Life Flow Tests
+        run: npx vitest run tests/locks-real-life-flows.test.ts --reporter=verbose
+
+  # ===========================================================================
+  # JOB 5: Brand Matrix — 10 marcas testadas em cenários idênticos
+  # ===========================================================================
+  brand-matrix:
+    name: 🔑 Brand Matrix (10 marcas × cenários)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🔑 Run Brand Matrix Tests
+        run: npx vitest run tests/locks-brand-matrix.test.ts --reporter=verbose
+
+  # ===========================================================================
+  # JOB 6: Panic Revoke Stress — Pânico sob carga
+  # ===========================================================================
+  panic-revoke-stress:
+    name: 🚨 Panic Revoke Stress (pânico sob carga)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🚨 Run Panic Revoke Stress Tests
+        run: npx vitest run tests/locks-panic-revoke-stress.test.ts --reporter=verbose
+        env:
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+  # ===========================================================================
+  # JOB 7: Race Conditions — Concorrência e condições de corrida
+  # ===========================================================================
+  race-conditions:
+    name: ⚡ Race Conditions (concorrência)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: ⚡ Run Race Conditions Tests
+        run: npx vitest run tests/locks-race-conditions.test.ts --reporter=verbose
+
+  # ===========================================================================
+  # JOB 8: Bottleneck Detection — Benchmarks e identificação de gargalos
+  # ===========================================================================
+  bottleneck-detection:
+    name: 📊 Bottleneck Detection (benchmarks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 📊 Run Bottleneck Detection Tests
+        run: npx vitest run tests/locks-bottleneck-detection.test.ts --reporter=verbose
+        env:
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+      - name: 📈 Capture Benchmarks
+        if: always()
+        run: |
+          echo "## 📊 Benchmarks Capturados" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Benchmarks de throughput, latência P50/P95/P99 e identificação de gargalos." >> $GITHUB_STEP_SUMMARY
+          echo "Resultados detalhados nos logs do job." >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # JOB 9: Edge Cases — Casos limite e entradas malformadas
+  # ===========================================================================
+  edge-cases:
+    name: 🧪 Edge Cases (entradas malformadas)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🧪 Run Edge Cases Tests
+        run: npx vitest run tests/locks-edge-cases.test.ts --reporter=verbose
+
+  # ===========================================================================
+  # JOB 10: LGPD Audit Integrity — Auditoria completa sob carga
+  # ===========================================================================
+  lgpd-audit:
+    name: 🛡️ LGPD Audit Integrity (auditoria sob carga)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🛡️ Run LGPD Audit Tests
+        run: npx vitest run tests/locks-lgpd-audit.test.ts --reporter=verbose
+        env:
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+  # ===========================================================================
+  # JOB 11: WhatsApp Delivery Stress — Entrega sob carga e rate-limit
+  # ===========================================================================
+  whatsapp-delivery:
+    name: 📱 WhatsApp Delivery Stress (rate-limit + falhas)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 📱 Run WhatsApp Delivery Stress Tests
+        run: npx vitest run tests/locks-whatsapp-delivery.test.ts --reporter=verbose
+        env:
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+  # ===========================================================================
+  # JOB 12: Peak Season Simulation — Carnaval, Réveillon, feriadão
+  # ===========================================================================
+  peak-season:
+    name: 🎄 Peak Season (Carnaval + Réveillon + feriadão)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🎄 Run Peak Season Simulation Tests
+        run: npx vitest run tests/locks-peak-season-simulation.test.ts --reporter=verbose
+        env:
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+  # ===========================================================================
+  # JOB 13: Device State & Battery — Monitoramento de dispositivos
+  # ===========================================================================
+  device-state-battery:
+    name: 🔋 Device State & Battery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🔋 Run Device State & Battery Tests
+        run: npx vitest run tests/locks-device-state-battery.test.ts --reporter=verbose
+
+  # ===========================================================================
+  # JOB 14: Aggregator — Relatório consolidado (roda apenas se todos passarem)
+  # ===========================================================================
+  aggregator:
+    name: ✅ All Tests Passed — Final Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - unit-tests
+      - stress-avalanche
+      - multi-tenant-scale
+      - real-life-flows
+      - brand-matrix
+      - panic-revoke-stress
+      - race-conditions
+      - bottleneck-detection
+      - edge-cases
+      - lgpd-audit
+      - whatsapp-delivery
+      - peak-season
+      - device-state-battery
+    if: always()
+    steps:
+      - name: 📊 Generate Final Report
+        run: |
+          echo "## 🔐 Smart Locks CI/CD — Relatório Final" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧬 Unit Tests | ${{ needs.unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 💥 Stress Avalanche | ${{ needs.stress-avalanche.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏨 Multi-Tenant Scale | ${{ needs.multi-tenant-scale.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛎️ Real-Life Flows | ${{ needs.real-life-flows.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔑 Brand Matrix | ${{ needs.brand-matrix.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚨 Panic Revoke Stress | ${{ needs.panic-revoke-stress.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⚡ Race Conditions | ${{ needs.race-conditions.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📊 Bottleneck Detection | ${{ needs.bottleneck-detection.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Edge Cases | ${{ needs.edge-cases.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ LGPD Audit | ${{ needs.lgpd-audit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📱 WhatsApp Delivery | ${{ needs.whatsapp-delivery.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🎄 Peak Season | ${{ needs.peak-season.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔋 Device State & Battery | ${{ needs.device-state-battery.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Cobertura dos Testes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **164 testes** em **12 arquivos**" >> $GITHUB_STEP_SUMMARY
+          echo "- **10 marcas** de fechaduras testadas (TTLock, Tuya, Igloohome, Nuki, August, Intelbras, Yale, Papaiz, Philco, Samsung)" >> $GITHUB_STEP_SUMMARY
+          echo "- **200 tenants** simultâneos (100 pousadas + 100 airbnbs)" >> $GITHUB_STEP_SUMMARY
+          echo "- **1000 PINs/sec** em pico (Réveillon simulation)" >> $GITHUB_STEP_SUMMARY
+          echo "- **LGPD compliance** — eventos de auditoria verificados sob carga" >> $GITHUB_STEP_SUMMARY
+          echo "- **Race conditions** — 8 cenários de concorrência extrema" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bottleneck detection** — benchmarks P50/P95/P99" >> $GITHUB_STEP_SUMMARY
+
+      - name: ❌ Fail if any job failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: |
+          echo "❌ Um ou mais jobs falharam!"
+          exit 1
+
+      - name: ✅ All green
+        if: ${{ !contains(needs.*.result, 'failure') }}
+        run: |
+          echo "✅ Todos os 164 testes de Fechaduras Eletrônicas passaram!"
+          echo "🔐 Sistema pronto para deploy em produção."

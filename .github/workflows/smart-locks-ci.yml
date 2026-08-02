@@ -5,8 +5,11 @@ on:
     branches: [ main ]
     paths:
       - 'tests/smart-locks.test.ts'
+      - 'tests/locks-*.test.ts'
+      - 'tests/helpers/locks-test-harness.ts'
+      - 'src/lib/locks/**'
+      - 'src/components/ddc/LocksTab.tsx'
       - 'src/components/landing/SmartLockSecurityProof.tsx'
-      - 'src/lib/strategies/**'
       - '.github/workflows/smart-locks-ci.yml'
   pull_request:
     branches: [ main ]
@@ -16,6 +19,7 @@ jobs:
   test-smart-locks:
     name: Test Fechaduras Eletrônicas & Protocolo de Exceção
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Repository
@@ -28,7 +32,10 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
-      - name: Run Smart Locks Test Suite
-        run: npx vitest run tests/smart-locks.test.ts
+      - name: Run Smart Locks Test Suite (v2 — Real Functions)
+        run: npx vitest run tests/smart-locks.test.ts --reporter=verbose
+
+      - name: Run Locks Test Harness Validation
+        run: npx vitest run tests/locks-edge-cases.test.ts tests/locks-brand-matrix.test.ts --reporter=verbose
