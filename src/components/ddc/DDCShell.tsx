@@ -35,14 +35,11 @@ import {
   Bell,
   Activity,
   Zap,
-  Command,
-  X,
   Sparkles,
 } from 'lucide-react';
 import { ZellaLogo } from '@/components/brand/ZellaLogo';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,

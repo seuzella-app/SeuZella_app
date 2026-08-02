@@ -35,7 +35,6 @@ import {
   Link as LinkIcon,
   Clock,
   CheckCircle2,
-  ArrowRight,
 } from 'lucide-react';
 import {
   Card,
@@ -47,7 +46,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -124,7 +122,6 @@ export function IndicationsTab() {
   const totalReceived = MOCK_INDICATIONS.reduce((acc, i) => acc + i.commission, 0);
   const convertedCount = MOCK_INDICATIONS.filter(i => i.status === 'converted').length;
   const availableForWithdrawal = totalReceived; // mock — assume all available
-  const pending = 0;
   const conversionRate = ((convertedCount / 87) * 100).toFixed(1);
 
   const handleCopyLink = async () => {

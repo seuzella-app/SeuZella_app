@@ -22,7 +22,6 @@ import {
   Flame,
   Brain,
   AlertTriangle,
-  Calendar,
   Activity,
   ArrowUpRight,
   ArrowDownRight,
@@ -38,20 +37,15 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Cell,
 } from 'recharts';
 import {
   ChartContainer,
