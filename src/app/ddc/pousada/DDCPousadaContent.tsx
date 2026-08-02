@@ -88,6 +88,9 @@ import {
   Smartphone,
   Coins,
   BarChart2,
+  Trash2,
+  ExternalLink,
+  Info,
 } from 'lucide-react';
 import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
 import { BITab } from '@/components/ddc/BITab';
@@ -231,6 +234,58 @@ const occupancyChartConfig: ChartConfig = {
   taxa: { label: 'Taxa (%)', color: '#10b981' },
 };
 
+// ─── Room & Platform Data ────────────────────────────────────────────────────
+
+interface RoomData {
+  id: string;
+  name: string;
+  type: 'Suíte Master' | 'Suíte Luxo' | 'Standard' | 'Chalé' | 'Familiar';
+  capacity: number;
+  dailyRate: number;
+  amenities: string[];
+  status: 'disponivel' | 'ocupado' | 'manutencao';
+  platformLinks?: { platform: string; url: string }[];
+}
+
+interface PlatformLink {
+  id: string;
+  platform: 'Booking' | 'Airbnb' | 'Decolar' | 'Trivago' | 'Site Próprio' | 'Google Hotels';
+  url: string;
+  connected: boolean;
+}
+
+const ROOM_TYPES: RoomData['type'][] = ['Suíte Master', 'Suíte Luxo', 'Standard', 'Chalé', 'Familiar'];
+const ROOM_AMENITY_OPTIONS = ['Wi-Fi', 'Ar-condicionado', 'TV Smart', 'Frigobar', 'Vista mar', 'Varanda', 'Banheira', 'Café da manhã', 'Piscina privativa', 'Lareira'];
+
+const INITIAL_ROOMS: RoomData[] = [
+  { id: 'r1', name: 'Quarto 101 — Onda Verde', type: 'Suíte Master', capacity: 2, dailyRate: 590, amenities: ['Wi-Fi', 'Ar-condicionado', 'TV Smart', 'Vista mar', 'Varanda', 'Banheira'], status: 'disponivel' },
+  { id: 'r2', name: 'Quarto 102 — Brisas do Mar', type: 'Suíte Luxo', capacity: 3, dailyRate: 450, amenities: ['Wi-Fi', 'Ar-condicionado', 'TV Smart', 'Vista mar'], status: 'ocupado' },
+  { id: 'r3', name: 'Quarto 201 — Jardim Secreto', type: 'Standard', capacity: 2, dailyRate: 280, amenities: ['Wi-Fi', 'Ar-condicionado', 'Frigobar'], status: 'disponivel' },
+  { id: 'r4', name: 'Chalé Lua Cheia', type: 'Chalé', capacity: 4, dailyRate: 720, amenities: ['Wi-Fi', 'Ar-condicionado', 'TV Smart', 'Lareira', 'Banheira', 'Café da manhã'], status: 'disponivel' },
+];
+
+const INITIAL_PLATFORMS: PlatformLink[] = [
+  { id: 'p1', platform: 'Booking', url: 'https://www.booking.com/hotel/br/pousada-serenity-paraty.pt-br.html', connected: true },
+  { id: 'p2', platform: 'Airbnb', url: 'https://www.airbnb.com.br/rooms/12345678', connected: true },
+  { id: 'p3', platform: 'Decolar', url: '', connected: false },
+];
+
+function getRoomStatusColor(status: RoomData['status']) {
+  switch (status) {
+    case 'disponivel': return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+    case 'ocupado': return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+    case 'manutencao': return 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+  }
+}
+
+function getRoomStatusIcon(status: RoomData['status']) {
+  switch (status) {
+    case 'disponivel': return <CheckCircle2 className="size-3.5 text-emerald-400" />;
+    case 'ocupado': return <Users className="size-3.5 text-rose-400" />;
+    case 'manutencao': return <Clock className="size-3.5 text-amber-400" />;
+  }
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatCurrency(value: number): string {
@@ -276,8 +331,8 @@ function getTrainingStatusIcon(status: string) {
 
 const pousadaNavItems: NavItem[] = [
   { id: 'financeiro', label: 'Visão Financeira', icon: <LayoutDashboard className="size-4" /> },
-  { id: 'hospedes', label: 'Controle de Hóspedes', icon: <Users className="size-4" /> },
-  { id: 'cerebro', label: 'Cérebro da Pousada', icon: <Brain className="size-4" /> },
+  { id: 'hospedes', label: 'Hóspedes e Reservas', icon: <Users className="size-4" /> },
+  { id: 'cerebro', label: 'Central da Pousada', icon: <Building2 className="size-4" /> },
   { id: 'simulador', label: 'Simulador Zélla', icon: <MessageSquare className="size-4" /> },
   { id: 'whatsapp', label: 'Connection Center', icon: <Smartphone className="size-4" /> },
   { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
@@ -324,6 +379,21 @@ export default function DDCPousadaContent() {
     highlights: ['Centro histórico', 'Vista baía', 'Café artesanal', 'Piscina natural'],
   });
 
+  // ─── Room & Platform State (Central da Pousada) ─────────────────────────
+  const [rooms, setRooms] = useState<RoomData[]>(INITIAL_ROOMS);
+  const [platformLinks, setPlatformLinks] = useState<PlatformLink[]>(INITIAL_PLATFORMS);
+  const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+  const [newRoomForm, setNewRoomForm] = useState({
+    name: '',
+    type: 'Standard' as RoomData['type'],
+    capacity: 2,
+    dailyRate: 350,
+    amenities: [] as string[],
+    status: 'disponivel' as RoomData['status'],
+  });
+  const [newPlatformUrl, setNewPlatformUrl] = useState('');
+  const [newPlatformName, setNewPlatformName] = useState<PlatformLink['platform']>('Booking');
+
   // Computed metrics (declared before any early return — Rules of Hooks)
   const totalMRR = useMemo(() => {
     const lastDay = revenueTrendData[revenueTrendData.length - 1].receita;
@@ -332,6 +402,16 @@ export default function DDCPousadaContent() {
 
   const handleScanComplete = useCallback((result: MagicScanResult) => {
     setScannedData(result);
+  }, []);
+
+  // Tab navigation handler (declared before early return — Rules of Hooks)
+  const handleTabChange = useCallback((id: string) => {
+    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties'];
+    if (validTabs.includes(id as PousadaTab)) {
+      setActiveTab(id as PousadaTab);
+    } else {
+      setActiveTab('financeiro');
+    }
   }, []);
 
   const handleAddGuest = useCallback(() => {
@@ -363,6 +443,60 @@ export default function DDCPousadaContent() {
     setIsAddGuestOpen(false);
   }, [newGuestForm]);
 
+  // ─── Room & Platform Handlers ───────────────────────────────────────────
+  const handleAddRoom = useCallback(() => {
+    if (!newRoomForm.name.trim()) return;
+    const newRoom: RoomData = {
+      id: `r-${Date.now()}`,
+      name: newRoomForm.name,
+      type: newRoomForm.type,
+      capacity: Number(newRoomForm.capacity) || 2,
+      dailyRate: Number(newRoomForm.dailyRate) || 300,
+      amenities: newRoomForm.amenities,
+      status: newRoomForm.status,
+    };
+    setRooms(prev => [...prev, newRoom]);
+    setNewRoomForm({ name: '', type: 'Standard', capacity: 2, dailyRate: 350, amenities: [], status: 'disponivel' });
+    setIsAddRoomOpen(false);
+    toast.success('Quarto cadastrado com sucesso!');
+  }, [newRoomForm]);
+
+  const handleDeleteRoom = useCallback((id: string) => {
+    setRooms(prev => prev.filter(r => r.id !== id));
+    toast.info('Quarto removido.');
+  }, []);
+
+  const handleToggleAmenity = (amenity: string) => {
+    setNewRoomForm(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity],
+    }));
+  };
+
+  const handleAddPlatform = useCallback(() => {
+    if (!newPlatformUrl.trim()) return;
+    const newPlat: PlatformLink = {
+      id: `p-${Date.now()}`,
+      platform: newPlatformName,
+      url: newPlatformUrl,
+      connected: true,
+    };
+    setPlatformLinks(prev => {
+      // Replace if same platform exists
+      const filtered = prev.filter(p => p.platform !== newPlatformName);
+      return [newPlat, ...filtered];
+    });
+    setNewPlatformUrl('');
+    toast.success(`Link ${newPlatformName} conectado!`);
+  }, [newPlatformUrl, newPlatformName]);
+
+  const handleRemovePlatform = useCallback((id: string) => {
+    setPlatformLinks(prev => prev.filter(p => p.id !== id));
+    toast.info('Plataforma desconectada.');
+  }, []);
+
   // Show Magic Scanner if no scan data yet
   if (!scannedData) {
     return <MagicScanner niche="pousada" onComplete={handleScanComplete} />;
@@ -381,18 +515,6 @@ export default function DDCPousadaContent() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {/* Stitch HUD AI Status Ticker Pill */}
-      <div className="rounded-full py-2.5 px-4 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/30 shadow-lg shadow-emerald-500/10 backdrop-blur-xl">
-        <p className="text-xs font-mono text-zinc-200 flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block" />
-          <span className="font-bold text-emerald-400">ZÉLLA ATIVO</span>
-          <span className="text-zinc-500">•</span>
-          <span>Resposta em 0.6s</span>
-          <span className="text-zinc-500">•</span>
-          <span className="text-emerald-300 font-medium">80% Economia no WhatsApp</span>
-        </p>
-      </div>
-
       {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner */}
       <Card className="bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.05] border-emerald-500/20 overflow-hidden">
         <CardContent className="p-5">
@@ -404,7 +526,7 @@ export default function DDCPousadaContent() {
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="text-white font-semibold text-sm">{scannedData.propertyName}</h3>
                 <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />Lido pelo Scanner
+                  <CheckCircle2 className="w-3 h-3 mr-1" />Dados da Pousada
                 </Badge>
               </div>
               <p className="text-zinc-400 text-xs mb-3">{scannedData.description || ''}</p>
@@ -443,7 +565,7 @@ export default function DDCPousadaContent() {
         {/* MRR Card */}
         <Card className="bg-[#0c101c]/90 border-white/10 hover:border-emerald-500/40 border-l-4 border-l-emerald-500 transition-colors shadow-lg">
           <CardHeader className="pb-1 p-3.5">
-            <CardDescription className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">MRR Estimado</CardDescription>
+            <CardDescription className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">Receita do Mês</CardDescription>
             <CardTitle className="text-xl sm:text-2xl font-bold text-white">
               {formatCurrency(totalMRR)}
             </CardTitle>
@@ -678,6 +800,14 @@ export default function DDCPousadaContent() {
         transition={{ duration: 0.3 }}
         className="space-y-4"
       >
+        {/* Onboarding Info Banner */}
+        <div className="flex items-start gap-3 p-3 rounded-lg bg-emerald-500/[0.06] border border-emerald-500/15">
+          <Info className="size-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="text-xs text-zinc-300 leading-relaxed">
+            <strong className="text-emerald-400">Como funciona:</strong> Quando um hóspede envia mensagem no WhatsApp, a IA cria automaticamente um card aqui no funil. Você também pode cadastrar manualmente reservas vindas de Booking, Airbnb ou telefone. Os quartos são gerenciados na aba <strong className="text-white">Central da Pousada</strong>.
+          </div>
+        </div>
+
         {/* Header stats */}
         <div className="flex items-center justify-between">
           <div>
@@ -806,6 +936,165 @@ export default function DDCPousadaContent() {
         transition={{ duration: 0.3 }}
         className="space-y-6"
       >
+        {/* ── Cadastro de Quartos ── */}
+        <Card className="bg-[#111118] border-zinc-800/60">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Bed className="size-5 text-emerald-400" />
+                  <CardTitle className="text-base text-white">Cadastro de Quartos</CardTitle>
+                </div>
+                <CardDescription className="text-zinc-400 mt-1">
+                  Cadastre seus quartos com características e preços. A IA usa esses dados para responder hóspedes e sugerir disponibilidade.
+                </CardDescription>
+              </div>
+              <Button
+                onClick={() => setIsAddRoomOpen(true)}
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <Plus className="size-4 mr-1" /> Novo Quarto
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {rooms.map((room) => (
+                <div
+                  key={room.id}
+                  className="bg-[#0a0a0f] border border-zinc-800 rounded-xl p-4 hover:border-emerald-500/30 transition-colors group"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-semibold text-white truncate">{room.name}</h4>
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{room.type}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteRoom(room.id)}
+                      className="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-400 transition-all p-1"
+                      title="Remover quarto"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge variant="outline" className={`text-[9px] ${getRoomStatusColor(room.status)}`}>
+                      {getRoomStatusIcon(room.status)}
+                      <span className="ml-1">{room.status === 'disponivel' ? 'Disponível' : room.status === 'ocupado' ? 'Ocupado' : 'Manutenção'}</span>
+                    </Badge>
+                    <span className="text-[10px] text-zinc-500 flex items-center gap-0.5">
+                      <Users className="size-3" /> {room.capacity}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {room.amenities.slice(0, 4).map(a => (
+                      <span key={a} className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800/60 text-zinc-400">{a}</span>
+                    ))}
+                    {room.amenities.length > 4 && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800/60 text-zinc-500">+{room.amenities.length - 4}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
+                    <span className="text-[10px] text-zinc-500">Diária</span>
+                    <span className="text-sm font-bold text-emerald-400">{formatCurrency(room.dailyRate)}</span>
+                  </div>
+                </div>
+              ))}
+              {/* Add room card */}
+              <button
+                onClick={() => setIsAddRoomOpen(true)}
+                className="border-2 border-dashed border-zinc-800 rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-emerald-400 hover:border-emerald-500/30 transition-all min-h-[160px]"
+              >
+                <Plus className="size-6" />
+                <span className="text-xs">Adicionar Quarto</span>
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Plataformas Conectadas ── */}
+        <Card className="bg-[#111118] border-zinc-800/60">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Globe className="size-5 text-emerald-400" />
+              <CardTitle className="text-base text-white">Plataformas e Canais</CardTitle>
+            </div>
+            <CardDescription className="text-zinc-400">
+              Cadastre os links dos seus anúncios em OTAs. A IA consulta esses links para sincronizar preços e disponibilidade.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {platformLinks.map((plat) => (
+                <div
+                  key={plat.id}
+                  className="bg-[#0a0a0f] border border-zinc-800 rounded-xl p-3 flex items-center gap-3 group hover:border-emerald-500/30 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <Globe className="size-4 text-emerald-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white">{plat.platform}</span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${plat.connected ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
+                    </div>
+                    <p className="text-[10px] text-zinc-500 truncate">
+                      {plat.url ? plat.url.replace(/^https?:\/\//, '').slice(0, 40) + '...' : 'Não conectado'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {plat.url && (
+                      <a
+                        href={plat.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 text-zinc-400 hover:text-white transition-all"
+                        title="Abrir link"
+                      >
+                        <ExternalLink className="size-3.5" />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => handleRemovePlatform(plat.id)}
+                      className="p-1.5 rounded-lg bg-zinc-800/50 hover:bg-rose-500/15 text-zinc-400 hover:text-rose-400 transition-all"
+                      title="Remover"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add platform link */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-zinc-800/50">
+              <select
+                value={newPlatformName}
+                onChange={(e) => setNewPlatformName(e.target.value as PlatformLink['platform'])}
+                className="bg-[#0a0a0f] border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:border-emerald-500/50 focus:outline-none"
+              >
+                {(['Booking', 'Airbnb', 'Decolar', 'Trivago', 'Site Próprio', 'Google Hotels'] as const).map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+              <Input
+                placeholder="https://www.booking.com/..."
+                value={newPlatformUrl}
+                onChange={(e) => setNewPlatformUrl(e.target.value)}
+                className="flex-1 bg-[#0a0a0f] border-zinc-700 text-white placeholder:text-zinc-600 focus:border-emerald-500/50"
+              />
+              <Button
+                onClick={handleAddPlatform}
+                disabled={!newPlatformUrl.trim()}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <LinkIcon className="size-4 mr-1" /> Conectar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Magic Onboarding */}
         <Card className="bg-[#111118] border-zinc-800/60 overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent pointer-events-none" />
@@ -1146,16 +1435,6 @@ export default function DDCPousadaContent() {
     </motion.div>
   );
 
-  const handleTabChange = useCallback((id: string) => {
-    // Accept the id directly if it's a valid PousadaTab
-    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties'];
-    if (validTabs.includes(id as PousadaTab)) {
-      setActiveTab(id as PousadaTab);
-    } else {
-      setActiveTab('financeiro');
-    }
-  }, []);
-
   return (
     <DDCShell
       niche="pousada"
@@ -1163,6 +1442,7 @@ export default function DDCPousadaContent() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
+      currentPlan="pro"
     >
       <AnimatePresence mode="wait">
         {activeTab === 'financeiro' && <div key="financeiro">{renderFinanceiro()}</div>}
@@ -1314,6 +1594,117 @@ export default function DDCPousadaContent() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
             >
               Salvar Hóspede
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Novo Quarto */}
+      <Dialog open={isAddRoomOpen} onOpenChange={setIsAddRoomOpen}>
+        <DialogContent className="bg-[#111118] border-zinc-800 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2 text-emerald-400">
+              <Bed className="size-5" /> Cadastrar Novo Quarto
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400 text-xs">
+              Cadastre o quarto com suas características. A IA usará esses dados para responder hóspedes sobre disponibilidade e preços.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Nome / Identificação do Quarto</label>
+              <Input
+                placeholder="Ex: Quarto 103 — Vista Mar"
+                value={newRoomForm.name}
+                onChange={(e) => setNewRoomForm({ ...newRoomForm, name: e.target.value })}
+                className="bg-[#0a0a0f] border-zinc-700 text-white"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Tipo de Acomodação</label>
+                <select
+                  value={newRoomForm.type}
+                  onChange={(e) => setNewRoomForm({ ...newRoomForm, type: e.target.value as RoomData['type'] })}
+                  className="w-full h-9 rounded-md bg-[#0a0a0f] border border-zinc-700 text-white px-3 text-sm"
+                >
+                  {ROOM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Status Inicial</label>
+                <select
+                  value={newRoomForm.status}
+                  onChange={(e) => setNewRoomForm({ ...newRoomForm, status: e.target.value as RoomData['status'] })}
+                  className="w-full h-9 rounded-md bg-[#0a0a0f] border border-zinc-700 text-white px-3 text-sm"
+                >
+                  <option value="disponivel">Disponível</option>
+                  <option value="ocupado">Ocupado</option>
+                  <option value="manutencao">Manutenção</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Capacidade (pessoas)</label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={newRoomForm.capacity}
+                  onChange={(e) => setNewRoomForm({ ...newRoomForm, capacity: Number(e.target.value) })}
+                  className="bg-[#0a0a0f] border-zinc-700 text-white"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-400">Diária (R$)</label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={50}
+                  value={newRoomForm.dailyRate}
+                  onChange={(e) => setNewRoomForm({ ...newRoomForm, dailyRate: Number(e.target.value) })}
+                  className="bg-[#0a0a0f] border-zinc-700 text-white"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs text-zinc-400">Comodidades & Características</label>
+              <div className="flex flex-wrap gap-1.5">
+                {ROOM_AMENITY_OPTIONS.map(amenity => {
+                  const selected = newRoomForm.amenities.includes(amenity);
+                  return (
+                    <button
+                      key={amenity}
+                      type="button"
+                      onClick={() => handleToggleAmenity(amenity)}
+                      className={`text-[10px] px-2 py-1 rounded-md border transition-all ${
+                        selected
+                          ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                          : 'bg-zinc-800/40 border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                      }`}
+                    >
+                      {amenity}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsAddRoomOpen(false)}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAddRoom}
+              disabled={!newRoomForm.name.trim()}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+            >
+              Salvar Quarto
             </Button>
           </DialogFooter>
         </DialogContent>

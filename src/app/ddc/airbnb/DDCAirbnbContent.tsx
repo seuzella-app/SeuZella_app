@@ -326,6 +326,16 @@ export default function DDCAirbnbContent() {
     setScannedData(result);
   }, []);
 
+  // Tab navigation handler (declared before early return — Rules of Hooks)
+  const handleTabChange = useCallback((id: string) => {
+    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties'];
+    if (validTabs.includes(id as AirbnbTab)) {
+      setActiveTab(id as AirbnbTab);
+    } else {
+      setActiveTab('financeiro');
+    }
+  }, []);
+
   const handleAddProperty = useCallback(() => {
     if (!newPropertyForm.name.trim()) return;
     const newProp: PropertyData = {
@@ -1239,7 +1249,7 @@ export default function DDCAirbnbContent() {
         {/* MRR Card */}
         <Card className="bg-[#111118] border-zinc-800/60 hover:border-blue-500/30 transition-colors">
           <CardHeader className="pb-2">
-            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Faturamento Mês (MRR)</CardDescription>
+            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Faturamento do Mês</CardDescription>
             <CardTitle className="text-2xl font-bold text-white">
               {formatBRL(totalRevenue)}
             </CardTitle>
@@ -1401,15 +1411,6 @@ export default function DDCAirbnbContent() {
     }
   };
 
-  const handleTabChange = useCallback((id: string) => {
-    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties'];
-    if (validTabs.includes(id as AirbnbTab)) {
-      setActiveTab(id as AirbnbTab);
-    } else {
-      setActiveTab('financeiro');
-    }
-  }, []);
-
   return (
     <DDCShell
       niche="airbnb"
@@ -1417,6 +1418,7 @@ export default function DDCAirbnbContent() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
+      currentPlan="pro"
     >
       <AnimatePresence mode="wait">
         {renderTab()}

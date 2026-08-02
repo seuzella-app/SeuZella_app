@@ -142,12 +142,10 @@ export function DDCSidebar({
   onTabChange,
   userName = 'Proprietário',
   propertyName = 'Propriedade',
-  currentPlan = 'gratuito',
   collapsed = false,
   onToggleCollapse,
 }: DDCSidebarProps) {
   const theme = NICHE_THEME[niche];
-  const planDisplay = PLAN_DISPLAY[currentPlan] || PLAN_DISPLAY.gratuito;
 
   const userInitials = userName
     .split(' ')
@@ -199,27 +197,19 @@ export function DDCSidebar({
   // ─── Expanded sidebar ───────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full">
-      {/* Logo Section */}
+      {/* Logo Section — seuzélla.com + nome da propriedade */}
       <div className="p-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/[0.08] flex items-center justify-center shrink-0">
             <ZellaLogo size={20} />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-bold text-white tracking-tight truncate">
-              Seu Zélla
+            <h2 className="text-sm font-bold text-white tracking-tight truncate lowercase">
+              seuzélla.com
             </h2>
-            <div className="flex items-center gap-1.5">
-              <p className="text-[10px] text-white/40 font-mono uppercase tracking-wider truncate">
-                {theme.logoSubtitle}
-              </p>
-              <Badge
-                variant="outline"
-                className={`text-[8px] px-1 py-0 h-3.5 font-mono uppercase ${planDisplay.badgeBorder} ${planDisplay.badgeText} ${planDisplay.badgeBg}`}
-              >
-                {planDisplay.label}
-              </Badge>
-            </div>
+            <p className="text-[11px] text-white/50 truncate" title={propertyName}>
+              {propertyName}
+            </p>
           </div>
         </div>
       </div>
@@ -329,6 +319,8 @@ export function DDCShell({
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const resolvedUserName = session?.user?.name || userName;
   const theme = NICHE_THEME[niche];
@@ -399,6 +391,19 @@ export function DDCShell({
   const formatDate = (date: Date) =>
     date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
 
+  // ── Inline search: filter nav items by query ──────────────────────────
+  const filteredSearchItems = searchQuery.trim()
+    ? navItems.filter(item =>
+        item.label.toLowerCase().includes(searchQuery.toLowerCase().trim())
+      )
+    : [];
+
+  const handleSearchSelect = (tabId: string) => {
+    onTabChange(tabId);
+    setSearchQuery('');
+    setSearchOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex">
       {/* Desktop Sidebar */}
@@ -446,16 +451,6 @@ export function DDCShell({
         <div className="md:ml-[280px]" style={{ marginLeft: undefined }}>
           {/* Sticky Top Header */}
           <header className="sticky top-0 z-30 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/[0.06]">
-            {/* Animated top gradient line — niche-themed */}
-            <div className="h-[2px] w-full overflow-hidden">
-              <motion.div
-                className="h-full w-1/2"
-                style={{ background: theme.accent }}
-                initial={{ x: '-100%' }}
-                animate={{ x: '100%' }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              />
-            </div>
 
             <div className="flex items-center justify-between px-4 py-3 gap-3">
               {/* Left: Mobile menu + Back + Title */}
@@ -495,40 +490,80 @@ export function DDCShell({
                 </div>
               </div>
 
-              {/* Center: Search trigger (opens command palette) */}
-              <button
-                onClick={() => setCommandPaletteOpen(true)}
-                className="hidden md:flex flex-1 max-w-md mx-4 items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] transition-all text-left"
-              >
-                <Search className="w-3.5 h-3.5 text-white/30" />
-                <span className="text-xs text-white/40 flex-1">Buscar ou navegar...</span>
-                <kbd className="text-[9px] text-white/20 font-mono px-1.5 py-0.5 rounded bg-white/[0.04]">
+              {/* Center: Functional inline search with dropdown results */}
+              <div className="hidden md:flex flex-1 max-w-xl mx-4 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 z-10 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Buscar ou navegar..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchOpen(true);
+                  }}
+                  onFocus={() => setSearchOpen(true)}
+                  onBlur={() => setTimeout(() => setSearchOpen(false), 150)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && filteredSearchItems.length > 0) {
+                      handleSearchSelect(filteredSearchItems[0].id);
+                    }
+                    if (e.key === 'Escape') {
+                      setSearchOpen(false);
+                      (e.target as HTMLInputElement).blur();
+                    }
+                  }}
+                  className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg pl-10 pr-16 py-2 text-sm text-white placeholder:text-white/30 focus:border-white/20 focus:bg-white/[0.05] focus:outline-none transition-all"
+                />
+                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-white/20 font-mono px-1.5 py-0.5 rounded bg-white/[0.04] pointer-events-none">
                   ⌘K
                 </kbd>
-              </button>
+                {/* Search dropdown results */}
+                {searchOpen && searchQuery.trim() && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#0d0d14] border border-white/[0.08] rounded-lg shadow-2xl overflow-hidden z-50 max-h-80 overflow-y-auto">
+                    {filteredSearchItems.length > 0 ? (
+                      <>
+                        <div className="px-3 py-1.5 text-[9px] font-mono uppercase tracking-wider text-white/30 border-b border-white/[0.04]">
+                          {filteredSearchItems.length} resultado{filteredSearchItems.length > 1 ? 's' : ''}
+                        </div>
+                        {filteredSearchItems.map((item) => (
+                          <button
+                            key={item.id}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleSearchSelect(item.id);
+                            }}
+                            className="flex items-center gap-3 w-full px-3 py-2.5 hover:bg-white/[0.04] text-left transition-colors border-b border-white/[0.02] last:border-0"
+                          >
+                            <span className={`${theme.accentText} shrink-0`}>{item.icon}</span>
+                            <span className="text-sm text-white/80 flex-1 truncate">{item.label}</span>
+                            {item.tier && item.tier !== 'gratuito' && (
+                              <Badge
+                                variant="outline"
+                                className={`text-[7px] px-1 py-0 h-3 font-mono uppercase shrink-0 ${PLAN_DISPLAY[item.tier].badgeBorder} ${PLAN_DISPLAY[item.tier].badgeText} ${PLAN_DISPLAY[item.tier].badgeBg}`}
+                              >
+                                {PLAN_DISPLAY[item.tier].label}
+                              </Badge>
+                            )}
+                            <ChevronRight className="w-3.5 h-3.5 text-white/20 shrink-0" />
+                          </button>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="px-3 py-6 text-center">
+                        <p className="text-xs text-white/40 mb-1">Nenhum resultado para “{searchQuery}”</p>
+                        <p className="text-[10px] text-white/30">Tente: hóspedes, financeiro, créditos, link...</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
-              {/* Right: KPIs + AI Toggle + Notifications + User */}
+              {/* Right: KPIs + Notifications + User */}
               <div className="flex items-center gap-2 shrink-0">
-                {/* AI Status Pill */}
-                <button
-                  onClick={onToggleAI}
-                  className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
-                    aiActive
-                      ? `${theme.accentBg} ${theme.accentBorder} ${theme.accentText}`
-                      : 'bg-rose-500/15 border-rose-500/30 text-rose-400'
-                  }`}
-                  title={aiActive ? 'IA ativa — clique para pausar' : 'IA pausada — clique para ativar'}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${aiActive ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
-                  <span className="text-[10px] font-mono uppercase tracking-wider">
-                    {aiActive ? 'IA ON' : 'IA OFF'}
-                  </span>
-                </button>
-
                 {/* Quick Stats */}
                 <div className="hidden xl:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
                   <div className="flex items-center gap-1.5">
-                    <Activity className="w-3 h-3 text-emerald-400" />
+                    <Activity className={`w-3 h-3 ${theme.accentText}`} />
                     <span className="text-[10px] text-white/50">Hoje:</span>
                     <span className="text-xs font-bold text-white">{attendedToday}</span>
                   </div>
@@ -630,7 +665,7 @@ export function DDCShell({
             {/* Time & Date Bar */}
             <div className="flex items-center justify-between px-4 py-1 bg-black/20 border-t border-white/[0.03]">
               <div className="flex items-center gap-2">
-                <Activity className="w-2.5 h-2.5 text-emerald-400" />
+                <Activity className={`w-2.5 h-2.5 ${theme.accentText}`} />
                 <span className="text-[9px] text-white/40 font-mono uppercase tracking-wider">
                   Sistema Operacional · DDC v2.0
                 </span>
