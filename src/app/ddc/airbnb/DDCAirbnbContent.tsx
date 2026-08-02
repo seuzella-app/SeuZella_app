@@ -75,11 +75,17 @@ import {
   Users,
   CreditCard,
   Link as LinkIcon,
+  Gift,
+  BarChart2,
+  Building2,
 } from 'lucide-react';
+import { IndicationsTab } from '@/components/ddc/IndicationsTab';
+import { BITab } from '@/components/ddc/BITab';
+import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config';
+type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'indications' | 'bi' | 'properties';
 
 interface PropertyData {
   id: string;
@@ -261,6 +267,9 @@ const airbnbNavItems: NavItem[] = [
   { id: 'whatsapp', label: 'Connection Center', icon: <Smartphone className="size-4" /> },
   { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
   { id: 'guia', label: 'Guia Digital', icon: <QrCode className="size-4" /> },
+  { id: 'indications', label: 'Indicações', icon: <Gift className="size-4" />, tier: 'parceiro' },
+  { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
+  { id: 'properties', label: 'Multi-Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
@@ -1382,19 +1391,22 @@ export default function DDCAirbnbContent() {
         return <GuestGuidePanel niche="airbnb" propertyName={scannedData.propertyName} />;
       case 'config':
         return <TabConfig />;
+      case 'indications':
+        return <IndicationsTab />;
+      case 'bi':
+        return <BITab />;
+      case 'properties':
+        return <MultiPropertiesTab />;
     }
   };
 
   const handleTabChange = useCallback((id: string) => {
-    let normalized: AirbnbTab = 'financeiro';
-    if (id === 'visao-geral' || id === 'financeiro') normalized = 'financeiro';
-    else if (id === 'entregas-zella' || id === 'propriedades') normalized = 'propriedades';
-    else if (id === 'sync-ical' || id === 'sincronizacao') normalized = 'sincronizacao';
-    else if (id === 'guia-hospedes' || id === 'config' || id === 'guia') normalized = 'config';
-    else if (['automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia'].includes(id)) {
-      normalized = id as AirbnbTab;
+    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'indications', 'bi', 'properties'];
+    if (validTabs.includes(id as AirbnbTab)) {
+      setActiveTab(id as AirbnbTab);
+    } else {
+      setActiveTab('financeiro');
     }
-    setActiveTab(normalized);
   }, []);
 
   return (

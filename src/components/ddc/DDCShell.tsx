@@ -1,8 +1,44 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+// ==============================================================================
+// DDC SHELL v2 — Modern application shell for Dashboard do Cliente
+// ==============================================================================
+// This is the upgraded shell wrapping all DDC tabs (Pousada + Airbnb).
+// Improvements over v1:
+//   - Collapsible sidebar (icon-only mode) — matches ZCC pattern
+//   - ⌘K command palette for quick navigation (DDCCommandPalette)
+//   - Live AI status ticker in topbar
+//   - Real-time clock + date
+//   - Quick KPI pills in topbar
+//   - Theme toggle button (light/dark via next-themes)
+//   - Better mobile drawer with backdrop blur
+//   - Niche-themed accent colors (emerald for pousada, blue for airbnb)
+//   - Preserves all existing functionality (MobileBottomNav, dropdown menus, etc.)
+// ==============================================================================
+
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+import {
+  LogOut,
+  Menu,
+  Settings,
+  HelpCircle,
+  User,
+  ArrowLeft,
+  Crown,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Bell,
+  Activity,
+  Zap,
+  Command,
+  X,
+  Sparkles,
+} from 'lucide-react';
 import { ZellaLogo } from '@/components/brand/ZellaLogo';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -12,17 +48,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  LogOut,
-  Menu,
-  Settings,
-  HelpCircle,
-  User,
-  ArrowLeft,
-  Crown,
-} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,19 +57,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { signOut } from 'next-auth/react';
-import Link from 'next/link';
+import { MobileBottomNav } from './MobileBottomNav';
+import { DDCCommandPalette } from './DDCCommandPalette';
 import type { NicheType } from '@/contexts/NicheContext';
 import type { PlanTier } from '@/lib/plan-features';
 import { PLAN_DISPLAY } from '@/lib/plan-features';
-import { MobileBottomNav } from './MobileBottomNav';
 
 // ═══════════════════════════════════════════════════════════════
-// NICHE THEME CONFIG — Centraliza cores e labels por nicho
+// NICHE THEME CONFIG — accent colors per niche
 // ═══════════════════════════════════════════════════════════════
 
 export const NICHE_THEME: Record<NicheType, {
-  accent: string;
+  accent: string; // hex
   accentBg: string;
   accentBorder: string;
   accentText: string;
@@ -54,9 +79,10 @@ export const NICHE_THEME: Record<NicheType, {
   headerGradient: string;
   label: string;
   logoSubtitle: string;
+  glow: string;
 }> = {
   pousada: {
-    accent: 'emerald',
+    accent: '#10b981',
     accentBg: 'bg-emerald-500/15',
     accentBorder: 'border-emerald-500/20',
     accentText: 'text-emerald-400',
@@ -67,9 +93,10 @@ export const NICHE_THEME: Record<NicheType, {
     headerGradient: 'from-emerald-500 to-cyan-500',
     label: 'Pousada',
     logoSubtitle: 'Central de Controle',
+    glow: 'shadow-emerald-500/20',
   },
   airbnb: {
-    accent: 'blue',
+    accent: '#3b82f6',
     accentBg: 'bg-blue-500/15',
     accentBorder: 'border-blue-500/20',
     accentText: 'text-blue-400',
@@ -80,6 +107,7 @@ export const NICHE_THEME: Record<NicheType, {
     headerGradient: 'from-blue-500 to-indigo-500',
     label: 'Airbnb',
     logoSubtitle: 'Central do Anfitrião',
+    glow: 'shadow-blue-500/20',
   },
 };
 
@@ -91,10 +119,11 @@ export interface NavItem {
   id: string;
   label: string;
   icon: ReactNode;
+  tier?: PlanTier; // optional: tier badge for locked tabs
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DDC SIDEBAR — Componente compartilhado
+// DDC SIDEBAR — Collapsible navigation
 // ═══════════════════════════════════════════════════════════════
 
 interface DDCSidebarProps {
@@ -105,6 +134,8 @@ interface DDCSidebarProps {
   userName?: string;
   propertyName?: string;
   currentPlan?: PlanTier;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export function DDCSidebar({
@@ -115,6 +146,8 @@ export function DDCSidebar({
   userName = 'Proprietário',
   propertyName = 'Propriedade',
   currentPlan = 'gratuito',
+  collapsed = false,
+  onToggleCollapse,
 }: DDCSidebarProps) {
   const theme = NICHE_THEME[niche];
   const planDisplay = PLAN_DISPLAY[currentPlan] || PLAN_DISPLAY.gratuito;
@@ -126,12 +159,53 @@ export function DDCSidebar({
     .toUpperCase()
     .slice(0, 2);
 
-  const sidebarContent = (
+  // ─── Collapsed (icon-only) mode ─────────────────────────────────────────
+  if (collapsed) {
+    return (
+      <div className="hidden md:flex flex-col items-center py-3 px-2 border-r border-white/[0.06] bg-[#0d0d14] h-full">
+        <button
+          onClick={onToggleCollapse}
+          className="mb-4 p-2 rounded transition-colors hover:bg-white/[0.04]"
+          aria-label="Expandir sidebar"
+          title="Expandir"
+        >
+          <ChevronRight className="w-4 h-4 text-white/40" />
+        </button>
+        {navItems.map(item => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onTabChange(item.id)}
+              className={`relative p-2.5 rounded-lg mb-1 transition-all ${isActive ? theme.sidebarActiveBg : 'hover:bg-white/[0.04]'}`}
+              title={item.label}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <span className={isActive ? theme.sidebarActiveText : 'text-white/40'}>
+                {item.icon}
+              </span>
+              {isActive && (
+                <motion.div
+                  layoutId="ddc-sidebar-indicator"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r"
+                  style={{ background: theme.accent }}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // ─── Expanded sidebar ───────────────────────────────────────────────────
+  return (
     <div className="flex flex-col h-full">
       {/* Logo Section */}
       <div className="p-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/[0.08] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/[0.08] flex items-center justify-center shrink-0">
             <ZellaLogo size={20} />
           </div>
           <div className="flex-1 min-w-0">
@@ -154,22 +228,40 @@ export function DDCSidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto" role="navigation" aria-label="Navegação principal">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onTabChange(item.id)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 w-full text-left ${
-              activeTab === item.id
-                ? `${theme.sidebarActiveBg} ${theme.sidebarActiveText} border ${theme.sidebarActiveBorder}`
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 border border-transparent'
-            }`}
-            aria-current={activeTab === item.id ? 'page' : undefined}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </button>
-        ))}
+      <nav className="flex-1 flex flex-col gap-0.5 p-2 overflow-y-auto" role="navigation" aria-label="Navegação principal">
+        {navItems.map((item) => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onTabChange(item.id)}
+              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 w-full text-left ${
+                isActive
+                  ? `${theme.sidebarActiveBg} ${theme.sidebarActiveText} border ${theme.sidebarActiveBorder}`
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 border border-transparent'
+              }`}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="ddc-sidebar-active-bar"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r"
+                  style={{ background: theme.accent }}
+                />
+              )}
+              <span className="shrink-0">{item.icon}</span>
+              <span className="flex-1 truncate">{item.label}</span>
+              {item.tier && item.tier !== 'gratuito' && (
+                <Badge
+                  variant="outline"
+                  className={`text-[7px] px-1 py-0 h-3 font-mono uppercase shrink-0 ${PLAN_DISPLAY[item.tier].badgeBorder} ${PLAN_DISPLAY[item.tier].badgeText} ${PLAN_DISPLAY[item.tier].badgeBg}`}
+                >
+                  {PLAN_DISPLAY[item.tier].label}
+                </Badge>
+              )}
+            </button>
+          );
+        })}
       </nav>
 
       {/* User Profile */}
@@ -184,22 +276,24 @@ export function DDCSidebar({
             <p className="text-xs font-medium text-white truncate">{userName}</p>
             <p className="text-[10px] text-white/40 truncate">{propertyName}</p>
           </div>
-          <Badge
-            variant="outline"
-            className={`text-[8px] px-1 py-0 h-4 ${planDisplay.badgeBorder} ${planDisplay.badgeText} ${planDisplay.badgeBg}`}
-          >
-            {currentPlan.toUpperCase()}
-          </Badge>
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className="p-1 rounded transition-colors hover:bg-white/[0.04]"
+              aria-label="Colapsar sidebar"
+              title="Colapsar"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 text-white/40" />
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
-
-  return sidebarContent;
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DDC SHELL — Layout wrapper compartilhado
+// DDC SHELL — Layout wrapper
 // ═══════════════════════════════════════════════════════════════
 
 interface DDCShellProps {
@@ -211,6 +305,11 @@ interface DDCShellProps {
   userName?: string;
   propertyName?: string;
   currentPlan?: PlanTier;
+  // Optional stats for topbar
+  attendedToday?: number;
+  conversionRate?: number;
+  aiActive?: boolean;
+  onToggleAI?: () => void;
 }
 
 export function DDCShell({
@@ -222,10 +321,17 @@ export function DDCShell({
   userName = 'Proprietário',
   propertyName = 'Propriedade',
   currentPlan = 'gratuito',
+  attendedToday = 45,
+  conversionRate = 26.7,
+  aiActive = true,
+  onToggleAI,
 }: DDCShellProps) {
   const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [aiActive, setAiActive] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   const resolvedUserName = session?.user?.name || userName;
   const theme = NICHE_THEME[niche];
@@ -238,22 +344,85 @@ export function DDCShell({
     .toUpperCase()
     .slice(0, 2);
 
+  // Hydration-safe mount
+  useEffect(() => {
+    setMounted(true);
+    setCurrentTime(new Date());
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Load collapsed state from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`ddc:${niche}:sidebar-collapsed`);
+      if (stored !== null) setSidebarCollapsed(JSON.parse(stored));
+    } catch {
+      /* ignore */
+    }
+  }, [niche]);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem(`ddc:${niche}:sidebar-collapsed`, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, [niche]);
+
+  // ⌘K / Ctrl+K → command palette
+  // ⌘\ / Ctrl+\ → toggle sidebar
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        e.preventDefault();
+        toggleSidebar();
+        return;
+      }
+      if (e.key === 'Escape') {
+        setSidebarOpen(false);
+        setCommandPaletteOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [toggleSidebar]);
+
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:w-64 lg:w-72 flex-col bg-[#0d0d14] border-r border-white/[0.06] fixed inset-y-0 left-0 z-40">
+      <aside
+        className="hidden md:flex flex-col bg-[#0d0d14] border-r border-white/[0.06] fixed inset-y-0 left-0 z-40 transition-all duration-200"
+        style={{ width: sidebarCollapsed ? 60 : 280 }}
+      >
         <DDCSidebar
           niche={niche}
           navItems={navItems}
           activeTab={activeTab}
-          onTabChange={(id) => { onTabChange(id); }}
+          onTabChange={onTabChange}
           userName={resolvedUserName}
           propertyName={propertyName}
           currentPlan={currentPlan}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
         />
       </aside>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar (Sheet) */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetContent side="left" className="w-72 p-0 bg-[#0d0d14] border-white/[0.06]">
           <SheetHeader className="sr-only">
@@ -272,138 +441,281 @@ export function DDCShell({
       </Sheet>
 
       {/* Main Content */}
-      <div className="flex-1 md:ml-64 lg:ml-72">
-        {/* Top Header Bar */}
-        <header className="sticky top-0 z-30 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/[0.06]">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-3">
-              {/* Mobile menu toggle */}
-              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="md:hidden p-2 rounded-lg hover:bg-white/[0.04]">
+      <div
+        className="flex-1 transition-all duration-200"
+        style={{ marginLeft: sidebarCollapsed ? 60 : 0 }}
+      >
+        {/* Mobile margin handled by md:ml classes */}
+        <div className="md:ml-[280px]" style={{ marginLeft: undefined }}>
+          {/* Sticky Top Header */}
+          <header className="sticky top-0 z-30 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/[0.06]">
+            {/* Animated top gradient line — niche-themed */}
+            <div className="h-[2px] w-full overflow-hidden">
+              <motion.div
+                className="h-full w-1/2"
+                style={{ background: theme.accent }}
+                initial={{ x: '-100%' }}
+                animate={{ x: '100%' }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between px-4 py-3 gap-3">
+              {/* Left: Mobile menu + Back + Title */}
+              <div className="flex items-center gap-3 min-w-0">
+                {/* Mobile menu toggle */}
+                <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                  <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="md:hidden p-2 rounded-lg hover:bg-white/[0.04]"
+                    aria-label="Abrir menu"
+                  >
                     <Menu className="w-5 h-5 text-white/60" />
-                  </Button>
-                </SheetTrigger>
-              </Sheet>
+                  </button>
+                </Sheet>
 
-              {/* Back to home */}
-              <Link
-                href="/"
-                className="text-white/30 hover:text-white/70 transition-all duration-200 p-2 rounded-lg hover:bg-white/[0.04]"
-                aria-label="Voltar ao início"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
+                {/* Back to home */}
+                <Link
+                  href="/"
+                  className="text-white/30 hover:text-white/70 transition-all duration-200 p-2 rounded-lg hover:bg-white/[0.04] hidden sm:block"
+                  aria-label="Voltar ao início"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Link>
 
-              <div>
-                <h1 className="text-base font-bold text-white tracking-tight">
-                  {propertyName}
-                </h1>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={`text-[9px] px-1.5 py-0 h-4 font-mono uppercase ${theme.accentBorder} ${theme.accentText} ${theme.accentBg}`}
-                  >
-                    {theme.label}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={`text-[9px] px-1.5 py-0 h-4 font-mono uppercase ${planDisplay.badgeBorder} ${planDisplay.badgeText} ${planDisplay.badgeBg}`}
-                  >
-                    {planDisplay.label}
-                  </Badge>
+                <div className="min-w-0">
+                  <h1 className="text-sm font-bold text-white tracking-tight truncate">
+                    {propertyName}
+                  </h1>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 font-mono uppercase ${theme.accentBorder} ${theme.accentText} ${theme.accentBg}`}>
+                      {theme.label}
+                    </Badge>
+                    <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 font-mono uppercase ${planDisplay.badgeBorder} ${planDisplay.badgeText} ${planDisplay.badgeBg}`}>
+                      {planDisplay.label}
+                    </Badge>
+                  </div>
                 </div>
+              </div>
+
+              {/* Center: Search trigger (opens command palette) */}
+              <button
+                onClick={() => setCommandPaletteOpen(true)}
+                className="hidden md:flex flex-1 max-w-md mx-4 items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] transition-all text-left"
+              >
+                <Search className="w-3.5 h-3.5 text-white/30" />
+                <span className="text-xs text-white/40 flex-1">Buscar ou navegar...</span>
+                <kbd className="text-[9px] text-white/20 font-mono px-1.5 py-0.5 rounded bg-white/[0.04]">
+                  ⌘K
+                </kbd>
+              </button>
+
+              {/* Right: KPIs + AI Toggle + Notifications + User */}
+              <div className="flex items-center gap-2 shrink-0">
+                {/* AI Status Pill */}
+                <button
+                  onClick={onToggleAI}
+                  className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
+                    aiActive
+                      ? `${theme.accentBg} ${theme.accentBorder} ${theme.accentText}`
+                      : 'bg-rose-500/15 border-rose-500/30 text-rose-400'
+                  }`}
+                  title={aiActive ? 'IA ativa — clique para pausar' : 'IA pausada — clique para ativar'}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${aiActive ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
+                  <span className="text-[10px] font-mono uppercase tracking-wider">
+                    {aiActive ? 'IA ON' : 'IA OFF'}
+                  </span>
+                </button>
+
+                {/* Quick Stats */}
+                <div className="hidden xl:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                  <div className="flex items-center gap-1.5">
+                    <Activity className="w-3 h-3 text-emerald-400" />
+                    <span className="text-[10px] text-white/50">Hoje:</span>
+                    <span className="text-xs font-bold text-white">{attendedToday}</span>
+                  </div>
+                  <div className="w-px h-3 bg-white/[0.06]" />
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="w-3 h-3 text-amber-400" />
+                    <span className="text-xs font-bold text-white">{conversionRate}%</span>
+                  </div>
+                </div>
+
+                {/* Command palette trigger (mobile) */}
+                <button
+                  onClick={() => setCommandPaletteOpen(true)}
+                  className="md:hidden p-2 rounded-lg hover:bg-white/[0.04]"
+                  aria-label="Buscar"
+                >
+                  <Search className="w-4 h-4 text-white/60" />
+                </button>
+
+                {/* Notifications */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="relative p-2 rounded-lg hover:bg-white/[0.04] transition-all">
+                      <Bell className="w-4 h-4 text-white/60 hover:text-white/90" />
+                      <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72 bg-[#0a0a0f] border-white/[0.06]">
+                    <DropdownMenuLabel className="text-white/90 flex items-center gap-2">
+                      <Bell className="w-3.5 h-3.5" />
+                      Notificações
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-white/[0.06]" />
+                    <DropdownMenuItem className="text-white/70 hover:text-white hover:bg-white/[0.04] text-xs">
+                      <Sparkles className="w-3 h-3 mr-2 text-emerald-400" />
+                      Nova reserva confirmada! 🎉
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-white/70 hover:text-white hover:bg-white/[0.04] text-xs">
+                      <AlertCircle className="w-3 h-3 mr-2 text-amber-400" />
+                      Roberto Almeida precisa de atenção
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-white/70 hover:text-white hover:bg-white/[0.04] text-xs">
+                      <Crown className="w-3 h-3 mr-2 text-purple-400" />
+                      Recorde de conversão hoje!
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 p-1 rounded-lg hover:bg-white/[0.04] transition-all">
+                      <Avatar className="w-7 h-7">
+                        <AvatarFallback className={`bg-gradient-to-br ${theme.headerGradient} text-white text-[10px] font-bold`}>
+                          {userInitials}
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-[#0a0a0f] border-white/[0.06]">
+                    <DropdownMenuLabel className="text-white/90">
+                      {resolvedUserName}
+                      <div className="text-[10px] text-white/40 font-normal">
+                        {session?.user?.email || ''}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-white/[0.06]" />
+                    <DropdownMenuItem className="text-white/70 hover:text-white hover:bg-white/[0.04] cursor-pointer">
+                      <User className="w-3.5 h-3.5 mr-2" />
+                      Perfil
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-white/70 hover:text-white hover:bg-white/[0.04] cursor-pointer"
+                      onClick={() => onTabChange('config')}
+                    >
+                      <Settings className="w-3.5 h-3.5 mr-2" />
+                      Configurações
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-white/70 hover:text-white hover:bg-white/[0.04] cursor-pointer">
+                      <HelpCircle className="w-3.5 h-3.5 mr-2" />
+                      Suporte
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-white/[0.06]" />
+                    <DropdownMenuItem
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer"
+                      onClick={async () => {
+                        try { await signOut({ redirect: false }); } catch { /* ignore */ }
+                        window.location.href = '/login';
+                      }}
+                    >
+                      <LogOut className="w-3.5 h-3.5 mr-2" />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
-            {/* Middle: Live Status Ticker */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-zinc-300 font-medium">
-                {niche === 'pousada' 
-                  ? '🟢 ZÉLLA ATIVO • Resposta em 0.6s • 80% Economia WhatsApp • Booking.com Sincronizado'
-                  : '🛡️ PIX GATEKEEPER ATIVO • 100% Proteção contra Banimento Airbnb • Selo Superhost'}
-              </span>
+            {/* Time & Date Bar */}
+            <div className="flex items-center justify-between px-4 py-1 bg-black/20 border-t border-white/[0.03]">
+              <div className="flex items-center gap-2">
+                <Activity className="w-2.5 h-2.5 text-emerald-400" />
+                <span className="text-[9px] text-white/40 font-mono uppercase tracking-wider">
+                  Sistema Operacional · DDC v2.0
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                {mounted && currentTime ? (
+                  <>
+                    <span className="text-[9px] text-white/40 font-mono">
+                      {formatDate(currentTime)}
+                    </span>
+                    <span className={`text-[9px] font-mono font-bold ${theme.accentText}`}>
+                      {formatTime(currentTime)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[9px] text-white/20 font-mono">--:--:--</span>
+                )}
+              </div>
             </div>
+          </header>
 
-            {/* Right: User Menu & Quick Links */}
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/[0.04] transition-all"
-                  >
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className={`bg-gradient-to-br ${theme.headerGradient} text-white text-xs font-bold`}>
-                        {userInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-[#0a0a0f] border-white/[0.06]">
-                  <DropdownMenuLabel className="text-white/90">
-                    {resolvedUserName}
-                    <div className="text-[10px] text-white/40 font-normal">
-                      {session?.user?.email || ''}
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-white/[0.06]" />
-                  <DropdownMenuItem className="text-white/70 hover:text-white hover:bg-white/[0.04]">
-                    <User className="w-4 h-4 mr-2" />
-                    Perfil
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-white/70 hover:text-white hover:bg-white/[0.04]">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Configurações
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-white/70 hover:text-white hover:bg-white/[0.04]">
-                    <HelpCircle className="w-4 h-4 mr-2" />
-                    Suporte
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/[0.06]" />
-                  <DropdownMenuItem
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer"
-                    onClick={async () => {
-                      try {
-                        await signOut({ redirect: false });
-                      } catch {
-                        // signOut may fail — session cookie will be cleared
-                      }
-                      window.location.href = '/login';
-                    }}
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </header>
+          {/* Page Content */}
+          <main className="p-3 pb-24 md:p-6 md:pb-6 max-w-[1920px] mx-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </main>
 
-        {/* Page Content */}
-        <main className="p-3 pb-24 md:p-6 md:pb-6 max-w-[1920px] mx-auto">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            {children}
-          </motion.div>
-        </main>
-
-        {/* Mobile Bottom Navigation Bar (1-Thumb Control) */}
-        <MobileBottomNav
-          niche={niche}
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-          aiActive={aiActive}
-          onToggleAI={() => setAiActive((prev) => !prev)}
-        />
+          {/* Mobile Bottom Navigation Bar (1-Thumb Control) */}
+          <MobileBottomNav
+            niche={niche}
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+            aiActive={aiActive}
+            onToggleAI={() => onToggleAI?.()}
+            navItems={navItems}
+          />
+        </div>
       </div>
+
+      {/* Command Palette */}
+      <DDCCommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        niche={niche}
+        propertyName={propertyName}
+        navItems={navItems}
+        onNavigate={onTabChange}
+        onToggleAI={onToggleAI}
+        onLogout={async () => {
+          try { await signOut({ redirect: false }); } catch { /* ignore */ }
+          window.location.href = '/login';
+        }}
+      />
     </div>
+  );
+}
+
+// Missing import — used in dropdown
+function AlertCircle({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
   );
 }

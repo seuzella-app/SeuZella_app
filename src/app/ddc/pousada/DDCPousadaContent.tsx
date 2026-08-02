@@ -86,11 +86,16 @@ import {
   MapPin,
   Bot,
   Smartphone,
+  Gift,
+  BarChart2,
 } from 'lucide-react';
+import { IndicationsTab } from '@/components/ddc/IndicationsTab';
+import { BITab } from '@/components/ddc/BITab';
+import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config';
+type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'indications' | 'bi' | 'properties';
 
 interface GuestCardData {
   id: string;
@@ -278,6 +283,9 @@ const pousadaNavItems: NavItem[] = [
   { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
   { id: 'guia', label: 'Guia Digital', icon: <QrCode className="size-4" /> },
   { id: 'integracoes', label: 'Integrações', icon: <Globe className="size-4" /> },
+  { id: 'indications', label: 'Indicações', icon: <Gift className="size-4" />, tier: 'parceiro' },
+  { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
+  { id: 'properties', label: 'Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
@@ -1139,15 +1147,13 @@ export default function DDCPousadaContent() {
   );
 
   const handleTabChange = useCallback((id: string) => {
-    let normalized: PousadaTab = 'financeiro';
-    if (id === 'visao-geral' || id === 'financeiro') normalized = 'financeiro';
-    else if (id === 'entregas-zella' || id === 'hospedes') normalized = 'hospedes';
-    else if (id === 'sync-ical' || id === 'integracoes') normalized = 'integracoes';
-    else if (id === 'guia-hospedes' || id === 'config') normalized = 'config';
-    else if (['cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia'].includes(id)) {
-      normalized = id as PousadaTab;
+    // Accept the id directly if it's a valid PousadaTab
+    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'indications', 'bi', 'properties'];
+    if (validTabs.includes(id as PousadaTab)) {
+      setActiveTab(id as PousadaTab);
+    } else {
+      setActiveTab('financeiro');
     }
-    setActiveTab(normalized);
   }, []);
 
   return (
@@ -1188,6 +1194,21 @@ export default function DDCPousadaContent() {
           </div>
         )}
         {activeTab === 'config' && <div key="config">{renderConfig()}</div>}
+        {activeTab === 'indications' && (
+          <div key="indications">
+            <IndicationsTab />
+          </div>
+        )}
+        {activeTab === 'bi' && (
+          <div key="bi">
+            <BITab />
+          </div>
+        )}
+        {activeTab === 'properties' && (
+          <div key="properties">
+            <MultiPropertiesTab />
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Modal: Novo Hóspede */}
