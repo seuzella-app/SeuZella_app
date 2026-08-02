@@ -18,7 +18,8 @@ import {
   Lock,
   Smartphone,
   Sparkles,
-  Home
+  Home,
+  KeyRound
 } from 'lucide-react';
 import { type PlanTier, hasAccess } from '@/lib/plan-features';
 
@@ -55,6 +56,7 @@ export function QuickActionsBar({ onActionClick, onQuickActionClick, activeActio
     { id: 'notifications', label: 'Notificações', icon: Bell, count: dynamicCounts?.notifications ?? 5, minTier: 'gratuito' },
     { id: 'settings', label: 'Configurações', icon: Settings, minTier: 'gratuito' },
     { id: 'airb', label: 'Zélla AirB', icon: Home, minTier: 'pro' },
+    { id: 'locks', label: 'Fechaduras', icon: KeyRound, minTier: 'lite' },
   ];
 
   const quickActions = [

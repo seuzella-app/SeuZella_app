@@ -83,10 +83,11 @@ import {
 import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
 import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
+import { LocksTab } from '@/components/ddc/LocksTab';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'creditos' | 'bi' | 'properties';
+type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras';
 
 interface PropertyData {
   id: string;
@@ -268,6 +269,7 @@ const airbnbNavItems: NavItem[] = [
   { id: 'whatsapp', label: 'Connection Center', icon: <Smartphone className="size-4" /> },
   { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
   { id: 'guia', label: 'Guia Digital', icon: <QrCode className="size-4" /> },
+  { id: 'fechaduras', label: 'Fechaduras Eletrônicas', icon: <Key className="size-4" />, tier: 'lite' },
   { id: 'creditos', label: 'Créditos de Amortização', icon: <Coins className="size-4" />, tier: 'lite' },
   { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
   { id: 'properties', label: 'Multi-Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
@@ -328,7 +330,7 @@ export default function DDCAirbnbContent() {
 
   // Tab navigation handler (declared before early return — Rules of Hooks)
   const handleTabChange = useCallback((id: string) => {
-    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties'];
+    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties', 'fechaduras'];
     if (validTabs.includes(id as AirbnbTab)) {
       setActiveTab(id as AirbnbTab);
     } else {
@@ -1408,6 +1410,8 @@ export default function DDCAirbnbContent() {
         return <BITab />;
       case 'properties':
         return <MultiPropertiesTab />;
+      case 'fechaduras':
+        return <LocksTab niche="airbnb" />;
     }
   };
 

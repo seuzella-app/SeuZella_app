@@ -23,6 +23,7 @@ import { LinkInBioConfig } from '@/components/linkinbio/LinkInBioConfig';
 import { LinkInBioDDC } from '@/components/linkinbio/LinkInBioDDC';
 import { PlanGate, PlanUpgradeBanner } from '@/components/ddc/PlanGate';
 import { ZellaAirBTab } from '@/components/ddc/ZellaAirBTab';
+import { LocksTab } from '@/components/ddc/LocksTab';
 import { type PlanTier, DDC_TABS, hasAccess, getNextTier, PLAN_DISPLAY } from '@/lib/plan-features';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -1216,7 +1217,23 @@ export default function DDCDashboardContent() {
                   <div className="col-span-2 text-[10px] text-zinc-400">{booking.checkOut ? formatDate(booking.checkOut) : '—'}</div>
                   <div className="col-span-1 text-[10px] font-mono text-zinc-400">{booking.nights || '—'}</div>
                   <div className="col-span-2 text-xs font-bold text-white font-mono">{booking.totalValue !== undefined ? formatCurrency(booking.totalValue) : '—'}</div>
-                  <div className="col-span-2 flex justify-end">{getStatusBadge(booking.status)}</div>
+                  <div className="col-span-2 flex justify-end items-center gap-2">
+                    {getStatusBadge(booking.status)}
+                    {['confirmed', 'checked_in'].includes(booking.status) && (
+                      <button
+                        title="Gerar PIN da Fechadura (pós-pagamento)"
+                        onClick={() => {
+                          setActiveTab('locks');
+                          toast.info(`Abra Fechaduras Eletrônicas para gerar o PIN de ${booking.guestName || booking.guest?.name || 'hóspede'}`, {
+                            description: 'Use as datas de check-in/out da reserva para o PIN.',
+                          });
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-emerald-500/15 text-emerald-400"
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -1628,6 +1645,28 @@ export default function DDCDashboardContent() {
               )}
             </div>
           </div>
+        </motion.div>
+      );
+    }
+
+    // ── FECHADURAS ELETRÔNICAS ─────────────────────────────────
+    if (activeTab === 'locks') {
+      if (!hasAccess(currentPlan, 'lite')) {
+        return (
+          <PlanGate
+            currentPlan={currentPlan}
+            requiredPlan="lite"
+            title="Fechaduras Eletrônicas"
+            description="Gerencie fechaduras inteligentes e PINs temporários automáticos. Compatível com 10 marcas brasileiras."
+            features={['10 marcas (TTLock, Intelbras, Yale, Igloohome, etc.)', 'PINs com validade rígida por minuto', 'Envio automático via WhatsApp pós-PIX', 'Revogação de emergência 1-clique', 'Auditoria LGPD completa']}
+            variant="full"
+            onUpgrade={() => { setActiveTab('settings'); setSubTab('faturamento'); }}
+          />
+        );
+      }
+      return (
+        <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-4">
+          <LocksTab niche="pousada" />
         </motion.div>
       );
     }

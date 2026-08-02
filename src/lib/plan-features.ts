@@ -206,6 +206,21 @@ export const DDC_TABS: TabDef[] = [
     lockedDescription: 'Gerencie até 12 propriedades em uma única conta com troca rápida.',
     lockedFeatures: ['Até 12 propriedades', 'Troca rápida entre propriedades', 'Visão consolidada', 'Relatórios por propriedade', 'Permissões por equipe'],
   },
+  // ── Fechaduras Eletrônicas ──────────────────────────────────────────────
+  // Trunfo do Seu Zélla — orquestrador de 10 marcas brasileiras.
+  // 5 com API automática (TTLock, Tuya, Igloohome, Nuki, August) +
+  // 5 em modo manual (Intelbras, Yale, Papaiz, Philco, Samsung).
+  // PINs temporários com validade rígida, entrega via WhatsApp pós-PIX,
+  // revogação de emergência e auditoria LGPD completa.
+  {
+    id: 'locks',
+    label: 'Fechaduras',
+    minTier: 'lite',
+    upgradeTarget: 'pro',
+    lockedLabel: 'Fechaduras Eletrônicas',
+    lockedDescription: 'Gerencie fechaduras inteligentes e PINs temporários automáticos. Compatível com 10 marcas brasileiras.',
+    lockedFeatures: ['10 marcas (TTLock, Intelbras, Yale, Igloohome, etc.)', 'PINs com validade rígida por minuto', 'Envio automático via WhatsApp pós-PIX', 'Revogação de emergência 1-clique', 'Auditoria LGPD completa'],
+  },
 ];
 
 // ── Sub-features dentro de Configurações ──────────────────────────────────────
@@ -303,6 +318,7 @@ export const QUICK_ACTIONS: QuickActionDef[] = [
   { id: 'notifications', label: 'Notificações', minTier: 'gratuito', upgradeTarget: 'lite' },
   { id: 'settings', label: 'Configurações', minTier: 'gratuito', upgradeTarget: 'lite' },
   { id: 'airb', label: 'Zélla AirB', minTier: 'pro', upgradeTarget: 'pro' },
+  { id: 'locks', label: 'Fechaduras', minTier: 'lite', upgradeTarget: 'pro' },
 ];
 
 // ── Feature highlights por plano (para upgrade nudges) ────────────────────────

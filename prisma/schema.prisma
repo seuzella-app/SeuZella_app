@@ -134,6 +134,12 @@ model Tenant {
   amortizationCredits AmortizationCredit[]
   liteMilestone     LiteMilestone?
 
+  // 🔐 Fechaduras Eletrônicas
+  lockDevices       LockDevice[]
+  lockCodes         LockCode[]
+  lockEvents        LockEvent[]
+  lockOAuthAccounts LockOAuthAccount[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2169,4 +2175,154 @@ model LiteMilestone {
   tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("lite_milestones")
+}
+
+// =============================================================================
+// 🔐 FECHADURAS ELETRÔNICAS — Smart Lock Management
+// =============================================================================
+// Modelo completo para gestão de fechaduras eletrônicas em Pousadas e AirBnB.
+// Suporta marcas com API (TTLock, Tuya, Igloohome, Nuki, August) e marcas
+// manuais (Intelbras, Yale, Papaiz, Philco, Samsung) — orquestrador inteligente.
+// =============================================================================
+
+model LockDevice {
+  id              String   @id @default(cuid())
+  tenantId        String
+  // propertyId pode ser Property.id (pousada) OU AirBProperty.id (airbnb) — discriminated by propertyType
+  propertyId      String
+  propertyType    String   @default("pousada")  // pousada | airbnb
+  // Identificação amigável do dispositivo (ex: "Suíte Master 104")
+  nickname        String
+  // Localização dentro do imóvel (ex: "Porta frontal", "Porta dos fundos")
+  location        String?
+  // Marca e modelo da fechadura
+  brand           String   // ttlock | tuya | igloohome | nuki | august | intelbras | yale | papaiz | philco | samsung
+  model           String?  // ex: "TTLock X15", "Intelbras FR 1100"
+  // Tipo de integração: api (com OAuth) ou manual (host cola PIN)
+  providerType    String   @default("manual")  // api | manual
+  // ID externo retornado pelo provedor (quando providerType=api)
+  externalDeviceId String?
+  // Referência à conta OAuth (quando providerType=api)
+  oauthAccountId  String?
+  // Número de série físico da fechadura (etiqueta na embalagem)
+  serialNumber    String?
+  // Status operacional
+  status          String   @default("active")  // active | inactive | offline | error
+  batteryLevel    Int?     // 0-100 (quando reportado pela API)
+  online          Boolean  @default(false)
+  lastSeenAt      DateTime?
+  // Metadados adicionais específicos do provedor (JSON)
+  metadata        String   @default("{}")
+  // Notas internas do host
+  notes           String?
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  codes           LockCode[]
+  events          LockEvent[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([propertyType])
+  @@index([brand])
+  @@map("lock_devices")
+}
+
+model LockCode {
+  id              String   @id @default(cuid())
+  deviceId        String
+  tenantId        String?
+  // Vinculação opcional a hóspede/reserva (quando gerada para um hóspede específico)
+  guestName       String?
+  guestPhone      String?
+  bookingId       String?
+  // O código PIN em si (string para suportar formatos variados: 4-8 dígitos, com #, etc.)
+  code            String
+  // Tipo do código
+  codeType        String   @default("online_pin")  // online_pin | offline_pin | manual | qrcode
+  // Origem do código: gerado via API, ou colado manualmente pelo host
+  source          String   @default("manual")  // api | manual
+  // Janela de validade (rigorosa — coração da segurança)
+  validFrom       DateTime
+  validTo         DateTime
+  // Quando foi usado pela primeira vez (registro do evento)
+  usedAt          DateTime?
+  // Revogação manual (caso de emergência)
+  revokedAt       DateTime?
+  revokedReason   String?
+  // Entrega ao hóspede
+  deliveredVia    String?  // whatsapp | email | copy | none
+  deliveredAt     DateTime?
+  // Status derivado: scheduled | active | used | expired | revoked
+  status          String   @default("scheduled")
+  // Observação visível para o host
+  note            String?
+
+  device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  events          LockEvent[]
+
+  createdAt       DateTime @default(now())
+
+  @@index([deviceId])
+  @@index([tenantId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([validFrom])
+  @@index([validTo])
+  @@map("lock_codes")
+}
+
+model LockEvent {
+  id              String   @id @default(cuid())
+  deviceId        String
+  codeId          String?
+  tenantId        String?
+  // Tipo do evento para auditoria LGPD
+  eventType       String   // generated | delivered | used | revoked | expired | failed | panic_revoke | battery_low | status_change
+  // Metadados do evento (JSON: IP, user-agent, etc.)
+  metadata        String   @default("{}")
+  // Mensagem legível
+  message         String?
+
+  device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  code            LockCode?  @relation(fields: [codeId], references: [id], onDelete: SetNull)
+  tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+
+  @@index([deviceId])
+  @@index([codeId])
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("lock_events")
+}
+
+model LockOAuthAccount {
+  id              String   @id @default(cuid())
+  tenantId        String
+  provider        String   // ttlock | tuya | igloohome | nuki | august
+  // ID da conta no provedor (ex: TTLock username hash)
+  externalAccountId String
+  displayName     String?
+  // Tokens criptografados com AES-256-GCM (mesma middleware do projeto)
+  accessToken     String
+  refreshToken    String?
+  expiresAt       DateTime?
+  // Status da conexão
+  status          String   @default("active")  // active | expired | revoked
+  lastSyncAt      DateTime?
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, provider, externalAccountId])
+  @@index([tenantId])
+  @@index([provider])
+  @@map("lock_oauth_accounts")
 }

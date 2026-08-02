@@ -95,10 +95,11 @@ import {
 import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
 import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
+import { LocksTab } from '@/components/ddc/LocksTab';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties';
+type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras';
 
 interface GuestCardData {
   id: string;
@@ -338,6 +339,7 @@ const pousadaNavItems: NavItem[] = [
   { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
   { id: 'guia', label: 'Guia Digital', icon: <QrCode className="size-4" /> },
   { id: 'integracoes', label: 'Integrações', icon: <Globe className="size-4" /> },
+  { id: 'fechaduras', label: 'Fechaduras Eletrônicas', icon: <Key className="size-4" />, tier: 'lite' },
   { id: 'creditos', label: 'Créditos de Amortização', icon: <Coins className="size-4" />, tier: 'lite' },
   { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
   { id: 'properties', label: 'Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
@@ -406,7 +408,7 @@ export default function DDCPousadaContent() {
 
   // Tab navigation handler (declared before early return — Rules of Hooks)
   const handleTabChange = useCallback((id: string) => {
-    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties'];
+    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties', 'fechaduras'];
     if (validTabs.includes(id as PousadaTab)) {
       setActiveTab(id as PousadaTab);
     } else {
@@ -868,11 +870,14 @@ export default function DDCPousadaContent() {
                           <span className="text-sm font-semibold text-emerald-400">{formatCurrency(guest.value)}</span>
                           <div className="flex items-center gap-1.5">
                             <button
-                              title="Gerar Senha Fechadura Smart"
+                              title="Gerar PIN da Fechadura"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                toast.success(`Senha da Fechadura gerada para ${guest.name}: 849201`, {
-                                  description: 'Enviada via WhatsApp com instrução de check-in.',
+                                // Navega para a aba de Fechaduras Eletrônicas, onde o host pode
+                                // cadastrar dispositivos e gerar PINs reais (não mais mock fixo).
+                                setActiveTab('fechaduras');
+                                toast.info(`Abra a aba Fechaduras Eletrônicas para gerar o PIN de ${guest.name}`, {
+                                  description: 'Sistema real: PINs criptográficos com validade rígida, enviados via WhatsApp.',
                                 });
                               }}
                               className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all active:scale-90"
@@ -1487,6 +1492,11 @@ export default function DDCPousadaContent() {
         {activeTab === 'properties' && (
           <div key="properties">
             <MultiPropertiesTab />
+          </div>
+        )}
+        {activeTab === 'fechaduras' && (
+          <div key="fechaduras">
+            <LocksTab niche="pousada" />
           </div>
         )}
       </AnimatePresence>

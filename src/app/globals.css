@@ -923,3 +923,23 @@ html {
   outline-offset: 2px;
   border-radius: inherit;
 }
+
+/* ─── Input base class (used in LocksTab) ─────────────────────────────────── */
+.input-base {
+  width: 100%;
+  background-color: #0a0a0f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: white;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input-base:focus {
+  outline: none;
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+.input-base::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
