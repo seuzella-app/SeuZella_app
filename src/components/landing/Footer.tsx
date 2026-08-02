@@ -85,7 +85,7 @@ export function Footer() {
                 <Mail className="w-3.5 h-3.5" />
                 contato@zehla.com.br
               </a>
-              <a href="https://wa.me/5548999999999" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-neutral-500 hover:text-emerald-400 text-xs transition-colors">
+              <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_COMMERCIAL ?? '5548999990000'}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-neutral-500 hover:text-emerald-400 text-xs transition-colors">
                 <Phone className="w-3.5 h-3.5" />
                 WhatsApp Comercial
               </a>

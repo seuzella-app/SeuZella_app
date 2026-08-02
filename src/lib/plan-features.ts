@@ -22,7 +22,9 @@ export interface FeatureDef {
 
 // ── Feature Matrix ─────────────────────────────────────────────────────────────
 
-export const PLAN_TIER_ORDER: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
+// Sprint 2 Day 9 FIX: reordered to match new TIER_LEVEL hierarchy (gratuito < lite < parceiro < pro < max).
+// Previously PARCEIRO was at the end of the array despite being a lower tier than PRO.
+export const PLAN_TIER_ORDER: PlanTier[] = ['gratuito', 'lite', 'parceiro', 'pro', 'max'];
 
 export const PLAN_DISPLAY: Record<PlanTier, { name: string; label: string; color: string; badgeBg: string; badgeBorder: string; badgeText: string; price: number; priceLabel: string }> = {
   gratuito: {
@@ -78,7 +80,12 @@ export const PLAN_DISPLAY: Record<PlanTier, { name: string; label: string; color
 };
 
 // Tier hierarchy for comparison
-const TIER_LEVEL: Record<PlanTier, number> = { gratuito: 0, lite: 1, pro: 2, max: 3, parceiro: 1 };
+// Sprint 2, Day 9 FIX: PARCEIRO tier raised from 1 → 2.
+// Rationale: PARCEIRO (R$247) sits between LITE (R$197) and PRO (R$397) in price,
+// so its tier level must reflect that — otherwise PARCEIRO users see fewer DDC
+// tabs than LITE users despite paying R$50 more. PARCEIRO = LITE features +
+// indications dashboard + comissão tracking.
+const TIER_LEVEL: Record<PlanTier, number> = { gratuito: 0, lite: 1, parceiro: 2, pro: 3, max: 4 };
 
 export function tierLevel(tier: PlanTier): number {
   return TIER_LEVEL[tier] ?? 0;
@@ -172,6 +179,42 @@ export const DDC_TABS: TabDef[] = [
     lockedLabel: 'Zélla AirB',
     lockedDescription: 'Seu zelador digital para imóveis Airbnb. Responda hóspedes como o dono que sabe tudo.',
     lockedFeatures: ['Magic Onboarding via link Airbnb', 'Cadastro automático de imóveis', 'IA anfitrião 24/7 no WhatsApp', 'Detecção pré/pós-reserva', 'Até 4 imóveis no PRO, 12 no MAX'],
+  },
+  // ── Sprint 2, Day 9: PARCEIRO tab — Indicações + Comissões ──────────────
+  // Available to PARCEIRO plan (R$247). Shows referral pipeline + commission
+  // dashboard. Without this tab, PARCEIRO users had no visible benefit over LITE.
+  {
+    id: 'indications',
+    label: 'Indicações',
+    minTier: 'parceiro',
+    upgradeTarget: 'parceiro',
+    lockedLabel: 'Central de Indicações',
+    lockedDescription: 'Monetize sua rede: indique pousadas e acompanhe comissões em tempo real.',
+    lockedFeatures: ['Link de indicação personalizado', 'Pipeline de conversão', 'Comissões por indicação convertida', 'Saque via PIX', 'Selo Parceiro Zélla verificado'],
+  },
+  // ── Sprint 3, Day 13-14: MAX tab — BI Avançado ─────────────────────────
+  // Available to MAX plan (R$797). Without this tab, MAX had ZERO additional
+  // DDC tabs vs PRO (R$397) — massive value perception problem.
+  {
+    id: 'bi',
+    label: 'BI Avançado',
+    minTier: 'max',
+    upgradeTarget: 'max',
+    lockedLabel: 'Business Intelligence',
+    lockedDescription: 'Heatmap de ocupação, previsão de demanda, benchmark vs mercado e alertas de churn.',
+    lockedFeatures: ['Heatmap de ocupação por canal', 'Previsão de demanda (7/30 dias)', 'Benchmark vs mercado regional', 'Alertas de churn preditivo', 'Análise de ADR por período'],
+  },
+  // ── Sprint 3, Day 13-14: MAX tab — Multi-propriedades ──────────────────
+  // MAX supports up to 12 properties (PRO = 4). Without a dedicated tab to
+  // switch/manage properties, multi-property operation was impossible.
+  {
+    id: 'properties',
+    label: 'Propriedades',
+    minTier: 'max',
+    upgradeTarget: 'max',
+    lockedLabel: 'Gestão Multi-Propriedades',
+    lockedDescription: 'Gerencie até 12 propriedades em uma única conta com troca rápida.',
+    lockedFeatures: ['Até 12 propriedades', 'Troca rápida entre propriedades', 'Visão consolidada', 'Relatórios por propriedade', 'Permissões por equipe'],
   },
 ];
 
