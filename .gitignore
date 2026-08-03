@@ -38,8 +38,10 @@ yarn-error.log*
 # vercel
 .vercel
 
-# local skills gitlinks
+# local skills gitlinks & tools
 .agents/skills/ui-ux-pro-max-skill
+.tools/
+
 
 
 
