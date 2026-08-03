@@ -1,0 +1,39 @@
+name: ⚡ Multi-Cloud LLM Failover & Circuit Breaker
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/lib/ai/**'
+      - 'src/lib/cerebro/**'
+      - 'tests/stress-neuro-router.test.ts'
+      - 'tests/zella-confidence-lock.test.ts'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  llm-failover-gate:
+    name: 🧠 Multi-Provider AI Fallback & Resilience Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 💎 Generate Prisma Client
+        run: npx prisma generate
+
+      - name: 🧪 Execute Multi-Cloud Failover & Resilience Test Suite
+        run: npx vitest run tests/stress-neuro-router.test.ts tests/zella-confidence-lock.test.ts
+        env:
+          NODE_ENV: test
+          CEREBRO_LIVE_MODE: false

@@ -1,0 +1,41 @@
+name: 🔒 Auth & RBAC Security Guard
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/middleware.ts'
+      - 'src/lib/auth/**'
+      - 'src/app/zcc/**'
+      - 'src/app/ddc/**'
+      - 'tests/zcc-security.test.ts'
+      - 'tests/sast-static.test.ts'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  auth-rbac-gate:
+    name: 🛡️ Verify RBAC & Route Access Controls
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 💎 Generate Prisma Client
+        run: npx prisma generate
+
+      - name: 🧪 Execute RBAC & Access Security Test Suite
+        run: npx vitest run tests/zcc-security.test.ts tests/sast-static.test.ts
+        env:
+          NODE_ENV: test
+          NEXTAUTH_SECRET: "ci-test-secret-key-32-chars-long-abc"
