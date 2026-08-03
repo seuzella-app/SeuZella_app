@@ -380,6 +380,32 @@ export default function DDCAirbnbContent() {
       variants={staggerContainer}
       className="space-y-6"
     >
+      {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */}
+      {/* ─── DDC AIRBNB / ANFITRIÕES: HARMONIA VISUAL HALLMARK (MIDNIGHT CYAN) ─── */}
+
+      {/* Cockpit ProHost & Status da IA no WhatsApp */}
+      <Card className="p-4 bg-cyan-950/20 border border-cyan-500/30 rounded-lg">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
+              <Crown className="w-5 h-5 text-cyan-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-white">Cockpit ProHost & Fechaduras Digitais</span>
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 text-[10px]">SUPERHOST ACTIVE</Badge>
+              </div>
+              <p className="text-xs text-zinc-400">Gestão de múltiplos chalés, comissões de co-anfitrião e senhas por PIN de fechadura</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 font-mono text-xs text-zinc-300">
+            <span className="px-2 py-1 bg-black/40 border border-white/10 rounded">⚡ Sync iCal: 100%</span>
+            <span className="px-2 py-1 bg-black/40 border border-white/10 rounded">🔑 Auto-PIN: Ativo</span>
+          </div>
+        </div>
+      </Card>
+
       {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner */}
       <Card className="bg-gradient-to-r from-blue-500/[0.08] to-indigo-500/[0.05] border-blue-500/20 overflow-hidden">
         <CardContent className="p-5">

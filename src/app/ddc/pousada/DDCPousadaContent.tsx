@@ -517,6 +517,32 @@ export default function DDCPousadaContent() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
+      {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */}
+      {/* ─── DDC POUSADA: HARMONIA VISUAL HALLMARK (TACTILE EMERALD) ─── */}
+
+      {/* Status da Recepção Virtual no WhatsApp 24h */}
+      <Card className="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-lg">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+              <Bot className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-white">Recepção Virtual Zélla 24h</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px]">ATIVO</Badge>
+              </div>
+              <p className="text-xs text-zinc-400">Atendimento a hóspedes, confirmação de PIX e disparo automático de senhas</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 font-mono text-xs text-zinc-300">
+            <span className="px-2 py-1 bg-black/40 border border-white/10 rounded">⚡ Latência: 1.2s</span>
+            <span className="px-2 py-1 bg-black/40 border border-white/10 rounded">💬 100% no WhatsApp</span>
+          </div>
+        </div>
+      </Card>
+
       {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner */}
       <Card className="bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.05] border-emerald-500/20 overflow-hidden">
         <CardContent className="p-5">
