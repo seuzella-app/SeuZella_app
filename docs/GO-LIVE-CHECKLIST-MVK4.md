@@ -13,6 +13,21 @@ Este documento é o **quadro vivo de controle de prontidão para o lançamento o
 
 ---
 
+## 🌐 LINKS OFICIAIS DE AMBIENTE NA VERCEL (VISUALIZAÇÃO DE ALTERAÇÕES)
+
+Utilize os links oficiais abaixo para visualizar todas as atualizações e novas telas em tempo real na Vercel:
+
+- **🏠 Landing Page**: https://smart-hotel-zehla.vercel.app/
+- **🔑 Login**: https://smart-hotel-zehla.vercel.app/login
+- **📊 DDC Pousada**: https://smart-hotel-zehla.vercel.app/ddc/pousada
+- **🏡 DDC Airbnb & Chalés**: https://smart-hotel-zehla.vercel.app/ddc/airbnb
+- **⚡ ZCC (Central de Controle & IA)**: https://smart-hotel-zehla.vercel.app/zcc
+- **💬 Demo Interativo de Chat**: https://smart-hotel-zehla.vercel.app/demo
+- **🎁 Portal de Indicações / Amortização**: https://smart-hotel-zehla.vercel.app/parceiro
+- **🚀 Trial AirB Pro**: https://smart-hotel-zehla.vercel.app/trial
+
+---
+
 ## 📋 FASE 1: INFRAESTRUTURA DE MARCA, DOMÍNIO & GITHUB CORPORATIVO
 
 - [ ] **1.1 Compra do Domínio Oficial**
