@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Globe, MapPin, TrendingUp, Building2, Home, ArrowUpRight } from 'lucide-react';
 
@@ -40,12 +40,50 @@ const mockGeoData: GeoData = {
   },
 };
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// ── City Breakdown Dictionary ──────────────────────────────────────────────────
+
+interface CityDetail {
+  cityName: string;
+  pousadas: number;
+  airbnb: number;
+  mrr: number;
+  properties: string[];
+}
+
+const CITY_BREAKDOWN: Record<string, CityDetail[]> = {
+  'SC': [
+    { cityName: 'Praia do Rosa / Imbituba', pousadas: 5, airbnb: 3, mrr: 2100, properties: ['Pousada Vida Sol', 'Rosa Surf Chalés', 'Refúgio das Dunas', 'Pousada Quintal do Rosa', 'Solar do Rosa'] },
+    { cityName: 'Florianópolis', pousadas: 4, airbnb: 2, mrr: 1800, properties: ['Pousada Vila Floripa', 'Lagoa Sunset Loft', 'Canasvieiras Beach Haus', 'Morro das Pedras Eco Lodge'] },
+    { cityName: 'Bombinhas & Itapema', pousadas: 3, airbnb: 0, mrr: 1100, properties: ['Pousada Mar de Fora', 'Itapema Sun Suites', 'Ponto das Vieiras'] },
+  ],
+  'RJ': [
+    { cityName: 'Búzios & Cabo Frio', pousadas: 4, airbnb: 5, mrr: 2800, properties: ['Villa Geribá Búzios', 'Pousada João Fernandes', 'Ferradura Bay Suites', 'Lakeside Loft Cabo Frio'] },
+    { cityName: 'Paraty & Trindade', pousadas: 4, airbnb: 4, mrr: 2400, properties: ['Pousada do Ouro', 'Trindade Eco Chalés', 'Paraty Historic House', 'Casa da Mata Paraty'] },
+  ],
+  'BA': [
+    { cityName: 'Trancoso & Arraial d\'Ajuda', pousadas: 3, airbnb: 4, mrr: 2200, properties: ['Pousada Quadrado Trancoso', 'Arraial Sun Resort', 'Coqueiros Beach Villa'] },
+    { cityName: 'Itacaré & Morro de SP', pousadas: 3, airbnb: 3, mrr: 1800, properties: ['Pousada Resende Itacaré', 'Morro Paradise Chalés', 'Tiririca Surf Lodge'] },
+  ],
+  'SP': [
+    { cityName: 'Ubatuba & Maresias', pousadas: 3, airbnb: 3, mrr: 1400, properties: ['Pousada Itamambuca', 'Maresias Point Chalés', 'Vermelha Eco Suite'] },
+    { cityName: 'Ilhabela & Campos do Jordão', pousadas: 2, airbnb: 2, mrr: 900, properties: ['Ilhabela Sailing Lodge', 'Campos Mountain Chalet'] },
+  ],
+  'RS': [
+    { cityName: 'Gramado & Canela', pousadas: 3, airbnb: 2, mrr: 1200, properties: ['Pousada Valle D\'Italia', 'Canela Alpine Suite', 'Serra Gaúcha Lodge'] },
+  ],
+  'PE': [
+    { cityName: 'Fernando de Noronha & Porto', pousadas: 2, airbnb: 4, mrr: 1200, properties: ['Pousada Maravilha Noronha', 'Porto Sun Reef', 'Carneiros Beach Villa'] },
+  ],
+  'CE': [
+    { cityName: 'Jericoacoara & Canoa Quebrada', pousadas: 2, airbnb: 3, mrr: 900, properties: ['Jeri Dune Pousada', 'Canoa Sunset Suites', 'Preá Wind Lodge'] },
+  ]
+};
 
 export function GeoMetricsPanel() {
   const [data, setData] = useState<GeoData>(mockGeoData);
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState<'api' | 'demo'>('demo');
+  const [expandedState, setExpandedState] = useState<string | null>('SC');
 
   useEffect(() => {
     async function fetchGeo() {
@@ -166,35 +204,75 @@ export function GeoMetricsPanel() {
               {tableRows.map((row, i) => {
                 const maxMRR = tableRows[0]?.mrrTotal || 1;
                 const barWidth = (row.mrrTotal / maxMRR) * 100;
+                const isExpanded = expandedState === row.state;
+                const cities = CITY_BREAKDOWN[row.state] || [];
+
                 return (
-                  <motion.tr key={row.state}
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3 h-3" style={{ color: 'var(--zcc-text-muted)' }} />
-                        <span className="font-mono font-bold text-xs" style={{ color: 'var(--zcc-champagne)' }}>{row.state}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono" style={{ color: 'var(--zcc-kinpaku)' }}>{row.pousadas}</td>
-                    <td className="px-3 py-2.5 text-right font-mono" style={{ color: 'var(--zcc-patina)' }}>{row.airbnb}</td>
-                    <td className="px-3 py-2.5 text-right font-mono" style={{ color: 'var(--zcc-kinpaku)' }}>
-                      R$ {row.mrrPousada.toLocaleString('pt-BR')}
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono" style={{ color: 'var(--zcc-patina)' }}>
-                      R$ {row.mrrAirbnb.toLocaleString('pt-BR')}
-                    </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 zcc-progress-track" style={{ height: 4 }}>
-                          <div className="zcc-progress-fill" style={{ width: `${barWidth}%`, background: 'var(--zcc-kinpaku)' }} />
+                  <React.Fragment key={row.state}>
+                    <motion.tr
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.03 }}
+                      onClick={() => setExpandedState(isExpanded ? null : row.state)}
+                      className="cursor-pointer hover:bg-white/[0.03] transition-colors"
+                    >
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="font-mono font-bold text-xs" style={{ color: 'var(--zcc-champagne)' }}>{row.state}</span>
+                          <span className="text-[10px] text-zinc-500 font-mono">({isExpanded ? '▲ recolher' : '▼ expandir cidades'})</span>
                         </div>
-                        <span className="font-mono font-bold text-xs" style={{ color: 'var(--zcc-champagne)' }}>
-                          R$ {row.mrrTotal.toLocaleString('pt-BR')}
-                        </span>
-                      </div>
-                    </td>
-                  </motion.tr>
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-mono" style={{ color: 'var(--zcc-kinpaku)' }}>{row.pousadas}</td>
+                      <td className="px-3 py-2.5 text-right font-mono" style={{ color: 'var(--zcc-patina)' }}>{row.airbnb}</td>
+                      <td className="px-3 py-2.5 text-right font-mono" style={{ color: 'var(--zcc-kinpaku)' }}>
+                        R$ {row.mrrPousada.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-mono" style={{ color: 'var(--zcc-patina)' }}>
+                        R$ {row.mrrAirbnb.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-3 py-2.5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="w-16 zcc-progress-track" style={{ height: 4 }}>
+                            <div className="zcc-progress-fill" style={{ width: `${barWidth}%`, background: 'var(--zcc-kinpaku)' }} />
+                          </div>
+                          <span className="font-mono font-bold text-xs" style={{ color: 'var(--zcc-champagne)' }}>
+                            R$ {row.mrrTotal.toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                      </td>
+                    </motion.tr>
+
+                    {/* Expanded City Details */}
+                    {isExpanded && (
+                      <tr className="bg-black/60 border-l-2 border-emerald-500">
+                        <td colSpan={6} className="p-4">
+                          <div className="space-y-3">
+                            <div className="text-xs font-bold text-emerald-400 flex items-center gap-2">
+                              <Building2 className="w-4 h-4" />
+                              <span>Detalhamento por Cidades em {row.state}</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {cities.map((city, idx) => (
+                                <div key={idx} className="p-3 bg-zinc-900/80 border border-white/10 rounded space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <strong className="text-xs text-white">{city.cityName}</strong>
+                                    <span className="text-xs font-mono text-emerald-400">MRR: R$ {city.mrr.toLocaleString('pt-BR')}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-400">
+                                    <span>🏨 {city.pousadas} Pousada(s)</span>
+                                    <span>🏡 {city.airbnb} Anfitrião(ões) Airbnb</span>
+                                  </div>
+                                  <div className="text-[10px] text-zinc-400 font-mono pt-1">
+                                    <span className="text-zinc-500">Estabelecimentos:</span> {city.properties.join(', ')}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })}
               {/* Total row */}

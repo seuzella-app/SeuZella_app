@@ -31,6 +31,41 @@
 
   /* Override Tailwind tokens used by shadcn/ui components inside ZCC */
   --radius: 0px;
+
+  /* Global typography scale boost for readability */
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.zcc-shell {
+  font-size: 14px;
+}
+
+.zcc-shell .text-\[10px\],
+.zcc-shell .text-\[11px\],
+.zcc-shell .text-xs {
+  font-size: 0.8125rem !important; /* 13px */
+  line-height: 1.25rem !important;
+}
+
+.zcc-shell .text-sm {
+  font-size: 0.9375rem !important; /* 15px */
+  line-height: 1.375rem !important;
+}
+
+.zcc-shell .text-base {
+  font-size: 1.0625rem !important; /* 17px */
+  line-height: 1.5rem !important;
+}
+
+.zcc-shell .text-lg {
+  font-size: 1.25rem !important; /* 20px */
+  line-height: 1.75rem !important;
+}
+
+.zcc-shell .text-xl {
+  font-size: 1.5rem !important; /* 24px */
+  line-height: 2rem !important;
 }
 
 /* ── THEME: dark (phosphor terminal) — DEFAULT ───────────────────────────── */

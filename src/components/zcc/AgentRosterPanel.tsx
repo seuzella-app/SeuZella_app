@@ -47,13 +47,13 @@ const DEPT_LABEL: Record<string, string> = {
 };
 
 const DEPT_COLOR: Record<string, string> = {
-  command: 'border-purple-500/30 text-purple-400',
-  comms: 'border-blue-500/30 text-blue-400',
-  finance: 'border-emerald-500/30 text-emerald-400',
-  operations: 'border-amber-500/30 text-amber-400',
-  sales: 'border-pink-500/30 text-pink-400',
-  tech: 'border-cyan-500/30 text-cyan-400',
-  marketing: 'border-rose-500/30 text-rose-400',
+  command: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10',
+  comms: 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10',
+  finance: 'border-amber-500/40 text-amber-400 bg-amber-500/10',
+  operations: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10',
+  sales: 'border-emerald-400/40 text-emerald-300 bg-emerald-500/10',
+  tech: 'border-cyan-400/40 text-cyan-300 bg-cyan-500/10',
+  marketing: 'border-amber-400/40 text-amber-300 bg-amber-500/10',
 };
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -164,6 +164,31 @@ export function AgentRosterPanel() {
 
   return (
     <div className="space-y-6">
+      {/* ── Guia Didático dos Agentes Vivos ─────────────────────────── */}
+      <Card className="p-5 border-emerald-500/30 bg-emerald-500/[0.03] space-y-3">
+        <div className="flex items-center gap-2 text-emerald-400 font-bold text-base">
+          <Brain className="w-5 h-5" />
+          <span>O Que São os 12 Agentes Vivos e Por Que São Indispensáveis no ZCC</span>
+        </div>
+        <p className="text-sm text-zinc-300 leading-relaxed">
+          Os **12 Agentes Vivos** são microsserviços autônomos de IA rodando em background com modelos LLM dedicados. Eles monitoram e executam tarefas operacionais do Seu Zélla 24 horas por dia sem intervenção humana:
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs text-zinc-300">
+          <div className="p-3 bg-black/40 border border-white/[0.08] rounded">
+            <strong className="text-emerald-400 block mb-1">⚡ Autodespacho & Conductor</strong>
+            Roteia automaticamente cada mensagem recebida para o agente especialista (vendas, suporte, financeiro ou IoT).
+          </div>
+          <div className="p-3 bg-black/40 border border-white/[0.08] rounded">
+            <strong className="text-cyan-400 block mb-1">🔒 Zelador IoT & Fechaduras</strong>
+            Monitora a saúde das fechaduras (bateria, conectividade, geração de PINs) e revoga senhas em casos de emergência.
+          </div>
+          <div className="p-3 bg-black/40 border border-white/[0.08] rounded">
+            <strong className="text-amber-400 block mb-1">📈 CFO & Otimizador DSPy</strong>
+            Garante zero estouro de cota nas APIs de LLM/WhatsApp e reajusta prompts dinamicamente para aumentar conversões.
+          </div>
+        </div>
+      </Card>
+
       {/* ── Conductor Chat ────────────────────────────────────────────── */}
       <Card className="bg-black/40 border-white/[0.06] overflow-hidden">
         <div className="h-1 bg-gradient-to-r from-purple-600 to-indigo-600" />

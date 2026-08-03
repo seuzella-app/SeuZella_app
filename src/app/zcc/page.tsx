@@ -40,6 +40,7 @@ import { FintechHub } from '@/components/zcc/FintechHub';
 import { ApiKeysPanel } from '@/components/zcc/ApiKeysPanel';
 import { SwarmOverview } from '@/components/zcc/SwarmOverview';
 import { AirbnbPanel } from '@/components/zcc/AirbnbPanel';
+import { PousadasPanel } from '@/components/zcc/PousadasPanel';
 import { PulseCheck } from '@/components/zcc/PulseCheck';
 import { BurnRateCenter } from '@/components/zcc/BurnRateCenter';
 import { TenantXRay } from '@/components/zcc/TenantXRay';
@@ -198,6 +199,7 @@ export default function ZCCPage() {
       {activeTab === 'sandbox' && <SandboxPanel />}
       {activeTab === 'financeiro' && <FinanceiroIntegrado />}
       {activeTab === 'airbnb' && <AirbnbPanel />}
+      {activeTab === 'pousadas' && <PousadasPanel />}
       {activeTab === 'burnrate' && <BurnRateCenter />}
       {activeTab === 'tenants' && <TenantXRay />}
       {activeTab === 'tokens' && (

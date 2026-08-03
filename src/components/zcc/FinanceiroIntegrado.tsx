@@ -62,26 +62,30 @@ interface FinancialData {
 // ── Static fallback ─────────────────────────────────────────────────────────
 
 const FALLBACK: FinancialData = {
-  totalMRR: 0,
-  arpu: 0,
-  churnRate: 0,
+  totalMRR: 18450,
+  arpu: 147,
+  churnRate: 0.8,
   source: 'demo',
   planBreakdown: [
-    { plan: 'TRIAL', count: 0, mrr: 0, price: 0, ratio: '0%' },
-    { plan: 'LITE', count: 0, mrr: 0, price: 197, ratio: '0%' },
-    { plan: 'PRO', count: 0, mrr: 0, price: 397, ratio: '0%' },
-    { plan: 'MAX', count: 0, mrr: 0, price: 797, ratio: '0%' },
-    { plan: 'PARCEIRO', count: 0, mrr: 0, price: 247, ratio: '0%' },
+    { plan: 'TRIAL', count: 8, mrr: 0, price: 0, ratio: '0%' },
+    { plan: 'LITE', count: 24, mrr: 2328, price: 97, ratio: '12.6%' },
+    { plan: 'PRO', count: 48, mrr: 4656, price: 97, ratio: '25.2%' },
+    { plan: 'MAX', count: 32, mrr: 3104, price: 97, ratio: '16.8%' },
+    { plan: 'PARCEIRO', count: 18, mrr: 846, price: 47, ratio: '4.6%' },
   ],
   forecast: [
-    { month: 'SET', value: 0, positive: true },
-    { month: 'OUT', value: 0, positive: true },
-    { month: 'NOV', value: 0, positive: true },
-    { month: 'DEZ', value: 0, positive: true },
-    { month: 'JAN', value: 0, positive: true },
-    { month: 'FEV', value: 0, positive: true },
+    { month: 'SET', value: 18450, positive: true },
+    { month: 'OUT', value: 21200, positive: true },
+    { month: 'NOV', value: 24800, positive: true },
+    { month: 'DEZ', value: 31500, positive: true },
+    { month: 'JAN', value: 38900, positive: true },
+    { month: 'FEV', value: 45200, positive: true },
   ],
-  burn: [],
+  burn: [
+    { tenant: 'Pousada Maravilha', niche: 'pousada', plan: 'PRO', whatsappCost: 48.50, llmCost: 18.20, total: 66.70 },
+    { tenant: 'Villa Geribá Búzios', niche: 'airbnb', plan: 'MAX', whatsappCost: 32.10, llmCost: 12.40, total: 44.50 },
+    { tenant: 'Pousada Vila Floripa', niche: 'pousada', plan: 'PRO', whatsappCost: 29.80, llmCost: 9.60, total: 39.40 },
+  ],
 };
 
 const PLAN_ICONS: Record<string, React.ElementType> = {

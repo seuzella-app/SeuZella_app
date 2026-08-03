@@ -356,8 +356,28 @@ export function CerebroVivoPanel() {
               {sseConnected ? '⚡ SSE conectado' : '⏳ Polling 30s'}
             </span>
           </div>
-          <div className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
-            Última atualização: {formatTime(lastUpdate)}
+        {/* ── Guia Didático do Cérebro Zélla ── */}
+        <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-md text-xs space-y-2 mb-4">
+          <div className="font-bold text-emerald-300 flex items-center gap-1.5 text-sm">
+            <Brain className="w-4 h-4 text-emerald-400" />
+            <span>Como Funciona o Cérebro Central do Seu Zélla:</span>
+          </div>
+          <p className="text-zinc-300 leading-relaxed">
+            O **Cérebro Zélla** é a inteligência autônoma central. Ele funciona via **Roteamento Multi-Cloud (11 provedores LLM)** com failover instantâneo, otimização automática de prompts (**DSPy**), memória associativa com desempate triplo (**GraphRAG**) e motor de defesa contra invasões.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1 font-mono text-[11px] text-zinc-300">
+            <div className="p-2.5 bg-black/40 border border-emerald-500/20 rounded">
+              <strong className="text-emerald-400 block mb-0.5">🧠 Multi-Cloud Router (11 Models)</strong>
+              Groq (sub-200ms), Gemini (visão), DeepSeek, OpenAI, Claude, Moonshot, Zhipu e Ollama local.
+            </div>
+            <div className="p-2.5 bg-black/40 border border-emerald-500/20 rounded">
+              <strong className="text-cyan-400 block mb-0.5">⚡ GraphRAG & DPO Feedback</strong>
+              Memória viva com desempate por recência, precedência e otimização por preferências do hóspede.
+            </div>
+            <div className="p-2.5 bg-black/40 border border-emerald-500/20 rounded">
+              <strong className="text-amber-400 block mb-0.5">🛡️ Auto-Ajuste & Defesa Anti-Hack</strong>
+              Monitora estouro de cota e bloqueia tentativas de prompt injection / engenharia reversa.
+            </div>
           </div>
         </div>
 

@@ -21,7 +21,7 @@ import {
 
 export type ZCCTabId =
   | 'overview' | 'pulse' | 'cerebro' | 'refactors' | 'sandbox'
-  | 'financeiro' | 'airbnb' | 'burnrate' | 'tenants'
+  | 'financeiro' | 'airbnb' | 'pousadas' | 'burnrate' | 'tenants'
   | 'tokens' | 'geo' | 'financial' | 'agents';
 
 interface TabDef {
@@ -42,6 +42,7 @@ const ALL_TABS: TabDef[] = [
   { id: 'financeiro', label: 'Financeiro', icon: DollarSign, desc: 'Receitas & Pagamentos', group: 'core' },
   { id: 'financial', label: 'Breakdown', icon: BarChart3, desc: 'Detalhamento Financeiro', group: 'core' },
   { id: 'airbnb', label: 'Airbnb', icon: Home, desc: 'Anfitriões & Imóveis', group: 'ops' },
+  { id: 'pousadas', label: 'Pousadas', icon: Building2, desc: 'Hotelaria & Recepção', group: 'ops' },
   { id: 'burnrate', label: 'Burn Rate', icon: Flame, desc: 'Custos API WhatsApp', group: 'ops' },
   { id: 'tenants', label: 'Tenants', icon: Users, desc: 'Raio-X & Kill Switch', group: 'ops' },
   { id: 'geo', label: 'Geo', icon: Globe, desc: 'Métricas Geográficas', group: 'ops' },

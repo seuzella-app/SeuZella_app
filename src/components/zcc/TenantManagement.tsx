@@ -140,6 +140,24 @@ export function TenantManagement() {
 
   return (
     <div className="space-y-6">
+      {/* ── Guia Didático da Arquitetura Tenants ───────────────────────── */}
+      <div className="p-5 border border-cyan-500/30 bg-cyan-500/[0.03] rounded-lg space-y-2">
+        <div className="flex items-center gap-2 text-cyan-400 font-bold text-base">
+          <Building2 className="w-5 h-5" />
+          <span>O Que É o Módulo Tenants e Para Que Serve no Seu Zélla</span>
+        </div>
+        <p className="text-sm text-zinc-300 leading-relaxed">
+          Cada **Tenant** representa um estabelecimento (Pousada, Hotel ou Anfitrião Airbnb) isolado no sistema. A arquitetura Multi-Tenant do Seu Zélla garante que as configurações de WhatsApp, senhas de fechaduras e dados de hóspedes de uma pousada fiquem estritamente isolados das outras.
+        </p>
+        <div className="flex items-center gap-4 text-xs text-zinc-400 font-mono pt-1">
+          <span>🔒 Isolamento RLS no Banco</span>
+          <span>·</span>
+          <span>⚡ Instância WhatsApp Dedicada</span>
+          <span>·</span>
+          <span>🔑 Credenciais de Fechadura Criptografadas</span>
+        </div>
+      </div>
+
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <div className="glass-card p-4 text-center">

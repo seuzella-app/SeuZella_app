@@ -348,10 +348,32 @@ export function SandboxPanel() {
                 border: '1px solid rgba(168,85,247,0.3)',
               }}
             >
-              SANDBOX
+              ISOLATED SANDBOX
             </span>
           </div>
-          <button
+        </div>
+
+        {/* ── Guia Didático do Sandbox ── */}
+        <div className="p-4 bg-purple-950/30 border border-purple-500/30 rounded-md text-xs space-y-2 mb-4">
+          <div className="font-bold text-purple-300 flex items-center gap-1.5">
+            <FlaskConical className="w-4 h-4 text-purple-400" />
+            <span>Como Usar o Sandbox & O que Ele Faz:</span>
+          </div>
+          <p className="text-zinc-300 leading-relaxed">
+            O **Sandbox Z-Lab** é o laboratório de testes em tempo real do Seu Zélla. Ele permite simular conversas de hóspedes sintéticos (hóspede amigável, ansioso, teste de segurança contra hackers ou dúvidas de check-in) e avaliar como a Zélla responde **sem enviar mensagens reais no WhatsApp** e **sem gastar créditos de clientes de verdade**.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 font-mono text-[11px] text-purple-200">
+            <div className="p-2 bg-black/40 border border-purple-500/20 rounded">
+              <strong>1. Selecione a Persona:</strong> Escolha o comportamento do hóspede sintético.
+            </div>
+            <div className="p-2 bg-black/40 border border-purple-500/20 rounded">
+              <strong>2. Escolha o Nicho:</strong> Pousada (check-in/refeições) ou Airbnb (regras/PINs).
+            </div>
+            <div className="p-2 bg-black/40 border border-purple-500/20 rounded">
+              <strong>3. Clique em Run Single:</strong> Acompanhe o log ao vivo e o tempo de resposta da IA.
+            </div>
+          </div>
+        </div>  <button
             onClick={fetchData}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-mono font-medium transition-all"
             style={{
