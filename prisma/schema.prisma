@@ -140,6 +140,13 @@ model Tenant {
   lockEvents        LockEvent[]
   lockOAuthAccounts LockOAuthAccount[]
 
+  // AIRB PRO — Módulos da análise competitiva ProHost (P0/P1)
+  airbExpenses      AirbExpense[]
+  airbOperationTasks AirbOperationTask[]
+  airbGoals         AirbGoal[]
+  airbCommissions   AirbCommission[]
+  airbReports       AirbReport[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2331,4 +2338,170 @@ model LockOAuthAccount {
   @@index([tenantId])
   @@index([provider])
   @@map("lock_oauth_accounts")
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// AIRB PRO — MÓDULOS INSPIRADOS NA ANÁLISE COMPETITIVA PROHOST
+// Implementados de forma additiva — não alteram modelos existentes.
+// Mapeiam para: P0-1 PDF Reports, P0-2 Financial, P0-3 Trial Self-Service,
+//               P1-1 Operations, P1-2 Goals, P1-3 Commissions
+// ════════════════════════════════════════════════════════════════════════════
+
+// P0-2: GESTÃO FINANCEIRA — Despesas categorizadas e fluxo de caixa
+model AirbExpense {
+  id          String   @id @default(cuid())
+  tenantId    String
+  category    String   // fixed_cost | variable | maintenance | utilities | marketing | commission | tax | other
+  description String
+  amount      Float
+  dueDate     DateTime?
+  paidAt      DateTime?
+  status      String   @default("pending") // pending | paid | overdue | cancelled
+  recurrence  String   @default("one_time") // one_time | monthly | weekly | yearly
+  document    String?  // URL/caminho do comprovante
+  metadata    String   @default("{}") // JSON: nota fiscal, fornecedor, etc.
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, category])
+  @@index([tenantId, dueDate])
+  @@map("airb_expenses")
+}
+
+// P1-1: OPERAÇÕES — Limpeza, manutenção e checklist de checkout
+model AirbOperationTask {
+  id            String   @id @default(cuid())
+  tenantId      String
+  propertyId    String?  // referência à AirBProperty (nullable para tarefas gerais)
+  type          String   // cleaning | maintenance | inspection | restock | other
+  status        String   @default("pending") // pending | in_progress | completed | cancelled
+  priority      String   @default("normal") // low | normal | high | urgent
+  title         String
+  description   String   @default("")
+  assignedTo    String?  // nome do responsável (camareira, zelador, etc.)
+  scheduledFor  DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  estimatedMin  Int      @default(60)
+  actualMin     Int?
+  checklist     String   @default("[]") // JSON array de {item, done}
+  cost          Float    @default(0)
+  metadata      String   @default("{}") // JSON: fotos, notas, etc.
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, type])
+  @@index([tenantId, scheduledFor])
+  @@map("airb_operation_tasks")
+}
+
+// P1-2: METAS — Dashboard de metas e KPIs (estende modelo Target existente)
+model AirbGoal {
+  id           String   @id @default(cuid())
+  tenantId     String
+  type         String   // revenue | occupancy | bookings | adr | revpar | guests | reviews
+  period       String   // daily | weekly | monthly | quarterly | yearly
+  targetValue  Float
+  currentValue Float    @default(0)
+  unit         String   @default("BRL") // BRL | percent | count
+  startDate    DateTime
+  endDate      DateTime
+  status       String   @default("active") // active | achieved | missed | paused
+  notes        String   @default("")
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, type, period])
+  @@index([tenantId, endDate])
+  @@map("airb_goals")
+}
+
+// P1-3: COMISSIONAMENTO — Parceiros e afiliados
+model AirbCommission {
+  id           String   @id @default(cuid())
+  tenantId     String
+  partnerName  String
+  partnerEmail String?
+  partnerPhone String?
+  partnerCode  String?  // código de indicação único
+  referralType String   @default("affiliate") // affiliate | agent | partner | influencer
+  rule         String   @default("percentage") // percentage | fixed
+  rate         Float    // percentual (0-100) ou valor fixo
+  basisAmount  Float    @default(0) // base de cálculo (ex: primeira mensalidade)
+  status       String   @default("pending") // pending | payable | paid | cancelled
+  dueDate      DateTime?
+  paidAt       DateTime?
+  notes        String   @default("")
+  metadata     String   @default("{}") // JSON: contrato, comprovante, etc.
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, partnerCode])
+  @@map("airb_commissions")
+}
+
+// P0-3: TRIAL SELF-SERVICE — Onboarding automatizado sem contato comercial
+model AirbTrialSignup {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  phone         String?
+  name          String?
+  companyName   String?
+  niche         String   @default("pousada") // pousada | airbnb
+  source        String   @default("organic") // organic | ads | referral | partner
+  utmSource     String?
+  utmCampaign   String?
+  utmMedium     String?
+  status        String   @default("started") // started | verified | converted | abandoned | expired
+  magicToken    String?  @unique // token para magic-link
+  verifiedAt    DateTime?
+  convertedAt   DateTime?
+  tenantId      String?  // preenchido quando converte em Tenant real
+  abandonReason String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@map("airb_trial_signups")
+}
+
+// P0-1: PDF REPORTS — Registro de relatórios gerados (histórico)
+model AirbReport {
+  id           String   @id @default(cuid())
+  tenantId     String
+  type         String   // monthly_summary | reservations | financial | guests | operations | goals
+  format       String   @default("pdf") // pdf | xlsx | csv
+  period       String   // ex: "2026-07" ou "2026-07-01_2026-07-31"
+  status       String   @default("generated") // generated | failed | archived
+  fileName     String
+  fileSizeKb   Int      @default(0)
+  generatedBy  String   @default("system") // system | user
+  metadata     String   @default("{}") // JSON: filtros, parâmetros, etc.
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId, type, createdAt])
+  @@index([tenantId, period])
+  @@map("airb_reports")
 }
