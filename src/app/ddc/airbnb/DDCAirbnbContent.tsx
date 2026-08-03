@@ -380,78 +380,86 @@ export default function DDCAirbnbContent() {
       variants={staggerContainer}
       className="space-y-6"
     >
-      {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */}
-      {/* ─── DDC AIRBNB / ANFITRIÕES: HARMONIA VISUAL HALLMARK (MIDNIGHT CYAN) ─── */}
+      {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · theme: Terminal · option: 08 (Azul Cyber) */}
+      {/* ─── DDC AIRBNB / ANFITRIÕES: HALLMARK OPTION 08 (ESTILO TERMINAL AZUL CYBER) ─── */}
 
-      {/* Hallmark Header Banner */}
-      <div className="p-3.5 bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-transparent border border-cyan-500/40 rounded-lg flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs font-mono font-bold text-cyan-300">
-          <Sparkles className="w-4 h-4 text-cyan-400" />
-          <span>HALLMARK DESIGN ENGINE — DDC AIRBNB & CHALÉS (MIDNIGHT CYAN)</span>
+      {/* N8 Terminal Command Header */}
+      <div className="p-3.5 bg-[#040c1a] border border-[#00d8ff]/40 rounded-lg font-mono text-xs text-[#00d8ff] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(0,216,255,0.12)]">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[#00d8ff] font-bold">&gt; zella-airbnb --terminal</span>
+          <span className="text-zinc-400">|</span>
+          <span className="text-[#93c5fd]">--ical [SYNC_100%]</span>
+          <span className="text-[#93c5fd]">--fechaduras [AUTO_PIN]</span>
+          <span className="text-[#93c5fd]">--status [SUPERHOST_ACTIVE]</span>
+          <span className="text-[#00d8ff] font-bold animate-pulse">▮</span>
         </div>
-        <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/40 text-[10px]">LIVE REDESIGN</Badge>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-[#00d8ff]/10 text-[#00d8ff] border border-[#00d8ff]/30 text-[10px] font-mono uppercase tracking-widest">
+            [MODE: TERMINAL_AZUL_08]
+          </Badge>
+        </div>
       </div>
 
-      {/* Cockpit ProHost & Status da IA no WhatsApp */}
-      <Card className="p-4 bg-cyan-950/20 border border-cyan-500/30 rounded-lg">
+      {/* Cockpit ProHost & Status da IA no WhatsApp — Estilo Terminal Azul */}
+      <Card className="p-4 bg-[#040e22]/90 border border-[#00d8ff]/30 rounded-lg font-mono">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-cyan-400" />
+            <div className="w-9 h-9 rounded bg-[#00d8ff]/15 border border-[#00d8ff]/40 flex items-center justify-center font-bold text-[#00d8ff]">
+              &gt;_
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-white">Cockpit ProHost & Fechaduras Digitais</span>
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 text-[10px]">SUPERHOST ACTIVE</Badge>
+                <span className="text-sm font-bold text-[#e0f2fe] uppercase tracking-wider">[SYS_OK] Cockpit ProHost &amp; Fechaduras Digitais</span>
+                <span className="w-2 h-2 rounded-full bg-[#00d8ff] animate-pulse" />
+                <Badge className="bg-[#00d8ff]/15 text-[#00d8ff] border-[#00d8ff]/40 text-[10px]">SUPERHOST_ACTIVE</Badge>
               </div>
-              <p className="text-xs text-zinc-400">Gestão de múltiplos chalés, comissões de co-anfitrião e senhas por PIN de fechadura</p>
+              <p className="text-xs text-cyan-300/80">Gestão de múltiplos chalés, comissões de co-anfitrião e senhas por PIN de fechadura</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-zinc-300">
-            <span className="px-2 py-1 bg-black/40 border border-white/10 rounded">⚡ Sync iCal: 100%</span>
-            <span className="px-2 py-1 bg-black/40 border border-white/10 rounded">🔑 Auto-PIN: Ativo</span>
+          <div className="flex items-center gap-2 text-xs text-[#93c5fd]">
+            <span className="px-2 py-1 bg-black/60 border border-[#00d8ff]/20 rounded">⚡ iCAL: 100% SYNC</span>
+            <span className="px-2 py-1 bg-black/60 border border-[#00d8ff]/20 rounded">🔑 AUTO-PIN: ON</span>
           </div>
         </div>
       </Card>
 
-      {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner */}
-      <Card className="bg-gradient-to-r from-blue-500/[0.08] to-indigo-500/[0.05] border-blue-500/20 overflow-hidden">
+      {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner no Estilo Terminal Azul */}
+      <Card className="bg-[#040a14] border border-[#00d8ff]/25 rounded-lg overflow-hidden font-mono">
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-blue-500/15 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-blue-400" />
+            <div className="flex-shrink-0 w-11 h-11 rounded bg-[#00d8ff]/10 border border-[#00d8ff]/30 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-[#00d8ff]" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-white font-semibold text-sm">{scannedData.propertyName}</h3>
-                <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />iCal Sincronizado
+                <h3 className="text-[#e0f2fe] font-bold text-sm">{scannedData.propertyName}</h3>
+                <Badge className="bg-[#00d8ff]/10 text-[#00d8ff] border-[#00d8ff]/30 text-[10px]">
+                  [iCAL_SYNCED_OK]
                 </Badge>
               </div>
-              <p className="text-zinc-400 text-xs mb-3">{scannedData.description || ''}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs text-zinc-300">{scannedData.location || '—'}</span>
+              <p className="text-cyan-300/70 text-xs mb-3">{scannedData.description || ''}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="flex items-center gap-1.5 text-[#93c5fd]">
+                  <MapPin className="w-3.5 h-3.5 text-[#00d8ff]" />
+                  <span>{scannedData.location || '—'}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs text-zinc-300">Check-in {scannedData.checkInTime} / Check-out {scannedData.checkOutTime}</span>
+                <div className="flex items-center gap-1.5 text-[#93c5fd]">
+                  <Clock className="w-3.5 h-3.5 text-[#00d8ff]" />
+                  <span>Check-in {scannedData.checkInTime} / Out {scannedData.checkOutTime}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Wifi className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs text-zinc-300">{scannedData.amenities.length} comodidades</span>
+                <div className="flex items-center gap-1.5 text-[#93c5fd]">
+                  <Wifi className="w-3.5 h-3.5 text-[#00d8ff]" />
+                  <span>{scannedData.amenities.length} comodidades</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Bot className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs text-zinc-300 truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
+                <div className="flex items-center gap-1.5 text-[#93c5fd]">
+                  <Bot className="w-3.5 h-3.5 text-[#00d8ff]" />
+                  <span className="truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {scannedData.amenities.map((amenity) => (
-                  <Badge key={amenity} variant="outline" className="text-[10px] border-blue-500/20 text-blue-300 bg-blue-500/5">
-                    {amenity}
+                  <Badge key={amenity} variant="outline" className="text-[10px] border-[#00d8ff]/20 text-[#00d8ff] bg-[#00d8ff]/5">
+                    +{amenity}
                   </Badge>
                 ))}
               </div>

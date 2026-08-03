@@ -517,78 +517,86 @@ export default function DDCPousadaContent() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */}
-      {/* ─── DDC POUSADA: HARMONIA VISUAL HALLMARK (TACTILE EMERALD) ─── */}
+      {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · theme: Terminal · option: 08 (Verde Matrix) */}
+      {/* ─── DDC POUSADA: HALLMARK OPTION 08 (ESTILO TERMINAL VERDE MATRIX) ─── */}
 
-      {/* Hallmark Header Banner */}
-      <div className="p-3.5 bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-lg flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-300">
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <span>HALLMARK DESIGN ENGINE — DDC POUSADA (TACTILE EMERALD)</span>
+      {/* N8 Terminal Command Header */}
+      <div className="p-3.5 bg-[#051208] border border-[#00ff66]/40 rounded-lg font-mono text-xs text-[#00ff66] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(0,255,102,0.12)]">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[#00ff66] font-bold">&gt; zella-pousada --terminal</span>
+          <span className="text-zinc-400">|</span>
+          <span className="text-[#a3e6c0]">--recepcao [24H_LIVE]</span>
+          <span className="text-[#a3e6c0]">--quartos 12</span>
+          <span className="text-[#a3e6c0]">--status [SECURE_PORT_443]</span>
+          <span className="text-[#00ff66] font-bold animate-pulse">▮</span>
         </div>
-        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">LIVE REDESIGN</Badge>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-[#00ff66]/10 text-[#00ff66] border border-[#00ff66]/30 text-[10px] font-mono uppercase tracking-widest">
+            [MODE: TERMINAL_VERDE_08]
+          </Badge>
+        </div>
       </div>
 
-      {/* Status da Recepção Virtual no WhatsApp 24h */}
-      <Card className="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-lg">
+      {/* Status da Recepção Virtual no WhatsApp 24h — Estilo Terminal */}
+      <Card className="p-4 bg-[#051209]/90 border border-[#00ff66]/30 rounded-lg font-mono">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-emerald-400" />
+            <div className="w-9 h-9 rounded bg-[#00ff66]/15 border border-[#00ff66]/40 flex items-center justify-center font-bold text-[#00ff66]">
+              &gt;_
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-white">Recepção Virtual Zélla 24h</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px]">ATIVO</Badge>
+                <span className="text-sm font-bold text-[#e2f7eb] uppercase tracking-wider">[SYS_OK] Recepção Virtual Zélla 24h</span>
+                <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse" />
+                <Badge className="bg-[#00ff66]/15 text-[#00ff66] border-[#00ff66]/40 text-[10px]">ACTIVE_PROD</Badge>
               </div>
-              <p className="text-xs text-zinc-400">Atendimento a hóspedes, confirmação de PIX e disparo automático de senhas</p>
+              <p className="text-xs text-emerald-400/80">Atendimento autônomo no WhatsApp, envio de PINs e conciliação de PIX</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-zinc-300">
-            <span className="px-2 py-1 bg-black/40 border border-white/10 rounded">⚡ Latência: 1.2s</span>
-            <span className="px-2 py-1 bg-black/40 border border-white/10 rounded">💬 100% no WhatsApp</span>
+          <div className="flex items-center gap-2 text-xs text-[#a3e6c0]">
+            <span className="px-2 py-1 bg-black/60 border border-[#00ff66]/20 rounded">⚡ LATENCY: 1.2s</span>
+            <span className="px-2 py-1 bg-black/60 border border-[#00ff66]/20 rounded">💬 DISPATCH: 100%</span>
           </div>
         </div>
       </Card>
 
-      {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner */}
-      <Card className="bg-gradient-to-r from-emerald-500/[0.08] to-cyan-500/[0.05] border-emerald-500/20 overflow-hidden">
+      {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner no Estilo Terminal */}
+      <Card className="bg-[#050e07] border border-[#00ff66]/25 rounded-lg overflow-hidden font-mono">
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
+            <div className="flex-shrink-0 w-11 h-11 rounded bg-[#00ff66]/10 border border-[#00ff66]/30 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-[#00ff66]" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-white font-semibold text-sm">{scannedData.propertyName}</h3>
-                <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />Dados da Pousada
+                <h3 className="text-[#e2f7eb] font-bold text-sm">{scannedData.propertyName}</h3>
+                <Badge className="bg-[#00ff66]/10 text-[#00ff66] border-[#00ff66]/30 text-[10px]">
+                  [DATA_POUSADA_VERIFIED]
                 </Badge>
               </div>
-              <p className="text-zinc-400 text-xs mb-3">{scannedData.description || ''}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-xs text-zinc-300">{scannedData.location || '—'}</span>
+              <p className="text-emerald-400/70 text-xs mb-3">{scannedData.description || ''}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="flex items-center gap-1.5 text-[#a3e6c0]">
+                  <MapPin className="w-3.5 h-3.5 text-[#00ff66]" />
+                  <span>{scannedData.location || '—'}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-xs text-zinc-300">Check-in {scannedData.checkInTime} / Check-out {scannedData.checkOutTime}</span>
+                <div className="flex items-center gap-1.5 text-[#a3e6c0]">
+                  <Clock className="w-3.5 h-3.5 text-[#00ff66]" />
+                  <span>Check-in {scannedData.checkInTime} / Out {scannedData.checkOutTime}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Bed className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-xs text-zinc-300">{scannedData.totalRooms ?? '—'} quartos</span>
+                <div className="flex items-center gap-1.5 text-[#a3e6c0]">
+                  <Bed className="w-3.5 h-3.5 text-[#00ff66]" />
+                  <span>{scannedData.totalRooms ?? '—'} quartos</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Bot className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-xs text-zinc-300 truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
+                <div className="flex items-center gap-1.5 text-[#a3e6c0]">
+                  <Bot className="w-3.5 h-3.5 text-[#00ff66]" />
+                  <span className="truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {scannedData.amenities.map((amenity) => (
-                  <Badge key={amenity} variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-300 bg-emerald-500/5">
-                    {amenity}
+                  <Badge key={amenity} variant="outline" className="text-[10px] border-[#00ff66]/20 text-[#00ff66] bg-[#00ff66]/5">
+                    +{amenity}
                   </Badge>
                 ))}
               </div>
