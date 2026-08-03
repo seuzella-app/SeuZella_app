@@ -41,7 +41,7 @@ beforeAll(async () => {
       stdio: 'ignore',
     });
   }
-});
+}, 30000);
 
 afterAll(async () => {
   await prisma.$disconnect();
