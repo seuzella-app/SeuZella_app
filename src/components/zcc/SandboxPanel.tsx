@@ -373,7 +373,10 @@ export function SandboxPanel() {
               <strong>3. Clique em Run Single:</strong> Acompanhe o log ao vivo e o tempo de resposta da IA.
             </div>
           </div>
-        </div>  <button
+        </div>
+
+        <div className="flex justify-end mb-4">
+          <button
             onClick={fetchData}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-mono font-medium transition-all"
             style={{

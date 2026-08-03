@@ -356,6 +356,8 @@ export function CerebroVivoPanel() {
               {sseConnected ? '⚡ SSE conectado' : '⏳ Polling 30s'}
             </span>
           </div>
+        </div>
+
         {/* ── Guia Didático do Cérebro Zélla ── */}
         <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-md text-xs space-y-2 mb-4">
           <div className="font-bold text-emerald-300 flex items-center gap-1.5 text-sm">

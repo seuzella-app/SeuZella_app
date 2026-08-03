@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Command, Activity, Brain, Code, FlaskConical, DollarSign,
   Home, Flame, Users, Key, Globe, BarChart3, ChevronLeft,
-  Star, ChevronRight, Bot,
+  Star, ChevronRight, Bot, Building2,
 } from 'lucide-react';
 
 export type ZCCTabId =
