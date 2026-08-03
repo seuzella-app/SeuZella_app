@@ -499,3 +499,298 @@ export async function callGeminiWithTools(params: {
     finishReason: toolCalls.length > 0 ? 'tool_calls' : 'stop',
   };
 }
+
+/* ================================================================== */
+/* Anthropic Claude with Tool Calling (Patch B)                       */
+/* ================================================================== */
+
+/**
+ * Anthropic Claude Messages API with Native Tool Calling
+ *
+ * Claude uses a different tool format than OpenAI:
+ *   - tools[].name, tools[].description, tools[].input_schema
+ *   - tool_choice optional ('auto' | 'any' | {'type':'tool','name':'X'})
+ *   - Stop reason: 'tool_use' (instead of 'tool_calls')
+ *   - Tool calls come back in content[].type === 'tool_use'
+ *
+ * References:
+ *   https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+ *
+ * @param params - API key, model, messages (with system extracted), tools
+ * @returns AdapterToolResponse with toolCalls parsed from Claude format
+ */
+export async function callAnthropicWithTools(params: {
+  apiKey: string;
+  model: string;
+  messages: AdapterMessage[];
+  tools: AdapterToolDef[];
+  temperature: number;
+  maxTokens: number;
+}): Promise<AdapterToolResponse> {
+  const systemMessage = params.messages.find(m => m.role === 'system');
+  const otherMessages = params.messages.filter(m => m.role !== 'system');
+
+  // Convert messages to Anthropic format
+  // Anthropic supports roles: 'user' | 'assistant' | (tool results go in user role with tool_result)
+  const anthropicMessages: Array<Record<string, unknown>> = [];
+
+  for (const msg of otherMessages) {
+    if (msg.role === 'tool') {
+      // Tool result messages: Anthropic expects these inside a 'user' message
+      // with content array containing tool_result block
+      let toolName = 'unknown';
+      try {
+        toolName = msg.tool_call_id?.split('_')[0] || 'unknown';
+      } catch { /* default 'unknown' */ }
+
+      let resultObj: unknown = msg.content;
+      try {
+        resultObj = JSON.parse(msg.content);
+      } catch {
+        resultObj = { result: msg.content };
+      }
+
+      anthropicMessages.push({
+        role: 'user',
+        content: [{
+          type: 'tool_result',
+          tool_use_id: msg.tool_call_id || `tool_${Date.now()}`,
+          content: typeof resultObj === 'string' ? resultObj : JSON.stringify(resultObj),
+        }],
+      });
+    } else if (msg.role === 'assistant') {
+      if (msg.tool_calls && msg.tool_calls.length > 0) {
+        // Assistant message with tool calls — Anthropic expects content array
+        // with text block (optional) + tool_use blocks
+        const content: Array<Record<string, unknown>> = [];
+        if (msg.content) {
+          content.push({ type: 'text', text: msg.content });
+        }
+        for (const tc of msg.tool_calls) {
+          let argsObj: Record<string, unknown> = {};
+          try {
+            argsObj = JSON.parse(tc.function.arguments || '{}');
+          } catch { /* empty args */ }
+          content.push({
+            type: 'tool_use',
+            id: tc.id,
+            name: tc.function.name,
+            input: argsObj,
+          });
+        }
+        anthropicMessages.push({ role: 'assistant', content });
+      } else {
+        anthropicMessages.push({
+          role: 'assistant',
+          content: msg.content || '',
+        });
+      }
+    } else {
+      // user message
+      anthropicMessages.push({
+        role: 'user',
+        content: msg.content,
+      });
+    }
+  }
+
+  // Convert tools to Anthropic format (input_schema instead of parameters)
+  const anthropicTools = params.tools.map(t => ({
+    name: t.function.name,
+    description: t.function.description,
+    input_schema: t.function.parameters,
+  }));
+
+  const body: Record<string, unknown> = {
+    model: params.model,
+    max_tokens: params.maxTokens,
+    messages: anthropicMessages,
+    tools: anthropicTools,
+    temperature: params.temperature,
+  };
+
+  if (systemMessage) {
+    body.system = systemMessage.content;
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'x-api-key': params.apiKey,
+    'anthropic-version': '2023-06-01',
+  };
+
+  const url = 'https://api.anthropic.com/v1/messages';
+  const response = await fetchWithRetry(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`[LLMAdapter] Anthropic tool calling error (${response.status}): ${errText}`);
+  }
+
+  const data = await response.json();
+  // Claude returns content as an array of blocks: [{type:'text',text:...}, {type:'tool_use',...}]
+  const contentBlocks: Array<Record<string, unknown>> = data.content || [];
+
+  // Extract text content (concatenate all 'text' blocks)
+  const textParts: string[] = [];
+  for (const block of contentBlocks) {
+    if (block.type === 'text' && typeof block.text === 'string') {
+      textParts.push(block.text);
+    }
+  }
+  const content = textParts.join('');
+
+  // Extract tool calls (blocks of type 'tool_use')
+  const toolCalls: AdapterToolResponse['toolCalls'] = [];
+  for (const block of contentBlocks) {
+    if (block.type === 'tool_use') {
+      toolCalls.push({
+        id: (block.id as string) || `anthropic_${block.name}_${Date.now()}`,
+        name: (block.name as string) || 'unknown',
+        arguments: (block.input as Record<string, unknown>) || {},
+      });
+    }
+  }
+
+  const inputTokens = data.usage?.input_tokens || Math.ceil(JSON.stringify(body).length / 4);
+  const outputTokens = data.usage?.output_tokens || Math.ceil((content.length + JSON.stringify(contentBlocks).length) / 4);
+
+  const stopReason = data.stop_reason;
+  const finishReason: 'stop' | 'tool_calls' = stopReason === 'tool_use' || toolCalls.length > 0
+    ? 'tool_calls'
+    : 'stop';
+
+  return {
+    content,
+    inputTokens,
+    outputTokens,
+    toolCalls,
+    finishReason,
+  };
+}
+
+/* ================================================================== */
+/* Gemini Native Audio Processing (Patch C)                           */
+/* ================================================================== */
+
+/**
+ * Gemini Native Audio Processing
+ *
+ * Sends audio bytes directly to Gemini 2.0 Flash as inlineData.
+ * Eliminates the need for OpenAI Whisper transcription step.
+ *
+ * COST SAVINGS:
+ *   - Whisper: $0.006 per minute of audio
+ *   - Gemini audio input: ~$0.70 per 1M tokens (~$0.0007 per 1-min audio)
+ *   → 88% cost reduction on audio messages
+ *
+ * LATENCY SAVINGS:
+ *   - Whisper round-trip: 800-1500ms
+ *   - Direct Gemini inline: ~0ms (audio is part of the same request)
+ *   → 800-1500ms latency removed from the critical path
+ *
+ * SUPPORTED FORMATS:
+ *   - WAV (recommended — 16kHz, 16-bit, mono)
+ *   - MP3, AIFF, AAC, OGG (Gemini auto-converts internally)
+ *
+ * LIMITS:
+ *   - Max audio size: 9.5MB inline (use File API for larger)
+ *   - Max duration: ~8.5 hours of audio per request
+ */
+export async function callGeminiWithAudio(params: {
+  apiKey: string;
+  model?: string;            // defaults to 'gemini-2.0-flash-exp'
+  audioBase64: string;       // base64-encoded audio bytes (no data: prefix)
+  audioMimeType: 'audio/wav' | 'audio/mp3' | 'audio/aac' | 'audio/ogg' | 'audio/aiff';
+  textPrompt?: string;       // optional text instruction accompanying audio
+  systemPrompt?: string;
+  temperature?: number;
+  maxTokens?: number;
+  jsonMode?: boolean;
+}): Promise<AdapterResponse> {
+  const model = params.model ?? 'gemini-2.0-flash-exp';
+  const temperature = params.temperature ?? 0.4;
+  const maxTokens = params.maxTokens ?? 1024;
+
+  const parts: Array<Record<string, unknown>> = [
+    {
+      inlineData: {
+        mimeType: params.audioMimeType,
+        data: params.audioBase64,
+      },
+    },
+  ];
+
+  if (params.textPrompt) {
+    parts.push({ text: params.textPrompt });
+  }
+
+  const body: Record<string, unknown> = {
+    contents: [{ role: 'user', parts }],
+    generationConfig: {
+      temperature,
+      maxOutputTokens: maxTokens,
+      ...(params.jsonMode ? { responseMimeType: 'application/json' } : {}),
+    },
+  };
+
+  if (params.systemPrompt) {
+    body.systemInstruction = {
+      parts: [{ text: params.systemPrompt }],
+    };
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${params.apiKey}`;
+  const response = await fetchWithRetry(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`[LLMAdapter] Gemini audio error (${response.status}): ${errText}`);
+  }
+
+  const data = await response.json();
+  const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const inputTokens = data.usageMetadata?.promptTokenCount || Math.ceil((params.audioBase64.length / 4) + (params.textPrompt?.length ?? 0) / 4);
+  const outputTokens = data.usageMetadata?.candidatesTokenCount || Math.ceil(content.length / 4);
+
+  return { content, inputTokens, outputTokens };
+}
+
+/**
+ * Helper: Detect audio message type from WhatsApp media metadata.
+ * Maps WhatsApp's audio MIME types to Gemini-compatible ones.
+ *
+ * WhatsApp typically sends audio as:
+ *   - audio/ogg (Opus in OGG container) — default for voice messages
+ *   - audio/mpeg — for forwarded MP3 files
+ *
+ * Gemini accepts: audio/wav, audio/mp3, audio/aiff, audio/aac, audio/ogg
+ */
+export function mapWhatsappAudioToGemini(whatsappMime: string): {
+  audioMimeType: 'audio/wav' | 'audio/mp3' | 'audio/aac' | 'audio/ogg' | 'audio/aiff';
+  needsConversion: boolean;
+} {
+  const map: Record<string, 'audio/wav' | 'audio/mp3' | 'audio/aac' | 'audio/ogg' | 'audio/aiff'> = {
+    'audio/ogg': 'audio/ogg',
+    'audio/mpeg': 'audio/mp3',
+    'audio/mp3': 'audio/mp3',
+    'audio/mp4': 'audio/aac',
+    'audio/aac': 'audio/aac',
+    'audio/wav': 'audio/wav',
+    'audio/x-wav': 'audio/wav',
+    'audio/wave': 'audio/wav',
+    'audio/aiff': 'audio/aiff',
+  };
+  return {
+    audioMimeType: map[whatsappMime] ?? 'audio/ogg',
+    needsConversion: !map[whatsappMime],
+  };
+}
