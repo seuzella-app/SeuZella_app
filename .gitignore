@@ -38,6 +38,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local skills gitlinks
+.agents/skills/ui-ux-pro-max-skill
+
+
 
 # typescript
 *.tsbuildinfo
