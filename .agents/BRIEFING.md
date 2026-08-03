@@ -29,3 +29,11 @@ Create 4 roadmap documents in /docs/antigravity-roadmap/ planning Vercel, Multit
 
 ## Artifact Index
 - /Users/marciocau/SeuZella_project/.agents/ORIGINAL_REQUEST.md — verbatim user request record
+
+## 🌐 CANONICAL PRODUCTION URLS (VERCEL)
+- **Landing Page**: https://smart-hotel-zehla.vercel.app/
+- **Login**: https://smart-hotel-zehla.vercel.app/login
+- **DDC Airbnb**: https://smart-hotel-zehla.vercel.app/ddc/airbnb
+- **DDC Pousada**: https://smart-hotel-zehla.vercel.app/ddc/pousada
+- **ZCC (Central de Controle)**: https://smart-hotel-zehla.vercel.app/zcc
+
