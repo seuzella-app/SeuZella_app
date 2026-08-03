@@ -6,6 +6,7 @@ import { HeroSection } from '@/components/landing/HeroSection';
 import { PainPointsSection } from '@/components/landing/PainPointsSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
+import { ProHostSection } from '@/components/landing/ProHostSection';
 import { DashboardPreviewSection } from '@/components/landing/DashboardPreviewSection';
 import { NicheSwitcherSection } from '@/components/landing/NicheSwitcherSection';
 import BookingPlatformsMarquee from '@/components/landing/BookingPlatformsMarquee';
@@ -44,6 +45,8 @@ export default function HomePage() {
           <HowItWorksSection />
           <SectionDivider />
           <FeaturesSection />
+          <SectionDivider />
+          <ProHostSection />
           <SectionDivider />
           <DashboardPreviewSection />
           <SectionDivider />

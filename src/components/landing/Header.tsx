@@ -46,6 +46,7 @@ function getAccent(niche: string) {
 const NAV_LINKS = [
   { name: 'Como Funciona', href: '#como-funciona', lgOnly: false },
   { name: 'Recursos', href: '#funcionalidades', lgOnly: false },
+  { name: 'Zélla AirB Pro', href: '#prohost', lgOnly: true },
   { name: 'Integrações', href: '#integracoes', lgOnly: true },
   { name: 'Calculadora', href: '#calculadora', lgOnly: true },
   { name: 'Preços', href: '#precos', lgOnly: false },
