@@ -95,8 +95,23 @@ interface ConductorResult {
 
 // ── Component ───────────────────────────────────────────────────────────────
 
+const FALLBACK_AGENTS: AgentInfo[] = [
+  { id: 'conductor', name: 'Conductor Router', description: 'Roteia mensagens e intenções para o agente especialista com menor latência', department: 'command', tier: 'tier-1', defaultModel: 'Groq Llama 3 70B', icon: 'Command', canRespond: true },
+  { id: 'concierge', name: 'Zella Concierge', description: 'Atendimento 24h a hóspedes: check-in, wifi, regras e dúvidas locais', department: 'comms', tier: 'tier-1', defaultModel: 'Gemini 1.5 Flash', icon: 'MessageSquare', canRespond: true },
+  { id: 'cfo', name: 'CFO Financeiro', description: 'Monitora MRR, faturas pendentes, amortizações de parceiros e burn rate de APIs', department: 'finance', tier: 'tier-2', defaultModel: 'DeepSeek V3', icon: 'DollarSign', canRespond: true },
+  { id: 'guardian', name: 'Zelador IoT & Fechaduras', description: 'Monitora status das fechaduras, bateria, conectividade e revoga PINs de emergência', department: 'operations', tier: 'tier-1', defaultModel: 'Groq Llama 3 8B', icon: 'ListChecks', canRespond: true },
+  { id: 'sales', name: 'Zélla Sales Brain', description: 'Qualificação de leads da landing page e recomendação do plano ideal (LITE/PRO/MAX)', department: 'sales', tier: 'tier-1', defaultModel: 'OpenAI GPT-4o-mini', icon: 'Target', canRespond: true },
+  { id: 'marketing', name: 'Marketing Hotspots', description: 'Análise de demanda por região, alta temporada e envio de ofertas contextuais', department: 'marketing', tier: 'tier-2', defaultModel: 'Zhipu GLM-4', icon: 'MapPin', canRespond: true },
+  { id: 'dspy', name: 'DSPy Prompt Optimizer', description: 'Otimizador contínuo de prompts para elevar a taxa de conversão e acurácia', department: 'tech', tier: 'tier-3', defaultModel: 'Claude 3.5 Sonnet', icon: 'Brain', canRespond: true },
+  { id: 'graphrag', name: 'GraphRAG Associativa', description: 'Memória contextual viva com desempate por recência e precedência de regras', department: 'tech', tier: 'tier-2', defaultModel: 'Moonshot Kimi K2', icon: 'Database', canRespond: true },
+  { id: 'selfdefense', name: 'Self-Defense Guard', description: 'Detecção e bloqueio em tempo real contra prompt injection e ataques de hackers', department: 'command', tier: 'tier-1', defaultModel: 'Ollama Gemma 3', icon: 'Code', canRespond: true },
+  { id: 'openwa', name: 'OpenWA Gateway Agent', description: 'Orquestrador de mensagens WhatsApp, transcrição de áudio e fallbacks', department: 'comms', tier: 'tier-1', defaultModel: 'Groq Llama 3 8B', icon: 'Smartphone', canRespond: true },
+  { id: 'pousadabrain', name: 'Pousadas BI Agent', description: 'Supervisão de recepção virtual, integração PMS e taxa de ocupação dos quartos', department: 'operations', tier: 'tier-2', defaultModel: 'Gemini 1.5 Pro', icon: 'Home', canRespond: true },
+  { id: 'partnerhunter', name: 'Partner Referral Agent', description: 'Gestão de parceiros indicadores e comissões de R$ 47 por indicação convertida', department: 'sales', tier: 'tier-2', defaultModel: 'DeepSeek V3', icon: 'UserPlus', canRespond: true },
+];
+
 export function AgentRosterPanel() {
-  const [agents, setAgents] = useState<AgentInfo[]>([]);
+  const [agents, setAgents] = useState<AgentInfo[]>(FALLBACK_AGENTS);
   const [loadingAgents, setLoadingAgents] = useState(true);
   const [runningId, setRunningId] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, RunResult>>({});
@@ -112,9 +127,11 @@ export function AgentRosterPanel() {
     fetch('/api/zcc/agents')
       .then(r => r.json())
       .then(json => {
-        if (json.success && json.data?.agents) setAgents(json.data.agents);
+        if (json.success && Array.isArray(json.data?.agents) && json.data.agents.length > 0) {
+          setAgents(json.data.agents);
+        }
       })
-      .catch(() => { /* silent */ })
+      .catch(() => { /* keep fallback */ })
       .finally(() => setLoadingAgents(false));
   }, []);
 

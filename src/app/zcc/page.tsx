@@ -122,6 +122,26 @@ export default function ZCCPage() {
   const [activeTab, setActiveTab] = useState<ZCCTabId>('overview');
   const { data: apiData, loading: metricsLoading } = useZCCMetrics();
 
+  // URL search param tab hydration
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab') as ZCCTabId;
+      if (tabParam) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
+
+  const handleTabChange = (tab: ZCCTabId) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tab);
+      window.history.pushState({}, '', url.toString());
+    }
+  };
+
   // API data with static fallback
   const totalMRR = apiData?.mrr?.total ?? (airbnbMetrics.proCount * 397 + airbnbMetrics.maxCount * 797 + parceiroMetrics.monthlyMRR + globalMetrics.pousada.revenue);
   const totalClients = apiData?.totalClients ?? globalMetrics.totalClients;
@@ -173,7 +193,7 @@ export default function ZCCPage() {
   return (
     <ZCCShell
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       totalMRR={totalMRR}
       totalClients={totalClients}
       containersOnline={6}
