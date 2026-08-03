@@ -75,17 +75,18 @@ describe('🛎️ Real-Life Flows — Ciclo de Vida de uma Reserva', () => {
     const usedEvents = harness.listEventsByTenant('pousada-fluxo', 'used');
     expect(usedEvents).toHaveLength(1);
 
-    // === ETAPA 3: Hóspede pede extensão de 2h (gera novo PIN com janela estendida) ===
     const extensionStart = new Date(Date.now() - 60_000); // 1 min atrás
     const extensionEnd = new Date(Date.now() + 2 * 60 * 60 * 1000); // +2h
+    const formatDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const formatTime = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     const { code: extensionPin } = await harness.generatePin(device.id, {
       guestName: booking.guestName,
       guestPhone: booking.guestPhone,
       bookingId: booking.bookingId,
-      checkInDate: extensionStart.toISOString().slice(0, 10),
-      checkOutDate: extensionEnd.toISOString().slice(0, 10),
-      checkInTime: extensionStart.toISOString().slice(11, 16),
-      checkOutTime: extensionEnd.toISOString().slice(11, 16),
+      checkInDate: formatDate(extensionStart),
+      checkOutDate: formatDate(extensionEnd),
+      checkInTime: formatTime(extensionStart),
+      checkOutTime: formatTime(extensionEnd),
       manualPin: '928374',
       sendWhatsApp: true,
       note: 'Extensão de check-out (+2h)',

@@ -35,9 +35,11 @@ beforeAll(async () => {
   try {
     await prisma.lockDevice.count();
   } catch {
-    throw new Error(
-      `Tabelas de locks não existem em ${TEST_DB_PATH}. Rode: DATABASE_URL="file:${TEST_DB_PATH}" npx prisma db push --accept-data-loss`,
-    );
+    const { execSync } = await import('child_process');
+    execSync(`npx prisma db push --accept-data-loss`, {
+      env: { ...process.env, DATABASE_URL: `file:${TEST_DB_PATH}` },
+      stdio: 'ignore',
+    });
   }
 });
 
