@@ -16,11 +16,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Command, Activity, Brain, Code, FlaskConical, DollarSign,
   Home, Flame, Users, Key, Globe, BarChart3, ChevronLeft,
-  Star, ChevronRight, Bot, Building2,
+  Star, ChevronRight, Bot, Building2, TestTube,
 } from 'lucide-react';
 
 export type ZCCTabId =
-  | 'overview' | 'pulse' | 'cerebro' | 'refactors' | 'sandbox'
+  | 'overview' | 'pulse' | 'cerebro' | 'cerebro-tests' | 'refactors' | 'sandbox'
   | 'financeiro' | 'airbnb' | 'pousadas' | 'burnrate' | 'tenants'
   | 'tokens' | 'geo' | 'financial' | 'agents';
 
@@ -37,6 +37,7 @@ const ALL_TABS: TabDef[] = [
   { id: 'agents', label: 'Agentes Vivos', icon: Bot, desc: '12 agentes com LLM real', group: 'core' },
   { id: 'pulse', label: 'Pulse Check', icon: Activity, desc: 'Telemetria & Infra', group: 'core' },
   { id: 'cerebro', label: 'Cérebro', icon: Brain, desc: 'IA em tempo real', group: 'core' },
+  { id: 'cerebro-tests', label: 'Testes Cérebro', icon: TestTube, desc: 'Score 0-100% · 6 subsistemas', group: 'core' },
   { id: 'refactors', label: 'Refactors', icon: Code, desc: 'Auto-aprendizado', group: 'core' },
   { id: 'sandbox', label: 'Sandbox', icon: FlaskConical, desc: 'Z-Lab Simulação', group: 'core' },
   { id: 'financeiro', label: 'Financeiro', icon: DollarSign, desc: 'Receitas & Pagamentos', group: 'core' },

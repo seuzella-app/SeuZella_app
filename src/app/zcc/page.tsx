@@ -47,6 +47,7 @@ import { TenantXRay } from '@/components/zcc/TenantXRay';
 import { GeoMetricsPanel } from '@/components/zcc/GeoMetricsPanel';
 import { FinancialBreakdownPanel } from '@/components/zcc/FinancialBreakdownPanel';
 import { AgentRosterPanel } from '@/components/zcc/AgentRosterPanel';
+import { CerebroTestPanel } from '@/components/zcc/CerebroTestPanel';
 import {
   globalMetrics as _globalMetrics,
   airbnbMetrics as _airbnbMetrics,
@@ -215,6 +216,7 @@ export default function ZCCPage() {
       {activeTab === 'agents' && <AgentRosterPanel />}
       {activeTab === 'pulse' && <PulseCheck />}
       {activeTab === 'cerebro' && <CerebroVivoPanel />}
+      {activeTab === 'cerebro-tests' && <CerebroTestPanel />}
       {activeTab === 'refactors' && <RefactorSuggestionsPanel />}
       {activeTab === 'sandbox' && <SandboxPanel />}
       {activeTab === 'financeiro' && <FinanceiroIntegrado />}
