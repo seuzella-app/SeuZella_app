@@ -484,90 +484,90 @@ export default function DDCAirbnbContent() {
         </Button>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Summary Stats (Hallmark Option 08 Terminal HUD Grid) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-colors">
+          <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-colors shadow-[0_0_15px_rgba(0,216,255,0.08)]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <Home className="h-4 w-4 text-blue-400" />
-                <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                <Home className="h-4 w-4 text-[#00d8ff]" />
+                <Badge className="bg-[#00d8ff]/10 text-[#00d8ff] border-[#00d8ff]/30 text-[9px]">[SYNC_OK]</Badge>
               </div>
-              <p className="text-2xl font-bold text-white">{totalProperties}</p>
-              <p className="text-xs text-zinc-400 mt-1">Total de Imóveis</p>
+              <p className="text-2xl font-bold text-[#00d8ff]">{totalProperties}</p>
+              <p className="text-xs text-[#93c5fd] mt-1">&gt; TOTAL_IMOVEIS</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-colors">
+          <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-colors shadow-[0_0_15px_rgba(0,216,255,0.08)]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <DollarSign className="h-4 w-4 text-blue-400" />
-                <TrendingUp className="h-3 w-3 text-emerald-400" />
+                <DollarSign className="h-4 w-4 text-[#00d8ff]" />
+                <TrendingUp className="h-3 w-3 text-[#00d8ff]" />
               </div>
-              <p className="text-2xl font-bold text-white">{formatCompactBRL(totalRevenue)}</p>
-              <p className="text-xs text-zinc-400 mt-1">Receita do Mês</p>
+              <p className="text-2xl font-bold text-[#e0f2fe]">{formatCompactBRL(totalRevenue)}</p>
+              <p className="text-xs text-[#93c5fd] mt-1">&gt; RECEITA_MES</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-colors">
+          <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-colors shadow-[0_0_15px_rgba(0,216,255,0.08)]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <Star className="h-4 w-4 text-amber-400" />
-                <span className="text-xs text-emerald-400">+0.03</span>
+                <span className="text-xs text-[#00d8ff] font-bold">+0.03</span>
               </div>
-              <p className="text-2xl font-bold text-white">{avgRating}</p>
-              <p className="text-xs text-zinc-400 mt-1">Avaliação Média</p>
+              <p className="text-2xl font-bold text-[#e0f2fe]">{avgRating}</p>
+              <p className="text-xs text-[#93c5fd] mt-1">&gt; AVALIACAO_MEDIA</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-colors">
+          <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-colors shadow-[0_0_15px_rgba(0,216,255,0.08)]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <MessageSquare className="h-4 w-4 text-blue-400" />
-                <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                <MessageSquare className="h-4 w-4 text-[#00d8ff]" />
+                <ArrowUpRight className="h-3 w-3 text-[#00d8ff]" />
               </div>
-              <p className="text-2xl font-bold text-white">{totalReviews}</p>
-              <p className="text-xs text-zinc-400 mt-1">Total de Reviews</p>
+              <p className="text-2xl font-bold text-[#e0f2fe]">{totalReviews}</p>
+              <p className="text-xs text-[#93c5fd] mt-1">&gt; TOTAL_REVIEWS</p>
             </CardContent>
           </Card>
         </motion.div>
       </div>
 
       {/* Property Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 font-mono">
         {propertiesState.map((property) => (
           <motion.div key={property.id} variants={staggerItem}>
-            <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-all duration-300 group">
+            <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-all duration-300 group shadow-[0_0_15px_rgba(0,216,255,0.06)]">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-white text-base group-hover:text-blue-300 transition-colors">
-                      {property.name}
+                    <CardTitle className="text-[#e0f2fe] text-base group-hover:text-[#00d8ff] transition-colors font-mono">
+                      &gt; {property.name}
                     </CardTitle>
-                    <CardDescription className="text-zinc-500 text-xs mt-0.5">
-                      {property.location}
+                    <CardDescription className="text-[#93c5fd]/70 text-xs mt-0.5 font-mono">
+                      [{property.location}]
                     </CardDescription>
                   </div>
                   <Badge
                     className={
                       property.connected
-                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
-                        : 'bg-red-500/15 text-red-400 border-red-500/30 hover:bg-red-500/20'
+                        ? 'bg-[#00d8ff]/15 text-[#00d8ff] border-[#00d8ff]/40 hover:bg-[#00d8ff]/20 font-mono text-[10px]'
+                        : 'bg-red-500/15 text-red-400 border-red-500/30 hover:bg-red-500/20 font-mono text-[10px]'
                     }
                     variant="outline"
                   >
                     {property.connected ? (
                       <>
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        OAuth Conectado
+                        <CheckCircle2 className="h-3 w-3 mr-1 text-[#00d8ff]" />
+                        [OAUTH_OK]
                       </>
                     ) : (
                       <>
                         <CircleX className="h-3 w-3 mr-1" />
-                        Desconectado
+                        [OFFLINE]
                       </>
                     )}
                   </Badge>
@@ -576,39 +576,39 @@ export default function DDCAirbnbContent() {
               <CardContent className="pt-0 space-y-4">
                 {/* Occupancy */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-zinc-400">Ocupação mensal</span>
-                    <span className="text-sm font-semibold text-white">{property.occupancy}%</span>
+                  <div className="flex items-center justify-between mb-1.5 font-mono">
+                    <span className="text-xs text-[#93c5fd]">&gt; OCUPACAO_MENSAL</span>
+                    <span className="text-sm font-semibold text-[#00d8ff]">{property.occupancy}%</span>
                   </div>
-                  <Progress value={property.occupancy} className="h-1.5 bg-zinc-800 [&>div]:bg-blue-500" />
+                  <Progress value={property.occupancy} className="h-1.5 bg-[#040e22] [&>div]:bg-[#00d8ff]" />
                 </div>
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="text-center">
+                <div className="grid grid-cols-3 gap-3 font-mono">
+                  <div className="text-center p-2 rounded bg-[#040e22] border border-[#00d8ff]/20">
                     <div className="flex items-center justify-center gap-0.5 mb-0.5">
                       <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                      <span className="text-sm font-semibold text-white">{property.rating}</span>
+                      <span className="text-sm font-semibold text-[#e0f2fe]">{property.rating}</span>
                     </div>
-                    <p className="text-[10px] text-zinc-500">Avaliação</p>
+                    <p className="text-[10px] text-[#93c5fd]">AVALIACAO</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-white">{property.reviews}</p>
-                    <p className="text-[10px] text-zinc-500">Reviews</p>
+                  <div className="text-center p-2 rounded bg-[#040e22] border border-[#00d8ff]/20">
+                    <p className="text-sm font-semibold text-[#e0f2fe]">{property.reviews}</p>
+                    <p className="text-[10px] text-[#93c5fd]">REVIEWS</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-emerald-400">{formatBRL(property.revenue)}</p>
-                    <p className="text-[10px] text-zinc-500">Receita</p>
+                  <div className="text-center p-2 rounded bg-[#040e22] border border-[#00d8ff]/20">
+                    <p className="text-sm font-semibold text-[#00d8ff]">{formatBRL(property.revenue)}</p>
+                    <p className="text-[10px] text-[#93c5fd]">RECEITA</p>
                   </div>
                 </div>
 
-                <Separator className="bg-zinc-800/50" />
+                <Separator className="bg-[#00d8ff]/20" />
 
                 <Button
                   variant="ghost"
-                  className="w-full text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm"
+                  className="w-full text-[#00d8ff] hover:text-white hover:bg-[#00d8ff]/15 text-sm font-mono"
                 >
-                  Ver Detalhes
+                  $ inspect --details
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardContent>

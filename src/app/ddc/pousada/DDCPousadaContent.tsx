@@ -605,48 +605,48 @@ export default function DDCPousadaContent() {
         </CardContent>
       </Card>
 
-      {/* Top Metric Cards (Stitch HUD 2x2 Grid) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Top Metric Cards (Hallmark Option 08 Terminal HUD Grid) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
         {/* MRR Card */}
-        <Card className="bg-[#0c101c]/90 border-white/10 hover:border-emerald-500/40 border-l-4 border-l-emerald-500 transition-colors shadow-lg">
+        <Card className="bg-[#051208]/90 border border-[#00ff66]/30 hover:border-[#00ff66]/60 border-l-4 border-l-[#00ff66] transition-colors shadow-[0_0_15px_rgba(0,255,102,0.08)]">
           <CardHeader className="pb-1 p-3.5">
-            <CardDescription className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">Receita do Mês</CardDescription>
-            <CardTitle className="text-xl sm:text-2xl font-bold text-white">
+            <CardDescription className="text-[#a3e6c0] text-[10px] uppercase font-mono tracking-wider">&gt; RECEITA_MES</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-[#00ff66]">
               {formatCurrency(totalMRR)}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3.5 pt-0">
-            <div className="flex items-center gap-1 text-emerald-400 text-xs font-mono">
+            <div className="flex items-center gap-1 text-[#00ff66] text-xs font-mono">
               <TrendingUp className="size-3.5" />
-              <span>+12.5% vs anterior</span>
+              <span>+12.5% [UPSTREAM]</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Economia OTAs Card */}
-        <Card className="bg-[#0c101c]/90 border-white/10 hover:border-emerald-500/40 transition-colors shadow-lg">
+        <Card className="bg-[#051208]/90 border border-[#00ff66]/30 hover:border-[#00ff66]/60 transition-colors shadow-[0_0_15px_rgba(0,255,102,0.08)]">
           <CardHeader className="pb-1 p-3.5">
-            <CardDescription className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">Economia OTAs</CardDescription>
-            <CardTitle className="text-xl sm:text-2xl font-bold text-emerald-400">
+            <CardDescription className="text-[#a3e6c0] text-[10px] uppercase font-mono tracking-wider">&gt; ECONOMIA_OTAS</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-[#00ff66]">
               R$ 3.850,00
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3.5 pt-0">
-            <div className="flex items-center gap-1 text-zinc-300 text-[11px] font-mono">
-              <ShieldCheck className="size-3.5 text-emerald-400" />
+            <div className="flex items-center gap-1 text-[#a3e6c0] text-[11px] font-mono">
+              <ShieldCheck className="size-3.5 text-[#00ff66]" />
               <span>18% salvos no PIX</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Conversion Rate Card */}
-        <Card className="bg-[#0c101c]/90 border-white/10 hover:border-emerald-500/40 transition-colors shadow-lg">
+        <Card className="bg-[#051208]/90 border border-[#00ff66]/30 hover:border-[#00ff66]/60 transition-colors shadow-[0_0_15px_rgba(0,255,102,0.08)]">
           <CardHeader className="pb-1 p-3.5">
-            <CardDescription className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">Conversão IA</CardDescription>
-            <CardTitle className="text-xl sm:text-2xl font-bold text-white">{conversionRate}%</CardTitle>
+            <CardDescription className="text-[#a3e6c0] text-[10px] uppercase font-mono tracking-wider">&gt; CONVERSAO_IA</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-[#e2f7eb]">{conversionRate}%</CardTitle>
           </CardHeader>
           <CardContent className="p-3.5 pt-0">
-            <div className="flex items-center gap-1 text-emerald-400 text-xs font-mono">
+            <div className="flex items-center gap-1 text-[#00ff66] text-xs font-mono">
               <ArrowUpRight className="size-3.5" />
               <span>Fechado via Zélla</span>
             </div>
@@ -654,13 +654,13 @@ export default function DDCPousadaContent() {
         </Card>
 
         {/* Active Guests Card */}
-        <Card className="bg-[#111118] border-zinc-800/60 hover:border-emerald-500/30 transition-colors">
+        <Card className="bg-[#050e07] border border-[#00ff66]/30 hover:border-[#00ff66]/50 transition-colors">
           <CardHeader className="pb-2">
-            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Hóspedes Ativos</CardDescription>
-            <CardTitle className="text-2xl font-bold text-white">{totalGuests}</CardTitle>
+            <CardDescription className="text-[#a3e6c0] text-xs uppercase tracking-wider">&gt; HOSPEDES_ATIVOS</CardDescription>
+            <CardTitle className="text-2xl font-bold text-[#e2f7eb]">{totalGuests}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-1.5 text-amber-400 text-sm">
+            <div className="flex items-center gap-1.5 text-[#00ff66] text-sm font-mono">
               <Users className="size-4" />
               <span>{confirmedCount} confirmados</span>
             </div>
@@ -668,15 +668,15 @@ export default function DDCPousadaContent() {
         </Card>
 
         {/* Avg Ticket Card */}
-        <Card className="bg-[#111118] border-zinc-800/60 hover:border-emerald-500/30 transition-colors">
+        <Card className="bg-[#050e07] border border-[#00ff66]/30 hover:border-[#00ff66]/50 transition-colors">
           <CardHeader className="pb-2">
-            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Ticket Médio</CardDescription>
-            <CardTitle className="text-2xl font-bold text-white">R$ 1.229</CardTitle>
+            <CardDescription className="text-[#a3e6c0] text-xs uppercase tracking-wider">&gt; TICKET_MEDIO</CardDescription>
+            <CardTitle className="text-2xl font-bold text-[#e2f7eb]">R$ 1.229</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-1.5 text-rose-400 text-sm">
+            <div className="flex items-center gap-1.5 text-rose-400 text-sm font-mono">
               <ArrowDownRight className="size-4" />
-              <span>-3.2% vs mês anterior</span>
+              <span>-3.2% vs anterior</span>
             </div>
           </CardContent>
         </Card>
