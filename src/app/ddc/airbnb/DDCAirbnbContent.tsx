@@ -383,6 +383,15 @@ export default function DDCAirbnbContent() {
       {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */}
       {/* ─── DDC AIRBNB / ANFITRIÕES: HARMONIA VISUAL HALLMARK (MIDNIGHT CYAN) ─── */}
 
+      {/* Hallmark Header Banner */}
+      <div className="p-3.5 bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-transparent border border-cyan-500/40 rounded-lg flex items-center justify-between">
+        <div className="flex items-center gap-2 text-xs font-mono font-bold text-cyan-300">
+          <Sparkles className="w-4 h-4 text-cyan-400" />
+          <span>HALLMARK DESIGN ENGINE — DDC AIRBNB & CHALÉS (MIDNIGHT CYAN)</span>
+        </div>
+        <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/40 text-[10px]">LIVE REDESIGN</Badge>
+      </div>
+
       {/* Cockpit ProHost & Status da IA no WhatsApp */}
       <Card className="p-4 bg-cyan-950/20 border border-cyan-500/30 rounded-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

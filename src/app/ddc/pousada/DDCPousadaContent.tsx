@@ -520,6 +520,15 @@ export default function DDCPousadaContent() {
       {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */}
       {/* ─── DDC POUSADA: HARMONIA VISUAL HALLMARK (TACTILE EMERALD) ─── */}
 
+      {/* Hallmark Header Banner */}
+      <div className="p-3.5 bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-lg flex items-center justify-between">
+        <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-300">
+          <Sparkles className="w-4 h-4 text-emerald-400" />
+          <span>HALLMARK DESIGN ENGINE — DDC POUSADA (TACTILE EMERALD)</span>
+        </div>
+        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">LIVE REDESIGN</Badge>
+      </div>
+
       {/* Status da Recepção Virtual no WhatsApp 24h */}
       <Card className="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

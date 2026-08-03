@@ -476,16 +476,40 @@ export function DDCShell({
                 </Link>
 
                 <div className="min-w-0">
-                  <h1 className="text-sm font-bold text-white tracking-tight truncate">
-                    {propertyName}
+                  <h1 className="text-sm font-bold text-white tracking-tight truncate flex items-center gap-2">
+                    <span>{propertyName}</span>
                   </h1>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 mt-0.5">
                     <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 font-mono uppercase ${theme.accentBorder} ${theme.accentText} ${theme.accentBg}`}>
                       {theme.label}
                     </Badge>
                     <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 font-mono uppercase ${planDisplay.badgeBorder} ${planDisplay.badgeText} ${planDisplay.badgeBg}`}>
                       {planDisplay.label}
                     </Badge>
+
+                    {/* Alternador Rápido de Nicho (Pousada vs Airbnb) */}
+                    <div className="hidden sm:flex items-center gap-1 ml-2 pl-2 border-l border-white/10 text-[10px] font-mono">
+                      <Link
+                        href="/ddc/pousada"
+                        className={`px-2 py-0.5 rounded transition-all ${
+                          niche === 'pousada'
+                            ? 'bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30'
+                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        🏨 Pousada
+                      </Link>
+                      <Link
+                        href="/ddc/airbnb"
+                        className={`px-2 py-0.5 rounded transition-all ${
+                          niche === 'airbnb'
+                            ? 'bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30'
+                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        🏡 Airbnb
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
