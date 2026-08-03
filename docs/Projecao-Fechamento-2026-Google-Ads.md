@@ -292,16 +292,55 @@ Dez:  ████████████████████████�
 
 ---
 
-## 13. Referências Técnicas
+---
 
-| Arquivo | Descrição |
-|---------|-----------|
-| [zella-ads-simulator.ts](file:///Users/marciocau/SeuZella_project/src/lib/marketing/zella-ads-simulator.ts) | Simulador completo com orçamento semanal, 8 grupos de anúncios, projeção 90 dias e fechamento 2026 |
-| [marketing-google-ads-simulation.test.ts](file:///Users/marciocau/SeuZella_project/tests/marketing-google-ads-simulation.test.ts) | 25 testes automatizados cobrindo hotspots, palavras proibidas, orçamento e projeções |
-| [zella-sales-brain.ts](file:///Users/marciocau/SeuZella_project/src/lib/cerebro/zella-sales-brain.ts) | Cérebro de vendas treinado com diferenciação Pousada vs Airbnb |
-| [Playbook-Interno-de-Estruturacao-Comercial.md](file:///Users/marciocau/SeuZella_project/docs/Playbook-Interno-de-Estruturacao-Comercial.md) | Playbook comercial de 59 páginas convertido em Markdown |
+## 14. Integração com o Playbook de Estruturação Comercial (Full Sales System)
+
+Para maximizar a conversão de cada clique gerado pelas campanhas de Google Ads, toda a captura e atendimento seguem a metodologia de alta performance do **Playbook de Estruturação Comercial**:
+
+### 14.1. Esteira de Produtos & LTV Maximizado
+Leads oriundos do Google Ads são inseridos em uma esteira estruturada por nível de maturidade:
+- **Isca / Entrada**: VSL Diagnóstico de 3 minutos + Teste Interativo de Atendimento no WhatsApp (`/demo-whatsapp`).
+- **Front-End (Produto Principal)**: Plano PRO (R$ 397/mês) ou Parceiro PRO (R$ 247/mês por 24 meses).
+- **Back-End (Retenção & LTV)**: Adicional de Fechaduras Eletrônicas Conectadas e Conciliação Automática PIX.
+- **High-End (Consultoria Hoteleira)**: Imersão VIP de Automação Hoteleira e Gestão de Múltiplos Imóveis.
+
+### 14.2. Triagem Automática com IA no WhatsApp (SLA < 5 minutos)
+- **Resposta Instantânea**: O lead que clica no anúncio e inicia a conversa no WhatsApp é atendido em menos de 10 segundos pelo agente **Seu Zélla**.
+- **Qualificação de ICP via Bot**:
+  - Pergunta 1: *"Você gerencia Pousada ou Imóveis Airbnb?"*
+  - Pergunta 2: *"Quantos quartos ou chalés você administra atualmente?"*
+  - Pergunta 3: *"Qual o maior desafio de atendimento na sua operação hoje?"*
+
+### 14.3. Roteiro SPIN Selling Aplicado aos 8 Grupos de Anúncios Google Ads
+
+| Grupo de Anúncio | Estágio SPIN | Pergunta de Investigação / Script de Atendimento |
+|------------------|:------------:|--------------------------------------------------|
+| 🌙 **Madrugada** | **Implicação** | *"Quantas reservas você perdeu no mês passado por responder o hóspede apenas na manhã seguinte?"* |
+| 🏠 **Distância** | **Problema** | *"Como você faz hoje para entregar as chaves e senhas quando o hóspede chega fora do horário comercial?"* |
+| ❌ **Overbooking** | **Implicação** | *"Qual foi o prejuízo financeiro e na avaliação do booking quando ocorreu o último overbooking na pousada?"* |
+| 💰 **PIX Manual** | **Necessidade** | *"Se o PIX do hóspede fosse verificado e a reserva confirmada automaticamente em 5s, quanto tempo sua equipe economizaria?"* |
+| ⚡ **Concorrência** | **Situação** | *"Em quanto tempo a sua pousada responde o primeiro contato de um hóspede interessado no WhatsApp?"* |
+| 🎉 **Feriado** | **Problema** | *"Como sua recepção lida com a sobrecarga de 50 mensagens simultâneas pedindo cotação antes do feriado?"* |
+| 🔐 **Fechadura** | **Necessidade** | *"Gostaria que o próprio WhatsApp do Seu Zélla enviasse o PIN da fechadura assim que a reserva for paga?"* |
+| 🎯 **Remarketing** | **Fechamento** | *"Pronto para transformar seu WhatsApp em um canal de reservas 24h sem comissão das OTAs?"* |
+
+### 14.4. Passagem de Bastão (Hand-off SDR de IA → Closer Humano)
+- **Pousadas Pequenas / Anfitriões (1 a 5 quartos)**: Fechamento 100% autônomo e self-service via link seguro no WhatsApp.
+- **Pousadas Médias e Grandes (> 6 quartos)**: O Bot agenda automaticamente uma reunião de 15 minutos com o Closer no Calendly/Google Meet, encaminhando o relatório de qualificação previamente coletado.
 
 ---
 
-> **Documento gerado pelo Cérebro Zélla — Módulo de Inteligência de Marketing**
+## 15. Referências Técnicas & Arquivos do Sistema
+
+| Arquivo | Descrição |
+|---------|-----------|
+| [zella-ads-simulator.ts](file:///Users/marciocau/SeuZella_project/src/lib/marketing/zella-ads-simulator.ts) | Simulador completo com orçamento semanal, 8 grupos de anúncios, projeção 90 dias e integração comercial |
+| [Playbook-Interno-de-Estruturacao-Comercial.md](file:///Users/marciocau/SeuZella_project/docs/Playbook-Interno-de-Estruturacao-Comercial.md) | Playbook comercial de 59 páginas convertido em Markdown na pasta `docs/` |
+| [/skills/estruturacao-comercial/SKILL.md](file:///Users/marciocau/.gemini/config/skills/estruturacao-comercial/SKILL.md) | Skill global do Antigravity para aplicação de inteligência comercial em tempo de execução |
+| [marketing-google-ads-simulation.test.ts](file:///Users/marciocau/SeuZella_project/tests/marketing-google-ads-simulation.test.ts) | Testes automatizados cobrindo hotspots, palavras proibidas, orçamento e projeções |
+
+---
+
+> **Documento gerado pelo Cérebro Zélla — Módulo de Inteligência de Marketing & Comercial**
 > Commit: `d924bf0` | Branch: `main` | Repositório: `MarcioCau14/SmartHotel_Zehla`
