@@ -28,49 +28,215 @@ import {
 } from './types';
 import { derivePinStatus } from './pin-generator';
 import { deliverPinViaWhatsApp } from './whatsapp-delivery';
+import { getProviderModule, hasCredentialsConfigured } from './providers';
+import * as manualProvider from './providers/manual';
+import * as ttlockProvider from './providers/ttlock';
+import * as tuyaProvider from './providers/tuya';
+import * as igloohomeProvider from './providers/igloohome';
+import * as nukiProvider from './providers/nuki';
+import * as augustProvider from './providers/august';
 
-// Lazy import para evitar carregar todos os providers em memória se não precisar
-type ProviderModule = typeof import('./providers/manual');
+/**
+ * Interface unificada que todos os providers (manual + API) implementam.
+ * Permite ao orchestrator chamar de forma polimórfica.
+ */
+interface UnifiedProviderModule {
+  generatePin(input: {
+    deviceId: string;
+    brand: LockBrand;
+    providerType: 'api' | 'manual';
+    externalDeviceId?: string | null;
+    oauthAccountId?: string | null;
+    validFrom: Date;
+    validTo: Date;
+    manualPin?: string;
+    autoGenerate?: boolean;
+    guestName?: string;
+  }): Promise<{
+    pin: string;
+    source: 'manual' | 'api';
+    codeType: 'online_pin' | 'offline_pin' | 'manual';
+    externalCodeId?: string;
+    warnings?: string[];
+  }>;
+  revokePin?(input: {
+    externalDeviceId?: string | null;
+    externalCodeId?: string | null;
+  }): Promise<void>;
+}
 
-/** Mapa de providers carregados sob demanda. */
-const _providerCache: Partial<Record<string, ProviderModule>> = {};
-
-async function loadProvider(brand: LockBrand): Promise<ProviderModule | null> {
-  if (_providerCache[brand]) return _providerCache[brand]!;
-
+/**
+ * Decide qual provider usar:
+ * - Marcas manuais (intelbras, yale, papaiz, philco, samsung) → sempre manual
+ * - Marcas com API mas sem credenciais configuradas → fallback manual
+ * - Marcas com API + credenciais configuradas → adapter real (TTLock, Tuya, etc.)
+ *
+ * Retorna wrapper unificado para o orchestrator tratar igual.
+ */
+async function loadProvider(brand: LockBrand): Promise<UnifiedProviderModule | null> {
   try {
     const info = getBrandInfo(brand);
-    if (!info || !info.apiAvailable) {
-      // Sempre cai no manual para marcas sem API
-      const mod = await import('./providers/manual');
-      _providerCache[brand] = mod as unknown as ProviderModule;
-      return mod as unknown as ProviderModule;
+    if (!info) return null;
+
+    // Marcas sem API → sempre manual
+    if (!info.apiAvailable) {
+      return wrapManualProvider(brand);
     }
 
-    // Marcas com API — carrega o adapter específico
-    // Por ora, todos retornam o manual porque ainda não temos credenciais OAuth
-    // configuradas em produção. Quando TTLOCK_CLIENT_ID etc. estiverem no .env,
-    // o import dinâmico abaixo passa a funcionar.
-    const envKey = `${brand.toUpperCase()}_CLIENT_ID`;
-    if (!process.env[envKey]) {
-      // Sem credenciais → cai no manual
-      const mod = await import('./providers/manual');
-      _providerCache[brand] = mod as unknown as ProviderModule;
-      return mod as unknown as ProviderModule;
+    // Marcas com API mas sem credenciais no .env → cai no manual com warning
+    if (!hasCredentialsConfigured(brand)) {
+      console.info(`[locks] ${brand}: API disponível mas credenciais não configuradas — usando modo manual`);
+      return wrapManualProvider(brand);
     }
 
-    // Caminho futuro: carregar adapter oficial
-    // const mod = await import(`./providers/${brand}`);
-    const mod = await import('./providers/manual');
-    _providerCache[brand] = mod as unknown as ProviderModule;
-    return mod as unknown as ProviderModule;
+    // Marcas com API + credenciais → adapter real
+    switch (brand) {
+      case 'ttlock':
+        return wrapApiProvider(brand, ttlockProvider);
+      case 'tuya':
+        return wrapApiProvider(brand, tuyaProvider);
+      case 'igloohome':
+        return wrapApiProvider(brand, igloohomeProvider);
+      case 'nuki':
+        return wrapApiProvider(brand, nukiProvider);
+      case 'august':
+        return wrapApiProvider(brand, augustProvider);
+      default:
+        return wrapManualProvider(brand);
+    }
   } catch (err) {
     console.error(`[locks] Failed to load provider for ${brand}:`, err);
-    // Fallback final — sempre manual
-    const mod = await import('./providers/manual');
-    _providerCache[brand] = mod as unknown as ProviderModule;
-    return mod as unknown as ProviderModule;
+    return wrapManualProvider(brand);
   }
+}
+
+/**
+ * Wrapper para o provider manual — interface unificada.
+ */
+function wrapManualProvider(brand: LockBrand): UnifiedProviderModule {
+  return {
+    async generatePin(input) {
+      const result = await manualProvider.generatePin({
+        deviceId: input.deviceId,
+        brand: input.brand,
+        providerType: input.providerType,
+        externalDeviceId: input.externalDeviceId,
+        oauthAccountId: input.oauthAccountId,
+        validFrom: input.validFrom,
+        validTo: input.validTo,
+        manualPin: input.manualPin,
+        autoGenerate: input.autoGenerate,
+      });
+      return {
+        pin: result.pin,
+        source: result.source,
+        codeType: result.codeType,
+        warnings: result.warnings,
+      };
+    },
+  };
+}
+
+/**
+ * Wrapper para providers de API reais (TTLock, Tuya, Igloohome, Nuki, August).
+ * Encapsula o try/catch e o fallback gracioso para o modo manual em caso
+ * de falha de comunicação com o provedor.
+ *
+ * CRÍTICO: se a API do provedor falhar (timeout, 5xx, OAuth expirado),
+ * NÃO bloqueamos a geração de PIN — caímos no modo manual com warning,
+ * para que o host ainda possa gerar um PIN criptográfico e cadastrá-lo
+ * manualmente no app do fabricante.
+ */
+function wrapApiProvider(
+  brand: LockBrand,
+  providerModule:
+    | typeof ttlockProvider
+    | typeof tuyaProvider
+    | typeof igloohomeProvider
+    | typeof nukiProvider
+    | typeof augustProvider,
+): UnifiedProviderModule {
+  return {
+    async generatePin(input) {
+      // Se host forneceu PIN manual → usa direto (não chama API)
+      if (input.manualPin && input.manualPin.trim().length >= 4) {
+        return wrapManualProvider(brand).generatePin(input);
+      }
+
+      // Sem externalDeviceId → não pode chamar API (não sabemos qual lock)
+      if (!input.externalDeviceId) {
+        const warnings = [
+          `Dispositivo ${brand} sem externalDeviceId cadastrado — usando modo manual fallback.`,
+          `Cadastre o ID externo do dispositivo (lockId retornado pela API do provedor).`,
+        ];
+        const result = await manualProvider.generatePin({
+          deviceId: input.deviceId,
+          brand,
+          providerType: 'manual',
+          validFrom: input.validFrom,
+          validTo: input.validTo,
+          autoGenerate: true,
+        });
+        return {
+          ...result,
+          warnings: [...warnings, ...(result.warnings ?? [])],
+        };
+      }
+
+      // Tenta chamar a API do provedor
+      try {
+        const apiResult = await providerModule.generatePin({
+          externalDeviceId: input.externalDeviceId,
+          validFrom: input.validFrom,
+          validTo: input.validTo,
+          pin: input.manualPin,
+          guestName: input.guestName,
+        });
+
+        return {
+          pin: apiResult.pin,
+          source: 'api',
+          codeType: apiResult.codeType,
+          externalCodeId: apiResult.externalCodeId,
+        };
+      } catch (err) {
+        // Fallback gracioso — gera PIN criptográfico para host cadastrar manualmente
+        const errorMsg = (err as Error).message;
+        console.error(`[locks] ${brand} API generatePin failed:`, errorMsg);
+
+        const fallbackResult = await manualProvider.generatePin({
+          deviceId: input.deviceId,
+          brand,
+          providerType: 'manual',
+          validFrom: input.validFrom,
+          validTo: input.validTo,
+          autoGenerate: true,
+        });
+
+        return {
+          ...fallbackResult,
+          warnings: [
+            `⚠️ API ${brand} indisponível (${errorMsg.slice(0, 100)}).`,
+            `PIN gerado localmente — você precisa cadastrá-lo MANUALMENTE no app do provedor.`,
+            ...(fallbackResult.warnings ?? []),
+          ],
+        };
+      }
+    },
+
+    async revokePin(input) {
+      if (!input.externalDeviceId || !input.externalCodeId) return;
+      try {
+        await providerModule.revokePin({
+          externalDeviceId: input.externalDeviceId,
+          externalCodeId: input.externalCodeId,
+        });
+      } catch (err) {
+        // Revoke soft-fail — PIN já está revogado no DB local
+        console.warn(`[locks] ${brand} API revokePin soft-fail:`, (err as Error).message);
+      }
+    },
+  };
 }
 
 /** Cria um novo dispositivo de fechadura. */
@@ -322,11 +488,13 @@ export async function generatePin(input: GeneratePinInput): Promise<GeneratePinR
     validTo: input.validTo,
     manualPin: input.manualPin,
     autoGenerate: input.autoGenerate,
+    guestName: input.guestName,
   });
 
   const codeStr = providerResult.pin;
   const source = providerResult.source;
   const codeType = providerResult.codeType;
+  const externalCodeId = providerResult.externalCodeId;
 
   const status = derivePinStatus({
     validFrom: input.validFrom,
@@ -349,6 +517,7 @@ export async function generatePin(input: GeneratePinInput): Promise<GeneratePinR
         validTo: input.validTo,
         status,
         note: input.note ?? null,
+        externalCodeId: externalCodeId ?? null,
       },
     });
     codeId = code.id;
@@ -500,6 +669,23 @@ export async function revokePin(pinId: string, reason: string): Promise<boolean>
   });
   if (!pin) return false;
 
+  // Se o PIN foi gerado via API, tenta revogar no provedor também
+  if (pin.source === 'api' && pin.externalCodeId) {
+    const device = await db.lockDevice.findFirst({
+      where: { id: pin.deviceId },
+      select: { brand: true, externalDeviceId: true },
+    });
+    if (device) {
+      const provider = await loadProvider(device.brand as LockBrand);
+      if (provider?.revokePin) {
+        await provider.revokePin({
+          externalDeviceId: device.externalDeviceId,
+          externalCodeId: pin.externalCodeId,
+        });
+      }
+    }
+  }
+
   await db.lockCode.update({
     where: { id: pinId },
     data: {
@@ -516,7 +702,7 @@ export async function revokePin(pinId: string, reason: string): Promise<boolean>
       tenantId,
       eventType: 'revoked',
       message: `PIN revogado: ${reason}`,
-      metadata: JSON.stringify({ reason }),
+      metadata: JSON.stringify({ reason, source: pin.source, externalCodeId: pin.externalCodeId }),
     },
   });
 
@@ -528,16 +714,41 @@ export async function revokePin(pinId: string, reason: string): Promise<boolean>
  *
  * Use caso: hóspede relata vazamento de PIN, host suspeita de invasão,
  * ou qualquer emergência onde é mais seguro cortar tudo e reemitir.
+ *
+ * Em paralelo, chama revokePin do provider para cada PIN que foi gerado via API.
+ * As chamadas ao provider são best-effort (soft-fail) — o DB local é a fonte
+ * da verdade para o status do PIN.
  */
 export async function panicRevokeAllPins(deviceId: string, reason: string = 'Pânico acionado pelo host'): Promise<{
   revokedCount: number;
+  providerRevokesAttempted: number;
+  providerRevokesFailed: number;
 }> {
   const tenantId = await resolveTenantId();
   if (!tenantId) throw new Error('Unauthorized');
 
   const dbAvailable = await isDatabaseAvailable();
-  if (!dbAvailable) return { revokedCount: 0 };
+  if (!dbAvailable) return { revokedCount: 0, providerRevokesAttempted: 0, providerRevokesFailed: 0 };
 
+  // 1. Busca todos os PINs ativos com externalCodeId (gerados via API)
+  const activeApiPins = await db.lockCode.findMany({
+    where: {
+      deviceId,
+      tenantId,
+      revokedAt: null,
+      source: 'api',
+      externalCodeId: { not: null },
+    },
+    select: { id: true, externalCodeId: true },
+  });
+
+  // 2. Busca o dispositivo para saber a brand + externalDeviceId
+  const device = await db.lockDevice.findFirst({
+    where: { id: deviceId, tenantId },
+    select: { brand: true, externalDeviceId: true },
+  });
+
+  // 3. Revoga todos no DB em paralelo
   const result = await db.lockCode.updateMany({
     where: {
       deviceId,
@@ -551,17 +762,44 @@ export async function panicRevokeAllPins(deviceId: string, reason: string = 'Pâ
     },
   });
 
+  // 4. Em paralelo, chama revokePin do provider para cada PIN de API
+  let providerRevokesFailed = 0;
+  if (device && activeApiPins.length > 0) {
+    const provider = await loadProvider(device.brand as LockBrand);
+    if (provider?.revokePin) {
+      const revokePromises = activeApiPins.map((pin) =>
+        provider.revokePin!({
+          externalDeviceId: device.externalDeviceId,
+          externalCodeId: pin.externalCodeId!,
+        }).catch((err) => {
+          console.warn(`[locks] panic revoke provider soft-fail for ${pin.id}:`, (err as Error).message);
+          providerRevokesFailed++;
+        }),
+      );
+      await Promise.allSettled(revokePromises);
+    }
+  }
+
   await db.lockEvent.create({
     data: {
       deviceId,
       tenantId,
       eventType: 'panic_revoke',
       message: `PÂNICO: ${result.count} PIN(s) revogado(s) — ${reason}`,
-      metadata: JSON.stringify({ reason, count: result.count }),
+      metadata: JSON.stringify({
+        reason,
+        count: result.count,
+        providerRevokesAttempted: activeApiPins.length,
+        providerRevokesFailed,
+      }),
     },
   });
 
-  return { revokedCount: result.count };
+  return {
+    revokedCount: result.count,
+    providerRevokesAttempted: activeApiPins.length,
+    providerRevokesFailed,
+  };
 }
 
 /** Lista eventos de auditoria (LGPD). */

@@ -139,12 +139,16 @@ async function trySendWhatsApp(
   }
 
   try {
-    // Tenta usar o pipeline existente de WhatsApp
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { sendWhatsAppMessage } = require('@/lib/whatsapp-send');
+    // Tenta usar o pipeline existente de WhatsApp (Cloud API ou OpenWA)
+    // Dynamic import para evitar carregar o módulo pesado em cold start
+    const { sendWhatsAppMessage } = await import('@/lib/whatsapp-send');
     const result = await sendWhatsAppMessage(cleanPhone, text);
     if (result?.success) {
-      return { sent: true, messageId: result.messageId };
+      return {
+        sent: true,
+        messageId: result.messageId,
+        reason: result.isMock ? 'Enviado em modo MOCK (sem WhatsApp Business configurado)' : undefined,
+      };
     }
     return { sent: false, reason: result?.error ?? 'Falha no envio' };
   } catch (err) {

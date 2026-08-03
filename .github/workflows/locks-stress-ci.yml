@@ -36,6 +36,7 @@ on:
       - 'src/lib/locks/**'
       - 'src/components/ddc/LocksTab.tsx'
       - 'src/app/api/ddc/locks/**'
+      - 'prisma/schema.prisma'
       - '.github/workflows/locks-stress-ci.yml'
   pull_request:
     branches: [ main ]
@@ -46,6 +47,7 @@ on:
       - 'src/lib/locks/**'
       - 'src/components/ddc/LocksTab.tsx'
       - 'src/app/api/ddc/locks/**'
+      - 'prisma/schema.prisma'
   workflow_dispatch:
   schedule:
     # Roda toda noite às 03:00 UTC (00:00 BRT) — detecta regressões silenciosas
@@ -404,7 +406,36 @@ jobs:
         run: npx vitest run tests/locks-device-state-battery.test.ts --reporter=verbose
 
   # ===========================================================================
-  # JOB 14: Aggregator — Relatório consolidado (roda apenas se todos passarem)
+  # JOB 14: DB Integration — Teste de persistência contra SQLite real
+  # ===========================================================================
+  db-integration:
+    name: 🗄️ DB Integration (SQLite Real)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: "file:./test-integration.db"
+      ENCRYPTION_SECRET: "test-secret-for-ci-only-do-not-use-in-production-32bytes"
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 🗄️ Push Prisma Schema to Test DB
+        run: npx prisma generate && npx prisma db push --accept-data-loss
+
+      - name: 🧪 Run DB Integration Tests
+        run: npx vitest run tests/locks-db-integration.test.ts --reporter=verbose
+
+  # ===========================================================================
+  # JOB 15: Aggregator — Relatório consolidado (roda apenas se todos passarem)
   # ===========================================================================
   aggregator:
     name: ✅ All Tests Passed — Final Report
@@ -424,6 +455,7 @@ jobs:
       - whatsapp-delivery
       - peak-season
       - device-state-battery
+      - db-integration
     if: always()
     steps:
       - name: 📊 Generate Final Report
@@ -445,16 +477,19 @@ jobs:
           echo "| 📱 WhatsApp Delivery | ${{ needs.whatsapp-delivery.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🎄 Peak Season | ${{ needs.peak-season.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔋 Device State & Battery | ${{ needs.device-state-battery.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🗄️ DB Integration (SQLite Real) | ${{ needs.db-integration.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📋 Cobertura dos Testes" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **164 testes** em **12 arquivos**" >> $GITHUB_STEP_SUMMARY
+          echo "- **202 testes** em **13 arquivos** (194 unitários + 8 integração DB)" >> $GITHUB_STEP_SUMMARY
           echo "- **10 marcas** de fechaduras testadas (TTLock, Tuya, Igloohome, Nuki, August, Intelbras, Yale, Papaiz, Philco, Samsung)" >> $GITHUB_STEP_SUMMARY
+          echo "- **5 providers reais** com OAuth2 + AES-256-GCM (TTLock, Tuya, Igloohome, Nuki, August)" >> $GITHUB_STEP_SUMMARY
           echo "- **200 tenants** simultâneos (100 pousadas + 100 airbnbs)" >> $GITHUB_STEP_SUMMARY
           echo "- **1000 PINs/sec** em pico (Réveillon simulation)" >> $GITHUB_STEP_SUMMARY
           echo "- **LGPD compliance** — eventos de auditoria verificados sob carga" >> $GITHUB_STEP_SUMMARY
           echo "- **Race conditions** — 8 cenários de concorrência extrema" >> $GITHUB_STEP_SUMMARY
           echo "- **Bottleneck detection** — benchmarks P50/P95/P99" >> $GITHUB_STEP_SUMMARY
+          echo "- **DB Integration** — persistência real SQLite + unique constraint + cascade" >> $GITHUB_STEP_SUMMARY
 
       - name: ❌ Fail if any job failed
         if: ${{ contains(needs.*.result, 'failure') }}

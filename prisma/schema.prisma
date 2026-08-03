@@ -2259,6 +2259,9 @@ model LockCode {
   status          String   @default("scheduled")
   // Observação visível para o host
   note            String?
+  // ID externo retornado pelo provedor da API (TTLock keyboardPwdId, Tuya pinId, etc.)
+  // Necessário para revogar o PIN via API quando o host clicar em "Revogar"
+  externalCodeId  String?
 
   device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -2272,6 +2275,9 @@ model LockCode {
   @@index([status])
   @@index([validFrom])
   @@index([validTo])
+  // Unique constraint: um mesmo dispositivo não pode ter 2 PINs idênticos ativos
+  // (previne birthday paradox collision identificado nos testes de stress)
+  @@unique([deviceId, code, validFrom])
   @@map("lock_codes")
 }
 
