@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ZCCSidebar, ZCCMobileNav, type ZCCTabId } from './ZCCSidebar';
 import { ZCCTopbar } from './ZCCTopbar';
 import { ZCCCommandPalette } from './ZCCCommandPalette';
+import { MonolithThemeToggle } from './MonolithThemeToggle';
 
 interface ZCCShellProps {
   activeTab: ZCCTabId;
@@ -166,6 +167,9 @@ export function ZCCShell({
         onNavigate={onTabChange}
         onToggleSidebar={toggleSidebar}
       />
+
+      {/* Monolith theme toggle (floating, bottom-right) */}
+      <MonolithThemeToggle />
     </div>
   );
 }
