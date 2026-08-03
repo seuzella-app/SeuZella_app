@@ -16,13 +16,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Command, Activity, Brain, Code, FlaskConical, DollarSign,
   Home, Flame, Users, Key, Globe, BarChart3, ChevronLeft,
-  Star, ChevronRight,
+  Star, ChevronRight, Bot,
 } from 'lucide-react';
 
 export type ZCCTabId =
   | 'overview' | 'pulse' | 'cerebro' | 'refactors' | 'sandbox'
   | 'financeiro' | 'airbnb' | 'burnrate' | 'tenants'
-  | 'tokens' | 'geo' | 'financial';
+  | 'tokens' | 'geo' | 'financial' | 'agents';
 
 interface TabDef {
   id: ZCCTabId;
@@ -34,6 +34,7 @@ interface TabDef {
 
 const ALL_TABS: TabDef[] = [
   { id: 'overview', label: 'Visão Geral', icon: Command, desc: 'Command Center', group: 'core' },
+  { id: 'agents', label: 'Agentes Vivos', icon: Bot, desc: '12 agentes com LLM real', group: 'core' },
   { id: 'pulse', label: 'Pulse Check', icon: Activity, desc: 'Telemetria & Infra', group: 'core' },
   { id: 'cerebro', label: 'Cérebro', icon: Brain, desc: 'IA em tempo real', group: 'core' },
   { id: 'refactors', label: 'Refactors', icon: Code, desc: 'Auto-aprendizado', group: 'core' },

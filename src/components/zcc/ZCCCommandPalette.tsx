@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, ArrowRight, Clock, Zap, Command as CmdIcon,
   Building2, Activity, Brain, Code, FlaskConical, DollarSign,
-  Home, Flame, Users, Key, Globe, BarChart3, RefreshCw, PanelLeftClose,
+  Home, Flame, Users, Key, Globe, BarChart3, RefreshCw, PanelLeftClose, Bot,
 } from 'lucide-react';
 import type { ZCCTabId } from './ZCCSidebar';
 
@@ -40,6 +40,7 @@ interface CommandItem {
 
 const TAB_ICONS: Record<ZCCTabId, React.ElementType> = {
   overview: CmdIcon,
+  agents: Bot,
   pulse: Activity,
   cerebro: Brain,
   refactors: Code,
@@ -55,6 +56,7 @@ const TAB_ICONS: Record<ZCCTabId, React.ElementType> = {
 
 const TAB_LABELS: Record<ZCCTabId, string> = {
   overview: 'Visão Geral',
+  agents: 'Agentes Vivos',
   pulse: 'Pulse Check',
   cerebro: 'Cérebro',
   refactors: 'Refactors',
@@ -70,6 +72,7 @@ const TAB_LABELS: Record<ZCCTabId, string> = {
 
 const TAB_DESCS: Record<ZCCTabId, string> = {
   overview: 'Command Center',
+  agents: '12 agentes com LLM real',
   pulse: 'Telemetria & Infra',
   cerebro: 'IA em tempo real',
   refactors: 'Auto-aprendizado',
@@ -84,7 +87,7 @@ const TAB_DESCS: Record<ZCCTabId, string> = {
 };
 
 const ALL_TAB_IDS: ZCCTabId[] = [
-  'overview', 'pulse', 'cerebro', 'refactors', 'sandbox', 'financeiro',
+  'overview', 'agents', 'pulse', 'cerebro', 'refactors', 'sandbox', 'financeiro',
   'airbnb', 'burnrate', 'tenants', 'tokens', 'geo', 'financial',
 ];
 
