@@ -1,18 +1,16 @@
-'use client';
-
 // ==============================================================================
-// DDC LAYOUT — applies Hallmark Option 08 (Terminal) theme to ALL /ddc/* routes
+// DDC LAYOUT — Hallmark Option 08 (Terminal) — Server Component
 // ==============================================================================
+// - Server Component (NO 'use client' — required for next/font/google to work)
 // - Loads JetBrains Mono via next/font/google (terminal-grade typography)
 // - Imports ddc-terminal.css (CRT scanlines, sharp edges, phosphor glow)
-// - Wraps children in <div data-ddc-theme="terminal" data-ddc-accent="...">
-//   where accent is "green" for /ddc/pousada and "blue" for /ddc/airbnb,
-//   determined by usePathname() at runtime.
+// - Wraps children in <DDCThemeWrapper> (client) which reads usePathname()
+//   and sets data-ddc-accent="green" (pousada) or "blue" (airbnb)
 // ==============================================================================
 
-import { usePathname } from 'next/navigation';
 import { JetBrains_Mono } from 'next/font/google';
 import './ddc-terminal.css';
+import { DDCThemeWrapper } from './DDCThemeWrapper';
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
@@ -21,22 +19,19 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '500', '600', '700', '800'],
 });
 
+export const metadata = {
+  title: 'DDC — Zélla Terminal',
+  description: 'Dashboard do Cliente — Hallmark Terminal Theme',
+};
+
 export default function DDCLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname() || '';
-  const accent = pathname.startsWith('/ddc/airbnb') ? 'blue' : 'green';
-
   return (
-    <div
-      data-ddc-theme="terminal"
-      data-ddc-accent={accent}
-      className={jetbrainsMono.variable}
-      style={{ minHeight: '100vh' }}
-    >
+    <DDCThemeWrapper fontClassName={jetbrainsMono.variable}>
       {children}
-    </div>
+    </DDCThemeWrapper>
   );
 }

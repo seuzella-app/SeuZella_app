@@ -16,7 +16,14 @@
 
    Scope: ONLY inside [data-ddc-theme="terminal"] — does NOT leak to /
    landing, /zcc, /dashboard, etc.
+
+   FONT LOADING:
+   - Primary: next/font/google via layout.tsx (sets --ddc-font-mono CSS var)
+   - Fallback: @import Google Fonts CDN below (in case next/font fails)
+   - Final fallback: ui-monospace, SFMono-Regular, Menlo (system mono fonts)
    ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 
 /* ── 1. THEME TOKENS (CSS Custom Properties) ───────────────────────────────── */
 
@@ -34,7 +41,7 @@
   --ddc-border-strong: rgba(0, 255, 102, 0.5);
   --ddc-shadow: 0 0 20px rgba(0, 255, 102, 0.08);
 
-  font-family: var(--ddc-font-mono), ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
   color-scheme: dark;
 }
 
@@ -106,7 +113,7 @@
 
 [data-ddc-theme="terminal"] * {
   border-radius: 0 !important;
-  font-family: var(--ddc-font-mono), ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
   letter-spacing: 0.01em;
 }
 
@@ -193,7 +200,7 @@
 [data-ddc-theme="terminal"] nav button,
 [data-ddc-theme="terminal"] [role="tab"],
 [data-ddc-theme="terminal"] aside button {
-  font-family: var(--ddc-font-mono), ui-monospace, monospace !important;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.78rem;
@@ -279,7 +286,7 @@
   background-color: var(--ddc-bg) !important;
   border: 1px solid var(--ddc-border) !important;
   color: var(--ddc-fg-soft) !important;
-  font-family: var(--ddc-font-mono), ui-monospace, monospace !important;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
   caret-color: var(--ddc-accent);
 }
 
@@ -291,7 +298,7 @@
 }
 
 [data-ddc-theme="terminal"] button {
-  font-family: var(--ddc-font-mono), ui-monospace, monospace !important;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 0.78rem;
@@ -313,7 +320,7 @@
   border: 1px solid var(--ddc-border-strong) !important;
   background-color: var(--ddc-bg-card) !important;
   color: var(--ddc-fg) !important;
-  font-family: var(--ddc-font-mono), ui-monospace, monospace !important;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 0.65rem;
@@ -325,7 +332,7 @@
 /* ── 12. TABLES — terminal grid ────────────────────────────────────────────── */
 
 [data-ddc-theme="terminal"] table {
-  font-family: var(--ddc-font-mono), ui-monospace, monospace !important;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
   font-size: 0.78rem;
   border-collapse: collapse;
   width: 100%;
@@ -377,7 +384,7 @@
 [data-ddc-theme="terminal"] h4,
 [data-ddc-theme="terminal"] h5,
 [data-ddc-theme="terminal"] h6 {
-  font-family: var(--ddc-font-mono), ui-monospace, monospace !important;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--ddc-fg);
@@ -392,7 +399,7 @@
 /* ── 15. TERMINAL COMMAND HEADER (existing N8 pattern) ─────────────────────── */
 
 [data-ddc-theme="terminal"] .font-mono {
-  font-family: var(--ddc-font-mono), ui-monospace, monospace !important;
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
 }
 
 /* The "> zella-pousada --terminal ▮" bars already exist in markup.
