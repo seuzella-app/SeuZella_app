@@ -1,22 +1,20 @@
-'use client';
+// ==============================================================================
+// DDC AIRBNB PAGE — Server Component
+// ==============================================================================
+// - Server Component (no 'use client') so we can use route segment config
+// - Uses `export const dynamic = 'force-dynamic'` to defeat Vercel ISR cache
+//   so the Hallmark Terminal layout changes are visible immediately
+// - Imports DDCAirbnbClientContent (Client Component) which handles the
+//   dynamic import with ssr:false
+// ==============================================================================
 
-import dynamic from 'next/dynamic';
+import { DDCAirbnbClientContent } from './DDCAirbnbClientContent';
 
-const DDCAirbnbContent = dynamic(
-  () => import('./DDCAirbnbContent'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="min-h-screen bg-[#0a0a0f] text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-zinc-400 text-sm">Carregando Dashboard Airbnb...</p>
-        </div>
-      </div>
-    ),
-  }
-);
+// Force fresh render on every deploy — defeats Vercel's ISR cache
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 export default function DDCAirbnbPage() {
-  return <DDCAirbnbContent />;
+  return <DDCAirbnbClientContent />;
 }
