@@ -38,7 +38,7 @@ export function ZellaLogo({ size = 42, className = '' }: ZellaLogoProps) {
       }}
     >
       <Image
-        src="/SeuZella_site_Logo_01.png"
+        src="/SeuZella_Logo_site.png"
         alt="Seu Zélla — Zelador Digital Inteligente"
         width={0}
         height={0}
@@ -62,7 +62,7 @@ export function ZellaLogoStatic({ size, className = '' }: ZellaLogoProps) {
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
       <Image
-        src="/SeuZella_site_Logo_03.png"
+        src="/SeuZella_Logo_site.png"
         alt="Seu Zélla — Zelador Digital Inteligente"
         width={384}
         height={0}
