@@ -160,17 +160,17 @@ export function TenantManagement() {
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="glass-card p-4 text-center">
-          <div className="text-2xl font-bold text-emerald-400">{mockProperties.filter(p => p.status === 'active').length}</div>
-          <div className="text-xs text-neutral-500">Ativos</div>
+        <div className="glass-card p-4 text-center border border-emerald-500/30 bg-emerald-950/20">
+          <div className="text-3xl font-bold text-emerald-400">{mockProperties.filter(p => p.status === 'active').length}</div>
+          <div className="text-sm font-semibold text-zinc-300 font-mono">ATIVOS</div>
         </div>
-        <div className="glass-card p-4 text-center">
-          <div className="text-2xl font-bold text-amber-400">{mockProperties.filter(p => p.status === 'trial').length}</div>
-          <div className="text-xs text-neutral-500">Trial</div>
+        <div className="glass-card p-4 text-center border border-amber-500/30 bg-amber-950/20">
+          <div className="text-3xl font-bold text-amber-400">{mockProperties.filter(p => p.status === 'trial').length}</div>
+          <div className="text-sm font-semibold text-zinc-300 font-mono">TRIAL</div>
         </div>
-        <div className="glass-card p-4 text-center">
-          <div className="text-2xl font-bold text-neutral-300">{mockProperties.length}</div>
-          <div className="text-xs text-neutral-500">Total</div>
+        <div className="glass-card p-4 text-center border border-cyan-500/30 bg-cyan-950/20">
+          <div className="text-3xl font-bold text-cyan-300">{mockProperties.length}</div>
+          <div className="text-sm font-semibold text-zinc-300 font-mono">TOTAL</div>
         </div>
       </div>
 
@@ -190,13 +190,13 @@ export function TenantManagement() {
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
-              className={`text-[10px] px-3 py-2 rounded-lg border whitespace-nowrap font-medium transition-all ${
+              className={`text-xs sm:text-sm px-3.5 py-2 rounded-lg border whitespace-nowrap font-mono font-bold transition-all ${
                 filterStatus === s
-                  ? s === 'active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                    : s === 'trial' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                    : s === 'suspended' ? 'bg-red-500/20 text-red-400 border-red-500/30'
-                    : 'bg-white/10 text-neutral-300 border-white/10'
-                  : 'bg-transparent text-neutral-600 border-white/5 hover:border-white/20 hover:text-neutral-400'
+                  ? s === 'active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                    : s === 'trial' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                    : s === 'suspended' ? 'bg-red-500/20 text-red-400 border-red-500/40'
+                    : 'bg-white/10 text-white border-white/20'
+                  : 'bg-transparent text-neutral-400 border-white/5 hover:border-white/20 hover:text-white'
               }`}
             >
               {s === 'all' ? 'Todos' : statusLabels[s]}
@@ -208,15 +208,15 @@ export function TenantManagement() {
       {/* Property Cards — CRM Style */}
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((prop) => (
-          <div key={prop.id} className="glass-card p-5 hover:bg-white/[0.03] transition-all space-y-4">
+          <div key={prop.id} className="glass-card p-5 hover:bg-white/[0.03] transition-all space-y-4 border border-zinc-800 hover:border-cyan-500/30">
             {/* Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-white/5">
-                  <Building2 className="w-4 h-4 text-neutral-400" />
+                <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                  <Building2 className="w-5 h-5 text-cyan-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-neutral-200 text-sm">{prop.name}</h3>
+                  <h3 className="font-bold text-white text-base">{prop.name}</h3>
                   <div className="flex items-center gap-1 text-[10px] text-neutral-500 mt-0.5">
                     <MapPin className="w-3 h-3" />
                     {prop.city}, {prop.state}

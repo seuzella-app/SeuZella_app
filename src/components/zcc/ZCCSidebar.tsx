@@ -270,13 +270,13 @@ function SidebarItem({ tab, Icon, isActive, isFavorite, onClick, onToggleFavorit
     <div className="group relative px-2">
       <button
         onClick={onClick}
-        className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded text-[11px] font-mono font-medium transition-all ${
-          isActive ? 'zcc-tab-active' : 'hover:bg-white/[0.03]'
+        className={`relative w-full flex items-center gap-2.5 px-3 py-2.5 rounded text-xs sm:text-sm font-mono font-bold transition-all ${
+          isActive ? 'zcc-tab-active bg-white/[0.08]' : 'hover:bg-white/[0.04]'
         }`}
         aria-current={isActive ? 'page' : undefined}
       >
         <Icon
-          className="w-3.5 h-3.5 shrink-0"
+          className="w-4 h-4 shrink-0"
           style={{ color: isActive ? 'var(--zcc-kinpaku)' : 'var(--zcc-text-muted)' }}
         />
         <span className="flex-1 text-left truncate" style={{ color: isActive ? 'var(--zcc-champagne)' : 'var(--zcc-text-secondary)' }}>
@@ -285,7 +285,7 @@ function SidebarItem({ tab, Icon, isActive, isFavorite, onClick, onToggleFavorit
         {isActive && (
           <motion.div
             layoutId="sidebar-active-bar"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r"
             style={{ background: 'var(--zcc-kinpaku)' }}
           />
         )}

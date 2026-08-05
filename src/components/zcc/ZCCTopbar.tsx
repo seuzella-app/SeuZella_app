@@ -78,16 +78,16 @@ export function ZCCTopbar({
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-xs font-bold tracking-tight hidden sm:inline" style={{ color: 'var(--zcc-champagne)' }}>
+              <span className="text-sm font-bold tracking-tight hidden sm:inline" style={{ color: 'var(--zcc-champagne)' }}>
                 ZCC
               </span>
-              <span className="text-[10px] font-mono hidden sm:inline" style={{ color: 'var(--zcc-text-muted)' }}>/</span>
+              <span className="text-xs font-mono hidden sm:inline" style={{ color: 'var(--zcc-text-muted)' }}>/</span>
             </div>
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs font-mono font-bold truncate" style={{ color: 'var(--zcc-kinpaku)' }}>
+              <span className="text-sm sm:text-base font-mono font-bold truncate" style={{ color: 'var(--zcc-kinpaku)' }}>
                 {breadcrumb.label}
               </span>
-              <span className="text-[10px] font-mono hidden md:inline truncate" style={{ color: 'var(--zcc-text-muted)' }}>
+              <span className="text-xs font-mono hidden md:inline truncate" style={{ color: 'var(--zcc-text-muted)' }}>
                 · {breadcrumb.desc}
               </span>
             </div>
