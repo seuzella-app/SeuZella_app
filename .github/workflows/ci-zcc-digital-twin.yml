@@ -1,0 +1,95 @@
+name: ZCC Digital Twin CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  battery-01-typecheck-lint:
+    name: 01 - Typecheck & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Battery 01
+        run: ./.zscripts/zcc-battery/01-typecheck-lint.sh
+        env:
+          CI: 'true'
+
+  battery-02-digital-twin-tests:
+    name: 02 - ZCC Digital Twin Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Battery 02
+        run: ./.zscripts/zcc-battery/02-zcc-digital-twin-tests.sh
+        env:
+          CI: 'true'
+
+  battery-03-full-regression:
+    name: 03 - Full Regression Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Battery 03
+        run: ./.zscripts/zcc-battery/03-full-regression-suite.sh
+        env:
+          DATABASE_URL: 'file:./dev.db'
+          CI: 'true'
+
+  battery-04-production-build:
+    name: 04 - Production Build
+    needs: [battery-01-typecheck-lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Battery 04
+        run: ./.zscripts/zcc-battery/04-production-build.sh
+        env:
+          DATABASE_URL: 'file:./dev.db'
+          NEXT_TELEMETRY_DISABLED: '1'
+          CI: 'true'
+
+  battery-05-integration-smoke:
+    name: 05 - Integration Smoke Test
+    needs: [battery-04-production-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Battery 05
+        run: ./.zscripts/zcc-battery/05-integration-smoke.sh
+        env:
+          DATABASE_URL: 'file:./dev.db'
+          PORT: 3999
+          CI: 'true'

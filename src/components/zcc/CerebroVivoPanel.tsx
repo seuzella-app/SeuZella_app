@@ -803,18 +803,18 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="rounded p-2.5" style={{ background: 'rgba(255,255,255,0.02)' }}>
-      <div className="flex items-center gap-1 mb-1">
+    <div className="rounded-lg p-3 border border-white/5 bg-white/[0.02]">
+      <div className="flex items-center gap-1.5 mb-1">
         <span style={{ color }}>{icon}</span>
-        <span className="text-[9px] font-mono uppercase tracking-wider" style={{ color: 'var(--zcc-text-muted)' }}>
+        <span className="text-xs font-mono font-bold uppercase tracking-wider" style={{ color: 'var(--zcc-text-muted)' }}>
           {label}
         </span>
       </div>
-      <div className="text-sm font-bold font-mono" style={{ color }}>
+      <div className="text-base sm:text-lg font-extrabold font-mono" style={{ color }}>
         {value}
       </div>
       {sub && (
-        <div className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--zcc-text-muted)' }}>
+        <div className="text-xs font-mono mt-0.5" style={{ color: 'var(--zcc-text-muted)' }}>
           {sub}
         </div>
       )}
@@ -837,16 +837,16 @@ function ActionButton({
     <button
       onClick={onClick}
       disabled={loading}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-mono font-medium transition-all"
+      className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-mono font-bold transition-all"
       style={{
-        background: 'rgba(212,168,67,0.08)',
+        background: 'rgba(212,168,67,0.12)',
         color: 'var(--zcc-kinpaku)',
-        border: '1px solid rgba(212,168,67,0.2)',
+        border: '1px solid rgba(212,168,67,0.3)',
         cursor: loading ? 'wait' : 'pointer',
         opacity: loading ? 0.6 : 1,
       }}
     >
-      {loading ? <RefreshCw className="w-3 h-3 animate-spin" /> : icon}
+      {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : icon}
       <span>{label}</span>
     </button>
   );
