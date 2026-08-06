@@ -73,3 +73,4 @@ worklog.md
 temp_openwa/
 test-integration.db
 test-integration.db-journal
+cache/
