@@ -151,7 +151,7 @@ check POST "/api/zcc/synthetic-brazil/generate" "200" '{"cityId":"praia-grande-s
 check GET "/api/zcc/national-simulator" "200"
 
 # 9. National Simulator — rodar em uma cidade
-check POST "/api/zcc/national-simulator" "200" '{"cityId":"gramado-rs","days":7,"seed":42}'
+check POST "/api/zcc/national-simulator" "200" '{"city":"Gramado","days":7,"seed":42}'
 
 # 10. Simulation Lab — rodar experimento
 check POST "/api/zcc/simulation-lab" "200" '{"hypothesis":"ZGS budget reallocation Google→Meta","events":1000,"seed":42}'
