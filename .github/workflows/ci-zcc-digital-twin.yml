@@ -91,5 +91,6 @@ jobs:
         run: ./.zscripts/zcc-battery/05-integration-smoke.sh
         env:
           DATABASE_URL: 'file:./dev.db'
+          NEXTAUTH_SECRET: 'zcc-test-smoke-secret-key-32chars!!'
           PORT: 3999
           CI: 'true'

@@ -97,6 +97,8 @@ fuser -k "${PORT}/tcp" 2>/dev/null || true
 sleep 1
 
 DATABASE_URL="${DATABASE_URL:-file:./dev.db}" \
+NEXTAUTH_SECRET="${NEXTAUTH_SECRET:-zcc-test-smoke-secret-key-32chars!!}" \
+NEXTAUTH_URL="${NEXTAUTH_URL:-http://localhost:${PORT}}" \
 PORT="$PORT" \
 npx next dev -p "$PORT" > /tmp/zcc-smoke-server.log 2>&1 &
 PIDS+=($!)
