@@ -75,8 +75,8 @@ if $SKIP_BUILD; then
 fi
 
 # Estado
-declare -A RESULTS
-declare -A DURATIONS
+RESULTS=()
+DURATIONS=()
 TOTAL_START=$(date +%s)
 
 echo -e "${BOLD}${BLUE}"
@@ -89,19 +89,20 @@ echo -e "${YELLOW}Baterias a executar: ${#BATTERIES[@]}${NC}"
 echo ""
 
 # Roda cada bateria
-for battery in "${BATTERIES[@]}"; do
+for idx in "${!BATTERIES[@]}"; do
+  battery="${BATTERIES[$idx]}"
   name="${battery%%.*}"
   echo -e "${BOLD}${BLUE}▶ Executando: ${name}${NC}"
   echo -e "${BLUE}  Script: ${battery}${NC}"
 
   START=$(date +%s)
   if bash "$battery"; then
-    RESULTS["$battery"]="PASS"
+    RESULTS[$idx]="PASS"
   else
-    RESULTS["$battery"]="FAIL"
+    RESULTS[$idx]="FAIL"
   fi
   END=$(date +%s)
-  DURATIONS["$battery"]=$((END - START))
+  DURATIONS[$idx]=$((END - START))
 
   echo ""
 done
@@ -113,10 +114,11 @@ TOTAL_DURATION=$((TOTAL_END - TOTAL_START))
 echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BOLD}${BLUE}║                       DASHBOARD FINAL                           ║${NC}"
 echo -e "${BOLD}${BLUE}╠══════════════════════════════════════════════════════════════════╣${NC}"
-for battery in "${BATTERIES[@]}"; do
+for idx in "${!BATTERIES[@]}"; do
+  battery="${BATTERIES[$idx]}"
   name="${battery%%.*}"
-  status="${RESULTS[$battery]}"
-  dur="${DURATIONS[$battery]}"
+  status="${RESULTS[$idx]}"
+  dur="${DURATIONS[$idx]}"
   if [ "$status" = "PASS" ]; then
     marker="${GREEN}✅ PASS${NC}"
   else
@@ -130,8 +132,8 @@ echo -e "${BOLD}${BLUE}╚══════════════════
 
 # Veredito final
 TOTAL_FAIL=0
-for battery in "${BATTERIES[@]}"; do
-  if [ "${RESULTS[$battery]}" = "FAIL" ]; then
+for idx in "${!BATTERIES[@]}"; do
+  if [ "${RESULTS[$idx]}" = "FAIL" ]; then
     TOTAL_FAIL=$((TOTAL_FAIL + 1))
   fi
 done

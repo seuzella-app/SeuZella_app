@@ -94,7 +94,8 @@ else
     fi
   done
 
-  ZCC_ERROR_COUNT=$(echo "$ZCC_ERRORS" | grep -c "error TS" || echo "0")
+  ZCC_ERROR_COUNT=$(echo "$ZCC_ERRORS" | grep -c "error TS" 2>/dev/null | tr -d '[:space:]' || echo "0")
+  if [ -z "$ZCC_ERROR_COUNT" ]; then ZCC_ERROR_COUNT=0; fi
   if [ "$ZCC_ERROR_COUNT" -gt 0 ]; then
     echo -e "${RED}  ❌ ${ZCC_ERROR_COUNT} erro(s) no código NOVO do ZCC Digital Twin:${NC}"
     echo "$ZCC_ERRORS" | head -20
