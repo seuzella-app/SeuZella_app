@@ -15,10 +15,29 @@ export default defineConfig({
     },
     testTimeout: 15000,
     hookTimeout: 10000,
+    // Prevent Vite from trying to resolve CSS / PostCSS for tests.
+    server: {
+      deps: {
+        inline: [/@\/.*/],
+      },
+    },
+    // Skip PostCSS processing during tests.
+    deps: {
+      optimizer: {
+        web: {
+          exclude: ['postcss', '@tailwindcss/postcss'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+    },
+  },
+  css: {
+    postcss: {
+      plugins: [],
     },
   },
 });
