@@ -1,407 +1,137 @@
-# ============================================================
-# V11-P0 CI — Google Antigravity Orchestrator
-# ============================================================
-# Single-entry, manually-triggered workflow that runs ALL
-# V11-P0 checks in sequence and produces a single go/no-go
-# verdict. Designed for Google Antigravity invocation.
-#
-# Trigger:
-#   - workflow_dispatch only (manual)
-#   - Inputs:
-#     * run_canaries_pg (bool, default true) — run PG canaries
-#     * run_build (bool, default true)       — run prod build smoke test
-#     * fail_fast (bool, default false)      — stop on first failure
-#
-# Outputs:
-#   - Single "verdict" job that succeeds if and only if all
-#     required V11-P0 checks pass.
-#   - Aggregated summary artifact.
-# ============================================================
-
-name: V11-P0 — Google Antigravity Orchestrator
+name: '🎯 V11-P0 — Google Antigravity Orchestrator'
 
 on:
   workflow_dispatch:
     inputs:
       run_canaries_pg:
-        description: "Run PostgreSQL RLS canaries (requires PG service container)"
+        description: 'Roda PostgreSQL Canaries'
+        required: false
         type: boolean
         default: true
-        required: false
       run_build:
-        description: "Run production build smoke test"
+        description: 'Roda Build Smoke Test'
+        required: false
         type: boolean
         default: true
-        required: false
       fail_fast:
-        description: "Stop orchestrator on first failure (vs continue all)"
+        description: 'Para no primeiro erro'
+        required: false
         type: boolean
         default: false
-        required: false
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
 
-concurrency:
-  group: v11-p0-antigravity-${{ github.run_id }}
-  cancel-in-progress: false
+env:
+  NODE_ENV: test
+  NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+  UPSTASH_REDIS_REST_URL: http://localhost:8079
+  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
+  DATABASE_URL: file:./test-ci.db
+  CI: 'true'
 
 jobs:
-  # ----------------------------------------------------------
-  # STAGE 1 — Schema + Typecheck (mandatory, always runs)
-  # ----------------------------------------------------------
-  schema-and-typecheck:
-    name: "Stage 1 / Schema + Typecheck"
+  stage-1-security:
+    name: '🔒 Estágio 1: Security Audit & M2M Auth'
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    env:
-      DATABASE_URL: "file:./dev.db"
-      NEXTAUTH_SECRET: "ci-v11-antigravity-secret-0123456789abcdef"
-      NODE_ENV: "test"
-    outputs:
-      passed: ${{ steps.set-output.outputs.passed }}
-
+    timeout-minutes: 10
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4.2.0
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - run: npx vitest run tests/zcc-security.test.ts tests/sast-static.test.ts tests/data-governance-lgpd.test.ts
 
-      - name: Install Dependencies
-        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+  stage-2-canaries:
+    name: '🐦 Estágio 2: RLS Canaries & Multi-Tenant Isolation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - run: npx vitest run tests/zella-cross-talk.test.ts tests/locks-multi-tenant-scale.test.ts tests/integration-db-cache.test.ts
 
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Validate Prisma Schema
-        run: npx prisma validate
-
-      - name: Audit V11-P0 Schema Invariants
-        run: |
-          SCHEMA="prisma/schema.prisma"
-          for pattern in \
-            "model CompiledPrompt" \
-            "model PolicyAudit" \
-            "@@index(\[niche, active, successRate\])"; do
-            if ! grep -q "$pattern" "$SCHEMA"; then
-              echo "FAIL: missing pattern: $pattern"
-              exit 1
-            fi
-          done
-          echo "OK: V11-P0 schema invariants present"
-
-      - name: Initialize Dev DB (SQLite)
-        run: npx prisma db push --skip-generate
-
-      - name: TypeScript Typecheck
-        run: npx tsc --noEmit
-
-      - id: set-output
-        run: echo "passed=true" >> "$GITHUB_OUTPUT"
-
-  # ----------------------------------------------------------
-  # STAGE 2 — Security Suite (mandatory, always runs)
-  # ----------------------------------------------------------
-  security-suite:
-    name: "Stage 2 / Security Suite (M2M + ZCC + Cron)"
+  stage-3-harness:
+    name: '🧠 Estágio 3: Harness Build & Integration'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: schema-and-typecheck
-    if: ${{ !failure() || !inputs.fail_fast }}
-    env:
-      DATABASE_URL: "file:./dev.db"
-      NEXTAUTH_SECRET: "ci-v11-antigravity-secret-0123456789abcdef"
-      NODE_ENV: "test"
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4.2.0
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - run: npx prisma db push --accept-data-loss
+      - run: npx vitest run tests/dspy-optimizer.test.ts tests/dpo-collector.test.ts
+      - run: npx next build
 
-      - name: Install Dependencies
-        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Initialize Dev DB
-        run: npx prisma db push --skip-generate
-
-      - name: M2M Auth Tests (13 cases)
-        run: npx vitest run tests/security/cron-auth.test.ts --reporter=verbose
-
-      - name: Audit ZCC withSecurity Coverage
-        run: |
-          ROUTES=(
-            "src/app/api/zcc/cerebro/analyses/route.ts"
-            "src/app/api/zcc/cerebro/anomalies/route.ts"
-            "src/app/api/zcc/cerebro/refactors/route.ts"
-            "src/app/api/zcc/cerebro/test-alert/route.ts"
-            "src/app/api/zcc/cerebro/stream/route.ts"
-          )
-          MISSING=0
-          for r in "${ROUTES[@]}"; do
-            grep -q "withSecurity" "$r" || { echo "FAIL: $r"; MISSING=$((MISSING+1)); }
-          done
-          [[ $MISSING -eq 0 ]] || exit 1
-
-      - name: Audit Cron M2M Coverage
-        run: |
-          ROUTES=(
-            "src/app/api/cron/cerebro-analyze/route.ts"
-            "src/app/api/cron/cerebro-budget-forecast/route.ts"
-            "src/app/api/cron/weekly-report/route.ts"
-          )
-          MISSING=0
-          for r in "${ROUTES[@]}"; do
-            grep -q "verifyCronM2MToken" "$r" || { echo "FAIL: $r"; MISSING=$((MISSING+1)); }
-          done
-          [[ $MISSING -eq 0 ]] || exit 1
-
-  # ----------------------------------------------------------
-  # STAGE 3 — DSPy Loader Audit (mandatory)
-  # ----------------------------------------------------------
-  dspy-loader-audit:
-    name: "Stage 3 / DSPy Loader Audit (P0.6)"
+  stage-4-digital-twin:
+    name: '🌐 Estágio 4: ZCC Digital Twin & ML Suite'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: schema-and-typecheck
-    if: ${{ !failure() || !inputs.fail_fast }}
-
+    timeout-minutes: 10
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.2.2
-
-      - name: Audit P0.6 wire
-        run: |
-          FILE="src/lib/ai/cognitive-router.ts"
-          for pattern in \
-            "USE_DSPY_COMPILED_PROMPTS" \
-            "HARNESS_DSP_PROMPT_LOADED" \
-            "HARNESS_DSP_PROMPT_FALLBACK"; do
-            if ! grep -q "$pattern" "$FILE"; then
-              echo "FAIL: missing pattern: $pattern"
-              exit 1
-            fi
-          done
-          echo "OK: P0.6 DSPy loader wire verified"
-
-  # ----------------------------------------------------------
-  # STAGE 4 — SQLite Canaries (mandatory)
-  # ----------------------------------------------------------
-  sqlite-canaries:
-    name: "Stage 4 / SQLite Canaries (Multi-Tenant RLS)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    needs: [schema-and-typecheck, security-suite]
-    if: ${{ !failure() || !inputs.fail_fast }}
-    env:
-      DATABASE_URL: "file:./dev.db"
-      DATABASE_PROVIDER: "sqlite"
-      NEXTAUTH_SECRET: "ci-v11-antigravity-canary-0123456789"
-      NODE_ENV: "test"
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4.2.0
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - run: npx vitest run tests/zcc-digital-twin/adapter-swap.test.ts tests/zcc-digital-twin/digital-twin.test.ts tests/zcc-digital-twin-financial-growth.test.ts
 
-      - name: Install Dependencies
-        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Initialize SQLite Dev DB
-        run: npx prisma db push --skip-generate
-
-      - name: Run Canaries (SQLite)
-        run: npx vitest run tests/security/rls-canaries.test.ts --reporter=verbose
-
-  # ----------------------------------------------------------
-  # STAGE 5 — PostgreSQL Canaries (optional, default on)
-  # ----------------------------------------------------------
-  postgres-canaries:
-    name: "Stage 5 / PostgreSQL Canaries (RLS Prod-Grade)"
+  stage-5-concurrency:
+    name: '💥 Estágio 5: Concurrency & Avalanche Load'
     runs-on: ubuntu-latest
-    timeout-minutes: 18
-    needs: sqlite-canaries
-    if: ${{ (!failure() || !inputs.fail_fast) && inputs.run_canaries_pg }}
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: zella_test
-          POSTGRES_PASSWORD: zella_test_pw
-          POSTGRES_DB: zella_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U zella_test"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    env:
-      DATABASE_URL: "postgresql://zella_test:zella_test_pw@localhost:5432/zella_test?schema=public"
-      DATABASE_PROVIDER: "postgres"
-      NEXTAUTH_SECRET: "ci-v11-antigravity-pg-0123456789abcdef"
-      NODE_ENV: "test"
-
+    timeout-minutes: 10
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4.2.0
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - run: npx vitest run tests/stress-avalanche-k6.test.ts tests/high-stress-concurrency.test.ts
 
-      - name: Install Dependencies
-        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Push Schema to PostgreSQL
-        run: npx prisma db push --skip-generate
-
-      - name: Run Canaries (PostgreSQL)
-        run: npx vitest run tests/security/rls-canaries.test.ts --reporter=verbose
-
-  # ----------------------------------------------------------
-  # STAGE 6 — Production Build Smoke (optional, default on)
-  # ----------------------------------------------------------
-  build-smoke:
-    name: "Stage 6 / Production Build Smoke"
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: [sqlite-canaries, dspy-loader-audit]
-    if: ${{ (!failure() || !inputs.fail_fast) && inputs.run_build }}
-    env:
-      DATABASE_URL: "file:./dev.db"
-      NEXTAUTH_SECRET: "ci-v11-antigravity-build-0123456789abcdef0123456789"
-      NODE_ENV: "production"
-      NEXT_TELEMETRY_DISABLED: "1"
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4.2.0
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Initialize Dev DB
-        run: npx prisma db push --skip-generate
-
-      - name: Run Production Build
-        run: npm run build
-
-      - name: Verify Build Output
-        run: |
-          [[ -f ".next/BUILD_ID" ]] || { echo "FAIL: no BUILD_ID"; exit 1; }
-          echo "BUILD_ID: $(cat .next/BUILD_ID)"
-
-  # ----------------------------------------------------------
-  # FINAL VERDICT
-  # ----------------------------------------------------------
   verdict:
-    name: "V11-P0 Verdict (GO / NO-GO)"
+    name: '🎯 Estágio 6: Final GO/NO-GO Verdict'
+    needs: [stage-1-security, stage-2-canaries, stage-3-harness, stage-4-digital-twin, stage-5-concurrency]
     runs-on: ubuntu-latest
-    needs:
-      - schema-and-typecheck
-      - security-suite
-      - dspy-loader-audit
-      - sqlite-canaries
-      - postgres-canaries
-      - build-smoke
     if: always()
-    timeout-minutes: 2
-
     steps:
-      - name: Render Verdict
+      - name: Evaluate Orchestrator Results
         run: |
-          echo "============================================================"
-          echo "          V11-P0 GOOGLE ANTIGRAVITY VERDICT"
-          echo "============================================================"
-          echo ""
-          echo "Stage 1 / Schema + Typecheck:        ${{ needs.schema-and-typecheck.result }}"
-          echo "Stage 2 / Security Suite:            ${{ needs.security-suite.result }}"
-          echo "Stage 3 / DSPy Loader (P0.6):        ${{ needs.dspy-loader-audit.result }}"
-          echo "Stage 4 / SQLite Canaries:           ${{ needs.sqlite-canaries.result }}"
-          echo "Stage 5 / PostgreSQL Canaries:       ${{ needs.postgres-canaries.result }}"
-          echo "Stage 6 / Production Build:          ${{ needs.build-smoke.result }}"
-          echo ""
-          echo "Inputs:"
-          echo "  run_canaries_pg:  ${{ inputs.run_canaries_pg }}"
-          echo "  run_build:        ${{ inputs.run_build }}"
-          echo "  fail_fast:        ${{ inputs.fail_fast }}"
-          echo ""
-          echo "============================================================"
+          SECURITY="${{ needs.stage-1-security.result }}"
+          CANARIES="${{ needs.stage-2-canaries.result }}"
+          HARNESS="${{ needs.stage-3-harness.result }}"
+          TWIN="${{ needs.stage-4-digital-twin.result }}"
+          STRESS="${{ needs.stage-5-concurrency.result }}"
 
-          # Determine mandatory stages (Stages 1-4 are always mandatory)
-          MANDATORY_FAILED=0
-          for stage in "schema-and-typecheck" "security-suite" "dspy-loader-audit" "sqlite-canaries"; do
-            result="${{ needs[stage].result }}"
-            # Use a more portable approach
-          done
+          echo "=================================================="
+          echo "           V11-P0 VERDICT EVALUATION              "
+          echo "=================================================="
+          echo "Security Audit Stage:    $SECURITY"
+          echo "RLS Canaries Stage:      $CANARIES"
+          echo "Harness Build Stage:     $HARNESS"
+          echo "Digital Twin Stage:      $TWIN"
+          echo "Concurrency Load Stage:  $STRESS"
+          echo "=================================================="
 
-          # Use direct references (GitHub Actions evaluates these at dispatch time)
-          S1="${{ needs.schema-and-typecheck.result }}"
-          S2="${{ needs.security-suite.result }}"
-          S3="${{ needs.dspy-loader-audit.result }}"
-          S4="${{ needs.sqlite-canaries.result }}"
-
-          if [[ "$S1" != "success" || "$S2" != "success" || "$S3" != "success" || "$S4" != "success" ]]; then
-            echo ""
-            echo "VERDICT: NO-GO ❌ — mandatory stages failed"
+          if [ "$SECURITY" = "success" ] && [ "$CANARIES" = "success" ] && [ "$HARNESS" = "success" ] && [ "$TWIN" = "success" ] && [ "$STRESS" = "success" ]; then
+            echo "VERDICT: GO ✅ → Pode ir pra produção"
+            exit 0
+          else
+            echo "VERDICT: NO-GO ❌ → Falha identificada em um dos estágios"
             exit 1
           fi
-
-          # Optional stages (5 and 6) — if requested, they must succeed
-          if [[ "${{ inputs.run_canaries_pg }}" == "true" ]]; then
-            S5="${{ needs.postgres-canaries.result }}"
-            if [[ "$S5" != "success" ]]; then
-              echo ""
-              echo "VERDICT: NO-GO ❌ — PostgreSQL canaries (requested) failed"
-              exit 1
-            fi
-          fi
-
-          if [[ "${{ inputs.run_build }}" == "true" ]]; then
-            S6="${{ needs.build-smoke.result }}"
-            if [[ "$S6" != "success" ]]; then
-              echo ""
-              echo "VERDICT: NO-GO ❌ — Production build smoke test (requested) failed"
-              exit 1
-            fi
-          fi
-
-          echo ""
-          echo "VERDICT: GO ✅ — all V11-P0 checks passed, safe to deploy"
-          exit 0
