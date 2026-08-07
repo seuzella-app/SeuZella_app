@@ -121,7 +121,7 @@ describe('ZCC Digital Twin — Financial & Growth Engine Validation', () => {
   });
 
   it('validates ZGS strategic decision layer instantiation and snapshot', async () => {
-    const adapters = getAdapters('digital-twin');
+    const adapters = getAdapters();
     const zgs = new ZellaGrowthStrategy(adapters);
     const snapshot = zgs.snapshot();
 
