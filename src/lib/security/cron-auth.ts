@@ -71,9 +71,9 @@ function getAudience(): string {
 
 const TOKEN_TTL_SECONDS = 300; // 5 minutos
 
-if (!getPublicKeyPem() && process.env.NODE_ENV === 'production') {
-  // Em dev, permite operar sem chave para não bloquear testes locais.
-  // Em prod, falha hard no boot.
+if (!getPublicKeyPem() && process.env.NODE_ENV === 'production' && !process.env.CI) {
+  // Em dev e CI, permite operar sem chave para não bloquear builds sintéticos.
+  // Em prod real, falha hard no boot.
   throw new Error('[cron-auth] ZELLA_M2M_ED25519_PUBLIC_KEY ausente em produção');
 }
 
