@@ -706,8 +706,29 @@ export function DDCShell({
                   </>
                 ) : (
                   <span className="text-[9px] text-white/20 font-mono">--:--:--</span>
-                )}
-              </div>
+            </div>
+
+            {/* Mobile-First Sticky Horizontal Tab Bar (1-Tap Pill Navigation) */}
+            <div className="md:hidden flex items-center gap-1.5 px-3 py-2 overflow-x-auto no-scrollbar bg-[#0d0d14]/95 backdrop-blur-md border-t border-white/[0.04]">
+              {navItems.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onTabChange(item.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border shrink-0 ${
+                      isActive
+                        ? niche === 'pousada'
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-500/20'
+                          : 'bg-blue-500/20 text-cyan-300 border-blue-500/40 shadow-sm shadow-blue-500/20'
+                        : 'bg-white/[0.03] text-zinc-400 border-white/[0.06] hover:bg-white/[0.08] hover:text-white'
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 flex items-center justify-center">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </header>
 
