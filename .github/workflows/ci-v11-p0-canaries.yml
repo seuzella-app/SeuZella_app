@@ -1,0 +1,183 @@
+# ============================================================
+# V11-P0 CI — Multi-Tenant RLS Canaries
+# ============================================================
+# Validates the migration delivered in V11-P0:
+#   - CompiledPrompt extension (niche, active, successRate, promptText)
+#   - PolicyAudit model (14 fields, 3 indexes, 4 CHECK constraints)
+#   - Multi-tenant isolation tests (app-level + PostgreSQL RLS)
+#
+# Triggers:
+#   - On push to main touching prisma schema or canaries
+#   - On PRs to main
+#   - Manual via GitHub Actions UI / Google Antigravity
+# ============================================================
+
+name: V11-P0 — RLS Canaries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'prisma/schema.prisma'
+      - 'tests/security/rls-canaries.test.ts'
+      - 'tests/security/run-canaries.sh'
+      - '.github/workflows/ci-v11-p0-canaries.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'prisma/schema.prisma'
+      - 'tests/security/**'
+  workflow_dispatch: # Google Antigravity manual trigger
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v11-p0-canaries-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sqlite-canaries:
+    name: SQLite (Dev) Multi-Tenant Isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      DATABASE_URL: "file:./dev.db"
+      DATABASE_PROVIDER: "sqlite"
+      NEXTAUTH_SECRET: "ci-v11-canary-secret-0123456789abcdef"
+      NODE_ENV: "test"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Initialize SQLite Dev DB
+        run: npx prisma db push --skip-generate
+
+      - name: Validate Schema Invariants
+        run: |
+          echo "==> Validate Prisma schema"
+          npx prisma validate
+          echo ""
+          echo "==> Verify V11-P0 models exist"
+          if ! grep -q "model CompiledPrompt" prisma/schema.prisma; then
+            echo "FAIL: CompiledPrompt model not found"
+            exit 1
+          fi
+          if ! grep -q "model PolicyAudit" prisma/schema.prisma; then
+            echo "FAIL: PolicyAudit model not found"
+            exit 1
+          fi
+          echo "OK: Both V11-P0 models present"
+
+      - name: Run Canary Test Suite (SQLite)
+        run: |
+          chmod +x tests/security/run-canaries.sh
+          ./tests/security/run-canaries.sh --ci || npx vitest run tests/security/rls-canaries.test.ts --reporter=verbose
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: v11-p0-canary-results-sqlite
+          path: |
+            coverage/
+            test-results/
+          retention-days: 7
+
+  postgresql-canaries:
+    name: PostgreSQL (Prod) Multi-Tenant Isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: zella_test
+          POSTGRES_PASSWORD: zella_test_pw
+          POSTGRES_DB: zella_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U zella_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: "postgresql://zella_test:zella_test_pw@localhost:5432/zella_test?schema=public"
+      DATABASE_PROVIDER: "postgres"
+      NEXTAUTH_SECRET: "ci-v11-canary-pg-secret-0123456789abcdef"
+      NODE_ENV: "test"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Push Schema to PostgreSQL
+        run: npx prisma db push --skip-generate
+
+      - name: Run Canary Test Suite (PostgreSQL)
+        env:
+          DATABASE_PROVIDER: "postgres"
+        run: npx vitest run tests/security/rls-canaries.test.ts --reporter=verbose
+
+      - name: Upload PG Test Results
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: v11-p0-canary-results-postgres
+          path: |
+            coverage/
+            test-results/
+          retention-days: 7
+
+  canary-summary:
+    name: V11-P0 Canary Summary
+    runs-on: ubuntu-latest
+    needs: [sqlite-canaries, postgresql-canaries]
+    if: always()
+    timeout-minutes: 2
+    steps:
+      - name: Aggregate Results
+        run: |
+          echo "==================== V11-P0 Canaries Summary ===================="
+          echo "SQLite Canaries:       ${{ needs.sqlite-canaries.result }}"
+          echo "PostgreSQL Canaries:   ${{ needs.postgresql-canaries.result }}"
+          echo "=================================================================="
+          # SQLite is mandatory; PostgreSQL is mandatory on main merges
+          if [[ "${{ needs.sqlite-canaries.result }}" != "success" ]]; then
+            echo "FAILED — SQLite canaries (mandatory) did not pass"
+            exit 1
+          fi
+          if [[ "${{ needs.postgresql-canaries.result }}" == "failure" ]]; then
+            echo "FAILED — PostgreSQL canaries failed on main"
+            exit 1
+          fi
+          echo "ALL V11-P0 CANARY CHECKS PASSED"

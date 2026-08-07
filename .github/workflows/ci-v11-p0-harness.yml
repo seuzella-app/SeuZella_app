@@ -1,0 +1,238 @@
+# ============================================================
+# V11-P0 CI — Full Harness Validation (DSPy + Migration + Build)
+# ============================================================
+# Validates the complete V11-P0 harness integration:
+#   - Prisma schema validity (CompiledPrompt + PolicyAudit migration)
+#   - TypeScript typecheck across the whole project
+#   - DSPy CompiledPrompt loader wire (P0.6 — cognitive-router.ts)
+#   - Production build smoke test
+#
+# Triggers:
+#   - On push to main touching critical paths
+#   - On PRs to main
+#   - Manual via GitHub Actions UI / Google Antigravity
+# ============================================================
+
+name: V11-P0 — Harness Build & Integration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'prisma/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'bun.lock'
+      - 'tsconfig.json'
+      - 'next.config.ts'
+      - '.github/workflows/ci-v11-p0-harness.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # Google Antigravity manual trigger
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v11-p0-harness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prisma-schema-validation:
+    name: Prisma Schema Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Validate Prisma Schema
+        run: npx prisma validate
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Audit V11-P0 Schema Invariants
+        run: |
+          echo "==> Audit: V11-P0 schema additions"
+          SCHEMA="prisma/schema.prisma"
+
+          echo "  - CompiledPrompt model exists"
+          grep -q "model CompiledPrompt" "$SCHEMA" || { echo "FAIL"; exit 1; }
+
+          echo "  - CompiledPrompt.niche field"
+          grep -E "^\s+niche\s+String" "$SCHEMA" > /dev/null || { echo "FAIL"; exit 1; }
+
+          echo "  - CompiledPrompt.active field"
+          grep -E "^\s+active\s+Boolean" "$SCHEMA" > /dev/null || { echo "FAIL"; exit 1; }
+
+          echo "  - CompiledPrompt.successRate field"
+          grep -E "^\s+successRate\s+Float" "$SCHEMA" > /dev/null || { echo "FAIL"; exit 1; }
+
+          echo "  - CompiledPrompt.promptText field"
+          grep -E "^\s+promptText\s+String" "$SCHEMA" > /dev/null || { echo "FAIL"; exit 1; }
+
+          echo "  - PolicyAudit model exists"
+          grep -q "model PolicyAudit" "$SCHEMA" || { echo "FAIL"; exit 1; }
+
+          echo "  - Index on [niche, active, successRate]"
+          grep -q "@@index(\[niche, active, successRate\])" "$SCHEMA" || { echo "FAIL"; exit 1; }
+
+          echo ""
+          echo "All V11-P0 schema invariants verified."
+
+  typescript-typecheck:
+    name: TypeScript Typecheck (Full)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: "file:./dev.db"
+      NEXTAUTH_SECRET: "ci-v11-typecheck-secret-0123456789abcdef"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run TypeScript Typecheck
+        run: npx tsc --noEmit
+
+  dspy-loader-audit:
+    name: DSPy CompiledPrompt Loader Wire (P0.6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Audit P0.6 wire in cognitive-router
+        run: |
+          FILE="src/lib/ai/cognitive-router.ts"
+          echo "==> Audit: P0.6 DSPy loader wire in $FILE"
+
+          if [[ ! -f "$FILE" ]]; then
+            echo "FAIL: $FILE not found"
+            exit 1
+          fi
+
+          echo "  - Feature flag USE_DSPY_COMPILED_PROMPTS"
+          grep -q "USE_DSPY_COMPILED_PROMPTS" "$FILE" || { echo "FAIL"; exit 1; }
+
+          echo "  - Load function present"
+          grep -E "loadDspyCompiledPrompt|getCompiledPrompt" "$FILE" > /dev/null || { echo "FAIL: no loader function"; exit 1; }
+
+          echo "  - HARNESS_DSP_PROMPT_LOADED log marker"
+          grep -q "HARNESS_DSP_PROMPT_LOADED" "$FILE" || { echo "FAIL"; exit 1; }
+
+          echo "  - HARNESS_DSP_PROMPT_FALLBACK log marker"
+          grep -q "HARNESS_DSP_PROMPT_FALLBACK" "$FILE" || { echo "FAIL"; exit 1; }
+
+          echo "  - Fallback path (when feature disabled)"
+          grep -E "if\s*\(\s*!\s*USE_DSPY_COMPILED_PROMPTS\s*\)" "$FILE" > /dev/null || { echo "FAIL"; exit 1; }
+
+          echo ""
+          echo "All P0.6 DSPy loader wire invariants verified."
+
+  build-smoke-test:
+    name: Production Build Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [prisma-schema-validation, typescript-typecheck]
+    env:
+      DATABASE_URL: "file:./dev.db"
+      NEXTAUTH_SECRET: "ci-v11-build-secret-0123456789abcdef0123456789"
+      NODE_ENV: "production"
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Initialize Dev DB
+        run: npx prisma db push --skip-generate
+
+      - name: Run Production Build
+        run: npm run build
+
+      - name: Verify .next/ Output
+        run: |
+          if [[ ! -d ".next" ]]; then
+            echo "FAIL: .next/ directory not created"
+            exit 1
+          fi
+          if [[ ! -f ".next/BUILD_ID" ]]; then
+            echo "FAIL: .next/BUILD_ID not created"
+            exit 1
+          fi
+          echo "OK: Build artifacts present"
+          echo "BUILD_ID: $(cat .next/BUILD_ID)"
+
+      - name: Upload Build Artifact
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: v11-p0-build-output
+          path: |
+            .next/BUILD_ID
+            .next/build-manifest.json
+          retention-days: 3
+
+  harness-summary:
+    name: V11-P0 Harness Summary
+    runs-on: ubuntu-latest
+    needs: [prisma-schema-validation, typescript-typecheck, dspy-loader-audit, build-smoke-test]
+    if: always()
+    timeout-minutes: 2
+    steps:
+      - name: Aggregate Results
+        run: |
+          echo "==================== V11-P0 Harness Summary ===================="
+          echo "Prisma Schema Validation:  ${{ needs.prisma-schema-validation.result }}"
+          echo "TypeScript Typecheck:      ${{ needs.typescript-typecheck.result }}"
+          echo "DSPy Loader Audit (P0.6):  ${{ needs.dspy-loader-audit.result }}"
+          echo "Build Smoke Test:          ${{ needs.build-smoke-test.result }}"
+          echo "================================================================="
+          if [[ "${{ needs.prisma-schema-validation.result }}" != "success" || \
+                "${{ needs.typescript-typecheck.result }}" != "success" || \
+                "${{ needs.dspy-loader-audit.result }}" != "success" || \
+                "${{ needs.build-smoke-test.result }}" != "success" ]]; then
+            echo "FAILED — one or more harness checks did not pass"
+            exit 1
+          fi
+          echo "ALL V11-P0 HARNESS CHECKS PASSED"

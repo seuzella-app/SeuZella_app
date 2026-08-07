@@ -69,6 +69,9 @@ server.log
 /upload/
 # DB file
 db/*.db
+prisma/*.db
+prisma/dev.db
+prisma/prod.db
 # Worklog
 worklog.md
 temp_openwa/
