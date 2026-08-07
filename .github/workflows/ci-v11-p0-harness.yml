@@ -37,7 +37,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Prisma Schema Integrity Check
         run: npx prisma db push --accept-data-loss

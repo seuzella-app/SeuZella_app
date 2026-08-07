@@ -47,7 +47,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - run: npx vitest run tests/zcc-security.test.ts tests/sast-static.test.ts tests/data-governance-lgpd.test.ts
 
   stage-2-canaries:
@@ -60,7 +60,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - run: npx vitest run tests/zella-cross-talk.test.ts tests/locks-multi-tenant-scale.test.ts tests/integration-db-cache.test.ts
 
   stage-3-harness:
@@ -73,7 +73,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - run: npx prisma db push --accept-data-loss
       - run: npx vitest run tests/dspy-optimizer.test.ts tests/dpo-collector.test.ts
       - run: npx next build
@@ -88,7 +88,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - run: npx vitest run tests/zcc-digital-twin/adapter-swap.test.ts tests/zcc-digital-twin/digital-twin.test.ts tests/zcc-digital-twin-financial-growth.test.ts
 
   stage-5-concurrency:
@@ -101,7 +101,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - run: npm install --legacy-peer-deps
       - run: npx vitest run tests/stress-avalanche-k6.test.ts tests/high-stress-concurrency.test.ts
 
   verdict:
