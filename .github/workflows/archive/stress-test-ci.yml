@@ -28,7 +28,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Run 75 RPS High Concurrency & Router Stress Test Suite
         run: npx vitest run tests/stress-neuro-router.test.ts

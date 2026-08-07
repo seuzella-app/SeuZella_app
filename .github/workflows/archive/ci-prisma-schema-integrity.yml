@@ -25,7 +25,7 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: 🔍 Validate Prisma Schema Syntax
         run: npx prisma validate
