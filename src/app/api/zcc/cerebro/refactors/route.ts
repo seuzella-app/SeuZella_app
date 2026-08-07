@@ -18,18 +18,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+import { withSecurity, type SecurityContext } from '@/lib/security/api-shield';
 import { getRefactorSuggester, findRecurringErrors } from '@/lib/cerebro/refactor-suggester';
 import { indexCodebase } from '@/lib/cerebro/code-indexer';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 
 // ── GET ────────────────────────────────────────────────────────────────────
+// V11-P0.7: auth consolidada via withSecurity({ auth: 'zcc-admin' })
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const security = await verifyZCCAccessOrReject(request);
-  if (!security.allowed) return security.response!;
-
+async function getHandler(request: NextRequest, ctx: SecurityContext): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const isStats = searchParams.get('stats') === 'true';
@@ -41,7 +39,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         module: 'zcc-cerebro-refactors',
         event: 'manual_reindex',
         message: 'Re-indexação forçada pelo admin ZCC',
-        context: { triggeredBy: security.ip },
+        context: { triggeredBy: ctx.clientIp },
       });
 
       const result = await indexCodebase();
@@ -104,11 +102,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 // ── POST ───────────────────────────────────────────────────────────────────
+// V11-P0.7: auth consolidada via withSecurity({ auth: 'zcc-admin' })
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const security = await verifyZCCAccessOrReject(request);
-  if (!security.allowed) return security.response!;
-
+async function postHandler(request: NextRequest, ctx: SecurityContext): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action') || '';
@@ -135,7 +131,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         };
         const newStatus = statusMap[action];
 
-        const reviewerEmail = `admin@${security.ip}`;
+        const reviewerEmail = `admin@${ctx.clientIp}`;
         const suggester = getRefactorSuggester();
         await suggester.recordFeedback(
           suggestionId,
@@ -157,7 +153,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           module: 'zcc-cerebro-refactors',
           event: 'manual_trigger',
           message: 'Análise manual de refatoração iniciada pelo admin ZCC',
-          context: { triggeredBy: security.ip },
+          context: { triggeredBy: ctx.clientIp },
         });
 
         const recurring = await findRecurringErrors(5);
@@ -217,3 +213,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
+
+// V11-P0.7: exports wrapped com withSecurity + auth zcc-admin
+export const GET = withSecurity(getHandler, {
+  auth: 'zcc-admin',
+  routeLabel: 'zcc-cerebro-refactors-get',
+});
+
+export const POST = withSecurity(postHandler, {
+  auth: 'zcc-admin',
+  routeLabel: 'zcc-cerebro-refactors-post',
+});

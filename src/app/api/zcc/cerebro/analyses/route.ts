@@ -14,18 +14,16 @@
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+import { withSecurity, type SecurityContext } from '@/lib/security/api-shield';
 import { getGlmCerebroService, queryAnalyses } from '@/lib/cerebro/glm-service';
 import { runAnomalyDetection } from '@/lib/cerebro/anomaly-detector';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode, type AnalysisType, type Severity } from '@/lib/cerebro/types';
 
 // ── GET: Lista análises ou stats ────────────────────────────────────────────
+// V11-P0.7: auth consolidada via withSecurity({ auth: 'zcc-admin' })
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const security = await verifyZCCAccessOrReject(request);
-  if (!security.allowed) return security.response!;
-
+async function getHandler(request: NextRequest, _ctx: SecurityContext): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const isStats = searchParams.get('stats') === 'true';
@@ -88,11 +86,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 // ── POST: Ações (run analysis ou forecast) ─────────────────────────────────
+// V11-P0.7: auth consolidada via withSecurity({ auth: 'zcc-admin' })
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const security = await verifyZCCAccessOrReject(request);
-  if (!security.allowed) return security.response!;
-
+async function postHandler(request: NextRequest, ctx: SecurityContext): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action') || '';
@@ -104,7 +100,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           module: 'zcc-cerebro',
           event: 'manual_analysis_run',
           message: 'Análise manual iniciada pelo admin ZCC',
-          context: { triggeredBy: security.ip },
+          context: { triggeredBy: ctx.clientIp },
         });
 
         const anomalies = await runAnomalyDetection();
@@ -196,3 +192,14 @@ function groupBy<T>(arr: T[], fn: (item: T) => string | undefined): Record<strin
   }
   return result;
 }
+
+// V11-P0.7: exports wrapped com withSecurity + auth zcc-admin
+export const GET = withSecurity(getHandler, {
+  auth: 'zcc-admin',
+  routeLabel: 'zcc-cerebro-analyses-get',
+});
+
+export const POST = withSecurity(postHandler, {
+  auth: 'zcc-admin',
+  routeLabel: 'zcc-cerebro-analyses-post',
+});

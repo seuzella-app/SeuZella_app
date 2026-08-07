@@ -20,9 +20,9 @@
 //   es.addEventListener('anomaly', (e) => { ... });
 // ============================================================================
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+import { withSecurity, type SecurityContext } from '@/lib/security/api-shield';
 import { getGlmCerebroService } from '@/lib/cerebro/glm-service';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
@@ -48,13 +48,10 @@ function sendHeartbeat(controller: SSEStreamController): void {
 }
 
 // ── GET handler: estabelece SSE stream ─────────────────────────────────────
+// V11-P0.7: auth consolidada via withSecurity({ auth: 'zcc-admin' })
 
-export async function GET(request: NextRequest): Promise<Response> {
-  // ── Auth ──
-  // Para SSE, precisamos converter a NextRequest em algo que verifyZCCAccessOrReject aceita.
-  // O godmode pode vir via query param (?godmode=) ou cookie.
-  const security = await verifyZCCAccessOrReject(request);
-  if (!security.allowed) return security.response!;
+async function streamHandler(request: NextRequest, _ctx: SecurityContext): Promise<Response> {
+  // (auth já validada pelo withSecurity)
 
   const mode = getCerebroMode();
   const encoder = new TextEncoder();
@@ -204,3 +201,9 @@ export async function GET(request: NextRequest): Promise<Response> {
     },
   });
 }
+
+// V11-P0.7: wrap com withSecurity + auth zcc-admin
+export const GET = withSecurity(streamHandler, {
+  auth: 'zcc-admin',
+  routeLabel: 'zcc-cerebro-stream',
+});
