@@ -49,7 +49,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 local-*
-.claude
+# V11-P0.1: .claude/AGENTS.md agora é parte do User Harness versionado
+# .claude  (removido para permitir commit do AGENTS.md)
 .z-ai-config
 *.log
 dev.log
