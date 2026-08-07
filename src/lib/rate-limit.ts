@@ -194,5 +194,5 @@ function createRatelimit(requests: number, window: string): RatelimitInstance {
 // Auth rate: 5 req / 60s por IP (anti-brute-force de login)
 // Webhook rate: 100 req / 60s por tenant (limite Meta-side é maior)
 export const apiRatelimit: RatelimitInstance = createRatelimit(60, '60 s');
-export const authRatelimit: RatelimitInstance = createRatelimit(5, '60 s');
+export const authRatelimit: RatelimitInstance = createRatelimit(5, '15 m');
 export const webhookRatelimit: RatelimitInstance = createRatelimit(100, '60 s');
