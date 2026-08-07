@@ -13,6 +13,64 @@ import { classifyIntent, type IntentResult } from './intent-router';
 import { retrieveRelevantKnowledge, formatRAGContext } from './semantic-rag';
 import { executeToolCallingLoop, AVAILABLE_TOOLS } from './tool-calling';
 import { getNeuroRouter, type LLMResponse } from './zaos-neuro-router';
+import { db } from '@/lib/db';
+
+// ── V11-P0.6: DSPy CompiledPrompt loader ──────────────────────────────────
+// Feature flag: USE_DSPY_COMPILED_PROMPTS=true ativa o carregamento de prompts
+// otimizados pelo DSPy MIPROv2 a partir da tabela CompiledPrompt.
+// Fallback hierárquico: se desativado ou falha, usa o systemPrompt legado.
+
+const USE_DSPY_COMPILED_PROMPTS = process.env.USE_DSPY_COMPILED_PROMPTS === 'true';
+
+interface CompiledPromptLookup {
+  systemPrompt: string;
+  version: string;
+  source: 'dspy_compiled' | 'legacy_fallback';
+}
+
+/**
+ * Resolve o system prompt final, priorizando prompts compilados pelo DSPy
+ * (V11-P0.6 — ativação de ML morto). Fallback hierárquico para o prompt
+ * legado passado pelo caller em caso de falha ou feature flag desligada.
+ *
+ * Lookup: CompiledPrompt WHERE tenantId = ? AND niche = ? AND active = true
+ *         ORDER BY successRate DESC LIMIT 1
+ */
+async function resolveSystemPrompt(
+  tenantId: string,
+  niche: string,
+  legacyPrompt: string,
+): Promise<CompiledPromptLookup> {
+  if (!USE_DSPY_COMPILED_PROMPTS) {
+    return { systemPrompt: legacyPrompt, version: 'legacy', source: 'legacy_fallback' };
+  }
+
+  try {
+    if (!db || !(db as any).compiledPrompt) {
+      return { systemPrompt: legacyPrompt, version: 'legacy', source: 'legacy_fallback' };
+    }
+
+    const compiled = await (db as any).compiledPrompt.findFirst({
+      where: { tenantId, niche, active: true },
+      orderBy: { successRate: 'desc' },
+    });
+
+    if (compiled && compiled.promptText) {
+      console.log(
+        `[HARNESS_DSP_PROMPT_LOADED] tenant=${tenantId} niche=${niche} version=${compiled.version} successRate=${compiled.successRate}`
+      );
+      return {
+        systemPrompt: compiled.promptText,
+        version: compiled.version,
+        source: 'dspy_compiled',
+      };
+    }
+  } catch (err) {
+    console.error('[HARNESS_DSP_PROMPT_FALLBACK] Erro ao buscar prompt compilado, recorrendo ao legado:', err);
+  }
+
+  return { systemPrompt: legacyPrompt, version: 'legacy-fallback', source: 'legacy_fallback' };
+}
 
 export interface CognitivePipelineRequest {  
   message: string;  
@@ -51,11 +109,16 @@ export const BLOCKED_RESPONSE = 'Desculpe, não entendi muito bem. Poderia refor
 /**  
  * Executa o pipeline cognitivo completo para uma mensagem recebida.  
  */  
-export async function executeCognitivePipeline(  
-  request: CognitivePipelineRequest,  
-): Promise<CognitivePipelineResult> {  
-  const { message, tenantId, sessionId, systemPrompt } = request;  
+export async function executeCognitivePipeline(
+  request: CognitivePipelineRequest,
+): Promise<CognitivePipelineResult> {
+  const { message, tenantId, sessionId } = request;
   const startTime = Date.now();
+
+  // ── V11-P0.6: Resolve system prompt via DSPy CompiledPrompt (com fallback) ──
+  // niche='pousada' é o padrão do Seu Zélla; em P1 pode ser parametrizado por tenant.
+  const promptResolution = await resolveSystemPrompt(tenantId, 'pousada', request.systemPrompt);
+  const systemPrompt = promptResolution.systemPrompt;
 
   // Etapa 1: Guardrails  
   const guardResult = guardWhatsAppMessage(message);  
