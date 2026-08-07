@@ -30,6 +30,8 @@ import { getCerebroMode } from '@/lib/cerebro/types';
 import { runAnomalyDetection } from '@/lib/cerebro/anomaly-detector';
 import { getGlmCerebroService } from '@/lib/cerebro/glm-service';
 import { dispatchAlert } from '@/lib/cerebro/alert-bus';
+import { verifyCronM2MToken, auditCronExecution } from '@/lib/security/cron-auth';
+import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return runAnalysis(request);
@@ -43,16 +45,12 @@ async function runAnalysis(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
   const mode = getCerebroMode();
 
-  // ── Auth (CRON_SECRET) ──
-  // Nota: mantemos fail-open para cron (diferente do cerebro-watchdog que é fail-closed)
-  // porque Vercel Cron envia o header automaticamente. Se falhar auth, logamos mas rodamos.
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization');
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[cerebro-analyze] Auth mismatch — running anyway (cron fail-open for visibility)');
-    // Em produção crítica, converter para fail-closed:
-    // return NextResponse.json({ ok: false, error: 'UNAUTHORIZED' }, { status: 401 });
+  // ── Auth M2M EdDSA (V11-P0) — fail-closed ──
+  const auth = await verifyCronM2MToken(request, 'cerebro:read');
+  if (!auth.ok) {
+    return auth.response;
   }
+  const principal = auth.principal;
 
   try {
     // ── 1. Roda AnomalyDetector para coletar anomalias atuais ──
@@ -131,6 +129,18 @@ Analysis ID: ${analysisId}`,
     }
 
     const processingTime = Date.now() - startTime;
+
+    // ── Auditoria M2M (V11-P0) ──
+    await auditCronExecution({
+      prisma: db,
+      tenantId: 'system',
+      principal,
+      entryPoint: 'glm_cerebro',
+      policyId: 'cron:cerebro-analyze',
+      severity: 'info',
+      action: 'allow',
+      latencyMs: processingTime,
+    }).catch(err => console.error('[cerebro-analyze] audit log failed:', err));
 
     logSink.info({
       module: 'cerebro-analyze',

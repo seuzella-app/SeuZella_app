@@ -14,6 +14,7 @@ import { getBundlerStats } from '@/lib/message-bundler';
 import { getMetaCostSavings, checkMetaBudget } from '@/lib/meta-cost-guard';
 import { getEffectivePlan } from '@/lib/plan-resolver';
 import { sendEmail } from '@/lib/email-sender';
+import { verifyCronM2MToken, auditCronExecution } from '@/lib/security/cron-auth';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -584,16 +585,12 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   console.log('[Cron:weekly-report] Starting weekly email report batch...');
 
-  // ── Step 1: Authorization ─────────────────────────────────────────────────
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json(
-      { ok: false, error: 'Unauthorized — invalid CRON_SECRET' },
-      { status: 401 }
-    );
+  // ── Step 1: Authorization M2M EdDSA (V11-P0) ────────────────────────────
+  const auth = await verifyCronM2MToken(request, 'reports:read');
+  if (!auth.ok) {
+    return auth.response;
   }
+  const principal = auth.principal;
 
   // ── Step 2: Check database availability ───────────────────────────────────
   const dbAvailable = await isDatabaseAvailable();
@@ -710,6 +707,18 @@ export async function GET(request: NextRequest) {
   console.log(
     `[Cron:weekly-report] Batch complete: ${sentCount} sent, ${failedCount} failed, ${noEmailCount} no email — ${elapsedMs}ms`
   );
+
+  // ── Auditoria M2M (V11-P0) ──
+  await auditCronExecution({
+    prisma: db,
+    tenantId: 'system',
+    principal,
+    entryPoint: 'glm_cerebro',
+    policyId: 'cron:weekly-report',
+    severity: 'info',
+    action: 'allow',
+    latencyMs: elapsedMs,
+  }).catch(err => console.error('[Cron:weekly-report] audit log failed:', err));
 
   // ── Cérebro: roda budget forecast global para detectar tenants em risco ──
   // Em modo mock apenas registra no DB. Em live mode + critical dispara alertas.
