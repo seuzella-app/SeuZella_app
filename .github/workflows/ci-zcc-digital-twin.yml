@@ -14,10 +14,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Run Battery 01
         run: ./.zscripts/zcc-battery/01-typecheck-lint.sh
         env:
@@ -30,10 +30,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Run Battery 02
         run: ./.zscripts/zcc-battery/02-zcc-digital-twin-tests.sh
         env:
@@ -46,10 +46,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Run Battery 03
         run: ./.zscripts/zcc-battery/03-full-regression-suite.sh
         env:
@@ -64,10 +64,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Run Battery 04
         run: ./.zscripts/zcc-battery/04-production-build.sh
         env:
@@ -83,10 +83,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Run Battery 05
         run: ./.zscripts/zcc-battery/05-integration-smoke.sh
         env:
