@@ -706,6 +706,8 @@ export function DDCShell({
                   </>
                 ) : (
                   <span className="text-[9px] text-white/20 font-mono">--:--:--</span>
+                )}
+              </div>
             </div>
 
             {/* Mobile-First Sticky Horizontal Tab Bar (1-Tap Pill Navigation) */}
