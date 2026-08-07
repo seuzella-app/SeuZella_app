@@ -2055,12 +2055,17 @@ model BrainHealthLog {
 model CompiledPrompt {
   id               String   @id @default(cuid())
   tenantId         String
+  niche            String?  @map("niche")
   version          String
-  compiledJson     String
-  accuracyScore    Float?
+  compiledJson     String   @map("compiledJson")
+  promptText       String?  @map("promptText")
+  accuracyScore    Float?   @map("accuracyScore")
+  successRate      Float    @default(0.0) @map("successRate")
+  active           Boolean  @default(false)
   createdAt        DateTime @default(now())
 
   @@index([tenantId, version])
+  @@index([niche, active, successRate])
   @@map("compiled_prompts")
 }
 
@@ -2504,4 +2509,31 @@ model AirbReport {
   @@index([tenantId, type, createdAt])
   @@index([tenantId, period])
   @@map("airb_reports")
+}
+
+// ===== V11-P0: POLICY AUDIT =====
+// Audit trail para o PolicyRegistry (camada de Guardrails).
+// Cada decisão de policy (allow | redact | transform | reject | escalate)
+// é registrada aqui com hash do input para correlação forense.
+model PolicyAudit {
+  id              String   @id @default(cuid())
+  tenantId        String
+  policyId        String
+  policyVersion   String
+  severity        String   // info | warn | block | critical
+  action          String   // allow | redact | transform | reject | escalate
+  source          String   // whatsapp | webchat | api | cron | internal
+  entryPoint      String   @map("entry_point")
+  // cognitive_pipeline | glm_cerebro | agent_orchestrator | unknown
+  inputHash       String?  @map("input_hash")
+  matchedRule     String?  @map("matched_rule")
+  matchedPattern  String?  @map("matched_pattern")
+  redactedOutput  String?  @map("redacted_output")
+  latencyMs       Int?     @map("latency_ms")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@index([policyId, severity])
+  @@index([entryPoint, createdAt])
+  @@map("policy_audit")
 }
