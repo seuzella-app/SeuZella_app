@@ -112,10 +112,11 @@ interface DdcOverviewPayload {
 async function fetchDdcOverview(
   headers: Headers
 ): Promise<DdcOverviewPayload | null> {
-  const baseUrl =
+  const rawBaseUrl =
     process.env.NEXT_PUBLIC_APP_URL
-    || process.env.VERCEL_URL
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
     || 'http://localhost:3000';
+  const baseUrl = rawBaseUrl.startsWith('http') ? rawBaseUrl : `https://${rawBaseUrl}`;
   const url = `${baseUrl}/api/v1/guest/ddc/overview`;
 
   try {
