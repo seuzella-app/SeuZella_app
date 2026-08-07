@@ -47,11 +47,13 @@ const TAB_ICONS: Record<ZCCTabId, React.ElementType> = {
   sandbox: FlaskConical,
   financeiro: DollarSign,
   airbnb: Home,
+  pousadas: Home,
   burnrate: Flame,
   tenants: Users,
   tokens: Key,
   geo: Globe,
   financial: BarChart3,
+  'cerebro-tests': Brain,
 };
 
 const TAB_LABELS: Record<ZCCTabId, string> = {
@@ -63,11 +65,13 @@ const TAB_LABELS: Record<ZCCTabId, string> = {
   sandbox: 'Sandbox',
   financeiro: 'Financeiro',
   airbnb: 'Airbnb',
+  pousadas: 'Pousadas',
   burnrate: 'Burn Rate',
   tenants: 'Tenants',
   tokens: 'Tokens & IA',
   geo: 'Geo',
   financial: 'Breakdown',
+  'cerebro-tests': 'Testes Cérebro',
 };
 
 const TAB_DESCS: Record<ZCCTabId, string> = {
@@ -79,16 +83,18 @@ const TAB_DESCS: Record<ZCCTabId, string> = {
   sandbox: 'Z-Lab Simulação',
   financeiro: 'Receitas & Pagamentos',
   airbnb: 'Anfitriões & Imóveis',
+  pousadas: 'Gestão de Pousadas',
   burnrate: 'Custos API WhatsApp',
   tenants: 'Raio-X & Kill Switch',
   tokens: 'LLMs & API Keys',
   geo: 'Métricas Geográficas',
   financial: 'Detalhamento Financeiro',
+  'cerebro-tests': 'Suíte de Testes ML',
 };
 
 const ALL_TAB_IDS: ZCCTabId[] = [
   'overview', 'agents', 'pulse', 'cerebro', 'refactors', 'sandbox', 'financeiro',
-  'airbnb', 'burnrate', 'tenants', 'tokens', 'geo', 'financial',
+  'airbnb', 'pousadas', 'burnrate', 'tenants', 'tokens', 'geo', 'financial', 'cerebro-tests'
 ];
 
 export function ZCCCommandPalette({

@@ -3,6 +3,7 @@ import { bootDigitalTwin, digitalTwinSnapshot } from '../src/simulation/ZCCDigit
 import { googleAdsMock } from '../src/adapters/mock/GoogleAdsMock';
 import { metaAdsMock } from '../src/adapters/mock/MetaAdsMock';
 import { ZellaGrowthStrategy } from '../src/domain/strategy';
+import { getAdapters } from '../src/adapters';
 
 describe('ZCC Digital Twin — Financial & Growth Engine Validation', () => {
 
@@ -120,7 +121,8 @@ describe('ZCC Digital Twin — Financial & Growth Engine Validation', () => {
   });
 
   it('validates ZGS strategic decision layer instantiation and snapshot', async () => {
-    const zgs = new ZellaGrowthStrategy();
+    const adapters = getAdapters('digital-twin');
+    const zgs = new ZellaGrowthStrategy(adapters);
     const snapshot = zgs.snapshot();
 
     expect(snapshot).toBeDefined();

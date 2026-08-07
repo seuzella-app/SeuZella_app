@@ -8,12 +8,12 @@ import { getAgent, runAgent, buildRunContext } from '@/lib/zcc/agents/registry';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response;
 
-  const agentId = params.id;
+  const { id: agentId } = await params;
   const agent = getAgent(agentId);
   if (!agent) {
     return NextResponse.json(

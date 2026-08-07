@@ -18,11 +18,8 @@ import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 // Usa SQLite em arquivo fixo para testes de integração.
-// O DB é criado via `prisma db push` ANTES do teste rodar — ver script npm:test:locks-db.
 const TEST_DB_PATH = './test-integration.db';
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = `file:${TEST_DB_PATH}`;
-}
+process.env.DATABASE_URL = `file:${TEST_DB_PATH}`;
 
 const prisma = new PrismaClient();
 
