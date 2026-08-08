@@ -1,18 +1,22 @@
 'use client';
 
 /**
- * Zélla — DDC Mobile Notification Center (Mock Mode)
+ * Zélla — DDC Mobile Notification Center (v2 — Advanced Filters + Action Buttons)
  *
- * Mobile-first slide-over drawer showing all notifications for the current
- * niche + plan. Includes:
- *  - Filter chips by category (9 categories)
- *  - Mark all as read button
+ * Features:
+ *  - Filter chips by category (9 categories) — existing
+ *  - Filter by priority (4 chips: urgent / high / medium / low) — NEW (Gap 7)
+ *  - Filter by status (All / Unread / Read / Archived) — NEW (Gap 7)
+ *  - Free-text search over title + message — NEW (Gap 7)
+ *  - Functional action buttons (router.push + mark read) — NEW (Gap 8)
  *  - Per-item: priority dot, title, message, time-ago, action button
  *  - Sound on new arrival (handled by hook)
- *  - "Simulate" button (mock mode only — to demo the system)
+ *  - "Simulate" button (mock mode only)
+ *  - "Archive read" bulk action — NEW
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sheet,
@@ -23,8 +27,8 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   Bell,
   BellOff,
@@ -44,12 +48,16 @@ import {
   Globe,
   X,
   ChevronRight,
+  Archive,
+  Search,
 } from 'lucide-react';
 import { useDDCMobileNotifications } from '@/lib/notifications/use-mobile-notifications';
 import type {
   DDCNotification,
   NotificationCategory,
   NotificationNiche,
+  NotificationPriority,
+  NotificationStatus,
 } from '@/lib/notifications/types';
 import type { PlanTier } from '@/lib/plan-features';
 import type { NicheType } from '@/contexts/NicheContext';
@@ -86,6 +94,13 @@ const PRIORITY_COLOR: Record<DDCNotification['priority'], string> = {
   urgent: 'bg-red-500',
 };
 
+const PRIORITY_LABEL: Record<NotificationPriority, string> = {
+  low: 'Baixa',
+  medium: 'Média',
+  high: 'Alta',
+  urgent: 'Urgente',
+};
+
 // ─── Time-ago formatter ────────────────────────────────────────────────────
 function timeAgo(iso: string): string {
   const now = Date.now();
@@ -116,6 +131,7 @@ export function DDCNotificationCenter({
   niche,
   plan,
 }: DDCNotificationCenterProps) {
+  const router = useRouter();
   const {
     notifications,
     unreadCount,
@@ -124,6 +140,7 @@ export function DDCNotificationCenter({
     isMockMode,
     markAsRead,
     markAllAsRead,
+    archive,
     simulateNotification,
   } = useDDCMobileNotifications({
     niche,
@@ -133,15 +150,36 @@ export function DDCNotificationCenter({
     enableBrowserNotifications: true,
   });
 
+  // ─── Filter state ──
   const [activeCategory, setActiveCategory] = useState<NotificationCategory | 'all'>('all');
+  const [activePriority, setActivePriority] = useState<NotificationPriority | 'all'>('all');
+  const [activeStatus, setActiveStatus] = useState<NotificationStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // ─── Filtered list ───────────────────────────────────────────────────────
+  // ─── Filtered list (combined filters) ──
   const filtered = useMemo(() => {
-    if (activeCategory === 'all') return notifications;
-    return notifications.filter((n) => n.category === activeCategory);
-  }, [notifications, activeCategory]);
+    let result = notifications.slice();
+    if (activeCategory !== 'all') {
+      result = result.filter((n) => n.category === activeCategory);
+    }
+    if (activePriority !== 'all') {
+      result = result.filter((n) => n.priority === activePriority);
+    }
+    if (activeStatus !== 'all') {
+      result = result.filter((n) => n.status === activeStatus);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) ||
+          n.message.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [notifications, activeCategory, activePriority, activeStatus, searchQuery]);
 
-  // ─── Category counts ─────────────────────────────────────────────────────
+  // ─── Category counts (for chips) ──
   const categoryCounts = useMemo(() => {
     const counts: Partial<Record<NotificationCategory, number>> = {};
     for (const n of notifications) {
@@ -150,6 +188,50 @@ export function DDCNotificationCenter({
     }
     return counts;
   }, [notifications]);
+
+  // ─── Active filter chips (for removable display) ──
+  const activeFilters: string[] = [];
+  if (activeCategory !== 'all') activeFilters.push(`Categoria: ${CATEGORY_LABEL[activeCategory]}`);
+  if (activePriority !== 'all') activeFilters.push(`Prioridade: ${PRIORITY_LABEL[activePriority]}`);
+  if (activeStatus !== 'all') activeFilters.push(`Status: ${activeStatus}`);
+  if (searchQuery.trim()) activeFilters.push(`Busca: "${searchQuery.trim()}"`);
+
+  const clearAllFilters = () => {
+    setActiveCategory('all');
+    setActivePriority('all');
+    setActiveStatus('all');
+    setSearchQuery('');
+  };
+
+  // ─── Archive all read ──
+  const archiveRead = useCallback(async () => {
+    for (const n of notifications) {
+      if (n.status === 'read') {
+        try {
+          await archive(n.id);
+        } catch {}
+      }
+    }
+  }, [notifications, archive]);
+
+  // ─── Action button click — Gap 8 ──
+  const handleActionClick = useCallback(
+    async (notification: DDCNotification) => {
+      // Mark as read first
+      if (notification.status === 'unread') {
+        try {
+          await markAsRead(notification.id);
+        } catch {}
+      }
+      // Close the sheet
+      onOpenChange(false);
+      // Navigate to actionUrl
+      if (notification.actionUrl) {
+        router.push(notification.actionUrl);
+      }
+    },
+    [markAsRead, router, onOpenChange]
+  );
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
@@ -193,7 +275,21 @@ export function DDCNotificationCenter({
           </SheetDescription>
         </SheetHeader>
 
-        {/* Filter chips */}
+        {/* Search input — NEW (Gap 7) */}
+        <div className="px-3 py-2 border-b border-white/[0.06]">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
+            <Input
+              type="search"
+              placeholder="Buscar notificações..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 pl-8 pr-3 bg-white/[0.04] border-white/[0.06] text-white text-xs placeholder:text-white/30"
+            />
+          </div>
+        </div>
+
+        {/* Category filter chips */}
         <div className="px-3 py-2 border-b border-white/[0.06] overflow-x-auto">
           <div className="flex gap-1.5 min-w-max">
             <FilterChip
@@ -220,6 +316,68 @@ export function DDCNotificationCenter({
           </div>
         </div>
 
+        {/* Priority filter chips — NEW (Gap 7) */}
+        <div className="px-3 py-1.5 border-b border-white/[0.06] overflow-x-auto">
+          <div className="flex gap-1.5 min-w-max">
+            <FilterChip
+              active={activePriority === 'all'}
+              label="Toda prioridade"
+              onClick={() => setActivePriority('all')}
+            />
+            {(Object.keys(PRIORITY_LABEL) as NotificationPriority[]).map((p) => (
+              <FilterChip
+                key={p}
+                active={activePriority === p}
+                label={PRIORITY_LABEL[p]}
+                icon={<div className={`w-2 h-2 rounded-full ${PRIORITY_COLOR[p]}`} />}
+                onClick={() => setActivePriority(p)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Status filter chips — NEW (Gap 7) */}
+        <div className="px-3 py-1.5 border-b border-white/[0.06] overflow-x-auto">
+          <div className="flex gap-1.5 min-w-max">
+            <FilterChip
+              active={activeStatus === 'all'}
+              label="Todos status"
+              onClick={() => setActiveStatus('all')}
+            />
+            {(['unread', 'read', 'archived'] as NotificationStatus[]).map((s) => (
+              <FilterChip
+                key={s}
+                active={activeStatus === s}
+                label={
+                  s === 'unread'
+                    ? 'Não lidas'
+                    : s === 'read'
+                      ? 'Lidas'
+                      : 'Arquivadas'
+                }
+                onClick={() => setActiveStatus(s)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Active filters chips (removable) */}
+        {activeFilters.length > 0 && (
+          <div className="px-3 py-1.5 border-b border-white/[0.06] flex items-center gap-1.5 flex-wrap">
+            {activeFilters.map((f, i) => (
+              <button
+                key={i}
+                onClick={clearAllFilters}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20"
+                title="Clique para limpar todos os filtros"
+              >
+                {f}
+                <X className="w-2.5 h-2.5" />
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex items-center gap-2 px-4 py-2 border-b border-white/[0.06]">
           <Button
@@ -230,7 +388,16 @@ export function DDCNotificationCenter({
             disabled={unreadCount === 0}
           >
             <CheckCheck className="w-3.5 h-3.5 mr-1" />
-            Marcar todas como lidas
+            Marcar lidas
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs text-white/60 hover:text-white"
+            onClick={archiveRead}
+          >
+            <Archive className="w-3.5 h-3.5 mr-1" />
+            Arquivar lidas
           </Button>
           <div className="flex-1" />
           {isMockMode && (
@@ -259,9 +426,9 @@ export function DDCNotificationCenter({
               <div className="p-8 text-center">
                 <BellOff className="w-8 h-8 text-white/20 mx-auto mb-3" />
                 <p className="text-white/40 text-xs">
-                  {activeCategory === 'all'
-                    ? 'Nenhuma notificação no momento'
-                    : `Nenhuma notificação em ${CATEGORY_LABEL[activeCategory as NotificationCategory]}`}
+                  {activeFilters.length > 0
+                    ? 'Nenhuma notificação com esses filtros'
+                    : 'Nenhuma notificação no momento'}
                 </p>
               </div>
             ) : (
@@ -271,6 +438,7 @@ export function DDCNotificationCenter({
                     key={notification.id}
                     notification={notification}
                     onMarkRead={() => markAsRead(notification.id)}
+                    onActionClick={() => handleActionClick(notification)}
                   />
                 ))}
               </AnimatePresence>
@@ -327,9 +495,11 @@ function FilterChip({
 function NotificationItem({
   notification,
   onMarkRead,
+  onActionClick,
 }: {
   notification: DDCNotification;
   onMarkRead: () => void;
+  onActionClick: () => void;
 }) {
   const Icon = CATEGORY_ICON[notification.category];
   const isUnread = notification.status === 'unread';
@@ -370,14 +540,17 @@ function NotificationItem({
             {notification.message}
           </p>
           {notification.actionLabel && notification.actionUrl && (
-            <a
-              href={notification.actionUrl}
-              className="inline-flex items-center gap-1 mt-1.5 text-[10px] text-emerald-400 hover:text-emerald-300"
-              onClick={(e) => e.stopPropagation()}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onActionClick();
+              }}
+              className="inline-flex items-center gap-1 mt-1.5 text-[10px] text-emerald-400 hover:text-emerald-300 transition-colors"
             >
               {notification.actionLabel}
               <ChevronRight className="w-3 h-3" />
-            </a>
+            </button>
           )}
         </div>
       </div>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId, mapBooking } from '@/lib/ddc/ddc-mapper';
 import { apiRatelimit } from '@/lib/rate-limit';
+// Notification bridge — Phase 2: pushes reservation events into DDC
+import { bridgeReservationEvent } from '@/lib/notifications/bridges';
 
 const demoBookings = [
   {
@@ -122,6 +124,23 @@ export async function POST(request: NextRequest) {
         source: body.source || 'whatsapp_ai',
       }
     });
+
+    // ── Notification bridge: notify owner about new reservation ──
+    try {
+      bridgeReservationEvent({
+        niche: 'pousada',
+        bookingId: booking.id,
+        guestName: body.guestName || 'Hóspede',
+        roomName: body.roomId || body.roomName || 'Quarto',
+        checkIn: checkIn.toISOString(),
+        checkOut: checkOut.toISOString(),
+        status: 'created',
+        tenantId,
+      });
+    } catch (notifErr) {
+      console.error('[DDC bookings POST] notification bridge error:', notifErr);
+    }
+
     return NextResponse.json({ success: true, data: mapBooking(booking) }, { status: 201 });
   } catch (error) {
     console.error('[DDC bookings POST] Error:', error);

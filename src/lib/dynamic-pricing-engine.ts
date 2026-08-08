@@ -433,6 +433,36 @@ export function applyRule(
   // Round to 2 decimal places
   newPrice = Math.round(newPrice * 100) / 100;
 
+  // ── Notification bridge: alert when modifier is significant (>15% in absolute terms) ──
+  // Non-blocking: never break the pricing engine.
+  try {
+    const modifierPercent =
+      rule.modifierType === 'multiplier'
+        ? (rule.modifierValue - 1) * 100
+        : rule.modifierType === 'percent_increase'
+          ? rule.modifierValue
+          : rule.modifierType === 'percent_decrease'
+            ? -rule.modifierValue
+            : 0;
+    if (Math.abs(modifierPercent) > 15) {
+      // Dynamic import to avoid circular dependency at module load time
+      import('@/lib/notifications/bridges')
+        .then(({ bridgeDynamicPricingAlert }) =>
+          bridgeDynamicPricingAlert({
+            niche: 'pousada',
+            ruleName: rule.name,
+            roomName: rule.id,
+            basePrice,
+            calculatedPrice: newPrice,
+            modifier: modifierPercent,
+          })
+        )
+        .catch((e) => console.error('[dynamic-pricing-engine] bridgeDynamicPricingAlert error:', e));
+    }
+  } catch (bridgeErr) {
+    console.error('[dynamic-pricing-engine] bridge wrapper error:', bridgeErr);
+  }
+
   const breakdown: ModifierBreakdownEntry = {
     ruleId: rule.id,
     ruleName: rule.name,

@@ -139,12 +139,25 @@ export function useDDCMobileNotifications(
     if (newest.id !== lastNotificationIdRef.current) {
       lastNotificationIdRef.current = newest.id;
 
-      // Sound
+      // Sound — choose file based on priority (Gap 6)
       if (enableSound) {
         try {
-          const audio = new Audio('/sounds/notification.mp3');
-          audio.volume = 0.6;
-          audio.play().catch(() => {});
+          const soundFile =
+            newest.priority === 'urgent'
+              ? '/sounds/alert.mp3'
+              : newest.priority === 'high'
+                ? '/sounds/notification.mp3'
+                : newest.priority === 'medium'
+                  ? '/sounds/success.mp3'
+                  : '/sounds/info.mp3';
+          const prefersReducedMotion =
+            typeof window !== 'undefined' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (!prefersReducedMotion) {
+            const audio = new Audio(soundFile);
+            audio.volume = 0.5; // never startle the user
+            audio.play().catch(() => {});
+          }
         } catch {}
       }
 

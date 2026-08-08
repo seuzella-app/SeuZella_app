@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { apiRatelimit } from '@/lib/rate-limit';
+// Notification bridge — Phase 2: pushes escalation into DDC notification system
+import { bridgeWhatsAppEscalation } from '@/lib/notifications/bridges';
 
 export async function POST(
   request: NextRequest,
@@ -54,6 +56,19 @@ export async function POST(
         },
       }),
     ]);
+
+    // ── Notification bridge: also pushes into the DDC mobile notification system ──
+    try {
+      bridgeWhatsAppEscalation({
+        niche: 'all',
+        guestName: conversation.guestName ?? conversation.guestPhone ?? 'Hóspede',
+        conversationId: id,
+        reason: 'Escalonamento manual pelo dono',
+        tenantId,
+      });
+    } catch (notifErr) {
+      console.error('[escalate] notification bridge error:', notifErr);
+    }
 
     return NextResponse.json({
       success: true,

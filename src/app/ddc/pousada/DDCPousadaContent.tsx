@@ -92,15 +92,17 @@ import {
   Trash2,
   ExternalLink,
   Info,
+  Trophy,
 } from 'lucide-react';
 import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
 import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
+import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras';
+type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
 
 interface GuestCardData {
   id: string;
@@ -344,6 +346,7 @@ const pousadaNavItems: NavItem[] = [
   { id: 'creditos', label: 'Créditos de Amortização', icon: <Coins className="size-4" />, tier: 'lite' },
   { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
   { id: 'properties', label: 'Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
+  { id: 'conquistas', label: 'Conquistas', icon: <Trophy className="size-4" />, tier: 'parceiro' },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
@@ -409,7 +412,7 @@ export default function DDCPousadaContent() {
 
   // Tab navigation handler (declared before early return — Rules of Hooks)
   const handleTabChange = useCallback((id: string) => {
-    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties', 'fechaduras'];
+    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties', 'fechaduras', 'conquistas'];
     if (validTabs.includes(id as PousadaTab)) {
       setActiveTab(id as PousadaTab);
     } else {
@@ -1541,6 +1544,11 @@ export default function DDCPousadaContent() {
         {activeTab === 'fechaduras' && (
           <div key="fechaduras">
             <LocksTab niche="pousada" />
+          </div>
+        )}
+        {activeTab === 'conquistas' && (
+          <div key="conquistas">
+            <ConquistasTab />
           </div>
         )}
       </AnimatePresence>

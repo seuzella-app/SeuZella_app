@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
+// Notification bridge — Phase 2: pushes payment events into DDC
+import { bridgePaymentEvent, bridgeSecurityAlert } from '@/lib/notifications/bridges';
 
 /**
  * POST /api/checkout/webhook
@@ -38,6 +40,16 @@ export async function POST(request: NextRequest) {
       const verification = verifyMercadoPagoWebhook(rawBody, signature, webhookSecret!);
       if (!verification.valid) {
         console.warn(`[checkout-webhook] REJECTED: ${verification.reason}`);
+        // ── Notification bridge: alert tenant about invalid webhook signature ──
+        try {
+          bridgeSecurityAlert({
+            niche: 'all',
+            ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown',
+            reason: `Webhook checkout assinatura inválida: ${verification.reason}`,
+          });
+        } catch (notifErr) {
+          console.error('[checkout-webhook] security bridge error:', notifErr);
+        }
         return NextResponse.json(
           { error: 'SIGNATURE_INVALID', reason: verification.reason },
           { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v1' } }
@@ -115,12 +127,46 @@ export async function POST(request: NextRequest) {
                 where: { id: subscription.tenantId },
                 data: { plan: subscription.planType, subscriptionAt: now, status: 'active' },
               });
+
+              // ── Notification bridge: payment received ──
+              try {
+                bridgePaymentEvent({
+                  niche: 'all',
+                  paymentId: String(paymentId),
+                  amount: Number(transaction.amount ?? 0),
+                  guestName: subscription.tenantId,
+                  method: 'pix',
+                  status: 'received',
+                  tenantId: subscription.tenantId,
+                });
+              } catch (notifErr) {
+                console.error('[checkout-webhook] payment bridge error:', notifErr);
+              }
             }
           } else if (newStatus === 'rejected') {
             await db.subscription.update({
               where: { id: transaction.subscriptionId },
               data: { paymentStatus: 'rejected' },
             });
+
+            // ── Notification bridge: payment failed ──
+            try {
+              const subscription = await db.subscription.findUnique({
+                where: { id: transaction.subscriptionId },
+              });
+              if (subscription) {
+                bridgePaymentEvent({
+                  niche: 'all',
+                  paymentId: String(paymentId),
+                  amount: Number(transaction.amount ?? 0),
+                  guestName: subscription.tenantId,
+                  status: 'failed',
+                  tenantId: subscription.tenantId,
+                });
+              }
+            } catch (notifErr) {
+              console.error('[checkout-webhook] payment-failed bridge error:', notifErr);
+            }
           }
         } catch (mpError) {
           console.error('MP fetch error:', mpError);

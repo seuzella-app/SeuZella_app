@@ -24,6 +24,8 @@ import { dispatchAlert } from '@/lib/cerebro/alert-bus';
 import type { CerebroAnalysisResult } from '@/lib/cerebro/types';
 import { verifyCronM2MToken, auditCronExecution } from '@/lib/security/cron-auth';
 import { db } from '@/lib/db';
+// Notification bridge — Phase 2: pushes budget forecast alerts into DDC for the tenant
+import { bridgeCerebroAlert } from '@/lib/notifications/bridges';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return runBudgetForecast(request);
@@ -154,6 +156,19 @@ Analysis ID: ${analysisId}`,
             context: { tenantId: forecast.tenantId, severity: forecast.severity },
           });
         }
+      }
+
+      // ── Notification bridge: push cost_alert to the tenant's DDC ──
+      // Independent of AlertBus — this is the tenant-facing notification.
+      try {
+        bridgeCerebroAlert({
+          alertType: 'cost_alert',
+          value: forecast.projectedUsagePercent,
+          expected: 100,
+          tenantId: forecast.tenantId,
+        });
+      } catch (bridgeErr) {
+        console.error('[cerebro-budget-forecast] bridgeCerebroAlert error:', bridgeErr);
       }
     }
 
