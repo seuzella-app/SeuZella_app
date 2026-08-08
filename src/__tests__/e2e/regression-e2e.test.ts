@@ -181,7 +181,7 @@ describe('E2E Regression — DDCShell navigation includes new tabs', () => {
       join(PROJECT_ROOT, 'src/app/ddc/pousada/DDCPousadaContent.tsx'),
       'utf-8'
     );
-    expect(source).toMatch(/conquistas.*tier:\s*'parceiro'/s);
+    expect(source).toMatch(/conquistas[\s\S]*tier:\s*'parceiro'/);
   });
 
   it('airbnbNavItems has conquistas with tier=parceiro', () => {
@@ -189,7 +189,7 @@ describe('E2E Regression — DDCShell navigation includes new tabs', () => {
       join(PROJECT_ROOT, 'src/app/ddc/airbnb/DDCAirbnbContent.tsx'),
       'utf-8'
     );
-    expect(source).toMatch(/conquistas.*tier:\s*'parceiro'/s);
+    expect(source).toMatch(/conquistas[\s\S]*tier:\s*'parceiro'/);
   });
 });
 

@@ -114,7 +114,7 @@ describe('Gap 9 — ConquistasTab in navItems (Pousada + Airbnb)', () => {
       join(PROJECT_ROOT, 'src/app/ddc/pousada/DDCPousadaContent.tsx'),
       'utf-8'
     );
-    expect(source).toMatch(/type\s+PousadaTab\s*=.*'conquistas'/s);
+    expect(source).toMatch(/type\s+PousadaTab\s*=[\s\S]*'conquistas'/);
   });
 
   it('AirbnbTab type includes conquistas', () => {
@@ -122,7 +122,7 @@ describe('Gap 9 — ConquistasTab in navItems (Pousada + Airbnb)', () => {
       join(PROJECT_ROOT, 'src/app/ddc/airbnb/DDCAirbnbContent.tsx'),
       'utf-8'
     );
-    expect(source).toMatch(/type\s+AirbnbTab\s*=.*'conquistas'/s);
+    expect(source).toMatch(/type\s+AirbnbTab\s*=[\s\S]*'conquistas'/);
   });
 
   it('pousada navItems includes conquistas in validTabs array', () => {
@@ -130,7 +130,7 @@ describe('Gap 9 — ConquistasTab in navItems (Pousada + Airbnb)', () => {
       join(PROJECT_ROOT, 'src/app/ddc/pousada/DDCPousadaContent.tsx'),
       'utf-8'
     );
-    expect(source).toMatch(/validTabs.*'conquistas'/s);
+    expect(source).toMatch(/validTabs[\s\S]*'conquistas'/);
   });
 
   it('airbnb validTabs includes conquistas', () => {
@@ -138,7 +138,7 @@ describe('Gap 9 — ConquistasTab in navItems (Pousada + Airbnb)', () => {
       join(PROJECT_ROOT, 'src/app/ddc/airbnb/DDCAirbnbContent.tsx'),
       'utf-8'
     );
-    expect(source).toMatch(/validTabs.*'conquistas'/s);
+    expect(source).toMatch(/validTabs[\s\S]*'conquistas'/);
   });
 
   it('pousada renders <ConquistasTab /> for activeTab === conquistas', () => {
@@ -146,7 +146,7 @@ describe('Gap 9 — ConquistasTab in navItems (Pousada + Airbnb)', () => {
       join(PROJECT_ROOT, 'src/app/ddc/pousada/DDCPousadaContent.tsx'),
       'utf-8'
     );
-    expect(source).toMatch(/activeTab\s*===\s*'conquistas'.*<ConquistasTab/s);
+    expect(source).toMatch(/activeTab\s*===\s*'conquistas'[\s\S]*<ConquistasTab/);
   });
 
   it('airbnb renders <ConquistasTab /> for activeTab === conquistas', () => {
@@ -154,7 +154,7 @@ describe('Gap 9 — ConquistasTab in navItems (Pousada + Airbnb)', () => {
       join(PROJECT_ROOT, 'src/app/ddc/airbnb/DDCAirbnbContent.tsx'),
       'utf-8'
     );
-    expect(source).toMatch(/case\s+'conquistas':\s*return\s+<ConquistasTab/s);
+    expect(source).toMatch(/case\s+'conquistas':\s*return\s+<ConquistasTab[\s\S]/);
   });
 
   it('both files import ConquistasTab from correct path', () => {

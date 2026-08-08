@@ -36,7 +36,7 @@ function makeRequest(body: any, opts: { signature?: string; secret?: string } = 
 
 describe('Booking.com Reviews Webhook — GET health check', () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     delete process.env.BOOKING_COM_WEBHOOK_SECRET;
   });
 
@@ -55,7 +55,7 @@ describe('Booking.com Reviews Webhook — GET health check', () => {
 
 describe('Booking.com Reviews Webhook — POST in dev mode (no signature verification)', () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     delete process.env.BOOKING_COM_WEBHOOK_SECRET;
     memoryStore.clear();
   });
@@ -131,13 +131,13 @@ describe('Booking.com Reviews Webhook — POST in dev mode (no signature verific
 
 describe('Booking.com Reviews Webhook — Production mode with HMAC verification', () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'production';
+    (process.env as any).NODE_ENV = 'production';
     process.env.BOOKING_COM_WEBHOOK_SECRET = WEBHOOK_SECRET;
     memoryStore.clear();
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     delete process.env.BOOKING_COM_WEBHOOK_SECRET;
   });
 

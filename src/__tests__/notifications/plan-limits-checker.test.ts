@@ -54,7 +54,7 @@ describe('checkPlanLimits — non-LITE plans skip limits', () => {
 describe('checkPlanLimits — LITE thresholds', () => {
   beforeEach(() => {
     memoryStore.clear();
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     delete process.env.DATABASE_URL;
   });
 
@@ -101,7 +101,7 @@ describe('checkPlanLimits — LITE thresholds', () => {
 describe('checkPlanLimits — gratuito plan (treated like LITE)', () => {
   beforeEach(() => {
     memoryStore.clear();
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     delete process.env.DATABASE_URL;
   });
 
@@ -133,7 +133,7 @@ describe('checkPlanLimits — PlanLimitsResult shape', () => {
 describe('Threshold logic (without DB)', () => {
   beforeEach(() => {
     memoryStore.clear();
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     delete process.env.DATABASE_URL;
   });
 

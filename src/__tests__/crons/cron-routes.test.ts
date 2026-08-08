@@ -78,7 +78,7 @@ function mockCronRequest(headers: Record<string, string> = {}): Request {
 
 beforeEach(() => {
   process.env.CI = 'true';
-  process.env.NODE_ENV = 'test';
+  (process.env as any).NODE_ENV = 'test';
   process.env.DATABASE_URL = 'file:./test-ci.db';
   memoryStore.clear();
 });
@@ -104,12 +104,12 @@ describe('Cron routes — file existence and exports', () => {
 
 describe('Cron routes — auth gate in production', () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'production';
+    (process.env as any).NODE_ENV = 'production';
     process.env.CRON_SECRET = 'test-cron-secret';
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
   });
 
   it('ota-token-expiry returns 401 without auth header in production', async () => {
@@ -171,7 +171,7 @@ describe('Cron routes — auth gate in production', () => {
 
 describe('Cron routes — happy path in dev mode', () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     delete process.env.CRON_SECRET;
   });
 
@@ -286,7 +286,7 @@ describe('Cron routes — export config', () => {
 
 describe('Cron routes — response shape validation', () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     delete process.env.CRON_SECRET;
   });
 

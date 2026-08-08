@@ -134,7 +134,7 @@ describe('Gap 11 — PWA v2 service worker', () => {
   it('has stale-while-revalidate strategy for assets', () => {
     const source = readFileSync(swPath, 'utf-8');
     expect(source).toMatch(/ASSET_PATTERNS/);
-    expect(source).toMatch(/caches\.match.*fetch.*cache\.put/s);
+    expect(source).toMatch(/caches\.match[\s\S]*fetch[\s\S]*cache\.put/);
   });
 
   it('has network-first strategy for API GETs', () => {
@@ -183,7 +183,7 @@ describe('Gap 11 — PWA v2 service worker', () => {
 
   it('cleans old caches on activate', () => {
     const source = readFileSync(swPath, 'utf-8');
-    expect(source).toMatch(/caches\.keys\(\).*caches\.delete/s);
+    expect(source).toMatch(/caches\.keys\(\)[\s\S]*caches\.delete/);
   });
 });
 
