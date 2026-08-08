@@ -39,7 +39,7 @@ export async function checkPlanLimits(
   };
 
   // Only LITE has hard limits; PRO/MAX/PARCEIRO are unlimited
-  if (plan !== 'lite' && plan !== 'gratuito') {
+  if (plan !== 'lite') {
     return result;
   }
 

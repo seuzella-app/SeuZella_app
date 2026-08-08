@@ -18,17 +18,21 @@ enum LeadStatus {
 }
 
 // Fonte da verdade absoluta para planos:
-// GRATUITO = plano free (7 dias trial)
-// LITE = plano básico
-// PRO = plano profissional
-// MAX = plano premium
-// PARCEIRO = parceiro Zélla (Link-in-Bio + comissão)
+// 4 planos pagos (sem trial gratuito):
+// LITE     = R$ 197/mês (50 hóspedes, 500 mensagens, IA limitada)
+// PRO      = R$ 397/mês (ilimitado, OAuth Airbnb, dynamic pricing)
+// MAX      = R$ 797/mês (tudo de PRO + competitor monitoring + multi-property)
+// PARCEIRO = R$ 247/mês (PRO + tab Conquistas + referral gamification)
+//
+// NOTA: Não há trial gratuito. Clientes pagam a partir do primeiro mês.
+//       O plano 'gratuito' mantido no enum apenas para compatibilidade
+//       com tenants existentes em ambiente de dev (será removido após migração).
 enum Plan {
-  GRATUITO
   LITE
   PRO
   MAX
   PARCEIRO
+  GRATUITO  // @deprecated — removido em produção, mantido para compat
 }
 
 // ===== USER & POST (from backup) =====

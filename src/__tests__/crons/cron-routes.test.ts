@@ -193,7 +193,6 @@ describe('Cron routes — happy path in dev mode', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(body.trialAlerts).toBeGreaterThanOrEqual(0);
     expect(body.subscriptionAlerts).toBeGreaterThanOrEqual(0);
     expect(body.totalAlerts).toBeGreaterThanOrEqual(0);
   });

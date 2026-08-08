@@ -1,9 +1,12 @@
 // ============================================================================
-// ZÉLLA — Cron: Plan Expiry Check (Daily 09:00 BRT = 12:00 UTC)
+// ZÉLLA — Cron: Subscription Renewal Reminder (Daily 09:00 BRT = 12:00 UTC)
 // ============================================================================
-// Verifica trials e subscriptions que terminam em 3 dias (warning) ou 24h (urgent).
-// Chama bridgePlanExpiring para cada tenant em situação de expiração.
+// Verifica subscriptions que terminam em 3 dias (warning) ou 24h (urgent).
+// Dispara bridgePlanExpiring para o dono saber que precisa renovar.
+//
 // Schedule Vercel: 0 12 * * *
+//
+// NOTA: O Seu Zélla NÃO tem mais trial gratuito. Apenas assinaturas pagas.
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -34,43 +37,13 @@ async function runCheck(request: NextRequest): Promise<NextResponse> {
     console.log('[Cron:plan-expiry] No auth — running in mock mode');
   }
 
-  let trialAlerts = 0;
   let subscriptionAlerts = 0;
 
   try {
     const now = new Date();
     const horizon3d = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
-    // ── Trial expiring ──
-    const trialTenants = await db.tenant.findMany({
-      where: {
-        status: 'active',
-        trialEnd: { gt: now, lte: horizon3d },
-      },
-      select: { id: true, name: true, plan: true, trialEnd: true },
-    });
-
-    for (const tenant of trialTenants) {
-      try {
-        const trialEnd = tenant.trialEnd!;
-        const msUntilExpiry = trialEnd.getTime() - now.getTime();
-        const daysUntilExpiry = Math.ceil(msUntilExpiry / (24 * 60 * 60 * 1000));
-        bridgePlanExpiring({
-          niche: 'all',
-          days: daysUntilExpiry,
-          plan: tenant.plan ?? 'gratuito',
-          tenantId: tenant.id,
-        });
-        trialAlerts++;
-      } catch (bridgeErr) {
-        console.error(
-          `[Cron:plan-expiry] bridgePlanExpiring failed for tenant ${tenant.id}:`,
-          bridgeErr
-        );
-      }
-    }
-
-    // ── Subscription period ending ──
+    // ── Subscription period ending (renovação de mensalidade) ──
     const expiringSubscriptions = await db.subscription.findMany({
       where: {
         status: 'active',
@@ -92,7 +65,7 @@ async function runCheck(request: NextRequest): Promise<NextResponse> {
         bridgePlanExpiring({
           niche: 'all',
           days: daysUntilExpiry,
-          plan: sub.planType ?? 'gratuito',
+          plan: sub.planType ?? 'lite',
           tenantId: sub.tenantId,
         });
         subscriptionAlerts++;
@@ -108,12 +81,11 @@ async function runCheck(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       ok: true,
       timestamp: new Date().toISOString(),
-      trialAlerts,
       subscriptionAlerts,
-      totalAlerts: trialAlerts + subscriptionAlerts,
+      totalAlerts: subscriptionAlerts,
       processingTimeMs: processingTime,
       mode: 'mock',
-      message: `${trialAlerts + subscriptionAlerts} alerta(s) de expiração enviados`,
+      message: `${subscriptionAlerts} alerta(s) de renovação enviados`,
     });
   } catch (error) {
     console.error('[Cron:plan-expiry] Error:', error);

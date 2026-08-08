@@ -1,7 +1,7 @@
 // ============================================================================
 // ZÉLLA — Cron: Plan Limits Check (Daily 08:00 BRT = 11:00 UTC)
 // ============================================================================
-// Para cada tenant LITE/gratuito, chama checkPlanLimits para verificar se
+// Para cada tenant LITE, chama checkPlanLimits para verificar se
 // atingiu 80% (warning) ou 100% (critical) dos limites do plano.
 // Schedule Vercel: 0 11 * * *
 // ============================================================================
@@ -41,14 +41,14 @@ async function runCheck(request: NextRequest): Promise<NextResponse> {
     const tenants = await db.tenant.findMany({
       where: {
         status: 'active',
-        plan: { in: ['gratuito', 'lite'] },
+        plan: 'lite',
       },
       select: { id: true, name: true, plan: true },
     });
 
     for (const tenant of tenants) {
       try {
-        const result = await checkPlanLimits(tenant.id, tenant.plan ?? 'gratuito');
+        const result = await checkPlanLimits(tenant.id, tenant.plan ?? 'lite');
         tenantsProcessed++;
         notificationsSent += result.notificationsSent.length;
       } catch (tenantErr) {
