@@ -357,10 +357,10 @@ export function ProHostSection() {
           <p className="text-neutral-500 text-sm">
             Ainda não é cliente?{' '}
             <a
-              href="/trial"
+              href="/login"
               className="text-blue-400 hover:text-blue-300 font-bold underline decoration-blue-500/30 hover:decoration-blue-400 underline-offset-4 transition-colors"
             >
-              Comece grátis pelo Trial Self-Service →
+              Comece agora pelo Cadastro →
             </a>
           </p>
         </motion.div>
