@@ -17,6 +17,7 @@ import {
   Bar,
 } from 'recharts';
 import { DDCShell, type NavItem } from '@/components/ddc/DDCShell';
+import { NotificationFAB } from '@/components/ddc/notifications/NotificationFAB';
 import { MagicScanner, type MagicScanResult } from '@/components/ddc/MagicScanner';
 import { ZellaSimulator } from '@/components/ddc/ZellaSimulator';
 import { WhatsAppDeviceManager } from '@/components/ddc/WhatsAppDeviceManager';
@@ -1762,6 +1763,8 @@ export default function DDCPousadaContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NotificationFAB niche="pousada" />
     </DDCShell>
   );
 }
