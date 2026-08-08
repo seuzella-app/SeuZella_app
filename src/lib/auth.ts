@@ -286,11 +286,9 @@ export const authOptions: NextAuthOptions = {
                 data: {
                   name: user.name || user.email.split('@')[0],
                   email: user.email,
-                  plan: 'gratuito',
+                  plan: 'lite',
                   status: 'active',
                   niche: 'pousada',
-                  trialStart: new Date(),
-                  trialEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 },
               });
               // Link the User to the Tenant

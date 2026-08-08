@@ -104,3 +104,7 @@ ZELLA_LOG_DIR="/var/log/seuzella/cron"
 # LOG ROTATION (rotação semanal dos logs)
 # ═══════════════════════════════════════════════════════════════════════════
 0 3 * * 0 www-data find $ZELLA_LOG_DIR -name "*.log" -mtime +7 -delete 2>/dev/null
+
+# ─── 18. Link-in-Bio Expiry Check (diário 13:00 UTC = 10:00 BRT) ───────────
+# Verifica Link-in-Bio de LITE: dia 58 avisa, dia 60 desativa + oferece addon R$47
+0 13 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/linkinbio-expiry-check" > $ZELLA_LOG_DIR/linkinbio-expiry-check.log 2>&1 || echo "[$(date)] FAIL linkinbio-expiry-check" >> $ZELLA_LOG_DIR/errors.log
