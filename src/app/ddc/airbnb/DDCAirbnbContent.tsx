@@ -87,6 +87,7 @@ import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
 import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
+import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -296,6 +297,7 @@ function formatCompactBRL(value: number): string {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function DDCAirbnbContent() {
+  const { plan: currentPlan } = useCurrentPlan();
   const [activeTab, setActiveTab] = useState<AirbnbTab>('financeiro');
   const [calendarDays] = useState<CalendarDay[]>(generateCalendarDays);
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
@@ -1471,7 +1473,7 @@ export default function DDCAirbnbContent() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
-      currentPlan="pro"
+      currentPlan={currentPlan}
     >
       <AnimatePresence mode="wait">
         {renderTab()}
@@ -1537,7 +1539,7 @@ export default function DDCAirbnbContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <NotificationFAB niche="airbnb" />
+      <NotificationFAB niche="airbnb" plan={currentPlan} />
     </DDCShell>
   );
 }

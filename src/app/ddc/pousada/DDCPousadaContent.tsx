@@ -99,6 +99,7 @@ import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
 import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
+import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -353,6 +354,7 @@ const pousadaNavItems: NavItem[] = [
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function DDCPousadaContent() {
+  const { plan: currentPlan } = useCurrentPlan();
   const [activeTab, setActiveTab] = useState<PousadaTab>('financeiro');
   const [trainingUrl, setTrainingUrl] = useState('');
   const [isTraining, setIsTraining] = useState(false);
@@ -1494,7 +1496,7 @@ export default function DDCPousadaContent() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
-      currentPlan="pro"
+      currentPlan={currentPlan}
     >
       <AnimatePresence mode="wait">
         {activeTab === 'financeiro' && <div key="financeiro">{renderFinanceiro()}</div>}
@@ -1772,7 +1774,7 @@ export default function DDCPousadaContent() {
         </DialogContent>
       </Dialog>
 
-      <NotificationFAB niche="pousada" />
+      <NotificationFAB niche="pousada" plan={currentPlan} />
     </DDCShell>
   );
 }
