@@ -17,6 +17,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { HUDTopbar } from '../src/components/mobile/HUDTopbar';
 import { QuickActionsCard } from '../src/components/mobile/QuickActionsCard';
 import { MobilePhoneWrapper } from '../src/components/mobile/MobilePhoneWrapper';
+import { MobilePousadaSuperApp } from '../src/components/mobile/MobilePousadaSuperApp';
+import { MobileAirbnbSuperApp } from '../src/components/mobile/MobileAirbnbSuperApp';
 
 // Mock sonner toast
 vi.mock('sonner', () => ({
@@ -81,6 +83,29 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
     expect(html).toContain('Simulador Mobile');
     expect(html).toContain('POUSADA HUD');
     expect(html).toContain('Child Content Loaded');
+  });
+
+  it('should render MobilePousadaSuperApp with full mobile-native tabs and Stitch elements', () => {
+    const html = renderToStaticMarkup(<MobilePousadaSuperApp />);
+    expect(html).toContain('[SEU ZÉLLA // POUSADA]');
+    expect(html).toContain('Receita Mês');
+    expect(html).toContain('R$ 42.800');
+    expect(html).toContain('Ocupação Hoje');
+    expect(html).toContain('Últimos Pagamentos PIX');
+    expect(html).toContain('Financeiro');
+    expect(html).toContain('Hóspedes');
+    expect(html).toContain('Travas');
+  });
+
+  it('should render MobileAirbnbSuperApp with full mobile-native tabs and Stitch elements', () => {
+    const html = renderToStaticMarkup(<MobileAirbnbSuperApp />);
+    expect(html).toContain('[SEU ZÉLLA // AIRBNB]');
+    expect(html).toContain('Receita Bruta');
+    expect(html).toContain('R$ 8.950');
+    expect(html).toContain('Cliques Link-in-Bio');
+    expect(html).toContain('342');
+    expect(html).toContain('PIX Shield');
+    expect(html).toContain('Link-in-Bio');
   });
 });
 

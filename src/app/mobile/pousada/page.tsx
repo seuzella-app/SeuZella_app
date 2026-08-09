@@ -8,7 +8,7 @@
  */
 
 import type { Metadata } from 'next';
-import { DDCPousadaClientContent } from '@/app/ddc/pousada/DDCPousadaClientContent';
+import { MobilePousadaSuperApp } from '@/components/mobile/MobilePousadaSuperApp';
 import { MobilePhoneWrapper } from '@/components/mobile/MobilePhoneWrapper';
 
 export const dynamic = 'force-dynamic';
@@ -16,13 +16,13 @@ export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'DDC Pousada Mobile — Seu Zélla SmartHotel',
-  description: 'Dashboard do Cliente Pousada em Formato Mobile Smartphone.',
+  description: 'Super App Mobile Pousada em Formato Smartphone HUD.',
 };
 
 export default function MobilePousadaPage() {
   return (
     <MobilePhoneWrapper title="DDC Pousada Mobile" niche="pousada">
-      <DDCPousadaClientContent />
+      <MobilePousadaSuperApp />
     </MobilePhoneWrapper>
   );
 }
