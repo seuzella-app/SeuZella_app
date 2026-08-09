@@ -11,6 +11,9 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Wifi, Battery, Signal, Smartphone, Maximize2, Minimize2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { HUDTopbar } from './HUDTopbar';
+import { QuickActionsCard } from './QuickActionsCard';
+
 
 interface MobilePhoneWrapperProps {
   children: ReactNode;
@@ -114,6 +117,10 @@ export function MobilePhoneWrapper({ children, title, niche }: MobilePhoneWrappe
             fullscreen ? 'min-h-screen' : 'sm:h-[calc(880px-36px)]'
           } no-scrollbar`}
         >
+          {/* Cyberpunk HUD Header & Quick Actions */}
+          <HUDTopbar niche={niche} />
+          <QuickActionsCard niche={niche} />
+
           {children}
         </div>
 
