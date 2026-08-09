@@ -29,6 +29,15 @@ vi.mock('sonner', () => ({
   },
 }));
 
+// Mock next/navigation useRouter
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+}));
+
 describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
   it('should render HUDTopbar for Pousada niche with expected metrics', () => {
     const html = renderToStaticMarkup(<HUDTopbar niche="pousada" />);
@@ -72,29 +81,25 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
     expect(html).toContain('Faxina');
   });
 
-  it('should render MobilePhoneWrapper with frame elements and child content', () => {
+  it('should render MobilePhoneWrapper with fullscreen wrapper and child content', () => {
     const html = renderToStaticMarkup(
       <MobilePhoneWrapper title="DDC Pousada Test" niche="pousada">
         <div id="test-child">Child Content Loaded</div>
       </MobilePhoneWrapper>
     );
 
-    expect(html).toContain('DDC Pousada Test');
-    expect(html).toContain('Simulador Mobile');
-    expect(html).toContain('POUSADA HUD');
     expect(html).toContain('Child Content Loaded');
   });
 
   it('should render MobilePousadaSuperApp with full mobile-native tabs and Stitch elements', () => {
     const html = renderToStaticMarkup(<MobilePousadaSuperApp />);
     expect(html).toContain('[SEU ZÉLLA // POUSADA]');
-    expect(html).toContain('Receita Mês');
+    expect(html).toContain('MRR Extrapolado');
     expect(html).toContain('R$ 42.800');
-    expect(html).toContain('Ocupação Hoje');
-    expect(html).toContain('Últimos Pagamentos PIX');
-    expect(html).toContain('Financeiro');
+    expect(html).toContain('Ocupação Semanal');
+    expect(html).toContain('Visão Geral');
     expect(html).toContain('Hóspedes');
-    expect(html).toContain('Travas');
+    expect(html).toContain('Central IA');
   });
 
   it('should render MobileAirbnbSuperApp with full mobile-native tabs and Stitch elements', () => {
