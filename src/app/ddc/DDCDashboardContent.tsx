@@ -1011,67 +1011,127 @@ export default function DDCDashboardContent() {
             ))}
           </div>
 
-          {/* Guests table */}
-          <div className="bg-[#121216] border border-white/[0.04] rounded-xl overflow-hidden">
-            <div className="grid grid-cols-12 px-4 py-2.5 border-b border-white/[0.04] text-[9px] font-extrabold text-zinc-600 uppercase tracking-wider">
-              <div className="col-span-4">Hóspede</div>
-              <div className="col-span-2">Telefone</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-2">Conversas</div>
-              <div className="col-span-2 text-right">Ações</div>
+          {/* Guests Table & Mobile Cards Container */}
+          <div className="w-full">
+            {/* 1. VISÃO DESKTOP: TABELA TRADICIONAL (Aparece apenas em md:) */}
+            <div className="hidden md:block bg-[#121216] border border-white/[0.04] rounded-xl overflow-hidden">
+              <div className="grid grid-cols-12 px-4 py-2.5 border-b border-white/[0.04] text-[9px] font-extrabold text-zinc-600 uppercase tracking-wider">
+                <div className="col-span-4">Hóspede</div>
+                <div className="col-span-2">Telefone</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-2">Conversas</div>
+                <div className="col-span-2 text-right">Ações</div>
+              </div>
+              <div className="divide-y divide-white/[0.02] max-h-[500px] overflow-y-auto">
+                {filteredGuests.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 gap-3">
+                    <Users className="w-10 h-10 text-zinc-700" />
+                    <p className="text-xs text-zinc-500">Nenhum hóspede encontrado</p>
+                    <p className="text-[10px] text-zinc-600">Simule uma mensagem no Dashboard para criar o primeiro hóspede</p>
+                  </div>
+                )}
+                {filteredGuests.map(guest => (
+                  <div key={guest.id} className="grid grid-cols-12 px-4 py-3 items-center hover:bg-white/[0.01] transition-all group">
+                    <div className="col-span-4 flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/15 flex items-center justify-center text-xs font-bold text-emerald-400 shrink-0">
+                        {(guest.name || 'H')[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white">{guest.name || 'Hóspede'}</div>
+                        {guest.email && <div className="text-[9px] text-zinc-600 truncate max-w-[140px]">{guest.email}</div>}
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-[10px] text-zinc-400 font-mono">{guest.phone || '—'}</div>
+                    <div className="col-span-2">{getStatusBadge(guest.status || 'new')}</div>
+                    <div className="col-span-2 text-xs font-mono text-zinc-400">{guest.conversations || 0}</div>
+                    <div className="col-span-2 flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => { setActiveTab('messages'); }}
+                        className="p-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] text-zinc-400 hover:text-white transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        title="Ver mensagens"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => { setActiveTab('bookings'); }}
+                        className="p-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] text-zinc-400 hover:text-white transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        title="Ver reservas"
+                      >
+                        <Calendar className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {filteredGuests.length > 0 && (
+                <div className="px-4 py-2.5 border-t border-white/[0.04] flex items-center justify-between">
+                  <span className="text-[10px] text-zinc-600">{filteredGuests.length} hóspede{filteredGuests.length !== 1 ? 's' : ''}</span>
+                  <button
+                    onClick={() => toast.info('Exportação de hóspedes em desenvolvimento.')}
+                    className="flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                  >
+                    <Download className="w-3 h-3" /> Exportar CSV
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="divide-y divide-white/[0.02] max-h-[500px] overflow-y-auto">
+
+            {/* 2. VISÃO MOBILE: CARDS EXPANSÍVEIS (Aparece apenas abaixo de md:) */}
+            <div className="space-y-3 md:hidden">
               {filteredGuests.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-16 gap-3">
-                  <Users className="w-10 h-10 text-zinc-700" />
-                  <p className="text-xs text-zinc-500">Nenhum hóspede encontrado</p>
-                  <p className="text-[10px] text-zinc-600">Simule uma mensagem no Dashboard para criar o primeiro hóspede</p>
+                <div className="p-6 rounded-xl border border-white/[0.04] bg-[#121216] text-center space-y-2">
+                  <Users className="w-8 h-8 text-zinc-600 mx-auto" />
+                  <p className="text-xs text-zinc-400 font-medium">Nenhum hóspede cadastrado</p>
                 </div>
               )}
               {filteredGuests.map(guest => (
-                <div key={guest.id} className="grid grid-cols-12 px-4 py-3 items-center hover:bg-white/[0.01] transition-all group">
-                  <div className="col-span-4 flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/15 flex items-center justify-center text-xs font-bold text-emerald-400 shrink-0">
-                      {(guest.name || 'H')[0].toUpperCase()}
+                <article key={guest.id} className="p-4 rounded-xl border border-white/[0.08] bg-[#121216] shadow-lg space-y-3">
+                  {/* Cabeçalho do Card: Nome + Avatar + Badge */}
+                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-400">
+                        {(guest.name || 'H')[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="text-xs font-bold text-white">{guest.name || 'Hóspede'}</h3>
+                        <span className="text-[10px] font-mono text-zinc-500">{guest.phone || '—'}</span>
+                      </div>
+                    </div>
+                    {getStatusBadge(guest.status || 'new')}
+                  </div>
+
+                  {/* Grid Interno 2 Colunas */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="block text-[10px] text-zinc-500">Conversas IA</span>
+                      <span className="text-xs font-bold font-mono text-zinc-300">{guest.conversations || 0} msgs</span>
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white">{guest.name || 'Hóspede'}</div>
-                      {guest.email && <div className="text-[9px] text-zinc-600 truncate max-w-[140px]">{guest.email}</div>}
+                      <span className="block text-[10px] text-zinc-500">E-mail</span>
+                      <span className="text-xs text-zinc-400 truncate block">{guest.email || 'Não informado'}</span>
                     </div>
                   </div>
-                  <div className="col-span-2 text-[10px] text-zinc-400 font-mono">{guest.phone || '—'}</div>
-                  <div className="col-span-2">{getStatusBadge(guest.status || 'new')}</div>
-                  <div className="col-span-2 text-xs font-mono text-zinc-400">{guest.conversations || 0}</div>
-                  <div className="col-span-2 flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                  {/* Thumb Zone Actions */}
+                  <div className="pt-2 flex items-center justify-between border-t border-white/[0.04] min-h-[44px]">
                     <button
-                      onClick={() => { setActiveTab('messages'); }}
-                      className="p-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] text-zinc-400 hover:text-white transition-all"
-                      title="Ver mensagens"
+                      onClick={() => setActiveTab('messages')}
+                      className="px-3 py-2 rounded-lg bg-white/[0.04] text-zinc-300 hover:text-white text-xs font-medium flex items-center gap-1.5 min-h-[44px] active:scale-95 transition-all"
                     >
-                      <MessageCircle className="w-3.5 h-3.5" />
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Mensagens</span>
                     </button>
+                    
                     <button
-                      onClick={() => { setActiveTab('bookings'); }}
-                      className="p-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] text-zinc-400 hover:text-white transition-all"
-                      title="Ver reservas"
+                      onClick={() => setActiveTab('bookings')}
+                      className="px-4 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-300 font-bold text-xs transition-all active:scale-95 min-h-[44px]"
                     >
-                      <Calendar className="w-3.5 h-3.5" />
+                      Ver Reservas
                     </button>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
-            {filteredGuests.length > 0 && (
-              <div className="px-4 py-2.5 border-t border-white/[0.04] flex items-center justify-between">
-                <span className="text-[10px] text-zinc-600">{filteredGuests.length} hóspede{filteredGuests.length !== 1 ? 's' : ''}</span>
-                <button
-                  onClick={() => toast.info('Exportação de hóspedes em desenvolvimento.')}
-                  className="flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
-                >
-                  <Download className="w-3 h-3" /> Exportar CSV
-                </button>
-              </div>
-            )}
           </div>
 
         </motion.div>
@@ -1183,58 +1243,140 @@ export default function DDCDashboardContent() {
             ))}
           </div>
 
-          {/* Bookings table */}
-          <div className="bg-[#121216] border border-white/[0.04] rounded-xl overflow-hidden">
-            <div className="grid grid-cols-12 px-4 py-2.5 border-b border-white/[0.04] text-[9px] font-extrabold text-zinc-600 uppercase tracking-wider">
-              <div className="col-span-3">Hóspede</div>
-              <div className="col-span-2">Check-in</div>
-              <div className="col-span-2">Check-out</div>
-              <div className="col-span-1">Noites</div>
-              <div className="col-span-2">Valor</div>
-              <div className="col-span-2 text-right">Status</div>
+          {/* Bookings Table & Mobile Cards Container */}
+          <div className="w-full">
+            {/* 1. VISÃO DESKTOP: TABELA TRADICIONAL (Aparece apenas em md:) */}
+            <div className="hidden md:block bg-[#121216] border border-white/[0.04] rounded-xl overflow-hidden">
+              <div className="grid grid-cols-12 px-4 py-2.5 border-b border-white/[0.04] text-[9px] font-extrabold text-zinc-600 uppercase tracking-wider">
+                <div className="col-span-3">Hóspede</div>
+                <div className="col-span-2">Check-in</div>
+                <div className="col-span-2">Check-out</div>
+                <div className="col-span-1">Noites</div>
+                <div className="col-span-2">Valor</div>
+                <div className="col-span-2 text-right">Status</div>
+              </div>
+              <div className="divide-y divide-white/[0.02] max-h-[480px] overflow-y-auto">
+                {bookingsLoading && (
+                  <div className="flex items-center justify-center py-12 gap-3">
+                    <Loader2 className="w-5 h-5 text-zinc-600 animate-spin" />
+                    <span className="text-xs text-zinc-500">Carregando reservas...</span>
+                  </div>
+                )}
+                {!bookingsLoading && bookings.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 gap-3">
+                    <Calendar className="w-10 h-10 text-zinc-700" />
+                    <p className="text-xs text-zinc-500">Nenhuma reserva encontrada</p>
+                    <p className="text-[10px] text-zinc-600">As reservas feitas via WhatsApp pelo Seu Zélla aparecerão aqui</p>
+                  </div>
+                )}
+                {!bookingsLoading && bookings.map(booking => (
+                  <div key={booking.id} className="grid grid-cols-12 px-4 py-3 items-center hover:bg-white/[0.01] transition-all group">
+                    <div className="col-span-3">
+                      <div className="text-xs font-bold text-white">{booking.guestName || booking.guest?.name || 'Hóspede'}</div>
+                      <div className="text-[9px] text-zinc-600">{booking.roomName || booking.room || '—'}</div>
+                    </div>
+                    <div className="col-span-2 text-[10px] text-zinc-400">{booking.checkIn ? formatDate(booking.checkIn) : '—'}</div>
+                    <div className="col-span-2 text-[10px] text-zinc-400">{booking.checkOut ? formatDate(booking.checkOut) : '—'}</div>
+                    <div className="col-span-1 text-[10px] font-mono text-zinc-400">{booking.nights || '—'}</div>
+                    <div className="col-span-2 text-xs font-bold text-white font-mono">{booking.totalValue !== undefined ? formatCurrency(booking.totalValue) : '—'}</div>
+                    <div className="col-span-2 flex justify-end items-center gap-2">
+                      {getStatusBadge(booking.status)}
+                      {['confirmed', 'checked_in'].includes(booking.status) && (
+                        <button
+                          title="Gerar PIN da Fechadura (pós-pagamento)"
+                          onClick={() => {
+                            setActiveTab('locks');
+                            toast.info(`Abra Fechaduras Eletrônicas para gerar o PIN de ${booking.guestName || booking.guest?.name || 'hóspede'}`, {
+                              description: 'Use as datas de check-in/out da reserva para o PIN.',
+                            });
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-emerald-500/15 text-emerald-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="divide-y divide-white/[0.02] max-h-[480px] overflow-y-auto">
+
+            {/* 2. VISÃO MOBILE: CARDS EXPANSÍVEIS (Aparece apenas abaixo de md:) */}
+            <div className="space-y-3 md:hidden">
               {bookingsLoading && (
-                <div className="flex items-center justify-center py-12 gap-3">
-                  <Loader2 className="w-5 h-5 text-zinc-600 animate-spin" />
-                  <span className="text-xs text-zinc-500">Carregando reservas...</span>
+                <div className="p-6 rounded-xl border border-white/[0.04] bg-[#121216] text-center">
+                  <Loader2 className="w-5 h-5 text-emerald-400 animate-spin mx-auto mb-2" />
+                  <span className="text-xs text-zinc-400">Carregando reservas...</span>
                 </div>
               )}
               {!bookingsLoading && bookings.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-16 gap-3">
-                  <Calendar className="w-10 h-10 text-zinc-700" />
-                  <p className="text-xs text-zinc-500">Nenhuma reserva encontrada</p>
-                  <p className="text-[10px] text-zinc-600">As reservas feitas via WhatsApp pelo Seu Zélla aparecerão aqui</p>
+                <div className="p-6 rounded-xl border border-white/[0.04] bg-[#121216] text-center space-y-2">
+                  <Calendar className="w-8 h-8 text-zinc-600 mx-auto" />
+                  <p className="text-xs text-zinc-400 font-medium">Nenhuma reserva encontrada</p>
                 </div>
               )}
               {!bookingsLoading && bookings.map(booking => (
-                <div key={booking.id} className="grid grid-cols-12 px-4 py-3 items-center hover:bg-white/[0.01] transition-all group">
-                  <div className="col-span-3">
-                    <div className="text-xs font-bold text-white">{booking.guestName || booking.guest?.name || 'Hóspede'}</div>
-                    <div className="text-[9px] text-zinc-600">{booking.roomName || booking.room || '—'}</div>
-                  </div>
-                  <div className="col-span-2 text-[10px] text-zinc-400">{booking.checkIn ? formatDate(booking.checkIn) : '—'}</div>
-                  <div className="col-span-2 text-[10px] text-zinc-400">{booking.checkOut ? formatDate(booking.checkOut) : '—'}</div>
-                  <div className="col-span-1 text-[10px] font-mono text-zinc-400">{booking.nights || '—'}</div>
-                  <div className="col-span-2 text-xs font-bold text-white font-mono">{booking.totalValue !== undefined ? formatCurrency(booking.totalValue) : '—'}</div>
-                  <div className="col-span-2 flex justify-end items-center gap-2">
+                <article key={booking.id} className="p-4 rounded-xl border border-white/[0.08] bg-[#121216] shadow-lg space-y-3">
+                  {/* Cabeçalho do Card: Hóspede/Quarto + Status Badge */}
+                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                    <div>
+                      <span className="text-[9px] font-mono uppercase tracking-wide text-zinc-500">Reserva</span>
+                      <h3 className="text-xs font-bold text-white">{booking.guestName || booking.guest?.name || 'Hóspede'}</h3>
+                      <p className="text-[10px] text-emerald-400/90 font-medium">{booking.roomName || booking.room || 'Acomodação Standard'}</p>
+                    </div>
                     {getStatusBadge(booking.status)}
-                    {['confirmed', 'checked_in'].includes(booking.status) && (
+                  </div>
+
+                  {/* Grid 2 Colunas */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="block text-[10px] text-zinc-500">Check-in</span>
+                      <span className="text-xs font-medium text-zinc-300">{booking.checkIn ? formatDate(booking.checkIn) : '—'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-zinc-500">Check-out</span>
+                      <span className="text-xs font-medium text-zinc-300">{booking.checkOut ? formatDate(booking.checkOut) : '—'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-zinc-500">Valor Total</span>
+                      <span className="text-sm font-bold font-mono text-emerald-400">{booking.totalValue !== undefined ? formatCurrency(booking.totalValue) : '—'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-zinc-500">Permanência</span>
+                      <span className="text-xs font-mono text-zinc-400">{booking.nights || 1} noite(s)</span>
+                    </div>
+                  </div>
+
+                  {/* Thumb Zone Actions */}
+                  <div className="pt-2 flex items-center justify-between border-t border-white/[0.04] min-h-[44px]">
+                    <button
+                      onClick={() => toast.info(`Reserva de ${booking.guestName || 'Hóspede'} — Status: ${booking.status}`)}
+                      className="px-3 py-2 rounded-lg bg-white/[0.04] text-zinc-300 hover:text-white text-xs font-medium min-h-[44px] active:scale-95 transition-all"
+                    >
+                      Detalhes
+                    </button>
+
+                    {['confirmed', 'checked_in'].includes(booking.status) ? (
                       <button
-                        title="Gerar PIN da Fechadura (pós-pagamento)"
                         onClick={() => {
                           setActiveTab('locks');
-                          toast.info(`Abra Fechaduras Eletrônicas para gerar o PIN de ${booking.guestName || booking.guest?.name || 'hóspede'}`, {
-                            description: 'Use as datas de check-in/out da reserva para o PIN.',
-                          });
+                          toast.info(`PIN gerado para ${booking.guestName || 'hóspede'}`);
                         }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-emerald-500/15 text-emerald-400"
+                        className="px-3 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-1.5 min-h-[44px] active:scale-95 transition-all"
                       >
                         <Lock className="w-3.5 h-3.5" />
+                        <span>Gerar PIN Fechadura</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => toast.info('Aguardando confirmação do pagamento')}
+                        className="px-3 py-2 rounded-lg bg-zinc-800/80 text-zinc-500 text-xs font-medium min-h-[44px]"
+                      >
+                        Aguardando PIX
                       </button>
                     )}
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           </div>

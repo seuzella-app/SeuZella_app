@@ -782,48 +782,87 @@ export default function DDCPousadaContent() {
           </CardContent>
         </Card>
 
-        {/* Recent Transactions Table */}
+        {/* Recent Transactions Table & Mobile Cards */}
         <Card className="lg:col-span-2 bg-[#111118] border-zinc-800/60 overflow-hidden">
           <CardHeader>
             <CardTitle className="text-base text-white">Transações Recentes</CardTitle>
             <CardDescription className="text-zinc-500">Últimos recebimentos e reembolsos</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-[240px] w-full px-6 pb-4">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-zinc-800 hover:bg-transparent">
-                    <TableHead className="text-zinc-500">Hóspede</TableHead>
-                    <TableHead className="text-zinc-500 hidden sm:table-cell">Descrição</TableHead>
-                    <TableHead className="text-zinc-500">Método</TableHead>
-                    <TableHead className="text-zinc-500 text-right">Valor</TableHead>
-                    <TableHead className="text-zinc-500">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentTransactions.map((tx) => (
-                    <TableRow key={tx.id} className="border-zinc-800/50 hover:bg-zinc-800/30">
-                      <TableCell className="text-white font-medium text-sm">{tx.guest}</TableCell>
-                      <TableCell className="text-zinc-400 text-sm hidden sm:table-cell max-w-[200px] truncate">{tx.description}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={`text-xs ${tx.method === 'PIX' ? 'border-emerald-500/30 text-emerald-400' : tx.method === 'Cartão' ? 'border-amber-500/30 text-amber-400' : 'border-zinc-500/30 text-zinc-400'}`}>
-                          {tx.method === 'PIX' ? <QrCode className="size-3 mr-1" /> : tx.method === 'Cartão' ? <CreditCard className="size-3 mr-1" /> : <DollarSign className="size-3 mr-1" />}
-                          {tx.method}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={`text-right font-medium text-sm ${tx.amount < 0 ? 'text-rose-400' : 'text-white'}`}>
-                        {formatCurrency(tx.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={`text-xs ${getTransactionStatusColor(tx.status)}`}>
-                          {tx.status}
-                        </Badge>
-                      </TableCell>
+          <CardContent className="p-0 sm:p-6">
+            {/* 1. VISÃO DESKTOP: TABELA TRADICIONAL (Aparece apenas em md:) */}
+            <div className="hidden md:block">
+              <ScrollArea className="h-[240px] w-full px-6 pb-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-zinc-800 hover:bg-transparent">
+                      <TableHead className="text-zinc-500">Hóspede</TableHead>
+                      <TableHead className="text-zinc-500 hidden sm:table-cell">Descrição</TableHead>
+                      <TableHead className="text-zinc-500">Método</TableHead>
+                      <TableHead className="text-zinc-500 text-right">Valor</TableHead>
+                      <TableHead className="text-zinc-500">Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+                  </TableHeader>
+                  <TableBody>
+                    {recentTransactions.map((tx) => (
+                      <TableRow key={tx.id} className="border-zinc-800/50 hover:bg-zinc-800/30">
+                        <TableCell className="text-white font-medium text-sm">{tx.guest}</TableCell>
+                        <TableCell className="text-zinc-400 text-sm hidden sm:table-cell max-w-[200px] truncate">{tx.description}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`text-xs ${tx.method === 'PIX' ? 'border-emerald-500/30 text-emerald-400' : tx.method === 'Cartão' ? 'border-amber-500/30 text-amber-400' : 'border-zinc-500/30 text-zinc-400'}`}>
+                            {tx.method === 'PIX' ? <QrCode className="size-3 mr-1" /> : tx.method === 'Cartão' ? <CreditCard className="size-3 mr-1" /> : <DollarSign className="size-3 mr-1" />}
+                            {tx.method}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={`text-right font-medium text-sm ${tx.amount < 0 ? 'text-rose-400' : 'text-white'}`}>
+                          {formatCurrency(tx.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`text-xs ${getTransactionStatusColor(tx.status)}`}>
+                            {tx.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </div>
+
+            {/* 2. VISÃO MOBILE: CARDS EXPANSÍVEIS (Aparece apenas abaixo de md:) */}
+            <div className="space-y-3 md:hidden p-4">
+              {recentTransactions.map((tx) => (
+                <article key={tx.id} className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/60 space-y-2.5 shadow-md">
+                  <div className="flex items-center justify-between border-b border-zinc-800/50 pb-2">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase text-zinc-500">Transação</span>
+                      <h4 className="text-xs font-bold text-white">{tx.guest}</h4>
+                    </div>
+                    <Badge variant="outline" className={`text-xs ${getTransactionStatusColor(tx.status)}`}>
+                      {tx.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="block text-[10px] text-zinc-500">Método</span>
+                      <Badge variant="outline" className={`text-[10px] mt-0.5 ${tx.method === 'PIX' ? 'border-emerald-500/30 text-emerald-400' : tx.method === 'Cartão' ? 'border-amber-500/30 text-amber-400' : 'border-zinc-500/30 text-zinc-400'}`}>
+                        {tx.method}
+                      </Badge>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-zinc-500">Valor</span>
+                      <span className={`text-xs font-bold font-mono ${tx.amount < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                        {formatCurrency(tx.amount)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-zinc-400 pt-1 border-t border-zinc-800/40 truncate">
+                    {tx.description}
+                  </p>
+                </article>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
