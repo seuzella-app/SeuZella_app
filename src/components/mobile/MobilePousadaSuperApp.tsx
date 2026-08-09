@@ -116,37 +116,28 @@ export function MobilePousadaSuperApp() {
       {/* ─────────────────────────────────────────────────────────────
           1. TOP APP BAR CYBER-LUXE (Mobile Header)
       ───────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-mono font-bold text-xs shadow-[0_0_12px_rgba(16,185,129,0.2)]">
-            Z
-          </div>
-          <div>
-            <span className="font-mono text-xs font-bold tracking-tight text-emerald-400">
-              [SEU ZÉLLA // POUSADA]
-            </span>
-            <div className="flex items-center gap-1 text-[9px] font-mono text-zinc-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>TERMINAL ONLINE · {time || '12:00'}</span>
-            </div>
-          </div>
+          <img
+            src="/SeuZella_Logo_site.png"
+            alt="Seu Zélla"
+            className="h-6 w-auto object-contain"
+          />
+          <div className="h-3.5 w-[1px] bg-white/20" />
+          <span className="font-mono text-xs font-extrabold tracking-widest text-emerald-400 uppercase">
+            POUSADA
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleToggleAI}
-            className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border transition-all flex items-center gap-1.5 ${
-              aiActive
-                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
-                : 'bg-zinc-800/60 text-zinc-400 border-zinc-700'
-            }`}
-          >
-            <Power className="w-3 h-3" />
-            <span>{aiActive ? 'IA ON' : 'IA OFF'}</span>
-          </button>
+          <div className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-300 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.08]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#10b981]" />
+            <span>ONLINE · {time || '12:00'}</span>
+          </div>
           <button
             onClick={() => toast.info('Notificações do Terminal Pousada')}
             className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-white transition-all active:scale-95"
+            aria-label="Notificações"
           >
             <Bell className="w-4 h-4 text-emerald-400" />
           </button>

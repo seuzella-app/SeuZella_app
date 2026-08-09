@@ -93,7 +93,8 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
 
   it('should render MobilePousadaSuperApp with full mobile-native tabs and Stitch elements', () => {
     const html = renderToStaticMarkup(<MobilePousadaSuperApp />);
-    expect(html).toContain('[SEU ZÉLLA // POUSADA]');
+    expect(html).toContain('SeuZella_Logo_site.png');
+    expect(html).toContain('POUSADA');
     expect(html).toContain('MRR Extrapolado');
     expect(html).toContain('R$ 42.800');
     expect(html).toContain('Ocupação Semanal');
@@ -104,7 +105,8 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
 
   it('should render MobileAirbnbSuperApp with full mobile-native tabs and Stitch elements', () => {
     const html = renderToStaticMarkup(<MobileAirbnbSuperApp />);
-    expect(html).toContain('[SEU ZÉLLA // AIRBNB]');
+    expect(html).toContain('SeuZella_Logo_site.png');
+    expect(html).toContain('AIRBNB');
     expect(html).toContain('Receita Bruta');
     expect(html).toContain('R$ 8.950');
     expect(html).toContain('Link-in-Bio Visitas');
