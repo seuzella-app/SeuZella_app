@@ -107,7 +107,7 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
     expect(html).toContain('[SEU ZÉLLA // AIRBNB]');
     expect(html).toContain('Receita Bruta');
     expect(html).toContain('R$ 8.950');
-    expect(html).toContain('Cliques Link-in-Bio');
+    expect(html).toContain('Link-in-Bio Visitas');
     expect(html).toContain('342');
     expect(html).toContain('PIX Shield');
     expect(html).toContain('Link-in-Bio');
