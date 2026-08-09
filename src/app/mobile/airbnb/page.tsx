@@ -13,6 +13,7 @@ import { MobilePhoneWrapper } from '@/components/mobile/MobilePhoneWrapper';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 export const metadata: Metadata = {
   title: 'DDC Airbnb Mobile — Seu Zélla SmartHotel',
