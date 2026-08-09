@@ -95,12 +95,13 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
     const html = renderToStaticMarkup(<MobilePousadaSuperApp />);
     expect(html).toContain('SeuZella_Logo_site.png');
     expect(html).toContain('POUSADA');
-    expect(html).toContain('MRR Extrapolado');
+    expect(html).toContain('Faturamento do Mês');
     expect(html).toContain('R$ 42.800');
     expect(html).toContain('Ocupação Semanal');
     expect(html).toContain('Visão Geral');
     expect(html).toContain('Hóspedes');
-    expect(html).toContain('Central IA');
+    expect(html).toContain('Central Zélla');
+    expect(html).toContain('Whats Live');
   });
 
   it('should render MobileAirbnbSuperApp with full mobile-native tabs and Stitch elements', () => {

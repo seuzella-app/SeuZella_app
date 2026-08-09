@@ -8,7 +8,7 @@
 // ==============================================================================
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   CreditCard,
@@ -29,14 +29,31 @@ import {
   Globe,
   Home,
   CheckCircle2,
+  Menu,
+  X,
+  LayoutGrid,
 } from 'lucide-react';
 
 export function MobileAirbnbSuperApp() {
   const [activeTab, setActiveTab] = useState<'financeiro' | 'checkins' | 'shield' | 'linkinbio' | 'simulador'>('financeiro');
+  const [propertyName, setPropertyName] = useState<string>('Flat Studio Jardins');
   const [aiActive, setAiActive] = useState<boolean>(true);
   const [pixShieldActive, setPixShieldActive] = useState<boolean>(true);
   const [time, setTime] = useState<string>('');
   const [pinCode, setPinCode] = useState<string>('8492');
+
+  // Interactive Drawers
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState<boolean>(false);
+  const [isSyncingOTAs, setIsSyncingOTAs] = useState<boolean>(false);
+
+  // Synced Notifications List
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Reserva Direct PIX', desc: 'Flat Studio Jardins - R$ 1.850 (0% comissão)', time: 'Há 10 min', unread: true },
+    { id: 2, title: 'Escudo Anti-Ban Ativo', desc: 'Tentativa de troca de número filtrada no chat', time: 'Há 30 min', unread: true },
+    { id: 3, title: 'PIN de Acesso Gerado', desc: 'PIN 8492 válido para check-in às 14:00', time: 'Há 1h', unread: false },
+    { id: 4, title: 'Notificação de Faxina', desc: 'Equipe de limpeza notificada para checkout às 11h', time: 'Há 2h', unread: false },
+  ]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -56,7 +73,7 @@ export function MobileAirbnbSuperApp() {
   const handleToggleAI = () => {
     setAiActive((prev) => {
       const next = !prev;
-      toast.success(next ? '🤖 IA Zélla ATIVADA (Anfitrião 24h)' : '⏸️ IA Zélla PAUSADA');
+      toast.success(next ? '🤖 Cérebro Zélla ATIVADO (Anfitrião 24h)' : '⏸️ Cérebro Zélla PAUSADO');
       return next;
     });
   };
@@ -73,20 +90,49 @@ export function MobileAirbnbSuperApp() {
     const newPin = Math.floor(1000 + Math.random() * 9000).toString();
     setPinCode(newPin);
     toast.success(`🔑 Novo PIN Digital Gerado: ${newPin}`);
+    setNotifications((prev) => [
+      {
+        id: Date.now(),
+        title: 'Novo PIN Digital Gerado',
+        desc: `Código de acesso temporário: ${newPin}`,
+        time: 'Agora mesmo',
+        unread: true,
+      },
+      ...prev,
+    ]);
+  };
+
+  const handleSyncOTAs = async () => {
+    setIsSyncingOTAs(true);
+    toast.info('🔄 Sincronizando iCal da Airbnb e Booking.com...');
+    setTimeout(() => {
+      setIsSyncingOTAs(false);
+      toast.success('✅ Calendários Airbnb & Booking Sincronizados!');
+    }, 1200);
   };
 
   const handleNotifyCleaners = (guestName: string) => {
     toast.success(`🧹 Notificação de Faxina pós-checkout enviada para a equipe (Hóspede: ${guestName})`);
   };
 
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
   return (
-    <div className="w-full min-h-screen bg-[#0a0a0f] text-[#e4e1e9] font-sans flex flex-col pb-24 selection:bg-blue-500/30">
+    <div className="w-full min-h-screen bg-[#0a0a0f] text-[#e4e1e9] font-sans flex flex-col pb-24 selection:bg-blue-500/30 relative">
       
       {/* ─────────────────────────────────────────────────────────────
-          1. TOP APP BAR CYBER-LUXE AIRBNB (Mobile Header)
+          1. TOP APP BAR CYBER-LUXE AIRBNB (Mobile Header com Hambúrguer)
       ───────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setIsMenuOpen(true)}
+            className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-zinc-300 hover:text-white active:scale-95 transition-all"
+            aria-label="Abrir Menu DDC"
+          >
+            <Menu className="w-5 h-5 text-cyan-400" />
+          </button>
+
           <img
             src="/SeuZella_Logo_site.png"
             alt="Seu Zélla"
@@ -104,11 +150,16 @@ export function MobileAirbnbSuperApp() {
             <span>ONLINE · {time || '12:00'}</span>
           </div>
           <button
-            onClick={() => toast.info('Notificações de Anfitrião Airbnb')}
-            className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-white transition-all active:scale-95"
+            onClick={() => setIsNotificationsOpen(true)}
+            className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-white transition-all active:scale-95 relative"
             aria-label="Notificações"
           >
             <Bell className="w-4 h-4 text-cyan-400" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-cyan-500 text-[#0a0a0f] text-[9px] font-mono font-bold flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
           </button>
         </div>
       </header>
@@ -123,12 +174,12 @@ export function MobileAirbnbSuperApp() {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             
             <div className="space-y-1.5">
-              <h1 className="font-mono text-lg font-extrabold text-cyan-400 tracking-tight flex items-center gap-2">
-                <span>&gt; zella-airbnb --host-terminal</span>
+              <h1 className="font-mono text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+                <span className="text-cyan-400">&gt;</span> Dashboard do Anfitrião — {propertyName}
               </h1>
               <div className="inline-flex items-center gap-2 bg-white/[0.03] backdrop-blur-xl px-3 py-1.5 rounded-lg border border-white/[0.08]">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#06b6d4]" />
-                <span className="text-xs text-zinc-200 font-mono">Flat Studio Jardins (Airbnb Superhost)</span>
+                <span className="text-xs text-zinc-200 font-mono">Superhost Anti-Ban Protected</span>
                 <span className="bg-cyan-500 text-[#0a0a0f] text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded ml-1">
                   PROTECTED
                 </span>
@@ -182,7 +233,7 @@ export function MobileAirbnbSuperApp() {
                 <div className="text-2xl font-mono font-extrabold text-white">R$ 380</div>
                 <div className="flex items-center text-[10px] text-emerald-400 font-medium gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Preço dinâmico IA</span>
+                  <span>Preço dinâmico Zélla</span>
                 </div>
               </div>
 
@@ -376,7 +427,7 @@ export function MobileAirbnbSuperApp() {
             <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl p-4 text-center space-y-3">
               <Sparkles className="w-8 h-8 text-cyan-400 mx-auto" />
               <p className="text-xs text-zinc-300">
-                O simulador da IA do Airbnb responde a perguntas sobre regras da casa, estacionamento, portaria e chaveiro 24 horas por dia.
+                O simulador do Cérebro Zélla no Airbnb responde a perguntas sobre regras da casa, estacionamento, portaria e chaveiro 24 horas por dia.
               </p>
             </div>
           </motion.div>
@@ -438,6 +489,165 @@ export function MobileAirbnbSuperApp() {
           <span className="text-[9px] font-mono">Simulador</span>
         </button>
       </nav>
+
+      {/* ─────────────────────────────────────────────────────────────
+          4. MENU LATERAL DRAWER (Hambúrguer Menu Anfitrião)
+      ───────────────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="fixed top-0 left-0 bottom-0 w-[82%] max-w-[320px] bg-[#0d0d14] border-r border-white/[0.08] z-50 p-5 flex flex-col justify-between"
+            >
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+                  <div className="flex items-center gap-2">
+                    <img src="/SeuZella_Logo_site.png" alt="Seu Zélla" className="h-6 w-auto" />
+                    <span className="font-mono text-xs font-bold text-cyan-400">AIRBNB</span>
+                  </div>
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-1 rounded-lg bg-white/[0.04] text-zinc-400 hover:text-white"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="bg-white/[0.03] p-3 rounded-xl border border-white/[0.08] space-y-1">
+                  <div className="text-[10px] font-mono text-zinc-400">PROPRIEDADE CONECTADA</div>
+                  <div className="font-bold text-sm text-white">{propertyName}</div>
+                  <div className="text-[10px] font-mono text-cyan-400">Superhost Protection Active</div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-[10px] font-mono text-zinc-400 px-2 pb-1">NAVEGAÇÃO RÁPIDA</div>
+                  
+                  <button
+                    onClick={() => { setActiveTab('financeiro'); setIsMenuOpen(false); }}
+                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-zinc-200 hover:bg-white/[0.05] hover:text-cyan-400 transition-all text-left"
+                  >
+                    <CreditCard className="w-4 h-4 text-cyan-400" />
+                    <span>Financeiro & Painel Host</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('checkins'); setIsMenuOpen(false); }}
+                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-zinc-200 hover:bg-white/[0.05] hover:text-cyan-400 transition-all text-left"
+                  >
+                    <Lock className="w-4 h-4 text-amber-400" />
+                    <span>Gerador de PIN Fechadura</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('shield'); setIsMenuOpen(false); }}
+                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-zinc-200 hover:bg-white/[0.05] hover:text-cyan-400 transition-all text-left"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                    <span>PIX Shield (Anti-Ban)</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('linkinbio'); setIsMenuOpen(false); }}
+                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-zinc-200 hover:bg-white/[0.05] hover:text-cyan-400 transition-all text-left"
+                  >
+                    <LinkIcon className="w-4 h-4 text-cyan-400" />
+                    <span>Addon Instagram Link-in-Bio</span>
+                  </button>
+
+                  <div className="h-[1px] bg-white/[0.06] my-2" />
+
+                  <button
+                    onClick={() => { handleSyncOTAs(); setIsMenuOpen(false); }}
+                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 transition-all text-left border border-cyan-500/20"
+                  >
+                    <RefreshCw className="w-4 h-4 text-cyan-400" />
+                    <span>Sincronizar OTAs</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setIsNotificationsOpen(true); setIsMenuOpen(false); }}
+                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-zinc-200 hover:bg-white/[0.05] transition-all text-left"
+                  >
+                    <Bell className="w-4 h-4 text-cyan-400" />
+                    <span>Central de Notificações</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/[0.08] text-[10px] font-mono text-zinc-500 text-center">
+                Seu Zélla Airbnb Host v3.2 · Live Mobile
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ─────────────────────────────────────────────────────────────
+          5. SHEET CENTRAL DE NOTIFICAÇÕES (Sincronizada)
+      ───────────────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {isNotificationsOpen && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-end justify-center">
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="w-full max-w-md bg-[#13131a] border-t border-white/[0.1] rounded-t-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-cyan-400" />
+                  <h3 className="font-bold text-sm text-white font-mono">NOTIFICAÇÕES ANFITRIÃO AIRBNB</h3>
+                </div>
+                <button onClick={() => setIsNotificationsOpen(false)} className="text-zinc-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2.5">
+                {notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className={`p-3 rounded-xl border transition-all ${
+                      notif.unread
+                        ? 'bg-cyan-500/10 border-cyan-500/30'
+                        : 'bg-white/[0.02] border-white/[0.06]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="font-bold text-xs text-white">{notif.title}</div>
+                      <span className="text-[9px] font-mono text-zinc-400">{notif.time}</span>
+                    </div>
+                    <p className="text-xs text-zinc-300 font-sans">{notif.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+                  toast.success('Todas as notificações foram marcadas como lidas');
+                }}
+                className="w-full p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs font-mono font-bold text-zinc-300 hover:text-white"
+              >
+                Marcar todas como lidas
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
