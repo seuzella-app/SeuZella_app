@@ -109,12 +109,13 @@ describe('Gap 6 — Sound selection logic in use-mobile-notifications.ts', () =>
     expect(source).toContain('prefers-reduced-motion');
   });
 
-  it('volume is capped at 0.5', () => {
+  it('volume is capped appropriately (0.5 default, 0.7 for important events)', () => {
     const source = readFileSync(
       join(PROJECT_ROOT, 'src/lib/notifications/use-mobile-notifications.ts'),
       'utf-8'
     );
-    expect(source).toMatch(/audio\.volume\s*=\s*0\.5/);
+    // Volume is now dynamic: 0.5 default, 0.7 for PIX/escalation
+    expect(source).toMatch(/audio\.volume\s*=\s*(?:isImportantEvent\s*\?\s*0\.7\s*:\s*)?0\.5/);
   });
 });
 
