@@ -642,6 +642,15 @@ export default function DDCPousadaContent() {
             <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Hóspedes Ativos</CardDescription>
             <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalGuests}</CardTitle>
           </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-mono">
+              <Users className="size-3.5" />
+              <span>{confirmedCount} confirmados</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Charts Row — Clean Solid Lines, Rounded-2xl */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Revenue Trend Chart - 2 cols */}
