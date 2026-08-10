@@ -208,6 +208,12 @@ export function MobilePousadaSuperApp() {
     setNewGuestPhone('');
     toast.success(`🔑 Check-in efetuado para ${newGuest.name} na ${newGuest.room}!`);
 
+    try {
+      const audio = new Audio('/sounds/booking-confirmed.mp3');
+      audio.volume = 0.6;
+      audio.play().catch(() => {});
+    } catch {}
+
     setNotifications((prev) => [
       {
         id: Date.now(),
@@ -240,6 +246,12 @@ export function MobilePousadaSuperApp() {
       } else if (lower.includes('pix') || lower.includes('desconto')) {
         botReply = 'Reservando direto pelo PIX você economiza 10% de taxa da OTA! Chave PIX gerada com reconciliação automática.';
       }
+
+      try {
+        const audio = new Audio('/sounds/message.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } catch {}
 
       setChatLog((prev) => [...prev, { sender: 'zella', text: botReply, time: nowStr }]);
     }, 600);
