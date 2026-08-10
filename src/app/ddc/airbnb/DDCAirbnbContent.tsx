@@ -400,65 +400,65 @@ export default function DDCAirbnbContent() {
         </div>
       </div>
 
-      {/* Cockpit ProHost & Status da IA no WhatsApp — Estilo Terminal Azul */}
-      <Card className="p-4 bg-[#040e22]/90 border border-[#00d8ff]/30 rounded-lg font-mono">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded bg-[#00d8ff]/15 border border-[#00d8ff]/40 flex items-center justify-center font-bold text-[#00d8ff]">
-              &gt;_
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#e0f2fe] uppercase tracking-wider">[SYS_OK] Cockpit ProHost &amp; Fechaduras Digitais</span>
-                <span className="w-2 h-2 rounded-full bg-[#00d8ff] animate-pulse" />
-                <Badge className="bg-[#00d8ff]/15 text-[#00d8ff] border-[#00d8ff]/40 text-[10px]">SUPERHOST_ACTIVE</Badge>
-              </div>
-              <p className="text-xs text-cyan-300/80">Gestão de múltiplos chalés, comissões de co-anfitrião e senhas por PIN de fechadura</p>
-            </div>
+      {/* ─── DDC AIRBNB WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM ─── */}
+
+      {/* Cyber-Luxe Operational Status Header — Anfitrião ProHost */}
+      <div className="p-4 bg-gradient-to-r from-blue-950/40 via-[#0a0a0f] to-[#0a0a0f] border border-blue-500/30 rounded-xl backdrop-blur-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_30px_rgba(59,130,246,0.08)]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold shadow-inner">
+            <Home className="w-5 h-5" />
           </div>
-          <div className="flex items-center gap-2 text-xs text-[#93c5fd]">
-            <span className="px-2 py-1 bg-black/60 border border-[#00d8ff]/20 rounded">⚡ iCAL: 100% SYNC</span>
-            <span className="px-2 py-1 bg-black/60 border border-[#00d8ff]/20 rounded">🔑 AUTO-PIN: ON</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white tracking-tight">Cockpit Anfitrião ProHost — Cérebro Zélla 24h</span>
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px] uppercase font-mono">SUPERHOST ATIVO</Badge>
+            </div>
+            <p className="text-xs text-white/60 mt-0.5">Gestão de múltiplos imóveis, sincronização de calendários iCAL e automação de PINs no WhatsApp</p>
           </div>
         </div>
-      </Card>
+        <div className="flex items-center gap-2 text-xs font-mono">
+          <span className="px-3 py-1 bg-white/[0.03] border border-white/10 rounded-lg text-blue-400">⚡ iCAL: 100% SYNC</span>
+          <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-300">🔑 AUTO-PIN: ON</span>
+        </div>
+      </div>
 
-      {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner no Estilo Terminal Azul */}
-      <Card className="bg-[#040a14] border border-[#00d8ff]/25 rounded-lg overflow-hidden font-mono">
+      {/* Property Information Card — Cyber-Luxe Glassmorphism */}
+      <Card className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl">
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-11 h-11 rounded bg-[#00d8ff]/10 border border-[#00d8ff]/30 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-[#00d8ff]" />
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/10 border border-blue-500/30 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-5 h-5 text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-[#e0f2fe] font-bold text-sm">{scannedData.propertyName}</h3>
-                <Badge className="bg-[#00d8ff]/10 text-[#00d8ff] border-[#00d8ff]/30 text-[10px]">
-                  [iCAL_SYNCED_OK]
+                <h3 className="text-white font-bold text-base tracking-tight">{scannedData.propertyName}</h3>
+                <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">
+                  CALENDÁRIO iCAL CONECTADO
                 </Badge>
               </div>
-              <p className="text-cyan-300/70 text-xs mb-3">{scannedData.description || ''}</p>
+              <p className="text-white/60 text-xs mb-3">{scannedData.description || ''}</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="flex items-center gap-1.5 text-[#93c5fd]">
-                  <MapPin className="w-3.5 h-3.5 text-[#00d8ff]" />
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <MapPin className="w-3.5 h-3.5 text-blue-400" />
                   <span>{scannedData.location || '—'}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#93c5fd]">
-                  <Clock className="w-3.5 h-3.5 text-[#00d8ff]" />
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <Clock className="w-3.5 h-3.5 text-blue-400" />
                   <span>Check-in {scannedData.checkInTime} / Out {scannedData.checkOutTime}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#93c5fd]">
-                  <Wifi className="w-3.5 h-3.5 text-[#00d8ff]" />
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <Wifi className="w-3.5 h-3.5 text-blue-400" />
                   <span>{scannedData.amenities.length} comodidades</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#93c5fd]">
-                  <Bot className="w-3.5 h-3.5 text-[#00d8ff]" />
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <Bot className="w-3.5 h-3.5 text-blue-400" />
                   <span className="truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {scannedData.amenities.map((amenity) => (
-                  <Badge key={amenity} variant="outline" className="text-[10px] border-[#00d8ff]/20 text-[#00d8ff] bg-[#00d8ff]/5">
+                  <Badge key={amenity} variant="outline" className="text-[10px] border-blue-500/20 text-blue-300 bg-blue-500/5">
                     +{amenity}
                   </Badge>
                 ))}
@@ -471,66 +471,66 @@ export default function DDCAirbnbContent() {
       {/* Header bar */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Portfólio de Imóveis Airbnb</h2>
-          <p className="text-sm text-zinc-500">{totalProperties} imóveis conectados e monitorados pela IA</p>
+          <h2 className="text-lg font-bold text-white tracking-tight">Portfólio de Imóveis Airbnb</h2>
+          <p className="text-sm text-zinc-400">{totalProperties} imóveis conectados e monitorados pela IA Zélla</p>
         </div>
         <Button
           onClick={() => setIsAddPropertyOpen(true)}
           size="sm"
-          className="bg-blue-600 hover:bg-blue-500 text-white cursor-pointer active:scale-95 transition-all"
+          className="bg-blue-600 hover:bg-blue-500 text-white font-medium cursor-pointer active:scale-95 transition-all rounded-lg shadow-lg shadow-blue-500/20"
         >
           <Plus className="size-4 mr-1" />
           Adicionar Imóvel
         </Button>
       </div>
 
-      {/* Summary Stats (Hallmark Option 08 Terminal HUD Grid) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+      {/* Summary Stats — Cyber-Luxe Glassmorphism */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div variants={staggerItem}>
-          <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-colors shadow-[0_0_15px_rgba(0,216,255,0.08)]">
+          <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-blue-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <Home className="h-4 w-4 text-[#00d8ff]" />
-                <Badge className="bg-[#00d8ff]/10 text-[#00d8ff] border-[#00d8ff]/30 text-[9px]">[SYNC_OK]</Badge>
+                <Home className="h-4 w-4 text-blue-400" />
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[9px]">CONECTADO</Badge>
               </div>
-              <p className="text-2xl font-bold text-[#00d8ff]">{totalProperties}</p>
-              <p className="text-xs text-[#93c5fd] mt-1">&gt; TOTAL_IMOVEIS</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalProperties}</p>
+              <p className="text-xs text-zinc-400 mt-1 font-mono uppercase">Total Imóveis</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-colors shadow-[0_0_15px_rgba(0,216,255,0.08)]">
+          <Card className="bg-gradient-to-br from-blue-950/20 to-white/[0.02] border border-blue-500/30 hover:border-blue-500/50 transition-all rounded-xl backdrop-blur-xl shadow-lg">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <DollarSign className="h-4 w-4 text-[#00d8ff]" />
-                <TrendingUp className="h-3 w-3 text-[#00d8ff]" />
+                <DollarSign className="h-4 w-4 text-blue-400" />
+                <TrendingUp className="h-3.5 w-3.5 text-blue-400" />
               </div>
-              <p className="text-2xl font-bold text-[#e0f2fe]">{formatCompactBRL(totalRevenue)}</p>
-              <p className="text-xs text-[#93c5fd] mt-1">&gt; RECEITA_MES</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{formatCompactBRL(totalRevenue)}</p>
+              <p className="text-xs text-blue-400 mt-1 font-mono uppercase">Receita Bruta do Mês</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-colors shadow-[0_0_15px_rgba(0,216,255,0.08)]">
+          <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-blue-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <Star className="h-4 w-4 text-amber-400" />
-                <span className="text-xs text-[#00d8ff] font-bold">+0.03</span>
+                <span className="text-xs text-blue-400 font-bold">+0.03</span>
               </div>
-              <p className="text-2xl font-bold text-[#e0f2fe]">{avgRating}</p>
-              <p className="text-xs text-[#93c5fd] mt-1">&gt; AVALIACAO_MEDIA</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{avgRating}</p>
+              <p className="text-xs text-zinc-400 mt-1 font-mono uppercase">Avaliação Média</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-colors shadow-[0_0_15px_rgba(0,216,255,0.08)]">
+          <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-blue-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <MessageSquare className="h-4 w-4 text-[#00d8ff]" />
-                <ArrowUpRight className="h-3 w-3 text-[#00d8ff]" />
+                <MessageSquare className="h-4 w-4 text-blue-400" />
+                <ArrowUpRight className="h-3.5 w-3.5 text-blue-400" />
               </div>
-              <p className="text-2xl font-bold text-[#e0f2fe]">{totalReviews}</p>
-              <p className="text-xs text-[#93c5fd] mt-1">&gt; TOTAL_REVIEWS</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalReviews}</p>
+              <p className="text-xs text-zinc-400 mt-1 font-mono uppercase">Total Avaliações</p>
             </CardContent>
           </Card>
         </motion.div>

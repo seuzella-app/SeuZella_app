@@ -197,17 +197,19 @@ export function DDCSidebar({
   // ─── Expanded sidebar ───────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full">
-      {/* Logo Section — seuzélla.com + nome da propriedade */}
-      <div className="p-4 border-b border-white/[0.06]">
+      {/* Logo Section — Seu Zélla + nome da propriedade */}
+      <div className="p-4 border-b border-white/[0.08] bg-white/[0.02]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/[0.08] flex items-center justify-center shrink-0">
-            <ZellaLogo size={20} />
-          </div>
+          <img
+            src="/SeuZella_Logo_site.png"
+            alt="Seu Zélla"
+            className="h-8 w-auto object-contain shrink-0"
+          />
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-bold text-white tracking-tight truncate lowercase">
+            <h2 className="text-xs font-bold text-white tracking-tight truncate font-mono">
               seuzélla.com
             </h2>
-            <p className="text-[11px] text-white/50 truncate" title={propertyName}>
+            <p className="text-[10px] text-emerald-400 font-mono font-bold truncate" title={propertyName}>
               {propertyName}
             </p>
           </div>
@@ -474,6 +476,13 @@ export function DDCShell({
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </Link>
+
+                <img
+                  src="/SeuZella_Logo_site.png"
+                  alt="Seu Zélla Logo"
+                  className="h-7 w-auto object-contain hidden sm:block shrink-0"
+                />
+                <div className="h-5 w-[1px] bg-white/10 hidden sm:block shrink-0" />
 
                 <div className="min-w-0">
                   <h1 className="text-sm font-bold text-white tracking-tight truncate flex items-center gap-2">

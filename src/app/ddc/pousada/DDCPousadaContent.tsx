@@ -520,82 +520,65 @@ export default function DDCPousadaContent() {
       {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · theme: Terminal · option: 08 (Verde Matrix) */}
       {/* ─── DDC POUSADA: HALLMARK OPTION 08 (ESTILO TERMINAL VERDE MATRIX) ─── */}
 
-      {/* N8 Terminal Command Header */}
-      <div className="p-3.5 bg-[#051208] border border-[#00ff66]/40 rounded-lg font-mono text-xs text-[#00ff66] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(0,255,102,0.12)]">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[#00ff66] font-bold">&gt; zella-pousada --terminal</span>
-          <span className="text-zinc-400">|</span>
-          <span className="text-[#a3e6c0]">--recepcao [24H_LIVE]</span>
-          <span className="text-[#a3e6c0]">--quartos 12</span>
-          <span className="text-[#a3e6c0]">--status [SECURE_PORT_443]</span>
-          <span className="text-[#00ff66] font-bold animate-pulse">▮</span>
+      {/* ─── DDC POUSADA WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM ─── */}
+
+      {/* Cyber-Luxe Operational Status Header */}
+      <div className="p-4 bg-gradient-to-r from-emerald-950/40 via-[#0a0a0f] to-[#0a0a0f] border border-emerald-500/30 rounded-xl backdrop-blur-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_30px_rgba(16,185,129,0.08)]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold shadow-inner">
+            <Building2 className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white tracking-tight">Dashboard da Pousada — Cérebro Zélla 24h</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px] uppercase font-mono">CONECTADO</Badge>
+            </div>
+            <p className="text-xs text-white/60 mt-0.5">Atendimento autônomo no WhatsApp, envio de PINs e conciliação de PIX em tempo real</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge className="bg-[#00ff66]/10 text-[#00ff66] border border-[#00ff66]/30 text-[10px] font-mono uppercase tracking-widest">
-            [MODE: TERMINAL_VERDE_08]
-          </Badge>
+        <div className="flex items-center gap-2 text-xs font-mono">
+          <span className="px-3 py-1 bg-white/[0.03] border border-white/10 rounded-lg text-emerald-400">⚡ LATÊNCIA: 380ms</span>
+          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300">💬 ZÉLLA DISPATCH: 100%</span>
         </div>
       </div>
 
-      {/* Status da Recepção Virtual no WhatsApp 24h — Estilo Terminal */}
-      <Card className="p-4 bg-[#051209]/90 border border-[#00ff66]/30 rounded-lg font-mono">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded bg-[#00ff66]/15 border border-[#00ff66]/40 flex items-center justify-center font-bold text-[#00ff66]">
-              &gt;_
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#e2f7eb] uppercase tracking-wider">[SYS_OK] Recepção Virtual Zélla 24h</span>
-                <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse" />
-                <Badge className="bg-[#00ff66]/15 text-[#00ff66] border-[#00ff66]/40 text-[10px]">ACTIVE_PROD</Badge>
-              </div>
-              <p className="text-xs text-emerald-400/80">Atendimento autônomo no WhatsApp, envio de PINs e conciliação de PIX</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-[#a3e6c0]">
-            <span className="px-2 py-1 bg-black/60 border border-[#00ff66]/20 rounded">⚡ LATENCY: 1.2s</span>
-            <span className="px-2 py-1 bg-black/60 border border-[#00ff66]/20 rounded">💬 DISPATCH: 100%</span>
-          </div>
-        </div>
-      </Card>
-
-      {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner no Estilo Terminal */}
-      <Card className="bg-[#050e07] border border-[#00ff66]/25 rounded-lg overflow-hidden font-mono">
+      {/* Property Information Card — Cyber-Luxe Glassmorphism */}
+      <Card className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl">
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-11 h-11 rounded bg-[#00ff66]/10 border border-[#00ff66]/30 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-[#00ff66]" />
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/30 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-[#e2f7eb] font-bold text-sm">{scannedData.propertyName}</h3>
-                <Badge className="bg-[#00ff66]/10 text-[#00ff66] border-[#00ff66]/30 text-[10px]">
-                  [DATA_POUSADA_VERIFIED]
+                <h3 className="text-white font-bold text-base tracking-tight">{scannedData.propertyName}</h3>
+                <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">
+                  PROPRIEDADE VERIFICADA
                 </Badge>
               </div>
-              <p className="text-emerald-400/70 text-xs mb-3">{scannedData.description || ''}</p>
+              <p className="text-white/60 text-xs mb-3">{scannedData.description || ''}</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="flex items-center gap-1.5 text-[#a3e6c0]">
-                  <MapPin className="w-3.5 h-3.5 text-[#00ff66]" />
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{scannedData.location || '—'}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#a3e6c0]">
-                  <Clock className="w-3.5 h-3.5 text-[#00ff66]" />
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Check-in {scannedData.checkInTime} / Out {scannedData.checkOutTime}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#a3e6c0]">
-                  <Bed className="w-3.5 h-3.5 text-[#00ff66]" />
-                  <span>{scannedData.totalRooms ?? '—'} quartos</span>
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <Bed className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{scannedData.totalRooms ?? '—'} acomodações</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[#a3e6c0]">
-                  <Bot className="w-3.5 h-3.5 text-[#00ff66]" />
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <Bot className="w-3.5 h-3.5 text-emerald-400" />
                   <span className="truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {scannedData.amenities.map((amenity) => (
-                  <Badge key={amenity} variant="outline" className="text-[10px] border-[#00ff66]/20 text-[#00ff66] bg-[#00ff66]/5">
+                  <Badge key={amenity} variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-300 bg-emerald-500/5">
                     +{amenity}
                   </Badge>
                 ))}
@@ -605,59 +588,59 @@ export default function DDCPousadaContent() {
         </CardContent>
       </Card>
 
-      {/* Top Metric Cards (Hallmark Option 08 Terminal HUD Grid) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
+      {/* Top Metric Cards Grid — Cyber-Luxe Glassmorphism */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* MRR Card */}
-        <Card className="bg-[#051208]/90 border border-[#00ff66]/30 hover:border-[#00ff66]/60 border-l-4 border-l-[#00ff66] transition-colors shadow-[0_0_15px_rgba(0,255,102,0.08)]">
-          <CardHeader className="pb-1 p-3.5">
-            <CardDescription className="text-[#a3e6c0] text-[10px] uppercase font-mono tracking-wider">&gt; RECEITA_MES</CardDescription>
-            <CardTitle className="text-xl sm:text-2xl font-bold text-[#00ff66]">
+        <Card className="bg-gradient-to-br from-emerald-950/20 to-white/[0.02] border border-emerald-500/30 hover:border-emerald-500/50 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+          <CardHeader className="pb-1 p-4">
+            <CardDescription className="text-emerald-400 text-xs font-mono uppercase tracking-wider">Faturamento do Mês</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               {formatCurrency(totalMRR)}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="flex items-center gap-1 text-[#00ff66] text-xs font-mono">
+          <CardContent className="p-4 pt-0">
+            <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
               <TrendingUp className="size-3.5" />
-              <span>+12.5% [UPSTREAM]</span>
+              <span>+12.5% vs mês anterior</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Economia OTAs Card */}
-        <Card className="bg-[#051208]/90 border border-[#00ff66]/30 hover:border-[#00ff66]/60 transition-colors shadow-[0_0_15px_rgba(0,255,102,0.08)]">
-          <CardHeader className="pb-1 p-3.5">
-            <CardDescription className="text-[#a3e6c0] text-[10px] uppercase font-mono tracking-wider">&gt; ECONOMIA_OTAS</CardDescription>
-            <CardTitle className="text-xl sm:text-2xl font-bold text-[#00ff66]">
+        <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-emerald-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+          <CardHeader className="pb-1 p-4">
+            <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Economia Direct PIX</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-emerald-400 tracking-tight">
               R$ 3.850,00
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="flex items-center gap-1 text-[#a3e6c0] text-[11px] font-mono">
-              <ShieldCheck className="size-3.5 text-[#00ff66]" />
-              <span>18% salvos no PIX</span>
+          <CardContent className="p-4 pt-0">
+            <div className="flex items-center gap-1 text-zinc-300 text-xs">
+              <ShieldCheck className="size-3.5 text-emerald-400" />
+              <span>18% economizados sem taxa OTA</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Conversion Rate Card */}
-        <Card className="bg-[#051208]/90 border border-[#00ff66]/30 hover:border-[#00ff66]/60 transition-colors shadow-[0_0_15px_rgba(0,255,102,0.08)]">
-          <CardHeader className="pb-1 p-3.5">
-            <CardDescription className="text-[#a3e6c0] text-[10px] uppercase font-mono tracking-wider">&gt; CONVERSAO_IA</CardDescription>
-            <CardTitle className="text-xl sm:text-2xl font-bold text-[#e2f7eb]">{conversionRate}%</CardTitle>
+        {/* Conversão IA Card */}
+        <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-emerald-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+          <CardHeader className="pb-1 p-4">
+            <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Conversão Zélla WhatsApp</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{conversionRate}%</CardTitle>
           </CardHeader>
-          <CardContent className="p-3.5 pt-0">
-            <div className="flex items-center gap-1 text-[#00ff66] text-xs font-mono">
+          <CardContent className="p-4 pt-0">
+            <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
               <ArrowUpRight className="size-3.5" />
-              <span>Fechado via Zélla</span>
+              <span>Fechamento autônomo 24h</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Active Guests Card */}
-        <Card className="bg-[#050e07] border border-[#00ff66]/30 hover:border-[#00ff66]/50 transition-colors">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[#a3e6c0] text-xs uppercase tracking-wider">&gt; HOSPEDES_ATIVOS</CardDescription>
-            <CardTitle className="text-2xl font-bold text-[#e2f7eb]">{totalGuests}</CardTitle>
+        <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-emerald-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+          <CardHeader className="pb-2 p-4">
+            <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Hóspedes Ativos</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalGuests}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-1.5 text-[#00ff66] text-sm font-mono">
