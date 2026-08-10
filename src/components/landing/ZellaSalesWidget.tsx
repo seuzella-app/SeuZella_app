@@ -102,17 +102,23 @@ export function ZellaSalesWidget() {
       });
 
       const data = await response.json();
+      const replyText = data.reply || 'Tô por aqui! Como posso te ajudar na sua pousada?';
+
+      // Simulação de cadência humana natural (delay proporcional ao tamanho do texto: 1.2s a 2.5s)
+      const typingDelay = Math.min(2500, Math.max(1200, replyText.length * 20));
+      await new Promise((res) => setTimeout(res, typingDelay));
 
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.reply || 'Tô por aqui! Como posso te ajudar na sua pousada?',
+        content: replyText,
         recommendedPlan: data.recommendedPlan,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
     } catch {
+      await new Promise((res) => setTimeout(res, 1200));
       setMessages((prev) => [
         ...prev,
         {

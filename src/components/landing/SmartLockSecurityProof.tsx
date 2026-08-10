@@ -155,55 +155,64 @@ export function SmartLockSecurityProof() {
         </div>
       </div>
 
-      {/* Supported Lock Brands — TWO CATEGORIES */}
+      {/* Fechaduras Eletrônicas — Linguagem Clara, Segura e Reasseguradora */}
       <div className="mt-6 space-y-3">
-        {/* Marcas com API */}
-        <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20">
+        <div className="text-center sm:text-left mb-2">
+          <h4 className="text-sm font-extrabold text-white flex items-center justify-center sm:justify-start gap-2">
+            🔑 Fechaduras Eletrônicas — Entrega da Senha no WhatsApp com Validade Programada
+          </h4>
+          <p className="text-xs text-zinc-400 mt-1">
+            O Zélla é compatível com as principais marcas de fechaduras eletrônicas do Brasil. A senha expira automaticamente no check-out, garantindo segurança total.
+          </p>
+        </div>
+
+        {/* Integração 100% Automática */}
+        <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-emerald-400" />
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <Zap className="w-4.5 h-4.5 text-emerald-400" />
             </div>
             <div className="flex-1">
-              <h5 className="text-xs font-bold text-white flex items-center gap-2">
-                Marcas com API automática (PIN gerado automaticamente)
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">5 marcas</span>
+              <h5 className="text-xs font-extrabold text-white flex items-center gap-2">
+                Envio 100% Automático via WhatsApp
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Sem toque manual</span>
               </h5>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
-                Integração OAuth2 oficial. O Zélla gera o PIN direto na fechadura — você não precisa abrir o app da marca.
+              <p className="text-[11px] text-zinc-300 mt-0.5">
+                O Zélla gera a senha de acesso e entrega no WhatsApp do hóspede assim que a reserva é confirmada no PIX.
               </p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
-            <BrandBadge emoji="🔑" name="TTLock" note="Líder MercadoLivre" />
-            <BrandBadge emoji="🌐" name="Tuya / Smart Life" note="20-25% do mercado" />
-            <BrandBadge emoji="🏔️" name="Igloohome" note="PIN offline real" />
-            <BrandBadge emoji="🚪" name="Nuki" note="Premium Airbnb" />
-            <BrandBadge emoji="🏠" name="August / Yale Assure 2" note="Yale 2023+" />
+            <BrandBadge emoji="🔑" name="TTLock" note="Líder no mercado" />
+            <BrandBadge emoji="🌐" name="Tuya / Smart Life" note="Larga compatibilidade" />
+            <BrandBadge emoji="🏔️" name="Igloohome" note="Senhas temporárias" />
+            <BrandBadge emoji="🚪" name="Nuki" note="Linha Premium" />
+            <BrandBadge emoji="🏠" name="August / Yale Smart" note="Linha Inteligente" />
           </div>
         </div>
 
-        {/* Marcas manuais */}
-        <div className="p-4 rounded-2xl bg-zinc-950/80 border border-white/10">
+        {/* Envio Agendado via WhatsApp */}
+        <div className="p-4 rounded-2xl bg-zinc-900/80 border border-white/10">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-lg bg-zinc-500/10 border border-zinc-500/30 flex items-center justify-center">
-              <Cpu className="w-4 h-4 text-zinc-400" />
+            <div className="w-9 h-9 rounded-lg bg-zinc-700/20 border border-white/10 flex items-center justify-center shrink-0">
+              <Cpu className="w-4.5 h-4.5 text-zinc-300" />
             </div>
             <div className="flex-1">
-              <h5 className="text-xs font-bold text-white flex items-center gap-2">
-                Marcas em modo manual (PIN colado pelo host)
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-700/40 text-zinc-300 font-mono">5 marcas</span>
+              <h5 className="text-xs font-extrabold text-white flex items-center gap-2">
+                Envio Agendado no Horário do Check-in
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-700/40 text-zinc-300 font-bold border border-white/10">Compatibilidade Total</span>
               </h5>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
-                Sem API pública. Você gera o PIN no app oficial da marca e cola no Zélla — que agenda o envio via WhatsApp no horário do check-in.
+              <p className="text-[11px] text-zinc-300 mt-0.5">
+                Sua fechadura preferida continua funcionando: você cadastra a senha e o Zélla faz o envio pontual no celular do hóspede.
               </p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
-            <BrandBadge emoji="🇧🇷" name="Intelbras" note="Líder em pousadas" />
-            <BrandBadge emoji="🔐" name="Yale" note="YDM tradicional" />
-            <BrandBadge emoji="🛡️" name="Papaiz" note="Brasileira tradicional" />
-            <BrandBadge emoji="📺" name="Philco" note="2-5% do mercado" />
-            <BrandBadge emoji="📱" name="Samsung" note="Via SmartThings" />
+            <BrandBadge emoji="🇧🇷" name="Intelbras" note="Muito usada em pousadas" />
+            <BrandBadge emoji="🔐" name="Yale" note="Linha tradicional" />
+            <BrandBadge emoji="🛡️" name="Papaiz" note="Linha nacional" />
+            <BrandBadge emoji="📺" name="Philco" note="Linha residencial" />
+            <BrandBadge emoji="📱" name="Samsung" note="Linha SmartThings" />
           </div>
         </div>
       </div>

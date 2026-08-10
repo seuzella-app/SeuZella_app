@@ -192,8 +192,8 @@ export function HowItWorksSection() {
     : 'Em 3 passos, sem sair do sofá';
 
   const headerDesc = isPousada
-    ? 'Do cadastro à primeira reserva automatizada em menos de 24 horas. Sem precisar de conhecimento técnico.'
-    : 'Da URL do anúncio ao primeiro check-in virtual automaticamente. Sem precisar de conhecimento técnico.';
+    ? 'Do cadastro à primeira reserva automatizada em menos de 24 horas. Sem precisar de conhecimento técnico. Dashboard completo.'
+    : 'Da URL do anúncio ao primeiro check-in virtual automaticamente. Sem precisar de conhecimento técnico. Dashboard completo.';
 
   return (
     <section ref={sectionRef} id="como-funciona" className="relative overflow-hidden py-24 sm:py-32 bg-[#09090b]">

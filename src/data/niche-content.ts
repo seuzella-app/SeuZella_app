@@ -103,8 +103,8 @@ export interface NicheContent {
 // ═══════════════════════════════════════════════════════════════
 const pousadaContent: NicheContent = {
   switcher: {
-    headline: 'Transforme o WhatsApp da sua Pousada na sua Recepção Digital 24 horas.',
-    subheadline: 'Atenda interessados no WhatsApp a qualquer hora, receba o pagamento das diárias na hora no PIX sem pagar de 15% a 20% de comissão para sites de reserva, e entregue a senha do quarto automaticamente.',
+    headline: 'Transforme o WhatsApp da sua Pousada numa Recepção Inteligente 24 horas com o Seu Zélla.',
+    subheadline: 'Atenda interessados na sua pousada a qualquer hora, receba seus pagamentos via PIX sem pagar de 15% a 20% de comissão para sites de reserva. ZERO taxas via Seu Zélla.',
     heroStat: { val: '0% Taxa', label: 'comissão em reservas no PIX Direto' },
     backgroundImage: '/images/niche-pousadas-bg.jpg',
     ctaText: 'Ver Planos para Pousadas',
