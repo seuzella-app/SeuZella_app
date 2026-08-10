@@ -115,15 +115,24 @@ export function HeroSection() {
               <NicheToggle niche={niche} onNicheChange={setNiche} />
             </motion.div>
 
-            {/* Headline — Dynamic Pure Niche Copy */}
+            {/* Headline — Dynamic Pure Niche Copy com Degradê Azul Claro + Verde no Destaque */}
             <motion.h1
               variants={staggerItem}
               key={`headline-${niche}`}
               className="text-[2.2rem] sm:text-[3.2rem] md:text-[3.8rem] lg:text-[4.2rem] font-satoshi font-extrabold tracking-[-0.03em] md:tracking-[-0.04em] leading-[1.12] text-white mb-6 text-center max-w-4xl mx-auto"
             >
-              <span className="block bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
-                {content.switcher.headline}
-              </span>
+              {isPousada ? (
+                <>
+                  <span className="text-white">Transforme o WhatsApp da sua Pousada numa </span>
+                  <span className="bg-gradient-to-r from-sky-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
+                    Recepção Inteligente 24 horas com o Seu Zélla.
+                  </span>
+                </>
+              ) : (
+                <span className="block bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
+                  {content.switcher.headline}
+                </span>
+              )}
             </motion.h1>
 
             {/* Subtitle — Dynamic Pure Niche Copy */}
