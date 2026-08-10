@@ -418,6 +418,7 @@ export default function DDCAirbnbContent() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs font-mono">
+          <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 font-bold">🧠 DSPY STANFORD: OPTIMIZED</span>
           <span className="px-3 py-1 bg-white/[0.02] border border-white/10 rounded-full text-blue-400">⚡ iCAL: 100% SYNC</span>
           <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-300">🔑 AUTO-PIN: ON</span>
         </div>
