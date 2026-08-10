@@ -103,11 +103,11 @@ export interface NicheContent {
 // ═══════════════════════════════════════════════════════════════
 const pousadaContent: NicheContent = {
   switcher: {
-    headline: 'Ele responde e organiza. Economiza tempo e dinheiro. Reservas diretas com o Zélla.',
-    subheadline: 'O Zélla ajuda a lucrar mais com preços inteligentes e gastar menos no WhatsApp (sim, o Whatsapp vai cobrar). Responde 24h por dia e manda sua chave PIX para o hóspede. Você vai ter total controle financeiro em seu Dashboard.',
-    heroStat: { val: '+47%', label: 'mais receita com preços inteligentes' },
+    headline: 'Transforme o WhatsApp da sua Pousada na sua Recepção Digital 24 horas.',
+    subheadline: 'Atenda interessados no WhatsApp a qualquer hora, receba o pagamento das diárias na hora no PIX sem pagar de 15% a 20% de comissão para sites de reserva, e entregue a senha do quarto automaticamente.',
+    heroStat: { val: '0% Taxa', label: 'comissão em reservas no PIX Direto' },
     backgroundImage: '/images/niche-pousadas-bg.jpg',
-    ctaText: 'Ver como funciona para Pousadas',
+    ctaText: 'Ver Planos para Pousadas',
     accentColor: 'emerald',
     glowColor: 'rgba(16, 185, 129, 0.08)',
   },
@@ -317,11 +317,11 @@ const pousadaContent: NicheContent = {
 // ═══════════════════════════════════════════════════════════════
 const airbnbContent: NicheContent = {
   switcher: {
-    headline: 'Escale seu imóvel. Lucre mais com reservas diretas.',
-    subheadline: 'O Zélla AirB organiza seu imóvel e ajuda a lucrar mais com preços inteligentes + gastar menos no WhatsApp (80% economia). Responde 24h com disponibilidade e manda sua chave PIX, sincroniza Airbnb+Booking, e entrega o Guia Digital automaticamente.',
-    heroStat: { val: '+47%', label: 'mais receita com preços inteligentes' },
+    headline: 'Transforme o WhatsApp dos seus Imóveis no seu maior canal de Reservas Diretas.',
+    subheadline: 'Responda interessados 24 horas por dia, feche reservas no PIX com 0% de taxa de intermediação e entregue a senha da fechadura eletrônica automaticamente para o hóspede.',
+    heroStat: { val: '95%', label: 'redução no tempo de atendimento' },
     backgroundImage: '/images/niche-anfitrioes-bg.jpg',
-    ctaText: 'Ver como funciona para Anfitriões',
+    ctaText: 'Ver Planos para Anfitriões',
     accentColor: 'blue',
     glowColor: 'rgba(65, 105, 225, 0.08)',
   },
