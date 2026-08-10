@@ -665,20 +665,20 @@ export default function DDCPousadaContent() {
         </Card>
       </div>
 
-      {/* Charts Row */}
+      {/* Charts Row — Cyber-Luxe Glassmorphism */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Revenue Trend Chart - 2 cols */}
-        <Card className="lg:col-span-2 bg-[#111118] border-zinc-800/60">
+        <Card className="lg:col-span-2 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl shadow-xl">
           <CardHeader>
-            <CardTitle className="text-base text-white">Receita dos Últimos 30 Dias</CardTitle>
-            <CardDescription className="text-zinc-500">Evolução diária de faturamento</CardDescription>
+            <CardTitle className="text-base font-bold text-white tracking-tight">Receita dos Últimos 30 Dias</CardTitle>
+            <CardDescription className="text-white/50 text-xs">Evolução diária de faturamento em tempo real</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={revenueChartConfig} className="h-[260px] w-full">
               <LineChart data={revenueTrendData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e1e2e" />
-                <XAxis dataKey="day" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                <XAxis dataKey="day" stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <ChartTooltip
                   content={<ChartTooltipContent />}
                   formatter={(value: number) => [formatCurrency(value), 'Receita']}
@@ -689,7 +689,7 @@ export default function DDCPousadaContent() {
                   stroke="#10b981"
                   strokeWidth={2.5}
                   dot={false}
-                  activeDot={{ r: 5, fill: '#10b981', stroke: '#0a0a0f', strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#10b981', stroke: '#0a0a0f', strokeWidth: 2 }}
                 />
               </LineChart>
             </ChartContainer>
@@ -697,10 +697,10 @@ export default function DDCPousadaContent() {
         </Card>
 
         {/* Payment Method Donut Chart */}
-        <Card className="bg-[#111118] border-zinc-800/60">
+        <Card className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl shadow-xl">
           <CardHeader>
-            <CardTitle className="text-base text-white">Métodos de Pagamento</CardTitle>
-            <CardDescription className="text-zinc-500">Volume por método</CardDescription>
+            <CardTitle className="text-base font-bold text-white tracking-tight">Métodos de Pagamento</CardTitle>
+            <CardDescription className="text-white/50 text-xs">Volume por método de pagamento</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
             <ChartContainer config={paymentChartConfig} className="h-[180px] w-full">
@@ -731,7 +731,7 @@ export default function DDCPousadaContent() {
                 <div key={item.method} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div className="size-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
-                    <span className="text-zinc-400">{item.method}</span>
+                    <span className="text-zinc-300">{item.method}</span>
                   </div>
                   <span className="text-white font-medium">{formatCurrency(item.value)}</span>
                 </div>
@@ -744,17 +744,17 @@ export default function DDCPousadaContent() {
       {/* Occupancy Bar Chart + Transactions Table */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Occupancy Bar Chart */}
-        <Card className="bg-[#111118] border-zinc-800/60">
+        <Card className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl shadow-xl">
           <CardHeader>
-            <CardTitle className="text-base text-white">Taxa de Ocupação</CardTitle>
-            <CardDescription className="text-zinc-500">Semanal (%)</CardDescription>
+            <CardTitle className="text-base font-bold text-white tracking-tight">Taxa de Ocupação</CardTitle>
+            <CardDescription className="text-white/50 text-xs">Desempenho semanal (%)</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={occupancyChartConfig} className="h-[200px] w-full">
               <BarChart data={weeklyOccupancyData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e1e2e" />
-                <XAxis dataKey="week" stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                <XAxis dataKey="week" stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                 <ChartTooltip
                   content={<ChartTooltipContent />}
                   formatter={(value: number) => [`${value}%`, 'Taxa']}
@@ -765,38 +765,38 @@ export default function DDCPousadaContent() {
           </CardContent>
         </Card>
 
-        {/* Recent Transactions Table & Mobile Cards */}
-        <Card className="lg:col-span-2 bg-[#111118] border-zinc-800/60 overflow-hidden">
+        {/* Recent Transactions Table — Cyber-Luxe Glassmorphism */}
+        <Card className="lg:col-span-2 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl overflow-hidden shadow-xl">
           <CardHeader>
-            <CardTitle className="text-base text-white">Transações Recentes</CardTitle>
-            <CardDescription className="text-zinc-500">Últimos recebimentos e reembolsos</CardDescription>
+            <CardTitle className="text-base font-bold text-white tracking-tight">Transações Recentes</CardTitle>
+            <CardDescription className="text-white/50 text-xs">Últimos recebimentos e reconciliações PIX</CardDescription>
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
-            {/* 1. VISÃO DESKTOP: TABELA TRADICIONAL (Aparece apenas em md:) */}
+            {/* DESKTOP TABLE */}
             <div className="hidden md:block">
               <ScrollArea className="h-[240px] w-full px-6 pb-4">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-zinc-800 hover:bg-transparent">
-                      <TableHead className="text-zinc-500">Hóspede</TableHead>
-                      <TableHead className="text-zinc-500 hidden sm:table-cell">Descrição</TableHead>
-                      <TableHead className="text-zinc-500">Método</TableHead>
-                      <TableHead className="text-zinc-500 text-right">Valor</TableHead>
-                      <TableHead className="text-zinc-500">Status</TableHead>
+                    <TableRow className="border-white/10 hover:bg-transparent">
+                      <TableHead className="text-zinc-400">Hóspede</TableHead>
+                      <TableHead className="text-zinc-400 hidden sm:table-cell">Descrição</TableHead>
+                      <TableHead className="text-zinc-400">Método</TableHead>
+                      <TableHead className="text-zinc-400 text-right">Valor</TableHead>
+                      <TableHead className="text-zinc-400">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {recentTransactions.map((tx) => (
-                      <TableRow key={tx.id} className="border-zinc-800/50 hover:bg-zinc-800/30">
+                      <TableRow key={tx.id} className="border-white/[0.06] hover:bg-white/[0.04]">
                         <TableCell className="text-white font-medium text-sm">{tx.guest}</TableCell>
-                        <TableCell className="text-zinc-400 text-sm hidden sm:table-cell max-w-[200px] truncate">{tx.description}</TableCell>
+                        <TableCell className="text-zinc-300 text-sm hidden sm:table-cell max-w-[200px] truncate">{tx.description}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={`text-xs ${tx.method === 'PIX' ? 'border-emerald-500/30 text-emerald-400' : tx.method === 'Cartão' ? 'border-amber-500/30 text-amber-400' : 'border-zinc-500/30 text-zinc-400'}`}>
+                          <Badge variant="outline" className={`text-xs ${tx.method === 'PIX' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' : tx.method === 'Cartão' ? 'border-amber-500/30 text-amber-400 bg-amber-500/10' : 'border-zinc-500/30 text-zinc-300'}`}>
                             {tx.method === 'PIX' ? <QrCode className="size-3 mr-1" /> : tx.method === 'Cartão' ? <CreditCard className="size-3 mr-1" /> : <DollarSign className="size-3 mr-1" />}
                             {tx.method}
                           </Badge>
                         </TableCell>
-                        <TableCell className={`text-right font-medium text-sm ${tx.amount < 0 ? 'text-rose-400' : 'text-white'}`}>
+                        <TableCell className={`text-right font-bold text-sm ${tx.amount < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
                           {formatCurrency(tx.amount)}
                         </TableCell>
                         <TableCell>
