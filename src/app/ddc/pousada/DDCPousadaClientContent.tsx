@@ -1,15 +1,14 @@
 'use client';
 
 // ==============================================================================
-// DDC POUSADA CLIENT CONTENT — Responsive Auto-Routing
+// DDC POUSADA CLIENT CONTENT — Seamless Responsive Viewport Engine
 // ==============================================================================
-// - On Mobile (< 768px): Auto-redirects to /mobile/pousada (Fullscreen Mobile Super App)
-// - On Desktop (>= 768px): Renders full Web Desktop DDC Dashboard
+// - Mobile Viewport (< 768px): Renders MobilePousadaSuperApp (Fullscreen Cyber-Luxe)
+// - Desktop Viewport (>= 768px): Renders DDCPousadaContent (Desktop Web DDC Dashboard)
 // ==============================================================================
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { MobilePousadaSuperApp } from '@/components/mobile/MobilePousadaSuperApp';
 
 const DDCPousadaContent = dynamic(
   () => import('./DDCPousadaContent'),
@@ -19,7 +18,7 @@ const DDCPousadaContent = dynamic(
       <div className="min-h-screen bg-[#0a0a0f] text-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-zinc-400 text-sm">Carregando Dashboard Pousada...</p>
+          <p className="text-zinc-400 text-sm font-mono">Carregando Dashboard Pousada Desktop...</p>
         </div>
       </div>
     ),
@@ -27,29 +26,17 @@ const DDCPousadaContent = dynamic(
 );
 
 export function DDCPousadaClientContent() {
-  const router = useRouter();
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-
-  useEffect(() => {
-    const checkViewport = () => {
-      if (window.innerWidth < 768) {
-        setIsMobile(true);
-        router.replace('/mobile/pousada');
-      }
-    };
-
-    checkViewport();
-    window.addEventListener('resize', checkViewport);
-    return () => window.removeEventListener('resize', checkViewport);
-  }, [router]);
-
-  if (isMobile) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0f] text-white flex items-center justify-center font-mono text-sm">
-        <span>Carregando App Mobile Pousada...</span>
+  return (
+    <>
+      {/* Mobile Super App view (< 768px) */}
+      <div className="block md:hidden w-full min-h-screen bg-[#0a0a0f]">
+        <MobilePousadaSuperApp />
       </div>
-    );
-  }
 
-  return <DDCPousadaContent />;
+      {/* Web Desktop DDC view (>= 768px) */}
+      <div className="hidden md:block w-full min-h-screen bg-[#0a0a0f]">
+        <DDCPousadaContent />
+      </div>
+    </>
+  );
 }
