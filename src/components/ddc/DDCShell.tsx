@@ -477,13 +477,6 @@ export function DDCShell({
                   <ArrowLeft className="w-4 h-4" />
                 </Link>
 
-                <img
-                  src="/SeuZella_Logo_site.png"
-                  alt="Seu Zélla Logo"
-                  className="h-7 w-auto object-contain hidden sm:block shrink-0"
-                />
-                <div className="h-5 w-[1px] bg-white/10 hidden sm:block shrink-0" />
-
                 <div className="min-w-0">
                   <h1 className="text-sm font-bold text-white tracking-tight truncate flex items-center gap-2">
                     <span>{propertyName}</span>

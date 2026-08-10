@@ -49,17 +49,17 @@ export function DDCHeroPreview() {
   const [isAutoCursorActive, setIsAutoCursorActive] = useState(true);
   const [cursorTarget, setCursorTarget] = useState({ x: '8%', y: '12%', clicking: false });
 
-  // ── Auto-rotating sidebar items with organic mouse cursor navigation ──
+  // ── Auto-rotating sidebar items with organic mouse cursor navigation (2.5s por tela) ──
   useEffect(() => {
     if (!isAutoCursorActive) return;
 
     const sequence: { tab: DDCSidebarTab; pos: { x: string; y: string } }[] = [
-      { tab: 'financeiro', pos: { x: '7%', y: '12%' } },
-      { tab: 'hospedes', pos: { x: '7%', y: '18%' } },
-      { tab: 'cerebro', pos: { x: '7%', y: '24%' } },
-      { tab: 'simulador', pos: { x: '7%', y: '30%' } },
-      { tab: 'guia', pos: { x: '7%', y: '42%' } },
-      { tab: 'integracoes', pos: { x: '7%', y: '48%' } },
+      { tab: 'financeiro', pos: { x: '8%', y: '16%' } },
+      { tab: 'hospedes', pos: { x: '8%', y: '22%' } },
+      { tab: 'cerebro', pos: { x: '8%', y: '28%' } },
+      { tab: 'simulador', pos: { x: '8%', y: '34%' } },
+      { tab: 'guia', pos: { x: '8%', y: '46%' } },
+      { tab: 'integracoes', pos: { x: '8%', y: '52%' } },
     ];
 
     let idx = 0;
@@ -72,8 +72,8 @@ export function DDCHeroPreview() {
       setTimeout(() => {
         setActiveTab(nextStep.tab);
         setCursorTarget((prev) => ({ ...prev, clicking: false }));
-      }, 450);
-    }, 5200);
+      }, 400);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, [isAutoCursorActive]);
