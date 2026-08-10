@@ -402,38 +402,38 @@ export default function DDCAirbnbContent() {
 
       {/* ─── DDC AIRBNB WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM ─── */}
 
-      {/* Cyber-Luxe Operational Status Header — Anfitrião ProHost */}
-      <div className="p-4 bg-gradient-to-r from-blue-950/40 via-[#0a0a0f] to-[#0a0a0f] border border-blue-500/30 rounded-xl backdrop-blur-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_30px_rgba(59,130,246,0.08)]">
+      {/* Operational Status Header — Clean Lines, Rounded Corners, No Shadows */}
+      <div className="p-4 bg-[#0d0d14] border border-blue-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold shadow-inner">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
             <Home className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white tracking-tight">Cockpit Anfitrião ProHost — Cérebro Zélla 24h</span>
               <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-              <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px] uppercase font-mono">SUPERHOST ATIVO</Badge>
+              <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[10px] uppercase font-mono rounded-full px-2.5 py-0.5">SUPERHOST ATIVO</Badge>
             </div>
             <p className="text-xs text-white/60 mt-0.5">Gestão de múltiplos imóveis, sincronização de calendários iCAL e automação de PINs no WhatsApp</p>
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="px-3 py-1 bg-white/[0.03] border border-white/10 rounded-lg text-blue-400">⚡ iCAL: 100% SYNC</span>
-          <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-300">🔑 AUTO-PIN: ON</span>
+          <span className="px-3 py-1 bg-white/[0.02] border border-white/10 rounded-full text-blue-400">⚡ iCAL: 100% SYNC</span>
+          <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-300">🔑 AUTO-PIN: ON</span>
         </div>
       </div>
 
-      {/* Property Information Card — Cyber-Luxe Glassmorphism */}
-      <Card className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl">
+      {/* Property Information Card — Clean Line Border, Rounded Corners */}
+      <Card className="bg-[#0d0d14] border border-white/10 rounded-2xl overflow-hidden shadow-none">
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/10 border border-blue-500/30 flex items-center justify-center shadow-lg">
+            <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="text-white font-bold text-base tracking-tight">{scannedData.propertyName}</h3>
-                <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[10px] rounded-full px-2.5">
                   CALENDÁRIO iCAL CONECTADO
                 </Badge>
               </div>
@@ -458,7 +458,7 @@ export default function DDCAirbnbContent() {
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {scannedData.amenities.map((amenity) => (
-                  <Badge key={amenity} variant="outline" className="text-[10px] border-blue-500/20 text-blue-300 bg-blue-500/5">
+                  <Badge key={amenity} variant="outline" className="text-[10px] border-blue-500/30 text-blue-300 bg-blue-500/5 rounded-full px-2.5">
                     +{amenity}
                   </Badge>
                 ))}
@@ -477,21 +477,21 @@ export default function DDCAirbnbContent() {
         <Button
           onClick={() => setIsAddPropertyOpen(true)}
           size="sm"
-          className="bg-blue-600 hover:bg-blue-500 text-white font-medium cursor-pointer active:scale-95 transition-all rounded-lg shadow-lg shadow-blue-500/20"
+          className="bg-blue-600 hover:bg-blue-500 text-white font-medium cursor-pointer active:scale-95 transition-all rounded-full px-4"
         >
           <Plus className="size-4 mr-1" />
           Adicionar Imóvel
         </Button>
       </div>
 
-      {/* Summary Stats — Cyber-Luxe Glassmorphism */}
+      {/* Summary Stats — Clean Solid Lines, Rounded-2xl */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div variants={staggerItem}>
-          <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-blue-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+          <Card className="bg-[#0d0d14] border border-white/10 hover:border-blue-500/30 transition-all rounded-2xl shadow-none">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <Home className="h-4 w-4 text-blue-400" />
-                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[9px]">CONECTADO</Badge>
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[9px] rounded-full">CONECTADO</Badge>
               </div>
               <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalProperties}</p>
               <p className="text-xs text-zinc-400 mt-1 font-mono uppercase">Total Imóveis</p>
@@ -499,7 +499,7 @@ export default function DDCAirbnbContent() {
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-gradient-to-br from-blue-950/20 to-white/[0.02] border border-blue-500/30 hover:border-blue-500/50 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+          <Card className="bg-[#0d0d14] border border-blue-500/30 hover:border-blue-500/60 transition-all rounded-2xl shadow-none">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <DollarSign className="h-4 w-4 text-blue-400" />
@@ -511,7 +511,7 @@ export default function DDCAirbnbContent() {
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-blue-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+          <Card className="bg-[#0d0d14] border border-white/10 hover:border-blue-500/30 transition-all rounded-2xl shadow-none">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <Star className="h-4 w-4 text-amber-400" />
@@ -523,7 +523,7 @@ export default function DDCAirbnbContent() {
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-blue-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+          <Card className="bg-[#0d0d14] border border-white/10 hover:border-blue-500/30 transition-all rounded-2xl shadow-none">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <MessageSquare className="h-4 w-4 text-blue-400" />
@@ -536,38 +536,38 @@ export default function DDCAirbnbContent() {
         </motion.div>
       </div>
 
-      {/* Property Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 font-mono">
+      {/* Property Cards Grid — Clean Lines, Rounded-2xl */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {propertiesState.map((property) => (
           <motion.div key={property.id} variants={staggerItem}>
-            <Card className="bg-[#040a14] border border-[#00d8ff]/30 hover:border-[#00d8ff]/60 transition-all duration-300 group shadow-[0_0_15px_rgba(0,216,255,0.06)]">
+            <Card className="bg-[#0d0d14] border border-blue-500/30 hover:border-blue-500/60 transition-all duration-300 group rounded-2xl shadow-none">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-[#e0f2fe] text-base group-hover:text-[#00d8ff] transition-colors font-mono">
-                      &gt; {property.name}
+                    <CardTitle className="text-white text-base group-hover:text-blue-400 transition-colors font-bold">
+                      {property.name}
                     </CardTitle>
-                    <CardDescription className="text-[#93c5fd]/70 text-xs mt-0.5 font-mono">
-                      [{property.location}]
+                    <CardDescription className="text-zinc-400 text-xs mt-0.5 font-mono">
+                      {property.location}
                     </CardDescription>
                   </div>
                   <Badge
                     className={
                       property.connected
-                        ? 'bg-[#00d8ff]/15 text-[#00d8ff] border-[#00d8ff]/40 hover:bg-[#00d8ff]/20 font-mono text-[10px]'
-                        : 'bg-red-500/15 text-red-400 border-red-500/30 hover:bg-red-500/20 font-mono text-[10px]'
+                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 font-mono text-[10px] rounded-full px-2.5'
+                        : 'bg-red-500/10 text-red-400 border-red-500/30 font-mono text-[10px] rounded-full px-2.5'
                     }
                     variant="outline"
                   >
                     {property.connected ? (
                       <>
-                        <CheckCircle2 className="h-3 w-3 mr-1 text-[#00d8ff]" />
-                        [OAUTH_OK]
+                        <CheckCircle2 className="h-3 w-3 mr-1 text-blue-400" />
+                        CONECTADO
                       </>
                     ) : (
                       <>
                         <CircleX className="h-3 w-3 mr-1" />
-                        [OFFLINE]
+                        OFFLINE
                       </>
                     )}
                   </Badge>
@@ -577,38 +577,38 @@ export default function DDCAirbnbContent() {
                 {/* Occupancy */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5 font-mono">
-                    <span className="text-xs text-[#93c5fd]">&gt; OCUPACAO_MENSAL</span>
-                    <span className="text-sm font-semibold text-[#00d8ff]">{property.occupancy}%</span>
+                    <span className="text-xs text-zinc-400">Ocupação Mensal</span>
+                    <span className="text-sm font-bold text-blue-400">{property.occupancy}%</span>
                   </div>
-                  <Progress value={property.occupancy} className="h-1.5 bg-[#040e22] [&>div]:bg-[#00d8ff]" />
+                  <Progress value={property.occupancy} className="h-1.5 bg-white/10 [&>div]:bg-blue-400 rounded-full" />
                 </div>
 
                 {/* Stats Row */}
                 <div className="grid grid-cols-3 gap-3 font-mono">
-                  <div className="text-center p-2 rounded bg-[#040e22] border border-[#00d8ff]/20">
+                  <div className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/10">
                     <div className="flex items-center justify-center gap-0.5 mb-0.5">
                       <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                      <span className="text-sm font-semibold text-[#e0f2fe]">{property.rating}</span>
+                      <span className="text-sm font-bold text-white">{property.rating}</span>
                     </div>
-                    <p className="text-[10px] text-[#93c5fd]">AVALIACAO</p>
+                    <p className="text-[10px] text-zinc-400">AVALIAÇÃO</p>
                   </div>
-                  <div className="text-center p-2 rounded bg-[#040e22] border border-[#00d8ff]/20">
-                    <p className="text-sm font-semibold text-[#e0f2fe]">{property.reviews}</p>
-                    <p className="text-[10px] text-[#93c5fd]">REVIEWS</p>
+                  <div className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/10">
+                    <p className="text-sm font-bold text-white">{property.reviews}</p>
+                    <p className="text-[10px] text-zinc-400">REVIEWS</p>
                   </div>
-                  <div className="text-center p-2 rounded bg-[#040e22] border border-[#00d8ff]/20">
-                    <p className="text-sm font-semibold text-[#00d8ff]">{formatBRL(property.revenue)}</p>
-                    <p className="text-[10px] text-[#93c5fd]">RECEITA</p>
+                  <div className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/10">
+                    <p className="text-sm font-bold text-blue-400">{formatBRL(property.revenue)}</p>
+                    <p className="text-[10px] text-zinc-400">RECEITA</p>
                   </div>
                 </div>
 
-                <Separator className="bg-[#00d8ff]/20" />
+                <Separator className="bg-white/10" />
 
                 <Button
                   variant="ghost"
-                  className="w-full text-[#00d8ff] hover:text-white hover:bg-[#00d8ff]/15 text-sm font-mono"
+                  className="w-full text-blue-400 hover:text-white hover:bg-blue-500/10 text-xs font-mono rounded-xl"
                 >
-                  $ inspect --details
+                  Ver Detalhes do Imóvel
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardContent>
@@ -618,16 +618,16 @@ export default function DDCAirbnbContent() {
 
         {/* Add New Property Card */}
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/30 border-2 border-dashed border-zinc-700/50 hover:border-blue-500/40 transition-all duration-300 cursor-pointer group min-h-[280px] flex items-center justify-center">
+          <Card className="bg-[#0d0d14] border-2 border-dashed border-white/10 hover:border-blue-500/40 transition-all duration-300 cursor-pointer group min-h-[280px] flex items-center justify-center rounded-2xl shadow-none">
             <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 rounded-full bg-zinc-800/60 flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 group-hover:border-blue-500/30 border border-zinc-700/50 transition-all">
-                <Plus className="h-6 w-6 text-zinc-400 group-hover:text-blue-400 transition-colors" />
+              <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-500/20 border border-blue-500/20 transition-all">
+                <Plus className="h-6 w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
               </div>
-              <p className="text-sm font-medium text-zinc-300 group-hover:text-blue-300 transition-colors">
+              <p className="text-sm font-bold text-white group-hover:text-blue-300 transition-colors">
                 Conectar Novo Imóvel
               </p>
-              <p className="text-xs text-zinc-500 mt-1">
-                Vincule sua propriedade via OAuth
+              <p className="text-xs text-zinc-400 mt-1">
+                Vincule sua propriedade via OAuth iCAL
               </p>
             </CardContent>
           </Card>

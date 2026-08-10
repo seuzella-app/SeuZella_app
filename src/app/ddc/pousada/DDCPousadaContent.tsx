@@ -522,38 +522,38 @@ export default function DDCPousadaContent() {
 
       {/* ─── DDC POUSADA WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM ─── */}
 
-      {/* Cyber-Luxe Operational Status Header */}
-      <div className="p-4 bg-gradient-to-r from-emerald-950/40 via-[#0a0a0f] to-[#0a0a0f] border border-emerald-500/30 rounded-xl backdrop-blur-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_30px_rgba(16,185,129,0.08)]">
+      {/* Operational Status Header — Clean Lines, Rounded Corners, No Shadows */}
+      <div className="p-4 bg-[#0d0d14] border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold shadow-inner">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white tracking-tight">Dashboard da Pousada — Cérebro Zélla 24h</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px] uppercase font-mono">CONECTADO</Badge>
+              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px] uppercase font-mono rounded-full px-2.5 py-0.5">CONECTADO</Badge>
             </div>
             <p className="text-xs text-white/60 mt-0.5">Atendimento autônomo no WhatsApp, envio de PINs e conciliação de PIX em tempo real</p>
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="px-3 py-1 bg-white/[0.03] border border-white/10 rounded-lg text-emerald-400">⚡ LATÊNCIA: 380ms</span>
-          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300">💬 ZÉLLA DISPATCH: 100%</span>
+          <span className="px-3 py-1 bg-white/[0.02] border border-white/10 rounded-full text-emerald-400">⚡ LATÊNCIA: 380ms</span>
+          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-300">💬 ZÉLLA DISPATCH: 100%</span>
         </div>
       </div>
 
-      {/* Property Information Card — Cyber-Luxe Glassmorphism */}
-      <Card className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl">
+      {/* Property Information Card — Clean Line Border, Rounded Corners */}
+      <Card className="bg-[#0d0d14] border border-white/10 rounded-2xl overflow-hidden shadow-none">
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/30 flex items-center justify-center shadow-lg">
+            <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="text-white font-bold text-base tracking-tight">{scannedData.propertyName}</h3>
-                <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[10px]">
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px] rounded-full px-2.5">
                   PROPRIEDADE VERIFICADA
                 </Badge>
               </div>
@@ -578,7 +578,7 @@ export default function DDCPousadaContent() {
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {scannedData.amenities.map((amenity) => (
-                  <Badge key={amenity} variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-300 bg-emerald-500/5">
+                  <Badge key={amenity} variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-300 bg-emerald-500/5 rounded-full px-2.5">
                     +{amenity}
                   </Badge>
                 ))}
@@ -588,10 +588,10 @@ export default function DDCPousadaContent() {
         </CardContent>
       </Card>
 
-      {/* Top Metric Cards Grid — Cyber-Luxe Glassmorphism */}
+      {/* Top Metric Cards Grid — Clean Solid Lines, Rounded-2xl */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* MRR Card */}
-        <Card className="bg-gradient-to-br from-emerald-950/20 to-white/[0.02] border border-emerald-500/30 hover:border-emerald-500/50 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+        <Card className="bg-[#0d0d14] border border-emerald-500/30 hover:border-emerald-500/60 transition-all rounded-2xl shadow-none">
           <CardHeader className="pb-1 p-4">
             <CardDescription className="text-emerald-400 text-xs font-mono uppercase tracking-wider">Faturamento do Mês</CardDescription>
             <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
@@ -607,7 +607,7 @@ export default function DDCPousadaContent() {
         </Card>
 
         {/* Economia OTAs Card */}
-        <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-emerald-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+        <Card className="bg-[#0d0d14] border border-white/10 hover:border-emerald-500/30 transition-all rounded-2xl shadow-none">
           <CardHeader className="pb-1 p-4">
             <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Economia Direct PIX</CardDescription>
             <CardTitle className="text-2xl sm:text-3xl font-bold text-emerald-400 tracking-tight">
@@ -623,7 +623,7 @@ export default function DDCPousadaContent() {
         </Card>
 
         {/* Conversão IA Card */}
-        <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-emerald-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+        <Card className="bg-[#0d0d14] border border-white/10 hover:border-emerald-500/30 transition-all rounded-2xl shadow-none">
           <CardHeader className="pb-1 p-4">
             <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Conversão Zélla WhatsApp</CardDescription>
             <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{conversionRate}%</CardTitle>
@@ -637,38 +637,15 @@ export default function DDCPousadaContent() {
         </Card>
 
         {/* Active Guests Card */}
-        <Card className="bg-white/[0.02] border border-white/[0.08] hover:border-emerald-500/30 transition-all rounded-xl backdrop-blur-xl shadow-lg">
+        <Card className="bg-[#0d0d14] border border-white/10 hover:border-emerald-500/30 transition-all rounded-2xl shadow-none">
           <CardHeader className="pb-2 p-4">
             <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Hóspedes Ativos</CardDescription>
             <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalGuests}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-1.5 text-[#00ff66] text-sm font-mono">
-              <Users className="size-4" />
-              <span>{confirmedCount} confirmados</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Avg Ticket Card */}
-        <Card className="bg-[#050e07] border border-[#00ff66]/30 hover:border-[#00ff66]/50 transition-colors">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[#a3e6c0] text-xs uppercase tracking-wider">&gt; TICKET_MEDIO</CardDescription>
-            <CardTitle className="text-2xl font-bold text-[#e2f7eb]">R$ 1.229</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-1.5 text-rose-400 text-sm font-mono">
-              <ArrowDownRight className="size-4" />
-              <span>-3.2% vs anterior</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Row — Cyber-Luxe Glassmorphism */}
+      {/* Charts Row — Clean Solid Lines, Rounded-2xl */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Revenue Trend Chart - 2 cols */}
-        <Card className="lg:col-span-2 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl shadow-xl">
+        <Card className="lg:col-span-2 bg-[#0d0d14] border border-white/10 rounded-2xl shadow-none">
           <CardHeader>
             <CardTitle className="text-base font-bold text-white tracking-tight">Receita dos Últimos 30 Dias</CardTitle>
             <CardDescription className="text-white/50 text-xs">Evolução diária de faturamento em tempo real</CardDescription>
@@ -697,7 +674,7 @@ export default function DDCPousadaContent() {
         </Card>
 
         {/* Payment Method Donut Chart */}
-        <Card className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl shadow-xl">
+        <Card className="bg-[#0d0d14] border border-white/10 rounded-2xl shadow-none">
           <CardHeader>
             <CardTitle className="text-base font-bold text-white tracking-tight">Métodos de Pagamento</CardTitle>
             <CardDescription className="text-white/50 text-xs">Volume por método de pagamento</CardDescription>
@@ -744,7 +721,7 @@ export default function DDCPousadaContent() {
       {/* Occupancy Bar Chart + Transactions Table */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Occupancy Bar Chart */}
-        <Card className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl shadow-xl">
+        <Card className="bg-[#0d0d14] border border-white/10 rounded-2xl shadow-none">
           <CardHeader>
             <CardTitle className="text-base font-bold text-white tracking-tight">Taxa de Ocupação</CardTitle>
             <CardDescription className="text-white/50 text-xs">Desempenho semanal (%)</CardDescription>
@@ -759,14 +736,14 @@ export default function DDCPousadaContent() {
                   content={<ChartTooltipContent />}
                   formatter={(value: number) => [`${value}%`, 'Taxa']}
                 />
-                <Bar dataKey="taxa" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="taxa" fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Recent Transactions Table — Cyber-Luxe Glassmorphism */}
-        <Card className="lg:col-span-2 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-xl overflow-hidden shadow-xl">
+        {/* Recent Transactions Table — Clean Solid Lines, Rounded-2xl */}
+        <Card className="lg:col-span-2 bg-[#0d0d14] border border-white/10 rounded-2xl overflow-hidden shadow-none">
           <CardHeader>
             <CardTitle className="text-base font-bold text-white tracking-tight">Transações Recentes</CardTitle>
             <CardDescription className="text-white/50 text-xs">Últimos recebimentos e reconciliações PIX</CardDescription>
