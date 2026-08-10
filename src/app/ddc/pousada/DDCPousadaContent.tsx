@@ -531,7 +531,7 @@ export default function DDCPousadaContent() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white tracking-tight">Dashboard da Pousada — Cérebro Zélla 24h</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
               <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px] uppercase font-mono rounded-full px-2.5 py-0.5">CONECTADO</Badge>
             </div>
             <p className="text-xs text-white/60 mt-0.5">Atendimento autônomo no WhatsApp, envio de PINs e conciliação de PIX em tempo real</p>

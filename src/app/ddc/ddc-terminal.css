@@ -1,439 +1,63 @@
 /* ==============================================================================
-   DDC TERMINAL THEME — Hallmark Option 08 (Terminal)
-   ==============================================================================
-   Applied to: /ddc/pousada (verde matrix) and /ddc/airbnb (azul cyber)
-   Activated by: <div data-ddc-theme="terminal" data-ddc-accent="green|blue">
-
-   Aesthetic pillars (Hallmark Terminal tokens):
-   1. JetBrains Mono throughout (display + body)
-   2. Sharp edges — border-radius: 0 on every element
-   3. Dark phosphor-tinted paper background
-   4. CRT scanlines overlay (animated, very subtle)
-   5. CRT vignette at edges (radial gradient)
-   6. Phosphor glow (text-shadow) on accent text
-   7. Phosphor-tinted scrollbars, focus rings, selection highlights
-   8. Blinking caret on active nav items
-
-   Scope: ONLY inside [data-ddc-theme="terminal"] — does NOT leak to /
-   landing, /zcc, /dashboard, etc.
-
-   FONT LOADING:
-   - Primary: next/font/google via layout.tsx (sets --ddc-font-mono CSS var)
-   - Fallback: @import Google Fonts CDN below (in case next/font fails)
-   - Final fallback: ui-monospace, SFMono-Regular, Menlo (system mono fonts)
+   DDC TERMINAL THEME — Cyber-Luxe Glassmorphism (Clean Line Layout)
    ============================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 
-/* ── 1. THEME TOKENS (CSS Custom Properties) ───────────────────────────────── */
-
 [data-ddc-theme="terminal"] {
-  /* Defaults = Green Matrix (Pousada) */
-  --ddc-bg: #050a08;
-  --ddc-bg-soft: #061410;
-  --ddc-bg-card: rgba(0, 255, 102, 0.04);
-  --ddc-fg: #00ff66;
-  --ddc-fg-soft: #a3e6c0;
-  --ddc-fg-muted: #4a8a5f;
-  --ddc-accent: #00ff66;
-  --ddc-accent-glow: rgba(0, 255, 102, 0.45);
-  --ddc-border: rgba(0, 255, 102, 0.22);
-  --ddc-border-strong: rgba(0, 255, 102, 0.5);
-  --ddc-shadow: 0 0 20px rgba(0, 255, 102, 0.08);
+  --ddc-bg: #0a0a0f;
+  --ddc-bg-soft: #0d0d14;
+  --ddc-bg-card: #0d0d14;
+  --ddc-fg: #f4f4f5;
+  --ddc-fg-soft: #e4e4e7;
+  --ddc-fg-muted: #a1a1aa;
+  --ddc-accent: #10b981;
+  --ddc-accent-glow: transparent;
+  --ddc-border: rgba(16, 185, 129, 0.3);
+  --ddc-border-strong: rgba(16, 185, 129, 0.5);
+  --ddc-shadow: none;
 
   font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
   color-scheme: dark;
+  background-color: #0a0a0f !important;
 }
 
 [data-ddc-theme="terminal"][data-ddc-accent="blue"] {
-  /* Cyber Blue (Airbnb/Anfitriões) */
-  --ddc-bg: #050816;
-  --ddc-bg-soft: #060d24;
-  --ddc-bg-card: rgba(0, 216, 255, 0.04);
-  --ddc-fg: #00d8ff;
-  --ddc-fg-soft: #93c5fd;
-  --ddc-fg-muted: #5b86b8;
-  --ddc-accent: #00d8ff;
-  --ddc-accent-glow: rgba(0, 216, 255, 0.45);
-  --ddc-border: rgba(0, 216, 255, 0.22);
-  --ddc-border-strong: rgba(0, 216, 255, 0.5);
-  --ddc-shadow: 0 0 20px rgba(0, 216, 255, 0.08);
+  --ddc-bg: #0a0a0f;
+  --ddc-bg-soft: #0d0d14;
+  --ddc-bg-card: #0d0d14;
+  --ddc-fg: #f4f4f5;
+  --ddc-fg-soft: #e4e4e7;
+  --ddc-fg-muted: #a1a1aa;
+  --ddc-accent: #3b82f6;
+  --ddc-accent-glow: transparent;
+  --ddc-border: rgba(59, 130, 246, 0.3);
+  --ddc-border-strong: rgba(59, 130, 246, 0.5);
+  --ddc-shadow: none;
 }
 
-/* ── 2. ROOT SHELL — phosphor-tinted paper + CRT overlays ──────────────────── */
-
+/* Base Body Styles */
 [data-ddc-theme="terminal"] {
-  background-color: var(--ddc-bg) !important;
+  background-color: #0a0a0f !important;
   color: var(--ddc-fg-soft);
   min-height: 100vh;
-  position: relative;
-  isolation: isolate;
 }
 
-/* CRT scanlines — very subtle horizontal lines that drift */
-[data-ddc-theme="terminal"]::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.18) 3px,
-    rgba(0, 0, 0, 0) 4px
-  );
-  background-size: 100% 4px;
-  opacity: 0.45;
-  mix-blend-mode: multiply;
-  animation: ddc-crt-drift 8s linear infinite;
-}
-
-/* CRT vignette — darkening at the edges */
-[data-ddc-theme="terminal"]::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9998;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 50%,
-    rgba(0, 0, 0, 0.35) 100%
-  );
-}
-
-@keyframes ddc-crt-drift {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 100px; }
-}
-
-/* ── 3. GLOBAL OVERRIDES — sharp edges + monospace everywhere ──────────────── */
-
-[data-ddc-theme="terminal"] * {
-  border-radius: 0 !important;
-  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
-  letter-spacing: 0.01em;
-}
-
-/* Restore readable tracking for body text */
-[data-ddc-theme="terminal"] p,
-[data-ddc-theme="terminal"] span,
-[data-ddc-theme="terminal"] li {
-  letter-spacing: 0;
-}
-
-/* ── 4. SHELL OVERRIDES — neutralize Tailwind dark utilities ──────────────── */
-
-[data-ddc-theme="terminal"] .bg-\[\#0a0a0f\],
-[data-ddc-theme="terminal"] .bg-\[\#0d0d14\],
-[data-ddc-theme="terminal"] .bg-\[\#0a0a0f\]\/95,
-[data-ddc-theme="terminal"] .bg-\[\#0a0a0f\]\/90,
-[data-ddc-theme="terminal"] .bg-\[\#0d0d14\]\/95 {
-  background-color: var(--ddc-bg-soft) !important;
-}
-
-[data-ddc-theme="terminal"] .bg-white\/\[0\.06\],
-[data-ddc-theme="terminal"] .border-white\/\[0\.06\],
-[data-ddc-theme="terminal"] .border-white\/\[0\.08\] {
-  background-color: transparent !important;
-  border-color: var(--ddc-border) !important;
-}
-
-[data-ddc-theme="terminal"] .text-white {
-  color: var(--ddc-fg-soft) !important;
-}
-
-[data-ddc-theme="terminal"] .text-zinc-400,
-[data-ddc-theme="terminal"] .text-zinc-500,
-[data-ddc-theme="terminal"] .text-zinc-600 {
-  color: var(--ddc-fg-muted) !important;
-}
-
-/* ── 5. CARDS & PANELS — phosphor-tinted borders ──────────────────────────── */
-
-[data-ddc-theme="terminal"] .rounded-lg,
-[data-ddc-theme="terminal"] .rounded-xl,
-[data-ddc-theme="terminal"] .rounded-2xl,
-[data-ddc-theme="terminal"] .rounded-md {
-  border-radius: 0 !important;
-  background-color: var(--ddc-bg-card);
-  border-color: var(--ddc-border) !important;
-  box-shadow: var(--ddc-shadow);
-}
-
-/* Tailwind Card component from shadcn */
-[data-ddc-theme="terminal"] [class*="bg-card"],
-[data-ddc-theme="terminal"] [class*="bg-muted"] {
-  background-color: var(--ddc-bg-card) !important;
-  border-color: var(--ddc-border) !important;
-}
-
-/* ── 6. PHOSPHOR GLOW — accent text & active nav items ─────────────────────── */
-
-[data-ddc-theme="terminal"] .text-\[\#00ff66\],
-[data-ddc-theme="terminal"] .text-\[\#00d8ff\],
-[data-ddc-theme="terminal"] [class*="text-emerald"],
-[data-ddc-theme="terminal"] [class*="text-cyan"],
-[data-ddc-theme="terminal"] [class*="text-blue-500"]:not([class*="blue-500\/"]) {
-  text-shadow:
-    0 0 4px var(--ddc-accent-glow),
-    0 0 12px var(--ddc-accent-glow);
-}
-
-[data-ddc-theme="terminal"][data-ddc-accent="green"] .text-emerald-500,
-[data-ddc-theme="terminal"][data-ddc-accent="green"] .text-emerald-400 {
-  color: #00ff66 !important;
-  text-shadow: 0 0 6px rgba(0, 255, 102, 0.5), 0 0 16px rgba(0, 255, 102, 0.25);
-}
-
-[data-ddc-theme="terminal"][data-ddc-accent="blue"] .text-blue-500,
-[data-ddc-theme="terminal"][data-ddc-accent="blue"] .text-cyan-400,
-[data-ddc-theme="terminal"][data-ddc-accent="blue"] .text-cyan-500 {
-  color: #00d8ff !important;
-  text-shadow: 0 0 6px rgba(0, 216, 255, 0.5), 0 0 16px rgba(0, 216, 255, 0.25);
-}
-
-/* ── 7. NAV ITEMS — terminal prompt prefix + blinking caret on active ─────── */
-
-[data-ddc-theme="terminal"] nav button,
-[data-ddc-theme="terminal"] [role="tab"],
-[data-ddc-theme="terminal"] aside button {
-  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.78rem;
-}
-
-[data-ddc-theme="terminal"] nav button[class*="bg-"],
-[data-ddc-theme="terminal"] [role="tab"][class*="bg-"],
-[data-ddc-theme="terminal"] aside button[class*="bg-"] {
-  background-color: var(--ddc-bg-card) !important;
-  border-left: 2px solid var(--ddc-accent) !important;
-  color: var(--ddc-fg) !important;
-  text-shadow: 0 0 6px var(--ddc-accent-glow);
-  position: relative;
-}
-
-/* Blinking caret on active nav */
-[data-ddc-theme="terminal"] nav button[class*="bg-"]::after,
-[data-ddc-theme="terminal"] [role="tab"][class*="bg-"]::after,
-[data-ddc-theme="terminal"] aside button[class*="bg-"]::after {
-  content: ' ▮';
-  color: var(--ddc-accent);
-  animation: ddc-caret-blink 1s step-end infinite;
-  margin-left: 4px;
-  text-shadow: 0 0 6px var(--ddc-accent-glow);
-}
-
-@keyframes ddc-caret-blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-/* ── 8. SCROLLBARS — phosphor-tinted ──────────────────────────────────────── */
-
+/* Scrollbars */
 [data-ddc-theme="terminal"] ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 [data-ddc-theme="terminal"] ::-webkit-scrollbar-track {
-  background: var(--ddc-bg);
-  border-left: 1px solid var(--ddc-border);
+  background: #0a0a0f;
 }
 
 [data-ddc-theme="terminal"] ::-webkit-scrollbar-thumb {
-  background: var(--ddc-border-strong);
-  border-radius: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
 }
 
 [data-ddc-theme="terminal"] ::-webkit-scrollbar-thumb:hover {
-  background: var(--ddc-accent);
-  box-shadow: 0 0 8px var(--ddc-accent-glow);
-}
-
-[data-ddc-theme="terminal"] * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--ddc-border-strong) var(--ddc-bg);
-}
-
-/* ── 9. FOCUS RINGS & SELECTION ────────────────────────────────────────────── */
-
-[data-ddc-theme="terminal"] *:focus-visible {
-  outline: 1px dashed var(--ddc-accent) !important;
-  outline-offset: 2px !important;
-  box-shadow: 0 0 0 2px var(--ddc-bg), 0 0 8px var(--ddc-accent-glow) !important;
-}
-
-[data-ddc-theme="terminal"] ::selection {
-  background: var(--ddc-accent);
-  color: var(--ddc-bg);
-  text-shadow: none;
-}
-
-[data-ddc-theme="terminal"] ::-moz-selection {
-  background: var(--ddc-accent);
-  color: var(--ddc-bg);
-}
-
-/* ── 10. INPUTS & BUTTONS ──────────────────────────────────────────────────── */
-
-[data-ddc-theme="terminal"] input,
-[data-ddc-theme="terminal"] textarea,
-[data-ddc-theme="terminal"] select {
-  background-color: var(--ddc-bg) !important;
-  border: 1px solid var(--ddc-border) !important;
-  color: var(--ddc-fg-soft) !important;
-  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
-  caret-color: var(--ddc-accent);
-}
-
-[data-ddc-theme="terminal"] input:focus,
-[data-ddc-theme="terminal"] textarea:focus,
-[data-ddc-theme="terminal"] select:focus {
-  border-color: var(--ddc-accent) !important;
-  box-shadow: 0 0 0 1px var(--ddc-accent), 0 0 12px var(--ddc-accent-glow) !important;
-}
-
-[data-ddc-theme="terminal"] button {
-  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 0.78rem;
-  font-weight: 600;
-  transition: all 0.15s ease;
-}
-
-[data-ddc-theme="terminal"] button:not([class*="bg-"]):hover {
-  color: var(--ddc-accent);
-  text-shadow: 0 0 6px var(--ddc-accent-glow);
-}
-
-/* ── 11. BADGES & PILLS — square, phosphor-bordered ────────────────────────── */
-
-[data-ddc-theme="terminal"] [class*="Badge"],
-[data-ddc-theme="terminal"] [class*="badge"],
-[data-ddc-theme="terminal"] .rounded-full {
-  border-radius: 0 !important;
-  border: 1px solid var(--ddc-border-strong) !important;
-  background-color: var(--ddc-bg-card) !important;
-  color: var(--ddc-fg) !important;
-  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  text-shadow: 0 0 4px var(--ddc-accent-glow);
-}
-
-/* ── 12. TABLES — terminal grid ────────────────────────────────────────────── */
-
-[data-ddc-theme="terminal"] table {
-  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
-  font-size: 0.78rem;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-[data-ddc-theme="terminal"] th {
-  background-color: var(--ddc-bg-soft) !important;
-  color: var(--ddc-fg) !important;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--ddc-border-strong) !important;
-  text-align: left;
-}
-
-[data-ddc-theme="terminal"] td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--ddc-border) !important;
-  color: var(--ddc-fg-soft);
-}
-
-[data-ddc-theme="terminal"] tr:hover td {
-  background-color: var(--ddc-bg-card) !important;
-  color: var(--ddc-fg);
-}
-
-/* ── 13. LINKS ─────────────────────────────────────────────────────────────── */
-
-[data-ddc-theme="terminal"] a {
-  color: var(--ddc-fg-soft);
-  text-decoration: none;
-  border-bottom: 1px dashed transparent;
-  transition: all 0.15s ease;
-}
-
-[data-ddc-theme="terminal"] a:hover {
-  color: var(--ddc-accent);
-  border-bottom-color: var(--ddc-accent);
-  text-shadow: 0 0 6px var(--ddc-accent-glow);
-}
-
-/* ── 14. HEADING TYPOGRAPHY — terminal-grade display ───────────────────────── */
-
-[data-ddc-theme="terminal"] h1,
-[data-ddc-theme="terminal"] h2,
-[data-ddc-theme="terminal"] h3,
-[data-ddc-theme="terminal"] h4,
-[data-ddc-theme="terminal"] h5,
-[data-ddc-theme="terminal"] h6 {
-  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ddc-fg);
-  text-shadow: 0 0 4px var(--ddc-accent-glow);
-}
-
-[data-ddc-theme="terminal"] h1 { font-size: 1.5rem; font-weight: 700; }
-[data-ddc-theme="terminal"] h2 { font-size: 1.15rem; font-weight: 700; }
-[data-ddc-theme="terminal"] h3 { font-size: 1rem; font-weight: 600; }
-[data-ddc-theme="terminal"] h4 { font-size: 0.875rem; font-weight: 600; }
-
-/* ── 15. TERMINAL COMMAND HEADER (existing N8 pattern) ─────────────────────── */
-
-[data-ddc-theme="terminal"] .font-mono {
-  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, monospace !important;
-}
-
-/* The "> zella-pousada --terminal ▮" bars already exist in markup.
-   Make them glow properly. */
-[data-ddc-theme="terminal"] [class*="bg-\[\#051208\]"],
-[data-ddc-theme="terminal"] [class*="bg-\[\#040c1a\]"] {
-  background-color: var(--ddc-bg-soft) !important;
-  border: 1px solid var(--ddc-accent) !important;
-  box-shadow:
-    0 0 20px var(--ddc-accent-glow),
-    inset 0 0 30px rgba(0, 0, 0, 0.4) !important;
-}
-
-/* ── 16. REDUCE MOTION (a11y) ──────────────────────────────────────────────── */
-
-@media (prefers-reduced-motion: reduce) {
-  [data-ddc-theme="terminal"]::before,
-  [data-ddc-theme="terminal"] ::after,
-  [data-ddc-theme="terminal"] nav button[class*="bg-"]::after {
-    animation: none !important;
-  }
-}
-
-/* ── 17. MOBILE TWEAKS ─────────────────────────────────────────────────────── */
-
-@media (max-width: 768px) {
-  [data-ddc-theme="terminal"] h1 { font-size: 1.25rem; }
-  [data-ddc-theme="terminal"] h2 { font-size: 1rem; }
-  [data-ddc-theme="terminal"] nav button,
-  [data-ddc-theme="terminal"] aside button {
-    font-size: 0.7rem;
-  }
-  /* Slightly stronger scanlines on mobile for legibility */
-  [data-ddc-theme="terminal"]::before {
-    opacity: 0.3;
-  }
+  background: rgba(255, 255, 255, 0.3);
 }

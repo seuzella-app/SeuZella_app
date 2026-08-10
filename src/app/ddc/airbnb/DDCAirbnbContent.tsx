@@ -411,7 +411,7 @@ export default function DDCAirbnbContent() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white tracking-tight">Cockpit Anfitrião ProHost — Cérebro Zélla 24h</span>
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-blue-400" />
               <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[10px] uppercase font-mono rounded-full px-2.5 py-0.5">SUPERHOST ATIVO</Badge>
             </div>
             <p className="text-xs text-white/60 mt-0.5">Gestão de múltiplos imóveis, sincronização de calendários iCAL e automação de PINs no WhatsApp</p>
