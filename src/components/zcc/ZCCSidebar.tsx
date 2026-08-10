@@ -22,7 +22,7 @@ import {
 export type ZCCTabId =
   | 'overview' | 'pulse' | 'cerebro' | 'cerebro-tests' | 'refactors' | 'sandbox'
   | 'financeiro' | 'airbnb' | 'pousadas' | 'burnrate' | 'tenants'
-  | 'tokens' | 'geo' | 'financial' | 'agents';
+  | 'tokens' | 'geo' | 'financial' | 'agents' | 'onboarding';
 
 interface TabDef {
   id: ZCCTabId;
@@ -34,6 +34,7 @@ interface TabDef {
 
 const ALL_TABS: TabDef[] = [
   { id: 'overview', label: 'Visão Geral', icon: Command, desc: 'Command Center', group: 'core' },
+  { id: 'onboarding', label: 'Onboarding Tracker', icon: Users, desc: 'Jornada pós-compra do cliente', group: 'core' },
   { id: 'agents', label: 'Agentes Vivos', icon: Bot, desc: '12 agentes com LLM real', group: 'core' },
   { id: 'pulse', label: 'Pulse Check', icon: Activity, desc: 'Telemetria & Infra', group: 'core' },
   { id: 'cerebro', label: 'Cérebro', icon: Brain, desc: 'IA em tempo real', group: 'core' },

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+import { sendEmail } from '@/lib/email-sender';
+import { generateWelcomeEmailHtml } from '@/lib/email-templates/welcome-email';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SEUZÉLLA — Webhook de Provisionamento (PASSO 2 + PASSO 3)
@@ -372,6 +374,24 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
   });
 
   console.log(`[webhooks/payment] ✅ PROVISIONED: tenant=${tenant.id} plan=${planTier} niche=${niche} user=${adminUser.id}`);
+
+  // 6. Dispara email de boas-vindas pós-compra com link direto ao DDC
+  if (customerEmail) {
+    try {
+      const emailHtml = generateWelcomeEmailHtml({
+        customerName,
+        customerEmail,
+        niche: niche as 'pousada' | 'airbnb',
+        planTier,
+        propertyName: propertyName || undefined,
+        magicLoginUrl: `https://smart-hotel-zehla.vercel.app/ddc/${niche}`,
+      });
+      await sendEmail(customerEmail, `🚀 Bem-vindo ao Seu Zélla SmartHotel — Acesse seu Painel ${niche.toUpperCase()}`, emailHtml);
+      console.log(`[webhooks/payment] 📧 WELCOME EMAIL DISPATCHED to ${customerEmail}`);
+    } catch (emailErr) {
+      console.error('[webhooks/payment] Failed to send welcome email:', emailErr);
+    }
+  }
 
   return {
     tenantId: tenant.id,

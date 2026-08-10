@@ -48,6 +48,7 @@ import { GeoMetricsPanel } from '@/components/zcc/GeoMetricsPanel';
 import { FinancialBreakdownPanel } from '@/components/zcc/FinancialBreakdownPanel';
 import { AgentRosterPanel } from '@/components/zcc/AgentRosterPanel';
 import { CerebroTestPanel } from '@/components/zcc/CerebroTestPanel';
+import { OnboardingTrackerPanel } from '@/components/zcc/OnboardingTrackerPanel';
 import {
   globalMetrics as _globalMetrics,
   airbnbMetrics as _airbnbMetrics,
@@ -213,6 +214,7 @@ export default function ZCCPage() {
       )}
 
       {/* ===== ALL OTHER TABS — preserved unchanged ===== */}
+      {activeTab === 'onboarding' && <OnboardingTrackerPanel />}
       {activeTab === 'agents' && <AgentRosterPanel />}
       {activeTab === 'pulse' && <PulseCheck />}
       {activeTab === 'cerebro' && <CerebroVivoPanel />}
