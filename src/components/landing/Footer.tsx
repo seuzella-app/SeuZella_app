@@ -51,11 +51,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
           
           {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* Brand Logo */}
-          <div className="flex items-center gap-3">
-            <ZellaLogoStatic />
-          </div>
+          <div className="lg:col-span-4 space-y-5">
+            {/* Brand Logo Oficial */}
+            <div className="flex items-center">
+              <img
+                src="/Arte_SeuZellaCom_Logo.png"
+                alt="Seu Zélla Logo"
+                className="h-11 w-auto object-contain select-none"
+              />
+            </div>
             
             <p className="text-neutral-500 text-xs leading-relaxed max-w-sm">
               Plataforma inteligente de automação de reservas e atendimento 24/7 do Seu Zélla, {isPousada ? 'feita especificamente para pousadas e hotéis boutique brasileiros' : 'feita especificamente para anfitriões Airbnb e gestores de imóveis'}. Converta mais hóspedes e impulsione seu negócio sem complicação.
