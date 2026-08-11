@@ -28,6 +28,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import { runAnomalyDetection } from '@/lib/cerebro/anomaly-detector';
+// Notification bridge — Phase 2: pushes analysis anomalies into DDC for the tenant
+import { bridgeCerebroAlert } from '@/lib/notifications/bridges';
 import { getGlmCerebroService } from '@/lib/cerebro/glm-service';
 import { dispatchAlert } from '@/lib/cerebro/alert-bus';
 import { verifyCronM2MToken, auditCronExecution } from '@/lib/security/cron-auth';
@@ -79,6 +81,34 @@ async function runAnalysis(request: NextRequest): Promise<NextResponse> {
     // ── 2. Chama GlmCerebroService para análise contextual ──
     const service = getGlmCerebroService();
     const analysisResult = await service.analyzeAnomalies(anomalies);
+
+    // ── Notification bridge: push each anomaly into DDC tenant notifications ──
+    for (const anomaly of anomalies) {
+      try {
+        const tenantIdMatch = /^tenant:([a-zA-Z0-9_-]+)$/.exec(anomaly.scope ?? '');
+        const tenantId = tenantIdMatch?.[1];
+        const alertTypeMap: Record<string, 'ai_offline' | 'ai_online' | 'pattern_learned' | 'anomaly_response_time' | 'anomaly_conversion' | 'anomaly_revenue' | 'cost_alert' | 'escalation_spike'> = {
+          ai_offline: 'ai_offline',
+          ai_online: 'ai_online',
+          pattern_learned: 'pattern_learned',
+          response_time: 'anomaly_response_time',
+          conversion: 'anomaly_conversion',
+          revenue: 'anomaly_revenue',
+          cost: 'cost_alert',
+          escalation_spike: 'escalation_spike',
+        };
+        const alertType = alertTypeMap[anomaly.anomalyType];
+        if (!alertType) continue;
+        bridgeCerebroAlert({
+          alertType,
+          value: anomaly.observed,
+          expected: anomaly.baseline,
+          tenantId,
+        });
+      } catch (bridgeErr) {
+        console.error('[cerebro-analyze] bridgeCerebroAlert error:', bridgeErr);
+      }
+    }
 
     // ── 3. Persiste análise no DB ──
     const analysisId = await service.persistAnalysis(analysisResult);

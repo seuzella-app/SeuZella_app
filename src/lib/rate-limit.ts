@@ -196,3 +196,32 @@ function createRatelimit(requests: number, window: string): RatelimitInstance {
 export const apiRatelimit: RatelimitInstance = createRatelimit(60, '60 s');
 export const authRatelimit: RatelimitInstance = createRatelimit(5, '15 m');
 export const webhookRatelimit: RatelimitInstance = createRatelimit(100, '60 s');
+
+// ── Security alert hook (Gap 5) ──────────────────────────────────────────────
+// When authRatelimit blocks a key (5 failed attempts), call bridgeSecurityAlert
+// so the tenant sees a notification in their DDC. Non-blocking: errors swallowed.
+//
+// Usage in route handler:
+//   const result = await authRatelimit.limit(key);
+//   if (!result.success) await notifyRateLimitBlocked(key, 'login', request);
+//
+export async function notifyRateLimitBlocked(
+  key: string,
+  scope: 'login' | 'api' | 'webhook',
+  context?: { ip?: string; tenantId?: string; reason?: string }
+): Promise<void> {
+  try {
+    // Dynamic import to avoid circular dependency at module load time
+    const { bridgeSecurityAlert } = await import('@/lib/notifications/bridges');
+    bridgeSecurityAlert({
+      niche: 'all',
+      ip: context?.ip ?? 'unknown',
+      reason:
+        context?.reason ??
+        `Rate limit exceeded (${scope}) — key: ${key.slice(0, 32)}...`,
+      tenantId: context?.tenantId,
+    });
+  } catch (err) {
+    console.error('[rate-limit] notifyRateLimitBlocked error:', err);
+  }
+}

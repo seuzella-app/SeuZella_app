@@ -1,172 +1,201 @@
 'use client';
 
-// ==============================================================================
-// QUICK ACTIONS CARD — 1-Tap Control Island for Mobile
-// ==============================================================================
-// - 4 high-priority 1-tap touch actions per niche
-// - Real-time toggle feedback (IA ON/OFF, PIX Gatekeeper, Lock Unlock, etc.)
-// - Touch target sizes >= 48px for mobile usability
-// ==============================================================================
+// ═══════════════════════════════════════════════════════════════════════════
+// QUICK ACTIONS CARD — Neo-Emerald HUD Quick Actions
+// ═══════════════════════════════════════════════════════════════════════════
+// Card flutuante com 4 ações de 1 toque:
+//
+// POUSADA:
+//   1. Kill-Switch IA (ON/OFF/Handover)
+//   2. Check-in Express + Guia Digital
+//   3. Gerenciador de Fechaduras (unlock/PIN)
+//   4. Sync Booking.com forçado
+//
+// AIRBNB:
+//   1. Gerar PIN Digital (self check-in)
+//   2. Notificar Limpeza (faxineira)
+//   3. PIX Gatekeeper toggle
+//   4. Calculadora Preço Dinâmico
+// ═══════════════════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { toast } from 'sonner';
-import {
-  Power,
-  Key,
-  MessageSquare,
-  RefreshCw,
-  ShieldCheck,
-  Sparkles,
-  DollarSign,
-  Send,
-  Lock,
-  Unlock,
-} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Power, Send, KeyRound, RefreshCw, Sparkles, Bell, Shield, Calculator } from 'lucide-react';
 
 interface QuickActionsCardProps {
   niche: 'pousada' | 'airbnb';
+  onAction?: (actionId: string, data?: any) => void;
 }
 
-export function QuickActionsCard({ niche }: QuickActionsCardProps) {
-  const [aiActive, setAiActive] = useState<boolean>(true);
-  const [gatekeeperActive, setGatekeeperActive] = useState<boolean>(true);
-  const [lockStatus, setLockStatus] = useState<'locked' | 'unlocked'>('locked');
+interface ActionButton {
+  id: string;
+  label: string;
+  icon: typeof Power;
+  color: string;
+  glow: string;
+  description: string;
+}
+
+export function QuickActionsCard({ niche, onAction }: QuickActionsCardProps) {
+  const [aiState, setAiState] = useState<'on' | 'off' | 'handover'>('on');
+  const [pixGatekeeper, setPixGatekeeper] = useState(true);
+  const [lastSync, setLastSync] = useState<string | null>(null);
 
   const isPousada = niche === 'pousada';
 
-  const handleToggleAI = () => {
-    setAiActive((prev) => {
-      const next = !prev;
-      toast.success(next ? '🤖 IA Zélla ATIVADA com sucesso!' : '⏸️ IA Zélla PAUSADA (Modo Recepção)');
-      return next;
-    });
-  };
+  const pousadaActions: ActionButton[] = [
+    {
+      id: 'kill-switch',
+      label: aiState === 'on' ? 'IA ON' : aiState === 'off' ? 'IA OFF' : 'HANDOVER',
+      icon: Power,
+      color: aiState === 'on'
+        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+        : 'bg-red-500/15 text-red-400 border-red-500/30',
+      glow: aiState === 'on' ? 'hud-glow-emerald' : 'hud-glow-red',
+      description: 'Toggle atendimento automático da IA',
+    },
+    {
+      id: 'checkin-express',
+      label: 'Check-in',
+      icon: Send,
+      color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+      glow: 'hud-glow-blue',
+      description: 'Enviar Guia Digital ao hóspede via WhatsApp',
+    },
+    {
+      id: 'lock-manager',
+      label: 'Fechadura',
+      icon: KeyRound,
+      color: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+      glow: '',
+      description: 'Desbloquear quarto ou gerar PIN temporário',
+    },
+    {
+      id: 'booking-sync',
+      label: 'Sync iCal',
+      icon: RefreshCw,
+      color: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+      glow: '',
+      description: 'Forçar sincronização Booking.com',
+    },
+  ];
 
-  const handleToggleGatekeeper = () => {
-    setGatekeeperActive((prev) => {
-      const next = !prev;
-      toast.info(next ? '🛡️ PIX Gatekeeper ATIVO (Escudo Anti-Ban)' : '⚠️ PIX Gatekeeper PAUSADO');
-      return next;
-    });
-  };
+  const airbnbActions: ActionButton[] = [
+    {
+      id: 'pin-generate',
+      label: 'Gerar PIN',
+      icon: KeyRound,
+      color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+      glow: 'hud-glow-blue',
+      description: 'Gerar senha de self check-in (4-6 dígitos)',
+    },
+    {
+      id: 'notify-cleaning',
+      label: 'Limpeza',
+      icon: Bell,
+      color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+      glow: 'hud-glow-emerald',
+      description: 'Notificar faxineira sobre check-out',
+    },
+    {
+      id: 'pix-gatekeeper',
+      label: pixGatekeeper ? 'ESCUDO ON' : 'ESCUDO OFF',
+      icon: Shield,
+      color: pixGatekeeper
+        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+        : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/30',
+      glow: pixGatekeeper ? 'hud-glow-emerald' : '',
+      description: 'Filtro anti-ban: bloqueia PIX/telefone antes da reserva',
+    },
+    {
+      id: 'price-calculator',
+      label: 'Preço',
+      icon: Calculator,
+      color: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+      glow: '',
+      description: 'Ajustar diária para fim de semana/feriado',
+    },
+  ];
 
-  const handleToggleLock = () => {
-    setLockStatus((prev) => {
-      const next = prev === 'locked' ? 'unlocked' : 'locked';
-      toast.success(next === 'unlocked' ? '🔓 Fechadura Desbloqueada Remotamente!' : '🔒 Fechadura Trancada');
-      return next;
-    });
-  };
+  const actions = isPousada ? pousadaActions : airbnbActions;
 
-  const handleSendGuide = () => {
-    toast.success('📲 Guia Digital enviado via WhatsApp para os hóspedes de hoje!');
-  };
-
-  const handleNotifyCleaners = () => {
-    toast.success('🧹 Equipe de Limpeza notificada via WhatsApp sobre o Checkout!');
-  };
-
-  const handleSyncBooking = () => {
-    toast.promise(new Promise((res) => setTimeout(res, 1200)), {
-      loading: '🔄 Sincronizando com Booking.com / iCal...',
-      success: '✅ Sincronização concluída com sucesso!',
-      error: 'Erro no sync',
-    });
+  const handleAction = (actionId: string) => {
+    if (actionId === 'kill-switch') {
+      const next = aiState === 'on' ? 'off' : aiState === 'off' ? 'handover' : 'on';
+      setAiState(next);
+    }
+    if (actionId === 'pix-gatekeeper') {
+      setPixGatekeeper(!pixGatekeeper);
+    }
+    if (actionId === 'booking-sync') {
+      setLastSync(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+    }
+    onAction?.(actionId, { aiState, pixGatekeeper });
   };
 
   return (
-    <div className="w-full bg-[#0a0a12]/95 border-b border-white/[0.08] p-3 text-white">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-mono font-extrabold text-zinc-400 tracking-wider uppercase flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-emerald-400" />
-          AÇÕES RÁPIDAS (1-TAP)
-        </span>
-        <span className="text-[9px] font-mono text-zinc-400">Toque Único</span>
+    <div className="px-3 py-2">
+      {/* Quick Actions Grid 2×2 */}
+      <div className="grid grid-cols-4 gap-2">
+        {actions.map((action) => {
+          const Icon = action.icon;
+          const isPulsing = action.id === 'kill-switch' && aiState === 'on';
+          return (
+            <motion.button
+              key={action.id}
+              whileTap={{ scale: 0.92 }}
+              onClick={() => handleAction(action.id)}
+              className={`relative flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl border ${action.color} ${action.glow} ${isPulsing ? 'hud-pulse-emerald' : ''} transition-all hover:scale-105`}
+              title={action.description}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="text-[9px] font-bold uppercase tracking-wider leading-none">
+                {action.label}
+              </span>
+            </motion.button>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
-        {/* ACTION 1: IA Kill Switch */}
-        <motion.button
-          whileTap={{ scale: 0.92 }}
-          onClick={handleToggleAI}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all min-h-[56px] ${
-            aiActive
-              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 shadow-lg shadow-emerald-500/10'
-              : 'bg-rose-500/15 border-rose-500/40 text-rose-300 shadow-lg shadow-rose-500/10'
-          }`}
-        >
-          <Power className="w-4 h-4 mb-1" />
-          <span className="text-[9px] font-mono font-extrabold">
-            {aiActive ? 'IA ON' : 'IA OFF'}
-          </span>
-        </motion.button>
-
-        {/* ACTION 2: Niche Specific Action 1 */}
-        {isPousada ? (
-          <motion.button
-            whileTap={{ scale: 0.92 }}
-            onClick={handleSendGuide}
-            className="flex flex-col items-center justify-center p-2 rounded-xl border bg-white/[0.04] border-white/10 hover:border-emerald-500/40 text-zinc-200 hover:text-emerald-300 transition-all min-h-[56px]"
-          >
-            <Send className="w-4 h-4 mb-1 text-emerald-400" />
-            <span className="text-[9px] font-mono font-bold">Enviar Guia</span>
-          </motion.button>
-        ) : (
-          <motion.button
-            whileTap={{ scale: 0.92 }}
-            onClick={handleToggleGatekeeper}
-            className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all min-h-[56px] ${
-              gatekeeperActive
-                ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
-                : 'bg-zinc-800 border-zinc-700 text-zinc-400'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4 mb-1" />
-            <span className="text-[9px] font-mono font-bold">PIX Shield</span>
-          </motion.button>
-        )}
-
-        {/* ACTION 3: Lock Control */}
-        <motion.button
-          whileTap={{ scale: 0.92 }}
-          onClick={handleToggleLock}
-          className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all min-h-[56px] ${
-            lockStatus === 'unlocked'
-              ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
-              : 'bg-white/[0.04] border-white/10 text-zinc-200'
-          }`}
-        >
-          {lockStatus === 'unlocked' ? (
-            <Unlock className="w-4 h-4 mb-1 text-amber-400" />
+      {/* Status indicators */}
+      <div className="mt-2 flex items-center justify-between px-1">
+        <div className="flex items-center gap-3">
+          {isPousada ? (
+            <>
+              {aiState === 'on' && (
+                <span className="badge-nano text-emerald-400">
+                  ● IA ZÉLLA ATIVA
+                </span>
+              )}
+              {aiState === 'off' && (
+                <span className="badge-nano text-red-400 hud-pulse-red">
+                  ● IA DESLIGADA
+                </span>
+              )}
+              {aiState === 'handover' && (
+                <span className="badge-nano text-amber-400">
+                  ● HANDOVER HUMANO
+                </span>
+              )}
+              {lastSync && (
+                <span className="badge-nano text-white/40">
+                  ⟳ SYNC {lastSync}
+                </span>
+              )}
+            </>
           ) : (
-            <Lock className="w-4 h-4 mb-1 text-zinc-400" />
+            <>
+              {pixGatekeeper && (
+                <span className="badge-nano text-emerald-400">
+                  ● ESCUDO ANTI-BAN ATIVO
+                </span>
+              )}
+              <span className="badge-nano text-white/40">
+                IA ATIVA
+              </span>
+            </>
           )}
-          <span className="text-[9px] font-mono font-bold">
-            {lockStatus === 'unlocked' ? 'Aberto' : 'Trancar'}
-          </span>
-        </motion.button>
-
-        {/* ACTION 4: Niche Specific Action 2 */}
-        {isPousada ? (
-          <motion.button
-            whileTap={{ scale: 0.92 }}
-            onClick={handleSyncBooking}
-            className="flex flex-col items-center justify-center p-2 rounded-xl border bg-white/[0.04] border-white/10 hover:border-cyan-500/40 text-zinc-200 hover:text-cyan-300 transition-all min-h-[56px]"
-          >
-            <RefreshCw className="w-4 h-4 mb-1 text-cyan-400" />
-            <span className="text-[9px] font-mono font-bold">Sync OTAs</span>
-          </motion.button>
-        ) : (
-          <motion.button
-            whileTap={{ scale: 0.92 }}
-            onClick={handleNotifyCleaners}
-            className="flex flex-col items-center justify-center p-2 rounded-xl border bg-white/[0.04] border-white/10 hover:border-blue-500/40 text-zinc-200 hover:text-blue-300 transition-all min-h-[56px]"
-          >
-            <MessageSquare className="w-4 h-4 mb-1 text-blue-400" />
-            <span className="text-[9px] font-mono font-bold">Faxina</span>
-          </motion.button>
-        )}
+        </div>
       </div>
     </div>
   );

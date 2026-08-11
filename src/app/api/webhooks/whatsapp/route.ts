@@ -22,6 +22,8 @@ import { resolveTenantByPhone } from '@/lib/resolve-tenant-by-phone';
 import { isOptOutMessage, handleOptOut } from '@/lib/lgpd-consent';
 import { resolveGuest } from '@/lib/bsuid-resolver';
 import { recordMetaCost } from '@/lib/meta-cost-guard';
+// Notification bridge — Phase 2: pushes guest/lead notifications into DDC
+import { bridgeWhatsAppIncoming } from '@/lib/notifications/bridges';
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- Meta payload types kept as documentation */
 
@@ -537,6 +539,24 @@ export async function POST(request: NextRequest) {
               messageFrom: payload.messageFrom,
             });
 
+            // ── Phase 2: Bridge to DDC Notification Center ───────────────
+            // Push "new lead" notification into the in-memory store so the
+            // DDC mobile notification center sees it. Non-blocking — failures
+            // must NOT break the AI pipeline.
+            try {
+              const nicheFromLookup = (lookup as any)?.niche ?? 'pousada';
+              bridgeWhatsAppIncoming({
+                niche: nicheFromLookup === 'airbnb' ? 'airbnb' : 'pousada',
+                guestName: guestName ?? guestPhone,
+                guestPhone,
+                message: messageContent,
+                tenantId,
+                conversationId: result?.conversationId,
+              });
+            } catch (notifErr) {
+              console.error('[WhatsApp Webhook] notification bridge error:', notifErr);
+            }
+
             if (result.aiResponse) {
               const sendResult = await sendWhatsAppMessage(guestPhone, result.aiResponse);
               if (!sendResult.success) {
@@ -545,7 +565,6 @@ export async function POST(request: NextRequest) {
                 );
                 // NÃO registra custo Meta — mensagem não foi entregue
               } else if (sendResult.isMock) {
-                // Modo mock (sem credenciais Meta) — registra custo apenas se META_COST_RECORD_MOCK=true
                 // PASSO 11.3: void explícito para fire-and-forget absoluto
                 if (process.env.META_COST_RECORD_MOCK === 'true' && result.metaCostRecord) {
                   void recordMetaCost({

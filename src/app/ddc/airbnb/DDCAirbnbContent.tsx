@@ -13,6 +13,7 @@ import {
   Cell,
 } from 'recharts';
 import { DDCShell, type NavItem } from '@/components/ddc/DDCShell';
+import { NotificationFAB } from '@/components/ddc/notifications/NotificationFAB';
 import { MagicScanner, type MagicScanResult } from '@/components/ddc/MagicScanner';
 import { ZellaSimulator } from '@/components/ddc/ZellaSimulator';
 import { WhatsAppDeviceManager } from '@/components/ddc/WhatsAppDeviceManager';
@@ -57,6 +58,7 @@ import {
   Zap,
   Plus,
   Home,
+  Trophy,
   CalendarDays,
   Activity,
   MessageSquare,
@@ -84,10 +86,12 @@ import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
 import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
+import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
+import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras';
+type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
 
 interface PropertyData {
   id: string;
@@ -273,6 +277,7 @@ const airbnbNavItems: NavItem[] = [
   { id: 'creditos', label: 'Créditos de Amortização', icon: <Coins className="size-4" />, tier: 'lite' },
   { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
   { id: 'properties', label: 'Multi-Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
+  { id: 'conquistas', label: 'Conquistas', icon: <Trophy className="size-4" />, tier: 'parceiro' },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
@@ -292,6 +297,7 @@ function formatCompactBRL(value: number): string {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function DDCAirbnbContent() {
+  const { plan: currentPlan } = useCurrentPlan();
   const [activeTab, setActiveTab] = useState<AirbnbTab>('financeiro');
   const [calendarDays] = useState<CalendarDay[]>(generateCalendarDays);
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
@@ -330,7 +336,7 @@ export default function DDCAirbnbContent() {
 
   // Tab navigation handler (declared before early return — Rules of Hooks)
   const handleTabChange = useCallback((id: string) => {
-    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties', 'fechaduras'];
+    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties', 'fechaduras', 'conquistas'];
     if (validTabs.includes(id as AirbnbTab)) {
       setActiveTab(id as AirbnbTab);
     } else {
@@ -1456,6 +1462,8 @@ export default function DDCAirbnbContent() {
         return <MultiPropertiesTab />;
       case 'fechaduras':
         return <LocksTab niche="airbnb" />;
+      case 'conquistas':
+        return <ConquistasTab />;
     }
   };
 
@@ -1466,7 +1474,7 @@ export default function DDCAirbnbContent() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
-      currentPlan="pro"
+      currentPlan={currentPlan}
     >
       <AnimatePresence mode="wait">
         {renderTab()}
@@ -1532,6 +1540,7 @@ export default function DDCAirbnbContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <NotificationFAB niche="airbnb" plan={currentPlan} />
     </DDCShell>
   );
 }

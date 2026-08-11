@@ -542,12 +542,14 @@ export async function POST(request: NextRequest) {
     // ── Step 4: Roteamento por tipo de evento ─────────────────────────────
     const eventType = payload.event;
 
-    // Eventos que disparam provisionamento
+// Eventos que disparam provisionamento
     const PROVISIONING_EVENTS = ['payment.created', 'invoice.paid'];
     // Eventos que disparam atualização de status
     const STATUS_UPDATE_EVENTS = ['payment.updated'];
     // Eventos que disparam cancelamento
     const CANCELLATION_EVENTS = ['subscription.canceled', 'invoice.payment_failed'];
+    // Notification bridge — Phase 2
+    const { bridgePaymentEvent } = await import('@/lib/notifications/bridges');
 
     if (PROVISIONING_EVENTS.includes(eventType) && payload.status === 'approved') {
       // ═══════════════════════════════════════════════════════════════════════
@@ -611,6 +613,21 @@ export async function POST(request: NextRequest) {
                 where: { id: subscription.tenantId },
                 data: { plan: subscription.planType, subscriptionAt: now, status: 'active' },
               });
+
+              // ── Notification bridge: payment received ──
+              try {
+                bridgePaymentEvent({
+                  niche: 'all',
+                  paymentId: String(payload.paymentId),
+                  amount: Number(transaction.amount ?? 0),
+                  guestName: subscription.tenantId,
+                  method: 'pix',
+                  status: 'received',
+                  tenantId: subscription.tenantId,
+                });
+              } catch (notifErr) {
+                console.error('[webhooks/payment] bridgePaymentEvent error:', notifErr);
+              }
             }
           } else if (payload.status === 'rejected') {
             const subscription = await db.subscription.findUnique({
@@ -621,6 +638,19 @@ export async function POST(request: NextRequest) {
                 where: { id: subscription.id },
                 data: { paymentStatus: 'rejected' },
               });
+              // ── Notification bridge: payment failed ──
+              try {
+                bridgePaymentEvent({
+                  niche: 'all',
+                  paymentId: String(payload.paymentId),
+                  amount: Number(transaction.amount ?? 0),
+                  guestName: subscription.tenantId,
+                  status: 'failed',
+                  tenantId: subscription.tenantId,
+                });
+              } catch (notifErr) {
+                console.error('[webhooks/payment] bridgePaymentEvent rejected error:', notifErr);
+              }
             }
           }
         }

@@ -1,13 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import './hud-tokens.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono' });
-
 
 export const metadata: Metadata = {
   title: 'Seu Zélla — Assistente Inteligente para Pousadas | WhatsApp 24/7, Reservas Automáticas',
@@ -174,7 +172,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.className} ${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className={`${inter.variable} font-sans`}>
         <Providers>
           {children}
           <Toaster />

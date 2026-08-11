@@ -1,9 +1,9 @@
-/* ==============================================================================
-   NEO-EMERALD CYBER-HOSPITALITY HUD TOKENS — Google Stitch Design System
-   ============================================================================== */
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEO-EMERALD CYBER-HOSPITALITY HUD — DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Surfaces & Backgrounds */
+  /* Core Surfaces & Backgrounds */
   --bg-void: #05070d;
   --bg-surface: #0a0a0f;
   --bg-card: #131318;
@@ -14,114 +14,127 @@
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-border-active: rgba(16, 185, 129, 0.3);
 
-  /* Accents */
+  /* Pousada Accent: Emerald */
   --pousada-primary: #10b981;
   --pousada-glow: rgba(16, 185, 129, 0.25);
+
+  /* Airbnb Accent: Electric Blue */
   --airbnb-primary: #3b82f6;
   --airbnb-glow: rgba(59, 130, 246, 0.25);
+
+  /* JetBrains Mono KPI classes */
+  --kpi-xl-size: 32px;
+  --kpi-xl-weight: 800;
+  --title-base-size: 16px;
+  --title-base-weight: 700;
+  --body-md-size: 14px;
+  --body-md-weight: 400;
+  --badge-nano-size: 9px;
+  --badge-nano-weight: 700;
 }
 
-/* Glassmorphism Classes */
+/* ─── JetBrains Mono utility classes ────────────────────────────────────────── */
+.font-mono-hud {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.kpi-xl {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.title-base {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.body-md {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.badge-nano {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── HUD glass panel variants ─────────────────────────────────────────────── */
 .hud-glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--glass-border);
 }
 
 .hud-glass-emerald {
-  background: rgba(16, 185, 129, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(16, 185, 129, 0.06);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .hud-glass-blue {
-  background: rgba(59, 130, 246, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(59, 130, 246, 0.06);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-/* Glow Effects */
+/* ─── HUD glow effects ─────────────────────────────────────────────────────── */
 .hud-glow-emerald {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .hud-glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .hud-glow-red {
-  box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* Typography Utility Classes */
-.font-mono-hud {
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-variant-numeric: tabular-nums;
-}
-
-.kpi-xl {
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 32px;
-  font-weight: 800;
-  line-height: 40px;
-  letter-spacing: -0.02em;
-}
-
-.title-base {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 24px;
-}
-
-.body-md {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-}
-
-.badge-nano {
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-/* Pulse Animations for Live Indicators */
+/* ─── HUD pulse animation (for live indicators) ─────────────────────────────── */
 @keyframes hud-pulse-emerald {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-  }
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
+  50% { opacity: 0.7; box-shadow: 0 0 12px rgba(16, 185, 129, 0.8); }
 }
 
 @keyframes hud-pulse-red {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(244, 63, 94, 0);
-  }
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+  50% { opacity: 0.7; box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); }
 }
 
 .hud-pulse-emerald {
-  animation: hud-pulse-emerald 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: hud-pulse-emerald 2s ease-in-out infinite;
 }
 
 .hud-pulse-red {
-  animation: hud-pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: hud-pulse-red 1.5s ease-in-out infinite;
 }
 
+/* ─── HUD scroll-snap for horizontal pill bars ─────────────────────────────── */
 .hud-scroll-snap {
   scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.hud-scroll-snap::-webkit-scrollbar {
+  display: none;
 }
 
 .hud-scroll-snap > * {

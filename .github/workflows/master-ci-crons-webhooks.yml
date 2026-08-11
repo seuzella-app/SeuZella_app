@@ -1,0 +1,253 @@
+name: ⏰ Master CI — Crons & Webhooks
+
+# ============================================================================
+# Tests all 17 cron routes + Booking.com reviews webhook
+# Validates auth gate, happy path, response shape, error handling
+# ============================================================================
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/app/api/cron/**'
+      - 'src/app/api/webhooks/**'
+      - 'src/lib/notifications/**'
+      - 'src/lib/rate-limit.ts'
+      - 'src/lib/security/**'
+      - 'src/__tests__/crons/**'
+      - 'src/__tests__/webhooks/**'
+      - 'vitest.config.ts'
+      - 'package.json'
+      - '.github/workflows/master-ci-crons-webhooks.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/app/api/cron/**'
+      - 'src/app/api/webhooks/**'
+      - 'src/__tests__/crons/**'
+      - 'src/__tests__/webhooks/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: test
+  CI: 'true'
+  NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+  UPSTASH_REDIS_REST_URL: http://localhost:8079
+  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
+  DATABASE_URL: file:./test-ci.db
+  CRON_SECRET: test-cron-secret-for-ci
+  BOOKING_COM_WEBHOOK_SECRET: test-booking-secret-12345678901234567890
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 1: All 6 new crons auth + happy path tests
+  # ──────────────────────────────────────────────────────────────────────────
+  cron-routes-tests:
+    name: ⏰ Cron Routes (6 New Crons)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Cron Routes Tests
+        run: npx vitest run src/__tests__/crons/cron-routes.test.ts
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 2: Booking.com reviews webhook tests (HMAC verification)
+  # ──────────────────────────────────────────────────────────────────────────
+  booking-com-webhook-tests:
+    name: 🔐 Booking.com Reviews Webhook (HMAC)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Booking.com Webhook Tests
+        run: npx vitest run src/__tests__/webhooks/booking-com-reviews.test.ts
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 3: Validate all cron directories exist
+  # ──────────────────────────────────────────────────────────────────────────
+  cron-directories-validation:
+    name: 📁 Cron Directories Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Validate All 17 Crons Exist
+        run: |
+          echo "=== Validating cron directories ==="
+          CRON_DIR="src/app/api/cron"
+          EXPECTED_CRONS=(
+            "achievements-check"
+            "booking-daily"
+            "budget-reset"
+            "cerebro-analyze"
+            "cerebro-budget-forecast"
+            "cerebro-churn-predict"
+            "cerebro-cleanup"
+            "cerebro-distill"
+            "cerebro-orchestrator"
+            "cerebro-refactor-check"
+            "cerebro-watchdog"
+            "metrics-snapshot"
+            "ota-token-expiry"
+            "payment-overdue"
+            "plan-expiry"
+            "plan-limits-check"
+            "weekly-report"
+          )
+          MISSING=0
+          for cron in "${EXPECTED_CRONS[@]}"; do
+            if [ -f "$CRON_DIR/$cron/route.ts" ]; then
+              echo "  ✅ $cron"
+            else
+              echo "  ❌ $cron/route.ts MISSING"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          echo ""
+          echo "Total crons: $(ls -d $CRON_DIR/*/ | wc -l)"
+          echo "Expected: ${#EXPECTED_CRONS[@]}"
+          if [ $MISSING -gt 0 ]; then
+            echo "❌ $MISSING cron(s) missing"
+            exit 1
+          fi
+          echo "✅ All 17 cron routes exist"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 4: Validate webhook directory structure
+  # ──────────────────────────────────────────────────────────────────────────
+  webhook-validation:
+    name: 🔗 Webhook Endpoints Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Validate Webhook Endpoints Exist
+        run: |
+          echo "=== Validating webhook endpoints ==="
+          ENDPOINTS=(
+            "src/app/api/webhooks/whatsapp/route.ts"
+            "src/app/api/webhooks/payment/route.ts"
+            "src/app/api/webhooks/booking-com/reviews/route.ts"
+            "src/app/api/checkout/webhook/route.ts"
+          )
+          MISSING=0
+          for ep in "${ENDPOINTS[@]}"; do
+            if [ -f "$ep" ]; then
+              echo "  ✅ $ep"
+            else
+              echo "  ❌ $ep MISSING"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ $MISSING -gt 0 ]; then
+            echo "❌ $MISSING webhook(s) missing"
+            exit 1
+          fi
+          echo "✅ All webhook endpoints exist"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 5: Auth gate security test (all crons must reject without auth)
+  # ──────────────────────────────────────────────────────────────────────────
+  cron-auth-security:
+    name: 🔒 Cron Auth Gate Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Auth Gate Tests (production mode rejects without auth)
+        run: npx vitest run src/__tests__/crons/cron-routes.test.ts -t "auth gate in production"
+        env:
+          NODE_ENV: production
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 6: Summary gate
+  # ──────────────────────────────────────────────────────────────────────────
+  summary:
+    name: ✅ Crons & Webhooks Suite Summary
+    runs-on: ubuntu-latest
+    needs:
+      - cron-routes-tests
+      - booking-com-webhook-tests
+      - cron-directories-validation
+      - webhook-validation
+      - cron-auth-security
+    if: always()
+    timeout-minutes: 2
+
+    steps:
+      - name: Check Job Results
+        if: ${{ needs.cron-routes-tests.result != 'success' || needs.booking-com-webhook-tests.result != 'success' || needs.cron-directories-validation.result != 'success' || needs.webhook-validation.result != 'success' || needs.cron-auth-security.result != 'success' }}
+        run: |
+          echo "❌ One or more jobs failed"
+          echo "  cron-routes-tests: ${{ needs.cron-routes-tests.result }}"
+          echo "  booking-com-webhook-tests: ${{ needs.booking-com-webhook-tests.result }}"
+          echo "  cron-directories-validation: ${{ needs.cron-directories-validation.result }}"
+          echo "  webhook-validation: ${{ needs.webhook-validation.result }}"
+          echo "  cron-auth-security: ${{ needs.cron-auth-security.result }}"
+          exit 1
+
+      - name: All Tests Passed
+        run: |
+          echo "✅ All Crons & Webhooks tests passed!"
+          echo "  - 6 new cron routes (auth + happy path) ✅"
+          echo "  - Booking.com webhook HMAC verification ✅"
+          echo "  - 17 cron directories validated ✅"
+          echo "  - 4 webhook endpoints validated ✅"
+          echo "  - Auth gate security (production mode) ✅"

@@ -164,8 +164,6 @@ async function main() {
       plan: 'max',
       status: 'active',
       role: 'owner',
-      trialStart: new Date(),
-      trialEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       property: {
         create: {
           name: 'Pousada Serenity',
@@ -199,8 +197,6 @@ async function main() {
           status: 'active',
           amount: 697.00,
           paymentMethod: 'pix',
-          trialStart: new Date(),
-          trialEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         }
       }
     }
@@ -228,8 +224,6 @@ async function main() {
         plan: 'pro',
         status: 'active',
         role: 'owner',
-        trialStart: new Date(),
-        trialEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         property: {
           create: {
             name: bp.name,
@@ -272,8 +266,6 @@ async function main() {
             status: 'active',
             amount: 397.00,
             paymentMethod: 'pix',
-            trialStart: new Date(),
-            trialEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
           }
         }
       }
@@ -437,8 +429,6 @@ async function main() {
       plan: 'pro',
       status: 'active',
       role: 'owner',
-      trialStart: new Date(),
-      trialEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       property: {
         create: {
           name: 'Pousada Paraíso Demo',
@@ -478,8 +468,6 @@ async function main() {
           status: 'active',
           amount: 397.00,
           paymentMethod: 'pix',
-          trialStart: new Date(),
-          trialEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         }
       }
     }

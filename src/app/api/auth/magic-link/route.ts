@@ -148,11 +148,9 @@ export async function GET(request: NextRequest) {
         data: {
           name: email.split('@')[0],
           email,
-          plan: 'trial',
+          plan: 'lite',
           status: 'active',
           niche: 'pousada',
-          trialStart: new Date(),
-          trialEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
       });
       console.log('[Magic Link] Created new tenant:', tenant.id);

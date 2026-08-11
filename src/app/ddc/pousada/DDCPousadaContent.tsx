@@ -17,6 +17,7 @@ import {
   Bar,
 } from 'recharts';
 import { DDCShell, type NavItem } from '@/components/ddc/DDCShell';
+import { NotificationFAB } from '@/components/ddc/notifications/NotificationFAB';
 import { MagicScanner, type MagicScanResult } from '@/components/ddc/MagicScanner';
 import { ZellaSimulator } from '@/components/ddc/ZellaSimulator';
 import { WhatsAppDeviceManager } from '@/components/ddc/WhatsAppDeviceManager';
@@ -91,15 +92,18 @@ import {
   Trash2,
   ExternalLink,
   Info,
+  Trophy,
 } from 'lucide-react';
 import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
 import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
+import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
+import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras';
+type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
 
 interface GuestCardData {
   id: string;
@@ -343,12 +347,14 @@ const pousadaNavItems: NavItem[] = [
   { id: 'creditos', label: 'Créditos de Amortização', icon: <Coins className="size-4" />, tier: 'lite' },
   { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
   { id: 'properties', label: 'Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
+  { id: 'conquistas', label: 'Conquistas', icon: <Trophy className="size-4" />, tier: 'parceiro' },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function DDCPousadaContent() {
+  const { plan: currentPlan } = useCurrentPlan();
   const [activeTab, setActiveTab] = useState<PousadaTab>('financeiro');
   const [trainingUrl, setTrainingUrl] = useState('');
   const [isTraining, setIsTraining] = useState(false);
@@ -408,7 +414,7 @@ export default function DDCPousadaContent() {
 
   // Tab navigation handler (declared before early return — Rules of Hooks)
   const handleTabChange = useCallback((id: string) => {
-    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties', 'fechaduras'];
+    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties', 'fechaduras', 'conquistas'];
     if (validTabs.includes(id as PousadaTab)) {
       setActiveTab(id as PousadaTab);
     } else {
@@ -1499,7 +1505,7 @@ export default function DDCPousadaContent() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
-      currentPlan="pro"
+      currentPlan={currentPlan}
     >
       <AnimatePresence mode="wait">
         {activeTab === 'financeiro' && <div key="financeiro">{renderFinanceiro()}</div>}
@@ -1549,6 +1555,11 @@ export default function DDCPousadaContent() {
         {activeTab === 'fechaduras' && (
           <div key="fechaduras">
             <LocksTab niche="pousada" />
+          </div>
+        )}
+        {activeTab === 'conquistas' && (
+          <div key="conquistas">
+            <ConquistasTab />
           </div>
         )}
       </AnimatePresence>
@@ -1771,6 +1782,8 @@ export default function DDCPousadaContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NotificationFAB niche="pousada" plan={currentPlan} />
     </DDCShell>
   );
 }

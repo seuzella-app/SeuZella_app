@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 // ===== ENUMS (from backup) =====
@@ -17,13 +18,14 @@ enum LeadStatus {
 }
 
 // Fonte da verdade absoluta para planos:
-// GRATUITO = plano free (7 dias trial)
-// LITE = plano básico
-// PRO = plano profissional
-// MAX = plano premium
-// PARCEIRO = parceiro Zélla (Link-in-Bio + comissão)
+// 4 planos pagos (sem trial gratuito):
+// LITE     = R$ 197/mês (50 hóspedes, 500 mensagens, IA limitada)
+// PRO      = R$ 397/mês (ilimitado, OAuth Airbnb, dynamic pricing)
+// MAX      = R$ 797/mês (tudo de PRO + competitor monitoring + multi-property)
+// PARCEIRO = R$ 247/mês (PRO + tab Conquistas + referral gamification)
+//
+// NOTA: Não há trial gratuito. Clientes pagam a partir do primeiro mês.
 enum Plan {
-  GRATUITO
   LITE
   PRO
   MAX
@@ -74,10 +76,8 @@ model Tenant {
   whatsappPhoneNumber String? @unique // Número WhatsApp Business API (E.164) — roteamento de webhook
   whatsappBusinessId  String? @unique // WhatsApp Business Account ID (WABA) — isolamento multi-tenant
   role           String    @default("owner") // owner | admin | staff
-  plan           String    @default("gratuito") // gratuito | lite | pro | max | parceiro
+  plan           String    @default("lite") // lite | pro | max | parceiro
   status         String    @default("active") // active | suspended | churned
-  trialStart     DateTime?
-  trialEnd       DateTime?
   subscriptionAt DateTime?
 
   // From old Tenant
@@ -882,15 +882,13 @@ model Message {
 model Subscription {
   id                 String    @id @default(cuid())
   tenantId           String
-  planType           String // gratuito | lite | pro | max | parceiro
+  planType           String // lite | pro | max | parceiro
   status             String    @default("pending") // pending | active | canceled | expired
   paymentMethod      String // pix | cartao
   amount             Float
   paymentId          String? // Mercado Pago/Stripe payment ID
   paymentStatus      String? // pending | approved | rejected | refunded
   checkoutUrl        String? // URL for payment checkout
-  trialStart         DateTime?
-  trialEnd           DateTime?
   currentPeriodStart DateTime?
   currentPeriodEnd   DateTime?
   cancelAtPeriodEnd  Boolean   @default(false)

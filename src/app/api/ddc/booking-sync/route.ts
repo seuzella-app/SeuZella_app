@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withSecurity } from '@/lib/security/api-shield';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+// Notification bridge — Phase 2: pushes iCal sync events into DDC
+import { bridgeIcalSync } from '@/lib/notifications/bridges';
 
 // GET /api/ddc/booking-sync — Get Booking.com sync status
 async function getHandler(request: NextRequest) {
@@ -66,6 +68,29 @@ async function postHandler(request: NextRequest) {
           errorMessage: result.errors > 0 ? `${result.errors} errors during import` : '',
         },
       });
+
+      // ── Notification bridge: notify owner about iCal sync result ──
+      try {
+        if (result.errors > 0) {
+          bridgeIcalSync({
+            niche: 'pousada',
+            status: 'sync_failed',
+            calendarName: 'Booking.com',
+            reason: `${result.errors} erro(s) durante importação`,
+            tenantId,
+          });
+        } else if (result.imported > 0) {
+          bridgeIcalSync({
+            niche: 'pousada',
+            status: 'sync_success',
+            calendarName: 'Booking.com',
+            count: result.imported,
+            tenantId,
+          });
+        }
+      } catch (notifErr) {
+        console.error('[BookingSync] notification bridge error:', notifErr);
+      }
 
       return NextResponse.json({ success: true, imported: result.imported, errors: result.errors, skipped: result.skipped });
     }

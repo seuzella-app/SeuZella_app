@@ -71,9 +71,23 @@ function getAudience(): string {
 
 const TOKEN_TTL_SECONDS = 300; // 5 minutos
 
-if (!getPublicKeyPem() && process.env.NODE_ENV === 'production' && !process.env.CI && process.env.NEXT_PHASE !== 'phase-production-build' && !process.env.VERCEL_ENV) {
-  // Em dev, CI e durante o build sintético, permite operar sem chave.
-  console.warn('[cron-auth] ZELLA_M2M_ED25519_PUBLIC_KEY não configurada');
+// ─── Lazy enforcement: only fail when verifyCronM2MToken is actually called ──
+// (Previous code threw at module-load which broke Vercel build collection.
+//  We now log a critical warning and let the build succeed; the actual
+//  401-rejection happens lazily in verifyCronM2MToken when called at runtime.)
+let _publicKeyEnvChecked = false;
+function ensurePublicKeyEnvOrFail() {
+  if (_publicKeyEnvChecked) return;
+  _publicKeyEnvChecked = true;
+  if (!getPublicKeyPem() && process.env.NODE_ENV === 'production' && !process.env.CI) {
+    console.error(
+      '═'.repeat(80) + '\n' +
+      '[cron-auth] CRÍTICO: ZELLA_M2M_ED25519_PUBLIC_KEY ausente em produção.\n' +
+      'Rotas /api/cron/* que exigem verifyCronM2MToken retornarão 401 até a chave ser configurada.\n' +
+      'Build continuará — adicione a env var no Vercel para habilitar crons M2M.\n' +
+      '═'.repeat(80)
+    );
+  }
 }
 
 // --- Cache de chave importada (a chave é estática) ---------------------------
@@ -118,6 +132,9 @@ export async function verifyCronM2MToken(
   | { ok: true; principal: VerifiedCronPrincipal }
   | { ok: false; response: NextResponse }
 > {
+  // Lazy env check (logs warning if missing in production — never throws)
+  ensurePublicKeyEnvOrFail();
+
   // 0. Dev bypass: em NODE_ENV=development sem chave configurada,
   //    aceita o header X-Zella-M2M-Dev-Bypass=1 com escopo declarado.
   //    ESTE BYPASS NUNCA EXISTE EM PROD. Avaliar ANTES do header Authorization
