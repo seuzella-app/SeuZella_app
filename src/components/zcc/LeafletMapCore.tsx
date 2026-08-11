@@ -1,9 +1,9 @@
 'use client';
 
 // ==============================================================================
-// LEAFLET MAP CORE — Client-only Isolated Component
+// LEAFLET MAP CORE — ZCC Live Leads (Client-only rendering)
 // ==============================================================================
-// Dynamically imported with { ssr: false } to prevent SSR hydration crashes
+// Custom SVG Location Drop Pins matching exact LeadMap design with ZCC theme
 // ==============================================================================
 
 import { useEffect } from 'react';
@@ -16,60 +16,91 @@ interface LeafletMapCoreProps {
   leads: LiveLead[];
   selectedLead: LiveLead | null;
   onSelectLead: (lead: LiveLead) => void;
+  onAnalyzeBrain?: (lead: LiveLead) => void;
 }
 
-// Helper to smooth fly map position
+// 1. Default Location Drop Pin (Gold/Amber ★)
+const defaultIcon = L.divIcon({
+  html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="url(#grad-amber)" stroke="#0d1420" stroke-width="1.5"/>
+    <circle cx="14" cy="13" r="6" fill="white" opacity="0.95"/>
+    <text x="14" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="#0d1420">&#9733;</text>
+    <defs>
+      <linearGradient id="grad-amber" x1="0" y1="0" x2="0" y2="36">
+        <stop offset="0%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#d97706"/>
+      </linearGradient>
+    </defs>
+  </svg>`,
+  className: 'zella-marker-default',
+  iconSize: [28, 36],
+  iconAnchor: [14, 36],
+  popupAnchor: [0, -36],
+});
+
+// 2. Hotspot Location Drop Pin (Red 🔥)
+const hotspotIcon = L.divIcon({
+  html: `<svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 0C7.164 0 0 7.164 0 16c0 12 16 24 16 24s16-12 16-24C32 7.164 24.836 0 16 0z" fill="url(#grad-red)" stroke="#0d1420" stroke-width="1.5"/>
+    <circle cx="16" cy="15" r="7" fill="white" opacity="0.95"/>
+    <text x="16" y="19" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626">&#128293;</text>
+    <defs>
+      <linearGradient id="grad-red" x1="0" y1="0" x2="0" y2="40">
+        <stop offset="0%" stop-color="#ef4444"/>
+        <stop offset="100%" stop-color="#dc2626"/>
+      </linearGradient>
+    </defs>
+  </svg>`,
+  className: 'zella-marker-hot',
+  iconSize: [32, 40],
+  iconAnchor: [16, 40],
+  popupAnchor: [0, -40],
+});
+
+// 3. Converted Location Drop Pin (Green ✓)
+const convertedIcon = L.divIcon({
+  html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="url(#grad-green)" stroke="#0d1420" stroke-width="1.5"/>
+    <circle cx="14" cy="13" r="6" fill="white" opacity="0.95"/>
+    <text x="14" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="#059669">&#10003;</text>
+    <defs>
+      <linearGradient id="grad-green" x1="0" y1="0" x2="0" y2="36">
+        <stop offset="0%" stop-color="#10b981"/>
+        <stop offset="100%" stop-color="#059669"/>
+      </linearGradient>
+    </defs>
+  </svg>`,
+  className: 'zella-marker-conv',
+  iconSize: [28, 36],
+  iconAnchor: [14, 36],
+  popupAnchor: [0, -36],
+});
+
+function getLeadMarkerIcon(status: string, scoreQual: number) {
+  if (status === 'convertido') return convertedIcon;
+  if (scoreQual >= 90) return hotspotIcon;
+  return defaultIcon;
+}
+
+// Smooth fly to map location controller
 function MapController({ target }: { target: LiveLead | null }) {
   const map = useMap();
   useEffect(() => {
     if (target) {
-      map.flyTo([target.latitude, target.longitude], 11, { duration: 1.2 });
+      map.flyTo([target.latitude, target.longitude], 11, { duration: 1.3 });
     }
   }, [target, map]);
   return null;
 }
 
-// Custom Leaflet Pin Icon with Zélla Logo
-function createZellaIcon(status: string, score: number, isSelected: boolean) {
-  const isConv = status === 'convertido';
-  const isHot = score >= 90;
-
-  const borderColor = isSelected ? '#10b981' : isConv ? '#10b981' : isHot ? '#f59e0b' : '#3b82f6';
-  const badgeColor = isConv ? '#10b981' : isHot ? '#ef4444' : '#f59e0b';
-  const glowClass = isSelected
-    ? 'drop-shadow-[0_0_12px_rgba(16,185,129,0.8)]'
-    : isHot
-    ? 'drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]'
-    : '';
-
-  const html = `
-    <div class="relative group cursor-pointer ${glowClass}">
-      <div class="w-10 h-10 rounded-full bg-[#0d1420] border-2 p-1 shadow-xl flex items-center justify-center transition-transform hover:scale-110" style="border-color: ${borderColor}">
-        <img src="/assets/brand/Arte_SeuZellaCom_Logo.png" alt="Zélla" class="w-full h-full object-contain" />
-      </div>
-      <div class="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow" style="background-color: ${badgeColor}">
-        ${isConv ? '✓' : isHot ? '🔥' : '★'}
-      </div>
-    </div>
-  `;
-
-  return L.divIcon({
-    html,
-    className: 'zella-leaflet-marker',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-    popupAnchor: [0, -20],
-  });
-}
-
-export default function LeafletMapCore({ leads, selectedLead, onSelectLead }: LeafletMapCoreProps) {
+export default function LeafletMapCore({ leads, selectedLead, onSelectLead, onAnalyzeBrain }: LeafletMapCoreProps) {
   return (
     <MapContainer
       center={[-14.235, -51.9253]}
       zoom={5}
       className="h-full w-full z-0"
       zoomControl={false}
-      style={{ background: '#0a0f1e' }}
+      style={{ background: '#0a0e1a' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://carto.com/">CARTO</a>'
@@ -80,25 +111,46 @@ export default function LeafletMapCore({ leads, selectedLead, onSelectLead }: Le
         <Marker
           key={lead.id}
           position={[lead.latitude, lead.longitude]}
-          icon={createZellaIcon(lead.status, lead.scoreQual, selectedLead?.id === lead.id)}
+          icon={getLeadMarkerIcon(lead.status, lead.scoreQual)}
           eventHandlers={{
             click: () => onSelectLead(lead),
           }}
         >
           <Popup className="zella-custom-popup">
-            <div className="p-2 min-w-[220px] font-sans bg-[#0d1420] text-white rounded-lg">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-bold text-xs text-white truncate">{lead.pousada}</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono">
-                  Score {lead.scoreQual}
+            <div className="p-3 min-w-[240px] max-w-[280px] font-sans bg-[#0d1420] text-white rounded-xl shadow-2xl">
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <h3 className="text-xs font-bold text-slate-100 leading-tight">{lead.pousada}</h3>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap font-mono">
+                  {lead.status === 'convertido' ? 'Cliente' : `Score ${lead.scoreQual}`}
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 mb-2">{lead.cidade}/{lead.uf} • {lead.qtdQuartos || '?'} quartos</p>
+              <p className="text-[10px] text-slate-400 mb-2">{lead.cidade}/{lead.uf} {lead.localPraia ? `• ${lead.localPraia}` : ''}</p>
+              
+              <div className="grid grid-cols-2 gap-1.5 mb-2.5 text-[10px] bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                <div>
+                  <span className="text-slate-500 block">Quartos:</span>
+                  <span className="font-bold text-slate-200">{lead.qtdQuartos || '-'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Diária Est.:</span>
+                  <span className="font-bold text-emerald-400 truncate block">{lead.valoresEstimados || '-'}</span>
+                </div>
+              </div>
+
+              {lead.sinaisIntencao && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-1.5 mb-2.5 text-[10px] text-amber-300 truncate">
+                  ⚡ {lead.sinaisIntencao}
+                </div>
+              )}
+
               <button
-                onClick={() => onSelectLead(lead)}
-                className="w-full text-center py-1 rounded bg-teal-600 hover:bg-teal-500 text-white text-[10px] font-medium transition-colors"
+                onClick={() => {
+                  onSelectLead(lead);
+                  if (onAnalyzeBrain) onAnalyzeBrain(lead);
+                }}
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-[11px] font-bold shadow-md transition-all"
               >
-                Ver no Cérebro Zélla →
+                <span>⚡ Analisar no Cérebro Zélla</span>
               </button>
             </div>
           </Popup>
