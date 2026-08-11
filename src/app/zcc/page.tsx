@@ -32,6 +32,7 @@ import {
 import { ZCCActivityFeed } from '@/components/zcc/ZCCActivityFeed';
 
 import { CerebroVivoPanel } from '@/components/zcc/CerebroVivoPanel';
+import dynamic from 'next/dynamic';
 import { OperatorConsole } from '@/components/zcc/OperatorConsole';
 import { FinanceiroIntegrado } from '@/components/zcc/FinanceiroIntegrado';
 import { RefactorSuggestionsPanel } from '@/components/zcc/RefactorSuggestionsPanel';
@@ -49,6 +50,19 @@ import { FinancialBreakdownPanel } from '@/components/zcc/FinancialBreakdownPane
 import { AgentRosterPanel } from '@/components/zcc/AgentRosterPanel';
 import { CerebroTestPanel } from '@/components/zcc/CerebroTestPanel';
 import { OnboardingTrackerPanel } from '@/components/zcc/OnboardingTrackerPanel';
+
+const LiveLeadsPanel = dynamic(
+  () => import('@/components/zcc/LiveLeadsPanel').then((mod) => mod.LiveLeadsPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full bg-[#0a0f1e] flex flex-col items-center justify-center text-slate-400 gap-3">
+        <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs font-mono">Carregando ZCC Live Leads com Cérebro Zélla...</span>
+      </div>
+    ),
+  }
+);
 import {
   globalMetrics as _globalMetrics,
   airbnbMetrics as _airbnbMetrics,
@@ -212,6 +226,9 @@ export default function ZCCPage() {
           brainAccuracy={`${apiGlobalMetrics.avgBrainAccuracy}%`}
         />
       )}
+
+      {/* ===== TAB: LIVE LEADS ===== */}
+      {activeTab === 'live-leads' && <LiveLeadsPanel />}
 
       {/* ===== ALL OTHER TABS — preserved unchanged ===== */}
       {activeTab === 'onboarding' && <OnboardingTrackerPanel />}

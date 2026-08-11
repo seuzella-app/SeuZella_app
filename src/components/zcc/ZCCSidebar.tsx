@@ -16,11 +16,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Command, Activity, Brain, Code, FlaskConical, DollarSign,
   Home, Flame, Users, Key, Globe, BarChart3, ChevronLeft,
-  Star, ChevronRight, Bot, Building2, TestTube,
+  Star, ChevronRight, Bot, Building2, TestTube, MapPin,
 } from 'lucide-react';
 
 export type ZCCTabId =
-  | 'overview' | 'pulse' | 'cerebro' | 'cerebro-tests' | 'refactors' | 'sandbox'
+  | 'overview' | 'live-leads' | 'pulse' | 'cerebro' | 'cerebro-tests' | 'refactors' | 'sandbox'
   | 'financeiro' | 'airbnb' | 'pousadas' | 'burnrate' | 'tenants'
   | 'tokens' | 'geo' | 'financial' | 'agents' | 'onboarding';
 
@@ -34,6 +34,7 @@ interface TabDef {
 
 const ALL_TABS: TabDef[] = [
   { id: 'overview', label: 'Visão Geral', icon: Command, desc: 'Command Center', group: 'core' },
+  { id: 'live-leads', label: 'Live Leads', icon: MapPin, desc: 'Mapa de oportunidades', group: 'core' },
   { id: 'onboarding', label: 'Onboarding Tracker', icon: Users, desc: 'Jornada pós-compra do cliente', group: 'core' },
   { id: 'agents', label: 'Agentes Vivos', icon: Bot, desc: '12 agentes com LLM real', group: 'core' },
   { id: 'pulse', label: 'Pulse Check', icon: Activity, desc: 'Telemetria & Infra', group: 'core' },
