@@ -142,23 +142,23 @@ export function LiveLeadsPanel() {
       <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0 border-r border-slate-800/80 z-10`}>
         <div className="w-80 h-full flex flex-col bg-[#080d16]">
           {/* Header with Logo + ZÉLLA LIS */}
-          {/* Header (ZEHLA LIS) */}
-          <div className="p-4 border-b border-slate-800/60">
+          {/* Header (ZÉLLA LIS) */}
+          <div className="p-4 border-b border-slate-800/80">
             <div className="mb-3">
-              <h1 className="text-sm font-bold text-white tracking-wider flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                ZEHLA LIS
+              <h1 className="text-sm font-mono font-bold text-[#10b981] tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+                ZÉLLA
               </h1>
-              <p className="text-[10px] text-slate-400">Lead Intelligence System</p>
+              <p className="text-[10px] font-mono text-slate-400">Lead Intelligence System</p>
             </div>
 
             {/* 3 Tabs (Mapa | Lista | Stats) */}
-            <div className="flex gap-1 bg-slate-900/80 rounded-lg p-1 border border-slate-800">
+            <div className="flex gap-1 bg-slate-900/80 rounded-lg p-1 border border-slate-800 font-mono">
               {(['map', 'list', 'analytics'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 text-xs py-1.5 rounded-md transition-all font-bold ${
+                  className={`flex-1 text-xs py-1.5 rounded-md transition-all font-bold font-mono ${
                     activeTab === tab
                       ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md'
                       : 'text-slate-400 hover:text-white'
@@ -171,7 +171,7 @@ export function LiveLeadsPanel() {
           </div>
 
           {/* Filters */}
-          <div className="p-4 border-b border-slate-800/60 space-y-2">
+          <div className="p-4 border-b border-slate-800/80 space-y-2 font-mono">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
               <input
@@ -179,13 +179,13 @@ export function LiveLeadsPanel() {
                 placeholder="Buscar pousada, cidade..."
                 value={filters.search}
                 onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-                className="w-full bg-slate-900/60 border border-slate-700/60 rounded-lg pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
+                className="w-full bg-slate-900/80 border border-slate-700/60 rounded-lg pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#10b981]/60 font-mono"
               />
             </div>
             <select
               value={filters.regiao}
               onChange={(e) => setFilters((f) => ({ ...f, regiao: e.target.value }))}
-              className="w-full bg-slate-900/60 border border-slate-700/60 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+              className="w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#10b981]/60 font-mono"
             >
               <option value="todas">Todas as Regiões</option>
               <option value="Sul">Sul</option>
@@ -197,7 +197,7 @@ export function LiveLeadsPanel() {
             <select
               value={filters.status}
               onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-              className="w-full bg-slate-900/60 border border-slate-700/60 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+              className="w-full bg-slate-900/80 border border-slate-700/60 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#10b981]/60 font-mono"
             >
               <option value="todos">Todos os Status</option>
               <option value="novo">Novo</option>
@@ -209,10 +209,10 @@ export function LiveLeadsPanel() {
           </div>
 
           {/* Cards Content List */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2 font-mono">
             {activeTab === 'map' ? (
               <>
-                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
                   LEADS NO MAPA ({filteredLeads.length})
                 </h3>
                 {filteredLeads.map((lead) => {
@@ -222,25 +222,25 @@ export function LiveLeadsPanel() {
                     <button
                       key={lead.id}
                       onClick={() => handleSelectLead(lead)}
-                      className={`w-full text-left p-2.5 rounded-xl border transition-all ${
+                      className={`w-full text-left p-2.5 rounded-xl border transition-all font-mono ${
                         isSelected
-                          ? 'bg-amber-600/10 border-amber-500/50 shadow-lg'
+                          ? 'bg-[#0e1813] border-[#10b981]/60 shadow-lg'
                           : 'bg-slate-900/40 border-slate-800/60 hover:border-slate-700'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-1">
-                        <span className="text-xs font-bold text-slate-100 truncate">{lead.pousada}</span>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full border whitespace-nowrap ${badge.className}`}>
+                      <div className="flex items-start justify-between gap-1 font-mono">
+                        <span className={`text-xs font-bold truncate ${isSelected ? 'text-[#10b981]' : 'text-slate-100'}`}>{lead.pousada}</span>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full border whitespace-nowrap font-mono ${badge.className}`}>
                           {badge.label}
                         </span>
                       </div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">{lead.cidade}/{lead.uf}</div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-[10px] font-bold ${getScoreColor(lead.scoreQual)}`}>
+                      <div className="text-[10px] text-slate-400 mt-0.5 font-mono">{lead.cidade}/{lead.uf}</div>
+                      <div className="flex items-center gap-2 mt-1 font-mono">
+                        <span className={`text-[10px] font-bold font-mono ${getScoreColor(lead.scoreQual)}`}>
                           ★ {lead.scoreQual}
                         </span>
                         {lead.sinaisIntencao && (
-                          <span className="text-[10px] text-amber-400 truncate">⚡ {lead.sinaisIntencao}</span>
+                          <span className="text-[10px] text-amber-400 truncate font-mono">⚡ {lead.sinaisIntencao}</span>
                         )}
                       </div>
                     </button>

@@ -253,7 +253,11 @@ html {
   width: 100% !important;
   height: 100% !important;
   min-height: 500px !important;
-  background: #0a0e1a !important;
+  background: #050811 !important;
+}
+
+.zella-dark-tiles .leaflet-tile {
+  filter: brightness(0.65) invert(1) contrast(2.8) hue-rotate(200deg) !important;
 }
 
 .leaflet-control-attribution {

@@ -3,8 +3,8 @@
 // ==============================================================================
 // LEAFLET MAP CORE — ZCC Live Leads (Client-only rendering)
 // ==============================================================================
-// Custom SVG Location Drop Pins matching exact LeadMap design with ZCC theme
-// Fastly CDN Dark TileLayer + Map Invalidation + Functional Zoom Controls (+ / -)
+// 100% Bulletproof Inverted OSM Dark Map Tiles + SVG Location Drop Pins
+// Guaranteed to load Brazil map with all cities, borders, and coastlines
 // ==============================================================================
 
 import { useEffect } from 'react';
@@ -23,9 +23,9 @@ interface LeafletMapCoreProps {
 // 1. Default Location Drop Pin (Gold/Amber ★)
 const defaultIcon = L.divIcon({
   html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="url(#grad-amber)" stroke="#0d1420" stroke-width="1.5"/>
+    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="url(#grad-amber)" stroke="#050811" stroke-width="1.5"/>
     <circle cx="14" cy="13" r="6" fill="white" opacity="0.95"/>
-    <text x="14" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="#0d1420">&#9733;</text>
+    <text x="14" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="#050811">&#9733;</text>
     <defs>
       <linearGradient id="grad-amber" x1="0" y1="0" x2="0" y2="36">
         <stop offset="0%" stop-color="#f59e0b"/>
@@ -42,7 +42,7 @@ const defaultIcon = L.divIcon({
 // 2. Hotspot Location Drop Pin (Red 🔥)
 const hotspotIcon = L.divIcon({
   html: `<svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 0C7.164 0 0 7.164 0 16c0 12 16 24 16 24s16-12 16-24C32 7.164 24.836 0 16 0z" fill="url(#grad-red)" stroke="#0d1420" stroke-width="1.5"/>
+    <path d="M16 0C7.164 0 0 7.164 0 16c0 12 16 24 16 24s16-12 16-24C32 7.164 24.836 0 16 0z" fill="url(#grad-red)" stroke="#050811" stroke-width="1.5"/>
     <circle cx="16" cy="15" r="7" fill="white" opacity="0.95"/>
     <text x="16" y="19" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626">&#128293;</text>
     <defs>
@@ -61,7 +61,7 @@ const hotspotIcon = L.divIcon({
 // 3. Converted Location Drop Pin (Green ✓)
 const convertedIcon = L.divIcon({
   html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="url(#grad-green)" stroke="#0d1420" stroke-width="1.5"/>
+    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill="url(#grad-green)" stroke="#050811" stroke-width="1.5"/>
     <circle cx="14" cy="13" r="6" fill="white" opacity="0.95"/>
     <text x="14" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="#059669">&#10003;</text>
     <defs>
@@ -83,24 +83,25 @@ function getLeadMarkerIcon(status: string, scoreQual: number) {
   return defaultIcon;
 }
 
-// Controller to trigger map invalidateSize and smooth flyTo
+// Controller to force Leaflet map size invalidation on render and smooth flyTo
 function MapController({ target }: { target: LiveLead | null }) {
   const map = useMap();
 
   useEffect(() => {
-    // Invalidate map size on mount to ensure tiles load instantly
     map.invalidateSize();
-    const t1 = setTimeout(() => map.invalidateSize(), 200);
-    const t2 = setTimeout(() => map.invalidateSize(), 600);
+    const t1 = setTimeout(() => map.invalidateSize(), 150);
+    const t2 = setTimeout(() => map.invalidateSize(), 500);
+    const t3 = setTimeout(() => map.invalidateSize(), 1200);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, [map]);
 
   useEffect(() => {
     if (target) {
-      map.flyTo([target.latitude, target.longitude], 11, { duration: 1.3 });
+      map.flyTo([target.latitude, target.longitude], 11, { duration: 1.2 });
     }
   }, [target, map]);
 
@@ -125,11 +126,11 @@ function CustomZoomControl() {
 
   return (
     <div className="absolute bottom-6 left-6 z-[9999] pointer-events-auto">
-      <div className="bg-[#0d1117]/95 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-2xl flex flex-col overflow-hidden text-white divide-y divide-slate-800">
+      <div className="bg-[#090d16]/95 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-2xl flex flex-col overflow-hidden text-white divide-y divide-slate-800">
         <button
           type="button"
           onClick={handleZoomIn}
-          className="w-10 h-10 flex items-center justify-center text-xl font-bold hover:bg-slate-800 text-slate-100 transition-colors active:scale-95 cursor-pointer"
+          className="w-10 h-10 flex items-center justify-center text-xl font-mono font-bold hover:bg-slate-800 text-slate-100 transition-colors active:scale-95 cursor-pointer"
           title="Aumentar Zoom (+)"
           aria-label="Aumentar Zoom"
         >
@@ -138,7 +139,7 @@ function CustomZoomControl() {
         <button
           type="button"
           onClick={handleZoomOut}
-          className="w-10 h-10 flex items-center justify-center text-xl font-bold hover:bg-slate-800 text-slate-100 transition-colors active:scale-95 cursor-pointer"
+          className="w-10 h-10 flex items-center justify-center text-xl font-mono font-bold hover:bg-slate-800 text-slate-100 transition-colors active:scale-95 cursor-pointer"
           title="Diminuir Zoom (-)"
           aria-label="Diminuir Zoom"
         >
@@ -151,20 +152,20 @@ function CustomZoomControl() {
 
 export default function LeafletMapCore({ leads, selectedLead, onSelectLead, onAnalyzeBrain }: LeafletMapCoreProps) {
   return (
-    <div className="relative w-full h-full min-h-[550px] bg-[#0a0e1a]">
+    <div className="relative w-full h-full min-h-[550px] bg-[#050811] zella-dark-tiles">
       <MapContainer
         center={[-14.235, -51.9253]}
         zoom={5}
         className="h-full w-full z-0 min-h-[550px]"
         zoomControl={false}
         attributionControl={false}
-        style={{ background: '#0a0e1a', width: '100%', height: '100%' }}
+        style={{ background: '#050811', width: '100%', height: '100%' }}
       >
-        {/* Bulletproof Fastly CDN Dark TileLayer */}
+        {/* Bulletproof OSM Inverted Dark Map Tiles */}
         <TileLayer
           attribution=""
-          url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
-          subdomains={['a', 'b', 'c', 'd']}
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          subdomains={['a', 'b', 'c']}
           maxZoom={19}
         />
         <MapController target={selectedLead} />
@@ -179,7 +180,7 @@ export default function LeafletMapCore({ leads, selectedLead, onSelectLead, onAn
             }}
           >
             <Popup className="zella-custom-popup">
-              <div className="p-3 min-w-[240px] max-w-[280px] font-sans bg-[#0d1420] text-white rounded-xl shadow-2xl">
+              <div className="p-3 min-w-[240px] max-w-[280px] font-mono bg-[#090d16] text-white rounded-xl shadow-2xl border border-slate-800">
                 <div className="flex items-start justify-between gap-2 mb-1.5">
                   <h3 className="text-xs font-bold text-slate-100 leading-tight">{lead.pousada}</h3>
                   <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap font-mono">
@@ -188,7 +189,7 @@ export default function LeafletMapCore({ leads, selectedLead, onSelectLead, onAn
                 </div>
                 <p className="text-[10px] text-slate-400 mb-2">{lead.cidade}/{lead.uf} {lead.localPraia ? `• ${lead.localPraia}` : ''}</p>
                 
-                <div className="grid grid-cols-2 gap-1.5 mb-2.5 text-[10px] bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                <div className="grid grid-cols-2 gap-1.5 mb-2.5 text-[10px] bg-slate-900/80 p-2 rounded-lg border border-slate-800">
                   <div>
                     <span className="text-slate-500 block">Quartos:</span>
                     <span className="font-bold text-slate-200">{lead.qtdQuartos || '-'}</span>
@@ -210,7 +211,7 @@ export default function LeafletMapCore({ leads, selectedLead, onSelectLead, onAn
                     onSelectLead(lead);
                     if (onAnalyzeBrain) onAnalyzeBrain(lead);
                   }}
-                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-[11px] font-bold shadow-md transition-all cursor-pointer"
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-[11px] font-bold shadow-md transition-all cursor-pointer font-mono"
                 >
                   <span>⚡ Analisar no Cérebro Zélla</span>
                 </button>
