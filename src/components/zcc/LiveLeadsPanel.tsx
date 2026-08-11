@@ -142,21 +142,14 @@ export function LiveLeadsPanel() {
       <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0 border-r border-slate-800/60 z-10`}>
         <div className="w-80 h-full flex flex-col bg-[#0d1117]">
           {/* Header with Logo + ZÉLLA LIS */}
+          {/* Header (ZEHLA LIS) */}
           <div className="p-4 border-b border-slate-800/60">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="h-8 w-auto relative flex items-center">
-                <Image
-                  src="/SeuZella_Logo_site.png"
-                  alt="Seu Zélla"
-                  width={120}
-                  height={32}
-                  className="h-7 w-auto object-contain"
-                />
-              </div>
-              <div className="border-l border-slate-700 pl-2">
-                <h1 className="text-xs font-bold text-white tracking-wider">LIVE LEADS</h1>
-                <p className="text-[9px] text-slate-400">Lead Intelligence System</p>
-              </div>
+            <div className="mb-3">
+              <h1 className="text-sm font-bold text-white tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                ZEHLA LIS
+              </h1>
+              <p className="text-[10px] text-slate-400">Lead Intelligence System</p>
             </div>
 
             {/* 3 Tabs (Mapa | Lista | Stats) */}

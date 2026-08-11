@@ -75,14 +75,16 @@ export function ZCCTopbar({
             <ArrowLeft className="w-4 h-4" />
           </Link>
 
-          {/* Breadcrumb */}
+          {/* Breadcrumb with Logo */}
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-sm font-bold tracking-tight hidden sm:inline" style={{ color: 'var(--zcc-champagne)' }}>
-                ZCC
-              </span>
-              <span className="text-xs font-mono hidden sm:inline" style={{ color: 'var(--zcc-text-muted)' }}>/</span>
-            </div>
+            <Link href="/" className="flex items-center gap-1.5 shrink-0 hover:opacity-90 transition-opacity">
+              <img
+                src="/SeuZella_Logo_site.png"
+                alt="Seu Zélla"
+                className="h-6 sm:h-7 w-auto object-contain"
+              />
+              <span className="text-xs font-mono hidden sm:inline text-slate-500">/</span>
+            </Link>
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-sm sm:text-base font-mono font-bold truncate" style={{ color: 'var(--zcc-kinpaku)' }}>
                 {breadcrumb.label}
