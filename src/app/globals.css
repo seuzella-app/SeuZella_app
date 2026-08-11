@@ -249,9 +249,17 @@ html {
   height: 6px;
 }
 
-/* ========================================
-   LEAFLET CUSTOM DARK POPUP STYLES
-   ======================================== */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 500px !important;
+  background: #0a0e1a !important;
+}
+
+.leaflet-control-attribution {
+  display: none !important;
+}
+
 .leaflet-popup-content-wrapper {
   background: #0d1420 !important;
   color: #ffffff !important;

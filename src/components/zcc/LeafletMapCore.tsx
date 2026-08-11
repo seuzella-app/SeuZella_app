@@ -4,7 +4,7 @@
 // LEAFLET MAP CORE — ZCC Live Leads (Client-only rendering)
 // ==============================================================================
 // Custom SVG Location Drop Pins matching exact LeadMap design with ZCC theme
-// Includes explicit height bounds + custom Zoom Control (+ / -) card
+// Fastly CDN Dark TileLayer + Map Invalidation + Functional Zoom Controls (+ / -)
 // ==============================================================================
 
 import { useEffect } from 'react';
@@ -83,34 +83,62 @@ function getLeadMarkerIcon(status: string, scoreQual: number) {
   return defaultIcon;
 }
 
-// Smooth fly to map location controller
+// Controller to trigger map invalidateSize and smooth flyTo
 function MapController({ target }: { target: LiveLead | null }) {
   const map = useMap();
+
+  useEffect(() => {
+    // Invalidate map size on mount to ensure tiles load instantly
+    map.invalidateSize();
+    const t1 = setTimeout(() => map.invalidateSize(), 200);
+    const t2 = setTimeout(() => map.invalidateSize(), 600);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [map]);
+
   useEffect(() => {
     if (target) {
       map.flyTo([target.latitude, target.longitude], 11, { duration: 1.3 });
     }
   }, [target, map]);
+
   return null;
 }
 
-// Floating Zoom Control Card Overlay inside Map
+// Functional Zoom Control Card Overlay (+ and - buttons)
 function CustomZoomControl() {
   const map = useMap();
+
+  const handleZoomIn = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    map.zoomIn();
+  };
+
+  const handleZoomOut = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    map.zoomOut();
+  };
+
   return (
-    <div className="leaflet-bottom leaflet-left !bottom-6 !left-4 z-[999] pointer-events-auto">
-      <div className="bg-[#0d1117]/95 backdrop-blur-md border border-slate-700/70 rounded-xl shadow-2xl flex flex-col overflow-hidden text-white divide-y divide-slate-800">
+    <div className="absolute bottom-6 left-6 z-[9999] pointer-events-auto">
+      <div className="bg-[#0d1117]/95 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-2xl flex flex-col overflow-hidden text-white divide-y divide-slate-800">
         <button
-          onClick={() => map.zoomIn()}
-          className="w-9 h-9 flex items-center justify-center text-lg font-bold hover:bg-slate-800 text-slate-200 transition-colors"
+          type="button"
+          onClick={handleZoomIn}
+          className="w-10 h-10 flex items-center justify-center text-xl font-bold hover:bg-slate-800 text-slate-100 transition-colors active:scale-95 cursor-pointer"
           title="Aumentar Zoom (+)"
           aria-label="Aumentar Zoom"
         >
           +
         </button>
         <button
-          onClick={() => map.zoomOut()}
-          className="w-9 h-9 flex items-center justify-center text-lg font-bold hover:bg-slate-800 text-slate-200 transition-colors"
+          type="button"
+          onClick={handleZoomOut}
+          className="w-10 h-10 flex items-center justify-center text-xl font-bold hover:bg-slate-800 text-slate-100 transition-colors active:scale-95 cursor-pointer"
           title="Diminuir Zoom (-)"
           aria-label="Diminuir Zoom"
         >
@@ -123,17 +151,21 @@ function CustomZoomControl() {
 
 export default function LeafletMapCore({ leads, selectedLead, onSelectLead, onAnalyzeBrain }: LeafletMapCoreProps) {
   return (
-    <div className="relative w-full h-full min-h-[500px]">
+    <div className="relative w-full h-full min-h-[550px] bg-[#0a0e1a]">
       <MapContainer
         center={[-14.235, -51.9253]}
         zoom={5}
-        className="h-full w-full z-0 min-h-[500px]"
+        className="h-full w-full z-0 min-h-[550px]"
         zoomControl={false}
+        attributionControl={false}
         style={{ background: '#0a0e1a', width: '100%', height: '100%' }}
       >
+        {/* Bulletproof Fastly CDN Dark TileLayer */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution=""
+          url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
+          subdomains={['a', 'b', 'c', 'd']}
+          maxZoom={19}
         />
         <MapController target={selectedLead} />
         <CustomZoomControl />
@@ -178,7 +210,7 @@ export default function LeafletMapCore({ leads, selectedLead, onSelectLead, onAn
                     onSelectLead(lead);
                     if (onAnalyzeBrain) onAnalyzeBrain(lead);
                   }}
-                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-[11px] font-bold shadow-md transition-all"
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-[11px] font-bold shadow-md transition-all cursor-pointer"
                 >
                   <span>⚡ Analisar no Cérebro Zélla</span>
                 </button>

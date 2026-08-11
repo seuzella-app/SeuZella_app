@@ -137,10 +137,10 @@ export function LiveLeadsPanel() {
   };
 
   return (
-    <div className="h-[calc(100vh-6rem)] w-full flex bg-[#0a0e1a] text-white overflow-hidden rounded-xl border border-slate-800/80 shadow-2xl relative">
+    <div className="h-[calc(100vh-6rem)] w-full flex bg-[#050811] text-white overflow-hidden rounded-xl border border-slate-800/80 shadow-2xl relative font-sans">
       {/* ── 1. LEFT SIDEBAR (EXACT LAYOUT FROM SCREENSHOT) ───────────────────── */}
-      <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0 border-r border-slate-800/60 z-10`}>
-        <div className="w-80 h-full flex flex-col bg-[#0d1117]">
+      <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0 border-r border-slate-800/80 z-10`}>
+        <div className="w-80 h-full flex flex-col bg-[#080d16]">
           {/* Header with Logo + ZÉLLA LIS */}
           {/* Header (ZEHLA LIS) */}
           <div className="p-4 border-b border-slate-800/60">
