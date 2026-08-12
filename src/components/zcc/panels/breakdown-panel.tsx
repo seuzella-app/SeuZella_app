@@ -79,7 +79,7 @@ const FALLBACK_DATA: FinancialData = {
       price: 197,
       count: 24,
       mrr: 24 * 197,
-      ratio: 19.3,
+      ratio: 0,
       features: ["50 hóspedes", "500 mensagens", "IA limitada"],
     },
     {
@@ -88,7 +88,7 @@ const FALLBACK_DATA: FinancialData = {
       price: 397,
       count: 48,
       mrr: 48 * 397,
-      ratio: 78.4,
+      ratio: 0,
       features: ["Ilimitado", "OAuth Airbnb", "Dynamic pricing"],
     },
     {
@@ -97,7 +97,7 @@ const FALLBACK_DATA: FinancialData = {
       price: 797,
       count: 32,
       mrr: 32 * 797,
-      ratio: 104.4,
+      ratio: 0,
       features: ["Tudo de PRO", "Competitor monitoring", "Multi-property"],
     },
     {
@@ -106,7 +106,7 @@ const FALLBACK_DATA: FinancialData = {
       price: 247,
       count: 18,
       mrr: 18 * 247,
-      ratio: 18.3,
+      ratio: 0,
       features: ["PRO + tab Conquistas", "Referral gamification"],
     },
   ],
@@ -116,24 +116,36 @@ const FALLBACK_DATA: FinancialData = {
       label: "Pousadas",
       clients: 64,
       mrr: 31280,
-      ratio: 64.2,
+      ratio: 0,
     },
     {
       niche: "airbnb",
       label: "Airbnb",
       clients: 40,
       mrr: 13420,
-      ratio: 27.6,
+      ratio: 0,
     },
     {
       niche: "parceiro",
       label: "Parceiros",
       clients: 18,
       mrr: 4446,
-      ratio: 9.1,
+      ratio: 0,
     },
   ],
 };
+
+// Recalcula ratios do fallback
+(() => {
+  const total = FALLBACK_DATA.totalMRR;
+  FALLBACK_DATA.planBreakdown.forEach((p) => {
+    p.ratio = total > 0 ? Math.round((p.mrr / total) * 1000) / 10 : 0;
+  });
+  const nicheTotal = FALLBACK_DATA.nicheBreakdown.reduce((s, n) => s + n.mrr, 0);
+  FALLBACK_DATA.nicheBreakdown.forEach((n) => {
+    n.ratio = nicheTotal > 0 ? Math.round((n.mrr / nicheTotal) * 1000) / 10 : 0;
+  });
+})();
 
 const PLAN_META: Record<
   string,
@@ -198,38 +210,64 @@ export function FinancialBreakdownPanel() {
       const json = await res.json();
       if (json?.success && json?.data) {
         const d = json.data;
-        // adapt API -> local shape
-        const planBreakdown: PlanBreakdown[] = (d.planBreakdown ?? []).map(
-          (p: {
-            plan: string;
-            label: string;
-            price: number;
-            count: number;
-            mrr: number;
-            ratio: string;
-            features: string[];
-          }) => ({
-            plan: p.plan,
-            label: p.label,
-            price: p.price,
-            count: p.count,
-            mrr: p.mrr,
-            ratio: parseFloat(String(p.ratio)) || 0,
-            features: p.features ?? [],
-          })
-        );
+        // API retorna planBreakdown como array com {plan, label, price, count, mrr, ratio, features}
+        const planBreakdown: PlanBreakdown[] = Array.isArray(d.planBreakdown)
+          ? d.planBreakdown.map(
+              (p: {
+                plan: string;
+                label: string;
+                price: number;
+                count: number;
+                mrr: number;
+                ratio: number | string;
+                features: string[];
+              }) => ({
+                plan: p.plan,
+                label: p.label,
+                price: p.price,
+                count: p.count,
+                mrr: p.mrr,
+                ratio: parseFloat(String(p.ratio)) || 0,
+                features: p.features ?? [],
+              })
+            )
+          : [];
+
+        // API retorna nicheBreakdown como array com {niche, label, clients, mrr, ratio}
+        const nicheBreakdown: NicheBreakdown[] = Array.isArray(d.nicheBreakdown)
+          ? d.nicheBreakdown.map(
+              (n: {
+                niche: string;
+                label: string;
+                clients: number;
+                mrr: number;
+                ratio: number | string;
+              }) => ({
+                niche: n.niche,
+                label: n.label,
+                clients: n.clients,
+                mrr: n.mrr,
+                ratio: parseFloat(String(n.ratio)) || 0,
+              })
+            )
+          : FALLBACK_DATA.nicheBreakdown;
+
+        // KPIs — usa valores reais da API quando disponíveis
         const totalClients = d.totalClients ?? planBreakdown.reduce((s, p) => s + p.count, 0);
-        const churned = Math.round((totalClients * (d.churnRate ?? 2.1)) / 100);
+        const churnedClients = d.churnedClients ?? Math.round((totalClients * (d.churnRate ?? 2.1)) / 100);
+        const activeClients = d.activeClients ?? (totalClients - churnedClients);
+        const mrrLost = d.mrrLost ?? churnedClients * (d.arpu ?? FALLBACK_DATA.arpu);
+
         setData({
           totalMRR: d.totalMRR ?? FALLBACK_DATA.totalMRR,
           arpu: d.arpu ?? FALLBACK_DATA.arpu,
           churnRate: d.churnRate ?? FALLBACK_DATA.churnRate,
           totalClients,
-          activeClients: totalClients - churned,
-          churnedClients: churned,
-          mrrLost: churned * (d.arpu ?? FALLBACK_DATA.arpu),
+          activeClients,
+          churnedClients,
+          mrrLost,
           planBreakdown: planBreakdown.length ? planBreakdown : FALLBACK_DATA.planBreakdown,
-          nicheBreakdown: FALLBACK_DATA.nicheBreakdown,
+          nicheBreakdown: nicheBreakdown.length ? nicheBreakdown : FALLBACK_DATA.nicheBreakdown,
         });
         setUsingFallback(false);
       }
@@ -534,8 +572,102 @@ export function FinancialBreakdownPanel() {
             />
           </div>
         </motion.div>
+
+        {/* ====== MATH AUDIT — Verificação de consistência ====== */}
+        <MathAudit data={data} />
       </div>
     </div>
+  );
+}
+
+// ============================================================================
+// MATH AUDIT — Verificação matemática dos dados cruzados
+// ============================================================================
+
+function MathAudit({ data }: { data: FinancialData }) {
+  const planSumMrr = data.planBreakdown.reduce((s, p) => s + p.mrr, 0);
+  const planSumCount = data.planBreakdown.reduce((s, p) => s + p.count, 0);
+  const nicheSumMrr = data.nicheBreakdown.reduce((s, n) => s + n.mrr, 0);
+  const nicheSumClients = data.nicheBreakdown.reduce((s, n) => s + n.clients, 0);
+
+  const mrrDiff = Math.abs(planSumMrr - data.totalMRR);
+  const mrrOk = mrrDiff <= 1; // tolerance R$1
+  const countOk = planSumCount === data.activeClients;
+  const nicheClientsOk = nicheSumClients === data.activeClients || nicheSumClients === data.totalClients;
+  const nicheMrrOk = Math.abs(nicheSumMrr - data.totalMRR) <= 1;
+  const arpuOk = data.activeClients > 0
+    ? Math.abs(data.arpu - Math.round(data.totalMRR / data.activeClients)) <= 5
+    : data.arpu === 0;
+  const churnOk = data.totalClients > 0
+    ? Math.abs(data.churnRate - (data.churnedClients / data.totalClients) * 100) <= 0.2
+    : data.churnRate === 0;
+  const mrrLostOk = data.churnedClients > 0
+    ? Math.abs(data.mrrLost - data.churnedClients * data.arpu) <= data.arpu
+    : data.mrrLost === 0;
+
+  const checks = [
+    { label: "Σ planos MRR = totalMRR", ok: mrrOk, detail: `${fmtBRL(planSumMrr)} vs ${fmtBRL(data.totalMRR)}` },
+    { label: "Σ planos count = activeClients", ok: countOk, detail: `${planSumCount} vs ${data.activeClients}` },
+    { label: "Σ nicho MRR = totalMRR", ok: nicheMrrOk, detail: `${fmtBRL(nicheSumMrr)} vs ${fmtBRL(data.totalMRR)}` },
+    { label: "Σ nicho clients = totalClients", ok: nicheClientsOk, detail: `${nicheSumClients} vs ${data.totalClients}` },
+    { label: "ARPU = totalMRR / activeClients", ok: arpuOk, detail: `esperado: ${data.activeClients > 0 ? fmtBRL(Math.round(data.totalMRR / data.activeClients)) : "—"}` },
+    { label: "Churn = churned / total × 100", ok: churnOk, detail: `${data.churnRate.toFixed(1)}% esperado` },
+    { label: "MRR lost ≈ churned × ARPU", ok: mrrLostOk, detail: `${fmtBRL(data.mrrLost)} vs ${fmtBRL(data.churnedClients * data.arpu)}` },
+  ];
+
+  const okCount = checks.filter((c) => c.ok).length;
+  const allOk = okCount === checks.length;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.2 }}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className={cn("size-2 rounded-full", allOk ? "bg-emerald-500" : "bg-amber-500")} />
+          Math audit · consistência cruzada ({okCount}/{checks.length})
+        </h3>
+        <span className={cn(
+          "text-[10px] font-bold uppercase",
+          allOk ? "text-emerald-400" : "text-amber-400"
+        )}>
+          {allOk ? "all checks passed" : "drift detected"}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {checks.map((c, idx) => (
+          <div
+            key={c.label}
+            className={cn(
+              "flex items-center justify-between rounded border px-2.5 py-1.5 text-[10px]",
+              c.ok
+                ? "border-emerald-500/20 bg-emerald-500/5"
+                : "border-amber-500/30 bg-amber-500/5"
+            )}
+          >
+            <span className="flex items-center gap-1.5 truncate text-muted-foreground">
+              <span className={cn(
+                "grid size-3.5 place-items-center rounded-full text-[8px] font-bold text-white",
+                c.ok ? "bg-emerald-500" : "bg-amber-500"
+              )}>
+                {c.ok ? "✓" : "!"}
+              </span>
+              <span className="truncate font-mono">{c.label}</span>
+            </span>
+            <span className="ml-2 shrink-0 font-mono text-[9px] text-muted-foreground/70" title={c.detail}>
+              {c.detail}
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[10px] text-muted-foreground">
+        <strong className="text-foreground">Verificação:</strong> Esta seção cruza dados entre planos, nichos e churn.
+        Se todos os checks passam, as métricas do ZCC estão matematicamente consistentes.
+        Fonte: <code className="font-mono text-primary">/api/zcc/metrics/financial</code> + Tenant/Subscription Prisma.
+      </p>
+    </motion.div>
   );
 }
 

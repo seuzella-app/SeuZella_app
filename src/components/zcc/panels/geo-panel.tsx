@@ -11,19 +11,26 @@ import {
   ChevronDown,
   TrendingUp,
   Layers,
+  Users,
+  Star,
+  RefreshCw,
+  Link2,
 } from "lucide-react";
 import { PanelHeader } from "../shared/panel-header";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 /*
- * GeoMetricsPanel — Métricas geográficas do ZCC.
+ * GeoMetricsPanel — Resumo agregado da aba Live Leads.
  *
- * - Quick stats: estados cobertos, total pousadas, total airbnb, total MRR
- * - Tabela top 10 estados por MRR com expansão de cidades
- * - Barras split pousada vs airbnb por estado
+ * CRUZAMENTO DE DADOS:
+ *  - GET /api/zcc/metrics/geographic → agrega leads por UF (mesma fonte do LiveLeadsPanel)
+ *  - Total de leads, convertidos, hot leads vêm do mesmo dataset
+ *  - Pousada vs Airbnb split baseado em comportamento de compra
+ *  - MRR estimado por plano convertido (MAX/PRO/PARCEIRO/LITE)
  *
- * Em produção: hidratar via /api/zcc/metrics/geo
+ * Em mock mode (Vercel sem DB): usa /lib/zcc/mock-data.ts → leads[]
+ * Em produção: complementa com Tenants ativos do Prisma
  */
 
 interface CityDetail {
@@ -31,6 +38,7 @@ interface CityDetail {
   pousadas: number;
   airbnb: number;
   mrr: number;
+  leads?: number;
 }
 
 interface StateGeo {
@@ -39,11 +47,36 @@ interface StateGeo {
   pousadas: number;
   airbnb: number;
   mrr: number;
-  growth: number; // % MoM
+  growth: number;
+  leads: number;
+  convertedLeads: number;
+  hotLeads: number;
+  avgScore: number;
   cities: CityDetail[];
 }
 
-const MOCK_STATES: StateGeo[] = [
+interface GeoApiData {
+  states: StateGeo[];
+  totals: {
+    states: number;
+    pousadas: number;
+    airbnb: number;
+    mrr: number;
+    leads: number;
+    convertedLeads: number;
+    hotLeads: number;
+  };
+  sourceLeadsCount: number;
+  sourceNote: string;
+}
+
+interface GeoApiResponse {
+  success?: boolean;
+  data?: GeoApiData;
+  meta?: { source: string };
+}
+
+const FALLBACK_STATES: StateGeo[] = [
   {
     uf: "SC",
     name: "Santa Catarina",
@@ -51,11 +84,15 @@ const MOCK_STATES: StateGeo[] = [
     airbnb: 9,
     mrr: 18450,
     growth: 12.4,
+    leads: 23,
+    convertedLeads: 8,
+    hotLeads: 6,
+    avgScore: 84,
     cities: [
-      { name: "Florianópolis", pousadas: 6, airbnb: 5, mrr: 8200 },
-      { name: "Balneário Camboriú", pousadas: 4, airbnb: 2, mrr: 5400 },
-      { name: "Camboriú", pousadas: 2, airbnb: 1, mrr: 2650 },
-      { name: "Garopaba", pousadas: 2, airbnb: 1, mrr: 2200 },
+      { name: "Florianópolis", pousadas: 6, airbnb: 5, mrr: 8200, leads: 8 },
+      { name: "Balneário Camboriú", pousadas: 4, airbnb: 2, mrr: 5400, leads: 6 },
+      { name: "Camboriú", pousadas: 2, airbnb: 1, mrr: 2650, leads: 4 },
+      { name: "Garopaba", pousadas: 2, airbnb: 1, mrr: 2200, leads: 5 },
     ],
   },
   {
@@ -65,11 +102,15 @@ const MOCK_STATES: StateGeo[] = [
     airbnb: 13,
     mrr: 16720,
     growth: 8.7,
+    leads: 19,
+    convertedLeads: 6,
+    hotLeads: 5,
+    avgScore: 80,
     cities: [
-      { name: "Búzios", pousadas: 5, airbnb: 6, mrr: 7200 },
-      { name: "Paraty", pousadas: 4, airbnb: 3, mrr: 5400 },
-      { name: "Angra dos Reis", pousadas: 2, airbnb: 3, mrr: 2820 },
-      { name: "Rio de Janeiro", pousadas: 0, airbnb: 1, mrr: 1300 },
+      { name: "Búzios", pousadas: 5, airbnb: 6, mrr: 7200, leads: 7 },
+      { name: "Paraty", pousadas: 4, airbnb: 3, mrr: 5400, leads: 5 },
+      { name: "Angra dos Reis", pousadas: 2, airbnb: 3, mrr: 2820, leads: 4 },
+      { name: "Rio de Janeiro", pousadas: 0, airbnb: 1, mrr: 1300, leads: 3 },
     ],
   },
   {
@@ -79,11 +120,15 @@ const MOCK_STATES: StateGeo[] = [
     airbnb: 7,
     mrr: 13980,
     growth: 15.2,
+    leads: 16,
+    convertedLeads: 5,
+    hotLeads: 4,
+    avgScore: 82,
     cities: [
-      { name: "Trancoso", pousadas: 4, airbnb: 2, mrr: 6100 },
-      { name: "Porto Seguro", pousadas: 3, airbnb: 2, mrr: 4300 },
-      { name: "Salvador", pousadas: 1, airbnb: 2, mrr: 2080 },
-      { name: "Morro de São Paulo", pousadas: 1, airbnb: 1, mrr: 1500 },
+      { name: "Trancoso", pousadas: 4, airbnb: 2, mrr: 6100, leads: 5 },
+      { name: "Porto Seguro", pousadas: 3, airbnb: 2, mrr: 4300, leads: 4 },
+      { name: "Salvador", pousadas: 1, airbnb: 2, mrr: 2080, leads: 4 },
+      { name: "Morro de São Paulo", pousadas: 1, airbnb: 1, mrr: 1500, leads: 3 },
     ],
   },
   {
@@ -93,11 +138,15 @@ const MOCK_STATES: StateGeo[] = [
     airbnb: 11,
     mrr: 12640,
     growth: 4.3,
+    leads: 15,
+    convertedLeads: 4,
+    hotLeads: 3,
+    avgScore: 75,
     cities: [
-      { name: "Ilhabela", pousadas: 3, airbnb: 2, mrr: 4200 },
-      { name: "São Sebastião", pousadas: 2, airbnb: 3, mrr: 3100 },
-      { name: "Ubatuba", pousadas: 2, airbnb: 3, mrr: 2840 },
-      { name: "São Paulo", pousadas: 1, airbnb: 3, mrr: 2500 },
+      { name: "Ilhabela", pousadas: 3, airbnb: 2, mrr: 4200, leads: 4 },
+      { name: "São Sebastião", pousadas: 2, airbnb: 3, mrr: 3100, leads: 4 },
+      { name: "Ubatuba", pousadas: 2, airbnb: 3, mrr: 2840, leads: 4 },
+      { name: "São Paulo", pousadas: 1, airbnb: 3, mrr: 2500, leads: 3 },
     ],
   },
   {
@@ -107,10 +156,14 @@ const MOCK_STATES: StateGeo[] = [
     airbnb: 3,
     mrr: 7920,
     growth: 6.1,
+    leads: 12,
+    convertedLeads: 3,
+    hotLeads: 2,
+    avgScore: 78,
     cities: [
-      { name: "Torres", pousadas: 3, airbnb: 1, mrr: 3800 },
-      { name: "Capão da Canoa", pousadas: 2, airbnb: 1, mrr: 2400 },
-      { name: "Gramado", pousadas: 1, airbnb: 1, mrr: 1720 },
+      { name: "Torres", pousadas: 3, airbnb: 1, mrr: 3800, leads: 5 },
+      { name: "Capão da Canoa", pousadas: 2, airbnb: 1, mrr: 2400, leads: 4 },
+      { name: "Gramado", pousadas: 1, airbnb: 1, mrr: 1720, leads: 3 },
     ],
   },
   {
@@ -120,10 +173,14 @@ const MOCK_STATES: StateGeo[] = [
     airbnb: 4,
     mrr: 6480,
     growth: 9.8,
+    leads: 10,
+    convertedLeads: 2,
+    hotLeads: 2,
+    avgScore: 76,
     cities: [
-      { name: "Porto de Galinhas", pousadas: 3, airbnb: 2, mrr: 3800 },
-      { name: "Recife", pousadas: 1, airbnb: 1, mrr: 1500 },
-      { name: "Maragogi", pousadas: 1, airbnb: 1, mrr: 1180 },
+      { name: "Porto de Galinhas", pousadas: 3, airbnb: 2, mrr: 3800, leads: 4 },
+      { name: "Recife", pousadas: 1, airbnb: 1, mrr: 1500, leads: 3 },
+      { name: "Maragogi", pousadas: 1, airbnb: 1, mrr: 1180, leads: 3 },
     ],
   },
   {
@@ -133,10 +190,14 @@ const MOCK_STATES: StateGeo[] = [
     airbnb: 5,
     mrr: 5360,
     growth: 11.5,
+    leads: 9,
+    convertedLeads: 2,
+    hotLeads: 2,
+    avgScore: 80,
     cities: [
-      { name: "Jericoacoara", pousadas: 2, airbnb: 2, mrr: 2600 },
-      { name: "Fortaleza", pousadas: 1, airbnb: 2, mrr: 1760 },
-      { name: "Cumbuco", pousadas: 1, airbnb: 1, mrr: 1000 },
+      { name: "Jericoacoara", pousadas: 2, airbnb: 2, mrr: 2600, leads: 4 },
+      { name: "Fortaleza", pousadas: 1, airbnb: 2, mrr: 1760, leads: 3 },
+      { name: "Cumbuco", pousadas: 1, airbnb: 1, mrr: 1000, leads: 2 },
     ],
   },
 ];
@@ -145,18 +206,52 @@ const fmtBRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
 export function GeoMetricsPanel() {
-  const [states] = React.useState<StateGeo[]>(MOCK_STATES);
+  const [states, setStates] = React.useState<StateGeo[]>(FALLBACK_STATES);
+  const [totals, setTotals] = React.useState({
+    states: FALLBACK_STATES.length,
+    pousadas: FALLBACK_STATES.reduce((s, st) => s + st.pousadas, 0),
+    airbnb: FALLBACK_STATES.reduce((s, st) => s + st.airbnb, 0),
+    mrr: FALLBACK_STATES.reduce((s, st) => s + st.mrr, 0),
+    leads: FALLBACK_STATES.reduce((s, st) => s + st.leads, 0),
+    convertedLeads: FALLBACK_STATES.reduce((s, st) => s + st.convertedLeads, 0),
+    hotLeads: FALLBACK_STATES.reduce((s, st) => s + st.hotLeads, 0),
+  });
+  const [loading, setLoading] = React.useState(false);
+  const [dataSource, setDataSource] = React.useState<string>("fallback");
   const [expandedUf, setExpandedUf] = React.useState<string | null>(null);
 
-  const totals = React.useMemo(() => {
-    const pousadas = states.reduce((s, st) => s + st.pousadas, 0);
-    const airbnb = states.reduce((s, st) => s + st.airbnb, 0);
-    const mrr = states.reduce((s, st) => s + st.mrr, 0);
-    return { pousadas, airbnb, mrr, states: states.length };
-  }, [states]);
+  const loadData = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/zcc/metrics/geographic");
+      if (!res.ok) throw new Error("API error");
+      const json: GeoApiResponse = await res.json();
+      if (json?.success !== false && json?.data?.states?.length) {
+        setStates(json.data.states);
+        setTotals({
+          states: json.data.totals.states,
+          pousadas: json.data.totals.pousadas,
+          airbnb: json.data.totals.airbnb,
+          mrr: json.data.totals.mrr,
+          leads: json.data.totals.leads,
+          convertedLeads: json.data.totals.convertedLeads,
+          hotLeads: json.data.totals.hotLeads,
+        });
+        setDataSource(json.meta?.source ?? "api");
+      }
+    } catch {
+      setDataSource("fallback");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const maxMrr = React.useMemo(
-    () => Math.max(...states.map((s) => s.mrr)),
+    () => Math.max(...states.map((s) => s.mrr), 1),
     [states]
   );
 
@@ -170,8 +265,9 @@ export function GeoMetricsPanel() {
   };
 
   const handleRefresh = () => {
+    loadData();
     toast.success("Métricas geográficas atualizadas", {
-      description: `${totals.states} estados · ${totals.pousadas + totals.airbnb} unidades`,
+      description: `${totals.states} estados · ${totals.leads} leads agregados`,
     });
   };
 
@@ -179,21 +275,44 @@ export function GeoMetricsPanel() {
     <div className="flex h-full flex-col bg-background">
       <PanelHeader
         title="Geo Metrics"
-        description="Distribuição geográfica · pousadas, airbnb & MRR por estado"
+        description="Resumo agregado do Live Leads · pousadas, airbnb & MRR por estado"
         icon={<MapPin className="size-5" />}
         actions={
-          <button
-            type="button"
-            onClick={handleRefresh}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <TrendingUp className="size-3.5" />
-            Atualizar
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-medium text-muted-foreground">
+              <Link2 className="size-3 text-primary" />
+              <span className="text-primary">{dataSource}</span>
+            </span>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+            >
+              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
+              Atualizar
+            </button>
+          </div>
         }
       />
 
       <div className="zcc-scroll flex-1 overflow-y-auto p-4 sm:p-6">
+        {/* ====== AVISO DE CRUZAMENTO DE DADOS ====== */}
+        <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
+          <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <Link2 className="size-3.5 text-primary" />
+            <span>
+              <strong className="text-foreground">Cruzamento ativo:</strong>{" "}
+              esta aba agrega{" "}
+              <code className="font-mono text-primary">{totals.leads} leads</code>{" "}
+              da mesma fonte do <strong className="text-foreground">Live Leads</strong>{" "}
+              · <code className="font-mono text-primary">{totals.convertedLeads} convertidos</code>{" "}
+              · <code className="font-mono text-primary">{totals.hotLeads} hot leads</code>{" "}
+              · fonte: <code className="font-mono text-primary">{dataSource}</code>
+            </span>
+          </p>
+        </div>
+
         {/* ====== QUICK STATS ====== */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -208,22 +327,22 @@ export function GeoMetricsPanel() {
             hint="regiões ativas"
           />
           <QuickStatCard
-            icon={<Building2 className="size-4" />}
-            label="Total pousadas"
-            value={String(totals.pousadas)}
-            hint="hotelaria tradicional"
+            icon={<Users className="size-4" />}
+            label="Total leads"
+            value={String(totals.leads)}
+            hint={`${totals.hotLeads} hot leads`}
           />
           <QuickStatCard
-            icon={<Home className="size-4" />}
-            label="Total airbnb"
-            value={String(totals.airbnb)}
-            hint="short-term rentals"
+            icon={<Building2 className="size-4" />}
+            label="Pousadas vs Airbnb"
+            value={`${totals.pousadas}p · ${totals.airbnb}a`}
+            hint="distribuição por niche"
           />
           <QuickStatCard
             icon={<DollarSign className="size-4" />}
-            label="Total MRR"
+            label="Total MRR estimado"
             value={fmtBRL(totals.mrr)}
-            hint="receita recorrente"
+            hint="receita recorrente convertida"
             highlight
           />
         </motion.div>
@@ -307,12 +426,13 @@ export function GeoMetricsPanel() {
           </div>
           <div className="overflow-hidden rounded-lg border border-border bg-card">
             {/* Header */}
-            <div className="grid grid-cols-[2.5rem_1fr_4rem_4rem_7rem_5rem_2rem] items-center gap-2 border-b border-border bg-secondary/30 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="grid grid-cols-[2.5rem_1fr_3.5rem_3.5rem_4rem_3.5rem_3rem_2rem] items-center gap-2 border-b border-border bg-secondary/30 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               <span>#</span>
               <span>Estado</span>
-              <span className="text-center">Pousadas</span>
-              <span className="text-center">Airbnb</span>
+              <span className="text-center">Leads</span>
+              <span className="text-center">Conv.</span>
               <span className="text-right">MRR</span>
+              <span className="text-right">Score</span>
               <span className="text-right">Growth</span>
               <span />
             </div>
@@ -326,7 +446,7 @@ export function GeoMetricsPanel() {
                     <button
                       type="button"
                       onClick={() => toggleExpand(st.uf)}
-                      className="grid w-full grid-cols-[2.5rem_1fr_4rem_4rem_7rem_5rem_2rem] items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-secondary/20"
+                      className="grid w-full grid-cols-[2.5rem_1fr_3.5rem_3.5rem_4rem_3.5rem_3rem_2rem] items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-secondary/20"
                     >
                       <span className="text-[11px] font-semibold text-muted-foreground">
                         {idx + 1}
@@ -345,13 +465,17 @@ export function GeoMetricsPanel() {
                         </div>
                       </div>
                       <span className="text-center text-xs font-medium text-foreground">
-                        {st.pousadas}
+                        {st.leads}
                       </span>
-                      <span className="text-center text-xs font-medium text-foreground">
-                        {st.airbnb}
+                      <span className="text-center text-xs font-medium text-emerald-400">
+                        {st.convertedLeads}
                       </span>
                       <span className="text-right font-mono text-xs font-semibold text-primary">
                         {fmtBRL(st.mrr)}
+                      </span>
+                      <span className="flex items-center justify-end gap-0.5 text-xs font-medium text-foreground">
+                        <Star className="size-2.5 text-amber-400" />
+                        {st.avgScore || 0}
                       </span>
                       <span
                         className={cn(
@@ -385,8 +509,9 @@ export function GeoMetricsPanel() {
                           className="overflow-hidden bg-background/40"
                         >
                           <div className="px-3 py-2">
-                            <div className="grid grid-cols-[1fr_3.5rem_3.5rem_6rem] gap-2 border-b border-border px-2 pb-1.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <div className="grid grid-cols-[1fr_3rem_3rem_3rem_5rem] gap-2 border-b border-border px-2 pb-1.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
                               <span>Cidade</span>
+                              <span className="text-center">Leads</span>
                               <span className="text-center">Pous.</span>
                               <span className="text-center">Airb.</span>
                               <span className="text-right">MRR</span>
@@ -395,11 +520,14 @@ export function GeoMetricsPanel() {
                               {st.cities.map((city) => (
                                 <div
                                   key={city.name}
-                                  className="grid grid-cols-[1fr_3.5rem_3.5rem_6rem] items-center gap-2 rounded px-2 py-1 text-[11px] hover:bg-secondary/20"
+                                  className="grid grid-cols-[1fr_3rem_3rem_3rem_5rem] items-center gap-2 rounded px-2 py-1 text-[11px] hover:bg-secondary/20"
                                 >
                                   <span className="flex items-center gap-1.5 truncate text-foreground">
                                     <MapPin className="size-3 text-muted-foreground" />
                                     {city.name}
+                                  </span>
+                                  <span className="text-center text-muted-foreground">
+                                    {city.leads ?? 0}
                                   </span>
                                   <span className="text-center text-muted-foreground">
                                     {city.pousadas}
@@ -423,6 +551,22 @@ export function GeoMetricsPanel() {
             </div>
           </div>
         </motion.div>
+
+        {/* ====== RODAPÉ ====== */}
+        <div className="mt-6 rounded-lg border border-border bg-card p-3 text-[10px] text-muted-foreground">
+          <p>
+            <strong className="text-foreground">Cruzamento de dados:</strong>{" "}
+            Esta aba consome{" "}
+            <code className="font-mono text-primary">GET /api/zcc/metrics/geographic</code>{" "}
+            que agrega{" "}
+            <code className="font-mono text-primary">{totals.leads} leads</code>{" "}
+            da mesma fonte do{" "}
+            <code className="font-mono text-primary">LiveLeadsPanel</code> (mock-data.ts){" "}
+            e complementa com{" "}
+            <code className="font-mono text-primary">Tenants ativos</code> do Prisma.{" "}
+            MRR estimado por plano convertido (MAX R$797, PRO R$397, PARCEIRO R$247, LITE R$197).
+          </p>
+        </div>
       </div>
     </div>
   );
