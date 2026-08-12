@@ -410,7 +410,7 @@ export function DDCShell({
     <div className="min-h-screen bg-[#0a0a0f] text-white flex">
       {/* Desktop Sidebar */}
       <aside
-        className="hidden md:flex flex-col bg-[#0d0d14] border-r border-white/[0.06] fixed inset-y-0 left-0 z-40 transition-all duration-200"
+        className="hidden lg:flex flex-col bg-[#0d0d14] border-r border-white/[0.06] fixed inset-y-0 left-0 z-40 transition-all duration-200"
         style={{ width: sidebarCollapsed ? 60 : 280 }}
       >
         <DDCSidebar
@@ -450,7 +450,7 @@ export function DDCShell({
         style={{ marginLeft: sidebarCollapsed ? 60 : 0 }}
       >
         {/* Mobile margin handled by md:ml classes */}
-        <div className="md:ml-[280px]" style={{ marginLeft: undefined }}>
+        <div className="lg:ml-[280px]" style={{ marginLeft: undefined }}>
           {/* Sticky Top Header */}
           <header className="sticky top-0 z-30 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/[0.06]">
 

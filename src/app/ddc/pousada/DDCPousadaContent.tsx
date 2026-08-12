@@ -596,18 +596,18 @@ export default function DDCPousadaContent() {
       </Card>
 
       {/* Top Metric Cards Grid — Clean Solid Lines, Rounded-2xl */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* MRR Card */}
         <Card className="bg-[#0d0d14] border border-emerald-500/30 hover:border-emerald-500/60 transition-all rounded-2xl shadow-none">
-          <CardHeader className="pb-1 p-4">
-            <CardDescription className="text-emerald-400 text-xs font-mono uppercase tracking-wider">Faturamento do Mês</CardDescription>
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+          <CardHeader className="pb-1 p-3 sm:p-4">
+            <CardDescription className="text-emerald-400 text-[10px] sm:text-xs font-mono uppercase tracking-wider">Faturamento do Mês</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">
               {formatCurrency(totalMRR)}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
-              <TrendingUp className="size-3.5" />
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="flex items-center gap-1 text-emerald-400 text-[10px] sm:text-xs font-medium">
+              <TrendingUp className="size-3 sm:size-3.5" />
               <span>+12.5% vs mês anterior</span>
             </div>
           </CardContent>
@@ -615,15 +615,15 @@ export default function DDCPousadaContent() {
 
         {/* Economia OTAs Card */}
         <Card className="bg-[#0d0d14] border border-white/10 hover:border-emerald-500/30 transition-all rounded-2xl shadow-none">
-          <CardHeader className="pb-1 p-4">
-            <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Economia Direct PIX</CardDescription>
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-emerald-400 tracking-tight">
+          <CardHeader className="pb-1 p-3 sm:p-4">
+            <CardDescription className="text-zinc-400 text-[10px] sm:text-xs font-mono uppercase tracking-wider">Economia Direct PIX</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-emerald-400 tracking-tight">
               R$ 3.850,00
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="flex items-center gap-1 text-zinc-300 text-xs">
-              <ShieldCheck className="size-3.5 text-emerald-400" />
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="flex items-center gap-1 text-zinc-300 text-[10px] sm:text-xs">
+              <ShieldCheck className="size-3 sm:size-3.5 text-emerald-400" />
               <span>18% economizados sem taxa OTA</span>
             </div>
           </CardContent>
@@ -631,13 +631,13 @@ export default function DDCPousadaContent() {
 
         {/* Conversão IA Card */}
         <Card className="bg-[#0d0d14] border border-white/10 hover:border-emerald-500/30 transition-all rounded-2xl shadow-none">
-          <CardHeader className="pb-1 p-4">
-            <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Conversão Zélla WhatsApp</CardDescription>
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{conversionRate}%</CardTitle>
+          <CardHeader className="pb-1 p-3 sm:p-4">
+            <CardDescription className="text-zinc-400 text-[10px] sm:text-xs font-mono uppercase tracking-wider">Conversão Zélla WhatsApp</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">{conversionRate}%</CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
-              <ArrowUpRight className="size-3.5" />
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="flex items-center gap-1 text-emerald-400 text-[10px] sm:text-xs font-medium">
+              <ArrowUpRight className="size-3 sm:size-3.5" />
               <span>Fechamento autônomo 24h</span>
             </div>
           </CardContent>
@@ -645,13 +645,13 @@ export default function DDCPousadaContent() {
 
         {/* Active Guests Card */}
         <Card className="bg-[#0d0d14] border border-white/10 hover:border-emerald-500/30 transition-all rounded-2xl shadow-none">
-          <CardHeader className="pb-2 p-4">
-            <CardDescription className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Hóspedes Ativos</CardDescription>
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalGuests}</CardTitle>
+          <CardHeader className="pb-2 p-3 sm:p-4">
+            <CardDescription className="text-zinc-400 text-[10px] sm:text-xs font-mono uppercase tracking-wider">Hóspedes Ativos</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">{totalGuests}</CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-mono">
-              <Users className="size-3.5" />
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="flex items-center gap-1.5 text-emerald-400 text-[10px] sm:text-xs font-mono">
+              <Users className="size-3 sm:size-3.5" />
               <span>{confirmedCount} confirmados</span>
             </div>
           </CardContent>
