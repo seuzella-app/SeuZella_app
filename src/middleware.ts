@@ -249,11 +249,11 @@ export async function middleware(request: NextRequest) {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://js.stripe.com https://sdk.mercadopago.com",  // unsafe-eval REMOVIDO; Stripe + MP SDK adicionados Sprint 1 Day 6
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.mercadopago.com https://*.cloudinary.com https://*.asaas.com",
+      "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://*.mercadopago.com https://*.cloudinary.com https://*.asaas.com",
       "font-src 'self' data:",
       // wss://* REMOVIDO — restrito a domínios conhecidos
       // Sprint 1 Day 6: added Asaas + Stripe API endpoints
-      "connect-src 'self' https://*.mercadopago.com https://api.asaas.com https://sandbox.asaas.com https://api.stripe.com wss://smart-hotel-zehla.vercel.app https://*.railway.app",
+      "connect-src 'self' https://*.mercadopago.com https://api.asaas.com https://sandbox.asaas.com https://api.stripe.com wss://smart-hotel-zehla.vercel.app https://*.railway.app https://*.basemaps.cartocdn.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       // Sprint 1 Day 6: Stripe Checkout needs to load in iframe + redirect

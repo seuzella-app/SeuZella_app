@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   PieChart,
   DollarSign,
   Users,
   TrendingDown,
+  TrendingUp,
   Building2,
   Home,
   Handshake,
@@ -17,6 +18,16 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   AlertTriangle,
+  Calendar,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  Target,
+  Zap,
+  Brain,
+  Lightbulb,
+  Rocket,
+  Activity,
 } from "lucide-react";
 import { PanelHeader } from "../shared/panel-header";
 import { cn } from "@/lib/utils";
@@ -25,14 +36,25 @@ import { toast } from "sonner";
 /*
  * FinancialBreakdownPanel — Decomposição financeira do ZCC.
  *
- * - KPIs: MRR total, ARPU, Churn rate, Active clients, Churned clients
- * - Plan breakdown (LITE R$197, PRO R$397, MAX R$797, PARCEIRO R$247)
- * - Niche comparison (Pousadas vs Airbnb vs Parceiro)
- * - Churn summary (rate, active, churned, MRR lost)
- *
- * Hidrata via fetch('/api/zcc/metrics/financial') com fallback mock.
- * Plan enum: LITE/PRO/MAX/PARCEIRO — sem trial (alinhado com Prisma).
+ * - 6 botões de período: Dia / Semana / Mês / Trimestre / Semestre / Ano
+ * - Para cada período: KPIs com % de crescimento/declínio vs período anterior
+ * - Pontos críticos identificados com severidade
+ * - Insights acionáveis: onde atuar, qual setor, como reverter
+ * - Metas futuras com base nos dados atuais
+ * - Exportação PDF (HTML imprimível) e XLSX (CSV)
+ * - Math Audit no rodapê para verificação de consistência
  */
+
+type PeriodKey = 'day' | 'week' | 'month' | 'quarter' | 'semester' | 'year';
+
+const PERIOD_OPTIONS: Array<{ key: PeriodKey; label: string; short: string }> = [
+  { key: 'day', label: 'Dia', short: 'D' },
+  { key: 'week', label: 'Semana', short: 'S' },
+  { key: 'month', label: 'Mês', short: 'M' },
+  { key: 'quarter', label: 'Trimestre', short: 'T' },
+  { key: 'semester', label: 'Semestre', short: 'S1' },
+  { key: 'year', label: 'Ano', short: 'A' },
+];
 
 interface PlanBreakdown {
   plan: string;
@@ -40,7 +62,7 @@ interface PlanBreakdown {
   price: number;
   count: number;
   mrr: number;
-  ratio: number; // % 0-100
+  ratio: number;
   features: string[];
 }
 
@@ -52,19 +74,65 @@ interface NicheBreakdown {
   ratio: number;
 }
 
-interface FinancialData {
+interface PeriodMetrics {
+  range: { start: string; end: string; label: string };
   totalMRR: number;
-  arpu: number;
-  churnRate: number;
-  totalClients: number;
-  churnedClients: number;
+  newMRR: number;
+  lostMRR: number;
   activeClients: number;
-  mrrLost: number;
-  planBreakdown: PlanBreakdown[];
-  nicheBreakdown: NicheBreakdown[];
+  newClients: number;
+  churnedClients: number;
+  totalLeads: number;
+  convertedLeads: number;
+  lostLeads: number;
+  conversionRate: number;
+  revenue: number;
+  arpu: number;
+  burn: number;
+  netProfit: number;
+  burnPerClient: number;
 }
 
-const FALLBACK_DATA: FinancialData = {
+interface Insight {
+  type: 'growth' | 'decline' | 'critical' | 'opportunity' | 'success';
+  severity: 'info' | 'warning' | 'critical' | 'success';
+  metric: string;
+  current: number;
+  previous: number;
+  changePct: number;
+  message: string;
+  actionArea: string;
+  recommendation: string;
+  futureGoal?: string;
+}
+
+interface Summary {
+  period: PeriodKey;
+  periodLabel: string;
+  previousPeriodLabel: string;
+  growthRate: number;
+  healthScore: number;
+  actionAreas: string[];
+  topPriorities: Array<{
+    metric: string;
+    message: string;
+    recommendation: string;
+    actionArea: string;
+  }>;
+}
+
+interface PeriodApiResponse {
+  success: boolean;
+  data: {
+    current: PeriodMetrics;
+    previous: PeriodMetrics;
+    insights: Insight[];
+    summary: Summary;
+  };
+  meta: { source: string; generatedAt: string };
+}
+
+const FALLBACK_DATA = {
   totalMRR: 24 * 197 + 48 * 397 + 32 * 797 + 18 * 247,
   arpu: 485,
   churnRate: 2.1,
@@ -73,66 +141,16 @@ const FALLBACK_DATA: FinancialData = {
   churnedClients: 3,
   mrrLost: 1191,
   planBreakdown: [
-    {
-      plan: "LITE",
-      label: "LITE",
-      price: 197,
-      count: 24,
-      mrr: 24 * 197,
-      ratio: 0,
-      features: ["50 hóspedes", "500 mensagens", "IA limitada"],
-    },
-    {
-      plan: "PRO",
-      label: "PRO",
-      price: 397,
-      count: 48,
-      mrr: 48 * 397,
-      ratio: 0,
-      features: ["Ilimitado", "OAuth Airbnb", "Dynamic pricing"],
-    },
-    {
-      plan: "MAX",
-      label: "MAX",
-      price: 797,
-      count: 32,
-      mrr: 32 * 797,
-      ratio: 0,
-      features: ["Tudo de PRO", "Competitor monitoring", "Multi-property"],
-    },
-    {
-      plan: "PARCEIRO",
-      label: "PARCEIRO",
-      price: 247,
-      count: 18,
-      mrr: 18 * 247,
-      ratio: 0,
-      features: ["PRO + tab Conquistas", "Referral gamification"],
-    },
-  ],
+    { plan: "LITE", label: "LITE", price: 197, count: 24, mrr: 24 * 197, ratio: 0, features: ["50 hóspedes", "500 mensagens", "IA limitada"] },
+    { plan: "PRO", label: "PRO", price: 397, count: 48, mrr: 48 * 397, ratio: 0, features: ["Ilimitado", "OAuth Airbnb", "Dynamic pricing"] },
+    { plan: "MAX", label: "MAX", price: 797, count: 32, mrr: 32 * 797, ratio: 0, features: ["Tudo de PRO", "Competitor monitoring", "Multi-property"] },
+    { plan: "PARCEIRO", label: "PARCEIRO", price: 247, count: 18, mrr: 18 * 247, ratio: 0, features: ["PRO + tab Conquistas", "Referral gamification"] },
+  ] as PlanBreakdown[],
   nicheBreakdown: [
-    {
-      niche: "pousada",
-      label: "Pousadas",
-      clients: 64,
-      mrr: 31280,
-      ratio: 0,
-    },
-    {
-      niche: "airbnb",
-      label: "Airbnb",
-      clients: 40,
-      mrr: 13420,
-      ratio: 0,
-    },
-    {
-      niche: "parceiro",
-      label: "Parceiros",
-      clients: 18,
-      mrr: 4446,
-      ratio: 0,
-    },
-  ],
+    { niche: "pousada", label: "Pousadas", clients: 64, mrr: 31280, ratio: 0 },
+    { niche: "airbnb", label: "Airbnb", clients: 40, mrr: 13420, ratio: 0 },
+    { niche: "parceiro", label: "Parceiros", clients: 18, mrr: 4446, ratio: 0 },
+  ] as NicheBreakdown[],
 };
 
 // Recalcula ratios do fallback
@@ -147,230 +165,509 @@ const FALLBACK_DATA: FinancialData = {
   });
 })();
 
-const PLAN_META: Record<
-  string,
-  { icon: React.ReactNode; accent: string; bar: string }
-> = {
-  LITE: {
-    icon: <Sparkles className="size-4" />,
-    accent: "text-sky-400 border-sky-500/30 bg-sky-500/10",
-    bar: "bg-sky-400",
-  },
-  PRO: {
-    icon: <Shield className="size-4" />,
-    accent: "text-teal-400 border-teal-500/30 bg-teal-500/10",
-    bar: "bg-teal-400",
-  },
-  MAX: {
-    icon: <Crown className="size-4" />,
-    accent: "text-primary border-primary/30 bg-primary/10",
-    bar: "bg-primary",
-  },
-  PARCEIRO: {
-    icon: <Handshake className="size-4" />,
-    accent: "text-rose-400 border-rose-500/30 bg-rose-500/10",
-    bar: "bg-rose-400",
-  },
+const PLAN_META: Record<string, { icon: React.ReactNode; accent: string; bar: string }> = {
+  LITE: { icon: <Sparkles className="size-4" />, accent: "text-sky-400 border-sky-500/30 bg-sky-500/10", bar: "bg-sky-400" },
+  PRO: { icon: <Shield className="size-4" />, accent: "text-teal-400 border-teal-500/30 bg-teal-500/10", bar: "bg-teal-400" },
+  MAX: { icon: <Crown className="size-4" />, accent: "text-primary border-primary/30 bg-primary/10", bar: "bg-primary" },
+  PARCEIRO: { icon: <Handshake className="size-4" />, accent: "text-rose-400 border-rose-500/30 bg-rose-500/10", bar: "bg-rose-400" },
 };
 
-const NICHE_META: Record<
-  string,
-  { icon: React.ReactNode; accent: string; bar: string }
-> = {
-  pousada: {
-    icon: <Building2 className="size-4" />,
-    accent: "text-primary border-primary/30 bg-primary/10",
-    bar: "bg-primary",
-  },
-  airbnb: {
-    icon: <Home className="size-4" />,
-    accent: "text-teal-400 border-teal-500/30 bg-teal-500/10",
-    bar: "bg-teal-400",
-  },
-  parceiro: {
-    icon: <Handshake className="size-4" />,
-    accent: "text-rose-400 border-rose-500/30 bg-rose-500/10",
-    bar: "bg-rose-400",
-  },
+const NICHE_META: Record<string, { icon: React.ReactNode; accent: string; bar: string }> = {
+  pousada: { icon: <Building2 className="size-4" />, accent: "text-primary border-primary/30 bg-primary/10", bar: "bg-primary" },
+  airbnb: { icon: <Home className="size-4" />, accent: "text-teal-400 border-teal-500/30 bg-teal-500/10", bar: "bg-teal-400" },
+  parceiro: { icon: <Handshake className="size-4" />, accent: "text-rose-400 border-rose-500/30 bg-rose-500/10", bar: "bg-rose-400" },
+};
+
+const SEVERITY_META: Record<Insight['severity'], { color: string; bg: string; border: string; icon: React.ReactNode }> = {
+  critical: { color: "text-red-400", bg: "bg-red-500/5", border: "border-red-500/30", icon: <AlertTriangle className="size-4" /> },
+  warning: { color: "text-amber-400", bg: "bg-amber-500/5", border: "border-amber-500/30", icon: <AlertTriangle className="size-4" /> },
+  success: { color: "text-emerald-400", bg: "bg-emerald-500/5", border: "border-emerald-500/30", icon: <TrendingUp className="size-4" /> },
+  info: { color: "text-blue-400", bg: "bg-blue-500/5", border: "border-blue-500/30", icon: <Lightbulb className="size-4" /> },
 };
 
 const fmtBRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
-export function FinancialBreakdownPanel() {
-  const [data, setData] = React.useState<FinancialData>(FALLBACK_DATA);
-  const [loading, setLoading] = React.useState(false);
-  const [usingFallback, setUsingFallback] = React.useState(true);
+const fmtPct = (n: number) => `${Math.round(n * 10) / 10}%`;
 
-  const loadData = React.useCallback(async () => {
+const fmtNum = (n: number) => n.toLocaleString("pt-BR");
+
+export function FinancialBreakdownPanel() {
+  const [period, setPeriod] = React.useState<PeriodKey>('month');
+  const [loading, setLoading] = React.useState(false);
+  const [exporting, setExporting] = React.useState<'pdf' | 'xlsx' | null>(null);
+  const [periodData, setPeriodData] = React.useState<PeriodApiResponse['data'] | null>(null);
+  const [dataSource, setDataSource] = React.useState<string>('fallback');
+  const [planBreakdown, setPlanBreakdown] = React.useState<PlanBreakdown[]>(FALLBACK_DATA.planBreakdown);
+  const [nicheBreakdown, setNicheBreakdown] = React.useState<NicheBreakdown[]>(FALLBACK_DATA.nicheBreakdown);
+  const [showExportMenu, setShowExportMenu] = React.useState(false);
+  const [exportSections, setExportSections] = React.useState({
+    kpis: true, planBreakdown: true, nicheBreakdown: true,
+    churn: true, insights: true, funnel: true,
+  });
+
+  // ── Load period data ──────────────────────────────────────────
+  const loadPeriodData = React.useCallback(async (p: PeriodKey) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/zcc/metrics/financial");
-      if (!res.ok) throw new Error("API error");
-      const json = await res.json();
+      const res = await fetch(`/api/zcc/metrics/periods?period=${p}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('API error');
+      const json: PeriodApiResponse = await res.json();
       if (json?.success && json?.data) {
-        const d = json.data;
-        // API retorna planBreakdown como array com {plan, label, price, count, mrr, ratio, features}
-        const planBreakdown: PlanBreakdown[] = Array.isArray(d.planBreakdown)
-          ? d.planBreakdown.map(
-              (p: {
-                plan: string;
-                label: string;
-                price: number;
-                count: number;
-                mrr: number;
-                ratio: number | string;
-                features: string[];
-              }) => ({
-                plan: p.plan,
-                label: p.label,
-                price: p.price,
-                count: p.count,
-                mrr: p.mrr,
-                ratio: parseFloat(String(p.ratio)) || 0,
-                features: p.features ?? [],
-              })
-            )
-          : [];
-
-        // API retorna nicheBreakdown como array com {niche, label, clients, mrr, ratio}
-        const nicheBreakdown: NicheBreakdown[] = Array.isArray(d.nicheBreakdown)
-          ? d.nicheBreakdown.map(
-              (n: {
-                niche: string;
-                label: string;
-                clients: number;
-                mrr: number;
-                ratio: number | string;
-              }) => ({
-                niche: n.niche,
-                label: n.label,
-                clients: n.clients,
-                mrr: n.mrr,
-                ratio: parseFloat(String(n.ratio)) || 0,
-              })
-            )
-          : FALLBACK_DATA.nicheBreakdown;
-
-        // KPIs — usa valores reais da API quando disponíveis
-        const totalClients = d.totalClients ?? planBreakdown.reduce((s, p) => s + p.count, 0);
-        const churnedClients = d.churnedClients ?? Math.round((totalClients * (d.churnRate ?? 2.1)) / 100);
-        const activeClients = d.activeClients ?? (totalClients - churnedClients);
-        const mrrLost = d.mrrLost ?? churnedClients * (d.arpu ?? FALLBACK_DATA.arpu);
-
-        setData({
-          totalMRR: d.totalMRR ?? FALLBACK_DATA.totalMRR,
-          arpu: d.arpu ?? FALLBACK_DATA.arpu,
-          churnRate: d.churnRate ?? FALLBACK_DATA.churnRate,
-          totalClients,
-          activeClients,
-          churnedClients,
-          mrrLost,
-          planBreakdown: planBreakdown.length ? planBreakdown : FALLBACK_DATA.planBreakdown,
-          nicheBreakdown: nicheBreakdown.length ? nicheBreakdown : FALLBACK_DATA.nicheBreakdown,
-        });
-        setUsingFallback(false);
+        setPeriodData(json.data);
+        setDataSource(json.meta?.source ?? 'api');
       }
     } catch {
-      // keep fallback
-      setUsingFallback(true);
+      setDataSource('fallback');
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // ── Load breakdown (planos/nichos) ───────────────────────────
+  const loadBreakdown = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/zcc/metrics/financial', { cache: 'no-store' });
+      const json = await res.json();
+      if (json?.success && json?.data) {
+        const d = json.data;
+        if (Array.isArray(d.planBreakdown) && d.planBreakdown.length) {
+          setPlanBreakdown(d.planBreakdown);
+        }
+        if (Array.isArray(d.nicheBreakdown) && d.nicheBreakdown.length) {
+          setNicheBreakdown(d.nicheBreakdown);
+        }
+      }
+    } catch {
+      // keep fallback
+    }
+  }, []);
+
   React.useEffect(() => {
-    loadData();
-  }, [loadData]);
+    loadPeriodData(period);
+    loadBreakdown();
+  }, [period, loadPeriodData, loadBreakdown]);
 
-  const handleRefresh = () => {
-    loadData();
-    toast.success("Breakdown financeiro recalculado", {
-      description: usingFallback ? "usando fallback local" : "dados hidratados da API",
-    });
+  const curr = periodData?.current;
+  const prev = periodData?.previous;
+  const insights = periodData?.insights ?? [];
+  const summary = periodData?.summary;
+
+  const maxPlanMrr = Math.max(...planBreakdown.map((p) => p.mrr));
+  const maxNicheMrr = Math.max(...nicheBreakdown.map((n) => n.mrr));
+
+  // ── Export handler ────────────────────────────────────────────
+  const handleExport = async (format: 'pdf' | 'xlsx') => {
+    setExporting(format);
+    try {
+      const sections = Object.keys(exportSections).filter((k) => exportSections[k as keyof typeof exportSections]);
+      const res = await fetch('/api/zcc/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          format,
+          period,
+          sections,
+          data: {
+            current: curr,
+            previous: prev,
+            insights,
+            planBreakdown,
+            nicheBreakdown,
+          },
+        }),
+      });
+
+      if (!res.ok) throw new Error('Export failed');
+
+      const blob = await res.blob();
+      const filename = `zcc-breakdown-${period}-${new Date().toISOString().slice(0, 10)}.${format === 'pdf' ? 'html' : 'csv'}`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Relatório ${format.toUpperCase()} exportado`, {
+        description: `${sections.length} seções incluídas · ${filename}`,
+      });
+      setShowExportMenu(false);
+    } catch (error) {
+      toast.error('Erro ao exportar', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
+    } finally {
+      setExporting(null);
+    }
   };
-
-  const maxPlanMrr = Math.max(...data.planBreakdown.map((p) => p.mrr));
-  const maxNicheMrr = Math.max(...data.nicheBreakdown.map((n) => n.mrr));
 
   return (
     <div className="flex h-full flex-col bg-background">
       <PanelHeader
         title="Financial Breakdown"
-        description="Decomposição de receita · planos, nichos e churn"
+        description="Decomposição de receita · planos, nichos, churn & insights por período"
         icon={<PieChart className="size-5" />}
         actions={
           <div className="flex items-center gap-2">
-            {usingFallback ? (
-              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400">
-                fallback
-              </span>
-            ) : null}
+            <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {dataSource}
+            </span>
             <button
               type="button"
-              onClick={handleRefresh}
+              onClick={() => { loadPeriodData(period); loadBreakdown(); }}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
             >
-              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
-              Atualizar
+              <RefreshCw className={cn("size-3", loading && "animate-spin")} />
             </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowExportMenu((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-medium text-primary transition-colors hover:bg-primary/20"
+              >
+                <Download className="size-3" />
+                Exportar
+              </button>
+              <AnimatePresence>
+                {showExportMenu ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="absolute right-0 top-8 z-50 w-72 rounded-lg border border-border bg-popover p-3 shadow-xl"
+                  >
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Seções a incluir
+                    </p>
+                    <div className="mb-3 space-y-1">
+                      {Object.keys(exportSections).map((key) => (
+                        <label key={key} className="flex items-center gap-2 text-[11px] cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={exportSections[key as keyof typeof exportSections]}
+                            onChange={(e) => setExportSections((prev) => ({ ...prev, [key]: e.target.checked }))}
+                            className="size-3 rounded border-border"
+                          />
+                          <span className="text-foreground capitalize">{key}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleExport('pdf')}
+                        disabled={exporting !== null}
+                        className="inline-flex items-center justify-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-1.5 text-[10px] font-medium text-primary hover:bg-primary/20 disabled:opacity-50"
+                      >
+                        {exporting === 'pdf' ? (
+                          <span className="size-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ) : (
+                          <FileText className="size-3" />
+                        )}
+                        PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleExport('xlsx')}
+                        disabled={exporting !== null}
+                        className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5 text-[10px] font-medium text-emerald-400 hover:bg-emerald-500/20 disabled:opacity-50"
+                      >
+                        {exporting === 'xlsx' ? (
+                          <span className="size-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ) : (
+                          <FileSpreadsheet className="size-3" />
+                        )}
+                        XLSX
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
           </div>
         }
       />
 
       <div className="zcc-scroll flex-1 overflow-y-auto p-4 sm:p-6">
+        {/* ====== PERÍODO SELECTOR ====== */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <Calendar className="size-3" />
+            Selecione o período para análise comparativa (atual vs anterior)
+          </p>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {PERIOD_OPTIONS.map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setPeriod(opt.key)}
+                className={cn(
+                  "relative rounded-lg border px-3 py-2 text-center transition-all",
+                  period === opt.key
+                    ? "border-primary bg-primary/10 text-primary shadow-sm"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                )}
+              >
+                <p className="text-sm font-bold">{opt.label}</p>
+                <p className="mt-0.5 text-[9px] uppercase tracking-wide opacity-70">
+                  {opt.short}
+                </p>
+                {period === opt.key ? (
+                  <span className="absolute -right-1 -top-1 grid size-3 place-items-center rounded-full bg-primary text-[7px] text-primary-foreground">
+                    ✓
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+          {curr?.range?.label ? (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              <strong className="text-foreground">Período atual:</strong> {curr.range.label}{" "}
+              · <strong className="text-foreground">Anterior:</strong> {prev?.range?.label ?? '—'}
+            </p>
+          ) : null}
+        </motion.div>
+
+        {/* ====== HEALTH SCORE ====== */}
+        {summary ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-6 rounded-lg border border-border bg-card p-4"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Activity className="size-3.5 text-primary" />
+                  Health Score · {summary.periodLabel}
+                </p>
+                <div className="mt-2 flex items-end gap-3">
+                  <p className={cn(
+                    "text-3xl font-bold",
+                    summary.healthScore >= 70 ? "text-emerald-400" :
+                    summary.healthScore >= 40 ? "text-amber-400" :
+                    "text-red-400"
+                  )}>
+                    {summary.healthScore}
+                  </p>
+                  <p className="mb-1 text-[10px] text-muted-foreground">/ 100</p>
+                  <p className="mb-1 text-[11px] text-muted-foreground">
+                    Crescimento: <span className={cn("font-bold", summary.growthRate > 0 ? "text-emerald-400" : "text-red-400")}>
+                      {summary.growthRate > 0 ? '+' : ''}{summary.growthRate}%
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-end justify-end gap-1.5">
+                {summary.actionAreas.slice(0, 4).map((area) => (
+                  <span
+                    key={area}
+                    className="rounded border border-border bg-secondary px-2 py-0.5 text-[9px] text-muted-foreground"
+                  >
+                    {area}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+
         {/* ====== KPIs ====== */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5"
+          className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4"
         >
           <KpiCard
             icon={<DollarSign className="size-4" />}
-            label="MRR total"
-            value={fmtBRL(data.totalMRR)}
-            trend="up"
-            trendValue="+8.4%"
+            label="MRR Total"
+            value={fmtBRL(curr?.totalMRR ?? FALLBACK_DATA.totalMRR)}
+            change={changePct(curr?.totalMRR, prev?.totalMRR)}
             highlight
           />
           <KpiCard
-            icon={<Users className="size-4" />}
-            label="ARPU"
-            value={fmtBRL(data.arpu)}
-            trend="up"
-            trendValue="+R$12"
+            icon={<Rocket className="size-4" />}
+            label="Novo MRR"
+            value={fmtBRL(curr?.newMRR ?? 0)}
+            change={changePct(curr?.newMRR, prev?.newMRR)}
           />
           <KpiCard
             icon={<TrendingDown className="size-4" />}
-            label="Churn rate"
-            value={`${data.churnRate.toFixed(1)}%`}
-            trend="down"
-            trendValue="-0.3pp"
-            danger
+            label="MRR Perdido"
+            value={fmtBRL(curr?.lostMRR ?? 0)}
+            change={changePct(curr?.lostMRR, prev?.lostMRR)}
+            inverse
           />
           <KpiCard
             icon={<Users className="size-4" />}
-            label="Active clients"
-            value={String(data.activeClients)}
-            trend="up"
-            trendValue="+4"
+            label="Clientes Ativos"
+            value={String(curr?.activeClients ?? FALLBACK_DATA.activeClients)}
+            change={changePct(curr?.activeClients, prev?.activeClients)}
+          />
+          <KpiCard
+            icon={<ArrowUpRight className="size-4" />}
+            label="Novos Clientes"
+            value={String(curr?.newClients ?? 0)}
+            change={changePct(curr?.newClients, prev?.newClients)}
           />
           <KpiCard
             icon={<ArrowDownRight className="size-4" />}
             label="Churned"
-            value={String(data.churnedClients)}
-            trend="down"
-            trendValue="-1"
+            value={String(curr?.churnedClients ?? FALLBACK_DATA.churnedClients)}
+            change={changePct(curr?.churnedClients, prev?.churnedClients)}
+            inverse
+          />
+          <KpiCard
+            icon={<Target className="size-4" />}
+            label="Conversão Leads"
+            value={fmtPct(curr?.conversionRate ?? 0)}
+            change={changePct(curr?.conversionRate, prev?.conversionRate)}
+          />
+          <KpiCard
+            icon={<TrendingUp className="size-4" />}
+            label="Lucro Líquido"
+            value={fmtBRL(curr?.netProfit ?? 0)}
+            change={changePct(curr?.netProfit, prev?.netProfit)}
+          />
+          <KpiCard
+            icon={<DollarSign className="size-4" />}
+            label="ARPU"
+            value={fmtBRL(curr?.arpu ?? FALLBACK_DATA.arpu)}
+            change={changePct(curr?.arpu, prev?.arpu)}
+          />
+          <KpiCard
+            icon={<Zap className="size-4" />}
+            label="Burn"
+            value={fmtBRL(curr?.burn ?? 0)}
+            change={changePct(curr?.burn, prev?.burn)}
+            inverse
+          />
+          <KpiCard
+            icon={<Target className="size-4" />}
+            label="Receita"
+            value={fmtBRL(curr?.revenue ?? 0)}
+            change={changePct(curr?.revenue, prev?.revenue)}
+          />
+          <KpiCard
+            icon={<Activity className="size-4" />}
+            label="Leads Totais"
+            value={String(curr?.totalLeads ?? 0)}
+            change={changePct(curr?.totalLeads, prev?.totalLeads)}
           />
         </motion.div>
+
+        {/* ====== INSIGHTS & RECOMENDAÇÕES ====== */}
+        {insights.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-6"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Brain className="size-3.5 text-primary" />
+                Insights & Recomendações ({insights.length})
+              </h3>
+              <span className="text-[10px] text-muted-foreground">
+                {insights.filter((i) => i.severity === 'critical').length} críticos ·{" "}
+                {insights.filter((i) => i.severity === 'warning').length} alertas ·{" "}
+                {insights.filter((i) => i.severity === 'success').length} sucessos
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {insights.map((insight, idx) => {
+                const meta = SEVERITY_META[insight.severity];
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.04 }}
+                    className={cn("rounded-lg border p-3", meta.bg, meta.border)}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className={cn("shrink-0", meta.color)}>{meta.icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className={cn("text-[11px] font-semibold leading-tight", meta.color)}>
+                          {insight.message}
+                        </p>
+                        <p className="mt-1 text-[10px] text-muted-foreground">
+                          <strong className="text-foreground">Atual:</strong>{" "}
+                          {typeof insight.current === 'number' ? fmtNum(insight.current) : insight.current}
+                          {" · "}
+                          <strong className="text-foreground">Anterior:</strong>{" "}
+                          {typeof insight.previous === 'number' ? fmtNum(insight.previous) : insight.previous}
+                          {" · "}
+                          <span className={insight.changePct > 0 ? "text-emerald-400" : "text-red-400"}>
+                            {insight.changePct > 0 ? '+' : ''}{insight.changePct}%
+                          </span>
+                        </p>
+                        <p className="mt-1.5 text-[10px] text-muted-foreground">
+                          <strong className="text-foreground">📍 Onde atuar:</strong> {insight.actionArea}
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">
+                          <strong className="text-foreground">🎯 Como reverter/melhorar:</strong> {insight.recommendation}
+                        </p>
+                        {insight.futureGoal ? (
+                          <p className="mt-0.5 text-[10px] text-muted-foreground">
+                            <strong className="text-foreground">🚀 Meta futura:</strong> {insight.futureGoal}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        ) : null}
+
+        {/* ====== TOP PRIORITIES ====== */}
+        {summary?.topPriorities?.length ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4"
+          >
+            <h3 className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-amber-400">
+              <AlertTriangle className="size-3.5" />
+              Top {summary.topPriorities.length} prioridades
+            </h3>
+            <div className="space-y-2">
+              {summary.topPriorities.map((p, idx) => (
+                <div key={idx} className="rounded border border-amber-500/20 bg-amber-500/5 p-2">
+                  <p className="text-[11px] font-semibold text-foreground">
+                    {idx + 1}. {p.metric} — {p.message}
+                  </p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    <strong className="text-foreground">Setor:</strong> {p.actionArea}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    <strong className="text-foreground">Ação:</strong> {p.recommendation}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ) : null}
 
         {/* ====== PLAN BREAKDOWN ====== */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.05 }}
+          transition={{ delay: 0.15 }}
           className="mb-6"
         >
           <div className="mb-2 flex items-center justify-between">
@@ -378,74 +675,46 @@ export function FinancialBreakdownPanel() {
               <Crown className="size-3.5 text-primary" />
               Plan breakdown · 4 planos pagos
             </h3>
-            <span className="text-[10px] text-muted-foreground">
-              sem trial · alinhado com Prisma
-            </span>
+            <span className="text-[10px] text-muted-foreground">sem trial · alinhado com Prisma</span>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {data.planBreakdown.map((plan, idx) => {
+            {planBreakdown.map((plan, idx) => {
               const meta = PLAN_META[plan.plan] ?? PLAN_META.LITE;
               return (
                 <motion.div
                   key={plan.plan}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  transition={{ delay: idx * 0.05 }}
                   className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30"
                 >
                   <div className="flex items-center justify-between">
-                    <span
-                      className={cn(
-                        "grid size-8 place-items-center rounded-md border",
-                        meta.accent
-                      )}
-                    >
-                      {meta.icon}
-                    </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {plan.ratio.toFixed(1)}%
-                    </span>
+                    <span className={cn("grid size-8 place-items-center rounded-md border", meta.accent)}>{meta.icon}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{plan.ratio.toFixed(1)}%</span>
                   </div>
-                  <p className="mt-2 text-sm font-bold text-foreground">
-                    {plan.label}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {fmtBRL(plan.price)}/mês
-                  </p>
+                  <p className="mt-2 text-sm font-bold text-foreground">{plan.label}</p>
+                  <p className="text-[11px] text-muted-foreground">{fmtBRL(plan.price)}/mês</p>
                   <div className="mt-3 space-y-1.5">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-[10px] uppercase text-muted-foreground">
-                        assinantes
-                      </span>
-                      <span className="text-sm font-semibold text-foreground">
-                        {plan.count}
-                      </span>
+                      <span className="text-[10px] uppercase text-muted-foreground">assinantes</span>
+                      <span className="text-sm font-semibold text-foreground">{plan.count}</span>
                     </div>
                     <div className="flex items-baseline justify-between">
-                      <span className="text-[10px] uppercase text-muted-foreground">
-                        MRR
-                      </span>
-                      <span className="text-sm font-semibold text-primary">
-                        {fmtBRL(plan.mrr)}
-                      </span>
+                      <span className="text-[10px] uppercase text-muted-foreground">MRR</span>
+                      <span className="text-sm font-semibold text-primary">{fmtBRL(plan.mrr)}</span>
                     </div>
                   </div>
-                  {/* Barra */}
                   <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                     <motion.div
                       className={cn("h-full", meta.bar)}
                       initial={{ width: 0 }}
-                      animate={{ width: `${(plan.mrr / maxPlanMrr) * 100}%` }}
+                      animate={{ width: `${maxPlanMrr > 0 ? (plan.mrr / maxPlanMrr) * 100 : 0}%` }}
                       transition={{ duration: 0.6, delay: idx * 0.05 + 0.2 }}
                     />
                   </div>
-                  {/* Features */}
                   <ul className="mt-3 space-y-1">
                     {plan.features.slice(0, 2).map((f) => (
-                      <li
-                        key={f}
-                        className="flex items-start gap-1 text-[10px] text-muted-foreground"
-                      >
+                      <li key={f} className="flex items-start gap-1 text-[10px] text-muted-foreground">
                         <span className="mt-0.5 size-1 shrink-0 rounded-full bg-primary" />
                         {f}
                       </li>
@@ -461,7 +730,7 @@ export function FinancialBreakdownPanel() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="mb-6"
         >
           <div className="mb-2 flex items-center justify-between">
@@ -470,59 +739,40 @@ export function FinancialBreakdownPanel() {
               Niche comparison · Pousadas vs Airbnb vs Parceiro
             </h3>
             <span className="text-[10px] text-muted-foreground">
-              {data.nicheBreakdown.reduce((s, n) => s + n.clients, 0)} clientes
+              {nicheBreakdown.reduce((s, n) => s + n.clients, 0)} clientes
             </span>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {data.nicheBreakdown.map((niche, idx) => {
+            {nicheBreakdown.map((niche, idx) => {
               const meta = NICHE_META[niche.niche] ?? NICHE_META.pousada;
               return (
                 <motion.div
                   key={niche.niche}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  transition={{ delay: idx * 0.05 }}
                   className="rounded-lg border border-border bg-card p-4"
                 >
                   <div className="flex items-center justify-between">
-                    <span
-                      className={cn(
-                        "grid size-8 place-items-center rounded-md border",
-                        meta.accent
-                      )}
-                    >
-                      {meta.icon}
-                    </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {niche.ratio.toFixed(1)}%
-                    </span>
+                    <span className={cn("grid size-8 place-items-center rounded-md border", meta.accent)}>{meta.icon}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{niche.ratio.toFixed(1)}%</span>
                   </div>
-                  <p className="mt-2 text-sm font-bold text-foreground">
-                    {niche.label}
-                  </p>
+                  <p className="mt-2 text-sm font-bold text-foreground">{niche.label}</p>
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-[10px] uppercase text-muted-foreground">
-                        clientes
-                      </p>
-                      <p className="text-base font-semibold text-foreground">
-                        {niche.clients}
-                      </p>
+                      <p className="text-[10px] uppercase text-muted-foreground">clientes</p>
+                      <p className="text-base font-semibold text-foreground">{niche.clients}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase text-muted-foreground">
-                        MRR
-                      </p>
-                      <p className="text-base font-semibold text-primary">
-                        {fmtBRL(niche.mrr)}
-                      </p>
+                      <p className="text-[10px] uppercase text-muted-foreground">MRR</p>
+                      <p className="text-base font-semibold text-primary">{fmtBRL(niche.mrr)}</p>
                     </div>
                   </div>
                   <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                     <motion.div
                       className={cn("h-full", meta.bar)}
                       initial={{ width: 0 }}
-                      animate={{ width: `${(niche.mrr / maxNicheMrr) * 100}%` }}
+                      animate={{ width: `${maxNicheMrr > 0 ? (niche.mrr / maxNicheMrr) * 100 : 0}%` }}
                       transition={{ duration: 0.6, delay: idx * 0.05 + 0.2 }}
                     />
                   </div>
@@ -532,66 +782,109 @@ export function FinancialBreakdownPanel() {
           </div>
         </motion.div>
 
-        {/* ====== CHURN SUMMARY ====== */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-        >
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <AlertTriangle className="size-3.5 text-amber-400" />
-              Churn summary · perdas & retenção
-            </h3>
-            <span className="text-[10px] text-muted-foreground">últimos 30 dias</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <ChurnCard
-              label="Churn rate"
-              value={`${data.churnRate.toFixed(1)}%`}
-              sub="meta < 3%"
-              tone={data.churnRate < 3 ? "ok" : "warn"}
-            />
-            <ChurnCard
-              label="Active"
-              value={String(data.activeClients)}
-              sub="assinaturas ativas"
-              tone="ok"
-            />
-            <ChurnCard
-              label="Churned"
-              value={String(data.churnedClients)}
-              sub="cancelamentos"
-              tone="danger"
-            />
-            <ChurnCard
-              label="MRR lost"
-              value={fmtBRL(data.mrrLost)}
-              sub="receita perdida"
-              tone="danger"
-            />
-          </div>
-        </motion.div>
-
-        {/* ====== MATH AUDIT — Verificação de consistência ====== */}
-        <MathAudit data={data} />
+        {/* ====== MATH AUDIT ====== */}
+        <MathAudit
+          data={{
+            totalMRR: curr?.totalMRR ?? FALLBACK_DATA.totalMRR,
+            activeClients: curr?.activeClients ?? FALLBACK_DATA.activeClients,
+            totalClients: (curr?.activeClients ?? FALLBACK_DATA.activeClients) + (curr?.churnedClients ?? FALLBACK_DATA.churnedClients),
+            churnedClients: curr?.churnedClients ?? FALLBACK_DATA.churnedClients,
+            churnRate: curr?.churnedClients && curr?.activeClients
+              ? (curr.churnedClients / (curr.activeClients + curr.churnedClients)) * 100
+              : FALLBACK_DATA.churnRate,
+            arpu: curr?.arpu ?? FALLBACK_DATA.arpu,
+            mrrLost: curr?.lostMRR ?? FALLBACK_DATA.mrrLost,
+            planBreakdown,
+            nicheBreakdown,
+          }}
+        />
       </div>
     </div>
   );
 }
 
 // ============================================================================
-// MATH AUDIT — Verificação matemática dos dados cruzados
+// HELPERS
 // ============================================================================
 
-function MathAudit({ data }: { data: FinancialData }) {
-  const planSumMrr = data.planBreakdown.reduce((s, p) => s + p.mrr, 0);
-  const planSumCount = data.planBreakdown.reduce((s, p) => s + p.count, 0);
-  const nicheSumMrr = data.nicheBreakdown.reduce((s, n) => s + n.mrr, 0);
-  const nicheSumClients = data.nicheBreakdown.reduce((s, n) => s + n.clients, 0);
+function changePct(curr?: number, prev?: number): string {
+  if (curr === undefined || prev === undefined || prev === 0) return '—';
+  const change = ((curr - prev) / Math.abs(prev)) * 100;
+  const sign = change > 0 ? '+' : '';
+  return `${sign}${Math.round(change * 10) / 10}%`;
+}
 
-  const mrrDiff = Math.abs(planSumMrr - data.totalMRR);
-  const mrrOk = mrrDiff <= 1; // tolerance R$1
+// ============================================================================
+// SUB-COMPONENTES
+// ============================================================================
+
+function KpiCard({
+  icon,
+  label,
+  value,
+  change,
+  highlight,
+  inverse,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  change?: string;
+  highlight?: boolean;
+  inverse?: boolean;
+}) {
+  const isPositive = change?.startsWith('+');
+  const isNegative = change?.startsWith('-');
+  const isGoodChange = inverse ? isNegative : isPositive;
+  const isBadChange = inverse ? isPositive : isNegative;
+
+  return (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-lg border bg-card p-3 transition-colors",
+        highlight
+          ? "border-primary/40 bg-primary/5"
+          : "border-border hover:border-primary/30"
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <span
+          className={cn(
+            "grid size-7 place-items-center rounded-md border",
+            highlight
+              ? "border-primary/30 bg-primary/10 text-primary"
+              : "border-border bg-secondary text-muted-foreground"
+          )}
+        >
+          {icon}
+        </span>
+        {change && change !== '—' ? (
+          <span
+            className={cn(
+              "flex items-center gap-0.5 text-[10px] font-semibold",
+              isGoodChange ? "text-emerald-400" :
+              isBadChange ? "text-red-400" :
+              "text-muted-foreground"
+            )}
+          >
+            {isPositive ? <ArrowUpRight className="size-3" /> : isNegative ? <ArrowDownRight className="size-3" /> : null}
+            {change}
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={cn("mt-0.5 text-lg font-bold", highlight ? "text-primary" : "text-foreground")}>{value}</p>
+    </div>
+  );
+}
+
+function MathAudit({ data }: { data: any }) {
+  const planSumMrr = data.planBreakdown.reduce((s: number, p: any) => s + p.mrr, 0);
+  const planSumCount = data.planBreakdown.reduce((s: number, p: any) => s + p.count, 0);
+  const nicheSumMrr = data.nicheBreakdown.reduce((s: number, n: any) => s + n.mrr, 0);
+  const nicheSumClients = data.nicheBreakdown.reduce((s: number, n: any) => s + n.clients, 0);
+
+  const mrrOk = Math.abs(planSumMrr - data.totalMRR) <= 1;
   const countOk = planSumCount === data.activeClients;
   const nicheClientsOk = nicheSumClients === data.activeClients || nicheSumClients === data.totalClients;
   const nicheMrrOk = Math.abs(nicheSumMrr - data.totalMRR) <= 1;
@@ -622,17 +915,14 @@ function MathAudit({ data }: { data: FinancialData }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.2 }}
+      transition={{ delay: 0.25 }}
     >
       <div className="mb-2 flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           <span className={cn("size-2 rounded-full", allOk ? "bg-emerald-500" : "bg-amber-500")} />
           Math audit · consistência cruzada ({okCount}/{checks.length})
         </h3>
-        <span className={cn(
-          "text-[10px] font-bold uppercase",
-          allOk ? "text-emerald-400" : "text-amber-400"
-        )}>
+        <span className={cn("text-[10px] font-bold uppercase", allOk ? "text-emerald-400" : "text-amber-400")}>
           {allOk ? "all checks passed" : "drift detected"}
         </span>
       </div>
@@ -642,9 +932,7 @@ function MathAudit({ data }: { data: FinancialData }) {
             key={c.label}
             className={cn(
               "flex items-center justify-between rounded border px-2.5 py-1.5 text-[10px]",
-              c.ok
-                ? "border-emerald-500/20 bg-emerald-500/5"
-                : "border-amber-500/30 bg-amber-500/5"
+              c.ok ? "border-emerald-500/20 bg-emerald-500/5" : "border-amber-500/30 bg-amber-500/5"
             )}
           >
             <span className="flex items-center gap-1.5 truncate text-muted-foreground">
@@ -662,112 +950,6 @@ function MathAudit({ data }: { data: FinancialData }) {
           </div>
         ))}
       </div>
-      <p className="mt-2 text-[10px] text-muted-foreground">
-        <strong className="text-foreground">Verificação:</strong> Esta seção cruza dados entre planos, nichos e churn.
-        Se todos os checks passam, as métricas do ZCC estão matematicamente consistentes.
-        Fonte: <code className="font-mono text-primary">/api/zcc/metrics/financial</code> + Tenant/Subscription Prisma.
-      </p>
     </motion.div>
-  );
-}
-
-// ============================================================================
-// SUB-COMPONENTES
-// ============================================================================
-
-function KpiCard({
-  icon,
-  label,
-  value,
-  trend,
-  trendValue,
-  highlight,
-  danger,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  trend?: "up" | "down";
-  trendValue?: string;
-  highlight?: boolean;
-  danger?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-lg border bg-card p-3 transition-colors",
-        highlight
-          ? "border-primary/40 bg-primary/5"
-          : danger
-            ? "border-red-500/30"
-            : "border-border hover:border-primary/30"
-      )}
-    >
-      <div className="flex items-center justify-between">
-        <span
-          className={cn(
-            "grid size-7 place-items-center rounded-md border",
-            highlight
-              ? "border-primary/30 bg-primary/10 text-primary"
-              : "border-border bg-secondary text-muted-foreground"
-          )}
-        >
-          {icon}
-        </span>
-        {trend && trendValue ? (
-          <span
-            className={cn(
-              "flex items-center gap-0.5 text-[10px] font-semibold",
-              trend === "up" ? "text-emerald-400" : "text-red-400"
-            )}
-          >
-            {trend === "up" ? (
-              <ArrowUpRight className="size-3" />
-            ) : (
-              <ArrowDownRight className="size-3" />
-            )}
-            {trendValue}
-          </span>
-        ) : null}
-      </div>
-      <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p
-        className={cn(
-          "mt-0.5 text-lg font-bold",
-          highlight ? "text-primary" : "text-foreground"
-        )}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function ChurnCard({
-  label,
-  value,
-  sub,
-  tone,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  tone: "ok" | "warn" | "danger";
-}) {
-  const toneCls = {
-    ok: "border-emerald-500/30 bg-emerald-500/5 text-emerald-400",
-    warn: "border-amber-500/30 bg-amber-500/5 text-amber-400",
-    danger: "border-red-500/30 bg-red-500/5 text-red-400",
-  }[tone];
-  return (
-    <div className={cn("rounded-lg border p-3", toneCls)}>
-      <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
-        {label}
-      </p>
-      <p className="mt-1 text-xl font-bold">{value}</p>
-      <p className="mt-0.5 text-[10px] opacity-70">{sub}</p>
-    </div>
   );
 }
