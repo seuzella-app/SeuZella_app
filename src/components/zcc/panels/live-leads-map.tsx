@@ -213,11 +213,11 @@ function LeafletMapInner({
       attributionControl={false}
       scrollWheelZoom={true}
       className="h-full w-full"
-      style={{ background: "#0a0a0a" }}
+      style={{ background: "#1a1a2e" }}
     >
       {/* Tiles escuros CartoDB */}
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
         subdomains="abcd"
         maxZoom={19}
       />

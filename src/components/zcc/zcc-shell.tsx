@@ -52,7 +52,7 @@ const PLANS = {
   pro: { price: 397, count: 0 },
   max: { price: 797, count: 0 },
   linkInBio: { price: 47, count: 0 },
-  parceiro: { price: 197, count: 0 },
+  parceiro: { price: 247, count: 0 },
 };
 
 // Mock: simulando distribuição de assinantes (modo demonstração)
