@@ -91,7 +91,7 @@ export function HeroSection() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 lg:px-10 pt-28 pb-12 sm:pt-36 sm:pb-16 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 pt-28 pb-12 sm:pt-36 sm:pb-16 w-full">
         <div className="flex flex-col items-center text-center">
 
           {/* ── Text Content — Staggered Entrance ── */}

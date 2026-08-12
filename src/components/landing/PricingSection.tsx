@@ -325,7 +325,7 @@ export function PricingSection() {
     const count = visiblePlans.length;
     if (count <= 2) return 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto';
     if (count === 3) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto';
-    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto';
+    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto';
     return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
   }, [visiblePlans.length]);
 
