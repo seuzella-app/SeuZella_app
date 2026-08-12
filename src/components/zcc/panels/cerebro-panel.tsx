@@ -283,13 +283,22 @@ export function CerebroPanel() {
     setLoading(true);
     try {
       const res = await fetch("/api/zcc/cerebro/status", { cache: "no-store" });
-      if (!res.ok) throw new Error("API error");
+      if (!res.ok) {
+        // 401 = sem godmode; 500 = erro — usa mock demo
+        setData(buildMockCerebroData());
+        setDataSource(res.status === 401 ? "demo (login required)" : "fallback");
+        return;
+      }
       const json = await res.json();
       if (json?.success && json?.data) {
         setData(json.data);
         setDataSource(json.meta?.cerebroMode === "live" ? "LIVE (GLM-5.2)" : "mock (GLM-4.7-flash)");
+      } else {
+        setData(buildMockCerebroData());
+        setDataSource("fallback");
       }
     } catch {
+      setData(buildMockCerebroData());
       setDataSource("fallback");
     } finally {
       setLoading(false);
@@ -848,4 +857,131 @@ function ModuleCard({
       </AnimatePresence>
     </motion.div>
   );
+}
+
+// ============================================================================
+// MOCK DATA BUILDER — fallback quando API retorna 401 (sem godmode)
+// ============================================================================
+
+function buildMockCerebroData(): CerebroData {
+  const MODULE_DEFS: Array<{ id: string; name: string; description: string }> = [
+    { id: "anomaly-detector", name: "Anomaly Detector", description: "Detecta anomalias em tempo real com 4 estratégias: threshold, statistical (3σ), rate-of-change e pattern matching." },
+    { id: "glm-service", name: "GLM 5.2 Service", description: "LLM cognitiva para análise de causa raiz, forecast de budget, detecção de inadimplência e sugestões de refactor." },
+    { id: "budget-guard", name: "Budget Guard", description: "Guardião de orçamento diário ($10) e mensal ($300). Níveis: nominal, warning, critical." },
+    { id: "semantic-cache", name: "Semantic Cache", description: "Cache semântico de respostas LLM usando TF-IDF + cosine similarity. Hit rate atual reduz custo em ~78%." },
+    { id: "circuit-breakers", name: "Circuit Breakers", description: "Thompson Sampling com Beta distribution (α/β) por provider. Circuit states: CLOSED, HALF_OPEN, OPEN." },
+    { id: "learning-engine", name: "Learning Engine", description: "Aprendizado contínuo com KnowledgeEntry (weight dinâmico), DPO pairs, anti-patterns e brain age." },
+    { id: "alert-bus", name: "Alert Bus", description: "Dispatcher de alertas para Email, Slack, SMS, Dashboard (SSE) e Webhooks custom." },
+    { id: "self-defense", name: "Self Defense", description: "Rate limiting por IP (5 req/15min), IP blocking automático, canary detector." },
+    { id: "auto-remediator", name: "Auto Remediator", description: "Correção automática de erros recorrentes (fallback, restart, retry com backoff)." },
+    { id: "refactor-suggester", name: "Refactor Suggester", description: "Gera propostas de refatoração via LLM (GLM 5.2) com base em erros recorrentes." },
+    { id: "knowledge-distiller", name: "Knowledge Distiller", description: "Destila logs de conversas em padrões acionáveis (KnowledgeEntry)." },
+    { id: "contextual-bandits", name: "Contextual Bandits", description: "Multi-Armed Bandit para seleção de estratégias de resposta." },
+    { id: "vulnerability-scanner", name: "Vulnerability Scanner", description: "Scanner de segurança (dependency audit, secret scanning, code patterns)." },
+    { id: "error-reporter", name: "Error Reporter", description: "Relatórios estruturados de erro com stack trace, contexto e severity." },
+    { id: "telemetry-bridge", name: "Telemetry Bridge", description: "Bridge de telemetria para DDC do tenant em tempo real." },
+    { id: "code-indexer", name: "Code Indexer", description: "Indexação semântica do codebase para busca contextual." },
+    { id: "semantic-similarity", name: "Semantic Similarity", description: "Busca semântica por cosine similarity." },
+    { id: "tfidf", name: "TF-IDF Analyzer", description: "Análise TF-IDF para clustering de erros, padrões de uso e temas." },
+    { id: "best-practices", name: "Best Practices Library", description: "Biblioteca de melhores práticas codificadas." },
+    { id: "zella-skills", name: "Zélla Skills", description: "Catálogo de skills/capacidades do cérebro." },
+    { id: "sales-brain", name: "Sales Brain", description: "Cérebro de vendas — analisa leads, sugere pitch, calcula conversão." },
+    { id: "guest-responder-brain", name: "Guest Responder Brain", description: "Cérebro de resposta a hóspedes — gera respostas contextuais." },
+    { id: "zelador-suporte-brain", name: "Zelador Suporte Brain", description: "Cérebro de suporte ao zelador — gerencia tickets, escala para humano." },
+    { id: "orchestrator", name: "Cérebro Orchestrator", description: "Orquestra todos os 23 módulos. Decide qual cérebro acionar." },
+    { id: "budget-guard-specific", name: "Cerebro Budget Guard", description: "Guardião específico de budget do cérebro. Cap mensal: $20." },
+  ];
+
+  const modules: ModuleStatus[] = MODULE_DEFS.map((def, idx) => {
+    const isLLM = def.id === "glm-service" || def.id === "refactor-suggester";
+    const isActive = idx % 7 !== 0;
+    return {
+      id: def.id,
+      name: def.name,
+      description: def.description,
+      status: isActive ? "active" : "idle",
+      mode: isLLM ? "mock" as const : "mock" as const,
+      metrics: [
+        { label: "status", value: "OK" },
+        { label: "last run", value: "agora" },
+      ],
+      lastActivity: new Date(Date.now() - idx * 60000).toISOString(),
+      costUsd: isLLM ? 0.024 : undefined,
+      healthScore: 85 + (idx % 10),
+    };
+  });
+
+  return {
+    engine: "GLM-4.7-flash",
+    mode: "mock",
+    version: "2.0.1",
+    startedAt: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
+    uptime: "6h 12m",
+    healthScore: 89,
+    modules,
+    providers: [
+      { id: "glm-5.2", name: "GLM-5.2 (Cérebro)", tier: "tier-3", circuitState: "CLOSED", alpha: 1247, beta: 23, successRate: 98.2, avgLatencyMs: 1240, totalRequests: 870, costPer1kInput: 0.50, costPer1kOutput: 1.00 },
+      { id: "glm-4.7-flash", name: "GLM-4.7-Flash", tier: "tier-1", circuitState: "CLOSED", alpha: 847, beta: 23, successRate: 97.4, avgLatencyMs: 124, totalRequests: 870, costPer1kInput: 0.10, costPer1kOutput: 0.20 },
+      { id: "groq-llama-3-70b", name: "Groq Llama 3 70B", tier: "tier-1", circuitState: "CLOSED", alpha: 623, beta: 31, successRate: 95.3, avgLatencyMs: 89, totalRequests: 654, costPer1kInput: 0.10, costPer1kOutput: 0.20 },
+      { id: "deepseek-v3", name: "DeepSeek V3", tier: "tier-2", circuitState: "HALF_OPEN", alpha: 187, beta: 21, successRate: 89.9, avgLatencyMs: 412, totalRequests: 208, costPer1kInput: 0.27, costPer1kOutput: 1.10 },
+    ],
+    cache: {
+      hitRate: 78.3,
+      totalEntries: 247,
+      avgTtlMinutes: 45.2,
+      memoryUsedMB: 12.4,
+    },
+    budget: {
+      spentToday: 2.47,
+      dailyLimit: 10.00,
+      monthlySpent: 74.10,
+      monthlyLimit: 300.00,
+      criticalLevel: "nominal",
+      projectedMonthly: 74.10,
+    },
+    learning: {
+      totalPatterns: 1247,
+      verifiedPatterns: 892,
+      antiPatternsCount: 73,
+      learningVelocity: 12,
+      avgSentimentScore: 0.34,
+      brainAge: 145,
+      dpoPairsTrained: 348,
+      knowledgeEntries: 1247,
+    },
+    anomalies: {
+      last24h: 7,
+      critical: 1,
+      acknowledged: 4,
+      pendingInvestigation: 3,
+      types: [{ type: "latency_degradation", count: 3, severity: "warning" }],
+    },
+    alerts: {
+      dispatched24h: 12,
+      delivered: 11,
+      failed: 1,
+      pending: 0,
+      channels: [{ channel: "email", count: 4 }, { channel: "dashboard", count: 6 }],
+    },
+    autoRemediations: {
+      attempts24h: 3,
+      successful: 2,
+      failed: 1,
+      rolledBack: 0,
+    },
+    refactors: {
+      suggestions24h: 8,
+      approved: 3,
+      applied: 2,
+      rejected: 1,
+      pendingReview: 5,
+    },
+    liveFeed: [
+      { id: "1", timestamp: new Date().toISOString(), type: "decision", severity: "info", module: "orchestrator", message: "Roteando para GLM-4.7-flash (cache miss + tier-1)" },
+      { id: "2", timestamp: new Date(Date.now() - 60000).toISOString(), type: "anomaly", severity: "warning", module: "anomaly-detector", message: "Pico de latência detectado em /api/zcc/metrics (2.4σ acima)" },
+      { id: "3", timestamp: new Date(Date.now() - 120000).toISOString(), type: "learning", severity: "success", module: "learning-engine", message: "Novo padrão aprendido: hóspede elogia café → upsell Premium" },
+      { id: "4", timestamp: new Date(Date.now() - 180000).toISOString(), type: "alert", severity: "warning", module: "alert-bus", message: "Alerta enviado: budget em 24% do limite diário" },
+      { id: "5", timestamp: new Date(Date.now() - 240000).toISOString(), type: "cache", severity: "success", module: "semantic-cache", message: "Cache hit: query semelhante encontrada (similarity 0.94)" },
+    ],
+  };
 }
