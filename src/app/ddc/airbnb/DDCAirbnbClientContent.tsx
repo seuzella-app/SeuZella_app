@@ -28,13 +28,13 @@ const DDCAirbnbContent = dynamic(
 export function DDCAirbnbClientContent() {
   return (
     <>
-      {/* Mobile Super App view (< 768px) */}
-      <div className="block md:hidden w-full min-h-screen bg-[#0a0a0f]">
+      {/* Mobile Super App view (< 1024px) — iPad/celular */}
+      <div className="block lg:hidden w-full min-h-screen bg-[#0a0a0f]">
         <MobileAirbnbSuperApp />
       </div>
 
-      {/* Web Desktop DDC view (>= 768px) */}
-      <div className="hidden md:block w-full min-h-screen bg-[#0a0a0f]">
+      {/* Web Desktop DDC view (>= 1024px) */}
+      <div className="hidden lg:block w-full min-h-screen bg-[#0a0a0f]">
         <DDCAirbnbContent />
       </div>
     </>
