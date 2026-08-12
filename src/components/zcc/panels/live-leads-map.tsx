@@ -1,4 +1,5 @@
 "use client";
+import "leaflet/dist/leaflet.css";
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
