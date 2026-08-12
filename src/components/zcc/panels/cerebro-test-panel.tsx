@@ -19,6 +19,7 @@ import {
   Clock,
   TrendingUp,
   Gauge,
+  Terminal,
 } from "lucide-react";
 import { PanelHeader } from "../shared/panel-header";
 import { cn } from "@/lib/utils";
@@ -400,6 +401,25 @@ export function CerebroTestPanel() {
             ))}
           </div>
         </motion.div>
+
+        {/* ====== TELEMETRY TERMINAL · Live feed do cérebro ====== */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mt-6"
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Terminal className="size-3.5 text-emerald-400" />
+              Telemetria do Cérebro · Terminal Live
+            </h3>
+            <span className="text-[10px] text-muted-foreground">
+              tempo real · decisões · alertas · aprendizado
+            </span>
+          </div>
+          <CerebroTelemetryTerminal />
+        </motion.div>
       </div>
     </div>
   );
@@ -560,5 +580,261 @@ function SubsystemCard({
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+// ============================================================================
+// CEREBRO TELEMETRY TERMINAL — Painel live de telemetria do cérebro
+// ============================================================================
+
+interface TelemetryLine {
+  id: string;
+  timestamp: string;
+  level: 'INFO' | 'OK' | 'WARN' | 'ERROR' | 'CRITICAL';
+  module: string;
+  message: string;
+}
+
+const TELEMETRY_SEED: Array<Omit<TelemetryLine, 'id' | 'timestamp'>> = [
+  { level: 'INFO', module: 'orchestrator', message: 'Cérebro Zélla inicializado · 25 módulos carregados' },
+  { level: 'OK', module: 'anomaly-detector', message: 'Detector pronto · 4 estratégias ativas (3σ)' },
+  { level: 'OK', module: 'circuit-breakers', message: '8 providers Thompson Sampling (α/β) carregados' },
+  { level: 'OK', module: 'semantic-cache', message: 'Cache hidratado · 247 entradas · hit rate 78%' },
+  { level: 'OK', module: 'budget-guard', message: 'Budget nominal · $2.47/$10 diário (24.7%)' },
+  { level: 'INFO', module: 'learning-engine', message: 'Brain age: 145 dias · 1247 padrões (892 verificados)' },
+  { level: 'OK', module: 'alert-bus', message: 'Canais: email, dashboard, slack · 12 alertas 24h' },
+  { level: 'INFO', module: 'glm-service', message: 'GLM-4.7-flash em modo mock (economia de tokens)' },
+  { level: 'WARN', module: 'circuit-breakers', message: 'DeepSeek V3 circuit HALF_OPEN · testando recuperação' },
+  { level: 'OK', module: 'auto-remediator', message: '3 tentativas 24h · 2 sucesso · 1 falha' },
+  { level: 'OK', module: 'refactor-suggester', message: '8 sugestões geradas · 5 pending review' },
+  { level: 'INFO', module: 'knowledge-distiller', message: '47 entries consolidadas em 12 clusters' },
+  { level: 'OK', module: 'telemetry-bridge', message: '6 tenants conectados · 348 eventos enviados' },
+  { level: 'INFO', module: 'orchestrator', message: 'Sales Brain acionado · lead score 96' },
+  { level: 'OK', module: 'guest-responder-brain', message: '348 mensagens 24h · 78% auto-resposta' },
+  { level: 'WARN', module: 'anomaly-detector', message: 'Pico de latência em /api/zcc/metrics (2.4σ acima)' },
+  { level: 'OK', module: 'contextual-bandits', message: 'Best arm: "amigável" · regret 0.12' },
+  { level: 'OK', module: 'self-defense', message: '0 IPs bloqueados · rate limit 5 req/15min OK' },
+  { level: 'INFO', module: 'sales-brain', message: 'Pitch gerado · LTV previsto R$ 7140' },
+  { level: 'OK', module: 'zelador-suporte-brain', message: '6/8 tickets resolvidos · satisfação 94%' },
+  { level: 'INFO', module: 'vulnerability-scanner', message: 'Scan semanal OK · 0 deps vulneráveis' },
+  { level: 'OK', module: 'code-indexer', message: '1270 arquivos indexados · 4280 embeddings' },
+  { level: 'INFO', module: 'tfidf', message: '3480 documentos · top term: "hóspede"' },
+  { level: 'OK', module: 'semantic-similarity', message: '142 queries 24h · match rate 78%' },
+  { level: 'OK', module: 'best-practices', message: '47 regras · 234 aplicações · 0 violações' },
+  { level: 'INFO', module: 'zella-skills', message: '24 skills · 12 ativas · accuracy 91%' },
+  { level: 'CRITICAL', module: 'budget-guard', message: 'Cérebro consumiu 24% do budget diário · monitorando' },
+  { level: 'OK', module: 'orchestrator', message: 'Fallback para GLM-4.7-flash (cache miss + tier-1)' },
+  { level: 'INFO', module: 'learning-engine', message: 'Novo padrão: "hóspede elogia café → upsell Premium"' },
+  { level: 'OK', module: 'alert-bus', message: 'Alerta enviado dashboard · budget 24%' },
+];
+
+const LEVEL_COLOR: Record<TelemetryLine['level'], string> = {
+  INFO: 'text-blue-400',
+  OK: 'text-emerald-400',
+  WARN: 'text-amber-400',
+  ERROR: 'text-red-400',
+  CRITICAL: 'text-red-500 font-bold',
+};
+
+const LEVEL_BG: Record<TelemetryLine['level'], string> = {
+  INFO: 'bg-blue-500/10 border-blue-500/30',
+  OK: 'bg-emerald-500/10 border-emerald-500/30',
+  WARN: 'bg-amber-500/10 border-amber-500/30',
+  ERROR: 'bg-red-500/10 border-red-500/30',
+  CRITICAL: 'bg-red-500/20 border-red-500/40',
+};
+
+function formatTelemetryTime(d: Date): string {
+  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+export function CerebroTelemetryTerminal() {
+  const [lines, setLines] = React.useState<TelemetryLine[]>([]);
+  const [isLive, setIsLive] = React.useState(true);
+  const [filter, setFilter] = React.useState<'all' | TelemetryLine['level']>('all');
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const seedIndex = React.useRef(0);
+
+  // Adiciona uma nova linha a cada 2 segundos
+  React.useEffect(() => {
+    if (!isLive) return;
+
+    const addLine = () => {
+      const seed = TELEMETRY_SEED[seedIndex.current % TELEMETRY_SEED.length];
+      seedIndex.current++;
+
+      const newLine: TelemetryLine = {
+        id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: formatTelemetryTime(new Date()),
+        ...seed,
+      };
+
+      setLines((prev) => {
+        const next = [...prev, newLine];
+        return next.length > 100 ? next.slice(-100) : next;
+      });
+    };
+
+    // Adiciona 5 linhas iniciais rápido
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => addLine(), i * 100);
+    }
+
+    const id = setInterval(addLine, 2500);
+    return () => clearInterval(id);
+  }, [isLive]);
+
+  // Auto-scroll para o final quando novas linhas chegam
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [lines]);
+
+  const filteredLines = React.useMemo(() => {
+    if (filter === 'all') return lines;
+    return lines.filter((l) => l.level === filter);
+  }, [lines, filter]);
+
+  const stats = React.useMemo(() => {
+    return {
+      total: lines.length,
+      info: lines.filter((l) => l.level === 'INFO').length,
+      ok: lines.filter((l) => l.level === 'OK').length,
+      warn: lines.filter((l) => l.level === 'WARN').length,
+      error: lines.filter((l) => l.level === 'ERROR').length,
+      critical: lines.filter((l) => l.level === 'CRITICAL').length,
+    };
+  }, [lines]);
+
+  return (
+    <div className="rounded-lg border border-emerald-500/30 bg-black/80 overflow-hidden">
+      {/* Terminal header */}
+      <div className="flex items-center justify-between border-b border-emerald-500/30 bg-emerald-500/5 px-3 py-2">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <span className="size-2.5 rounded-full bg-red-500/80" />
+            <span className="size-2.5 rounded-full bg-amber-500/80" />
+            <span className="size-2.5 rounded-full bg-emerald-500/80" />
+          </div>
+          <span className="ml-2 text-[11px] font-mono text-emerald-400">
+            zélla-cérebro ~ telemetry
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={cn(
+            "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase",
+            isLive ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" : "border-border bg-secondary text-muted-foreground"
+          )}>
+            <span className={cn("size-1.5 rounded-full", isLive ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground")} />
+            {isLive ? 'LIVE' : 'PAUSED'}
+          </span>
+          <button
+            onClick={() => setIsLive((v) => !v)}
+            className="rounded border border-border bg-background px-2 py-0.5 text-[9px] font-medium text-muted-foreground hover:text-foreground"
+          >
+            {isLive ? '⏸ Pausar' : '▶ Retomar'}
+          </button>
+          <button
+            onClick={() => setLines([])}
+            className="rounded border border-border bg-background px-2 py-0.5 text-[9px] font-medium text-muted-foreground hover:text-foreground"
+          >
+            🗑 Limpar
+          </button>
+        </div>
+      </div>
+
+      {/* Filters + Stats */}
+      <div className="flex items-center justify-between border-b border-emerald-500/20 px-3 py-1.5 bg-black/60">
+        <div className="flex items-center gap-0.5">
+          <span className="text-[9px] text-muted-foreground mr-1">filter:</span>
+          {(['all', 'INFO', 'OK', 'WARN', 'ERROR', 'CRITICAL'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={cn(
+                "rounded px-1.5 py-0.5 text-[9px] font-mono font-bold transition-colors",
+                filter === f ? "bg-emerald-500/20 text-emerald-400" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 text-[9px] font-mono">
+          <span className="text-blue-400">{stats.info} INFO</span>
+          <span className="text-emerald-400">{stats.ok} OK</span>
+          <span className="text-amber-400">{stats.warn} WARN</span>
+          <span className="text-red-400">{stats.error} ERR</span>
+          <span className="text-red-500 font-bold">{stats.critical} CRIT</span>
+        </div>
+      </div>
+
+      {/* Terminal body */}
+      <div
+        ref={scrollRef}
+        className="h-80 overflow-y-auto p-3 font-mono text-[11px] leading-relaxed zcc-scroll"
+        style={{
+          fontFamily: 'var(--font-mono, ui-monospace, "JetBrains Mono", Menlo, Monaco, Consolas, monospace)',
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%)',
+        }}
+      >
+        {filteredLines.length === 0 ? (
+          <div className="text-muted-foreground text-center py-8">
+            <Activity className="size-4 mx-auto mb-2 opacity-40" />
+            <span>Aguardando telemetria do cérebro...</span>
+          </div>
+        ) : (
+          filteredLines.map((line) => (
+            <motion.div
+              key={line.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-start gap-2 py-0.5 hover:bg-emerald-500/5 rounded px-1"
+            >
+              <span className="text-muted-foreground/60 shrink-0">
+                [{line.timestamp}]
+              </span>
+              <span className={cn(
+                "shrink-0 inline-flex items-center justify-center rounded border px-1 text-[9px] font-bold",
+                LEVEL_BG[line.level],
+                LEVEL_COLOR[line.level]
+              )}>
+                {line.level}
+              </span>
+              <span className="text-violet-400 shrink-0">
+                {line.module}:
+              </span>
+              <span className={cn(
+                "min-w-0 flex-1",
+                line.level === 'CRITICAL' ? 'text-red-300 font-bold' :
+                line.level === 'ERROR' ? 'text-red-300' :
+                line.level === 'WARN' ? 'text-amber-300' :
+                line.level === 'OK' ? 'text-emerald-300' :
+                'text-foreground/90'
+              )}>
+                {line.message}
+              </span>
+            </motion.div>
+          ))
+        )}
+      </div>
+
+      {/* Terminal footer */}
+      <div className="border-t border-emerald-500/20 bg-black/60 px-3 py-1.5">
+        <div className="flex items-center gap-2 text-[10px] font-mono">
+          <span className="text-emerald-400">zélla@cérebro</span>
+          <span className="text-muted-foreground">:</span>
+          <span className="text-blue-400">~/telemetry</span>
+          <span className="text-muted-foreground">$</span>
+          {isLive ? (
+            <span className="inline-block w-2 h-3.5 bg-emerald-400 animate-pulse" />
+          ) : (
+            <span className="text-muted-foreground italic">pausado</span>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

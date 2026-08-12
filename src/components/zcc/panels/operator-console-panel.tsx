@@ -554,6 +554,114 @@ export function OperatorConsolePanel() {
       />
 
       <div className="zcc-scroll flex-1 overflow-y-auto p-4 sm:p-6">
+        {/* ====== HERO · Mission Control Banner ====== */}
+        <motion.div
+          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="mb-6 relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-background to-background p-5"
+        >
+          {/* Animated pulse dots background */}
+          <div className="absolute inset-0 pointer-events-none opacity-20">
+            <div className="absolute top-2 left-1/4 size-1.5 rounded-full bg-primary animate-ping" style={{ animationDelay: "0s" }} />
+            <div className="absolute top-6 right-1/3 size-1.5 rounded-full bg-emerald-500 animate-ping" style={{ animationDelay: "1.5s" }} />
+            <div className="absolute bottom-3 left-1/2 size-1.5 rounded-full bg-violet-500 animate-ping" style={{ animationDelay: "0.7s" }} />
+            <div className="absolute bottom-6 right-1/4 size-1.5 rounded-full bg-amber-500 animate-ping" style={{ animationDelay: "2s" }} />
+          </div>
+
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {/* Mission control icon with pulsing rings */}
+              <div className="relative">
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="grid size-14 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 border border-primary/40"
+                >
+                  <LayoutDashboard className="size-7 text-primary" />
+                </motion.div>
+                <motion.div
+                  animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
+                  transition={{ duration: 1.8, repeat: Infinity }}
+                  className="absolute inset-0 rounded-xl border-2 border-primary"
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-foreground">Mission Control</h2>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase text-emerald-400">
+                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    {usingFallback ? "Mock" : "Live"}
+                  </span>
+                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">
+                    <Cpu className="size-2.5" />
+                    Cérebro {metrics.cerebroAccuracy}%
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Zélla Central Control · {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+                </p>
+              </div>
+            </div>
+
+            {/* Real-time clock */}
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground">agora</p>
+                <p className="font-mono text-2xl font-bold text-primary tabular-nums">{updatedAt}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  loadAll();
+                  toast.success("Console atualizado", {
+                    description: usingFallback ? "usando fallback local" : "dados hidratados da API",
+                  });
+                }}
+                disabled={loading}
+                className="grid size-10 place-items-center rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors"
+                title="Recarregar dados"
+              >
+                <RefreshCw className={cn("size-5", loading && "animate-spin")} />
+              </button>
+            </div>
+          </div>
+
+          {/* Quick stats bar */}
+          <div className="relative mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+            {metrics.pulse.slice(0, 6).map((kpi, idx) => (
+              <motion.div
+                key={kpi.label}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.04 }}
+                className="rounded-lg border border-border/60 bg-background/40 px-2 py-1.5 backdrop-blur"
+              >
+                <p className="text-[8px] uppercase tracking-wider text-muted-foreground">{kpi.label}</p>
+                <p className={cn(
+                  "font-mono text-sm font-bold",
+                  kpi.trend === "up" ? "text-emerald-400" :
+                  kpi.trend === "down" ? "text-red-400" :
+                  "text-foreground"
+                )}>
+                  {kpi.value}
+                </p>
+                {kpi.trendValue ? (
+                  <p className={cn(
+                    "text-[8px] flex items-center gap-0.5",
+                    kpi.trend === "up" ? "text-emerald-400" :
+                    kpi.trend === "down" ? "text-red-400" :
+                    "text-muted-foreground"
+                  )}>
+                    {kpi.trend === "up" ? <ArrowRight className="size-2" /> : <ArrowRight className="size-2" />}
+                    {kpi.trendValue}
+                  </p>
+                ) : null}
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
         {/* ====== PULSE ROW · 6 KPIs executivos ====== */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import {
   DollarSign, TrendingUp, TrendingDown, ArrowUpRight,
@@ -557,27 +558,8 @@ export function FinanceiroPanel() {
           </div>
         </section>
 
-        {/* ── PROJEÇÃO 6 MESES ── */}
-        <section>
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <Calendar className="size-3.5 text-emerald-400" />
-              Cashflow · projeção 6 meses
-            </h3>
-            <span className="text-[11px] text-muted-foreground">+10% MoM</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {["SET", "OUT", "NOV", "DEZ", "JAN", "FEV"].map((m, i) => {
-              const value = TOTAL_MRR * Math.pow(1.1, i + 1) - totalCosts;
-              return (
-                <div key={m} className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-center">
-                  <div className="text-[10px] text-muted-foreground uppercase">{m}</div>
-                  <div className="mt-1 text-sm font-bold text-emerald-400">+{fmtBRL(value)}</div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        {/* ── PROJEÇÃO 6 MESES · DINÂMICA (tempo real) ── */}
+        <CashflowProjection mrr={TOTAL_MRR} costs={totalCosts} />
 
         {/* ── TAXAS DE GATEWAY + IMPOSTOS PRAIA GRANDE ── */}
         <ExpensesBreakdownLazy />
@@ -640,5 +622,195 @@ function KpiCard({
         </p>
       ) : null}
     </div>
+  );
+}
+
+// ============================================================================
+// CASHFLOW PROJECTION · 6 meses dinâmicos (tempo real)
+// ============================================================================
+// Gera automaticamente os próximos 6 meses a partir do mês atual.
+// Cada mês mostra:
+//   - Nome do mês (ex: "DEZ 24", "JAN 25")
+//   - Valor projetado (crescimento MoM aplicado)
+//   - Trend visual (crescimento/declínio)
+//   - Indicador de período Beta (até dados reais entrarem)
+//
+// Modo mock: aplica +10% MoM (crescimento simulado)
+// Modo real: usará dados históricos do Prisma para calcular MoM real
+// ============================================================================
+
+function CashflowProjection({ mrr, costs }: { mrr: number; costs: number }) {
+  const [now, setNow] = React.useState(new Date());
+
+  // Atualiza a cada minuto (garante que mês atual sempre correto)
+  React.useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Gera próximos 6 meses a partir do atual
+  const months = React.useMemo(() => {
+    const MONTH_NAMES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    const result: Array<{
+      label: string;
+      year: number;
+      monthIdx: number;
+      isCurrent: boolean;
+      projected: number;
+      previous: number;
+      growthPct: number;
+      isDecline: boolean;
+    }> = [];
+
+    // Período Beta: os 3 primeiros meses são marcados como "Período Beta"
+    // (janela de testes — dados mock; será zerado quando dados reais entrarem)
+    const baseGrowthRate = 0.10; // 10% MoM (mock)
+    let lastValue = mrr - costs; // líquido atual
+
+    for (let i = 0; i < 6; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const monthIdx = date.getMonth();
+      const year = date.getFullYear();
+      const label = `${MONTH_NAMES[monthIdx]} ${String(year).slice(2)}`;
+      const isCurrent = i === 0;
+
+      // Aplica growth rate acumulado
+      const projected = Math.round(mrr * Math.pow(1 + baseGrowthRate, i + 1) - costs * Math.pow(1.02, i));
+      const previous = i === 0 ? mrr - costs : result[i - 1].projected;
+      const growthPct = previous > 0
+        ? Math.round(((projected - previous) / previous) * 1000) / 10
+        : 0;
+      const isDecline = growthPct < 0;
+
+      result.push({
+        label,
+        year,
+        monthIdx,
+        isCurrent,
+        projected,
+        previous,
+        growthPct,
+        isDecline,
+      });
+    }
+
+    return result;
+  }, [mrr, costs, now]);
+
+  // Estatísticas de tendência
+  const avgGrowth = months.reduce((s, m) => s + m.growthPct, 0) / months.length;
+  const totalGrowth = months.length > 0 ? months[months.length - 1].projected - months[0].previous : 0;
+  const isOverallGrowth = avgGrowth > 0;
+
+  return (
+    <section>
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <Calendar className={cn("size-3.5", isOverallGrowth ? "text-emerald-400" : "text-red-400")} />
+          Cashflow · projeção 6 meses · tempo real
+        </h3>
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <span className={cn("size-1.5 rounded-full animate-pulse", isOverallGrowth ? "bg-emerald-500" : "bg-red-500")} />
+            média: <span className={cn("font-bold", isOverallGrowth ? "text-emerald-400" : "text-red-400")}>
+              {isOverallGrowth ? '+' : ''}{avgGrowth.toFixed(1)}% MoM
+            </span>
+          </span>
+          <span className="hidden sm:inline">
+            Δ total: <span className={cn("font-bold", totalGrowth >= 0 ? "text-emerald-400" : "text-red-400")}>
+              {totalGrowth >= 0 ? '+' : ''}{fmtBRL(totalGrowth)}
+            </span>
+          </span>
+          <span className="rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-400">
+            β Beta
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {months.map((m, i) => (
+          <motion.div
+            key={`${m.label}-${i}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06 }}
+            className={cn(
+              "relative rounded-lg border p-3 text-center transition-colors",
+              m.isCurrent
+                ? "border-primary/40 bg-primary/5"
+                : m.isDecline
+                  ? "border-red-500/30 bg-red-500/5"
+                  : "border-emerald-500/30 bg-emerald-500/5"
+            )}
+          >
+            {/* Badge de mês atual */}
+            {m.isCurrent ? (
+              <span className="absolute -top-1 -right-1 grid size-3.5 place-items-center rounded-full bg-primary text-[7px] font-bold text-primary-foreground">
+                ●
+              </span>
+            ) : null}
+
+            <div className={cn(
+              "text-[10px] font-bold uppercase",
+              m.isCurrent ? "text-primary" : "text-muted-foreground"
+            )}>
+              {m.label}
+            </div>
+
+            <div className={cn(
+              "mt-1 text-sm font-bold",
+              m.isDecline ? "text-red-400" : "text-emerald-400"
+            )}>
+              {m.projected >= 0 ? "+" : ""}{fmtBRL(m.projected)}
+            </div>
+
+            {/* Trend indicator */}
+            <div className="mt-1 flex items-center justify-center gap-0.5 text-[9px]">
+              {m.growthPct > 0 ? (
+                <ArrowUpRight className="size-2.5 text-emerald-400" />
+              ) : m.growthPct < 0 ? (
+                <TrendingDown className="size-2.5 text-red-400" />
+              ) : (
+                <span className="size-2.5 text-muted-foreground">→</span>
+              )}
+              <span className={cn(
+                "font-semibold",
+                m.growthPct > 0 ? "text-emerald-400" :
+                m.growthPct < 0 ? "text-red-400" :
+                "text-muted-foreground"
+              )}>
+                {m.growthPct > 0 ? '+' : ''}{m.growthPct}%
+              </span>
+            </div>
+
+            {/* Indicador Período Beta (3 primeiros meses) */}
+            {i < 3 ? (
+              <div className="mt-1.5 text-[7px] uppercase tracking-wide text-amber-400/70">
+                período β
+              </div>
+            ) : (
+              <div className="mt-1.5 text-[7px] uppercase tracking-wide text-muted-foreground/50">
+                projeção
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Info bar */}
+      <div className="mt-2 flex items-center justify-between text-[9px] text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+          <strong className="text-foreground">Mês atual:</strong> {months[0]?.label ?? '—'}
+          {" · "}atualização automática a cada minuto
+        </span>
+        <span className="hidden sm:inline">
+          Base: MRR {fmtBRL(mrr)} − Custos {fmtBRL(costs)} = Líquido {fmtBRL(mrr - costs)}
+        </span>
+        <span className="text-amber-400">
+          ⚠ Período Beta: dados mock serão zerados ao inserir dados reais
+        </span>
+      </div>
+    </section>
   );
 }
