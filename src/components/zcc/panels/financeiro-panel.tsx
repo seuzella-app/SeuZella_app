@@ -13,6 +13,23 @@ import { cn } from "@/lib/utils";
 import { PLAN_PRICING } from "@/lib/zcc/types";
 import type { Plan } from "@/lib/zcc/types";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+// Lazy-load ExpensesBreakdown (componente pesado com fetch próprio)
+const ExpensesBreakdownLazy = dynamic(
+  () => import("./expenses-breakdown").then((m) => m.ExpensesBreakdown),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="rounded-lg border border-border bg-card p-4">
+        <div className="grid place-items-center py-8">
+          <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="mt-2 text-[10px] text-muted-foreground">Carregando taxas e impostos...</p>
+        </div>
+      </div>
+    ),
+  }
+);
 
 /*
  * Financeiro Integrado v2 — alinhado com Prisma + custos editáveis.
@@ -561,6 +578,9 @@ export function FinanceiroPanel() {
             })}
           </div>
         </section>
+
+        {/* ── TAXAS DE GATEWAY + IMPOSTOS PRAIA GRANDE ── */}
+        <ExpensesBreakdownLazy />
 
         {/* ── INTEGRAÇÃO DDC ── */}
         <section>
