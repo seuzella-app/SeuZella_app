@@ -152,13 +152,22 @@ export function ExpensesBreakdown() {
     setLoading(true);
     try {
       const res = await fetch('/api/zcc/finance/expenses', { cache: 'no-store' });
-      if (!res.ok) throw new Error('API error');
+      if (!res.ok) {
+        // 401 = sem godmode; 500 = erro interno — usa mock demo em ambos
+        setData(buildMockData());
+        setDataSource(res.status === 401 ? 'demo (login required)' : 'fallback');
+        return;
+      }
       const json = await res.json();
       if (json?.success && json?.data) {
         setData(json.data);
         setDataSource(json.meta?.source ?? 'api');
+      } else {
+        setData(buildMockData());
+        setDataSource('fallback');
       }
     } catch {
+      setData(buildMockData());
       setDataSource('fallback');
     } finally {
       setLoading(false);
@@ -534,4 +543,159 @@ function KpiTile({
       ) : null}
     </div>
   );
+}
+
+// ── Mock data builder (fallback quando API retorna 401/500) ─────
+
+function buildMockData(): ExpensesData {
+  const subscriptions = [
+    { plan: 'lite', paymentMethod: 'pix', amount: 197 },
+    { plan: 'lite', paymentMethod: 'pix', amount: 197 },
+    { plan: 'lite', paymentMethod: 'cartao', amount: 197 },
+    { plan: 'pro', paymentMethod: 'cartao', amount: 397 },
+    { plan: 'pro', paymentMethod: 'cartao', amount: 397 },
+    { plan: 'pro', paymentMethod: 'pix', amount: 397 },
+    { plan: 'max', paymentMethod: 'cartao', amount: 797 },
+    { plan: 'max', paymentMethod: 'cartao', amount: 797 },
+    { plan: 'parceiro', paymentMethod: 'pix', amount: 247 },
+  ];
+
+  const grossRevenueBRL = subscriptions.reduce((s, sub) => s + sub.amount, 0);
+
+  const gatewayFees = [
+    {
+      gateway: 'mercadopago',
+      paymentMethod: 'pix',
+      label: 'Mercado Pago · PIX',
+      ratePct: 0.99,
+      fixedFeeBRL: 0,
+      effectiveRatePct: 0.99,
+      transactionCount: 4,
+      volumeBRL: 4 * 197 + 247,
+      feeBRL: (4 * 197 + 247) * 0.0099,
+    },
+    {
+      gateway: 'mercadopago',
+      paymentMethod: 'credito',
+      label: 'Mercado Pago · Cartão Crédito',
+      ratePct: 4.99,
+      fixedFeeBRL: 0.40,
+      effectiveRatePct: 5.06,
+      transactionCount: 4,
+      volumeBRL: 2 * 197 + 2 * 397,
+      feeBRL: (2 * 197 + 2 * 397) * 0.0499 + 4 * 0.40,
+    },
+    {
+      gateway: 'stripe',
+      paymentMethod: 'credito_internacional',
+      label: 'Stripe · Cartão Internacional',
+      ratePct: 4.99,
+      fixedFeeBRL: 0.50,
+      effectiveRatePct: 6.24,
+      transactionCount: 2,
+      volumeBRL: 2 * 797,
+      feeBRL: 2 * 797 * 0.0599 + 2 * 0.50,
+    },
+  ];
+
+  const totalGatewayFeesBRL = gatewayFees.reduce((s, g) => s + g.feeBRL, 0);
+
+  const taxes = [
+    {
+      name: 'Simples Nacional · Anexo III',
+      description: 'Faixa 1 (até R$ 180k/ano). Tributo federal unificado (IRPJ, CSLL, PIS, COFINS, CPP, ISS).',
+      ratePct: 6.0,
+      baseBRL: grossRevenueBRL,
+      amountBRL: grossRevenueBRL * 0.06,
+      isPracaGrandeSpecific: false,
+    },
+    {
+      name: 'ISS Praia Grande',
+      description: 'Alíquota municipal de 5% para serviços de TI/SaaS. Já embutida no Simples Nacional.',
+      ratePct: 0,
+      baseBRL: grossRevenueBRL,
+      amountBRL: 0,
+      isPracaGrandeSpecific: true,
+    },
+    {
+      name: 'PIS/COFINS Cumulativo',
+      description: '0.74% efetivo já embutido na alíquota do Simples Nacional Anexo III.',
+      ratePct: 0,
+      baseBRL: grossRevenueBRL,
+      amountBRL: 0,
+      isPracaGrandeSpecific: false,
+    },
+  ];
+
+  const totalTaxesBRL = taxes.reduce((s, t) => s + t.amountBRL, 0);
+
+  const otherExpenses = [
+    { id: 'infra-vercel', category: 'infrastructure', label: 'Vercel Pro (hosting Next.js 16)', amountBRL: 150, detail: 'Plano Pro · edge functions · analytics', isRecurring: true },
+    { id: 'infra-postgres', category: 'infrastructure', label: 'Vercel Postgres (Prisma)', amountBRL: 80, detail: '1GB storage · backups automáticos', isRecurring: true },
+    { id: 'infra-whatsapp', category: 'infrastructure', label: 'WhatsApp Cloud API', amountBRL: 320, detail: '~250 conversas/dia · 1000 templates/mês', isRecurring: true },
+    { id: 'tool-llm', category: 'tool', label: 'LLM Tokens (GLM-4.7-flash)', amountBRL: 135, detail: '~$24 USD/mês · 16M tokens', isRecurring: true },
+    { id: 'tool-claude', category: 'tool', label: 'Claude Code (Anthropic)', amountBRL: 500, detail: 'Desenvolvimento + code review automático', isRecurring: true },
+    { id: 'marketing-google-ads', category: 'marketing', label: 'Google Ads (Search + PMax)', amountBRL: 2000, detail: 'Persona Pousadeiro Tradicional + Airbnb Moderno', isRecurring: true },
+    { id: 'team-dev', category: 'team', label: 'Equipe desenvolvimento', amountBRL: 6000, detail: '1 dev fullstack + 1 tech lead parcial', isRecurring: true },
+    { id: 'team-marketing', category: 'team', label: 'Equipe marketing', amountBRL: 2000, detail: '1 growth marketer parcial + copywriter', isRecurring: true },
+    { id: 'other-domain', category: 'other', label: 'Domínio + DNS Cloudflare', amountBRL: 30, detail: 'smart-hotel-zehla.vercel.app + custom domain', isRecurring: true },
+  ];
+
+  const totalOtherExpensesBRL = otherExpenses.reduce((s, e) => s + e.amountBRL, 0);
+  const totalExpensesBRL = totalGatewayFeesBRL + totalTaxesBRL + totalOtherExpensesBRL;
+  const netRevenueBRL = grossRevenueBRL - totalExpensesBRL;
+  const marginPct = grossRevenueBRL > 0 ? Math.round((netRevenueBRL / grossRevenueBRL) * 1000) / 10 : 0;
+
+  // Per plan breakdown
+  const perPlanMap = new Map<string, PerPlanItem>();
+  for (const sub of subscriptions) {
+    const isPix = sub.paymentMethod === 'pix';
+    const gateway = isPix ? 'mercadopago' : (sub.plan === 'max' ? 'stripe' : 'mercadopago');
+    const feeRate = isPix ? 0.0099 : (sub.plan === 'max' ? 0.0599 : 0.0499);
+    const feeFixed = isPix ? 0 : (sub.plan === 'max' ? 0.50 : 0.40);
+    const gatewayFeeBRL = sub.amount * feeRate + feeFixed;
+    const taxBRL = sub.amount * 0.06;
+    const netPerClient = sub.amount - gatewayFeeBRL - taxBRL;
+
+    const key = `${sub.plan}:${sub.paymentMethod}:${gateway}`;
+    if (!perPlanMap.has(key)) {
+      perPlanMap.set(key, {
+        plan: sub.plan.toUpperCase(),
+        priceBRL: sub.amount,
+        paymentMethod: sub.paymentMethod,
+        gateway,
+        gatewayFeeBRL,
+        taxBRL,
+        netPerClientBRL: netPerClient,
+        clientCount: 0,
+        totalNetBRL: 0,
+      });
+    }
+    const entry = perPlanMap.get(key)!;
+    entry.clientCount++;
+    entry.totalNetBRL += netPerClient;
+  }
+
+  return {
+    gatewayFees,
+    totalGatewayFeesBRL,
+    taxes,
+    totalTaxesBRL,
+    otherExpenses,
+    totalOtherExpensesBRL,
+    grossRevenueBRL,
+    totalExpensesBRL,
+    netRevenueBRL,
+    marginPct,
+    jurisdiction: {
+      city: 'Praia Grande',
+      state: 'SP',
+      country: 'BR',
+      taxRegime: 'Simples Nacional',
+      anexo: 'III',
+      annualRevenueBracket: grossRevenueBRL * 12 <= 180_000 ? 'Faixa 1 (até R$ 180k/ano)' : 'Faixa 2 (R$ 180k-360k/ano)',
+      effectiveTaxRatePct: grossRevenueBRL * 12 <= 180_000 ? 6.0 : 11.2,
+    },
+    perPlanBreakdown: [...perPlanMap.values()],
+  };
 }
