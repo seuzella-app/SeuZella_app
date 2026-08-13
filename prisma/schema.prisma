@@ -126,6 +126,9 @@ model Tenant {
   pricingRules      DynamicPricingRule[]
   pricingCalculations PricingCalculation[]
 
+  // Zélla — Yield Booster (Lucro Extra Gerado pela IA)
+  yieldProfitRecords YieldProfitRecord[]
+
   // Zélla — Guia Digital Hóspede
   guestGuides       GuestGuide[]
 
@@ -2534,4 +2537,65 @@ model PolicyAudit {
   @@index([policyId, severity])
   @@index([entryPoint, createdAt])
   @@map("policy_audit")
+}
+
+// ===== YIELD PROFIT RECORD (Lucro Extra Gerado pela IA — ZaosYieldEngine) =====
+// Registra cada vez que o motor de Yield Management gerou um valor ACIMA da tarifa base
+// do pousadeiro. Base para o "ZÉLLA BOOST" (performance share 10-12% sobre lucro extra).
+//
+// Estratégia comercial:
+//   Fase 1 (Temporada 2026/2027): gratuito — apenas registra para mostrar no DDC
+//   Fase 2 (Temporada 2027/2028): ZELLA_BOOST_SHARE_PERCENT aplicado sobre extraProfit
+model YieldProfitRecord {
+  id              String   @id @default(cuid())
+  tenantId        String
+
+  // Contexto do cálculo
+  propertyId      String?  // Property.id (pousada) ou null
+  airbPropertyId  String?  // AirBProperty.id (Airbnb) ou null
+  reservationId   String?  // Reservation.id que gerou o lucro (quando aplicável)
+  roomId          String?  // Room.id (quando aplicável)
+
+  // Data da diária que recebeu yield
+  targetDate      DateTime // data da diária reajustada
+
+  // Valores financeiros (todos em BRL)
+  baseRate        Float    // tarifa base cadastrada pelo pousadeiro (ex: 1200.00)
+  yieldRate       Float    // tarifa reajustada pelo yield (ex: 1920.00)
+  extraProfit     Float    // yieldRate - baseRate (ex: 720.00) — LUCRO EXTRA GERADO
+  surgeMultiplier  Float    // multiplicador aplicado (1.0 / 1.25 / 1.60)
+
+  // Tier de escassez (NOMINAL / DEMAND_SURGE / SCARCITY_LOCK)
+  tierName        String   @default("NOMINAL")
+
+  // Bônus Share (Fase 2 — ZÉLLA BOOST)
+  // 0 durante Fase 1 (gratuito). Em Fase 2: extraProfit * ZELLA_BOOST_SHARE_PERCENT
+  bonusShareBrl   Float    @default(0) // quanto o Seu Zélla cobrou sobre o lucro extra
+  bonusShareRate  Float    @default(0) // % aplicada (0 em Fase 1, 0.10-0.12 em Fase 2)
+
+  // Status do registro
+  status          String   @default("confirmed") // confirmed | refunded | reversed
+  // confirmed  = hóspede pagou o valor yield
+  // refunded   = hóspede cancelou dentro da janela de cortesia (não conta)
+  // reversed   = chargeback ou estorno
+
+  // Metadados de auditoria
+  triggerReason   String   @default("occupancy") // occupancy | holiday_proximity | manual
+  isSpecialHoliday Boolean @default(false) // Réveillon, Natal, Carnaval
+  holidayName     String?  // "Réveillon", "Carnaval", etc.
+
+  // Idempotência: uma diária por reserva só pode ter 1 yield (evita duplicação)
+  yieldHash       String   // hash determinístico de tenantId + reservationId + targetDate
+
+  createdAt       DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([yieldHash])
+  @@index([tenantId, targetDate])
+  @@index([tenantId, status])
+  @@index([tenantId, isSpecialHoliday])
+  @@index([tenantId, createdAt])
+  @@map("yield_profit_records")
 }

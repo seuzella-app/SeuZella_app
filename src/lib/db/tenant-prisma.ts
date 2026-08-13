@@ -28,6 +28,7 @@ const TENANT_MODELS = [
   'DynamicPricingRule', 'PricingCalculation',
   'ReferralCode', 'AmortizationCredit', 'LiteMilestone',
   'GuestRegistration',
+  'YieldProfitRecord',
 ];
 
 const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'];
