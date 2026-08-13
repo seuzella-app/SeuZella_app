@@ -691,10 +691,69 @@ Use estas expressões e tom naturalmente. NÃO mencione que isso foi aprendido.
     }, 2000);
   }
 
+  // 12. Salvar preferências do hóspede (async, non-blocking)
+  // Extrai preferências da conversa e salva em Guest.metadata
+  saveGuestPreferences(tenantId, guest.id, messageContent, cognitiveRes?.intent).catch(() => {});
+
   return {
     conversationId,
     aiResponse: aiResponseText,
     guestId: guest.id,
     metaCostRecord, // NOVO v2: caller (webhook) usa isto para registrar custo APÓS envio confirmado
   };
+}
+
+/**
+ * Extrai e salva preferências do hóspede em Guest.metadata.
+ * Detecta: alergias, preferências de quarto, número de pessoas, datas pretendidas.
+ * Non-blocking — erros não afetam a resposta ao hóspede.
+ */
+async function saveGuestPreferences(tenantId: string, guestId: string, aiResponse: string, intent?: string): Promise<void> {
+  try {
+    if (!db) return;
+    const guest = await (db as any).guest.findUnique({
+      where: { id: guestId },
+      select: { id: true, metadata: true },
+    });
+    if (!guest) return;
+
+    const meta = JSON.parse(guest.metadata || '{}');
+    let updated = false;
+
+    // Detecta menções a alergias/restrições alimentares na resposta da IA
+    if (/alerg|restri[cç][ãa]o alimentar|sem gl[uú]ten|vegano?|vegetarian|lactose/i.test(aiResponse)) {
+      meta.dietaryRestrictions = true;
+      updated = true;
+    }
+
+    // Detecta se hóspede mencionou crianças
+    if (/crian[cç]a|beb[eê]|filho|filhos|fam[ií]lia/i.test(aiResponse)) {
+      meta.hasChildren = true;
+      updated = true;
+    }
+
+    // Detecta se é hóspede internacional (resposta em espanhol/inglês)
+    if (intent === 'duvida_geral' && /[a-z][a-z]/.test(aiResponse)) {
+      const lang = /hola|buenos|gracias|por favor/i.test(aiResponse) ? 'es' :
+                   /hello|thank you|please/i.test(aiResponse) ? 'en' : 'pt';
+      if (meta.preferredLanguage !== lang) {
+        meta.preferredLanguage = lang;
+        updated = true;
+      }
+    }
+
+    // Salva última intenção para contexto futuro
+    meta.lastIntent = intent;
+    meta.lastInteractionAt = new Date().toISOString();
+    updated = true;
+
+    if (updated) {
+      await (db as any).guest.update({
+        where: { id: guestId },
+        data: { metadata: JSON.stringify(meta) },
+      });
+    }
+  } catch {
+    // Non-blocking
+  }
 }

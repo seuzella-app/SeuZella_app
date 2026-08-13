@@ -38,6 +38,33 @@ const INJECTION_PATTERNS: Array<{ regex: RegExp; severity: 'high' | 'critical'; 
   { regex: /\b(temperature|top_p|max_tokens|system_message|api_key|apiKey|openai|anthropic)\s*[:=]/i, severity: 'high', label: 'LEAK_CONFIG' },  
 ];
 
+
+// ── Padrões de conteúdo inapropriado ────────────────────────────────
+
+const INAPPROPRIATE_PATTERNS: Array<{ regex: RegExp; severity: 'medium' | 'high'; label: string }> = [
+  // Xingamentos / palavrões pesados
+  { regex: /\b(merd[ãa]|bost[ao]|porr[aa]|caralh[oo]|bucet[aa]|piriguet[ee]|vagabund[ao]|put[aa]|viad[ao]|boiol[aa]|arrombad[ao]|babac[ao]|ot[aá]ri[oo]|imbecil|idiota|est[uú]pid[ao])\b/i, severity: 'medium', label: 'INAPPROPRIATE_LANGUAGE' },
+  // Conteúdo sexual explícito
+  { regex: /\b(sexo|trans[ae]r|pelad[oa]|n[úu]d|safad[ao]|tarad[ao]|excitant[ee])\b/i, severity: 'high', label: 'SEXUAL_CONTENT' },
+  // Ameaças
+  { regex: /\b(vou\s*te\s*(matar|pegar|achar)|vou\s*(te\s*)?destruir|cuidado|amea[cç][ao])\b/i, severity: 'high', label: 'THREAT' },
+];
+
+// ── Padrões de scam/phishing ────────────────────────────────────────
+
+const SCAM_PATTERNS: Array<{ regex: RegExp; severity: 'high' | 'critical'; label: string }> = [
+  // Phishing de dados bancários
+  { regex: /\b(diga\s*(seu|o)\s*(cpf|cnpj|senha|cart[ãa]o|cvv|token|c[oó]digo|verifica[cç][ãa]o))\b/i, severity: 'critical', label: 'PHISHING_BANK' },
+  // Links suspeitos
+  { regex: /https?:\/\/(bit\.ly|tinyurl|t\.me|wa\.me\/\d)/i, severity: 'high', label: 'SUSPICIOUS_LINK' },
+  // Pedido de PIX para número diferente da pousada
+  { regex: /\b(pague\s*(no|para)|transfer?\s*(para|no)|pix\s*(para|no))\s*\d{10,}/i, severity: 'high', label: 'PIVOT_PAYMENT' },
+  // Golpe do "funcionário"
+  { regex: /\b(sou\s*(da|do)\s*(booking|airbnb|central|matriz)|funcion[aá]rio\s*(da|do)\s*(booking|airbnb|central))\b/i, severity: 'critical', label: 'IMPERSONATION' },
+  // Tentativa de reembolso forjado
+  { regex: /\b(reembols[oa]|estorn[ao]|devolu[cç][ãa]o).{0,30}(diferen[cç]a|errad[oa]|incorret[oa])\b/i, severity: 'high', label: 'FAKE_REFUND' },
+];
+
 // ── Heurísticas de urgência (para handover humano) ─────────────────
 
 const URGENCY_PATTERNS: RegExp[] = [  
@@ -98,6 +125,33 @@ function stripSuspiciousBlocks(msg: string): string {
   return cleaned;  
 }
 
+
+// ── Rate limiting por hóspede (30 msgs/hora) ───────────────────────
+
+const guestMessageCount = new Map<string, { count: number; windowStart: number }>();
+const GUEST_RATE_LIMIT_PER_HOUR = 30;
+const GUEST_RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hora
+
+export function checkGuestRateLimit(guestPhone: string): { allowed: boolean; remaining: number; resetInMs: number } {
+  const now = Date.now();
+  const entry = guestMessageCount.get(guestPhone);
+
+  if (!entry || (now - entry.windowStart) > GUEST_RATE_LIMIT_WINDOW_MS) {
+    guestMessageCount.set(guestPhone, { count: 1, windowStart: now });
+    return { allowed: true, remaining: GUEST_RATE_LIMIT_PER_HOUR - 1, resetInMs: GUEST_RATE_LIMIT_WINDOW_MS };
+  }
+
+  entry.count++;
+  const remaining = GUEST_RATE_LIMIT_PER_HOUR - entry.count;
+  const resetInMs = GUEST_RATE_LIMIT_WINDOW_MS - (now - entry.windowStart);
+
+  if (entry.count > GUEST_RATE_LIMIT_PER_HOUR) {
+    return { allowed: false, remaining: 0, resetInMs };
+  }
+
+  return { allowed: true, remaining, resetInMs };
+}
+
 // ── Função principal ─────────────────────────────────────────────────
 
 /**  
@@ -152,6 +206,22 @@ export function guardWhatsAppMessage(rawMessage: string): GuardrailResult {
         matchedPattern: match[0].substring(0, 100),  
       });  
     }  
+  }
+
+  // 4b. Detectar conteúdo inapropriado
+  for (const { regex, severity, label } of INAPPROPRIATE_PATTERNS) {
+    const match = normalized.match(regex);
+    if (match) {
+      alerts.push({ severity, label, matchedPattern: match[0].substring(0, 100) });
+    }
+  }
+
+  // 4c. Detectar scam/phishing
+  for (const { regex, severity, label } of SCAM_PATTERNS) {
+    const match = normalized.match(regex);
+    if (match) {
+      alerts.push({ severity, label, matchedPattern: match[0].substring(0, 100) });
+    }
   }
 
   // 5. Determinar se é seguro  
