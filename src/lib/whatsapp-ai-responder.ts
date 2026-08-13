@@ -6,6 +6,9 @@ import { getEffectivePlan } from './plan-resolver';
 import { recordMetaCost, checkMetaBudget, classifyMessageType, isWithinServiceWindow, getServiceWindowRemaining } from './meta-cost-guard';
 import { resolveGuest } from './bsuid-resolver';
 import { loadLearnedPatternsForPrompt, learnFromConversation, loadAntiPatternsForPrompt } from './brain/conversation-learner';
+import { detectUpsellIntent, generateUpsellMessage } from '@/lib/billing/upsell';
+import { detectCheckoutIntent, generateCheckoutConfirmation, handleCheckoutEvent } from '@/lib/housekeeping';
+import { extractGuestDataFromMessage, generateFNRHCollectionMessage } from '@/lib/fnrh';
 import { WhatsappPersonaLearner } from './brain/whatsapp-persona-learner';
 
 /**

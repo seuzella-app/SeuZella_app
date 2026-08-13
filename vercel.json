@@ -121,6 +121,18 @@
     {
       "path": "/api/cron/payment-confirmation",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/housekeeping-dispatch",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/ical-sync",
+      "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/caution-auto-return",
+      "schedule": "0 * * * *"
     }
   ]
 }

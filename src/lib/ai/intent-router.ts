@@ -4,6 +4,9 @@ import { getNeuroRouter } from './zaos-neuro-router';
 
 export type GuestIntent =
   | 'cotacao_reserva'
+  | 'upsell_servico'
+  | 'fnrh_registro'
+  | 'check_out_aviso'
   | 'reserva_direta'
   | 'suporte_tecnico'
   | 'info_geral'
