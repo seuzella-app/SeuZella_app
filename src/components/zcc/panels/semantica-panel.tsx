@@ -234,6 +234,35 @@ export function SemanticaPanel() {
     }
   };
 
+  // ── Export audit trail ──────────────────────────────────────────
+  const handleExport = async (format: 'prov-o' | 'csv') => {
+    try {
+      const res = await fetch(
+        `/api/zcc/semantica/export?tenantId=demo-tenant-001&format=${format}`,
+        { cache: 'no-store' }
+      );
+      if (!res.ok) throw new Error('Export failed');
+
+      const blob = await res.blob();
+      const ext = format === 'prov-o' ? 'ttl' : 'csv';
+      const filename = `zella-audit-${new Date().toISOString().slice(0, 10)}.${ext}`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Auditoria exportada (${format.toUpperCase()})`, {
+        description: filename,
+      });
+    } catch (err) {
+      toast.error('Erro ao exportar auditoria');
+    }
+  };
+
   const stats = {
     nodes: nodes.length,
     edges: edges.length,
@@ -272,6 +301,24 @@ export function SemanticaPanel() {
             >
               <Upload className="size-3" />
               Ingestar
+            </button>
+            <button
+              type="button"
+              onClick={() => handleExport('prov-o')}
+              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-400 hover:bg-emerald-500/20"
+              title="Exportar trilha de auditoria em RDF Turtle (W3C PROV-O)"
+            >
+              <FileText className="size-3" />
+              PROV-O
+            </button>
+            <button
+              type="button"
+              onClick={() => handleExport('csv')}
+              className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-400 hover:bg-amber-500/20"
+              title="Exportar decisões em CSV (Excel)"
+            >
+              <FileText className="size-3" />
+              CSV
             </button>
           </div>
         }

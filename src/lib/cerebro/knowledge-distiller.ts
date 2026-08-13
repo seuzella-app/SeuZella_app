@@ -27,6 +27,7 @@
 import { db } from '@/lib/db';
 import { logSink } from './log-sink';
 import { getCerebroMode } from './types';
+import { SemanticaClient } from '@/lib/semantica/client';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -154,6 +155,28 @@ export class KnowledgeDistiller {
         message: 'Falha ao arquivar chunks antigos',
         error: err,
       });
+    }
+
+    // ── 6. WRITE-PATH: Sincroniza padrões destilados no grafo Semantica ──
+    // Padrões recorrentes (3+ ocorrências) viram SUPERSEDES no grafo:
+    // a versão mais recente/específica sobrepõe a versão antiga/genérica.
+    // Isso garante que a IA nunca mais cometa o mesmo erro.
+    let graphEdgesCreated = 0;
+    if (SemanticaClient.isEnabled() && SemanticaClient.isConfigured()) {
+      for (const pattern of patterns) {
+        if (pattern.occurrences < MIN_OCCURRENCES_FOR_PATTERN) continue;
+        try {
+          graphEdgesCreated += await syncDistilledPatternToGraph(pattern);
+        } catch (err) {
+          // Erro silencioso — não bloqueia distillation
+          logSink.warn({
+            module: 'knowledge-distiller',
+            event: 'graphrag_sync_failed',
+            message: `Falha ao sincronizar padrão "${pattern.pattern}" no grafo`,
+            error: err,
+          });
+        }
+      }
     }
 
     const durationMs = Date.now() - startTime;
@@ -507,4 +530,111 @@ export function getKnowledgeDistiller(): KnowledgeDistiller {
     singleton = new KnowledgeDistiller();
   }
   return singleton;
+}
+
+// ============================================================================
+// WRITE-PATH: syncDistilledPatternToGraph
+// ============================================================================
+// Quando o distiller identifica um padrão recorrente (3+ ocorrências),
+// esta função cria uma aresta SUPERSEDES no grafo Semantica:
+//   - Cria um nó para o padrão destilado (RULE type)
+//   - Busca nós existentes que se sobrepõem semanticamente
+//   - Cria aresta SUPERSEDES do novo padrão para os nós antigos
+//   - Isso garante que em buscas futuras, o padrão destilado prevaleça
+//
+// Não-bloqueante: erros não afetam o cron de distillation.
+// ============================================================================
+
+async function syncDistilledPatternToGraph(pattern: DistilledKnowledge): Promise<number> {
+  if (!SemanticaClient.isEnabled() || !SemanticaClient.isConfigured()) {
+    return 0;
+  }
+
+  let edgesCreated = 0;
+
+  try {
+    // 1. Cria nó para o padrão destilado
+    const newNode = await SemanticaClient.addNode({
+      tenantId: (pattern.metadata as any)?.tenantId || 'default',
+      type: 'RULE',
+      name: `Padrão destilado: ${pattern.pattern.slice(0, 50)}`,
+      content: pattern.content,
+      provenance: {
+        source: 'distilled_knowledge',
+        sourceRef: `pattern:${pattern.source}:${Date.now()}`,
+        extractedBy: 'knowledge-distiller',
+      },
+      confidence: pattern.confidence,
+    });
+
+    logSink.info({
+      module: 'knowledge-distiller',
+      event: 'graphrag_node_created',
+      message: `Nó destilado criado: ${newNode.id} (${pattern.occurrences} ocorrências)`,
+      context: {
+        nodeId: newNode.id,
+        pattern: pattern.pattern,
+        occurrences: pattern.occurrences,
+        confidence: pattern.confidence,
+      },
+    });
+
+    // 2. Busca nós existentes que podem ser sobrepostos
+    // Em produção real, isso usaria busca semântica (PgVector) para encontrar nós similares
+    // Por ora, usamos hybridSearch com o pattern como query
+    try {
+      const tenantId = (pattern.metadata as any)?.tenantId || 'default';
+      const searchResult = await SemanticaClient.hybridSearch({
+        tenantId,
+        query: pattern.pattern,
+        hops: 1,
+        maxNodes: 3,
+        includeConflicts: false,
+        noCache: true,
+      });
+
+      // 3. Para cada nó encontrado (excluindo o que acabamos de criar),
+      // cria aresta SUPERSEDES indicando que o padrão destilado prevalece
+      for (const existingNode of searchResult.nodes) {
+        if (existingNode.id === newNode.id) continue;
+
+        try {
+          await SemanticaClient.addEdge({
+            tenantId,
+            sourceNodeId: newNode.id,
+            targetNodeId: existingNode.id,
+            relationType: 'SUPERSEDES',
+            priorityWeight: 10,
+            condition: `Padrão destilado de ${pattern.occurrences} ocorrências (${pattern.source})`,
+          });
+          edgesCreated++;
+
+          logSink.info({
+            module: 'knowledge-distiller',
+            event: 'graphrag_supersedes_edge_created',
+            message: `SUPERSEDES: ${newNode.id} → ${existingNode.id}`,
+            context: {
+              sourceNode: newNode.id,
+              targetNode: existingNode.id,
+              pattern: pattern.pattern,
+            },
+          });
+        } catch {
+          // Edge creation is best-effort
+        }
+      }
+    } catch {
+      // Search is best-effort
+    }
+
+    return edgesCreated;
+  } catch (err) {
+    logSink.warn({
+      module: 'knowledge-distiller',
+      event: 'graphrag_pattern_sync_failed',
+      message: `Falha ao criar nó/aresta para padrão: ${err instanceof Error ? err.message : String(err)}`,
+      context: { pattern: pattern.pattern },
+    });
+    return 0;
+  }
 }

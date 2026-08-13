@@ -626,6 +626,17 @@ const TELEMETRY_SEED: Array<Omit<TelemetryLine, 'id' | 'timestamp'>> = [
   { level: 'OK', module: 'orchestrator', message: 'Fallback para GLM-4.7-flash (cache miss + tier-1)' },
   { level: 'INFO', module: 'learning-engine', message: 'Novo padrão: "hóspede elogia café → upsell Premium"' },
   { level: 'OK', module: 'alert-bus', message: 'Alerta enviado dashboard · budget 24%' },
+  { level: 'INFO', module: 'graph-rag', message: 'GraphRAG hybridSearch iniciada · tenant=demo-001 query="check-in antecipado"' },
+  { level: 'OK', module: 'graph-rag', message: 'GraphRAG retornou 3 nós em 25ms (cache hit) · SUPERSEDES aplicado' },
+  { level: 'INFO', module: 'conversation-learner', message: 'Padrão aprendido → syncPatternToGraphRAG criou nó CHECKIN no grafo' },
+  { level: 'WARN', module: 'knowledge-distiller', message: '3 padrões recorrentes detectados → criando arestas SUPERSEDES no grafo' },
+  { level: 'OK', module: 'knowledge-distiller', message: '2 arestas SUPERSEDES criadas · grafo do tenant enriquecido' },
+  { level: 'INFO', module: 'cognitive-router', message: 'Decisão registrada (audit) · ID=d_a8f3 · category=guest_response' },
+  { level: 'OK', module: 'semantica', message: 'Apache AGE conectado · 247 nós · 38 arestas · 7 decisões no grafo' },
+  { level: 'INFO', module: 'semantica', message: 'Ontologia OWL carregada · 8 classes · 6 propriedades · 2 regras SHACL' },
+  { level: 'OK', module: 'graph-rag', message: 'Cache hit rate: 78% · cache size: 124 entries · LRU eviction: 3' },
+  { level: 'WARN', module: 'graph-rag', message: 'GraphRAG timeout (3000ms) → fallback para RAG vetorial ativado' },
+  { level: 'OK', module: 'semantica', message: 'LGPD forgetGuest executado · 3 nós marcados forgotten · 2 decisões anonimizadas' },
 ];
 
 const LEVEL_COLOR: Record<TelemetryLine['level'], string> = {
