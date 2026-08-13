@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { createReferralCode } from '@/lib/credits/engine';
 import type { ReferralChannel } from '@/lib/credits/rules';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 

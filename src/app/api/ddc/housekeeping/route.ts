@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { handleCheckoutEvent, markRoomClean, detectCheckoutIntent, generateCheckoutConfirmation } from '@/lib/housekeeping';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
  * GET /api/ddc/housekeeping?tenantId=xxx — Lista quartos com status de limpeza

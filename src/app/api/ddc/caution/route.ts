@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCaution, confirmCautionCollected, reportIncident, generateCautionMessage } from '@/lib/payments/caution';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {

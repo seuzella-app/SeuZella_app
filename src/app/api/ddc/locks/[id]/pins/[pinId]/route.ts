@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revokePin } from '@/lib/locks/orchestrator';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // DELETE /api/ddc/locks/[id]/pins/[pinId] — Revoga um PIN específico
 export async function DELETE(

@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import {
   getLockDevice,
   updateLockDevice,

@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import { captureDpoPair } from '@/lib/ml/dpo-collector';
 import { SemanticaClient } from '@/lib/semantica/client';
 import { logSink } from '@/lib/cerebro/log-sink';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
  * POST /api/ddc/dpo-capture

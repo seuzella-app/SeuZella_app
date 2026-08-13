@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { createFNRHRecord, updateFNRHData, verifyAndReleaseLock, extractGuestDataFromMessage, generateFNRHCollectionMessage } from '@/lib/fnrh';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
  * POST /api/ddc/guest-registration — Cria FNRH pendente

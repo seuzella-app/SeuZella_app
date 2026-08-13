@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { getCreditBalance } from '@/lib/credits/engine';
 import type { PlanTier } from '@/lib/plan-features';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 

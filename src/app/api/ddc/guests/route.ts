@@ -3,6 +3,9 @@ import { db, isDatabaseAvailable } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { resolveTenantId, mapGuest } from '@/lib/ddc/ddc-mapper';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const demoGuests = [
   { id: 'demo-g-1', name: 'Maria Silva', phoneNumber: '5511977665544', status: 'hot' as const, score: 92, propertyId: 'demo', messageCount: 8, value: 1500.00, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },

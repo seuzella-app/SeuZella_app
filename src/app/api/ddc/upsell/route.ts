@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { detectUpsellIntent, createUpsellOrder, confirmUpsellPayment, generateUpsellMessage, DEFAULT_UPSELL_ITEMS } from '@/lib/billing/upsell';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
  * GET /api/ddc/upsell — Lista itens disponíveis

@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import {
   type CommissionInput,
   type CommissionStatus,

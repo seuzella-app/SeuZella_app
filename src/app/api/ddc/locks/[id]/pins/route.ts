@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generatePin, listPins } from '@/lib/locks/orchestrator';
 import { calculatePinValidityWindow } from '@/lib/locks/pin-generator';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // GET /api/ddc/locks/[id]/pins — Lista PINs do dispositivo
 export async function GET(

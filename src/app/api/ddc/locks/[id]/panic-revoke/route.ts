@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { panicRevokeAllPins } from '@/lib/locks/orchestrator';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // POST /api/ddc/locks/[id]/panic-revoke — Revoga TODOS os PINs ativos (EMERGÊNCIA)
 export async function POST(

@@ -11,6 +11,7 @@ import { canAddProperty, getMaxProperties } from '@/lib/features';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { requireTenantId } from '@/lib/security/tenant-context';
+import { withApiGuard } from '@/lib/security/api-guard';
 
 // Demo tenant ID (in production, this would come from auth)
 const DEMO_TENANT_ID = 'demo';
