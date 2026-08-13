@@ -1,4 +1,25 @@
 import { db } from "@/lib/db";
+import { SemanticaClient, withFallback } from "@/lib/semantica/client";
+import { logSink } from "@/lib/cerebro/log-sink";
+
+/**
+ * GraphRAG — Thin wrapper que mantém a API legada (hybridGraphSearch)
+ * mas delega para o Semantica sidecar (Python/FastAPI).
+ *
+ * STRATEGY:
+ *   1. Se USE_SEMANTICA_GRAPH=true → chama SemanticaClient.hybridSearch()
+ *   2. Se Semantica falhar (timeout/5xx) → cai no fallback Prisma local
+ *   3. Se USE_SEMANTICA_GRAPH=false → usa só Prisma local (legado)
+ *
+ * Mantém assinatura antiga para não quebrar callers existentes
+ * (tests/graph-rag.test.ts e qualquer código que importe hybridGraphSearch).
+ *
+ * CAMINHO DOS DADOS:
+ *   Antes: graph-rag.ts → Prisma GraphNode/GraphEdge → fallback in-memory
+ *   Agora: graph-rag.ts → SemanticaClient → Python sidecar → Apache AGE
+ *                                ↓ (em caso de erro)
+ *                          Prisma GraphNode/GraphEdge → fallback in-memory
+ */
 
 export interface ContextNode {
   id: string;
@@ -14,9 +35,8 @@ export interface GraphEdgeDetail {
   targetContent: string;
 }
 
-/**
- * Adiciona um Nó ao Grafo de Conhecimento da Pousada.
- */
+// ── Legacy: addGraphNode/addGraphEdge (mantidos para testes) ─────────────
+
 export async function addGraphNode(params: {
   tenantId: string;
   entityType: 'RULE' | 'POLICY' | 'AMENITY' | 'CHECKIN';
@@ -26,6 +46,33 @@ export async function addGraphNode(params: {
   const { tenantId, entityType, name, content } = params;
   let id = `node_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
 
+  // ── Try Semantica first (if enabled) ──────────────────────────────
+  if (SemanticaClient.isEnabled() && SemanticaClient.isConfigured()) {
+    try {
+      const node = await SemanticaClient.addNode({
+        tenantId,
+        type: entityType,
+        name,
+        content,
+        provenance: {
+          source: 'manual',
+          extractedBy: 'graph-rag-legacy',
+        },
+        confidence: 0.8,
+      });
+      return {
+        id: node.id,
+        type: node.type,
+        name: node.name,
+        content: node.content,
+      };
+    } catch (err) {
+      console.warn('[GraphRAG] Semantica addNode failed, falling back to Prisma:', err);
+      // Continue to legacy fallback
+    }
+  }
+
+  // ── Legacy: persist in Prisma ─────────────────────────────────────
   try {
     if (db && (db as any).graphNode) {
       const record = await (db as any).graphNode.create({
@@ -40,9 +87,6 @@ export async function addGraphNode(params: {
   return { id, type: entityType, name, content };
 }
 
-/**
- * Adiciona uma Relação (Aresta) entre Nós do Grafo.
- */
 export async function addGraphEdge(params: {
   tenantId: string;
   sourceNodeId: string;
@@ -53,6 +97,23 @@ export async function addGraphEdge(params: {
   const { tenantId, sourceNodeId, targetNodeId, relationType, priorityWeight = 1 } = params;
   let id = `edge_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
 
+  // ── Try Semantica first ────────────────────────────────────────────
+  if (SemanticaClient.isEnabled() && SemanticaClient.isConfigured()) {
+    try {
+      const edge = await SemanticaClient.addEdge({
+        tenantId,
+        sourceNodeId,
+        targetNodeId,
+        relationType,
+        priorityWeight,
+      });
+      return edge.id;
+    } catch (err) {
+      console.warn('[GraphRAG] Semantica addEdge failed, falling back to Prisma:', err);
+    }
+  }
+
+  // ── Legacy: persist in Prisma ─────────────────────────────────────
   try {
     if (db && (db as any).graphEdge) {
       const record = await (db as any).graphEdge.create({
@@ -76,12 +137,67 @@ const RELATION_WEIGHTS: Record<string, number> = {
 
 /**
  * Motor de Busca Híbrida (Vetores + Traversal de Grafo) e Resolução de Contradições.
- * Aplica o Algoritmo Triplo Inteligente de Desempate:
- * 1. Priority Weight DESC
- * 2. Relation Precedence DESC (SUPERSEDES > FORBIDS > REQUIRES > OVERLAPS)
- * 3. Recência Temporal (createdAt DESC)
+ *
+ * CAMINHO PREFERIDO (USE_SEMANTICA_GRAPH=true):
+ *   1. Chama SemanticaClient.hybridSearch() (Python sidecar)
+ *   2. Retorna contexto grafo-resolvido com SUPERSEDES aplicado
+ *
+ * FALLBACK (USE_SEMANTICA_GRAPH=false OU erro no Semantica):
+ *   1. Consulta Prisma GraphNode/GraphEdge local
+ *   2. Aplica algoritmo Triplo Inteligente de Desempate
+ *   3. Fallback final: grafo em memória (dados demo)
+ *
+ * @param tenantId ID do tenant
+ * @param userQuery Mensagem/pergunta do hóspede
+ * @returns Contexto resolvido formatado para injetar no prompt do LLM
  */
 export async function hybridGraphSearch(
+  tenantId: string,
+  userQuery: string
+): Promise<string> {
+  // ── Caminho preferido: Semantica sidecar ────────────────────────────
+  if (SemanticaClient.isEnabled() && SemanticaClient.isConfigured()) {
+    try {
+      const result = await SemanticaClient.hybridSearch({
+        tenantId,
+        query: userQuery,
+        hops: 2,
+        maxNodes: 5,
+        includeConflicts: false,
+      });
+
+      logSink.info({
+        module: 'graph-rag',
+        event: 'semantica_search_success',
+        message: `Semantica retornou ${result.nodes.length} nós em ${result.searchMeta.latencyMs}ms`,
+        context: {
+          tenantId,
+          cacheHit: result.searchMeta.cacheHit,
+          source: result.searchMeta.source,
+        },
+      });
+
+      return result.resolvedContext;
+    } catch (err: any) {
+      logSink.warn({
+        module: 'graph-rag',
+        event: 'semantica_search_failed',
+        message: `Semantica falhou (${err.code || err.message}), usando fallback local`,
+        context: { tenantId, error: err.message },
+      });
+      // Continue to fallback
+    }
+  }
+
+  // ── FALLBACK: Prisma local + grafo em memória ──────────────────────
+  return legacyHybridGraphSearch(tenantId, userQuery);
+}
+
+/**
+ * Fallback legado: consulta Prisma GraphNode/GraphEdge local.
+ * Mantém o algoritmo Triplo Inteligente de Desempate original.
+ */
+async function legacyHybridGraphSearch(
   tenantId: string,
   userQuery: string
 ): Promise<string> {

@@ -347,7 +347,7 @@ export type ZccTabId =
   | "onboarding" | "live-agents" | "pulse-check"
   | "brain" | "brain-tests" | "refactors" | "sandbox" | "breakdown"
   | "airbnb" | "pousadas" | "burn-rate" | "tenants" | "geo"
-  | "tokens-ai";
+  | "tokens-ai" | "semantica";
 
 // ===== STATS =====
 

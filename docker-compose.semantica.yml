@@ -1,0 +1,76 @@
+# ============================================================================
+# ZÉLLA — Semantica Sidecar Dev Environment
+# ============================================================================
+# Rodar localmente sem VPS:
+#   docker compose -f docker-compose.semantica.yml up -d
+#
+# Serviços:
+#   - postgres-semantica: PostgreSQL 16 + AGE + PgVector (porta 5433)
+#   - semantica-sidecar: FastAPI Python (porta 7432)
+#
+# Em dev: SEMANTICA_MOCK_MODE=true (não conecta Postgres de verdade,
+# usa store em memória). Em prod: SEMANTICA_MOCK_MODE=false.
+# ============================================================================
+
+services:
+  # ── PostgreSQL 16 com extensões AGE + PgVector ────────────────────────
+  postgres-semantica:
+    image: postgis/postgis:16-3.4
+    container_name: seuzella-semantica-db
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5433:5432"  # 5433 p/ não conflitar com Postgres local
+    environment:
+      POSTGRES_USER: seuzella
+      POSTGRES_PASSWORD: seuzella_dev_2026
+      POSTGRES_DB: seuzella_semantica
+    volumes:
+      - semantica-postgres-data:/var/lib/postgresql/data
+      - ./deploy/semantica-sidecar/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seuzella"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Semantica Python Sidecar ─────────────────────────────────────────
+  semantica-sidecar:
+    build:
+      context: ./deploy/semantica-sidecar
+      dockerfile: Dockerfile
+    container_name: seuzella-semantica-sidecar
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7432:7432"  # Bind apenas localhost (Next.js chama via 127.0.0.1)
+    environment:
+      # ── Modo dev: mock store (não requer Postgres real) ──
+      SEMANTICA_MOCK_MODE: "true"
+      SEMANTICA_HOST: "0.0.0.0"
+      SEMANTICA_PORT: "7432"
+      SEMANTICA_WORKERS: "1"
+      SEMANTICA_RELOAD: "false"
+      # ── Auth (dev: desabilitada para testes locais) ──
+      SEMANTICA_REQUIRE_AUTH: "false"
+      SEMANTICA_API_KEY: "dev-key-zella-2026-not-for-production"
+      # ── Database (não usado em mock mode, mas configurado) ──
+      DATABASE_URL: "postgresql://seuzella:seuzella_dev_2026@postgres-semantica:5432/seuzella_semantica"
+      # ── Observabilidade ──
+      LOG_LEVEL: "INFO"
+      # SENTRY_DSN: "" # deixar vazio em dev
+    depends_on:
+      postgres-semantica:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:7432/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    volumes:
+      # Mount source para desenvolvimento (hot reload)
+      - ./deploy/semantica-sidecar:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 7432 --reload
+
+volumes:
+  semantica-postgres-data:
+    driver: local

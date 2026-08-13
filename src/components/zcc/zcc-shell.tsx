@@ -22,6 +22,7 @@ import { CerebroPanel } from "./panels/cerebro-panel";
 import { CerebroTestPanel } from "./panels/cerebro-test-panel";
 import { LiveAgentsPanel } from "./panels/live-agents-panel";
 import { TokensAIPanel } from "./panels/tokens-ai-panel";
+import { SemanticaPanel } from "./panels/semantica-panel";
 import { AirbnbPanel } from "./panels/airbnb-panel";
 import { PousadasPanel } from "./panels/pousadas-panel";
 import { GeoMetricsPanel } from "./panels/geo-panel";
@@ -109,6 +110,7 @@ const TAB_TITLES: Record<ZccTabId, string> = {
   tenants: "Tenants",
   geo: "Geo",
   "tokens-ai": "Tokens & IA",
+  semantica: "Semântica",
 };
 
 function GlobalKpiBar() {
@@ -355,6 +357,7 @@ export function ZccShell() {
 
             {/* CONFIGURAÇÃO / TIER 3 */}
             {tab === "tokens-ai" ? <TokensAIPanel /> : null}
+            {tab === "semantica" ? <SemanticaPanel /> : null}
           </div>
         </main>
       </div>

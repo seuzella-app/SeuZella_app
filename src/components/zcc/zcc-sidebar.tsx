@@ -25,6 +25,7 @@ import {
   FlaskRound,
   ChartColumn,
   Globe,
+  Network,
   type LucideIcon,
 } from "lucide-react";
 import type { ZccTabId } from "@/lib/zcc/types";
@@ -82,6 +83,7 @@ const OPS_NAV: NavItem[] = [
 const CONFIG_NAV: NavItem[] = [
   { id: "tokens-ai", label: "Tokens & IA", icon: KeyRound, description: "6 integrações", priority: 1 },
   { id: "brain-tests", label: "Testes Cérebro", icon: FlaskConical, description: "Validação", priority: 3 },
+  { id: "semantica", label: "Semântica", icon: Network, description: "GraphRAG + Decisões", priority: 2 },
 ];
 
 const PRIORITY_DOT: Record<1 | 2 | 3, string> = {
