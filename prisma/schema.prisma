@@ -129,6 +129,9 @@ model Tenant {
   // Zélla — Yield Booster (Lucro Extra Gerado pela IA)
   yieldProfitRecords YieldProfitRecord[]
 
+  // Zélla — Mobile Device Tracking (ZCC → /mobile/* monitoring)
+  mobileDevicePings MobileDevicePing[]
+
   // Zélla — Guia Digital Hóspede
   guestGuides       GuestGuide[]
 
@@ -2598,4 +2601,30 @@ model YieldProfitRecord {
   @@index([tenantId, isSpecialHoliday])
   @@index([tenantId, createdAt])
   @@map("yield_profit_records")
+}
+
+// ===== MOBILE DEVICE PING (Tracking de celulares plugados em /mobile/*) =====
+// Cada visita a /mobile/pousada ou /mobile/airbnb grava um "ping" aqui.
+// Sessão agrupada por deviceId (efêmero, sessionStorage no client).
+// LGPD compliant: nenhum dado pessoal coletado sem consentimento explícito.
+model MobileDevicePing {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenantName  String?  // nome amigável (do Tenant.name) — opcional
+
+  niche       String   // "pousada" | "airbnb"
+  deviceId    String   @unique // sessionStorage UUID (efêmero, ~30min)
+
+  userAgent   String?  @db.Text // apenas para parse de tipo de dispositivo
+  viewport    String?  // ex: "390x844"
+
+  firstSeen   DateTime @default(now())
+  lastSeen    DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, lastSeen])
+  @@index([niche, lastSeen])
+  @@index([lastSeen])
+  @@map("mobile_device_pings")
 }

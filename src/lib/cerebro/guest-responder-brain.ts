@@ -14,6 +14,11 @@ import { GlmCerebroService } from './glm-service';
 import { PONYTAIL_HUMAN_DIRECTIVE } from './zella-skills';
 import { filterPixFromResponse } from '@/lib/airb/gatekeeper';
 import { db } from '@/lib/db';
+import {
+  computeYieldCitationForStay,
+  summarizeCitationForWhatsApp,
+} from './yield-citation-hook';
+import { detectBrazilianHighSeasonHoliday } from '@/lib/ai/tools/dynamic-yield-engine';
 
 export type ResponseChannel = 'whatsapp' | 'airbnb_inbox' | 'web_chat';
 export type SectorNiche = 'pousada' | 'airbnb';
@@ -33,6 +38,12 @@ export interface GuestResponseParams {
     pixKey?: string;
     pixKeyType?: string;
     basePrice?: number;
+    /** Total de quartos do estabelecimento — necessário para cálculo de yield */
+    totalRooms?: number;
+    /** Quartos atualmente ocupados — para cálculo de ocupação */
+    occupiedRooms?: number;
+    /** Datas sugeridas (pacote) — quando o hóspede já mencionou datas */
+    inquiryDates?: Date[];
   };
 }
 
@@ -62,6 +73,49 @@ export class GuestResponderBrain {
     const propertyName = propertyContext?.name || (niche === 'pousada' ? 'Pousada' : 'Imóvel Airbnb');
     const city = propertyContext?.city || '';
     const nameStr = guestName ? ` (nome: ${guestName})` : '';
+
+    // 2.5 — Yield Citation Hook: se intenção é pricing, calcula preços dinâmicos ANTES
+    // de montar o prompt para que o LLM tenha valores reais (yield) para citar.
+    // Resultado aparece no prompt como contexto estruturado e em skillsTriggered.
+    let yieldCitationContext = '';
+    if (intent === 'pricing_inquiry' && propertyContext?.basePrice && propertyContext?.basePrice > 0) {
+      try {
+        const extractedDates = this.extractDatesFromMessage(messageContent);
+        const dates = extractedDates.length > 0
+          ? extractedDates
+          : (propertyContext.inquiryDates ?? []);
+
+        if (dates.length > 0) {
+          const yieldResponse = computeYieldCitationForStay({
+            baseDailyRate: propertyContext.basePrice,
+            totalRooms: propertyContext.totalRooms ?? 10,
+            occupiedRooms: propertyContext.occupiedRooms ?? 0,
+            dates,
+            autoDetectHoliday: true,
+          });
+
+          if (yieldResponse.calculations.length > 0) {
+            skillsTriggered.push('yield_dynamic_pricing');
+            yieldCitationContext = `\n=== PREÇO DINÂMICO CALCULADO PELO ZAOS YIELD ENGINE ===\n`;
+            yieldCitationContext += `Tarifa base cadastrada: R$ ${propertyContext.basePrice.toFixed(2)}/diária.\n`;
+            yieldCitationContext += yieldResponse.citations.join('\n');
+            yieldCitationContext += `\n${summarizeCitationForWhatsApp(dates, yieldResponse)}\n`;
+            if (yieldResponse.hasScarcityLock) {
+              yieldCitationContext += `\n⚠ Contexto: ESCASSEZ MÁXIMA (últimos quartos / véspera de feriado). Use este argumento na resposta ao hóspede.\n`;
+            } else if (yieldResponse.hasSurgeApplied) {
+              yieldCitationContext += `\n📊 Contexto: ALTA DEMANDA confirmada para as datas solicitadas.\n`;
+            }
+            yieldCitationContext += `\nIMPORTANTE: cite os valores acima EXATOS na sua resposta. Não invente números.\n`;
+          }
+        } else {
+          // Sem datas — apenas fornece tarifa base para o LLM
+          yieldCitationContext = `\n=== TARIFA BASE ===\nTarifa base: R$ ${propertyContext.basePrice.toFixed(2)}/diária. Peça as datas ao hóspede para calcular o valor exato (a IA pode reajustar por ocupação/demanda).\n`;
+        }
+      } catch (yieldErr) {
+        // Yield é best-effort — falha não bloqueia o atendimento
+        console.warn('[GuestResponderBrain] Yield citation falhou (atendimento continua):', yieldErr);
+      }
+    }
 
     let prompt = `=== CÉREBRO ZÉLLA — MOTOR DE ATENDIMENTO (${niche.toUpperCase()}) ===
 Você é o assistente inteligente da "${propertyName}"${nameStr} em ${city}.
@@ -104,6 +158,11 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
       }
     }
 
+    // Contexto de Yield (preços dinâmicos calculados)
+    if (yieldCitationContext) {
+      prompt += yieldCitationContext;
+    }
+
     prompt += `\nHóspede diz: "${messageContent}"\nSua resposta (direta, humana, sem floreios):`;
 
     // 3. Inferência via Cérebro Zélla GLM 5.2 / Zaos Neuro Router
@@ -113,10 +172,26 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
     try {
       const cerebroService = new GlmCerebroService();
       const analysis = await cerebroService.analyzeAnomalies([]);
-      rawResponse = analysis.summary || this.generateFallbackResponse(intent, niche, propertyName);
+      // Passa basePrice + yieldSummary (se houver) para o fallback ter dados reais
+      const yieldSummaryForFallback = yieldCitationContext
+        ? summarizeCitationForWhatsApp(
+            this.extractDatesFromMessage(messageContent),
+            computeYieldCitationForStay({
+              baseDailyRate: propertyContext?.basePrice ?? 0,
+              totalRooms: propertyContext?.totalRooms ?? 10,
+              occupiedRooms: propertyContext?.occupiedRooms ?? 0,
+              dates: this.extractDatesFromMessage(messageContent),
+            }),
+          )
+        : undefined;
+      rawResponse = analysis.summary || this.generateFallbackResponse(
+        intent, niche, propertyName, propertyContext?.basePrice, yieldSummaryForFallback,
+      );
     } catch (err) {
       console.warn('[GuestResponderBrain] Falha na inferência primária, aplicando fallback:', err);
-      rawResponse = this.generateFallbackResponse(intent, niche, propertyName);
+      rawResponse = this.generateFallbackResponse(
+        intent, niche, propertyName, propertyContext?.basePrice,
+      );
       provider = 'Fallback-Local';
     }
 
@@ -145,10 +220,23 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
 
   /**
    * Identifica a intenção principal da mensagem do hóspede.
+   * Cobertura ampla de variações brasileiras: "quanto fica", "quanto é",
+   * "quanto sai", "preço", "valor", "diária", "tarifa", "pacote".
    */
   private static detectIntent(message: string): string {
     const text = message.toLowerCase();
-    if (text.includes('preço') || text.includes('valor') || text.includes('diária') || text.includes('quanto custa')) {
+    // Pricing inquiry — variações brasileiras comuns
+    if (
+      text.includes('preço') || text.includes('preco') ||
+      text.includes('valor') || text.includes('diária') || text.includes('diaria') ||
+      text.includes('tarifa') || text.includes('pacote') ||
+      text.includes('quanto custa') || text.includes('quanto fica') ||
+      text.includes('quanto é') || text.includes('quanto e') ||
+      text.includes('quanto sai') || text.includes('quanto tá') ||
+      text.includes('quanto ta') || text.includes('qual o valor') ||
+      text.includes('qual valor') || text.includes('qual preço') ||
+      text.includes('qual preco')
+    ) {
       return 'pricing_inquiry';
     }
     if (text.includes('pix') || text.includes('pagar') || text.includes('pagamento') || text.includes('reserva')) {
@@ -167,11 +255,51 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
   }
 
   /**
-   * Resposta rápida de contingência em caso de falha da rede da IA.
+   * Extrai datas mencionadas na mensagem do hóspede (DD/MM ou DD-MM).
+   * Retorna até 4 datas no ano atual ou próximo, conforme contexto.
+   * Se não encontrar, retorna [] (caller decide se usa inquiryDates do propertyContext).
    */
-  private static generateFallbackResponse(intent: string, niche: SectorNiche, propertyName: string): string {
+  private static extractDatesFromMessage(message: string): Date[] {
+    const dates: Date[] = [];
+    // Padrão DD/MM ou DD-MM (ano assumido atual ou próximo)
+    const dateRegex = /(\d{1,2})\s*[/-]\s*(\d{1,2})(?:\s*[/-]\s*(\d{2,4}))?/g;
+    let match: RegExpExecArray | null;
+    while ((match = dateRegex.exec(message)) !== null && dates.length < 4) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10);
+      let year = match[3] ? parseInt(match[3], 10) : new Date().getFullYear();
+      if (year < 100) year += 2000;
+      if (month < 1 || month > 12 || day < 1 || day > 31) continue;
+      const d = new Date(year, month - 1, day);
+      if (!Number.isNaN(d.getTime())) {
+        // Se a data já passou neste ano, assume próximo ano (comum em reservas)
+        if (d.getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000) {
+          d.setFullYear(d.getFullYear() + 1);
+        }
+        dates.push(d);
+      }
+    }
+    return dates;
+  }
+
+  /**
+   * Resposta rápida de contingência em caso de falha da rede da IA.
+   * Aceita basePrice opcional para citar valor real quando disponível.
+   */
+  private static generateFallbackResponse(
+    intent: string,
+    niche: SectorNiche,
+    propertyName: string,
+    basePrice?: number,
+    yieldSummary?: string,
+  ): string {
     if (intent === 'pricing_inquiry') {
-      return `Olá! Nossas diárias na ${propertyName} começam a partir de R$ 450. Qual a data pretendida e quantas pessoas virão para eu confirmar a disponibilidade exata?`;
+      // Se temos yield calculado, usa o summary real
+      if (yieldSummary) return yieldSummary;
+      const baseLabel = basePrice && basePrice > 0
+        ? `a partir de R$ ${basePrice.toFixed(2).replace('.', ',')}`
+        : 'a partir de R$ 450,00';
+      return `Olá! Nossas diárias na ${propertyName} começam ${baseLabel}. Qual a data pretendida e quantas pessoas virão para eu confirmar a disponibilidade exata?`;
     }
     if (intent === 'checkin_info') {
       return `O check-in na ${propertyName} é realizado a partir das 14h. Se precisar de check-in antecipado, nos avise com antecedência!`;

@@ -29,6 +29,7 @@ const TENANT_MODELS = [
   'ReferralCode', 'AmortizationCredit', 'LiteMilestone',
   'GuestRegistration',
   'YieldProfitRecord',
+  'MobileDevicePing',
 ];
 
 const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'];

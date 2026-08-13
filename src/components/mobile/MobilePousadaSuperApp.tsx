@@ -10,6 +10,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useMobileDevicePing } from './useMobileDevicePing';
+import { MobileYieldProfitWidget } from './MobileYieldProfitWidget';
 import {
   LayoutGrid,
   Users,
@@ -59,6 +61,13 @@ import {
 
 export function MobilePousadaSuperApp() {
   const [activeTab, setActiveTab] = useState<'visao_geral' | 'hospedes' | 'central_zella' | 'whats_live' | 'mais'>('visao_geral');
+
+  // ZCC Mobile Device Tracking — registra visitas em /mobile/pousada
+  useMobileDevicePing({
+    niche: 'pousada',
+    tenantId: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_ID ?? 'demo-pousada' : 'demo-pousada',
+    tenantName: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_NAME : undefined,
+  });
 
   // Font Scale (Accessibility)
   const [fontScale, setFontScale] = useState<number>(() => {
@@ -336,6 +345,9 @@ export function MobilePousadaSuperApp() {
         {activeTab === 'visao_geral' && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             
+            {/* Yield Booster — Lucro Extra Gerado pela IA */}
+            <MobileYieldProfitWidget niche="pousada" />
+
             {/* Header com Nome da Pousada Cadastrada */}
             <div className="space-y-1.5">
               <h1 className="font-mono text-base font-extrabold text-white tracking-tight flex items-center gap-2">

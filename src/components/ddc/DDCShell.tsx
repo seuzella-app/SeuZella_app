@@ -56,6 +56,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MobileBottomNav } from './MobileBottomNav';
 import { DDCCommandPalette } from './DDCCommandPalette';
+import { YieldProfitWidget } from './YieldProfitWidget';
 import type { NicheType } from '@/contexts/NicheContext';
 import type { PlanTier } from '@/lib/plan-features';
 import { PLAN_DISPLAY } from '@/lib/plan-features';
@@ -738,6 +739,8 @@ export function DDCShell({
 
           {/* Page Content */}
           <main className="p-3 pb-24 md:p-6 md:pb-6 max-w-[1920px] mx-auto">
+            {/* Yield Booster — Lucro Extra Gerado pela IA (sempre visível no topo) */}
+            <YieldProfitWidget compact />
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}

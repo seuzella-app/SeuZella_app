@@ -14,6 +14,8 @@ import {
   Hotel,
   Flame,
   Wallet,
+  Smartphone,
+  MonitorSmartphone,
   // Tier 3 — Configuration (admin)
   KeyRound,
   // Sub-items executivos
@@ -71,6 +73,9 @@ const EXEC_NAV: NavItem[] = [
 const OPS_NAV: NavItem[] = [
   { id: "airbnb", label: "Airbnb", icon: Home, description: "Canal Airbnb", priority: 1 },
   { id: "pousadas", label: "Pousadas", icon: Hotel, description: "Canal Direto", priority: 1 },
+  { id: "mobile-pousada", label: "DDC Mobile Pousada", icon: Smartphone, description: "App mobile pousadeiro", priority: 2 },
+  { id: "mobile-airbnb", label: "DDC Mobile Airbnb", icon: Smartphone, description: "App mobile anfitrião", priority: 2 },
+  { id: "mobile-devices", label: "Mobile Devices", icon: MonitorSmartphone, description: "Celulares conectados", badge: "LIVE", priority: 1 },
   { id: "breakdown", label: "Breakdown", icon: ChartColumn, description: "Receita por fonte", priority: 2 },
   { id: "onboarding", label: "Onboarding", icon: ListChecks, description: "Tracker de clientes", priority: 2 },
   { id: "burn-rate", label: "Burn Rate", icon: Flame, description: "Runway", priority: 3 },

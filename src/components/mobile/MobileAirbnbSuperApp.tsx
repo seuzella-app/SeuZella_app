@@ -10,6 +10,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useMobileDevicePing } from './useMobileDevicePing';
+import { MobileYieldProfitWidget } from './MobileYieldProfitWidget';
 import {
   CreditCard,
   Users,
@@ -36,6 +38,14 @@ import {
 
 export function MobileAirbnbSuperApp() {
   const [activeTab, setActiveTab] = useState<'financeiro' | 'checkins' | 'shield' | 'linkinbio' | 'simulador'>('financeiro');
+
+  // ZCC Mobile Device Tracking — registra visitas em /mobile/airbnb
+  useMobileDevicePing({
+    niche: 'airbnb',
+    tenantId: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_ID ?? 'demo-airbnb' : 'demo-airbnb',
+    tenantName: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_NAME : undefined,
+  });
+
   const [propertyName, setPropertyName] = useState<string>('Flat Studio Jardins');
   const [aiActive, setAiActive] = useState<boolean>(true);
   const [pixShieldActive, setPixShieldActive] = useState<boolean>(true);
@@ -173,6 +183,9 @@ export function MobileAirbnbSuperApp() {
         {activeTab === 'financeiro' && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             
+            {/* Yield Booster — Lucro Extra Gerado pela IA */}
+            <MobileYieldProfitWidget niche="airbnb" />
+
             <div className="space-y-1.5">
               <h1 className="font-mono text-base font-extrabold text-white tracking-tight flex items-center gap-2">
                 <span className="text-cyan-400">&gt;</span> Dashboard do Anfitrião — {propertyName}
