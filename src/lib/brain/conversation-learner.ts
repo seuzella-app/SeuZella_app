@@ -25,6 +25,7 @@
 
 import { db } from '@/lib/db';
 import { SemanticaClient } from '@/lib/semantica/client';
+import { checkAndOptimizePrompts } from '@/lib/ml/brain-health-optimizer';
 import { logSink } from '@/lib/cerebro/log-sink';
 
 // ── Tipos ───────────────────────────────────────────────────────────
@@ -265,7 +266,17 @@ export async function learnFromConversation(
       result.details.push(`DECAY: ${decayResult.decayed} padrões sofreram decaimento por inatividade`);
     }
 
-    // 8. Atualizar contadores no AgentConfig
+    // ── 8. Brain Health Check: otimiza prompts se métricas indicarem problema ──
+    try {
+      const healthResult = await checkAndOptimizePrompts(tenantId);
+      if (healthResult.optimizationTriggered) {
+        result.details.push(`BRAIN HEALTH: ${healthResult.reason}`);
+      }
+    } catch {
+      // Brain health é best-effort — não bloqueia aprendizado
+    }
+
+    // 9. Atualizar contadores no AgentConfig
     await updateAgentConfigLearningStats(tenantId, result);
 
   } catch (error) {
