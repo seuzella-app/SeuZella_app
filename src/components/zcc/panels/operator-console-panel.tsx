@@ -520,8 +520,8 @@ export function OperatorConsolePanel() {
   return (
     <div className="flex h-full flex-col bg-background">
       <PanelHeader
-        title="Operator Console"
-        description="Command Center · decisão executiva em tempo real"
+        title="Sala de Guerra"
+        description="Central de Controle · decisão executiva em tempo real"
         icon={<LayoutDashboard className="size-5" />}
         actions={
           <div className="flex items-center gap-2">
@@ -588,7 +588,7 @@ export function OperatorConsolePanel() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-foreground">Mission Control</h2>
+                  <h2 className="text-xl font-bold text-foreground">Missão do Dia - Live</h2>
                   <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase text-emerald-400">
                     <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     {usingFallback ? "Mock" : "Live"}

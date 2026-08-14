@@ -373,7 +373,7 @@ export function ZccShell() {
               Zélla Central Control
             </strong>
             <span className="mx-1.5 opacity-50">·</span>
-            <span>Mission Control v5.0 · {new Date().getFullYear()}</span>
+            <span>Missão do Dia v5.0 · {new Date().getFullYear()}</span>
           </span>
         </div>
         <div className="flex items-center gap-3">
