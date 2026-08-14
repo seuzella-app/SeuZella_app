@@ -6,7 +6,6 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import type { Lead } from "@/lib/zcc/types";
-import { relativeTime } from "@/lib/zcc/mock-data";
 import {
   fetchPousadasBrasil,
   fetchPousadasConvertidasMock,
@@ -15,27 +14,22 @@ import {
 } from "@/lib/zcc/pousadas-brasil-data";
 
 /*
- * LiveLeadsMap — Sistema de 3 Cores com MarkerCluster (Malha Real)
+ * LiveLeadsMap v3 — MarkerCluster nativo (sem react-leaflet-cluster)
  * =================================================================
  *
- * MALHA LAT/LNG:
- *   - Cada pousada é plotada em SUA coordenada geográfica real (lat/lng do Brasil)
- *   - Validada por isValidCoord(): -35 < lat < 5, -75 < lng < -30 (bounds Brasil)
- *   - Markers sem coord válida NÃO são renderizados (elimina 'flutuando')
+ * CORREÇÃO DEFINITIVA:
+ *   O react-leaflet-cluster v4 tem bug com react-leaflet v5 — em zoom
+ *   alto (disableClusteringAtZoom), os markers somem do DOM. Esta versão
+ *   usa o leaflet.markercluster nativo via API direta (L.markerClusterGroup)
+ *   com useRef + useMap, sem depender do wrapper React.
  *
- * MARKERCLUSTER (malha invisível que organiza os markers):
- *   - Em zoom baixo (Brasil inteiro), markers próximos são agrupados em clusters
- *     (círculos azuis com número = "37 pousadas nesta região")
- *   - Em zoom alto (cidade), cada cluster se expande mostrando as pousadas individuais
- *   - Performance: 9.627 markers renderizados em Canvas, sem travar o browser
- *   - Visual: cada pousada fica NO LUGAR CERTO, sem empilhamento visual
- *
- * Sistema de 3 Cores:
- *   - VERDE   (#22c55e) = Pousada convertida (mock: top 8 HOT score≥95)
- *   - AMARELO (#facc15) = Pousada prospectada (9.627 da planilha)
- *   - AZUL    (#3b82f6) = Clique no anúncio (mock: 12 cliques)
- *
- * Bolinhas MENORES (versão anterior era 16px, agora 6px para prospectadas).
+ * Resultado:
+ *   - 9.627 pousadas plotadas em SUAS coordenadas reais (lat/lng da planilha)
+ *   - Em zoom baixo: agrupadas em clusters coloridos (50px radius)
+ *   - Em zoom médio: sub-clusters + markers individuais aparecem
+ *   - Em zoom alto: TODAS as 9.627 pousadas visíveis em suas posições reais
+ *   - Click em qualquer bolinha: popup com NOME + CIDADE + UF + WHATSAPP +
+ *     EMAIL + TIER + SCORE + QUARTOS + VALORES da pousada
  */
 
 const BRAZIL_CENTER: [number, number] = [-14.5, -52];
@@ -101,6 +95,7 @@ interface LeadMarker {
   sinaisIntencao?: string;
   localPraia?: string;
   whatsapp?: string;
+  email?: string;
 }
 
 interface LiveLeadsMapProps {
@@ -116,49 +111,119 @@ interface LiveLeadsMapProps {
   }) => void;
 }
 
-function leadCategory(lead: Lead): MarkerCategory {
-  if (lead.status === "convertido" || lead.converted) return "converted";
-  if (lead.tierSugerido || lead.roomsCount > 0) return "prospect";
-  return "click";
+function isValidCoord(lat: number, lng: number) {
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -35 && lat <= 5 &&
+    lng >= -75 && lng <= -30
+  );
 }
 
-function leadToMarker(lead: Lead): LeadMarker {
-  const l = lead as any;
-  return {
-    id: l.id,
-    lat: l.latitude ?? l.lat ?? -14.5,
-    lng: l.longitude ?? l.lng ?? -52,
-    category: leadCategory(lead),
-    nome: l.pousada || l.empresa || l.name || "Pousada",
-    cidade: l.cidade || l.city || "",
-    uf: l.uf || l.state || "",
-    tier: l.tierSugerido || l.leadTier || l.tier,
-    funnel: l.funnelStage || l.funnel || l.cluster,
-    score: l.scoreQual ?? l.avgScore ?? l.scoreValid ?? l.score,
-    qtdQuartos: l.qtdQuartos ?? l.roomsCount ?? 0,
-    valores: l.valoresEstimados ?? l.estimatedValues ?? undefined,
-    sinaisIntencao: l.sinaisIntencao ?? l.intentSignals ?? undefined,
-    localPraia: l.localPraia ?? undefined,
-    whatsapp: l.whatsapp ?? l.phone ?? undefined,
-  };
+/** Helper: cria o HTML do ícone da bolinha (com cor/tamanho/estrela). */
+function markerIconHTML(category: MarkerCategory, isSelected: boolean): string {
+  const style = CATEGORY_STYLE[category];
+  const size = isSelected ? style.selectedSize : style.size;
+  const hex = style.color;
+  const pulseRing = style.hasPulse;
+  const star = style.hasStar;
+
+  return `
+    <div class="zcc-marker-wrap" style="--marker-color: ${hex};">
+      ${pulseRing ? `<span class="zcc-marker-pulse" style="background: ${hex};"></span>` : ""}
+      <span class="zcc-marker-dot" style="
+        background: ${hex};
+        width: ${size}px;
+        height: ${size}px;
+        ${isSelected
+          ? `box-shadow: 0 0 0 3px ${hex}55, 0 0 12px ${hex};`
+          : `box-shadow: 0 0 0 1px #0a0a0a99;`
+        }
+      ">
+        ${star ? `<svg class="zcc-marker-star" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : ""}
+      </span>
+    </div>
+  `;
+}
+
+/** Helper: gera o conteúdo HTML do popup com TODOS os dados da pousada. */
+function popupHTML(marker: LeadMarker): string {
+  const style = CATEGORY_STYLE[marker.category];
+
+  // Monta dados completos da pousada
+  const localText = `${marker.cidade}/${marker.uf}${marker.localPraia ? ` · ${marker.localPraia}` : ""}`;
+  const scoreBlock = marker.score !== undefined ? `
+    <div>
+      <p style="margin:0;font-size:10px;color:#94a3b8;">Score</p>
+      <p style="margin:0;font-weight:700;color:${style.color};">${marker.score}</p>
+    </div>` : "";
+
+  const tierBlock = marker.tier ? `
+    <div>
+      <p style="margin:0;font-size:10px;color:#94a3b8;">Tier</p>
+      <p style="margin:0;font-weight:600;">${marker.tier}</p>
+    </div>` : "";
+
+  const quartosBlock = marker.qtdQuartos && marker.qtdQuartos > 0 ? `
+    <div>
+      <p style="margin:0;font-size:10px;color:#94a3b8;">Quartos</p>
+      <p style="margin:0;font-weight:600;">${marker.qtdQuartos}</p>
+    </div>` : "";
+
+  const valoresBlock = marker.valores ? `
+    <p style="margin:8px 0 0;font-size:11px;color:#34d399;">${marker.valores}</p>` : "";
+
+  const sinaisBlock = marker.sinaisIntencao ? `
+    <p style="margin:6px 0 0;font-size:11px;color:#fbbf24;">★ ${marker.sinaisIntencao}</p>` : "";
+
+  // Bloco de contato — sempre presente com WhatsApp + Email
+  const contatoItems = [];
+  if (marker.whatsapp) {
+    contatoItems.push(`<span style="display:inline-block;background:#25D36622;color:#25D366;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:2px 4px 2px 0;">📱 WhatsApp: ${marker.whatsapp}</span>`);
+  }
+  if (marker.email) {
+    contatoItems.push(`<span style="display:inline-block;background:#3b82f622;color:#60a5fa;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:2px 4px 2px 0;">✉ ${marker.email}</span>`);
+  }
+  const contatoBlock = contatoItems.length > 0 ? `
+    <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);">
+      <p style="margin:0 0 4px;font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Contato</p>
+      <div>${contatoItems.join("")}</div>
+    </div>` : "";
+
+  // Coordenadas (footer para auditoria)
+  const coordBlock = `
+    <p style="margin:8px 0 0;font-size:9px;color:#64748b;">
+      Lat/Lng: ${marker.lat.toFixed(5)}, ${marker.lng.toFixed(5)} · ID: ${marker.id}
+    </p>`;
+
+  return `
+    <div style="min-width:240px;max-width:280px;font-family:system-ui,-apple-system,sans-serif;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <p style="margin:0;font-size:13px;font-weight:600;color:#f1f5f9;line-height:1.3;">${marker.nome}</p>
+        <span style="background:${style.color}22;color:${style.color};padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;text-transform:uppercase;flex-shrink:0;">${style.label}</span>
+      </div>
+      <p style="margin:2px 0 0;font-size:11px;color:#94a3b8;">${localText}</p>
+      ${sinaisBlock}
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;font-size:10px;">
+        ${scoreBlock}${tierBlock}${quartosBlock}
+      </div>
+      ${valoresBlock}
+      ${contatoBlock}
+      ${coordBlock}
+    </div>
+  `;
 }
 
 function LeafletMapInner({
-  leads,
   selectedLeadId,
-  onSelectLead,
   activeFilter,
   onPousadasLoaded,
 }: LiveLeadsMapProps) {
   const [LeafletMods, setLeafletMods] = React.useState<{
     MapContainer: typeof import("react-leaflet").MapContainer;
     TileLayer: typeof import("react-leaflet").TileLayer;
-    Marker: typeof import("react-leaflet").Marker;
-    Popup: typeof import("react-leaflet").Popup;
-    Tooltip: typeof import("react-leaflet").Tooltip;
     useMap: typeof import("react-leaflet").useMap;
     L: typeof import("leaflet");
-    MarkerClusterGroup: any;
   } | null>(null);
 
   React.useEffect(() => {
@@ -166,20 +231,14 @@ function LeafletMapInner({
     Promise.all([
       import("react-leaflet"),
       import("leaflet"),
-      // react-leaflet-cluster exporta default em runtime
-      import("react-leaflet-cluster") as any,
-    ]).then(([rl, L, clusterMod]: any) => {
+      import("leaflet.markercluster"),
+    ]).then(([rl, L]) => {
       if (!mounted) return;
-      const ClusterGroup = clusterMod.default || clusterMod.MarkerClusterGroup || clusterMod;
       setLeafletMods({
         MapContainer: rl.MapContainer,
         TileLayer: rl.TileLayer,
-        Marker: rl.Marker,
-        Popup: rl.Popup,
-        Tooltip: rl.Tooltip,
         useMap: rl.useMap,
         L: L.default,
-        MarkerClusterGroup: ClusterGroup,
       });
     });
     return () => {
@@ -209,19 +268,10 @@ function LeafletMapInner({
   }, [onPousadasLoaded]);
 
   // ── Marcadores a renderizar ──
-  // USA APENAS as 9.627 pousadas da planilha com lat/lng reais e jitter aplicado.
-  // Os `leads` do ZCC (37 mocks) NÃO são mostrados no mapa (dados de teste).
   const markers: LeadMarker[] = React.useMemo(() => {
     if (!planilhaData) return [];
 
     const result: LeadMarker[] = [];
-
-    // Helper: valida se lat/lng estão dentro do Brasil (elimina markers flutuando)
-    const isValidCoord = (lat: number, lng: number) =>
-      Number.isFinite(lat) &&
-      Number.isFinite(lng) &&
-      lat >= -35 && lat <= 5 &&
-      lng >= -75 && lng <= -30;
 
     // 1. PROSPECTADAS (AMARELO) — todas as 9.627 da planilha
     for (const p of planilhaData.prospectadas) {
@@ -242,6 +292,7 @@ function LeafletMapInner({
         sinaisIntencao: p.sinaisIntencao,
         localPraia: p.localPraia,
         whatsapp: p.whatsapp,
+        email: p.email,
       });
     }
 
@@ -253,21 +304,12 @@ function LeafletMapInner({
         existing.category = "converted";
       } else {
         result.push({
-          id: p.id,
-          lat: p.lat,
-          lng: p.lng,
-          category: "converted",
-          nome: p.nome,
-          cidade: p.cidade,
-          uf: p.uf,
-          tier: p.tier,
-          funnel: p.funnel,
-          score: p.score,
-          qtdQuartos: p.qtdQuartos,
-          valores: p.valores,
-          sinaisIntencao: p.sinaisIntencao,
-          localPraia: p.localPraia,
-          whatsapp: p.whatsapp,
+          id: p.id, lat: p.lat, lng: p.lng, category: "converted",
+          nome: p.nome, cidade: p.cidade, uf: p.uf,
+          tier: p.tier, funnel: p.funnel, score: p.score,
+          qtdQuartos: p.qtdQuartos, valores: p.valores,
+          sinaisIntencao: p.sinaisIntencao, localPraia: p.localPraia,
+          whatsapp: p.whatsapp, email: p.email,
         });
       }
     }
@@ -276,73 +318,23 @@ function LeafletMapInner({
     for (const p of planilhaData.cliques) {
       if (!isValidCoord(p.lat, p.lng)) continue;
       result.push({
-        id: p.id,
-        lat: p.lat,
-        lng: p.lng,
-        category: "click",
-        nome: p.nome,
-        cidade: p.cidade,
-        uf: p.uf,
-        tier: p.tier,
-        funnel: p.funnel,
-        score: p.score,
-        qtdQuartos: p.qtdQuartos,
-        valores: p.valores,
-        sinaisIntencao: p.sinaisIntencao,
-        localPraia: p.localPraia,
-        whatsapp: p.whatsapp,
+        id: p.id, lat: p.lat, lng: p.lng, category: "click",
+        nome: p.nome, cidade: p.cidade, uf: p.uf,
+        tier: p.tier, funnel: p.funnel, score: p.score,
+        qtdQuartos: p.qtdQuartos, valores: p.valores,
+        sinaisIntencao: p.sinaisIntencao, localPraia: p.localPraia,
+        whatsapp: p.whatsapp, email: p.email,
       });
     }
 
     return result;
   }, [planilhaData]);
 
-  // Aplica filtro de categoria (verde/amarelo/azul)
+  // Aplica filtro de categoria
   const filteredMarkers = React.useMemo(() => {
     if (!activeFilter) return markers;
     return markers.filter(m => m.category === activeFilter);
   }, [markers, activeFilter]);
-
-  const selectedMarker = React.useMemo(
-    () => filteredMarkers.find(m => m.id === selectedLeadId) ?? null,
-    [filteredMarkers, selectedLeadId]
-  );
-
-  // Memoiza ícones para não recriar a cada render
-  const iconFor = React.useCallback(
-    (marker: LeadMarker, highlighted: boolean) => {
-      if (!LeafletMods?.L) return null;
-      const style = CATEGORY_STYLE[marker.category];
-      const size = highlighted ? style.selectedSize : style.size;
-      const hex = style.color;
-      const pulseRing = style.hasPulse;
-      const star = style.hasStar;
-
-      return LeafletMods.L.divIcon({
-        className: "zcc-lead-marker zcc-lead-marker--" + marker.category,
-        html: `
-          <div class="zcc-marker-wrap" style="--marker-color: ${hex};">
-            ${pulseRing ? `<span class="zcc-marker-pulse" style="background: ${hex};"></span>` : ""}
-            <span class="zcc-marker-dot" style="
-              background: ${hex};
-              width: ${size}px;
-              height: ${size}px;
-              ${highlighted
-                ? `box-shadow: 0 0 0 3px ${hex}55, 0 0 12px ${hex};`
-                : `box-shadow: 0 0 0 1px #0a0a0a99;`
-              }
-            ">
-              ${star ? `<svg class="zcc-marker-star" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : ""}
-            </span>
-          </div>
-        `,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
-        popupAnchor: [0, -size / 2],
-      });
-    },
-    [LeafletMods]
-  );
 
   if (!LeafletMods) {
     return (
@@ -355,79 +347,7 @@ function LeafletMapInner({
     );
   }
 
-  const {
-    MapContainer,
-    TileLayer,
-    Marker,
-    Popup,
-    Tooltip,
-    useMap,
-    L,
-    MarkerClusterGroup,
-  } = LeafletMods;
-
-  /** Componente que centraliza o mapa num lead específico. */
-  const FlyToSelected = ({ marker, zoom }: { marker: LeadMarker | null; zoom?: number }) => {
-    const map = useMap();
-    React.useEffect(() => {
-      if (marker) {
-        map.flyTo([marker.lat, marker.lng], zoom ?? 12, { duration: 0.8 });
-      }
-    }, [marker, map, zoom]);
-    return null;
-  };
-
-  /** Componente que invalida o tamanho do mapa quando o container muda. */
-  const ResizeHandler = () => {
-    const map = useMap();
-    React.useEffect(() => {
-      const t = setTimeout(() => map.invalidateSize(), 200);
-      return () => clearTimeout(t);
-    }, [map]);
-    return null;
-  };
-
-  /**
-   * Customiza a aparência dos clusters.
-   * Cluster = agrupamento de markers próximos em zoom baixo.
-   * Cor do cluster = cor da categoria dominante dentro dele.
-   */
-  const clusterIcon = (cluster: any) => {
-    const count = cluster.getChildCount();
-    // Conta categorias dentro do cluster
-    const children = cluster.getAllChildMarkers();
-    const categories = children.map((m: any) => m.options.category as MarkerCategory);
-    const dominant = categories.sort((a: string, b: string) =>
-      categories.filter((v: string) => v === a).length -
-      categories.filter((v: string) => v === b).length
-    )[0] || "prospect";
-    const style = CATEGORY_STYLE[dominant as MarkerCategory];
-    const size = count > 100 ? 44 : count > 10 ? 36 : 28;
-
-    return L.divIcon({
-      html: `
-        <div class="zcc-cluster zcc-cluster--${dominant}" style="
-          background: radial-gradient(circle at center, ${style.color} 0%, ${style.color}cc 60%, ${style.color}88 100%);
-          width: ${size}px;
-          height: ${size}px;
-          border: 2px solid white;
-          box-shadow: 0 0 0 1px ${style.color}, 0 2px 8px rgba(0,0,0,0.4);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 700;
-          font-size: ${count > 99 ? '10px' : '12px'};
-          font-family: 'JetBrains Mono', monospace;
-        ">
-          ${count > 99 ? '99+' : count}
-        </div>
-      `,
-      className: "zcc-cluster-icon",
-      iconSize: L.point(size, size),
-    });
-  };
+  const { MapContainer, TileLayer, useMap, L } = LeafletMods;
 
   return (
     <MapContainer
@@ -458,135 +378,14 @@ function LeafletMapInner({
       />
 
       <ResizeHandler />
-      <FlyToSelected marker={selectedMarker} />
+      <FlyToSelected selectedLeadId={selectedLeadId} markers={filteredMarkers} />
 
-      {/*
-       * MARKERCLUSTER GROUP — malha invisível que organiza os markers:
-       *   - Em zoom baixo: 9.627 markers viram ~150-300 clusters (círculos numerados)
-       *     Cada cluster mostra a contagem (ex: "37" = 37 pousadas nesta região)
-       *   - Em zoom médio: clusters se expandem em sub-clusters
-       *   - Em zoom alto: cada pousada aparece em sua posição individual
-       *   - Spiderfy: se 2+ markers têm EXATAMENTE a mesma coord, abrem em espiral
-       *
-       * Configurações:
-       *   - showCoverageOnHover: false (não mostra bounds ao hover)
-       *   - spiderfyOnMaxZoom: true (abre espiral quando máximo zoom ainda agrupa)
-       *   - maxClusterRadius: 50 (raio em pixels para agrupar)
-       *   - disableClusteringAtZoom: 14 (em zoom >= 14, mostra todos individuais)
-       *   - chunkedLoading: true (carrega em chunks para não travar)
-       */
-      filteredMarkers.length > 0 && (
-        <MarkerClusterGroup
-          showCoverageOnHover={false}
-          spiderfyOnMaxZoom={true}
-          spiderfyDistanceMultiplier={2}
-          maxClusterRadius={50}
-          disableClusteringAtZoom={14}
-          chunkedLoading={true}
-          iconCreateFunction={clusterIcon}
-          polygonOptions={{
-            color: "#3b82f6",
-            weight: 1,
-            opacity: 0.3,
-            fillOpacity: 0.05,
-          }}
-        >
-          {filteredMarkers.map((marker) => {
-            const isSelected = marker.id === selectedLeadId;
-            const icon = iconFor(marker, isSelected);
-            if (!icon) return null;
-            const style = CATEGORY_STYLE[marker.category];
-            return (
-              <Marker
-                key={marker.id}
-                position={[marker.lat, marker.lng]}
-                icon={icon}
-                {...({ category: marker.category, markerId: marker.id } as any)}
-                eventHandlers={{
-                  click: () => {
-                    const lead = leads.find(l => l.id === marker.id);
-                    if (lead) onSelectLead?.(lead);
-                  },
-                }}
-                zIndexOffset={isSelected ? 2000 : style.zIndex}
-              >
-                <Popup closeButton={false} offset={[0, -8]} maxWidth={260}>
-                  <div className="min-w-[220px] rounded-md border border-border bg-popover p-2.5 text-foreground">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-[13px] font-semibold leading-tight">
-                        {marker.nome}
-                      </p>
-                      <span
-                        className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase"
-                        style={{
-                          background: `${style.color}22`,
-                          color: style.color,
-                        }}
-                      >
-                        {style.label}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      {marker.cidade}/{marker.uf}{marker.localPraia ? ` · ${marker.localPraia}` : ""}
-                    </p>
-
-                    {marker.sinaisIntencao ? (
-                      <p className="mt-1 text-[11px] text-amber-300">
-                        ★ {marker.sinaisIntencao}
-                      </p>
-                    ) : null}
-
-                    <div className="mt-1.5 grid grid-cols-3 gap-1.5 text-[10px]">
-                      {marker.score !== undefined && (
-                        <div>
-                          <p className="text-muted-foreground">Score</p>
-                          <p className="font-bold" style={{ color: style.color }}>
-                            {marker.score}
-                          </p>
-                        </div>
-                      )}
-                      {marker.tier && (
-                        <div>
-                          <p className="text-muted-foreground">Tier</p>
-                          <p className="font-semibold">{marker.tier}</p>
-                        </div>
-                      )}
-                      {marker.qtdQuartos !== undefined && marker.qtdQuartos > 0 && (
-                        <div>
-                          <p className="text-muted-foreground">Quartos</p>
-                          <p className="font-semibold">{marker.qtdQuartos}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {marker.valores && (
-                      <p className="mt-1.5 text-[11px] text-emerald-300">
-                        {marker.valores}
-                      </p>
-                    )}
-
-                    {marker.whatsapp && (
-                      <p className="mt-1 text-[10px] text-muted-foreground/70">
-                        WhatsApp: {marker.whatsapp}
-                      </p>
-                    )}
-
-                    <p className="mt-1.5 text-[9px] text-muted-foreground/70">
-                      Coordenadas: {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)} · ID: {marker.id}
-                    </p>
-                  </div>
-                </Popup>
-                <Tooltip direction="top" offset={[0, -8]} opacity={1}>
-                  <span className="text-[11px] font-semibold">{marker.nome}</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {" "}— {marker.cidade}/{marker.uf}
-                  </span>
-                </Tooltip>
-              </Marker>
-            );
-          })}
-        </MarkerClusterGroup>
-      )}
+      {/* MarkerClusterGroup via API nativa do leaflet.markercluster */}
+      <ClusterLayer
+        L={L}
+        markers={filteredMarkers}
+        selectedLeadId={selectedLeadId}
+      />
 
       <ZoomControlsInner />
     </MapContainer>
@@ -594,23 +393,259 @@ function LeafletMapInner({
 }
 
 /**
+ * ClusterLayer — Componente que cria e gerencia o MarkerClusterGroup
+ * nativo do leaflet.markercluster (sem react-leaflet-cluster).
+ *
+ * Vantagens:
+ *   - Mais estável: usa API nativa, sem wrapper React com bugs
+ *   - Markers NÃO somem ao fazer zoom (problema do react-leaflet-cluster v4)
+ *   - Em disableClusteringAtZoom, markers individuais aparecem com popup completo
+ */
+function ClusterLayer({
+  L,
+  markers,
+  selectedLeadId,
+}: {
+  L: typeof import("leaflet");
+  markers: LeadMarker[];
+  selectedLeadId?: string | null;
+}) {
+  const useMap = React.useMemo(() => {
+    // Importa useMap dinamicamente
+    // (já foi carregado no parent LeafletMapInner, mas precisamos de acesso ao map)
+    return null;
+  }, []);
+
+  // Acesso ao map via hook useMap (importado em runtime)
+  const [useMapHook, setUseMapHook] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    import("react-leaflet").then((rl) => setUseMapHook(() => rl.useMap));
+  }, []);
+
+  if (!useMapHook) return null;
+
+  return (
+    <ClusterLayerInner
+      L={L}
+      markers={markers}
+      selectedLeadId={selectedLeadId}
+      useMap={useMapHook}
+    />
+  );
+}
+
+function ClusterLayerInner({
+  L,
+  markers,
+  selectedLeadId,
+  useMap,
+}: {
+  L: typeof import("leaflet");
+  markers: LeadMarker[];
+  selectedLeadId?: string | null;
+  useMap: typeof import("react-leaflet").useMap;
+}) {
+  const map = useMap();
+  const clusterGroupRef = React.useRef<any>(null);
+
+  // Cria o cluster group uma vez
+  React.useEffect(() => {
+    const clusterGroup = (L as any).markerClusterGroup({
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      spiderfyDistanceMultiplier: 2,
+      maxClusterRadius: 50,
+      disableClusteringAtZoom: 14,
+      chunkedLoading: true,
+      iconCreateFunction: (cluster: any) => {
+        const count = cluster.getChildCount();
+        const children = cluster.getAllChildMarkers();
+        // Categoria dominante
+        const cats = children.map((m: any) => m.options.category as MarkerCategory);
+        const counts: Record<string, number> = {};
+        for (const c of cats) counts[c] = (counts[c] || 0) + 1;
+        const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || "prospect";
+        const style = CATEGORY_STYLE[dominant as MarkerCategory];
+        const size = count > 100 ? 44 : count > 10 ? 36 : 28;
+
+        return (L as any).divIcon({
+          html: `
+            <div class="zcc-cluster zcc-cluster--${dominant}" style="
+              background: radial-gradient(circle at center, ${style.color} 0%, ${style.color}cc 60%, ${style.color}88 100%);
+              width: ${size}px;
+              height: ${size}px;
+              border: 2px solid white;
+              box-shadow: 0 0 0 1px ${style.color}, 0 2px 8px rgba(0,0,0,0.4);
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: 700;
+              font-size: ${count > 99 ? '10px' : '12px'};
+              font-family: 'JetBrains Mono', monospace;
+            ">
+              ${count > 99 ? '99+' : count}
+            </div>
+          `,
+          className: "zcc-cluster-icon",
+          iconSize: (L as any).point(size, size),
+        });
+      },
+      polygonOptions: {
+        color: "#3b82f6",
+        weight: 1,
+        opacity: 0.3,
+        fillOpacity: 0.05,
+      },
+    });
+
+    clusterGroupRef.current = clusterGroup;
+    map.addLayer(clusterGroup);
+
+    return () => {
+      map.removeLayer(clusterGroup);
+      clusterGroupRef.current = null;
+    };
+  }, [L, map]);
+
+  // Atualiza markers quando mudam (add/remove)
+  React.useEffect(() => {
+    const clusterGroup = clusterGroupRef.current;
+    if (!clusterGroup) return;
+
+    // Limpa markers antigos
+    clusterGroup.clearLayers();
+
+    // Cria novos markers com popup completo
+    const newMarkers: any[] = [];
+    for (const marker of markers) {
+      if (!isValidCoord(marker.lat, marker.lng)) continue;
+
+      const isSelected = marker.id === selectedLeadId;
+      const style = CATEGORY_STYLE[marker.category];
+      const size = isSelected ? style.selectedSize : style.size;
+
+      const icon = (L as any).divIcon({
+        className: "zcc-lead-marker zcc-lead-marker--" + marker.category,
+        html: markerIconHTML(marker.category, isSelected),
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+        popupAnchor: [0, -size / 2],
+      });
+
+      const m = (L as any).marker([marker.lat, marker.lng], {
+        icon,
+        category: marker.category,
+        markerId: marker.id,
+        zIndexOffset: isSelected ? 2000 : style.zIndex,
+      });
+
+      // Popup COMPLETO com todos os dados da pousada
+      m.bindPopup(popupHTML(marker), {
+        closeButton: false,
+        offset: [0, -8],
+        maxWidth: 300,
+      });
+
+      // Tooltip no hover (mostra nome rápido)
+      m.bindTooltip(
+        `<span style="font-size:11px;font-weight:600;">${marker.nome}</span><span style="font-size:10px;color:#94a3b8;"> — ${marker.cidade}/${marker.uf}</span>`,
+        { direction: "top", offset: [0, -8], opacity: 1 }
+      );
+
+      newMarkers.push(m);
+    }
+
+    // Adiciona ao cluster group de uma vez (performance)
+    if (newMarkers.length > 0) {
+      clusterGroup.addLayers(newMarkers);
+    }
+  }, [markers, selectedLeadId, L]);
+
+  return null;
+}
+
+/** Componente que centraliza o mapa num lead específico. */
+function FlyToSelected({
+  selectedLeadId,
+  markers,
+}: {
+  selectedLeadId?: string | null;
+  markers: LeadMarker[];
+}) {
+  const [useMapHook, setUseMapHook] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    import("react-leaflet").then((rl) => setUseMapHook(() => rl.useMap));
+  }, []);
+
+  if (!useMapHook) return null;
+  return <FlyToSelectedInner selectedLeadId={selectedLeadId} markers={markers} useMap={useMapHook} />;
+}
+
+function FlyToSelectedInner({
+  selectedLeadId,
+  markers,
+  useMap,
+}: {
+  selectedLeadId?: string | null;
+  markers: LeadMarker[];
+  useMap: typeof import("react-leaflet").useMap;
+}) {
+  const map = useMap();
+  const marker = React.useMemo(
+    () => markers.find(m => m.id === selectedLeadId) ?? null,
+    [markers, selectedLeadId]
+  );
+
+  React.useEffect(() => {
+    if (marker) {
+      map.flyTo([marker.lat, marker.lng], 12, { duration: 0.8 });
+    }
+  }, [marker, map]);
+
+  return null;
+}
+
+/** Componente que invalida o tamanho do mapa quando o container muda. */
+function ResizeHandler() {
+  const [useMapHook, setUseMapHook] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    import("react-leaflet").then((rl) => setUseMapHook(() => rl.useMap));
+  }, []);
+
+  if (!useMapHook) return null;
+  return <ResizeHandlerInner useMap={useMapHook} />;
+}
+
+function ResizeHandlerInner({
+  useMap,
+}: {
+  useMap: typeof import("react-leaflet").useMap;
+}) {
+  const map = useMap();
+  React.useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 200);
+    return () => clearTimeout(t);
+  }, [map]);
+  return null;
+}
+
+/**
  * Controles de zoom discretos no canto inferior direito.
  */
 function ZoomControlsInner() {
-  const [mods, setMods] = React.useState<typeof import("react-leaflet").useMap | null>(null);
+  const [useMapHook, setUseMapHook] = React.useState<any>(null);
 
   React.useEffect(() => {
-    let mounted = true;
-    import("react-leaflet").then((rl) => {
-      if (!mounted) return;
-      setMods(() => rl.useMap);
-    });
-    return () => { mounted = false; };
+    import("react-leaflet").then((rl) => setUseMapHook(() => rl.useMap));
   }, []);
 
-  const useMap = mods;
-  if (!useMap) return null;
-  return <ZoomControlsClient useMap={useMap} />;
+  if (!useMapHook) return null;
+  return <ZoomControlsClient useMap={useMapHook} />;
 }
 
 function ZoomControlsClient({
@@ -690,9 +725,9 @@ function ZoomControlsClient({
 // ── EXPORTS ─────────────────────────────────────────────────────────────────
 
 export function LiveLeadsMap({
-  leads,
+  leads: _leads,
   selectedLeadId,
-  onSelectLead,
+  onSelectLead: _onSelectLead,
   className,
   activeFilter,
   onPousadasLoaded,
@@ -715,14 +750,14 @@ export function LiveLeadsMap({
   return (
     <div className={cn("relative h-full w-full", className)}>
       <LeafletMapInner
-        leads={leads}
+        leads={_leads}
         selectedLeadId={selectedLeadId}
-        onSelectLead={onSelectLead}
+        onSelectLead={_onSelectLead}
         activeFilter={activeFilter}
         onPousadasLoaded={handlePousadasLoaded}
       />
 
-      {/* Indicador "AO VIVO" no canto superior esquerdo */}
+      {/* Indicador "AO VIVO" */}
       <div className="pointer-events-none absolute left-2 top-2 z-[1000] flex items-center gap-1.5 rounded-md border border-primary/30 bg-black/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur">
         <span className="relative flex size-1.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
@@ -731,7 +766,7 @@ export function LiveLeadsMap({
         AO VIVO
       </div>
 
-      {/* Legenda das 3 cores — canto superior direito */}
+      {/* Legenda das 3 cores */}
       <div className="pointer-events-none absolute right-2 top-2 z-[1000] rounded-md border border-border bg-black/85 px-3 py-2 backdrop-blur">
         <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1.5">
           Sistema de Cores
@@ -746,13 +781,13 @@ export function LiveLeadsMap({
         </p>
       </div>
 
-      {/* Contador no canto inferior esquerdo */}
+      {/* Contador */}
       <div className="pointer-events-none absolute bottom-2 left-2 z-[1000] rounded-md border border-border bg-black/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
         <span className="font-semibold text-foreground">
           {counts.converted + counts.prospect + counts.click}
         </span>
         {" markers · "}
-        <span className="text-blue-400">agrupados em clusters</span>
+        <span className="text-blue-400">clusters dinâmicos</span>
         {activeFilter && (
           <span className="ml-1 text-amber-400">· filtro: {CATEGORY_STYLE[activeFilter].label}</span>
         )}
@@ -789,6 +824,3 @@ function LegendItem({
 
 export { CATEGORY_STYLE };
 export type { MarkerCategory, LeadMarker };
-
-// Existe só para satisfazer imports antigos; pode ser removido quando não houver mais referências.
-void relativeTime;
