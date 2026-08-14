@@ -39,11 +39,13 @@ import {
 export function MobileAirbnbSuperApp() {
   const [activeTab, setActiveTab] = useState<'financeiro' | 'checkins' | 'shield' | 'linkinbio' | 'simulador'>('financeiro');
 
-  // ZCC Mobile Device Tracking — registra visitas em /mobile/airbnb
+  // ZCC Analytics — registra pings de uso Mobile (compara com Desktop)
   useMobileDevicePing({
     niche: 'airbnb',
+    route: '/mobile/airbnb',
     tenantId: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_ID ?? 'demo-airbnb' : 'demo-airbnb',
     tenantName: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_NAME : undefined,
+    tabName: activeTab,
   });
 
   const [propertyName, setPropertyName] = useState<string>('Flat Studio Jardins');

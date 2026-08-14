@@ -62,11 +62,13 @@ import {
 export function MobilePousadaSuperApp() {
   const [activeTab, setActiveTab] = useState<'visao_geral' | 'hospedes' | 'central_zella' | 'whats_live' | 'mais'>('visao_geral');
 
-  // ZCC Mobile Device Tracking — registra visitas em /mobile/pousada
+  // ZCC Analytics — registra pings de uso Mobile (compara com Desktop)
   useMobileDevicePing({
     niche: 'pousada',
+    route: '/mobile/pousada',
     tenantId: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_ID ?? 'demo-pousada' : 'demo-pousada',
     tenantName: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_NAME : undefined,
+    tabName: activeTab,
   });
 
   // Font Scale (Accessibility)

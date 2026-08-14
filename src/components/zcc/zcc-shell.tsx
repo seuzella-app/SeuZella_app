@@ -37,9 +37,7 @@ import { BurnRatePanel } from "./panels/burn-rate-panel";
 import { TenantsPanel } from "./panels/tenants-panel";
 import { RefactorsPanel } from "./panels/refactors-panel";
 import { SandboxPanel } from "./panels/sandbox-panel";
-import { MobileDevicesPanel } from "./panels/mobile-devices-panel";
-import { MobilePousadaPanel } from "./panels/mobile-pousada-panel";
-import { MobileAirbnbPanel } from "./panels/mobile-airbnb-panel";
+import { MobileAnalyticsPanel } from "./panels/mobile-devices-panel";
 import type { ZccTabId } from "@/lib/zcc/types";
 import { leads, integrations } from "@/lib/zcc/mock-data";
 
@@ -114,9 +112,7 @@ const TAB_TITLES: Record<ZccTabId, string> = {
   geo: "Geo",
   "tokens-ai": "Tokens & IA",
   semantica: "Semântica",
-  "mobile-pousada": "DDC Mobile Pousada",
-  "mobile-airbnb": "DDC Mobile Airbnb",
-  "mobile-devices": "Mobile Devices",
+  "mobile-analytics": "Mobile Analytics",
 };
 
 function GlobalKpiBar() {
@@ -357,9 +353,7 @@ export function ZccShell() {
             {/* OPERAÇÃO / TIER 2 */}
             {tab === "airbnb" ? <AirbnbPanel /> : null}
             {tab === "pousadas" ? <PousadasPanel /> : null}
-            {tab === "mobile-pousada" ? <MobilePousadaPanel /> : null}
-            {tab === "mobile-airbnb" ? <MobileAirbnbPanel /> : null}
-            {tab === "mobile-devices" ? <MobileDevicesPanel /> : null}
+            {tab === "mobile-analytics" ? <MobileAnalyticsPanel /> : null}
             {tab === "burn-rate" ? <BurnRatePanel /> : null}
             {tab === "tenants" ? <TenantsPanel /> : null}
             {tab === "geo" ? <GeoMetricsPanel /> : null}

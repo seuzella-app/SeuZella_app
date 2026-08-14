@@ -57,6 +57,7 @@ import {
 import { MobileBottomNav } from './MobileBottomNav';
 import { DDCCommandPalette } from './DDCCommandPalette';
 import { YieldProfitWidget } from './YieldProfitWidget';
+import { useDesktopDevicePing } from '@/components/mobile/useMobileDevicePing';
 import type { NicheType } from '@/contexts/NicheContext';
 import type { PlanTier } from '@/lib/plan-features';
 import { PLAN_DISPLAY } from '@/lib/plan-features';
@@ -324,6 +325,16 @@ export function DDCShell({
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // ZCC Analytics — registra pings de uso Desktop (compara com Mobile)
+  const route = niche === 'pousada' ? '/ddc/pousada' : '/ddc/airbnb';
+  useDesktopDevicePing({
+    niche,
+    route,
+    tenantId: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_ID ?? 'demo-desktop' : 'demo-desktop',
+    tenantName: propertyName,
+    tabName: activeTab,
+  });
 
   const resolvedUserName = session?.user?.name || userName;
   const theme = NICHE_THEME[niche];
