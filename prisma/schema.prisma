@@ -2644,3 +2644,65 @@ model DevicePing {
   @@index([lastSeen])
   @@map("device_pings")
 }
+
+// ===== NIGHT AUDIT REPORT — Relatório Noturno Automático (03:00 BRT) =====
+// Gerado diariamente pelo GLM 5.2 com:
+//   1. Varredura de código (vulnerabilidades, hooks perigosos, secrets)
+//   2. Métricas do dia (leads captados, convertidos, cliques, regiões, cidades)
+//   3. Análise de segurança + recomendações
+//   4. Resumo executivo para o operador do ZCC
+//
+// Mostrado na "Sala de Guerra" (Visão Geral do ZCC) em card exclusivo.
+// Cron: /api/cron/cerebro-night-audit (schedule: "0 6 * * *" = 03:00 BRT)
+model NightAuditReport {
+  id              String   @id @default(cuid())
+  // Data de referência (YYYY-MM-DD em BRT) — para qual dia o audit foi feito
+  auditDate       String   // ex: "2026-08-15"
+  // Janela de execução (start/end ISO timestamps)
+  startedAt       DateTime // quando começou
+  completedAt    DateTime? // quando terminou (null = ainda rodando ou falhou)
+  durationMs     Int      @default(0) // tempo total de execução
+
+  // Status: running | completed | failed | partial
+  status          String   @default("running")
+
+  // ── RESUMO EXECUTIVO (gerado pelo GLM 5.2) ──
+  summary         String   @default("") // 1-3 parágrafos PT-BR legíveis
+  severity        String   @default("info") // info|warning|critical|emergency
+  // Confidence do GLM (0-1) — quanto o modelo confia no relatório
+  confidence      Float    @default(0)
+
+  // ── VULNERABILIDADES DE CÓDIGO (JSON array) ──
+  // Cada item: { severity, type, file, line, description, recommendation, cwe? }
+  vulnFindings    String   @default("[]")
+  vulnCountCritical Int    @default(0)
+  vulnCountHigh     Int    @default(0)
+  vulnCountMedium   Int    @default(0)
+  vulnCountLow       Int    @default(0)
+  vulnCountInfo      Int    @default(0)
+
+  // ── MÉTRICAS DO DIA (JSON object) ──
+  // { leadsCaptured, leadsConverted, clicks, regions: [{uf, count}], cities: [...],
+  //   pousadasConverted: [...], devicesMobile, devicesDesktop }
+  metricsJson     String   @default("{}")
+
+  // ── ANÁLISE LLM (JSON com resposta completa do GLM 5.2) ──
+  llmAnalysis     String   @default("{}") // JSON: { recommendations, risks, opportunities }
+  llmTokensInput  Int      @default(0)
+  llmTokensOutput Int      @default(0)
+  llmCostUsd      Float    @default(0)
+
+  // Modo de execução (mock|live) — depende de CEREBRO_LIVE_MODE + GLM_5_2_API_KEY
+  mode            String   @default("mock")
+
+  // Erro (se status=failed) — stack trace ou mensagem
+  errorMessage    String?
+
+  createdAt       DateTime @default(now())
+
+  @@unique([auditDate]) // 1 audit por dia
+  @@index([status, createdAt])
+  @@index([severity, createdAt])
+  @@index([auditDate])
+  @@map("night_audit_reports")
+}

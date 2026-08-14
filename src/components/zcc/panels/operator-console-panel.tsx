@@ -26,6 +26,7 @@ import {
 import { PanelHeader } from "../shared/panel-header";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { NightAuditCard } from "./night-audit-card";
 
 /*
  * OperatorConsolePanel — Console do operador ZCC (substitui OverviewPanel).
@@ -684,6 +685,9 @@ export function OperatorConsolePanel() {
             ))}
           </div>
         </motion.div>
+
+        {/* ====== NIGHT AUDIT · Relatório Noturno (GLM 5.2 às 03:00 BRT) ====== */}
+        <NightAuditCard />
 
         {/* ====== CONNECTIONS · 6 integrações ====== */}
         <motion.div
