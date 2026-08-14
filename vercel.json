@@ -75,6 +75,10 @@
       "schedule": "0 4 * * *"
     },
     {
+      "path": "/api/cron/cerebro-learning",
+      "schedule": "30 6 * * *"
+    },
+    {
       "path": "/api/cron/cerebro-orchestrator",
       "schedule": "*/5 * * * *"
     },

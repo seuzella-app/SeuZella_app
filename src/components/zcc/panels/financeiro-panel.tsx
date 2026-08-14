@@ -119,6 +119,17 @@ const DEFAULT_COSTS: CustomCost[] = [
   { id: "c6", label: "WhatsApp Cloud API", amount: 320, category: "ferramenta", period: "mensal" },
   { id: "c7", label: "Domínio + DNS", amount: 30, category: "fixo", period: "mensal" },
   { id: "c8", label: "Equipe (1 dev + 1 marketing)", amount: 8000, category: "pessoal", period: "mensal" },
+  // Cérebro Zélla — Z.ai API (GLM 5.2) — orçamento mensal fixo
+  { id: "c9", label: "Z.ai API (GLM 5.2 — Cérebro)", amount: 20, category: "ferramenta", period: "mensal" },
+  // Cérebro Noturno Ativo (3 cron jobs: pulsos + pentest + audit)
+  // Detalhamento:
+  //   - 48 pulsos/dia × 30 dias × $0.0003 (glm-4.7-flash se anomalia) = $0.43
+  //   - 1 pentest diário × 30 dias × $0.015 (5k tokens) = $0.45
+  //   - 1 night audit diário × 30 dias × $0.009 (3k tokens) = $0.27
+  //   Total: ~$0.84/mês (dentro do budget $20 do Cérebro)
+  { id: "c10", label: "Cérebro Noturno (pulsos + pentest + audit)", amount: 0.84, category: "ferramenta", period: "mensal" },
+  // VPS Hostinger MVK4 (planejado — quando contratar)
+  { id: "c11", label: "VPS Hostinger MVK4 (planejado)", amount: 0, category: "ferramenta", period: "mensal" },
 ];
 
 function fmtBRL(v: number): string {

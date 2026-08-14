@@ -333,18 +333,18 @@ const FALLBACK_METRICS: MetricsResponse = {
 
 // 12 agentes com cost USD (não existe no schema, mockado)
 const FALLBACK_AGENTS: ConsoleAgent[] = [
-  { id: "conductor", name: "Conductor", emoji: "🎭", role: "Maestro que roteia comandos", department: "command", status: "active", lastRun: minutesAgo(0.5 * 60), costUsd: 0.42, model: "glm-4.7-flash" },
-  { id: "comms-agent", name: "Comms Agent", emoji: "💬", role: "Comunicação unificada WA/IG/email", department: "comms", status: "active", lastRun: minutesAgo(2 * 60), costUsd: 1.18, model: "glm-4.7-flash" },
-  { id: "finance-agent", name: "Finance Agent", emoji: "💰", role: "DRE, fluxo de caixa, despesas", department: "finance", status: "thinking", lastRun: minutesAgo(8 * 60), costUsd: 2.34, model: "glm-4.7" },
-  { id: "operations-agent", name: "Operations Agent", emoji: "⚙️", role: "Limpeza, manutenção, checklists", department: "operations", status: "idle", lastRun: minutesAgo(1.5 * 60), costUsd: 0.87, model: "glm-4.7-flash" },
-  { id: "goals-agent", name: "Goals Agent", emoji: "🎯", role: "KPIs e metas com projeção linear", department: "finance", status: "idle", lastRun: minutesAgo(6 * 60), costUsd: 1.42, model: "glm-4.7" },
-  { id: "leads-agent", name: "Leads Agent", emoji: "📍", role: "Funil comercial e mapa de leads", department: "sales", status: "active", lastRun: minutesAgo(0.8 * 60), costUsd: 0.94, model: "glm-4.7-flash" },
-  { id: "data-agent", name: "Data Agent", emoji: "🗄️", role: "Busca na base de conhecimento", department: "tech", status: "idle", lastRun: minutesAgo(4 * 60), costUsd: 0.31, model: "glm-4.7-flash" },
-  { id: "cerebro-agent", name: "Cérebro Agent", emoji: "🧠", role: "Detecção de anomalias, churn risk", department: "tech", status: "thinking", lastRun: minutesAgo(1 * 60), costUsd: 3.87, model: "glm-4.7" },
-  { id: "refactor-agent", name: "Refactor Agent", emoji: "🔧", role: "Auto-aprendizado, sugestões de refactor", department: "tech", status: "idle", lastRun: minutesAgo(12 * 60), costUsd: 1.62, model: "glm-4.7" },
-  { id: "whatsapp-worker", name: "WhatsApp Worker", emoji: "📱", role: "Status WA e mensagens processadas", department: "comms", status: "active", lastRun: minutesAgo(0.2 * 60), costUsd: 0.18, model: "glm-4.7-flash" },
-  { id: "airbnb-worker", name: "Airbnb Worker", emoji: "🏠", role: "Sincronização iCal e ocupação", department: "operations", status: "idle", lastRun: minutesAgo(3 * 60), costUsd: 0.24, model: "glm-4.7-flash" },
-  { id: "onboarding-agent", name: "Onboarding Agent", emoji: "👋", role: "Orienta novos tenants no setup", department: "sales", status: "idle", lastRun: minutesAgo(5 * 60), costUsd: 0.56, model: "glm-4.7-flash" },
+  { id: "conductor", name: "Zé Condutor", emoji: "🎭", role: "Maestro que roteia comandos", department: "command", status: "active", lastRun: minutesAgo(0.5 * 60), costUsd: 0.42, model: "glm-4.7-flash" },
+  { id: "comms-agent", name: "Zé Comunicador", emoji: "💬", role: "Comunicação unificada WA/IG/email", department: "comms", status: "active", lastRun: minutesAgo(2 * 60), costUsd: 1.18, model: "glm-4.7-flash" },
+  { id: "finance-agent", name: "Zé Financeiro", emoji: "💰", role: "DRE, fluxo de caixa, despesas", department: "finance", status: "thinking", lastRun: minutesAgo(8 * 60), costUsd: 2.34, model: "glm-4.7" },
+  { id: "operations-agent", name: "Zé Operações", emoji: "⚙️", role: "Limpeza, manutenção, checklists", department: "operations", status: "idle", lastRun: minutesAgo(1.5 * 60), costUsd: 0.87, model: "glm-4.7-flash" },
+  { id: "goals-agent", name: "Zé Metas", emoji: "🎯", role: "KPIs e metas com projeção linear", department: "finance", status: "idle", lastRun: minutesAgo(6 * 60), costUsd: 1.42, model: "glm-4.7" },
+  { id: "leads-agent", name: "Zé Leads", emoji: "📍", role: "Funil comercial e mapa de leads", department: "sales", status: "active", lastRun: minutesAgo(0.8 * 60), costUsd: 0.94, model: "glm-4.7-flash" },
+  { id: "data-agent", name: "Zé Dados", emoji: "🗄️", role: "Busca na base de conhecimento", department: "tech", status: "idle", lastRun: minutesAgo(4 * 60), costUsd: 0.31, model: "glm-4.7-flash" },
+  { id: "cerebro-agent", name: "Zé Cérebro", emoji: "🧠", role: "Detecção de anomalias, churn risk", department: "tech", status: "thinking", lastRun: minutesAgo(1 * 60), costUsd: 3.87, model: "glm-4.7" },
+  { id: "refactor-agent", name: "Zé Refatorador", emoji: "🔧", role: "Auto-aprendizado, sugestões de refactor", department: "tech", status: "idle", lastRun: minutesAgo(12 * 60), costUsd: 1.62, model: "glm-4.7" },
+  { id: "whatsapp-worker", name: "Zé WhatsApp", emoji: "📱", role: "Status WA e mensagens processadas", department: "comms", status: "active", lastRun: minutesAgo(0.2 * 60), costUsd: 0.18, model: "glm-4.7-flash" },
+  { id: "airbnb-worker", name: "Zé Airbnb", emoji: "🏠", role: "Sincronização iCal e ocupação", department: "operations", status: "idle", lastRun: minutesAgo(3 * 60), costUsd: 0.24, model: "glm-4.7-flash" },
+  { id: "onboarding-agent", name: "Zé Onboarding", emoji: "👋", role: "Orienta novos tenants no setup", department: "sales", status: "idle", lastRun: minutesAgo(5 * 60), costUsd: 0.56, model: "glm-4.7-flash" },
 ];
 
 // ============================================================================

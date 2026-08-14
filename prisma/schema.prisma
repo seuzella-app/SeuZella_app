@@ -2834,3 +2834,44 @@ model NightActivityEvent {
   @@index([eventType, detectedAt])
   @@map("night_activity_events")
 }
+
+// ===== CEREBRO KNOWLEDGE FACT — Fatos validados pelo Cérebro (Delirium Zero) =====
+// Cada fato é extraído do Night Audit ou de análises LLM e serve como
+// CONTEXTO INJETADO nas chamadas do Cérebro (evita alucinação).
+//
+// Workflow Delirium Zero:
+//   1. Night Audit roda às 03:00 BRT
+//   2. CerebroLearningService extrai fatos do audit
+//   3. Persiste aqui com confidence 0-1
+//   4. Quando operador pergunta algo, busca fatos relevantes (TF-IDF)
+//   5. Injeta no system prompt do GLM 5.2 → resposta baseada em dados
+model CerebroKnowledgeFact {
+  id          String   @id @default(cuid())
+  // Tipo do fato (para filtragem)
+  factType    String   // vulnerability_pattern | metric_baseline | anomaly_confirmed |
+                       // recommendation_acted | code_smell | performance_pattern
+  // Conteúdo do fato (PT-BR, direto)
+  statement   String   @db.Text
+  // Fonte validada — citada na resposta do LLM (audit:X, arquivo:linha)
+  source      String
+  // Confidence 0-1 (1 = validado, 0.5 = LLM achismo)
+  confidence  Float    @default(0.5)
+  // Contexto adicional (JSON)
+  context     String   @default("{}") @db.Text
+  // Tags para busca TF-IDF (separadas por vírgula)
+  tags        String   @default("")
+  // Versão (incrementa quando fato é atualizado)
+  version     Int      @default(1)
+  // Modo de extração (mock|live)
+  mode        String   @default("mock")
+  // Quando foi extraído (linka ao audit)
+  auditDate   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([factType, confidence])
+  @@index([source])
+  @@index([auditDate])
+  @@index([confidence])
+  @@map("cerebro_knowledge_facts")
+}
