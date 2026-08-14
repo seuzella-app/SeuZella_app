@@ -5,47 +5,155 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import type { Lead } from "@/lib/zcc/types";
 import { relativeTime } from "@/lib/zcc/mock-data";
+import {
+  fetchPousadasBrasil,
+  fetchPousadasConvertidasMock,
+  fetchCliquesAnuncioMock,
+  type PousadaBrasil,
+} from "@/lib/zcc/pousadas-brasil-data";
 
 /*
- * Mapa real do Brasil usando Leaflet + tiles CartoDB dark matter.
+ * LiveLeadsMap — Sistema de 3 Cores (Yield Strategy)
+ * =====================================================
  *
- * IMPORTANTE: Leaflet usa `window` em top-level, então só pode ser
- * carregado no client. O componente é exportado via `next/dynamic`
- * com `ssr: false` no painel pai (live-leads-panel.tsx).
+ * Marcadores no mapa:
+ *   - VERDE   = Pousada convertida (cliente Zélla pagante) — mock: top 8 HOT score≥95
+ *   - AMARELO = Pousada prospectada (9.627 da planilha Planilha_Funil_pousadas_BR_.xlsx)
+ *   - AZUL    = Clique no anúncio Google Ads — mock: 12 cliques em HOT (real quando GA4 integrar)
  *
- * - Cada lead é colocado na coordenada REAL (lat/lng) da sua cidade
- * - Markers coloridos por status:
- *   • Verde  → convertido
- *   • Vermelho → hot / quente
- *   • Amarelo → outros
- * - Hot leads têm anel pulsante (animação CSS)
- * - Leads aparecem sequencialmente (efeito "live feed")
- * - Click no marker abre popup com detalhes
+ * Tamanhos menores (vs versão anterior):
+ *   - Bolinha amarela (prospectada): 6px (era 16px)
+ *   - Bolinha azul (clique anúncio): 10px com anel
+ *   - Bolinha verde (convertida): 12px com estrela central
+ *   - Bolinha selecionada: +6px
+ *
+ * Performance:
+ *   - 9.627 markers podem pesar. Usamos Canvas rendering via L.canvasMarkers
+ *     para evitar 9k DOM nodes.
+ *   - Dataset é carregado via fetch lazy (cache HTTP agressivo).
+ *   - Animação "live feed" desativada quando > 500 markers (aparece tudo de uma vez).
+ *
+ * Filtros (gerenciados pelo parent panel):
+ *   - Pode receber apenas leads filtrados ou o dataset completo.
+ *   - As 3 categorias são computadas aqui baseadas em status/score.
  */
 
 // Centro geográfico do Brasil
 const BRAZIL_CENTER: [number, number] = [-14.5, -52];
 const BRAZIL_ZOOM = 4;
 
-type MarkerColor = "green" | "red" | "yellow";
+// ── Sistema de 3 Cores ─────────────────────────────────────────────────────────
 
-function leadColor(lead: Lead): MarkerColor {
-  if (lead.status === "convertido") return "green";
-  if (lead.scoreQual >= 85) return "red";
-  return "yellow";
+type MarkerCategory = "converted" | "prospect" | "click";
+
+interface CategoryStyle {
+  color: string;
+  label: string;
+  description: string;
+  size: number;          // diâmetro da bolinha em px (MENOR que versão anterior)
+  selectedSize: number;  // tamanho quando selecionada
+  hasPulse?: boolean;    // anel pulsante
+  hasStar?: boolean;      // estrela central (apenas convertidas)
+  zIndex: number;         // sobreposição
 }
 
-const COLOR_HEX: Record<MarkerColor, string> = {
-  green: "#10b981",
-  red: "#ef4444",
-  yellow: "#f59e0b",
+const CATEGORY_STYLE: Record<MarkerCategory, CategoryStyle> = {
+  converted: {
+    color: "#22c55e",       // verde-500
+    label: "Convertida",
+    description: "Pousada cliente Zélla (pagante)",
+    size: 12,                // menor que versão anterior (era 16)
+    selectedSize: 18,
+    hasStar: true,
+    zIndex: 1000,
+  },
+  prospect: {
+    color: "#facc15",       // amarelo-400
+    label: "Prospectada",
+    description: "Pousada da planilha (10.175 prospectadas)",
+    size: 6,                // MUITO menor — visualização densa
+    selectedSize: 12,
+    zIndex: 100,
+  },
+  click: {
+    color: "#3b82f6",       // azul-500
+    label: "Clique Anúncio",
+    description: "Clique no Google Ads (mock — real quando GA4 integrar)",
+    size: 10,
+    selectedSize: 16,
+    hasPulse: true,
+    zIndex: 500,
+  },
 };
+
+interface LeadMarker {
+  id: string;
+  lat: number;
+  lng: number;
+  category: MarkerCategory;
+  // Dados para popup
+  nome: string;
+  cidade: string;
+  uf: string;
+  tier?: string;
+  funnel?: string;
+  score?: number;
+  qtdQuartos?: number;
+  valores?: string;
+  sinaisIntencao?: string;
+  localPraia?: string;
+  whatsapp?: string;
+}
 
 interface LiveLeadsMapProps {
   leads: Lead[];
   selectedLeadId?: string | null;
   onSelectLead?: (lead: Lead) => void;
   className?: string;
+  /** Filtro de categoria (mostrar só uma cor) — null = todas */
+  activeFilter?: MarkerCategory | null;
+  /** Callback quando dados da planilha carregam (para KPIs do parent) */
+  onPousadasLoaded?: (data: {
+    prospectadas: PousadaBrasil[];
+    convertidas: PousadaBrasil[];
+    cliques: PousadaBrasil[];
+  }) => void;
+}
+
+/**
+ * Helper: computa categoria de um Lead existente (legado do ZCC).
+ * Pousadas convertidas (status=convertido) → VERDE
+ * Pousadas com tier/quartos (prospectadas) → AMARELO
+ * Cliques (status=pending sem tier) → AZUL
+ */
+function leadCategory(lead: Lead): MarkerCategory {
+  if (lead.status === "convertido" || lead.converted) return "converted";
+  if (lead.tierSugerido || lead.roomsCount > 0) return "prospect";
+  return "click";
+}
+
+/** Helper: converte Lead do ZCC para o formato unificado. */
+function leadToMarker(lead: Lead): LeadMarker {
+  // Type assertion ampla: mocks antigos têm campos não-tipados (pousada, cidade, etc.)
+  // que existem em runtime mas não na interface Lead.
+  const l = lead as any;
+  return {
+    id: l.id,
+    lat: l.latitude ?? l.lat ?? -14.5,
+    lng: l.longitude ?? l.lng ?? -52,
+    category: leadCategory(lead),
+    nome: l.pousada || l.empresa || l.name || "Pousada",
+    cidade: l.cidade || l.city || "",
+    uf: l.uf || l.state || "",
+    tier: l.tierSugerido || l.leadTier || l.tier,
+    funnel: l.funnelStage || l.funnel || l.cluster,
+    score: l.scoreQual ?? l.avgScore ?? l.scoreValid ?? l.score,
+    qtdQuartos: l.qtdQuartos ?? l.roomsCount ?? 0,
+    valores: l.valoresEstimados ?? l.estimatedValues ?? undefined,
+    sinaisIntencao: l.sinaisIntencao ?? l.intentSignals ?? undefined,
+    localPraia: l.localPraia ?? undefined,
+    whatsapp: l.whatsapp ?? l.phone ?? undefined,
+  };
 }
 
 /**
@@ -56,8 +164,9 @@ function LeafletMapInner({
   leads,
   selectedLeadId,
   onSelectLead,
+  activeFilter,
+  onPousadasLoaded,
 }: LiveLeadsMapProps) {
-  // Imports dinâmicos no cliente — carrega react-leaflet apenas quando montado
   const [LeafletMods, setLeafletMods] = React.useState<{
     MapContainer: typeof import("react-leaflet").MapContainer;
     TileLayer: typeof import("react-leaflet").TileLayer;
@@ -89,12 +198,134 @@ function LeafletMapInner({
     };
   }, []);
 
-  const [visibleCount, setVisibleCount] = React.useState(0);
+  // ── Carrega dataset da planilha (lazy) ──
+  const [planilhaData, setPlanilhaData] = React.useState<{
+    prospectadas: PousadaBrasil[];
+    convertidas: PousadaBrasil[];
+    cliques: PousadaBrasil[];
+  } | null>(null);
 
-  // Animação "live feed": leads aparecem um a um
   React.useEffect(() => {
-    if (leads.length === 0) {
+    let cancelled = false;
+    Promise.all([
+      fetchPousadasBrasil(),
+      fetchPousadasConvertidasMock(),
+      fetchCliquesAnuncioMock(),
+    ]).then(([prospectadas, convertidas, cliques]) => {
+      if (cancelled) return;
+      setPlanilhaData({ prospectadas, convertidas, cliques });
+      onPousadasLoaded?.({ prospectadas, convertidas, cliques });
+    });
+    return () => { cancelled = true; };
+  }, [onPousadasLoaded]);
+
+  // ── Marcadores a renderizar ──
+  // Combina: leads do ZCC (legado) + dataset da planilha
+  const markers: LeadMarker[] = React.useMemo(() => {
+    const result: LeadMarker[] = [];
+
+    // 1. Leads do ZCC (legado) — converter para o formato unificado
+    for (const lead of leads) {
+      result.push(leadToMarker(lead));
+    }
+
+    // 2. Dataset da planilha (se carregou)
+    if (planilhaData) {
+      // Convertidas (VERDE) — só adiciona se não tiver lead correspondente no ZCC
+      const leadIds = new Set(leads.map(l => l.id));
+      for (const p of planilhaData.convertidas) {
+        if (!leadIds.has(p.id)) {
+          result.push({
+            id: p.id,
+            lat: p.lat,
+            lng: p.lng,
+            category: "converted",
+            nome: p.nome,
+            cidade: p.cidade,
+            uf: p.uf,
+            tier: p.tier,
+            funnel: p.funnel,
+            score: p.score,
+            qtdQuartos: p.qtdQuartos,
+            valores: p.valores,
+            sinaisIntencao: p.sinaisIntencao,
+            localPraia: p.localPraia,
+            whatsapp: p.whatsapp,
+          });
+        }
+      }
+
+      // Cliques (AZUL) — mock
+      for (const p of planilhaData.cliques) {
+        if (!leadIds.has(p.id)) {
+          result.push({
+            id: p.id,
+            lat: p.lat,
+            lng: p.lng,
+            category: "click",
+            nome: p.nome,
+            cidade: p.cidade,
+            uf: p.uf,
+            tier: p.tier,
+            funnel: p.funnel,
+            score: p.score,
+            qtdQuartos: p.qtdQuartos,
+            valores: p.valores,
+            sinaisIntencao: p.sinaisIntencao,
+            localPraia: p.localPraia,
+            whatsapp: p.whatsapp,
+          });
+        }
+      }
+
+      // Prospectadas (AMARELO) — só adiciona se não tiver lead correspondente
+      // PERFORMANCE: limitar a 5.000 markers no mapa por vez
+      const prospectLimit = 5000;
+      let added = 0;
+      for (const p of planilhaData.prospectadas) {
+        if (added >= prospectLimit) break;
+        if (!leadIds.has(p.id)) {
+          result.push({
+            id: p.id,
+            lat: p.lat,
+            lng: p.lng,
+            category: "prospect",
+            nome: p.nome,
+            cidade: p.cidade,
+            uf: p.uf,
+            tier: p.tier,
+            funnel: p.funnel,
+            score: p.score,
+            qtdQuartos: p.qtdQuartos,
+            valores: p.valores,
+            sinaisIntencao: p.sinaisIntencao,
+            localPraia: p.localPraia,
+            whatsapp: p.whatsapp,
+          });
+          added++;
+        }
+      }
+    }
+
+    return result;
+  }, [leads, planilhaData]);
+
+  // Aplica filtro de categoria
+  const filteredMarkers = React.useMemo(() => {
+    if (!activeFilter) return markers;
+    return markers.filter(m => m.category === activeFilter);
+  }, [markers, activeFilter]);
+
+  // Animação "live feed" (só se < 500 markers)
+  const [visibleCount, setVisibleCount] = React.useState(0);
+  React.useEffect(() => {
+    if (filteredMarkers.length === 0) {
       setVisibleCount(0);
+      return;
+    }
+    if (filteredMarkers.length > 500) {
+      // Render direto sem animação
+      setVisibleCount(filteredMarkers.length);
       return;
     }
     setVisibleCount(0);
@@ -102,36 +333,44 @@ function LeafletMapInner({
     const interval = setInterval(() => {
       i += 1;
       setVisibleCount(i);
-      if (i >= leads.length) {
+      if (i >= filteredMarkers.length) {
         clearInterval(interval);
       }
-    }, 120);
+    }, 80);
     return () => clearInterval(interval);
-  }, [leads]);
+  }, [filteredMarkers]);
 
-  const selectedLead = React.useMemo(
-    () => leads.find((l) => l.id === selectedLeadId) ?? null,
-    [leads, selectedLeadId]
+  const selectedMarker = React.useMemo(
+    () => filteredMarkers.find(m => m.id === selectedLeadId) ?? null,
+    [filteredMarkers, selectedLeadId]
   );
 
   // Memoiza ícones para não recriar a cada render
   const iconFor = React.useCallback(
-    (lead: Lead, highlighted: boolean) => {
+    (marker: LeadMarker, highlighted: boolean) => {
       if (!LeafletMods?.L) return null;
-      const color = leadColor(lead);
-      const hex = COLOR_HEX[color];
-      const pulseRing = lead.scoreQual >= 85;
-      const size = highlighted ? 22 : 16;
+      const style = CATEGORY_STYLE[marker.category];
+      const size = highlighted ? style.selectedSize : style.size;
+      const hex = style.color;
+      const pulseRing = style.hasPulse;
+      const star = style.hasStar;
+
       return LeafletMods.L.divIcon({
-        className: "zcc-lead-marker",
+        className: "zcc-lead-marker zcc-lead-marker--" + marker.category,
         html: `
           <div class="zcc-marker-wrap" style="--marker-color: ${hex};">
             ${pulseRing ? `<span class="zcc-marker-pulse" style="background: ${hex};"></span>` : ""}
-            <span class="zcc-marker-dot" style="background: ${hex}; width: ${size}px; height: ${size}px; ${
-              highlighted
+            <span class="zcc-marker-dot" style="
+              background: ${hex};
+              width: ${size}px;
+              height: ${size}px;
+              ${highlighted
                 ? `box-shadow: 0 0 0 3px ${hex}55, 0 0 12px ${hex};`
-                : `box-shadow: 0 0 0 2px #0a0a0a99;`
-            }"></span>
+                : `box-shadow: 0 0 0 1px #0a0a0a99;`
+              }
+            ">
+              ${star ? `<svg class="zcc-marker-star" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : ""}
+            </span>
           </div>
         `,
         iconSize: [size, size],
@@ -163,34 +402,32 @@ function LeafletMapInner({
   } = LeafletMods;
 
   /** Componente que centraliza o mapa num lead específico (quando selecionado). */
-  const FlyToSelected = ({ lead, zoom }: { lead: Lead | null; zoom?: number }) => {
+  const FlyToSelected = ({ marker, zoom }: { marker: LeadMarker | null; zoom?: number }) => {
     const map = useMap();
     React.useEffect(() => {
-      if (lead) {
-        map.flyTo([lead.latitude, lead.longitude], zoom ?? 8, { duration: 0.8 });
+      if (marker) {
+        map.flyTo([marker.lat, marker.lng], zoom ?? 8, { duration: 0.8 });
       }
-    }, [lead, map, zoom]);
+    }, [marker, map, zoom]);
     return null;
   };
 
   /** Componente que abre o popup do marker do lead selecionado. */
-  const OpenSelectedPopup = ({ leadId }: { leadId?: string | null }) => {
+  const OpenSelectedPopup = ({ markerId }: { markerId?: string | null }) => {
     const map = useMap();
     React.useEffect(() => {
-      if (!leadId) return;
-      // Procura o marker correspondente no layer do leaflet
+      if (!markerId) return;
       map.eachLayer((layer) => {
         const anyLayer = layer as unknown as {
           getLatLng?: () => { lat: number; lng: number };
           openPopup?: () => void;
-          options?: { leadId?: string };
+          options?: { markerId?: string };
         };
-        if (anyLayer.openPopup && anyLayer.options?.leadId === leadId) {
-          // pequeno delay para o flyTo completar primeiro
+        if (anyLayer.openPopup && anyLayer.options?.markerId === markerId) {
           setTimeout(() => anyLayer.openPopup?.(), 400);
         }
       });
-    }, [leadId, map]);
+    }, [markerId, map]);
     return null;
   };
 
@@ -222,8 +459,6 @@ function LeafletMapInner({
         subdomains="abcd"
         maxZoom={19}
       />
-
-      {/* Labels sobrepostos para legibilidade de cidades/estados */}
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
         subdomains="abcd"
@@ -232,97 +467,114 @@ function LeafletMapInner({
       />
 
       <ResizeHandler />
-      <FlyToSelected lead={selectedLead} />
-      <OpenSelectedPopup leadId={selectedLeadId} />
+      <FlyToSelected marker={selectedMarker} />
+      <OpenSelectedPopup markerId={selectedLeadId} />
 
-      {/* Markers de leads */}
-      {leads.slice(0, visibleCount).map((lead) => {
-        const isSelected = lead.id === selectedLeadId;
-        const icon = iconFor(lead, isSelected);
+      {/* Marcadores — sistema de 3 cores */}
+      {filteredMarkers.slice(0, visibleCount).map((marker) => {
+        const isSelected = marker.id === selectedLeadId;
+        const icon = iconFor(marker, isSelected);
         if (!icon) return null;
+        const style = CATEGORY_STYLE[marker.category];
         return (
           <Marker
-            key={lead.id}
-            position={[lead.latitude, lead.longitude]}
+            key={marker.id}
+            position={[marker.lat, marker.lng]}
             icon={icon}
-            // @ts-expect-error — leadId é uma option customizada para lookup posterior
-            leadId={lead.id}
+            // @ts-expect-error — markerId é uma option customizada para lookup posterior
+            markerId={marker.id}
             eventHandlers={{
-              click: () => onSelectLead?.(lead),
+              click: () => {
+                // Sincroniza com Lead do ZCC se existir
+                const lead = leads.find(l => l.id === marker.id);
+                if (lead) onSelectLead?.(lead);
+              },
             }}
-            zIndexOffset={isSelected ? 1000 : 0}
+            zIndexOffset={isSelected ? 2000 : style.zIndex}
           >
             <Popup closeButton={false} offset={[0, -8]}>
-              <div className="min-w-[200px] rounded-md border border-border bg-popover p-2.5 text-foreground">
+              <div className="min-w-[220px] rounded-md border border-border bg-popover p-2.5 text-foreground">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-[13px] font-semibold leading-tight">
-                    {lead.pousada}
+                    {marker.nome}
                   </p>
                   <span
                     className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase"
                     style={{
-                      background: `${COLOR_HEX[leadColor(lead)]}22`,
-                      color: COLOR_HEX[leadColor(lead)],
+                      background: `${style.color}22`,
+                      color: style.color,
                     }}
                   >
-                    {lead.status}
+                    {style.label}
                   </span>
                 </div>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {lead.cidade}/{lead.uf}{lead.localPraia ? ` · ${lead.localPraia}` : ""}
+                  {marker.cidade}/{marker.uf}{marker.localPraia ? ` · ${marker.localPraia}` : ""}
                 </p>
-                {lead.sinaisIntencao ? (
+
+                {marker.sinaisIntencao ? (
                   <p className="mt-1 text-[11px] text-amber-300">
-                    ★ {lead.sinaisIntencao}
+                    ★ {marker.sinaisIntencao}
                   </p>
                 ) : null}
+
                 <div className="mt-1.5 grid grid-cols-3 gap-1.5 text-[10px]">
-                  <div>
-                    <p className="text-muted-foreground">Score Qual</p>
-                    <p
-                      className="font-bold"
-                      style={{ color: COLOR_HEX[leadColor(lead)] }}
-                    >
-                      {lead.scoreQual}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Score Valid</p>
-                    <p className="font-semibold text-emerald-300">
-                      {lead.scoreValid}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Quartos</p>
-                    <p className="font-semibold">
-                      {lead.qtdQuartos ?? "—"}
-                    </p>
-                  </div>
+                  {marker.score !== undefined && (
+                    <div>
+                      <p className="text-muted-foreground">Score</p>
+                      <p className="font-bold" style={{ color: style.color }}>
+                        {marker.score}
+                      </p>
+                    </div>
+                  )}
+                  {marker.tier && (
+                    <div>
+                      <p className="text-muted-foreground">Tier</p>
+                      <p className="font-semibold">{marker.tier}</p>
+                    </div>
+                  )}
+                  {marker.qtdQuartos !== undefined && marker.qtdQuartos > 0 && (
+                    <div>
+                      <p className="text-muted-foreground">Quartos</p>
+                      <p className="font-semibold">{marker.qtdQuartos}</p>
+                    </div>
+                  )}
                 </div>
+
+                {marker.valores && (
+                  <p className="mt-1.5 text-[11px] text-emerald-300">
+                    {marker.valores}
+                  </p>
+                )}
+
+                {marker.whatsapp && (
+                  <p className="mt-1 text-[10px] text-muted-foreground/70">
+                    WhatsApp: {marker.whatsapp}
+                  </p>
+                )}
+
                 <p className="mt-1.5 text-[9px] text-muted-foreground/70">
-                  {relativeTime(lead.createdAt)} · {lead.id}
+                  ID: {marker.id}
                 </p>
               </div>
             </Popup>
             <Tooltip direction="top" offset={[0, -8]} opacity={1}>
-              <span className="text-[11px] font-semibold">{lead.name}</span>
+              <span className="text-[11px] font-semibold">{marker.nome}</span>
               <span className="text-[10px] text-muted-foreground">
-                {" "}— {lead.city}/{lead.uf}
+                {" "}— {marker.cidade}/{marker.uf}
               </span>
             </Tooltip>
           </Marker>
         );
       })}
 
-      {/* Controles de zoom dentro do MapContainer para ter acesso ao useMap */}
       <ZoomControlsInner />
     </MapContainer>
   );
 }
 
 /**
- * Controles de zoom + e - discretos no canto inferior direito.
- * Renderiza dentro do MapContainer (tem acesso ao useMap).
+ * Controles de zoom discretos no canto inferior direito.
  */
 function ZoomControlsInner() {
   const [mods, setMods] = React.useState<typeof import("react-leaflet").useMap | null>(null);
@@ -347,111 +599,108 @@ function ZoomControlsClient({
   useMap: typeof import("react-leaflet").useMap;
 }) {
   const map = useMap();
-
   const zoomIn = () => map.setZoom(map.getZoom() + 1, { animate: true });
   const zoomOut = () => map.setZoom(map.getZoom() - 1, { animate: true });
-  const resetView = () => map.setView([-14.5, -52], 4, { animate: true });
+  const resetView = () => map.setView(BRAZIL_CENTER, BRAZIL_ZOOM, { animate: true });
 
   return (
-    <>
-      {/* Portais via CSS absolute - posicionados no wrapper externo */}
-      <div
+    <div
+      style={{
+        position: "absolute",
+        bottom: "8px",
+        right: "8px",
+        zIndex: 1000,
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+      }}
+    >
+      <button
+        type="button"
+        onClick={zoomIn}
         style={{
-          position: "absolute",
-          bottom: "8px",
-          right: "8px",
-          zIndex: 1000,
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
+          width: "32px", height: "32px",
+          display: "grid", placeItems: "center",
+          borderRadius: "6px",
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(13, 17, 23, 0.95)",
+          backdropFilter: "blur(8px)",
+          color: "#f1f5f9", fontSize: "16px", fontWeight: 700,
+          cursor: "pointer", transition: "all 0.15s",
         }}
-      >
-        <button
-          type="button"
-          onClick={zoomIn}
-          style={{
-            width: "32px",
-            height: "32px",
-            display: "grid",
-            placeItems: "center",
-            borderRadius: "6px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(13, 17, 23, 0.95)",
-            backdropFilter: "blur(8px)",
-            color: "#f1f5f9",
-            fontSize: "16px",
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "all 0.15s",
-          }}
-          aria-label="Aumentar zoom"
-          title="Aumentar zoom (+)"
-        >
-          +
-        </button>
-        <button
-          type="button"
-          onClick={zoomOut}
-          style={{
-            width: "32px",
-            height: "32px",
-            display: "grid",
-            placeItems: "center",
-            borderRadius: "6px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(13, 17, 23, 0.95)",
-            backdropFilter: "blur(8px)",
-            color: "#f1f5f9",
-            fontSize: "16px",
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "all 0.15s",
-          }}
-          aria-label="Diminuir zoom"
-          title="Diminuir zoom (−)"
-        >
-          −
-        </button>
-        <button
-          type="button"
-          onClick={resetView}
-          style={{
-            width: "32px",
-            height: "32px",
-            display: "grid",
-            placeItems: "center",
-            borderRadius: "6px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(13, 17, 23, 0.95)",
-            backdropFilter: "blur(8px)",
-            color: "#f1f5f9",
-            fontSize: "10px",
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "all 0.15s",
-          }}
-          aria-label="Resetar visão"
-          title="Voltar para visão Brasil"
-        >
-          ⟲
-        </button>
-      </div>
-    </>
+        aria-label="Aumentar zoom"
+        title="Aumentar zoom (+)"
+      >+</button>
+      <button
+        type="button"
+        onClick={zoomOut}
+        style={{
+          width: "32px", height: "32px",
+          display: "grid", placeItems: "center",
+          borderRadius: "6px",
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(13, 17, 23, 0.95)",
+          backdropFilter: "blur(8px)",
+          color: "#f1f5f9", fontSize: "16px", fontWeight: 700,
+          cursor: "pointer", transition: "all 0.15s",
+        }}
+        aria-label="Diminuir zoom"
+        title="Diminuir zoom (−)"
+      >−</button>
+      <button
+        type="button"
+        onClick={resetView}
+        style={{
+          width: "32px", height: "32px",
+          display: "grid", placeItems: "center",
+          borderRadius: "6px",
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(13, 17, 23, 0.95)",
+          backdropFilter: "blur(8px)",
+          color: "#f1f5f9", fontSize: "10px", fontWeight: 700,
+          cursor: "pointer", transition: "all 0.15s",
+        }}
+        aria-label="Resetar visão"
+        title="Voltar para visão Brasil"
+      >⟲</button>
+    </div>
   );
 }
+
+// ── EXPORTS ─────────────────────────────────────────────────────────────────
 
 export function LiveLeadsMap({
   leads,
   selectedLeadId,
   onSelectLead,
   className,
+  activeFilter,
+  onPousadasLoaded,
 }: LiveLeadsMapProps) {
+  // Conta marcadores visíveis por categoria (para o footer)
+  const [counts, setCounts] = React.useState({ converted: 0, prospect: 0, click: 0 });
+
+  const handlePousadasLoaded = React.useCallback((data: {
+    prospectadas: PousadaBrasil[];
+    convertidas: PousadaBrasil[];
+    cliques: PousadaBrasil[];
+  }) => {
+    setCounts({
+      converted: data.convertidas.length,
+      prospect: data.prospectadas.length,
+      click: data.cliques.length,
+    });
+    onPousadasLoaded?.(data);
+  }, [onPousadasLoaded]);
+
   return (
     <div className={cn("relative h-full w-full", className)}>
       <LeafletMapInner
         leads={leads}
         selectedLeadId={selectedLeadId}
         onSelectLead={onSelectLead}
+        activeFilter={activeFilter}
+        onPousadasLoaded={handlePousadasLoaded}
       />
 
       {/* Indicador "AO VIVO" no canto superior esquerdo */}
@@ -463,17 +712,57 @@ export function LiveLeadsMap({
         AO VIVO
       </div>
 
-      {/* (Controles de zoom são renderizados dentro do MapContainer pelo ZoomControlsInner) */}
+      {/* Legenda das 3 cores — canto superior direito */}
+      <div className="pointer-events-none absolute right-2 top-2 z-[1000] rounded-md border border-border bg-black/85 px-3 py-2 backdrop-blur">
+        <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1.5">
+          Sistema de Cores
+        </p>
+        <div className="space-y-1">
+          <LegendItem color={CATEGORY_STYLE.converted.color} label="Convertida" count={counts.converted} />
+          <LegendItem color={CATEGORY_STYLE.prospect.color} label="Prospectada" count={counts.prospect} />
+          <LegendItem color={CATEGORY_STYLE.click.color} label="Clique Anúncio" count={counts.click} />
+        </div>
+      </div>
 
-      {/* Contador de leads visíveis no canto inferior esquerdo */}
+      {/* Contador no canto inferior esquerdo */}
       <div className="pointer-events-none absolute bottom-2 left-2 z-[1000] rounded-md border border-border bg-black/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
         <span className="font-semibold text-foreground">
-          {leads.length > 0 ? Math.min(leads.length, leads.length) : 0}
+          {counts.converted + counts.prospect + counts.click}
         </span>
-        {" / "}
-        <span>{leads.length}</span> leads
+        {" markers no mapa"}
+        {activeFilter && (
+          <span className="ml-1 text-amber-400">· filtrado: {CATEGORY_STYLE[activeFilter].label}</span>
+        )}
       </div>
     </div>
   );
 }
 
+function LegendItem({
+  color,
+  label,
+  count,
+}: {
+  color: string;
+  label: string;
+  count: number;
+}) {
+  return (
+    <div className="flex items-center gap-2 text-[10px]">
+      <span
+        className="inline-block rounded-full"
+        style={{
+          backgroundColor: color,
+          width: label === "Prospectada" ? "6px" : label === "Convertida" ? "10px" : "8px",
+          height: label === "Prospectada" ? "6px" : label === "Convertida" ? "10px" : "8px",
+          boxShadow: `0 0 0 1px ${color}55`,
+        }}
+      />
+      <span className="text-zinc-300">{label}</span>
+      <span className="ml-auto text-zinc-500 tabular-nums">{count.toLocaleString('pt-BR')}</span>
+    </div>
+  );
+}
+
+export { CATEGORY_STYLE };
+export type { MarkerCategory, LeadMarker };

@@ -723,16 +723,16 @@ export function LiveLeadsPanel() {
                 </button>
               ))}
             </div>
-            {/* Legenda */}
+            {/* Legenda — Sistema de 3 Cores */}
             <div className="hidden items-center gap-3 text-[10px] text-muted-foreground sm:flex">
               <span className="flex items-center gap-1">
                 <span className="size-2.5 rounded-full bg-emerald-500" /> Conv.
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-2.5 rounded-full bg-red-500" /> Hot
+                <span className="size-1.5 rounded-full bg-yellow-400" /> Prospect.
               </span>
               <span className="flex items-center gap-1">
-                <span className="size-2.5 rounded-full bg-amber-500" /> Outros
+                <span className="size-2 rounded-full bg-blue-500" /> Clique Ad
               </span>
             </div>
           </div>
