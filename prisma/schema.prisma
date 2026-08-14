@@ -2706,3 +2706,131 @@ model NightAuditReport {
   @@index([auditDate])
   @@map("night_audit_reports")
 }
+
+// ===== CODE VULNERABILITY — Findings de SAST + Pentest (Grande Run #1) =====
+// Cada vulnerabilidade encontrada no código ou via pentest de API.
+// Fingerprint estável (hash de file+line+type) permite diferenciar:
+//   - newly_detected (não existia no run anterior)
+//   - persisting (ainda presente)
+//   - resolved (sumiu desde o último run)
+//   - false_positive (marcado manualmente)
+model CodeVulnerability {
+  id              String   @id @default(cuid())
+  // Link para o NightAuditReport que detectou (null se foi pulse-only)
+  auditReportId   String?
+  // Fingerprint estável: SHA-256 de `${file}:${line}:${type}`
+  // Permite deduplicar entre runs e detectar "novas" vs "persistindo"
+  fingerprint     String   @unique
+
+  // Identificação do finding
+  severity        String   // critical | high | medium | low | info
+  type            String   // eval_usage | sql_injection | hardcoded_secret | idor | bola | ...
+  file            String   // path relativo (para SAST) ou URL (para pentest)
+  line            Int      @default(0) // linha (SAST) ou 0 (pentest)
+  description     String
+  recommendation  String
+  cwe             String?  // ex: CWE-89
+
+  // Para pentest findings (vulns via HTTP, não SAST)
+  // NÃO armazenar secrets/PAYLOAD sensível em texto plano — apenas hash
+  httpRequest     String?  // método + path (ex: "GET /api/v1/reservations/OTHER_TENANT_ID")
+  httpStatus      Int?     // status code retornado
+  httpResponseBody String? @db.Text // resposta (truncada para 2KB)
+  exploitProof    String?  @db.Text // como explorar (PT-BR, sem PoC funcional)
+
+  // Workflow de correção
+  status          String   @default("open") // open | fixed | wont_fix | false_positive
+  detectedAt      DateTime @default(now())
+  firstDetectedAt DateTime @default(now())
+  lastDetectedAt  DateTime @default(now())
+  timesDetected   Int      @default(1) // quantas vezes foi detectado (persistência)
+  fixedAt         DateTime?
+  fixedBy         String?  // "GLM 5.2" | "human" | "auto-remediator"
+
+  // Fonte da detecção
+  detectionSource String   @default("sast") // sast | pentest | npm_audit | pulse_mini_scan
+
+  @@index([status, severity])
+  @@index([fingerprint])
+  @@index([file])
+  @@index([severity, lastDetectedAt])
+  @@index([detectionSource, lastDetectedAt])
+  @@map("code_vulnerabilities")
+}
+
+// ===== NIGHT PULSE LOG — Pulsos de Vida (a cada 30min, 24/7) =====
+// Cada pulso é uma execução leve do Cérebro durante a madrugada:
+//   - HEARTBEAT: status de serviços + latência DB/GLM
+//   - MINI_SCAN: varredura de 1 módulo aleatório (3-5 patterns)
+//   - METRICS_SNAPSHOT: captura métricas live e compara com baseline
+// Custo: ~$0.0003/pulso (200 tokens de análise)
+model NightPulseLog {
+  id              String   @id @default(cuid())
+  pulseType       String   // heartbeat | mini_scan | metrics_snapshot
+  startedAt       DateTime @default(now())
+  durationMs      Int      @default(0)
+  status          String   @default("ok") // ok | warning | critical | failed
+
+  // Resultado do pulso (JSON estruturado)
+  // HEARTBEAT: { dbLatencyMs, glmLatencyMs, services: [{name, status}] }
+  // MINI_SCAN: { module, filesScanned, findingsCount, findings: [...] }
+  // METRICS_SNAPSHOT: { activeUsers, activeConversations, errorRate, ... }
+  resultJson      String   @default("{}")
+
+  // Se o pulso detectou algo crítico, dispara alerta
+  triggeredAlert  Boolean  @default(false)
+  alertMessage    String?
+
+  // Custo LLM (tokens só usados em METRICS_SNAPSHOT com análise)
+  llmTokensInput  Int      @default(0)
+  llmTokensOutput Int      @default(0)
+  llmCostUsd      Float    @default(0)
+  mode            String   @default("mock") // mock | live
+
+  @@index([pulseType, startedAt])
+  @@index([status, startedAt])
+  @@index([triggeredAlert, startedAt])
+  @@map("night_pulse_logs")
+}
+
+// ===== NIGHT ACTIVITY EVENT — Atividade suspeita rastreada =====
+// Eventos de atividade em 4 superfícies:
+//   - landing_page: visitas com bounce rate anômalo, user agents suspeitos
+//   - ddc: logins falhos, tentativas de IDOR, sessões suspeitas
+//   - linkinbio: cliques repetidos, padrões de spam, links quebrados
+//   - zella_parceiros: indicações falsas, IPs suspeitos, conversões impossíveis
+model NightActivityEvent {
+  id              String   @id @default(cuid())
+  // Qual superfície detectou o evento
+  surface         String   // landing_page | ddc | linkinbio | zella_parceiros
+  // Tipo de evento suspeito
+  eventType       String   // anomalous_bounce_rate | failed_logins_spike | idor_attempt | spam_clicks | fake_referral | ...
+  severity        String   @default("info") // info | warning | critical
+
+  // Detalhes do evento (JSON)
+  // { threshold, observed, count, samples: [...], affectedResources: [...] }
+  detailsJson     String   @default("{}")
+
+  // Quando detectado (janela de análise: 24h)
+  detectedAt      DateTime @default(now())
+  windowStart     DateTime // início da janela analisada
+  windowEnd       DateTime // fim da janela analisada
+
+  // Métricas relevantes
+  affectedCount   Int      @default(0) // quantos usuários/recursos afetados
+  thresholdValue  Float    @default(0) // limite que dispara alerta
+  observedValue   Float    @default(0) // valor observado
+
+  // Link para o audit report que capturou este evento
+  auditReportId   String?
+
+  // Se foi resolvido/investigado
+  investigatedAt DateTime?
+  investigatedBy  String?
+  resolutionNotes String?
+
+  @@index([surface, detectedAt])
+  @@index([severity, detectedAt])
+  @@index([eventType, detectedAt])
+  @@map("night_activity_events")
+}

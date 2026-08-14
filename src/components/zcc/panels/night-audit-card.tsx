@@ -40,6 +40,7 @@ import {
   Smartphone,
   Sparkles,
   ChevronRight,
+  Activity,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,22 @@ interface NightAuditReport {
     low: number;
     info: number;
   };
+  // NOVO: Pentest findings consolidados (do Grande Run #1)
+  pentestFindings?: PentestFinding[];
+  pentestStats?: {
+    total: number;
+    newlyDetected: number;
+    persisting: number;
+    resolvedLast7d: number;
+  };
+  // NOVO: Atividade suspeita rastreada em 4 superfícies
+  activityEvents?: ActivityEvent[];
+  activityStats?: {
+    landing_page: { anomalies: number; severity: string };
+    ddc: { anomalies: number; severity: string };
+    linkinbio: { anomalies: number; severity: string };
+    zella_parceiros: { anomalies: number; severity: string };
+  };
   metrics: DayMetrics;
   llmAnalysis: {
     recommendations: string[];
@@ -98,6 +115,42 @@ interface NightAuditReport {
   llmCostUsd: number;
   mode: "mock" | "live";
   errorMessage?: string;
+}
+
+// NOVO: Tipos para pentest findings (espelham PentestFinding do service)
+interface PentestFinding {
+  severity: "critical" | "high" | "medium" | "low" | "info";
+  type: string;
+  file: string;
+  line: number;
+  description: string;
+  recommendation: string;
+  cwe?: string;
+  detectionSource: "sast" | "pentest" | "npm_audit" | "pulse_mini_scan";
+  httpRequest?: string;
+}
+
+// NOVO: Tipos para activity events (4 superfícies)
+interface ActivityEvent {
+  surface: "landing_page" | "ddc" | "linkinbio" | "zella_parceiros";
+  eventType: string;
+  severity: "info" | "warning" | "critical";
+  details: any;
+  affectedCount: number;
+  thresholdValue: number;
+  observedValue: number;
+}
+
+// NOVO: Tipos para pulsos (do NightPulseService)
+interface PulseLog {
+  pulseType: "heartbeat" | "mini_scan" | "metrics_snapshot";
+  startedAt: string;
+  durationMs: number;
+  status: "ok" | "warning" | "critical" | "failed";
+  resultJson: string;
+  triggeredAlert: boolean;
+  alertMessage?: string;
+  mode: "mock" | "live";
 }
 
 export function NightAuditCard() {
@@ -356,6 +409,81 @@ export function NightAuditCard() {
             </motion.div>
           )}
 
+          {/* ── PENTEST FINDINGS (Grande Run #1 — NOVO) ── */}
+          {report.pentestStats && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
+                <ShieldAlert className="size-3 text-rose-500" />
+                Pentest Noturno (Grande Run #1)
+              </p>
+              <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-2.5">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-[9px] uppercase text-muted-foreground">Total</p>
+                    <p className="text-base font-bold text-foreground">{report.pentestStats.total}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase text-muted-foreground">Novas 🔴</p>
+                    <p className="text-base font-bold text-rose-500">{report.pentestStats.newlyDetected}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase text-muted-foreground">Resolvidas ✅</p>
+                    <p className="text-base font-bold text-emerald-500">{report.pentestStats.resolvedLast7d}</p>
+                  </div>
+                </div>
+                {report.pentestFindings && report.pentestFindings.length > 0 && (
+                  <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                    {report.pentestFindings.slice(0, 5).map((f, i) => (
+                      <div key={i} className="text-[10px] border-l-2 pl-2" style={{
+                        borderColor: SEVERITY_STYLES[f.severity as keyof typeof SEVERITY_STYLES]?.text ?? "#94a3b8"
+                      }}>
+                        <code className="text-[9px] font-mono">{f.file}:{f.line}</code>
+                        <p className="text-muted-foreground">{f.description}</p>
+                      </div>
+                    ))}
+                    {report.pentestFindings.length > 5 && (
+                      <p className="text-[9px] text-muted-foreground italic">
+                        + {report.pentestFindings.length - 5} outros findings...
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── ATIVIDADE SUSPEITA (4 superfícies — NOVO) ── */}
+          {report.activityStats && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
+                <Activity className="size-3 text-amber-500" />
+                Atividade Suspeita (24h)
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <SurfaceCard
+                  name="Landing Page"
+                  anomalies={report.activityStats.landing_page.anomalies}
+                  severity={report.activityStats.landing_page.severity}
+                />
+                <SurfaceCard
+                  name="DDC"
+                  anomalies={report.activityStats.ddc.anomalies}
+                  severity={report.activityStats.ddc.severity}
+                />
+                <SurfaceCard
+                  name="Link-in-Bio"
+                  anomalies={report.activityStats.linkinbio.anomalies}
+                  severity={report.activityStats.linkinbio.severity}
+                />
+                <SurfaceCard
+                  name="Zélla Parceiros"
+                  anomalies={report.activityStats.zella_parceiros.anomalies}
+                  severity={report.activityStats.zella_parceiros.severity}
+                />
+              </div>
+            </div>
+          )}
+
           {/* ── MÉTRICAS DO DIA ── */}
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
@@ -547,6 +675,43 @@ function formatDate(dateStr: string): string {
   } catch {
     return dateStr;
   }
+}
+
+function SurfaceCard({
+  name,
+  anomalies,
+  severity,
+}: {
+  name: string;
+  anomalies: number;
+  severity: string;
+}) {
+  const palette = {
+    info: "border-emerald-500/30 bg-emerald-500/5 text-emerald-700",
+    warning: "border-amber-500/30 bg-amber-500/5 text-amber-700",
+    critical: "border-rose-500/40 bg-rose-500/10 text-rose-700",
+  }[severity as 'info' | 'warning' | 'critical'] ?? "border-border bg-card/40 text-muted-foreground";
+
+  const icon = {
+    info: <CheckCircle2 className="size-3 text-emerald-500" />,
+    warning: <AlertTriangle className="size-3 text-amber-500" />,
+    critical: <AlertCircle className="size-3 text-rose-500" />,
+  }[severity as 'info' | 'warning' | 'critical'] ?? <Activity className="size-3" />;
+
+  return (
+    <div className={`rounded-md border ${palette} p-2`}>
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-medium">{name}</span>
+        {icon}
+      </div>
+      <p className="text-base font-bold tabular-nums">
+        {anomalies}
+        <span className="text-[9px] font-normal opacity-70 ml-1">
+          {anomalies === 1 ? "anomalia" : "anomalias"}
+        </span>
+      </p>
+    </div>
+  );
 }
 
 export default NightAuditCard;

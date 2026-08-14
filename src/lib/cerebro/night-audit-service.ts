@@ -42,6 +42,8 @@ import { db } from '@/lib/db';
 import { GlmCerebroService } from './glm-service';
 import { callOpenAICompatible, type AdapterMessage } from '@/lib/ai/llm-adapters';
 import { getCerebroMode } from './types';
+import { NightPentestService, type PentestFinding } from './night-pentest-service';
+import { NightActivityTrackerService, type ActivityEvent } from './night-activity-tracker-service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -107,6 +109,22 @@ export interface NightAuditResult {
     medium: number;
     low: number;
     info: number;
+  };
+  // NOVO: Pentest findings (do Grande Run #1, consolidado)
+  pentestFindings?: PentestFinding[];
+  pentestStats?: {
+    total: number;
+    newlyDetected: number;
+    persisting: number;
+    resolvedLast7d: number;
+  };
+  // NOVO: Atividade suspeita rastreada em 4 superfícies
+  activityEvents?: ActivityEvent[];
+  activityStats?: {
+    landing_page: { anomalies: number; severity: string };
+    ddc: { anomalies: number; severity: string };
+    linkinbio: { anomalies: number; severity: string };
+    zella_parceiros: { anomalies: number; severity: string };
   };
   metrics: DayMetrics;
   llmAnalysis: LLMAnalysis;
@@ -283,15 +301,40 @@ export class NightAuditService {
     const reportId = await this.createRunningReport(auditDate, startedAt, mode);
 
     try {
-      // ── 1. CODE SCAN ──
+      // ── 1. CODE SCAN (SAST básico — mantém para retrocompatibilidade) ──
       const vulnFindings = await this.scanCode();
       const vulnCounts = this.countBySeverity(vulnFindings);
+
+      // ── 1.5. PENTEST (Grande Run #1 consolidado) ──
+      // Executa SAST completo + API pentest + npm audit + diff vs últimos 7d
+      const pentestResult = await NightPentestService.run({ auditReportId: reportId });
+      const pentestFindings = pentestResult.findings;
+      const pentestStats = {
+        total: pentestFindings.length,
+        newlyDetected: pentestResult.diff.newlyDetected.length,
+        persisting: pentestResult.diff.persisting.length,
+        resolvedLast7d: pentestResult.diff.resolved.length,
+      };
 
       // ── 2. METRICS COLLECTION ──
       const metrics = await this.collectDayMetrics();
 
+      // ── 2.5. ACTIVITY TRACKING (4 superfícies) ──
+      const activityResult = await NightActivityTrackerService.run();
+      const activityEvents = activityResult.events;
+      const activityStats = {
+        landing_page: activityResult.stats.landingPage,
+        ddc: activityResult.stats.ddc,
+        linkinbio: activityResult.stats.linkinbio,
+        zella_parceiros: activityResult.stats.zellaParceiros,
+      };
+
       // ── 3. LLM ANALYSIS (GLM 5.2) ──
-      const llmResult = await this.runLLMAnalysis(vulnFindings, metrics, mode);
+      // Passa vulns + pentest + activity + metrics para o LLM
+      const llmResult = await this.runLLMAnalysis(
+        vulnFindings, metrics, mode,
+        { pentestFindings, activityEvents, activityStats }
+      );
 
       const completedAt = new Date();
       const durationMs = completedAt.getTime() - startedAt.getTime();
@@ -307,6 +350,10 @@ export class NightAuditService {
         confidence: llmResult.confidence,
         vulnFindings,
         vulnCounts,
+        pentestFindings,
+        pentestStats,
+        activityEvents,
+        activityStats,
         metrics,
         llmAnalysis: llmResult.analysis,
         llmTokensInput: llmResult.tokensInput,
@@ -593,6 +640,11 @@ export class NightAuditService {
     vulnFindings: VulnFinding[],
     metrics: DayMetrics,
     mode: 'mock' | 'live',
+    extras?: {
+      pentestFindings?: PentestFinding[];
+      activityEvents?: ActivityEvent[];
+      activityStats?: any;
+    },
   ): Promise<{
     summary: string;
     severity: 'info' | 'warning' | 'critical' | 'emergency';
@@ -603,7 +655,7 @@ export class NightAuditService {
     costUsd: number;
   }> {
     if (mode === 'mock') {
-      return this.mockAnalysis(vulnFindings, metrics);
+      return this.mockAnalysis(vulnFindings, metrics, extras);
     }
 
     // Modo live: chama GLM 5.2
@@ -718,6 +770,11 @@ Gere o relatório JSON agora.`;
   private static mockAnalysis(
     vulnFindings: VulnFinding[],
     metrics: DayMetrics,
+    extras?: {
+      pentestFindings?: PentestFinding[];
+      activityEvents?: ActivityEvent[];
+      activityStats?: any;
+    },
   ): {
     summary: string;
     severity: 'info' | 'warning' | 'critical' | 'emergency';
@@ -730,25 +787,54 @@ Gere o relatório JSON agora.`;
     const critical = vulnFindings.filter(v => v.severity === 'critical').length;
     const high = vulnFindings.filter(v => v.severity === 'high').length;
 
+    // Pentest findings consolidados (do Grande Run #1)
+    const pentestTotal = extras?.pentestFindings?.length ?? 0;
+    const pentestCritical = extras?.pentestFindings?.filter(f => f.severity === 'critical').length ?? 0;
+    const pentestNewlyDetected = extras?.pentestFindings?.filter(f => f.detectionSource === 'pentest').length ?? 0;
+
+    // Activity events (4 superfícies)
+    const activityTotal = extras?.activityEvents?.length ?? 0;
+    const activityCritical = extras?.activityEvents?.filter(e => e.severity === 'critical').length ?? 0;
+
     const severity: 'info' | 'warning' | 'critical' | 'emergency' =
-      critical > 5 ? 'emergency' : critical > 0 ? 'critical' : high > 0 ? 'warning' : 'info';
+      critical > 5 || pentestCritical > 5 ? 'emergency'
+      : critical > 0 || pentestCritical > 0 || activityCritical > 0 ? 'critical'
+      : high > 0 ? 'warning' : 'info';
 
     const summary = `🌙 NIGHT AUDIT — ${getBRTDateString()} (MODO MOCK)
 
-Foram encontradas ${vulnFindings.length} vulnerabilidades no código (${critical} críticas, ${high} altas).
+📊 RESUMO EXECUTIVO
 
-Métricas do dia: ${metrics.leadsCaptured} leads captados, ${metrics.leadsConverted} convertidos (taxa ${metrics.conversionRate.toFixed(1)}%), ${metrics.clicks} cliques no anúncio (mock).
+Vulnerabilidades de código (SAST): ${vulnFindings.length} (${critical} críticas, ${high} altas).
+Pentest findings consolidados (Grande Run #1): ${pentestTotal} (${pentestCritical} críticas, ${pentestNewlyDetected} novas detectadas).
+Atividade suspeita rastreada: ${activityTotal} eventos em 4 superfícies (${activityCritical} críticos).
 
-Dispositivos ativos: ${metrics.devicesMobile} mobile + ${metrics.devicesDesktop} desktop.
+📈 MÉTRICAS DO DIA (BRT 00:00-23:59)
+- Leads captados: ${metrics.leadsCaptured}
+- Leads convertidos: ${metrics.leadsConverted} (taxa ${metrics.conversionRate.toFixed(1)}%)
+- Cliques no anúncio: ${metrics.clicks}
+- Dispositivos ativos: ${metrics.devicesMobile} mobile + ${metrics.devicesDesktop} desktop
+
+🔍 ATIVIDADE POR SUPERFÍCIE
+- Landing Page: ${extras?.activityStats?.landing_page?.anomalies ?? 0} anomalias
+- DDC: ${extras?.activityStats?.ddc?.anomalies ?? 0} anomalias
+- Link-in-Bio: ${extras?.activityStats?.linkinbio?.anomalies ?? 0} anomalias
+- Zélla Parceiros: ${extras?.activityStats?.zella_parceiros?.anomalies ?? 0} anomalias
 
 Para análise completa via GLM 5.2, ative CEREBRO_LIVE_MODE=true + GLM_5_2_API_KEY.`;
 
     const recommendations: string[] = [];
     if (critical > 0) {
-      recommendations.push(`Corrigir ${critical} vulnerabilidades CRITICAL imediatamente`);
+      recommendations.push(`Corrigir ${critical} vulnerabilidades CRITICAL imediatamente (SAST)`);
+    }
+    if (pentestCritical > 0) {
+      recommendations.push(`Pentest: corrigir ${pentestCritical} rotas críticas sem proteção withApiGuard`);
     }
     if (high > 0) {
       recommendations.push(`Revisar ${high} vulnerabilidades HIGH nesta semana`);
+    }
+    if (activityCritical > 0) {
+      recommendations.push(`Investigar ${activityCritical} eventos críticos de atividade suspeita`);
     }
     if (metrics.leadsCaptured > 0 && metrics.conversionRate < 5) {
       recommendations.push('Taxa de conversão baixa — revisar funil de vendas');
@@ -759,13 +845,15 @@ Para análise completa via GLM 5.2, ative CEREBRO_LIVE_MODE=true + GLM_5_2_API_K
     recommendations.push('Ativar CEREBRO_LIVE_MODE=true para análise GLM 5.2 real');
 
     const risks: string[] = [];
-    if (critical > 0) risks.push(`${critical} vulnerabilidades críticas no código`);
+    if (critical > 0) risks.push(`${critical} vulnerabilidades críticas no código (SAST)`);
+    if (pentestCritical > 0) risks.push(`${pentestCritical} rotas de API sem proteção (pentest)`);
     if (vulnFindings.some(v => v.type === 'hardcoded_secret')) {
       risks.push('Secrets hard-coded podem estar expostos no GitHub');
     }
     if (vulnFindings.some(v => v.type === 'eval_usage')) {
       risks.push('eval() permite RCE (Remote Code Execution)');
     }
+    if (activityCritical > 0) risks.push(`${activityCritical} eventos críticos de atividade suspeita`);
 
     const opportunities: string[] = [];
     if (metrics.leadsCaptured > 100) {
@@ -773,6 +861,9 @@ Para análise completa via GLM 5.2, ative CEREBRO_LIVE_MODE=true + GLM_5_2_API_K
     }
     if (metrics.regions.length > 0) {
       opportunities.push(`Top região: ${metrics.regions[0].uf} (${metrics.regions[0].count} leads) — concentra esforços de vendas lá`);
+    }
+    if (pentestTotal === 0) {
+      opportunities.push('Nenhuma vulnerabilidade nova no pentest — codebase estável');
     }
 
     return {
@@ -829,7 +920,14 @@ Para análise completa via GLM 5.2, ative CEREBRO_LIVE_MODE=true + GLM_5_2_API_K
           vulnCountMedium: result.vulnCounts.medium,
           vulnCountLow: result.vulnCounts.low,
           vulnCountInfo: result.vulnCounts.info,
-          metricsJson: JSON.stringify(result.metrics),
+          metricsJson: JSON.stringify({
+            ...result.metrics,
+            // NOVO: inclui pentest + activity no metricsJson (evita criar colunas extras)
+            _pentestFindings: result.pentestFindings ?? [],
+            _pentestStats: result.pentestStats,
+            _activityEvents: result.activityEvents ?? [],
+            _activityStats: result.activityStats,
+          }),
           llmAnalysis: JSON.stringify(result.llmAnalysis),
           llmTokensInput: result.llmTokensInput,
           llmTokensOutput: result.llmTokensOutput,

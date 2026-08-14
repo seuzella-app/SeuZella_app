@@ -1,0 +1,80 @@
+# ============================================================================
+# ZÉLLA — CI: Night Audit System (Cérebro Noturno Ativo)
+# ============================================================================
+# Roda os testes do sistema de auditoria noturna após cada push para main.
+#
+# Testes cobertos:
+#   - NightPulseService: 3 tipos de pulso (heartbeat, mini_scan, metrics_snapshot)
+#   - NightPentestService: SAST + API pentest + npm audit + diff
+#   - NightActivityTrackerService: 4 superfícies (landing/ddc/linkinbio/parceiros)
+#   - Agency-Agents Catalog: 12 system prompts + LGPD guard
+#   - GlmCerebroService.runWithAgent: integração com agency agents
+#
+# Resultados:
+#   - Sucesso: ✅ verde (não bloqueia merge — sistema é novo)
+#   - Falha: ❌ vermelho (alerta para revisar antes de deploy)
+# ============================================================================
+
+name: 🌙 Night Audit System Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/cerebro/night-**.ts'
+      - 'src/lib/cerebro/agency-agents-catalog.ts'
+      - 'src/lib/cerebro/glm-service.ts'
+      - 'src/app/api/cron/cerebro-night-**'
+      - 'src/app/api/zcc/night-audit/**'
+      - 'tests/night-audit-system.test.ts'
+      - 'prisma/schema.prisma'
+      - '.github/workflows/ci-night-audit-system.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/lib/cerebro/night-**.ts'
+      - 'src/lib/cerebro/agency-agents-catalog.ts'
+      - 'src/lib/cerebro/glm-service.ts'
+      - 'src/app/api/cron/cerebro-night-**'
+      - 'src/app/api/zcc/night-audit/**'
+      - 'tests/night-audit-system.test.ts'
+      - 'prisma/schema.prisma'
+
+jobs:
+  test:
+    name: 🧪 Night Audit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🔧 Generate Prisma Client
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+        run: npx prisma generate
+
+      - name: 🌙 Run Night Audit System Tests
+        run: npx vitest run tests/night-audit-system.test.ts --reporter=verbose
+
+      - name: 📊 Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: night-audit-test-results
+          path: |
+            test-results/
+            coverage/
+          retention-days: 7

@@ -67,6 +67,14 @@
       "schedule": "0 6 * * *"
     },
     {
+      "path": "/api/cron/cerebro-night-pulse",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/cerebro-night-pentest",
+      "schedule": "0 4 * * *"
+    },
+    {
       "path": "/api/cron/cerebro-orchestrator",
       "schedule": "*/5 * * * *"
     },
