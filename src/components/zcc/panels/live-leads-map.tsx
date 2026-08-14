@@ -220,95 +220,98 @@ function LeafletMapInner({
   }, [onPousadasLoaded]);
 
   // ── Marcadores a renderizar ──
-  // Combina: leads do ZCC (legado) + dataset da planilha
+  // PRIORIZA o dataset da planilha (9.627 pousadas com lat/lng reais e jitter aplicado).
+  // Os `leads` do ZCC (legado, 37 mocks) NÃO são mostrados no mapa — apenas a planilha.
+  // Motivo: o usuário pediu para usar APENAS os dados da planilha com lat/lng válidos.
   const markers: LeadMarker[] = React.useMemo(() => {
+    if (!planilhaData) return [];
+
     const result: LeadMarker[] = [];
 
-    // 1. Leads do ZCC (legado) — converter para o formato unificado
-    for (const lead of leads) {
-      result.push(leadToMarker(lead));
+    // Helper: valida se lat/lng estão dentro do Brasil (evita markers "flutuando")
+    const isValidCoord = (lat: number, lng: number) =>
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      lat >= -35 && lat <= 5 &&   // Brasil: -33 a +5 (extremo norte)
+      lng >= -75 && lng <= -30;   // Brasil: -73 a -32
+
+    // 1. PROSPECTADAS (AMARELO) — TODAS as 9.627 da planilha (sem limite de 5k)
+    for (const p of planilhaData.prospectadas) {
+      if (!isValidCoord(p.lat, p.lng)) continue; // pula inválidas (não vira "floating")
+      result.push({
+        id: p.id,
+        lat: p.lat,
+        lng: p.lng,
+        category: "prospect",
+        nome: p.nome,
+        cidade: p.cidade,
+        uf: p.uf,
+        tier: p.tier,
+        funnel: p.funnel,
+        score: p.score,
+        qtdQuartos: p.qtdQuartos,
+        valores: p.valores,
+        sinaisIntencao: p.sinaisIntencao,
+        localPraia: p.localPraia,
+        whatsapp: p.whatsapp,
+      });
     }
 
-    // 2. Dataset da planilha (se carregou)
-    if (planilhaData) {
-      // Convertidas (VERDE) — só adiciona se não tiver lead correspondente no ZCC
-      const leadIds = new Set(leads.map(l => l.id));
-      for (const p of planilhaData.convertidas) {
-        if (!leadIds.has(p.id)) {
-          result.push({
-            id: p.id,
-            lat: p.lat,
-            lng: p.lng,
-            category: "converted",
-            nome: p.nome,
-            cidade: p.cidade,
-            uf: p.uf,
-            tier: p.tier,
-            funnel: p.funnel,
-            score: p.score,
-            qtdQuartos: p.qtdQuartos,
-            valores: p.valores,
-            sinaisIntencao: p.sinaisIntencao,
-            localPraia: p.localPraia,
-            whatsapp: p.whatsapp,
-          });
-        }
+    // 2. CONVERTIDAS (VERDE) — sobrepõe as prospectadas (8 pousadas mock)
+    const prospectIds = new Set(result.map(m => m.id));
+    for (const p of planilhaData.convertidas) {
+      if (!isValidCoord(p.lat, p.lng)) continue;
+      // Se já existe como prospectada, ATUALIZA a categoria para "converted"
+      // (não cria duplicata) — verde sobrepõe amarelo
+      const existing = result.find(m => m.id === p.id);
+      if (existing) {
+        existing.category = "converted";
+      } else {
+        result.push({
+          id: p.id,
+          lat: p.lat,
+          lng: p.lng,
+          category: "converted",
+          nome: p.nome,
+          cidade: p.cidade,
+          uf: p.uf,
+          tier: p.tier,
+          funnel: p.funnel,
+          score: p.score,
+          qtdQuartos: p.qtdQuartos,
+          valores: p.valores,
+          sinaisIntencao: p.sinaisIntencao,
+          localPraia: p.localPraia,
+          whatsapp: p.whatsapp,
+        });
       }
+    }
 
-      // Cliques (AZUL) — mock
-      for (const p of planilhaData.cliques) {
-        if (!leadIds.has(p.id)) {
-          result.push({
-            id: p.id,
-            lat: p.lat,
-            lng: p.lng,
-            category: "click",
-            nome: p.nome,
-            cidade: p.cidade,
-            uf: p.uf,
-            tier: p.tier,
-            funnel: p.funnel,
-            score: p.score,
-            qtdQuartos: p.qtdQuartos,
-            valores: p.valores,
-            sinaisIntencao: p.sinaisIntencao,
-            localPraia: p.localPraia,
-            whatsapp: p.whatsapp,
-          });
-        }
-      }
-
-      // Prospectadas (AMARELO) — só adiciona se não tiver lead correspondente
-      // PERFORMANCE: limitar a 5.000 markers no mapa por vez
-      const prospectLimit = 5000;
-      let added = 0;
-      for (const p of planilhaData.prospectadas) {
-        if (added >= prospectLimit) break;
-        if (!leadIds.has(p.id)) {
-          result.push({
-            id: p.id,
-            lat: p.lat,
-            lng: p.lng,
-            category: "prospect",
-            nome: p.nome,
-            cidade: p.cidade,
-            uf: p.uf,
-            tier: p.tier,
-            funnel: p.funnel,
-            score: p.score,
-            qtdQuartos: p.qtdQuartos,
-            valores: p.valores,
-            sinaisIntencao: p.sinaisIntencao,
-            localPraia: p.localPraia,
-            whatsapp: p.whatsapp,
-          });
-          added++;
-        }
-      }
+    // 3. CLIQUES (AZUL) — 12 cliques mock
+    // Clicques têm IDs próprios (CLICK-XXX-BR-YYYY) para não colidir com prospectadas
+    for (const p of planilhaData.cliques) {
+      if (!isValidCoord(p.lat, p.lng)) continue;
+      result.push({
+        id: p.id, // já vem com prefixo CLICK-
+        lat: p.lat,
+        lng: p.lng,
+        category: "click",
+        nome: p.nome,
+        cidade: p.cidade,
+        uf: p.uf,
+        tier: p.tier,
+        funnel: p.funnel,
+        score: p.score,
+        qtdQuartos: p.qtdQuartos,
+        valores: p.valores,
+        sinaisIntencao: p.sinaisIntencao,
+        localPraia: p.localPraia,
+        whatsapp: p.whatsapp,
+      });
     }
 
     return result;
-  }, [leads, planilhaData]);
+  }, [planilhaData]);
 
   // Aplica filtro de categoria
   const filteredMarkers = React.useMemo(() => {
@@ -316,7 +319,7 @@ function LeafletMapInner({
     return markers.filter(m => m.category === activeFilter);
   }, [markers, activeFilter]);
 
-  // Animação "live feed" (só se < 500 markers)
+  // Animação "live feed" (só se < 500 markers — com 9.627 markers, aparece tudo direto)
   const [visibleCount, setVisibleCount] = React.useState(0);
   React.useEffect(() => {
     if (filteredMarkers.length === 0) {
@@ -324,7 +327,7 @@ function LeafletMapInner({
       return;
     }
     if (filteredMarkers.length > 500) {
-      // Render direto sem animação
+      // Render direto sem animação (9.627 markers aparecem instantaneamente)
       setVisibleCount(filteredMarkers.length);
       return;
     }
@@ -446,23 +449,26 @@ function LeafletMapInner({
       center={BRAZIL_CENTER}
       zoom={BRAZIL_ZOOM}
       minZoom={3}
-      maxZoom={18}
+      maxZoom={20}          // aumentado de 18 → 20 (permite zoom rua-level)
       zoomControl={false}
       attributionControl={false}
       scrollWheelZoom={true}
+      preferCanvas={true}    // render via Canvas (9.627 markers DOM = browser crash; Canvas = OK)
       className="h-full w-full"
       style={{ background: "#1a1a2e" }}
     >
-      {/* Tiles escuros CartoDB */}
+      {/* Tiles escuros CartoDB — maxNativeZoom=19 para tiles nítidos até zoom 20 */}
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
         subdomains="abcd"
-        maxZoom={19}
+        maxZoom={20}
+        maxNativeZoom={19}
       />
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
         subdomains="abcd"
-        maxZoom={19}
+        maxZoom={20}
+        maxNativeZoom={19}
         opacity={0.7}
       />
 
