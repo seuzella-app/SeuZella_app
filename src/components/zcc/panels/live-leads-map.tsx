@@ -1,35 +1,35 @@
 "use client";
 import "leaflet/dist/leaflet.css";
-import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import type { Lead } from "@/lib/zcc/types";
-import {
-  fetchPousadasBrasil,
-  fetchPousadasConvertidasMock,
-  fetchCliquesAnuncioMock,
-  type PousadaBrasil,
-} from "@/lib/zcc/pousadas-brasil-data";
 
 /*
- * LiveLeadsMap v3 — MarkerCluster nativo (sem react-leaflet-cluster)
- * =================================================================
+ * LiveLeadsMap v4 — Limpo, performático, sem planilha pesada
+ * ============================================================
  *
- * CORREÇÃO DEFINITIVA:
- *   O react-leaflet-cluster v4 tem bug com react-leaflet v5 — em zoom
- *   alto (disableClusteringAtZoom), os markers somem do DOM. Esta versão
- *   usa o leaflet.markercluster nativo via API direta (L.markerClusterGroup)
- *   com useRef + useMap, sem depender do wrapper React.
+ * ARQUITETURA:
+ *   - Marcadores VERDES (conversão): carregados via /api/leads/converted-pousadas
+ *     (Tenants ativos com Property + lat/lng). Quando o dono da pousada
+ *     paga um plano e completa o cadastro, ele vira bolinha verde aqui.
  *
- * Resultado:
- *   - 9.627 pousadas plotadas em SUAS coordenadas reais (lat/lng da planilha)
- *   - Em zoom baixo: agrupadas em clusters coloridos (50px radius)
- *   - Em zoom médio: sub-clusters + markers individuais aparecem
- *   - Em zoom alto: TODAS as 9.627 pousadas visíveis em suas posições reais
- *   - Click em qualquer bolinha: popup com NOME + CIDADE + UF + WHATSAPP +
- *     EMAIL + TIER + SCORE + QUARTOS + VALORES da pousada
+ *   - Marcadores AMARELOS (prospectados): mock de demonstração do ZCC
+ *     (leads pendentes com tierSugerido/roomsCount). Substituídos por
+ *     dados reais quando houver integração com prospecção.
+ *
+ *   - Marcadores AZUIS (clique anúncio): mock de demonstração.
+ *     Substituídos por tracking Google Ads quando houver integração.
+ *
+ * BOLINHAS MENORES:
+ *   - Verde (convertida): 12px com estrela branca central
+ *   - Amarelo (prospectada): 8px
+ *   - Azul (clique anúncio): 10px com anel pulsante
+ *
+ * PERFORMANCE:
+ *   - Sem cluster (era pesado com 9k+ markers da planilha)
+ *   - Popups gerados via JSX (React puro, sem HTML string)
+ *   - Mapa carrega instantaneamente (sem fetch de 2MB)
  */
 
 const BRAZIL_CENTER: [number, number] = [-14.5, -52];
@@ -63,21 +63,43 @@ const CATEGORY_STYLE: Record<MarkerCategory, CategoryStyle> = {
   prospect: {
     color: "#facc15",
     label: "Prospectada",
-    description: "Pousada da planilha (9.627 prospectadas)",
-    size: 6,
-    selectedSize: 12,
+    description: "Lead prospectado (mock)",
+    size: 8,
+    selectedSize: 14,
     zIndex: 100,
   },
   click: {
     color: "#3b82f6",
     label: "Clique Anúncio",
-    description: "Clique no Google Ads (mock — real quando GA4 integrar)",
+    description: "Clique no anúncio (mock — real quando GA4 integrar)",
     size: 10,
     selectedSize: 16,
     hasPulse: true,
     zIndex: 500,
   },
 };
+
+interface PousadaConvertida {
+  id: string;
+  tenantId: string;
+  nome: string;
+  plano: string;
+  status: string;
+  subscriptionAt: string | null;
+  enderecoCompleto: string;
+  lat: number | null;
+  lng: number | null;
+  whatsapp: string | null;
+  email: string | null;
+  phone: string | null;
+  niche: string;
+  cidade: string;
+  uf: string;
+  rua: string;
+  numero: string;
+  bairro: string;
+  tipo: string;
+}
 
 interface LeadMarker {
   id: string;
@@ -87,6 +109,7 @@ interface LeadMarker {
   nome: string;
   cidade: string;
   uf: string;
+  // Dados extras para popup
   tier?: string;
   funnel?: string;
   score?: number;
@@ -96,6 +119,9 @@ interface LeadMarker {
   localPraia?: string;
   whatsapp?: string;
   email?: string;
+  endereco?: string;
+  plano?: string;
+  subscriptionAt?: string;
 }
 
 interface LiveLeadsMapProps {
@@ -104,11 +130,6 @@ interface LiveLeadsMapProps {
   onSelectLead?: (lead: Lead) => void;
   className?: string;
   activeFilter?: MarkerCategory | null;
-  onPousadasLoaded?: (data: {
-    prospectadas: PousadaBrasil[];
-    convertidas: PousadaBrasil[];
-    cliques: PousadaBrasil[];
-  }) => void;
 }
 
 function isValidCoord(lat: number, lng: number) {
@@ -120,221 +141,168 @@ function isValidCoord(lat: number, lng: number) {
   );
 }
 
-/** Helper: cria o HTML do ícone da bolinha (com cor/tamanho/estrela). */
-function markerIconHTML(category: MarkerCategory, isSelected: boolean): string {
-  const style = CATEGORY_STYLE[category];
-  const size = isSelected ? style.selectedSize : style.size;
-  const hex = style.color;
-  const pulseRing = style.hasPulse;
-  const star = style.hasStar;
-
-  return `
-    <div class="zcc-marker-wrap" style="--marker-color: ${hex};">
-      ${pulseRing ? `<span class="zcc-marker-pulse" style="background: ${hex};"></span>` : ""}
-      <span class="zcc-marker-dot" style="
-        background: ${hex};
-        width: ${size}px;
-        height: ${size}px;
-        ${isSelected
-          ? `box-shadow: 0 0 0 3px ${hex}55, 0 0 12px ${hex};`
-          : `box-shadow: 0 0 0 1px #0a0a0a99;`
-        }
-      ">
-        ${star ? `<svg class="zcc-marker-star" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : ""}
-      </span>
-    </div>
-  `;
+/** Helper: determina a categoria de um Lead do ZCC. */
+function leadCategory(lead: Lead): MarkerCategory {
+  if (lead.status === "convertido" || lead.converted) return "converted";
+  if (lead.tierSugerido || lead.roomsCount > 0) return "prospect";
+  return "click";
 }
 
-/** Helper: gera o conteúdo HTML do popup com TODOS os dados da pousada. */
-function popupHTML(marker: LeadMarker): string {
-  const style = CATEGORY_STYLE[marker.category];
+/** Helper: converte Lead do ZCC para o formato unificado do mapa. */
+function leadToMarker(lead: Lead): LeadMarker | null {
+  const l = lead as any;
+  const lat = l.latitude ?? l.lat;
+  const lng = l.longitude ?? l.lng;
+  if (lat == null || lng == null || !isValidCoord(lat, lng)) return null;
 
-  // Monta dados completos da pousada
-  const localText = `${marker.cidade}/${marker.uf}${marker.localPraia ? ` · ${marker.localPraia}` : ""}`;
-  const scoreBlock = marker.score !== undefined ? `
-    <div>
-      <p style="margin:0;font-size:10px;color:#94a3b8;">Score</p>
-      <p style="margin:0;font-weight:700;color:${style.color};">${marker.score}</p>
-    </div>` : "";
+  return {
+    id: l.id,
+    lat,
+    lng,
+    category: leadCategory(lead),
+    nome: l.pousada || l.empresa || l.name || "Pousada",
+    cidade: l.cidade || l.city || "",
+    uf: l.uf || l.state || "",
+    tier: l.tierSugerido || l.leadTier || l.tier,
+    funnel: l.funnelStage || l.funnel || l.cluster,
+    score: l.scoreQual ?? l.avgScore ?? l.scoreValid ?? l.score,
+    qtdQuartos: l.qtdQuartos ?? l.roomsCount ?? 0,
+    valores: l.valoresEstimados ?? l.estimatedValues ?? undefined,
+    sinaisIntencao: l.sinaisIntencao ?? l.intentSignals ?? undefined,
+    localPraia: l.localPraia ?? undefined,
+    whatsapp: l.whatsapp ?? l.phone ?? undefined,
+  };
+}
 
-  const tierBlock = marker.tier ? `
-    <div>
-      <p style="margin:0;font-size:10px;color:#94a3b8;">Tier</p>
-      <p style="margin:0;font-weight:600;">${marker.tier}</p>
-    </div>` : "";
+/** Helper: converte pousada convertida (Tenant pago) para marker VERDE. */
+function convertedToMarker(p: PousadaConvertida): LeadMarker | null {
+  if (p.lat == null || p.lng == null || !isValidCoord(p.lat, p.lng)) return null;
 
-  const quartosBlock = marker.qtdQuartos && marker.qtdQuartos > 0 ? `
-    <div>
-      <p style="margin:0;font-size:10px;color:#94a3b8;">Quartos</p>
-      <p style="margin:0;font-weight:600;">${marker.qtdQuartos}</p>
-    </div>` : "";
-
-  const valoresBlock = marker.valores ? `
-    <p style="margin:8px 0 0;font-size:11px;color:#34d399;">${marker.valores}</p>` : "";
-
-  const sinaisBlock = marker.sinaisIntencao ? `
-    <p style="margin:6px 0 0;font-size:11px;color:#fbbf24;">★ ${marker.sinaisIntencao}</p>` : "";
-
-  // Bloco de contato — sempre presente com WhatsApp + Email
-  const contatoItems = [];
-  if (marker.whatsapp) {
-    contatoItems.push(`<span style="display:inline-block;background:#25D36622;color:#25D366;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:2px 4px 2px 0;">📱 WhatsApp: ${marker.whatsapp}</span>`);
-  }
-  if (marker.email) {
-    contatoItems.push(`<span style="display:inline-block;background:#3b82f622;color:#60a5fa;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:2px 4px 2px 0;">✉ ${marker.email}</span>`);
-  }
-  const contatoBlock = contatoItems.length > 0 ? `
-    <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);">
-      <p style="margin:0 0 4px;font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Contato</p>
-      <div>${contatoItems.join("")}</div>
-    </div>` : "";
-
-  // Coordenadas (footer para auditoria)
-  const coordBlock = `
-    <p style="margin:8px 0 0;font-size:9px;color:#64748b;">
-      Lat/Lng: ${marker.lat.toFixed(5)}, ${marker.lng.toFixed(5)} · ID: ${marker.id}
-    </p>`;
-
-  return `
-    <div style="min-width:240px;max-width:280px;font-family:system-ui,-apple-system,sans-serif;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-        <p style="margin:0;font-size:13px;font-weight:600;color:#f1f5f9;line-height:1.3;">${marker.nome}</p>
-        <span style="background:${style.color}22;color:${style.color};padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;text-transform:uppercase;flex-shrink:0;">${style.label}</span>
-      </div>
-      <p style="margin:2px 0 0;font-size:11px;color:#94a3b8;">${localText}</p>
-      ${sinaisBlock}
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;font-size:10px;">
-        ${scoreBlock}${tierBlock}${quartosBlock}
-      </div>
-      ${valoresBlock}
-      ${contatoBlock}
-      ${coordBlock}
-    </div>
-  `;
+  return {
+    id: `conv-${p.id}`,
+    lat: p.lat,
+    lng: p.lng,
+    category: "converted",
+    nome: p.nome,
+    cidade: p.cidade,
+    uf: p.uf,
+    whatsapp: p.whatsapp ?? undefined,
+    email: p.email ?? undefined,
+    endereco: p.enderecoCompleto,
+    plano: p.plano,
+    subscriptionAt: p.subscriptionAt ?? undefined,
+  };
 }
 
 function LeafletMapInner({
+  leads,
   selectedLeadId,
-  activeFilter,
-  onPousadasLoaded,
+  onSelectLead,
 }: LiveLeadsMapProps) {
   const [LeafletMods, setLeafletMods] = React.useState<{
     MapContainer: typeof import("react-leaflet").MapContainer;
     TileLayer: typeof import("react-leaflet").TileLayer;
+    Marker: typeof import("react-leaflet").Marker;
+    Popup: typeof import("react-leaflet").Popup;
+    Tooltip: typeof import("react-leaflet").Tooltip;
     useMap: typeof import("react-leaflet").useMap;
     L: typeof import("leaflet");
   } | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
-    Promise.all([
-      import("react-leaflet"),
-      import("leaflet"),
-      import("leaflet.markercluster"),
-    ]).then(([rl, L]) => {
+    Promise.all([import("react-leaflet"), import("leaflet")]).then(([rl, L]) => {
       if (!mounted) return;
       setLeafletMods({
         MapContainer: rl.MapContainer,
         TileLayer: rl.TileLayer,
+        Marker: rl.Marker,
+        Popup: rl.Popup,
+        Tooltip: rl.Tooltip,
         useMap: rl.useMap,
         L: L.default,
       });
     });
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
-  // ── Carrega dataset da planilha (lazy via fetch) ──
-  const [planilhaData, setPlanilhaData] = React.useState<{
-    prospectadas: PousadaBrasil[];
-    convertidas: PousadaBrasil[];
-    cliques: PousadaBrasil[];
-  } | null>(null);
+  // ── Carrega pousadas convertidas (Tenants ativos com lat/lng) ──
+  const [converted, setConverted] = React.useState<PousadaConvertida[]>([]);
 
   React.useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      fetchPousadasBrasil(),
-      fetchPousadasConvertidasMock(),
-      fetchCliquesAnuncioMock(),
-    ]).then(([prospectadas, convertidas, cliques]) => {
-      if (cancelled) return;
-      setPlanilhaData({ prospectadas, convertidas, cliques });
-      onPousadasLoaded?.({ prospectadas, convertidas, cliques });
-    });
+    fetch('/api/leads/converted-pousadas', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : { pousadas: [] })
+      .then(data => {
+        if (cancelled) return;
+        setConverted(data.pousadas ?? []);
+      })
+      .catch(err => {
+        console.warn('[LIVE_LEADS_MAP] Falha ao carregar convertidas:', err);
+        if (!cancelled) setConverted([]);
+      });
     return () => { cancelled = true; };
-  }, [onPousadasLoaded]);
+  }, []);
 
-  // ── Marcadores a renderizar ──
+  // ── Marcadores a renderizar (mocks do ZCC + convertidas reais) ──
   const markers: LeadMarker[] = React.useMemo(() => {
-    if (!planilhaData) return [];
-
     const result: LeadMarker[] = [];
 
-    // 1. PROSPECTADAS (AMARELO) — todas as 9.627 da planilha
-    for (const p of planilhaData.prospectadas) {
-      if (!isValidCoord(p.lat, p.lng)) continue;
-      result.push({
-        id: p.id,
-        lat: p.lat,
-        lng: p.lng,
-        category: "prospect",
-        nome: p.nome,
-        cidade: p.cidade,
-        uf: p.uf,
-        tier: p.tier,
-        funnel: p.funnel,
-        score: p.score,
-        qtdQuartos: p.qtdQuartos,
-        valores: p.valores,
-        sinaisIntencao: p.sinaisIntencao,
-        localPraia: p.localPraia,
-        whatsapp: p.whatsapp,
-        email: p.email,
-      });
+    // 1. Mocks do ZCC (legado) — converte e descarta inválidos
+    for (const lead of leads) {
+      const m = leadToMarker(lead);
+      if (m) result.push(m);
     }
 
-    // 2. CONVERTIDAS (VERDE) — sobrepõe as prospectadas
-    for (const p of planilhaData.convertidas) {
-      if (!isValidCoord(p.lat, p.lng)) continue;
-      const existing = result.find(m => m.id === p.id);
-      if (existing) {
-        existing.category = "converted";
-      } else {
-        result.push({
-          id: p.id, lat: p.lat, lng: p.lng, category: "converted",
-          nome: p.nome, cidade: p.cidade, uf: p.uf,
-          tier: p.tier, funnel: p.funnel, score: p.score,
-          qtdQuartos: p.qtdQuartos, valores: p.valores,
-          sinaisIntencao: p.sinaisIntencao, localPraia: p.localPraia,
-          whatsapp: p.whatsapp, email: p.email,
-        });
-      }
-    }
-
-    // 3. CLIQUES (AZUL) — 12 cliques mock
-    for (const p of planilhaData.cliques) {
-      if (!isValidCoord(p.lat, p.lng)) continue;
-      result.push({
-        id: p.id, lat: p.lat, lng: p.lng, category: "click",
-        nome: p.nome, cidade: p.cidade, uf: p.uf,
-        tier: p.tier, funnel: p.funnel, score: p.score,
-        qtdQuartos: p.qtdQuartos, valores: p.valores,
-        sinaisIntencao: p.sinaisIntencao, localPraia: p.localPraia,
-        whatsapp: p.whatsapp, email: p.email,
-      });
+    // 2. Pousadas convertidas REAIS (Tenants ativos com cadastro completo)
+    for (const p of converted) {
+      const m = convertedToMarker(p);
+      if (m) result.push(m);
     }
 
     return result;
-  }, [planilhaData]);
+  }, [leads, converted]);
 
-  // Aplica filtro de categoria
-  const filteredMarkers = React.useMemo(() => {
-    if (!activeFilter) return markers;
-    return markers.filter(m => m.category === activeFilter);
-  }, [markers, activeFilter]);
+  const selectedMarker = React.useMemo(
+    () => markers.find(m => m.id === selectedLeadId) ?? null,
+    [markers, selectedLeadId]
+  );
+
+  // Memoiza ícones para não recriar a cada render
+  const iconFor = React.useCallback(
+    (marker: LeadMarker, highlighted: boolean) => {
+      if (!LeafletMods?.L) return null;
+      const style = CATEGORY_STYLE[marker.category];
+      const size = highlighted ? style.selectedSize : style.size;
+      const hex = style.color;
+      const pulseRing = style.hasPulse;
+      const star = style.hasStar;
+
+      return LeafletMods.L.divIcon({
+        className: "zcc-lead-marker zcc-lead-marker--" + marker.category,
+        html: `
+          <div class="zcc-marker-wrap" style="--marker-color: ${hex};">
+            ${pulseRing ? `<span class="zcc-marker-pulse" style="background: ${hex};"></span>` : ""}
+            <span class="zcc-marker-dot" style="
+              background: ${hex};
+              width: ${size}px;
+              height: ${size}px;
+              ${highlighted
+                ? `box-shadow: 0 0 0 3px ${hex}55, 0 0 12px ${hex};`
+                : `box-shadow: 0 0 0 1px #0a0a0a99;`
+              }
+            ">
+              ${star ? `<svg class="zcc-marker-star" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : ""}
+            </span>
+          </div>
+        `,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+        popupAnchor: [0, -size / 2],
+      });
+    },
+    [LeafletMods]
+  );
 
   if (!LeafletMods) {
     return (
@@ -347,301 +315,213 @@ function LeafletMapInner({
     );
   }
 
-  const { MapContainer, TileLayer, useMap, L } = LeafletMods;
+  const { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } = LeafletMods;
+
+  /** Componente que centraliza o mapa num lead específico. */
+  const FlyToSelected = ({ marker, zoom }: { marker: LeadMarker | null; zoom?: number }) => {
+    const map = useMap();
+    React.useEffect(() => {
+      if (marker) {
+        map.flyTo([marker.lat, marker.lng], zoom ?? 8, { duration: 0.8 });
+      }
+    }, [marker, map, zoom]);
+    return null;
+  };
+
+  /** Componente que invalida o tamanho do mapa quando o container muda. */
+  const ResizeHandler = () => {
+    const map = useMap();
+    React.useEffect(() => {
+      const t = setTimeout(() => map.invalidateSize(), 200);
+      return () => clearTimeout(t);
+    }, [map]);
+    return null;
+  };
 
   return (
     <MapContainer
       center={BRAZIL_CENTER}
       zoom={BRAZIL_ZOOM}
       minZoom={3}
-      maxZoom={20}
+      maxZoom={18}
       zoomControl={false}
       attributionControl={false}
       scrollWheelZoom={true}
-      preferCanvas={true}
       className="h-full w-full"
       style={{ background: "#1a1a2e" }}
     >
-      {/* Tiles escuros CartoDB — malha visual de fundo */}
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
         subdomains="abcd"
-        maxZoom={20}
-        maxNativeZoom={19}
+        maxZoom={19}
       />
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
         subdomains="abcd"
-        maxZoom={20}
-        maxNativeZoom={19}
+        maxZoom={19}
         opacity={0.7}
       />
 
       <ResizeHandler />
-      <FlyToSelected selectedLeadId={selectedLeadId} markers={filteredMarkers} />
+      <FlyToSelected marker={selectedMarker} />
 
-      {/* MarkerClusterGroup via API nativa do leaflet.markercluster */}
-      <ClusterLayer
-        L={L}
-        markers={filteredMarkers}
-        selectedLeadId={selectedLeadId}
-      />
+      {/* Marcadores — renderiza direto no DOM (volume pequeno agora) */}
+      {markers.map((marker) => {
+        const isSelected = marker.id === selectedLeadId;
+        const icon = iconFor(marker, isSelected);
+        if (!icon) return null;
+        const style = CATEGORY_STYLE[marker.category];
+        return (
+          <Marker
+            key={marker.id}
+            position={[marker.lat, marker.lng]}
+            icon={icon}
+            eventHandlers={{
+              click: () => {
+                const lead = leads.find(l => l.id === marker.id);
+                if (lead) onSelectLead?.(lead);
+              },
+            }}
+            zIndexOffset={isSelected ? 2000 : style.zIndex}
+          >
+            <Popup closeButton={false} offset={[0, -8]} maxWidth={300}>
+              <PopupContent marker={marker} />
+            </Popup>
+            <Tooltip direction="top" offset={[0, -8]} opacity={1}>
+              <span className="text-[11px] font-semibold">{marker.nome}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {" "}— {marker.cidade}/{marker.uf}
+              </span>
+            </Tooltip>
+          </Marker>
+        );
+      })}
 
       <ZoomControlsInner />
     </MapContainer>
   );
 }
 
-/**
- * ClusterLayer — Componente que cria e gerencia o MarkerClusterGroup
- * nativo do leaflet.markercluster (sem react-leaflet-cluster).
- *
- * Vantagens:
- *   - Mais estável: usa API nativa, sem wrapper React com bugs
- *   - Markers NÃO somem ao fazer zoom (problema do react-leaflet-cluster v4)
- *   - Em disableClusteringAtZoom, markers individuais aparecem com popup completo
- */
-function ClusterLayer({
-  L,
-  markers,
-  selectedLeadId,
-}: {
-  L: typeof import("leaflet");
-  markers: LeadMarker[];
-  selectedLeadId?: string | null;
-}) {
-  const useMap = React.useMemo(() => {
-    // Importa useMap dinamicamente
-    // (já foi carregado no parent LeafletMapInner, mas precisamos de acesso ao map)
-    return null;
-  }, []);
-
-  // Acesso ao map via hook useMap (importado em runtime)
-  const [useMapHook, setUseMapHook] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    import("react-leaflet").then((rl) => setUseMapHook(() => rl.useMap));
-  }, []);
-
-  if (!useMapHook) return null;
+/** Conteúdo do popup com TODOS os dados da pousada. */
+function PopupContent({ marker }: { marker: LeadMarker }) {
+  const style = CATEGORY_STYLE[marker.category];
+  const local = `${marker.cidade}/${marker.uf}${marker.localPraia ? ` · ${marker.localPraia}` : ""}`;
 
   return (
-    <ClusterLayerInner
-      L={L}
-      markers={markers}
-      selectedLeadId={selectedLeadId}
-      useMap={useMapHook}
-    />
-  );
-}
+    <div className="min-w-[240px] max-w-[280px]">
+      {/* Header: Nome + Badge categoria */}
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[13px] font-semibold leading-tight text-foreground">
+          {marker.nome}
+        </p>
+        <span
+          className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase"
+          style={{ background: `${style.color}22`, color: style.color }}
+        >
+          {style.label}
+        </span>
+      </div>
 
-function ClusterLayerInner({
-  L,
-  markers,
-  selectedLeadId,
-  useMap,
-}: {
-  L: typeof import("leaflet");
-  markers: LeadMarker[];
-  selectedLeadId?: string | null;
-  useMap: typeof import("react-leaflet").useMap;
-}) {
-  const map = useMap();
-  const clusterGroupRef = React.useRef<any>(null);
+      {/* Cidade/UF + Local */}
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        {local}
+      </p>
 
-  // Cria o cluster group uma vez
-  React.useEffect(() => {
-    const clusterGroup = (L as any).markerClusterGroup({
-      showCoverageOnHover: false,
-      spiderfyOnMaxZoom: true,
-      spiderfyDistanceMultiplier: 2,
-      maxClusterRadius: 50,
-      disableClusteringAtZoom: 14,
-      chunkedLoading: true,
-      iconCreateFunction: (cluster: any) => {
-        const count = cluster.getChildCount();
-        const children = cluster.getAllChildMarkers();
-        // Categoria dominante
-        const cats = children.map((m: any) => m.options.category as MarkerCategory);
-        const counts: Record<string, number> = {};
-        for (const c of cats) counts[c] = (counts[c] || 0) + 1;
-        const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || "prospect";
-        const style = CATEGORY_STYLE[dominant as MarkerCategory];
-        const size = count > 100 ? 44 : count > 10 ? 36 : 28;
+      {/* Endereço completo (apenas para convertidas com endereço) */}
+      {marker.endereco && (
+        <p className="mt-1 text-[11px] text-emerald-300">
+          📍 {marker.endereco}
+        </p>
+      )}
 
-        return (L as any).divIcon({
-          html: `
-            <div class="zcc-cluster zcc-cluster--${dominant}" style="
-              background: radial-gradient(circle at center, ${style.color} 0%, ${style.color}cc 60%, ${style.color}88 100%);
-              width: ${size}px;
-              height: ${size}px;
-              border: 2px solid white;
-              box-shadow: 0 0 0 1px ${style.color}, 0 2px 8px rgba(0,0,0,0.4);
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              font-weight: 700;
-              font-size: ${count > 99 ? '10px' : '12px'};
-              font-family: 'JetBrains Mono', monospace;
-            ">
-              ${count > 99 ? '99+' : count}
+      {/* Sinais de intenção */}
+      {marker.sinaisIntencao && (
+        <p className="mt-1 text-[11px] text-amber-300">
+          ★ {marker.sinaisIntencao}
+        </p>
+      )}
+
+      {/* Grid 3 colunas: Score / Tier / Quartos (para mocks) */}
+      {(marker.score !== undefined || marker.tier || marker.qtdQuartos) && (
+        <div className="mt-2 grid grid-cols-3 gap-1.5 text-[10px]">
+          {marker.score !== undefined && (
+            <div>
+              <p className="text-muted-foreground">Score</p>
+              <p className="font-bold" style={{ color: style.color }}>{marker.score}</p>
             </div>
-          `,
-          className: "zcc-cluster-icon",
-          iconSize: (L as any).point(size, size),
-        });
-      },
-      polygonOptions: {
-        color: "#3b82f6",
-        weight: 1,
-        opacity: 0.3,
-        fillOpacity: 0.05,
-      },
-    });
+          )}
+          {marker.tier && (
+            <div>
+              <p className="text-muted-foreground">Tier</p>
+              <p className="font-semibold">{marker.tier}</p>
+            </div>
+          )}
+          {marker.qtdQuartos && marker.qtdQuartos > 0 && (
+            <div>
+              <p className="text-muted-foreground">Quartos</p>
+              <p className="font-semibold">{marker.qtdQuartos}</p>
+            </div>
+          )}
+        </div>
+      )}
 
-    clusterGroupRef.current = clusterGroup;
-    map.addLayer(clusterGroup);
+      {/* Plano (apenas para convertidas) */}
+      {marker.plano && (
+        <p className="mt-2 text-[11px] text-emerald-300 font-semibold">
+          PLANO {marker.plano.toUpperCase()}
+          {marker.subscriptionAt && (
+            <span className="ml-1 text-muted-foreground">
+              · desde {new Date(marker.subscriptionAt).toLocaleDateString('pt-BR')}
+            </span>
+          )}
+        </p>
+      )}
 
-    return () => {
-      map.removeLayer(clusterGroup);
-      clusterGroupRef.current = null;
-    };
-  }, [L, map]);
+      {/* Valores estimados */}
+      {marker.valores && (
+        <p className="mt-1.5 text-[11px] text-emerald-300">{marker.valores}</p>
+      )}
 
-  // Atualiza markers quando mudam (add/remove)
-  React.useEffect(() => {
-    const clusterGroup = clusterGroupRef.current;
-    if (!clusterGroup) return;
+      {/* Bloco CONTATO — sempre presente */}
+      {(marker.whatsapp || marker.email) && (
+        <div className="mt-2 pt-2 border-t border-border">
+          <p className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">
+            Contato
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {marker.whatsapp && (
+              <span className="inline-block rounded bg-[#25D36622] px-1.5 py-0.5 text-[10px] font-semibold text-[#25D366]">
+                📱 {marker.whatsapp}
+              </span>
+            )}
+            {marker.email && (
+              <span className="inline-block rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">
+                ✉ {marker.email}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
-    // Limpa markers antigos
-    clusterGroup.clearLayers();
-
-    // Cria novos markers com popup completo
-    const newMarkers: any[] = [];
-    for (const marker of markers) {
-      if (!isValidCoord(marker.lat, marker.lng)) continue;
-
-      const isSelected = marker.id === selectedLeadId;
-      const style = CATEGORY_STYLE[marker.category];
-      const size = isSelected ? style.selectedSize : style.size;
-
-      const icon = (L as any).divIcon({
-        className: "zcc-lead-marker zcc-lead-marker--" + marker.category,
-        html: markerIconHTML(marker.category, isSelected),
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
-        popupAnchor: [0, -size / 2],
-      });
-
-      const m = (L as any).marker([marker.lat, marker.lng], {
-        icon,
-        category: marker.category,
-        markerId: marker.id,
-        zIndexOffset: isSelected ? 2000 : style.zIndex,
-      });
-
-      // Popup COMPLETO com todos os dados da pousada
-      m.bindPopup(popupHTML(marker), {
-        closeButton: false,
-        offset: [0, -8],
-        maxWidth: 300,
-      });
-
-      // Tooltip no hover (mostra nome rápido)
-      m.bindTooltip(
-        `<span style="font-size:11px;font-weight:600;">${marker.nome}</span><span style="font-size:10px;color:#94a3b8;"> — ${marker.cidade}/${marker.uf}</span>`,
-        { direction: "top", offset: [0, -8], opacity: 1 }
-      );
-
-      newMarkers.push(m);
-    }
-
-    // Adiciona ao cluster group de uma vez (performance)
-    if (newMarkers.length > 0) {
-      clusterGroup.addLayers(newMarkers);
-    }
-  }, [markers, selectedLeadId, L]);
-
-  return null;
-}
-
-/** Componente que centraliza o mapa num lead específico. */
-function FlyToSelected({
-  selectedLeadId,
-  markers,
-}: {
-  selectedLeadId?: string | null;
-  markers: LeadMarker[];
-}) {
-  const [useMapHook, setUseMapHook] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    import("react-leaflet").then((rl) => setUseMapHook(() => rl.useMap));
-  }, []);
-
-  if (!useMapHook) return null;
-  return <FlyToSelectedInner selectedLeadId={selectedLeadId} markers={markers} useMap={useMapHook} />;
-}
-
-function FlyToSelectedInner({
-  selectedLeadId,
-  markers,
-  useMap,
-}: {
-  selectedLeadId?: string | null;
-  markers: LeadMarker[];
-  useMap: typeof import("react-leaflet").useMap;
-}) {
-  const map = useMap();
-  const marker = React.useMemo(
-    () => markers.find(m => m.id === selectedLeadId) ?? null,
-    [markers, selectedLeadId]
+      {/* Footer: Coordenadas para auditoria */}
+      <p className="mt-2 text-[9px] text-muted-foreground/70">
+        Lat/Lng: {marker.lat.toFixed(5)}, {marker.lng.toFixed(5)}
+      </p>
+    </div>
   );
-
-  React.useEffect(() => {
-    if (marker) {
-      map.flyTo([marker.lat, marker.lng], 12, { duration: 0.8 });
-    }
-  }, [marker, map]);
-
-  return null;
 }
 
-/** Componente que invalida o tamanho do mapa quando o container muda. */
-function ResizeHandler() {
-  const [useMapHook, setUseMapHook] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    import("react-leaflet").then((rl) => setUseMapHook(() => rl.useMap));
-  }, []);
-
-  if (!useMapHook) return null;
-  return <ResizeHandlerInner useMap={useMapHook} />;
-}
-
-function ResizeHandlerInner({
-  useMap,
-}: {
-  useMap: typeof import("react-leaflet").useMap;
-}) {
-  const map = useMap();
-  React.useEffect(() => {
-    const t = setTimeout(() => map.invalidateSize(), 200);
-    return () => clearTimeout(t);
-  }, [map]);
-  return null;
-}
-
-/**
- * Controles de zoom discretos no canto inferior direito.
- */
+/** Controles de zoom discretos no canto inferior direito. */
 function ZoomControlsInner() {
-  const [useMapHook, setUseMapHook] = React.useState<any>(null);
+  const [useMapHook, setUseMapHook] = React.useState<typeof import("react-leaflet").useMap | null>(null);
 
   React.useEffect(() => {
-    import("react-leaflet").then((rl) => setUseMapHook(() => rl.useMap));
+    let mounted = true;
+    import("react-leaflet").then((rl) => {
+      if (!mounted) return;
+      setUseMapHook(() => rl.useMap);
+    });
+    return () => { mounted = false; };
   }, []);
 
   if (!useMapHook) return null;
@@ -673,6 +553,8 @@ function ZoomControlsClient({
       <button
         type="button"
         onClick={zoomIn}
+        aria-label="Aumentar zoom"
+        title="Aumentar zoom (+)"
         style={{
           width: "32px", height: "32px",
           display: "grid", placeItems: "center",
@@ -683,12 +565,12 @@ function ZoomControlsClient({
           color: "#f1f5f9", fontSize: "16px", fontWeight: 700,
           cursor: "pointer", transition: "all 0.15s",
         }}
-        aria-label="Aumentar zoom"
-        title="Aumentar zoom (+)"
       >+</button>
       <button
         type="button"
         onClick={zoomOut}
+        aria-label="Diminuir zoom"
+        title="Diminuir zoom (−)"
         style={{
           width: "32px", height: "32px",
           display: "grid", placeItems: "center",
@@ -699,12 +581,12 @@ function ZoomControlsClient({
           color: "#f1f5f9", fontSize: "16px", fontWeight: 700,
           cursor: "pointer", transition: "all 0.15s",
         }}
-        aria-label="Diminuir zoom"
-        title="Diminuir zoom (−)"
       >−</button>
       <button
         type="button"
         onClick={resetView}
+        aria-label="Resetar visão"
+        title="Voltar para visão Brasil"
         style={{
           width: "32px", height: "32px",
           display: "grid", placeItems: "center",
@@ -715,8 +597,6 @@ function ZoomControlsClient({
           color: "#f1f5f9", fontSize: "10px", fontWeight: 700,
           cursor: "pointer", transition: "all 0.15s",
         }}
-        aria-label="Resetar visão"
-        title="Voltar para visão Brasil"
       >⟲</button>
     </div>
   );
@@ -725,36 +605,36 @@ function ZoomControlsClient({
 // ── EXPORTS ─────────────────────────────────────────────────────────────────
 
 export function LiveLeadsMap({
-  leads: _leads,
+  leads,
   selectedLeadId,
-  onSelectLead: _onSelectLead,
+  onSelectLead,
   className,
-  activeFilter,
-  onPousadasLoaded,
 }: LiveLeadsMapProps) {
   const [counts, setCounts] = React.useState({ converted: 0, prospect: 0, click: 0 });
 
-  const handlePousadasLoaded = React.useCallback((data: {
-    prospectadas: PousadaBrasil[];
-    convertidas: PousadaBrasil[];
-    cliques: PousadaBrasil[];
-  }) => {
-    setCounts({
-      converted: data.convertidas.length,
-      prospect: data.prospectadas.length,
-      click: data.cliques.length,
-    });
-    onPousadasLoaded?.(data);
-  }, [onPousadasLoaded]);
+  // Conta categorias dos leads atuais
+  React.useEffect(() => {
+    const c = { converted: 0, prospect: 0, click: 0 };
+    for (const lead of leads) {
+      const cat = leadCategory(lead);
+      c[cat]++;
+    }
+    // Soma convertidas da API
+    fetch('/api/leads/converted-pousadas', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : { pousadas: [] })
+      .then(data => {
+        c.converted += (data.pousadas?.length ?? 0);
+        setCounts(c);
+      })
+      .catch(() => setCounts(c));
+  }, [leads]);
 
   return (
     <div className={cn("relative h-full w-full", className)}>
       <LeafletMapInner
-        leads={_leads}
+        leads={leads}
         selectedLeadId={selectedLeadId}
-        onSelectLead={_onSelectLead}
-        activeFilter={activeFilter}
-        onPousadasLoaded={handlePousadasLoaded}
+        onSelectLead={onSelectLead}
       />
 
       {/* Indicador "AO VIVO" */}
@@ -776,9 +656,6 @@ export function LiveLeadsMap({
           <LegendItem color={CATEGORY_STYLE.prospect.color} label="Prospectada" count={counts.prospect} />
           <LegendItem color={CATEGORY_STYLE.click.color} label="Clique Anúncio" count={counts.click} />
         </div>
-        <p className="text-[8px] text-muted-foreground/70 mt-1.5 pt-1.5 border-t border-border/50">
-          Clique num cluster p/ expandir
-        </p>
       </div>
 
       {/* Contador */}
@@ -786,11 +663,7 @@ export function LiveLeadsMap({
         <span className="font-semibold text-foreground">
           {counts.converted + counts.prospect + counts.click}
         </span>
-        {" markers · "}
-        <span className="text-blue-400">clusters dinâmicos</span>
-        {activeFilter && (
-          <span className="ml-1 text-amber-400">· filtro: {CATEGORY_STYLE[activeFilter].label}</span>
-        )}
+        {" markers no mapa"}
       </div>
     </div>
   );
@@ -811,8 +684,8 @@ function LegendItem({
         className="inline-block rounded-full"
         style={{
           backgroundColor: color,
-          width: label === "Prospectada" ? "6px" : label === "Convertida" ? "10px" : "8px",
-          height: label === "Prospectada" ? "6px" : label === "Convertida" ? "10px" : "8px",
+          width: label === "Prospectada" ? "8px" : label === "Convertida" ? "10px" : "8px",
+          height: label === "Prospectada" ? "8px" : label === "Convertida" ? "10px" : "8px",
           boxShadow: `0 0 0 1px ${color}55`,
         }}
       />
@@ -823,4 +696,4 @@ function LegendItem({
 }
 
 export { CATEGORY_STYLE };
-export type { MarkerCategory, LeadMarker };
+export type { MarkerCategory, LeadMarker, PousadaConvertida };

@@ -171,6 +171,11 @@ model Property {
   city            String  @default("")
   state           String  @default("")
   zipCode         String  @default("")
+  // Geolocalização — preenchida no cadastro do cliente Zélla
+  // (quando o cliente paga um plano, endereço → lat/lng via geocoding)
+  // Usada para plotar bolinha VERDE no LiveLeadsMap (ZCC > Live Leads)
+  latitude        Float?
+  longitude       Float?
   type            String  @default("pousada") // pousada | hotel | hostel | chalé | resort
   website         String?
   description     String  @default("")
