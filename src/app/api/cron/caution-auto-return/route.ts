@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyCronSecret } from '@/lib/security/cron-secret';
 import { autoReturnCautions } from '@/lib/payments/caution';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 /**
  * GET /api/cron/caution-auto-return (a cada hora)

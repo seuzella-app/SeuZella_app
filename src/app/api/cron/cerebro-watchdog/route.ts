@@ -29,9 +29,14 @@ import { getCerebroMode } from '@/lib/cerebro/types';
 import { runAnomalyDetection, getAnomalyDetector } from '@/lib/cerebro/anomaly-detector';
 // Notification bridge — Phase 2: pushes AI anomaly alerts into DDC for the tenant
 import { bridgeCerebroAlert } from '@/lib/notifications/bridges';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  return runWatchdog(request);
+  
+    // Auth unificada: M2M EdDSA JWT primeiro, fallback CRON_SECRET
+  const auth = await verifyCronAuth(request, 'cerebro:write');
+  if (!auth.ok) return auth.response!;
+return runWatchdog(request);
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

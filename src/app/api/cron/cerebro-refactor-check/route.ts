@@ -25,6 +25,7 @@ import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import { getRefactorSuggester, findRecurringErrors } from '@/lib/cerebro/refactor-suggester';
 import { dispatchAlert } from '@/lib/cerebro/alert-bus';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return runRefactorCheck(request);
@@ -39,11 +40,9 @@ async function runRefactorCheck(request: NextRequest): Promise<NextResponse> {
   const mode = getCerebroMode();
 
   // ── Auth ──
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization');
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[cerebro-refactor-check] Auth mismatch — running anyway');
-  }
+    // Auth unificada: M2M EdDSA JWT primeiro, fallback CRON_SECRET
+  const auth = await verifyCronAuth(request, 'cerebro:write');
+  if (!auth.ok) return auth.response!;
 
   try {
     // ── 1. Encontra erros recorrentes ──

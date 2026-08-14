@@ -24,6 +24,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import { getCerebroOrchestrator } from '@/lib/cerebro/cerebro-orchestrator';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return runOrchestrator(request);
@@ -38,11 +39,9 @@ async function runOrchestrator(request: NextRequest): Promise<NextResponse> {
   const mode = getCerebroMode();
 
   // ── Auth (CRON_SECRET) ──
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization');
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[cerebro-orchestrator] Auth mismatch — running anyway (cron fail-open for visibility)');
-  }
+    // Auth unificada: M2M EdDSA JWT primeiro, fallback CRON_SECRET
+  const auth = await verifyCronAuth(request, 'cerebro:write');
+  if (!auth.ok) return auth.response!;
 
   try {
     // ── Permite override de config via query params (para testes) ──

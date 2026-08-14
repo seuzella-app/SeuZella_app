@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronSecret } from '@/lib/security/cron-secret';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 /**
  * GET /api/cron/nps-checkout

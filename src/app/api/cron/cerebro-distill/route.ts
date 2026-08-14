@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import { getKnowledgeDistiller } from '@/lib/cerebro/knowledge-distiller';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return runDistillation(request);
@@ -30,11 +31,9 @@ async function runDistillation(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
   const mode = getCerebroMode();
 
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization');
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[cerebro-distill] Auth mismatch — running anyway');
-  }
+    // Auth unificada: M2M EdDSA JWT primeiro, fallback CRON_SECRET
+  const auth = await verifyCronAuth(request, 'cerebro:write');
+  if (!auth.ok) return auth.response!;
 
   try {
     const distiller = getKnowledgeDistiller();

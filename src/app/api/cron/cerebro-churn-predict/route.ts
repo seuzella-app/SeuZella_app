@@ -16,6 +16,7 @@ import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import { getChurnPredictor } from '@/lib/cerebro/churn-predictor';
 import { dispatchAlert } from '@/lib/cerebro/alert-bus';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return runChurnPrediction(request);
@@ -29,11 +30,9 @@ async function runChurnPrediction(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
   const mode = getCerebroMode();
 
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization');
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[cerebro-churn-predict] Auth mismatch — running anyway');
-  }
+    // Auth unificada: M2M EdDSA JWT primeiro, fallback CRON_SECRET
+  const auth = await verifyCronAuth(request, 'cerebro:write');
+  if (!auth.ok) return auth.response!;
 
   try {
     const predictor = getChurnPredictor();

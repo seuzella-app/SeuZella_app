@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronSecret } from '@/lib/security/cron-secret';
 import { detectCheckoutIntent, handleCheckoutEvent } from '@/lib/housekeeping';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 /**
  * GET /api/cron/housekeeping-dispatch (a cada 5 min)

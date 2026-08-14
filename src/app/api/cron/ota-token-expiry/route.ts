@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { bridgeOtaTokenExpired } from '@/lib/notifications/bridges';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -23,16 +24,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 async function runCheck(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization');
-
-  if (process.env.NODE_ENV === 'production') {
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ ok: false, error: 'UNAUTHORIZED' }, { status: 401 });
-    }
-  } else if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.log('[Cron:ota-token-expiry] No auth — running in mock mode');
-  }
+    // Auth unificada: M2M EdDSA JWT primeiro, fallback CRON_SECRET
+  const auth = await verifyCronAuth(request, 'reports:read');
+  if (!auth.ok) return auth.response!;
 
   let processed = 0;
   let alerted = 0;
