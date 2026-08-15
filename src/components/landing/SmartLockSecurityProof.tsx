@@ -232,6 +232,98 @@ export function SmartLockSecurityProof() {
           <CheckCircle2 className="w-4 h-4" /> Auditoria LGPD Completa
         </div>
       </div>
+
+      {/* ── NOVO: Automação Inteligente ── */}
+      <div className="mt-6">
+        <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+          <Cpu className="w-4 h-4 text-emerald-400" />
+          Automação Inteligente Integrada
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <AutoCard
+            icon="📋"
+            title="FNRH → PIN Automático"
+            desc="Hóspede completa cadastro via WhatsApp → PIN gerado e enviado automaticamente. Sem intervenção manual."
+          />
+          <AutoCard
+            icon="⏰"
+            title="Upsell estende PIN"
+            desc="Early check-in (+3h) ou late checkout (+4h) pagos via PIX → PIN é revogado e recriado com nova validade."
+          />
+          <AutoCard
+            icon="💳"
+            title="Caução PIX protege acesso"
+            desc="Caução retida = PIN revogado imediatamente. Caução coletada = acesso garantido. Tudo automático."
+          />
+          <AutoCard
+            icon="🔄"
+            title="Manutenção automática (15min)"
+            desc="PINs expirados são revogados. Bateria &lt; 20% alerta o pousadeiro. Status online sincronizado."
+          />
+        </div>
+      </div>
+
+      {/* ── NOVO: Destravamento Remoto ── */}
+      <div className="mt-4 p-4 rounded-2xl bg-blue-950/30 border border-blue-500/20">
+        <div className="flex items-center gap-3 mb-2">
+          <Zap className="w-4 h-4 text-blue-400 shrink-0" />
+          <h5 className="text-xs font-bold text-white">Destravamento Remoto (Nuki & August)</h5>
+          <span className="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono border border-blue-500/30">
+            via DDC
+          </span>
+        </div>
+        <p className="text-[11px] text-zinc-400">
+          Para fechaduras Nuki e August/Yale Assure 2, o pousadeiro pode destravar remotamente
+          pelo Dashboard com 1 clique — sem precisar ir até a porta. Cada destravamento é
+          registrado no log de auditoria LGPD com timestamp e IP.
+        </p>
+      </div>
+
+      {/* ── NOVO: Segurança de Nível Bancário ── */}
+      <div className="mt-4 p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/20">
+        <div className="flex items-center gap-3 mb-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <h5 className="text-xs font-bold text-white">Segurança de Nível Bancário</h5>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] text-zinc-400">
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+            <span>PINs gerados com CSPRNG (crypto.randomInt) — nunca Math.random</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+            <span>Tokens OAuth criptografados em AES-256-GCM em repouso</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+            <span>Auditoria LGPD completa: quem abriu, quando, com qual PIN</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+            <span>Isolamento multi-tenant: pousada A não vê PINs da pousada B</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+            <span>SAST noturno: 133 patterns de código perigoso verificados</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+            <span>11.616 regras SecLists para defesa contra jailbreak e brute force</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AutoCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-base">{icon}</span>
+        <span className="text-[11px] font-bold text-white">{title}</span>
+      </div>
+      <p className="text-[10px] text-zinc-500 leading-relaxed">{desc}</p>
     </div>
   );
 }

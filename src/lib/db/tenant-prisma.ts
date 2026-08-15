@@ -30,6 +30,10 @@ const TENANT_MODELS = [
   'GuestRegistration',
   'YieldProfitRecord',
   'DevicePing',
+  'LockDevice',
+  'LockCode',
+  'LockEvent',
+  'LockOAuthAccount',
 ];
 
 const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'];

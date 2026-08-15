@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withApiGuard } from '@/lib/security/api-guard';
+import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import {
@@ -14,6 +15,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const tenantId = await resolveTenantId();
+    if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = await params;
     const device = await getLockDevice(id);
     if (!device) {

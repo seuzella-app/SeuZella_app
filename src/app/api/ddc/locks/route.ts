@@ -5,12 +5,15 @@ import {
 } from '@/lib/locks/orchestrator';
 import { BRAND_CATALOG, type LockBrand } from '@/lib/locks/types';
 import { withApiGuard } from '@/lib/security/api-guard';
+import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 // GET /api/ddc/locks — Lista dispositivos do tenant (opcionalmente por propertyId)
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = await resolveTenantId();
+    if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { searchParams } = new URL(request.url);
     const propertyId = searchParams.get('propertyId') ?? undefined;
     const devices = await listLockDevices(propertyId);

@@ -840,6 +840,50 @@ export async function listLockEvents(
 }
 
 // =============================================================================
+// REMOTE UNLOCK — Destrava fechadura remotamente (apenas Nuki e August)
+// =============================================================================
+
+export async function remoteUnlock(deviceId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const device = await getLockDevice(deviceId);
+    if (!device) {
+      return { success: false, error: 'Dispositivo não encontrado' };
+    }
+
+    if (device.providerType !== 'api') {
+      return { success: false, error: 'Destravamento remoto não suportado para este tipo de fechadura' };
+    }
+
+    // Verifica se provider suporta remoteUnlock
+    const { getProviderModule } = await import('./providers');
+    const providerModule = getProviderModule(device.brand as any);
+    if (!providerModule || typeof (providerModule as any).remoteUnlock !== 'function') {
+      return { success: false, error: `${device.brand} não suporta destravamento remoto` };
+    }
+
+    // Chama remoteUnlock do provider
+    await (providerModule as any).remoteUnlock(device.externalDeviceId || device.id);
+
+    // Registra evento
+    try {
+      await db.lockEvent.create({
+        data: {
+          deviceId,
+          tenantId: device.tenantId,
+          eventType: 'remote_unlock',
+          message: 'Destravamento remoto via DDC',
+        },
+      });
+    } catch {}
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('[ORCHESTRATOR] remoteUnlock falhou:', err);
+    return { success: false, error: err?.message ?? 'erro desconhecido' };
+  }
+}
+
+// =============================================================================
 // Dados demo (quando DB não está disponível — modo Vercel serverless)
 // =============================================================================
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listLockEvents } from '@/lib/locks/orchestrator';
 import { withApiGuard } from '@/lib/security/api-guard';
+import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -11,6 +12,8 @@ import { authOptions } from '@/lib/auth';
 //   limit (opcional, default 50, max 200)
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = await resolveTenantId();
+    if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { searchParams } = new URL(request.url);
     const deviceId = searchParams.get('deviceId') ?? undefined;
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '50', 10) || 50, 200);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { panicRevokeAllPins } from '@/lib/locks/orchestrator';
 import { withApiGuard } from '@/lib/security/api-guard';
+import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -10,6 +11,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const tenantId = await resolveTenantId();
+    if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const reason = body?.reason ?? 'Pânico acionado pelo host';
