@@ -15,6 +15,7 @@ import { PLAN_PRICING } from "@/lib/zcc/types";
 import type { Plan } from "@/lib/zcc/types";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
+import { InferenceSimulationCard } from "./inference-simulation-card";
 
 // Lazy-load ExpensesBreakdown (componente pesado com fetch próprio)
 const ExpensesBreakdownLazy = dynamic(
@@ -434,6 +435,9 @@ export function FinanceiroPanel() {
             })}
           </div>
         </section>
+
+        {/* ── SIMULAÇÃO DE IMPACTO DAS OTIMIZAÇÕES DE INFERÊNCIA ── */}
+        <InferenceSimulationCard />
 
         {/* ── CUSTOS EDITÁVEIS ── */}
         <section>
