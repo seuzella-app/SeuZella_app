@@ -2875,3 +2875,53 @@ model CerebroKnowledgeFact {
   @@index([confidence])
   @@map("cerebro_knowledge_facts")
 }
+
+// ===== CEREBRO WORKFLOW — Fluxos de IA personalizáveis por pousada =====
+// Inspirado no Dify (langgenius/dify): workflow DAG com nós LLM, tool, if-else.
+// Cada pousada pode ter seu próprio fluxo de atendimento.
+model CerebroWorkflow {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String   // "Fluxo Réveillon", "Fluxo Check-in Express"
+  description String?
+  // JSON: [{ type: "llm"|"tool"|"if-else"|"output", id, input, output, next }]
+  nodesJson   String   @db.Text
+  status      String   @default("draft") // draft | active | archived
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([status, updatedAt])
+  @@map("cerebro_workflows")
+}
+
+// ===== LLM CALL LOG — Observabilidade de chamadas LLM (LLMOps) =====
+// Cada chamada LLM é logada com tokens, latência, custo, modelo, feedback.
+// Permite análise de custo/latência/sucesso no ZCC > Cérebro > LLMOps.
+model LLMCallLog {
+  id              String   @id @default(cuid())
+  tenantId        String?
+  model           String   // glm-5.2, glm-4.7-flash, deepseek-r1
+  provider        String   // zhipu, groq, openrouter, anthropic
+  promptTokens    Int      @default(0)
+  completionTokens Int     @default(0)
+  totalTokens     Int      @default(0)
+  latencyMs       Int      @default(0)
+  costUsd         Float    @default(0)
+  success         Boolean  @default(true)
+  errorMessage    String?  @db.Text
+  feedback        String?  // thumbs_up | thumbs_down | null
+  // Hash do prompt (LGPD: não armazenar prompt bruto)
+  promptHash      String?
+  // Contexto: qual módulo chamou
+  source          String   @default("unknown") // cerebro | guest_responder | intent_router | prompt_ide
+  agentId         String?  // qual agency agent (se aplicável)
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([model, createdAt])
+  @@index([success, createdAt])
+  @@index([source, createdAt])
+  @@map("llm_call_logs")
+}

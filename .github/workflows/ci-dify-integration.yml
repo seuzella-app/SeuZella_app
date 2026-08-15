@@ -1,0 +1,52 @@
+# ============================================================================
+# ZÉLLA — CI: Dify Integration Tests
+# ============================================================================
+# Valida implementação inspirada no Dify:
+#   - CerebroWorkflowEngine (workflow DAG)
+#   - Prompt IDE (testador de prompts)
+#   - LLMOps (observabilidade de LLM)
+#   - ToolRegistry (tools plugáveis)
+# ============================================================================
+
+name: 🧠 Dify Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/cerebro/workflow-engine.ts'
+      - 'src/lib/ai/tool-registry.ts'
+      - 'src/app/api/zcc/cerebro/prompt-ide/**'
+      - 'src/app/api/zcc/cerebro/llmops/**'
+      - 'src/app/api/zcc/cerebro/workflows/**'
+      - 'prisma/schema.prisma'
+      - 'tests/dify-integration.test.ts'
+      - '.github/workflows/ci-dify-integration.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/lib/cerebro/workflow-engine.ts'
+
+jobs:
+  test:
+    name: 🧠 Dify Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🧠 Run Dify Integration Tests
+        run: npx vitest run tests/dify-integration.test.ts --reporter=verbose
