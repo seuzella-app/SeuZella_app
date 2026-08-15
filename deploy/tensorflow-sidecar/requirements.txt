@@ -1,0 +1,29 @@
+# ============================================================================
+# TensorFlow Sidecar — Dependencies
+# ============================================================================
+# Python 3.11+ required
+# Instalação: pip install -r requirements.txt
+# ============================================================================
+
+# ── TensorFlow CPU (não precisa de GPU para inferência) ──────────────────
+tensorflow-cpu>=2.16.0,<2.23.0
+
+# ── FastAPI sidecar ────────────────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.6.0
+
+# ── Database (Postgres para features) ─────────────────────────────────────
+psycopg[binary]>=3.1.18
+sqlalchemy>=2.0.27
+
+# ── ML utilities ───────────────────────────────────────────────────────────
+scikit-learn>=1.4.0
+numpy>=1.26.0
+pandas>=2.2.0
+
+# ── Auth & Security ───────────────────────────────────────────────────────
+python-jose[cryptography]>=3.3.0
+
+# ── Observabilidade ───────────────────────────────────────────────────────
+structlog>=24.1.0

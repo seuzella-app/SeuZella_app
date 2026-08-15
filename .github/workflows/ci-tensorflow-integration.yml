@@ -1,0 +1,48 @@
+# ============================================================================
+# ZÉLLA — CI: TensorFlow Integration Tests
+# ============================================================================
+
+name: 🧠 TensorFlow Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/ai/tf-client.ts'
+      - 'deploy/tensorflow-sidecar/**'
+      - 'tests/tensorflow-integration.test.ts'
+      - '.github/workflows/ci-tensorflow-integration.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/lib/ai/tf-client.ts'
+      - 'deploy/tensorflow-sidecar/**'
+
+jobs:
+  test:
+    name: 🧪 TF Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🔧 Generate Prisma Client
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+        run: npx prisma generate
+
+      - name: 🧠 Run TensorFlow Integration Tests
+        run: npx vitest run tests/tensorflow-integration.test.ts --reporter=verbose
