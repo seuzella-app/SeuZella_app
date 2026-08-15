@@ -16,7 +16,7 @@ import type { AirBIntent } from './system-prompt';
 export interface RAGResult {
   content: string;
   sourceType: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   relevance: number; // 0-1 score
 }
 
@@ -156,7 +156,7 @@ export async function queryRAG(
         try {
           const knowledge = JSON.parse(property.hostKnowledge || '[]');
           if (knowledge.length > 0) {
-            const knowledgeTexts = knowledge.map((k: any) =>
+            const knowledgeTexts = knowledge.map((k: Record<string, unknown>) =>
               typeof k === 'string' ? k : `${k.topic || k.title || ''}: ${k.content || k.description || ''}`
             );
             const scores = keywordSearch(query, knowledgeTexts);
@@ -183,7 +183,7 @@ export async function queryRAG(
         try {
           const tips = JSON.parse(property.neighborhoodTips || '[]');
           if (tips.length > 0) {
-            const tipTexts = tips.map((t: any) =>
+            const tipTexts = tips.map((t: Record<string, unknown>) =>
               typeof t === 'string' ? t : `${t.place || t.name || ''}: ${t.tip || t.description || ''}`
             );
             const scores = keywordSearch(query, tipTexts);

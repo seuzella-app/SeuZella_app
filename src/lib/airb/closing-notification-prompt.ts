@@ -19,12 +19,12 @@ export type NotificationType =
   | 'ESCALATION_REQUESTED';
 
 export type ClosingConversationStage =
-  | 'exploring'        // Hóspede ainda pesquisando, sem intenção clara
-  | 'interested'       // Demonstrou interesse mas não confirmou
-  | 'closing'          // Sinal claro de intenção de reserva
-  | 'collecting_data'  // Coletando dados da reserva
-  | 'finalizing'       // Dados coletados, aguardando confirmação final
-  | 'closed';          // Reserva fechada, notificação enviada
+  | 'exploring' // Hóspede ainda pesquisando, sem intenção clara
+  | 'interested' // Demonstrou interesse mas não confirmou
+  | 'closing' // Sinal claro de intenção de reserva
+  | 'collecting_data' // Coletando dados da reserva
+  | 'finalizing' // Dados coletados, aguardando confirmação final
+  | 'closed'; // Reserva fechada, notificação enviada
 
 export interface ClosingIntentSignal {
   /** Frase ou expressão em português que sinaliza intenção de reserva */

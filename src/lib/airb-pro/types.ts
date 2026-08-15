@@ -14,13 +14,13 @@
 // ── P0-1: PDF REPORTS ─────────────────────────────────────────────────────────
 
 export type ReportType =
-  | 'monthly_summary'   // resumo mensal completo
-  | 'reservations'      // lista de reservas do período
-  | 'financial'         // DRE simplificado + fluxo de caixa
-  | 'guests'            // CRM de hóspedes
-  | 'operations'        // tarefas de limpeza/manutenção
-  | 'goals'             // progresso de metas
-  | 'commissions';      // comissões de parceiros
+  | 'monthly_summary' // resumo mensal completo
+  | 'reservations' // lista de reservas do período
+  | 'financial' // DRE simplificado + fluxo de caixa
+  | 'guests' // CRM de hóspedes
+  | 'operations' // tarefas de limpeza/manutenção
+  | 'goals' // progresso de metas
+  | 'commissions'; // comissões de parceiros
 
 export type ReportFormat = 'pdf' | 'xlsx' | 'csv';
 
@@ -53,14 +53,14 @@ export interface ReportMetadata {
 // ── P0-2: FINANCIAL MANAGEMENT ────────────────────────────────────────────────
 
 export type ExpenseCategory =
-  | 'fixed_cost'    // custos fixos (aluguel, software, salários)
-  | 'variable'      // custos variáveis (produtos de limpeza, amenidades)
-  | 'maintenance'   // manutenção (consertos, peças)
-  | 'utilities'     // utilidades (luz, água, internet)
-  | 'marketing'     // marketing (anúncios, redes sociais)
-  | 'commission'    // comissões (OTA, parceiros)
-  | 'tax'           // impostos (ISS, PIS, COFINS)
-  | 'other';        // outros
+  | 'fixed_cost' // custos fixos (aluguel, software, salários)
+  | 'variable' // custos variáveis (produtos de limpeza, amenidades)
+  | 'maintenance' // manutenção (consertos, peças)
+  | 'utilities' // utilidades (luz, água, internet)
+  | 'marketing' // marketing (anúncios, redes sociais)
+  | 'commission' // comissões (OTA, parceiros)
+  | 'tax' // impostos (ISS, PIS, COFINS)
+  | 'other'; // outros
 
 export type ExpenseStatus = 'pending' | 'paid' | 'overdue' | 'cancelled';
 export type ExpenseRecurrence = 'one_time' | 'monthly' | 'weekly' | 'yearly';
@@ -86,9 +86,9 @@ export interface ExpenseRecord extends ExpenseInput {
 
 export interface CashFlowSummary {
   period: ReportPeriod;
-  inflow: number;        // total de receitas (reservas pagas)
-  outflow: number;       // total de despesas pagas
-  net: number;           // inflow - outflow
+  inflow: number; // total de receitas (reservas pagas)
+  outflow: number; // total de despesas pagas
+  net: number; // inflow - outflow
   pendingExpenses: number;
   overdueExpenses: number;
   byCategory: Record<ExpenseCategory, { count: number; total: number }>;
@@ -97,25 +97,25 @@ export interface CashFlowSummary {
 
 export interface DreSimplified {
   period: ReportPeriod;
-  grossRevenue: number;       // receita bruta
-  otaCommissions: number;     // comissões de OTAs
-  netRevenue: number;         // receita líquida
+  grossRevenue: number; // receita bruta
+  otaCommissions: number; // comissões de OTAs
+  netRevenue: number; // receita líquida
   fixedCosts: number;
   variableCosts: number;
   marketingCosts: number;
   taxes: number;
-  ebitda: number;             // resultado antes de impostos/juros
-  margin: number;             // margem percentual
+  ebitda: number; // resultado antes de impostos/juros
+  margin: number; // margem percentual
 }
 
 // ── P0-3: SELF-SERVICE TRIAL ──────────────────────────────────────────────────
 
 export type TrialStatus =
-  | 'started'      // signup inicial
-  | 'verified'     // email verificado
-  | 'converted'    // virou Tenant real
-  | 'abandoned'    // abandonou antes de converter
-  | 'expired';     // trial expirou sem conversão
+  | 'started' // signup inicial
+  | 'verified' // email verificado
+  | 'converted' // virou Tenant real
+  | 'abandoned' // abandonou antes de converter
+  | 'expired'; // trial expirou sem conversão
 
 export type TrialNiche = 'pousada' | 'airbnb';
 export type TrialSource = 'organic' | 'ads' | 'referral' | 'partner';
@@ -163,10 +163,10 @@ export interface TrialFunnelStats {
 // ── P1-1: OPERATIONS ──────────────────────────────────────────────────────────
 
 export type OperationTaskType =
-  | 'cleaning'      // limpeza (checkout, check-in prep, deep clean)
-  | 'maintenance'   // manutenção corretiva/preventiva
-  | 'inspection'    // inspeção rotineira
-  | 'restock'       // reposição de insumos
+  | 'cleaning' // limpeza (checkout, check-in prep, deep clean)
+  | 'maintenance' // manutenção corretiva/preventiva
+  | 'inspection' // inspeção rotineira
+  | 'restock' // reposição de insumos
   | 'other';
 
 export type OperationTaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
@@ -212,19 +212,19 @@ export interface OperationsDashboard {
   byType: Record<OperationTaskType, number>;
   byPriority: Record<OperationTaskPriority, number>;
   upcoming: OperationTaskRecord[]; // próximas 7 tarefas agendadas
-  recent: OperationTaskRecord[];   // últimas 5 tarefas concluídas
+  recent: OperationTaskRecord[]; // últimas 5 tarefas concluídas
 }
 
 // ── P1-2: GOALS DASHBOARD ─────────────────────────────────────────────────────
 
 export type GoalType =
-  | 'revenue'     // receita total
-  | 'occupancy'   // taxa de ocupação
-  | 'bookings'    // número de reservas
-  | 'adr'         // Average Daily Rate
-  | 'revpar'      // Revenue Per Available Room
-  | 'guests'      // número de hóspedes
-  | 'reviews';    // número de avaliações
+  | 'revenue' // receita total
+  | 'occupancy' // taxa de ocupação
+  | 'bookings' // número de reservas
+  | 'adr' // Average Daily Rate
+  | 'revpar' // Revenue Per Available Room
+  | 'guests' // número de hóspedes
+  | 'reviews'; // número de avaliações
 
 export type GoalPeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 export type GoalStatus = 'active' | 'achieved' | 'missed' | 'paused';
@@ -251,10 +251,10 @@ export interface GoalRecord extends GoalInput {
 
 export interface GoalProgress {
   goal: GoalRecord;
-  progressPercent: number;  // 0-100
+  progressPercent: number; // 0-100
   remaining: number;
   daysRemaining: number;
-  projectedValue: number;   // projeção linear no fim do período
+  projectedValue: number; // projeção linear no fim do período
   projectedStatus: GoalStatus; // achieved | missed baseado na projeção
   trend: 'up' | 'down' | 'flat';
 }

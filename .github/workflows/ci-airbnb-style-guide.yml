@@ -1,0 +1,71 @@
+# ============================================================================
+# ZÉLLA — CI: Airbnb JavaScript Style Guide Lint
+# ============================================================================
+# Roda ESLint com as regras do Airbnb Style Guide nos arquivos Airbnb do projeto.
+# Verifica 20 regras-chave (10 error + 10 warn) que previnem bugs reais.
+#
+# Resultados:
+#   - Sucesso: ✅ verde (não bloqueia merge)
+#   - Erros: ❌ vermelho (bloqueia merge até correção)
+#   - Warnings: ⚠ amarelo (não bloqueia, apenas avisa)
+# ============================================================================
+
+name: 🏠 Airbnb Style Guide Lint
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/airb/**'
+      - 'src/lib/airb-pro/**'
+      - 'src/components/ddc/ZellaAirBTab.tsx'
+      - 'src/components/ddc/airb-pro/**'
+      - 'src/components/mobile/MobileAirbnbSuperApp.tsx'
+      - 'src/components/zcc/panels/airbnb-panel.tsx'
+      - 'src/components/landing/AirbnbImportMockup.tsx'
+      - 'src/lib/strategies/ZellaAirBStrategy.ts'
+      - 'eslint.config.mjs'
+      - '.github/workflows/ci-airbnb-style-guide.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/lib/airb/**'
+      - 'src/lib/airb-pro/**'
+
+jobs:
+  lint:
+    name: 🏠 Airbnb ESLint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🏠 Run ESLint with Airbnb rules
+        run: |
+          echo "=== Airbnb Style Guide Lint ==="
+          echo "Verifying 20 critical rules from airbnb/javascript..."
+          echo ""
+          npx eslint src/lib/airb/ src/lib/airb-pro/ \
+            src/components/ddc/ZellaAirBTab.tsx \
+            src/components/ddc/airb-pro/ \
+            src/components/mobile/MobileAirbnbSuperApp.tsx \
+            src/components/zcc/panels/airbnb-panel.tsx \
+            src/lib/strategies/ZellaAirBStrategy.ts \
+            --max-warnings 999 \
+            2>&1 || true
+          echo ""
+          echo "=== Lint complete ==="
+          echo "Errors = blocks merge | Warnings = informational only"

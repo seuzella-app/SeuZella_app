@@ -14,12 +14,12 @@ export interface SystemPromptParams {
   bathrooms: number;
   checkinTime: string;
   checkoutTime: string;
-  houseRules: string;       // JSON string
-  amenities: string;         // JSON string
-  hostKnowledge: string;     // JSON string
+  houseRules: string; // JSON string
+  amenities: string; // JSON string
+  hostKnowledge: string; // JSON string
   emergencyContacts: string; // JSON string
   checkinInstructions?: string;
-  ragContextBlock?: string;  // Injected from RAG pipeline
+  ragContextBlock?: string; // Injected from RAG pipeline
   platformContext: PlatformContext;
   conversationMode: 'pre_booking' | 'post_booking';
 }
@@ -188,7 +188,7 @@ function formatJsonField(jsonStr: string): string {
     const parsed = JSON.parse(jsonStr || '[]');
     if (Array.isArray(parsed)) {
       if (parsed.length === 0) return 'Nenhuma informação cadastrada.';
-      return parsed.map((item: any, i: number) => {
+      return parsed.map((item: Record<string, unknown>, _i: number) => {
         if (typeof item === 'string') return `- ${item}`;
         if (typeof item === 'object') return `- ${item.name || item.rule || item.title || JSON.stringify(item)}`;
         return `- ${item}`;
