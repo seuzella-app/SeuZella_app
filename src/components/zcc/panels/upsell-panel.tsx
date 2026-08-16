@@ -5,62 +5,51 @@ import {
   Sparkles,
   Wallet,
   TrendingUp,
-  Info,
+  TrendingDown,
+  Building2,
   Calendar,
-  Download,
   RefreshCw,
   CheckCircle2,
   Clock,
-  XCircle,
+  CreditCard,
+  AlertCircle,
+  ArrowUpRight,
+  Award,
 } from "lucide-react";
 import { PanelHeader } from "../shared/panel-header";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TIPOS — espelha o backend
+// TIPOS — visão administrativa seuzella.com
 // ─────────────────────────────────────────────────────────────────────────────
-interface UpsellRecord {
-  id: string;
-  tenantId: string;
-  roomId?: string;
-  reservationId?: string;
-  guestId?: string;
-  type: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  comissionRate: number;
-  comissionAmount: number;
-  status: "pending" | "confirmed" | "paid" | "cancelled";
-  paidAt?: string;
-  confirmedAt?: string;
-  suggestedByZehla: boolean;
-  feriado?: string;
-  temporada?: string;
-  yieldMultiplier?: number;
-  notes: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface UpsellMetrics {
-  total_aceitos: number;
-  total_receita_extra: number;
-  total_comissao_zehla: number;
-  total_comissao_pendente: number;
-  total_comissao_paga: number;
+interface FaturamentoMensal {
+  mes: number;
+  ano: number;
+  total_comissao: number;
+  total_receita_gerada: number;
+  total_upsells: number;
+  total_pousadas_ativas: number;
+  media_por_pousada: number;
+  projecao_anual: number;
   por_tipo: Array<{ type: string; count: number; total_receita: number; comissao: number }>;
-  por_status: Record<string, { count: number; comissao: number }>;
-  media_por_reserva: number;
+  top_pousadas: Array<{
+    tenantId: string;
+    tenantName?: string;
+    total_upsells: number;
+    total_comissao: number;
+  }>;
 }
 
-interface UpsellCatalogItem {
-  label: string;
-  description: string;
-  defaultPrice: number;
-  unitLabel: string;
+interface Cobranca {
+  tenantId: string;
+  tenantName?: string;
+  mes: number;
+  ano: number;
+  valor: number;
+  vencimento: string;
+  status: "pendente" | "paga" | "vencida";
+  metodo: "pix" | "boleto" | "cartao";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,26 +59,18 @@ function fmtBRL(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function fmtDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
+function fmtInt(v: number): string {
+  return v.toLocaleString("pt-BR");
 }
 
-const STATUS_CONFIG = {
-  pending: { label: "Pendente", icon: Clock, color: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
-  confirmed: { label: "Confirmado", icon: CheckCircle2, color: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
-  paid: { label: "Pago", icon: CheckCircle2, color: "bg-blue-500/15 text-blue-300 border-blue-500/30" },
-  cancelled: { label: "Cancelado", icon: XCircle, color: "bg-red-500/15 text-red-300 border-red-500/30" },
-} as const;
+function fmtPercent(v: number): string {
+  return `${v.toFixed(1)}%`;
+}
+
+const MESES_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
 
 const TYPE_LABELS: Record<string, string> = {
   late_checkout: "Late checkout",
@@ -109,10 +90,423 @@ const TYPE_LABELS: Record<string, string> = {
   outros: "Outros",
 };
 
+const STATUS_COBRANCA = {
+  pendente: { label: "Pendente", icon: Clock, color: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
+  paga: { label: "Pago", icon: CheckCircle2, color: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
+  vencida: { label: "Vencida", icon: AlertCircle, color: "bg-red-500/15 text-red-300 border-red-500/30" },
+} as const;
+
 // ─────────────────────────────────────────────────────────────────────────────
-// MÉTRICAS CARD
+// PAINEL PRINCIPAL — visão administrativa da seuzella.com
 // ─────────────────────────────────────────────────────────────────────────────
-function MetricCard({
+export function UpsellPanel() {
+  const [faturamento, setFaturamento] = React.useState<FaturamentoMensal | null>(null);
+  const [cobrancas, setCobrancas] = React.useState<Cobranca[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [mesSelecionado, setMesSelecionado] = React.useState(() => {
+    const now = new Date();
+    return { mes: now.getMonth() + 1, ano: now.getFullYear() };
+  });
+  const [showTopPousadas, setShowTopPousadas] = React.useState(true);
+  const [showCobrancas, setShowCobrancas] = React.useState(true);
+
+  const carregarDados = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      // Tenta a API admin (apenas ADMIN pode ver todos os tenants)
+      const res = await fetch(
+        `/api/admin/faturamento-zehla?month=${mesSelecionado.mes}&year=${mesSelecionado.ano}&includeCobrancas=true`
+      );
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          setFaturamento(json.data.faturamento);
+          setCobrancas(json.data.cobrancas?.cobrancas || []);
+          return;
+        }
+      }
+      // Se 403 (não é ADMIN), usa dados mock para visualização
+      if (res.status === 403) {
+        setFaturamento(gerarDadosMock(mesSelecionado.mes, mesSelecionado.ano));
+        setCobrancas(gerarCobrancasMock(mesSelecionado.mes, mesSelecionado.ano));
+        toast.info("Visualizando dados de demonstração (acesso ADMIN necessário para dados reais)");
+        return;
+      }
+      throw new Error("Falha ao carregar");
+    } catch (err) {
+      // Fallback mock
+      setFaturamento(gerarDadosMock(mesSelecionado.mes, mesSelecionado.ano));
+      setCobrancas(gerarCobrancasMock(mesSelecionado.mes, mesSelecionado.ano));
+    } finally {
+      setLoading(false);
+    }
+  }, [mesSelecionado]);
+
+  React.useEffect(() => {
+    carregarDados();
+  }, [carregarDados]);
+
+  // Métricas derivadas
+  const totalComissao = faturamento?.total_comissao ?? 0;
+  const projecaoAnual = faturamento?.projecao_anual ?? 0;
+  const metaMensal = 5000;
+  const progressoMeta = Math.min(100, (totalComissao / metaMensal) * 100);
+  const cobrancasPendentes = cobrancas.filter((c) => c.status === "pendente").length;
+  const cobrancasVencidas = cobrancas.filter((c) => c.status === "vencida").length;
+  const valorPendente = cobrancas
+    .filter((c) => c.status === "pendente" || c.status === "vencida")
+    .reduce((s, c) => s + c.valor, 0);
+  const valorPago = cobrancas
+    .filter((c) => c.status === "paga")
+    .reduce((s, c) => s + c.valor, 0);
+
+  return (
+    <div className="flex h-full flex-col bg-background">
+      <PanelHeader
+        title="UPSELL — Métricas & Faturamento"
+        description="Visão administrativa seuzella.com · 7% por quarto · ZERO em diárias normais"
+        icon={<Sparkles className="size-5" />}
+        actions={
+          <>
+            <select
+              value={`${mesSelecionado.ano}-${String(mesSelecionado.mes).padStart(2, "0")}`}
+              onChange={(e) => {
+                const [ano, mes] = e.target.value.split("-").map(Number);
+                setMesSelecionado({ mes, ano });
+              }}
+              className="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground focus:border-primary/50 focus:outline-none"
+            >
+              {gerarOpcoesMeses().map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={carregarDados}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            >
+              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
+              Atualizar
+            </button>
+          </>
+        }
+      />
+
+      <div className="zcc-scroll flex-1 overflow-y-auto p-4 sm:p-6">
+        {/* ─── KPIs PRINCIPAIS ─── */}
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard
+            label="Comissão Zélla no mês"
+            value={fmtBRL(totalComissao)}
+            sublabel={`${fmtInt(faturamento?.total_upsells ?? 0)} UPSELLs · ${fmtInt(faturamento?.total_pousadas_ativas ?? 0)} pousadas`}
+            icon={Wallet}
+            color="blue"
+          />
+          <KpiCard
+            label="Receita extra p/ pousadas"
+            value={fmtBRL(faturamento?.total_receita_gerada ?? 0)}
+            sublabel="Gerada por UPSELLs no mês"
+            icon={TrendingUp}
+            color="emerald"
+          />
+          <KpiCard
+            label="Projeção anual"
+            value={fmtBRL(projecaoAnual)}
+            sublabel="12× o mês atual"
+            icon={TrendingUp}
+            color="amber"
+          />
+          <KpiCard
+            label="Média por pousada"
+            value={fmtBRL(faturamento?.media_por_pousada ?? 0)}
+            sublabel="No mês"
+            icon={Building2}
+            color="rose"
+          />
+        </div>
+
+        {/* ─── META MENSAL ─── */}
+        <div className="mb-6 rounded-lg border border-border bg-card p-4">
+          <div className="mb-2 flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Progresso da meta mensal de comissão</span>
+            <span className="font-semibold text-foreground">
+              {fmtBRL(totalComissao)} / {fmtBRL(metaMensal)}
+            </span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all"
+              style={{ width: `${progressoMeta}%` }}
+            />
+          </div>
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            {progressoMeta >= 100
+              ? "🎉 Meta mensal atingida!"
+              : `Faltam ${fmtBRL(Math.max(0, metaMensal - totalComissao))} para bater a meta de ${fmtBRL(metaMensal)}/mês.`}
+          </p>
+        </div>
+
+        {/* ─── STATUS DAS COBRANÇAS (CARTÃO DE CRÉDITO) ─── */}
+        <div className="mb-6 rounded-lg border border-border bg-card">
+          <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 sm:px-6">
+            <CreditCard className="size-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">
+              Status das cobranças (cartão de crédito · Stripe)
+            </h3>
+            <span className="ml-auto text-[11px] text-muted-foreground">
+              {cobrancas.length} cobrança(s)
+            </span>
+          </div>
+
+          <div className="grid gap-3 p-4 sm:grid-cols-4 sm:p-6">
+            <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
+              <p className="flex items-center gap-1 text-[10px] font-semibold uppercase text-amber-300">
+                <Clock className="size-3" />
+                Pendentes
+              </p>
+              <p className="mt-1 text-lg font-bold text-amber-300">{cobrancasPendentes}</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">{fmtBRL(valorPendente)}</p>
+            </div>
+            <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+              <p className="flex items-center gap-1 text-[10px] font-semibold uppercase text-emerald-300">
+                <CheckCircle2 className="size-3" />
+                Pagas
+              </p>
+              <p className="mt-1 text-lg font-bold text-emerald-300">
+                {cobrancas.length - cobrancasPendentes - cobrancasVencidas}
+              </p>
+              <p className="mt-1 text-[10px] text-muted-foreground">{fmtBRL(valorPago)}</p>
+            </div>
+            <div className="rounded-md border border-red-500/30 bg-red-500/5 p-3">
+              <p className="flex items-center gap-1 text-[10px] font-semibold uppercase text-red-300">
+                <AlertCircle className="size-3" />
+                Vencidas
+              </p>
+              <p className="mt-1 text-lg font-bold text-red-300">{cobrancasVencidas}</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Cobrar manualmente</p>
+            </div>
+            <div className="rounded-md border border-blue-500/30 bg-blue-500/5 p-3">
+              <p className="flex items-center gap-1 text-[10px] font-semibold uppercase text-blue-300">
+                <CreditCard className="size-3" />
+                Total a receber
+              </p>
+              <p className="mt-1 text-lg font-bold text-blue-300">{fmtBRL(valorPendente + valorPago)}</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">No período</p>
+            </div>
+          </div>
+
+          <div className="border-t border-border bg-background/40 px-4 py-2 sm:px-6">
+            <p className="text-[10px] text-muted-foreground">
+              💳 Todas as cobranças são automáticas via cartão de crédito (Stripe).
+              Não há PIX manual — o dono cadastra o cartão uma vez e a cobrança
+              acontece no fim de cada mês.
+            </p>
+          </div>
+        </div>
+
+        {/* ─── TOP POUSADAS (que mais geram UPSELL) ─── */}
+        <div className="mb-6 rounded-lg border border-border bg-card">
+          <button
+            type="button"
+            onClick={() => setShowTopPousadas(!showTopPousadas)}
+            className="flex w-full items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 text-left sm:px-6"
+          >
+            <Award className="size-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">
+              Top pousadas — que mais geram UPSELL no mês
+            </h3>
+            <span className="ml-auto text-[11px] text-muted-foreground">
+              {faturamento?.top_pousadas?.length ?? 0} pousada(s)
+            </span>
+            {showTopPousadas ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </button>
+          {showTopPousadas && faturamento && faturamento.top_pousadas.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-secondary/30">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-semibold text-muted-foreground sm:px-6">Posição</th>
+                    <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Pousada</th>
+                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">UPSELLs</th>
+                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Receita extra</th>
+                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Comissão Zélla (7%)</th>
+                    <th className="px-4 py-2 text-center font-semibold text-muted-foreground">% do total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {faturamento.top_pousadas.map((p, idx) => {
+                    const pct = totalComissao > 0 ? (p.total_comissao / totalComissao) * 100 : 0;
+                    return (
+                      <tr key={p.tenantId} className="border-b border-border/50 last:border-0 hover:bg-secondary/20">
+                        <td className="px-4 py-2.5 sm:px-6">
+                          <span className={cn(
+                            "inline-flex items-center justify-center size-6 rounded-full text-[10px] font-bold",
+                            idx === 0 ? "bg-amber-500/20 text-amber-300" :
+                            idx === 1 ? "bg-slate-400/20 text-slate-300" :
+                            idx === 2 ? "bg-orange-700/30 text-orange-400" :
+                            "bg-secondary text-muted-foreground"
+                          )}>
+                            {idx + 1}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-foreground">
+                          {p.tenantName || `Tenant ${p.tenantId.slice(-8)}`}
+                        </td>
+                        <td className="px-4 py-2.5 text-right text-muted-foreground">{p.total_upsells}</td>
+                        <td className="px-4 py-2.5 text-right font-medium text-emerald-300">
+                          {fmtBRL(p.total_upsells * 100)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-bold text-blue-300">{fmtBRL(p.total_comissao)}</td>
+                        <td className="px-4 py-2.5 text-center text-muted-foreground">{fmtPercent(pct)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : showTopPousadas ? (
+            <div className="px-4 py-8 text-center text-xs text-muted-foreground sm:px-6">
+              {loading ? "Carregando..." : "Nenhuma pousada com UPSELL no período."}
+            </div>
+          ) : null}
+        </div>
+
+        {/* ─── BREAKDOWN POR TIPO ─── */}
+        <div className="mb-6 rounded-lg border border-border bg-card">
+          <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 sm:px-6">
+            <Sparkles className="size-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">
+              Receita extra por tipo de UPSELL
+            </h3>
+          </div>
+          {faturamento && faturamento.por_tipo.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-secondary/30">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-semibold text-muted-foreground sm:px-6">Tipo</th>
+                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Qtd</th>
+                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Receita extra</th>
+                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Comissão (7%)</th>
+                    <th className="px-4 py-2 text-center font-semibold text-muted-foreground">% do total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {faturamento.por_tipo.map((row) => {
+                    const pct = totalComissao > 0 ? (row.comissao / totalComissao) * 100 : 0;
+                    return (
+                      <tr key={row.type} className="border-b border-border/50 last:border-0">
+                        <td className="px-4 py-2.5 text-foreground sm:px-6">{TYPE_LABELS[row.type] || row.type}</td>
+                        <td className="px-4 py-2.5 text-right text-muted-foreground">{row.count}</td>
+                        <td className="px-4 py-2.5 text-right font-medium text-emerald-300">{fmtBRL(row.total_receita)}</td>
+                        <td className="px-4 py-2.5 text-right font-bold text-blue-300">{fmtBRL(row.comissao)}</td>
+                        <td className="px-4 py-2.5 text-center text-muted-foreground">{fmtPercent(pct)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="px-4 py-8 text-center text-xs text-muted-foreground sm:px-6">
+              {loading ? "Carregando..." : "Nenhum UPSELL no período."}
+            </div>
+          )}
+        </div>
+
+        {/* ─── COBRANÇAS DO MÊS (POR POUSADA) ─── */}
+        <div className="rounded-lg border border-border bg-card">
+          <button
+            type="button"
+            onClick={() => setShowCobrancas(!showCobrancas)}
+            className="flex w-full items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 text-left sm:px-6"
+          >
+            <CreditCard className="size-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">
+              Cobranças do mês (cartão de crédito por pousada)
+            </h3>
+            <span className="ml-auto text-[11px] text-muted-foreground">
+              {cobrancas.length} cobrança(s) · {fmtBRL(valorPendente + valorPago)} total
+            </span>
+            {showCobrancas ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </button>
+          {showCobrancas && cobrancas.length > 0 ? (
+            <div className="zcc-scroll max-h-96 overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead className="sticky top-0 bg-secondary/30">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-semibold text-muted-foreground sm:px-6">Pousada</th>
+                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Valor</th>
+                    <th className="px-4 py-2 text-center font-semibold text-muted-foreground">Vencimento</th>
+                    <th className="px-4 py-2 text-center font-semibold text-muted-foreground">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cobrancas.map((c, idx) => {
+                    const status = STATUS_COBRANCA[c.status as keyof typeof STATUS_COBRANCA] || STATUS_COBRANCA.pendente;
+                    const StatusIcon = status.icon;
+                    return (
+                      <tr key={`${c.tenantId}-${idx}`} className="border-b border-border/50 last:border-0 hover:bg-secondary/20">
+                        <td className="px-4 py-2.5 text-foreground sm:px-6">
+                          {c.tenantName || `Tenant ${c.tenantId.slice(-8)}`}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-bold text-blue-300">{fmtBRL(c.valor)}</td>
+                        <td className="px-4 py-2.5 text-center text-muted-foreground">
+                          {new Date(c.vencimento).toLocaleDateString("pt-BR")}
+                        </td>
+                        <td className="px-4 py-2.5 text-center">
+                          <span className={cn("inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold", status.color)}>
+                            <StatusIcon className="size-3" />
+                            {status.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : showCobrancas ? (
+            <div className="px-4 py-8 text-center text-xs text-muted-foreground sm:px-6">
+              {loading ? "Carregando..." : "Nenhuma cobrança no período."}
+            </div>
+          ) : null}
+        </div>
+
+        {/* ─── RODAPÉ INFORMATIVO ─── */}
+        <div className="mt-6 rounded-lg border border-border bg-secondary/20 p-4 text-[11px] text-muted-foreground sm:px-6">
+          <p className="font-semibold text-foreground">Modelo de comissão Zélla</p>
+          <ul className="mt-2 space-y-1">
+            <li>
+              <strong className="text-foreground">Valores normais das diárias:</strong>{" "}
+              <span className="text-emerald-300">0% taxa</span> — pousada fica com 100%.
+            </li>
+            <li>
+              <strong className="text-foreground">Valores de UPSELL (serviços extras sugeridos pela IA Zélla):</strong>{" "}
+              <span className="text-blue-300">7% de comissão</span> por quarto, creditada à seuzella.com.
+            </li>
+            <li>
+              <strong className="text-foreground">Pagamento:</strong> cobrança automática via cartão de crédito (Stripe)
+              no fim de cada mês. Não há PIX manual.
+            </li>
+            <li>
+              <strong className="text-foreground">Visão administrativa:</strong> este painel mostra todas as pousadas
+              cadastradas e suas contribuições. Acesso apenas para ADMIN da seuzella.com.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KPI CARD
+// ─────────────────────────────────────────────────────────────────────────────
+function KpiCard({
   label,
   value,
   sublabel,
@@ -144,828 +538,103 @@ function MetricCard({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CALCULADORA DE UPSELL — simula cenários e mostra comissão Zélla (7%)
-// ─────────────────────────────────────────────────────────────────────────────
-interface UpsellItemConfig {
-  type: string;
-  quantity: number;
-  unitPrice: number;
-}
-
-function UpsellCalculator() {
-  const [diariaBase, setDiariaBase] = React.useState(350);
-  const [qtdDiarias, setQtdDiarias] = React.useState(3);
-  const [qtdPessoas, setQtdPessoas] = React.useState(2);
-  const [upsells, setUpsells] = React.useState<UpsellItemConfig[]>([
-    { type: "late_checkout", quantity: 4, unitPrice: 50 },
-    { type: "cafe_premium", quantity: 3, unitPrice: 35 },
-  ]);
-
-  const CATALOG_LABELS: Record<string, { label: string; defaultPrice: number; unitLabel: string }> = {
-    late_checkout: { label: "Late checkout (R$ 50/hora)", defaultPrice: 50, unitLabel: "horas" },
-    cafe_premium: { label: "Café da manhã premium (R$ 35/diária)", defaultPrice: 35, unitLabel: "diárias" },
-    massagem: { label: "Massagem relaxante (R$ 150)", defaultPrice: 150, unitLabel: "sessões" },
-    passeio_barco: { label: "Passeio de barco (R$ 120/pessoa)", defaultPrice: 120, unitLabel: "pessoas" },
-    transfer_aeroporto: { label: "Transfer aeroporto (R$ 80)", defaultPrice: 80, unitLabel: "trajetos" },
-    jantar_romantico: { label: "Jantar romântico (R$ 200)", defaultPrice: 200, unitLabel: "eventos" },
-    decoracao_aniversario: { label: "Decoração aniversário (R$ 90)", defaultPrice: 90, unitLabel: "eventos" },
-    garrafa_vinho: { label: "Garrafa de vinho (R$ 70)", defaultPrice: 70, unitLabel: "garrafas" },
-    kit_praia: { label: "Kit praia (R$ 50/diária)", defaultPrice: 50, unitLabel: "diárias" },
-    spa_day: { label: "Spa day (R$ 250/pessoa)", defaultPrice: 250, unitLabel: "pessoas" },
-  };
-
-  // Cálculos
-  const valorDiarias = diariaBase * qtdDiarias * Math.ceil(qtdPessoas / 2);
-  const valorUpsellTotal = upsells.reduce((s, u) => s + u.quantity * u.unitPrice, 0);
-  const comissaoZehla = Number((valorUpsellTotal * 0.07).toFixed(2));
-  const comissaoSobreDiarias = 0; // ZERO em valores normais
-  const totalReceitaPousada = valorDiarias + valorUpsellTotal;
-  const totalComissaoZehla = comissaoZehla + comissaoSobreDiarias;
-
-  const addUpsell = () => {
-    setUpsells([...upsells, { type: "late_checkout", quantity: 1, unitPrice: 50 }]);
-  };
-  const removeUpsell = (idx: number) => {
-    setUpsells(upsells.filter((_, i) => i !== idx));
-  };
-  const updateUpsell = (idx: number, field: keyof UpsellItemConfig, value: any) => {
-    const next = [...upsells];
-    next[idx] = { ...next[idx], [field]: value };
-    setUpsells(next);
-  };
-
-  return (
-    <div className="mt-6 rounded-lg border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 p-4 sm:p-6">
-      <div className="mb-4 flex items-center gap-2">
-        <Sparkles className="size-5 text-emerald-400" />
-        <h3 className="text-base font-bold text-foreground">
-          Calculadora de UPSELL — simule seu cenário
-        </h3>
-      </div>
-
-      <p className="mb-4 text-[12px] text-muted-foreground">
-        Use a calculadora para estimar quanto a Zélla ganha em comissão (7% sobre UPSELL) e quanto sua pousada fica com o cenário simulado. <strong className="text-foreground">Diárias normais: 0% taxa. UPSELL: 7% comissão por quarto.</strong>
-      </p>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* ─── Configuração da reserva ─── */}
-        <div>
-          <h4 className="mb-3 text-sm font-semibold text-foreground">
-            1. Diárias normais (zero taxa)
-          </h4>
-          <div className="space-y-3">
-            <div>
-              <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
-                Valor da diária base (R$)
-              </label>
-              <input
-                type="number"
-                min={0}
-                step={10}
-                value={diariaBase}
-                onChange={(e) => setDiariaBase(Number(e.target.value) || 0)}
-                className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus:border-primary/50 focus:outline-none"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
-                  Qtd. diárias
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={30}
-                  value={qtdDiarias}
-                  onChange={(e) => setQtdDiarias(Number(e.target.value) || 1)}
-                  className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus:border-primary/50 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
-                  Qtd. pessoas
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={qtdPessoas}
-                  onChange={(e) => setQtdPessoas(Number(e.target.value) || 1)}
-                  className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus:border-primary/50 focus:outline-none"
-                />
-              </div>
-            </div>
-            <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3">
-              <p className="text-[11px] text-muted-foreground">
-                Subtotal diárias (valor normal):
-              </p>
-              <p className="text-xl font-bold text-emerald-300">
-                {fmtBRL(valorDiarias)}
-              </p>
-              <p className="mt-1 text-[10px] text-emerald-300/70">
-                ✅ ZERO taxa Zélla — você fica com 100%
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ─── Configuração dos UPSELLs ─── */}
-        <div>
-          <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-foreground">
-              2. UPSELLs (7% comissão Zélla)
-            </h4>
-            <button
-              type="button"
-              onClick={addUpsell}
-              className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
-            >
-              + Adicionar
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            {upsells.length === 0 ? (
-              <div className="rounded-md border border-dashed border-border bg-background/40 p-4 text-center text-[11px] text-muted-foreground">
-                Nenhum UPSELL adicionado. Clique em "+ Adicionar" para simular.
-              </div>
-            ) : (
-              upsells.map((u, idx) => (
-                <div key={idx} className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-background p-2">
-                  <div className="min-w-[140px] flex-1">
-                    <label className="mb-1 block text-[10px] text-muted-foreground">Tipo</label>
-                    <select
-                      value={u.type}
-                      onChange={(e) => {
-                        const newType = e.target.value;
-                        const newPrice = CATALOG_LABELS[newType]?.defaultPrice ?? 50;
-                        updateUpsell(idx, "type", newType);
-                        updateUpsell(idx, "unitPrice", newPrice);
-                      }}
-                      className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground focus:border-primary/50 focus:outline-none"
-                    >
-                      {Object.entries(CATALOG_LABELS).map(([t, info]) => (
-                        <option key={t} value={t}>
-                          {info.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="w-16">
-                    <label className="mb-1 block text-[10px] text-muted-foreground">Qtd</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={50}
-                      value={u.quantity}
-                      onChange={(e) => updateUpsell(idx, "quantity", Number(e.target.value) || 1)}
-                      className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground focus:border-primary/50 focus:outline-none"
-                    />
-                  </div>
-                  <div className="w-20">
-                    <label className="mb-1 block text-[10px] text-muted-foreground">Preço (R$)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      step={5}
-                      value={u.unitPrice}
-                      onChange={(e) => updateUpsell(idx, "unitPrice", Number(e.target.value) || 0)}
-                      className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground focus:border-primary/50 focus:outline-none"
-                    />
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-muted-foreground">Subtotal</p>
-                    <p className="text-xs font-bold text-foreground">
-                      {fmtBRL(u.quantity * u.unitPrice)}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeUpsell(idx)}
-                    className="h-8 w-8 rounded-md border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                    title="Remover"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="mt-3 rounded-md border border-blue-500/30 bg-blue-500/10 p-3">
-            <p className="text-[11px] text-muted-foreground">
-              Subtotal UPSELLs (comissão 7%):
-            </p>
-            <p className="text-xl font-bold text-blue-300">
-              {fmtBRL(valorUpsellTotal)}
-            </p>
-            <p className="mt-1 text-[10px] text-blue-300/70">
-              💎 Comissão Zélla: <strong>{fmtBRL(comissaoZehla)}</strong> (7%)
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── RESULTADO FINAL ─── */}
-      <div className="mt-6 rounded-lg border-2 border-emerald-500/50 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 p-4 sm:p-5">
-        <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
-          <TrendingUp className="size-4 text-emerald-400" />
-          Resultado final do cenário
-        </h4>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-md border border-border bg-background p-3">
-            <p className="text-[10px] font-semibold uppercase text-muted-foreground">
-              Receita pousada
-            </p>
-            <p className="mt-1 text-lg font-bold text-emerald-300">
-              {fmtBRL(totalReceitaPousada)}
-            </p>
-            <p className="mt-1 text-[10px] text-muted-foreground">
-              Diárias + UPSELLs
-            </p>
-          </div>
-          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
-            <p className="text-[10px] font-semibold uppercase text-emerald-300/70">
-              Comissão sobre diárias
-            </p>
-            <p className="mt-1 text-lg font-bold text-emerald-300">
-              {fmtBRL(0)}
-            </p>
-            <p className="mt-1 text-[10px] text-emerald-300/70">
-              ✅ ZERO taxa
-            </p>
-          </div>
-          <div className="rounded-md border border-blue-500/30 bg-blue-500/5 p-3">
-            <p className="text-[10px] font-semibold uppercase text-blue-300/70">
-              Comissão sobre UPSELL
-            </p>
-            <p className="mt-1 text-lg font-bold text-blue-300">
-              {fmtBRL(comissaoZehla)}
-            </p>
-            <p className="mt-1 text-[10px] text-blue-300/70">
-              7% por quarto
-            </p>
-          </div>
-          <div className="rounded-md border-2 border-amber-500/40 bg-amber-500/5 p-3">
-            <p className="text-[10px] font-semibold uppercase text-amber-300/70">
-              % que vai para a Zélla
-            </p>
-            <p className="mt-1 text-lg font-bold text-amber-300">
-              {totalReceitaPousada > 0
-                ? ((totalComissaoZehla / totalReceitaPousada) * 100).toFixed(2)
-                : "0.00"}
-              %
-            </p>
-            <p className="mt-1 text-[10px] text-amber-300/70">
-              Do total da reserva
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-md border border-border bg-background/60 p-3 text-[11px] text-muted-foreground">
-          <strong className="text-foreground">Resumo:</strong> com{" "}
-          {qtdDiarias} diária(s) × R$ {diariaBase.toFixed(2)} ({qtdPessoas} pessoa
-          (s)) = <strong className="text-foreground">{fmtBRL(valorDiarias)}</strong> (zero
-          taxa) + <strong className="text-foreground">{upsells.length}</strong> UPSELL(s)
-          totalizando <strong className="text-foreground">{fmtBRL(valorUpsellTotal)}</strong>{" "}
-          (7% = <strong className="text-blue-300">{fmtBRL(comissaoZehla)}</strong> de comissão
-          Zélla). <strong className="text-foreground">Você fica com {fmtBRL(totalReceitaPousada - comissaoZehla)}</strong> e a
-          seuzella.com recebe <strong className="text-blue-300">{fmtBRL(comissaoZehla)}</strong>.
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PAINEL PRINCIPAL
-// ─────────────────────────────────────────────────────────────────────────────
-export function UpsellPanel() {
-  const [metrics, setMetrics] = React.useState<UpsellMetrics | null>(null);
-  const [records, setRecords] = React.useState<UpsellRecord[]>([]);
-  const [catalog, setCatalog] = React.useState<Record<string, UpsellCatalogItem>>({});
-  const [loading, setLoading] = React.useState(true);
-  const [mesSelecionado, setMesSelecionado] = React.useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  });
-  const [showExplicacao, setShowExplicacao] = React.useState(true);
-
-  // Carrega dados da API
-  const carregarDados = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const [year, month] = mesSelecionado.split("-");
-      const startDate = new Date(Number(year), Number(month) - 1, 1);
-      const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
-
-      const [recordsRes, metricsRes] = await Promise.all([
-        fetch(
-          `/api/ddc/upsell?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-        ),
-        fetch(
-          `/api/ddc/upsell/metrics?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-        ),
-      ]);
-
-      if (recordsRes.ok) {
-        const json = await recordsRes.json();
-        if (json.success) {
-          setRecords(json.data.records || []);
-          setCatalog(json.data.catalog || {});
-        }
-      }
-      if (metricsRes.ok) {
-        const json = await metricsRes.json();
-        if (json.success) {
-          setMetrics(json.data);
-        }
-      }
-    } catch (err) {
-      // Em modo demo (Vercel sem DB), mostra dados mock
-      setMetrics({
-        total_aceitos: 0,
-        total_receita_extra: 0,
-        total_comissao_zehla: 0,
-        total_comissao_pendente: 0,
-        total_comissao_paga: 0,
-        por_tipo: [],
-        por_status: {
-          pending: { count: 0, comissao: 0 },
-          confirmed: { count: 0, comissao: 0 },
-          paid: { count: 0, comissao: 0 },
-          cancelled: { count: 0, comissao: 0 },
-        },
-        media_por_reserva: 0,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [mesSelecionado]);
-
-  React.useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
-
-  // ─── Render ─────────────────────────────────────────────────────────────
-  return (
-    <div className="flex h-full flex-col bg-background">
-      <PanelHeader
-        title="UPSELL"
-        description="Comissão Zélla 7% sobre valores extras · ZERO em diárias normais"
-        icon={<Sparkles className="size-5" />}
-        actions={
-          <>
-            <select
-              value={mesSelecionado}
-              onChange={(e) => setMesSelecionado(e.target.value)}
-              className="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground focus:border-primary/50 focus:outline-none"
-            >
-              {gerarOpcoesMeses().map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={carregarDados}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-            >
-              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
-              Atualizar
-            </button>
-          </>
-        }
-      />
-
-      <div className="zcc-scroll flex-1 overflow-y-auto p-4 sm:p-6">
-        {/* ─── EXPLICAÇÃO DIDÁTICA (default aberta) ─── */}
-        {showExplicacao ? (
-          <div className="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Info className="size-5 text-emerald-400" />
-                <h3 className="text-sm font-semibold text-foreground">
-                  Como funciona a comissão Zélla?
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowExplicacao(false)}
-                className="text-[11px] text-muted-foreground hover:text-foreground"
-              >
-                ocultar ▲
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs leading-relaxed text-muted-foreground">
-              <p>
-                <strong className="text-foreground">UPSELL</strong> é qualquer
-                serviço extra que o hóspede aceita além da diária normal: late
-                checkout, café da manhã premium, massagem, passeio de barco,
-                transfer, etc. A IA Zélla sugere esses serviços automaticamente
-                durante a conversa com o hóspede — você não precisa fazer nada.
-              </p>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
-                    Diárias normais
-                  </p>
-                  <p className="mt-1 text-lg font-bold text-foreground">0% taxa</p>
-                  <p className="mt-1 text-[11px]">
-                    Para valores do dia a dia (alta temporada, feriados comuns,
-                    finais de semana), a Zélla cobra{" "}
-                    <strong className="text-foreground">ZERO taxa</strong>. Você
-                    fica com 100% da reserva.
-                  </p>
-                </div>
-
-                <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-blue-300">
-                    Valores de UPSELL
-                  </p>
-                  <p className="mt-1 text-lg font-bold text-foreground">7% comissão</p>
-                  <p className="mt-1 text-[11px]">
-                    Para serviços extras sugeridos pela IA Zélla, a comissão é{" "}
-                    <strong className="text-foreground">7% por quarto</strong>,
-                    creditada à seuzella.com.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-md border border-border bg-background/60 p-3">
-                <p className="text-[11px] font-semibold text-foreground">
-                  Exemplo prático
-                </p>
-                <p className="mt-1 text-[11px]">
-                  Hóspede reserva 3 diárias × R$ 350 = R$ 1.050 (valor normal →{" "}
-                  <strong className="text-emerald-300">0% taxa</strong>). Aceita
-                  late checkout +4h: R$ 200 (UPSELL → 7% = R$ 14). Aceita café
-                  premium 3×: R$ 105 (UPSELL → 7% = R$ 7,35).{" "}
-                  <strong className="text-foreground">
-                    Total: R$ 1.355 para a pousada, R$ 21,35 de comissão Zélla.
-                  </strong>
-                </p>
-              </div>
-
-              <p>
-                <strong className="text-foreground">Como é descontado:</strong>{" "}
-                a comissão é acumulada mensalmente. O DDC mostra em tempo real o
-                total acumulado no mês. Você paga à seuzella.com apenas o total
-                de UPSELLs confirmados — valores normais das diárias você nunca
-                paga taxa nenhuma.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowExplicacao(true)}
-            className="mb-4 text-xs text-emerald-400 hover:text-emerald-300"
-          >
-            ℹ️ Mostrar explicação de como funciona a comissão Zélla
-          </button>
-        )}
-
-        {/* ─── KPIs ─── */}
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            label="Receita extra"
-            value={fmtBRL(metrics?.total_receita_extra ?? 0)}
-            sublabel={`${metrics?.total_aceitos ?? 0} UPSELLs no mês`}
-            icon={TrendingUp}
-            color="emerald"
-          />
-          <MetricCard
-            label="Comissão Zélla (7%)"
-            value={fmtBRL(metrics?.total_comissao_zehla ?? 0)}
-            sublabel="A pagar à seuzella.com"
-            icon={Wallet}
-            color="blue"
-          />
-          <MetricCard
-            label="Comissão pendente"
-            value={fmtBRL(metrics?.total_comissao_pendente ?? 0)}
-            sublabel="Aguardando confirmação"
-            icon={Clock}
-            color="amber"
-          />
-          <MetricCard
-            label="Comissão paga"
-            value={fmtBRL(metrics?.total_comissao_paga ?? 0)}
-            sublabel="Já quitada no mês"
-            icon={CheckCircle2}
-            color="rose"
-          />
-        </div>
-
-        {/* ─── BREAKDOWN POR TIPO ─── */}
-        <div className="mb-6 rounded-lg border border-border bg-card">
-          <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 sm:px-6">
-            <Sparkles className="size-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">
-              Receita extra por tipo de UPSELL
-            </h3>
-          </div>
-          {metrics && metrics.por_tipo.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-secondary/30">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-semibold text-muted-foreground sm:px-6">
-                      Tipo
-                    </th>
-                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">
-                      Qtd
-                    </th>
-                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">
-                      Receita extra
-                    </th>
-                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">
-                      Comissão Zélla (7%)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {metrics.por_tipo.map((row) => (
-                    <tr
-                      key={row.type}
-                      className="border-b border-border/50 last:border-0"
-                    >
-                      <td className="px-4 py-2.5 text-foreground sm:px-6">
-                        {TYPE_LABELS[row.type] || row.type}
-                      </td>
-                      <td className="px-4 py-2.5 text-right text-muted-foreground">
-                        {row.count}
-                      </td>
-                      <td className="px-4 py-2.5 text-right font-medium text-foreground">
-                        {fmtBRL(row.total_receita)}
-                      </td>
-                      <td className="px-4 py-2.5 text-right font-bold text-blue-300">
-                        {fmtBRL(row.comissao)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="px-4 py-8 text-center text-xs text-muted-foreground sm:px-6">
-              {loading ? "Carregando..." : "Nenhum UPSELL registrado no período."}
-            </div>
-          )}
-        </div>
-
-        {/* ─── HISTÓRICO DE UPSELLs ─── */}
-        <div className="rounded-lg border border-border bg-card">
-          <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 sm:px-6">
-            <Calendar className="size-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">
-              Histórico de UPSELLs no mês
-            </h3>
-            <span className="ml-auto text-[11px] text-muted-foreground">
-              {records.length} registro(s)
-            </span>
-          </div>
-          {records.length > 0 ? (
-            <div className="zcc-scroll max-h-96 overflow-y-auto">
-              <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-secondary/30">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-semibold text-muted-foreground sm:px-6">
-                      Data
-                    </th>
-                    <th className="px-4 py-2 text-left font-semibold text-muted-foreground">
-                      Tipo
-                    </th>
-                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">
-                      Qtd
-                    </th>
-                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">
-                      Valor total
-                    </th>
-                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">
-                      Comissão
-                    </th>
-                    <th className="px-4 py-2 text-center font-semibold text-muted-foreground">
-                      Status
-                    </th>
-                    <th className="px-4 py-2 text-center font-semibold text-muted-foreground">
-                      Zélla?
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {records.map((r) => {
-                    const status = STATUS_CONFIG[r.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
-                    const StatusIcon = status.icon;
-                    return (
-                      <tr
-                        key={r.id}
-                        className="border-b border-border/50 last:border-0 hover:bg-secondary/20"
-                      >
-                        <td className="px-4 py-2.5 text-muted-foreground sm:px-6">
-                          {fmtDate(r.createdAt)}
-                        </td>
-                        <td className="px-4 py-2.5 text-foreground">
-                          {TYPE_LABELS[r.type] || r.type}
-                          {r.feriado ? (
-                            <span className="ml-1 text-[10px] text-amber-300">
-                              ({r.feriado})
-                            </span>
-                          ) : null}
-                        </td>
-                        <td className="px-4 py-2.5 text-right text-muted-foreground">
-                          {r.quantity}
-                        </td>
-                        <td className="px-4 py-2.5 text-right font-medium text-foreground">
-                          {fmtBRL(r.totalPrice)}
-                        </td>
-                        <td className="px-4 py-2.5 text-right font-bold text-blue-300">
-                          {fmtBRL(r.comissionAmount)}
-                        </td>
-                        <td className="px-4 py-2.5 text-center">
-                          <span
-                            className={cn(
-                              "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold",
-                              status.color
-                            )}
-                          >
-                            <StatusIcon className="size-3" />
-                            {status.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5 text-center">
-                          {r.suggestedByZehla ? (
-                            <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300">
-                              <Sparkles className="size-3" />
-                              Sim
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground">
-                              Manual
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="px-4 py-12 text-center text-xs text-muted-foreground sm:px-6">
-              {loading ? (
-                "Carregando..."
-              ) : (
-                <div>
-                  <Sparkles className="mx-auto mb-2 size-8 text-muted-foreground/40" />
-                  <p className="font-medium">Nenhum UPSELL registrado neste mês</p>
-                  <p className="mt-1 text-[11px]">
-                    Quando a IA Zélla sugerir um UPSELL (late checkout, café
-                    premium, massagem, etc.) e o hóspede aceitar, aparecerá aqui
-                    automaticamente.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ─── CALCULADORA DE UPSELL ─── */}
-        <UpsellCalculator />
-
-        {/* ─── CATÁLOGO DE UPSELLs DISPONÍVEIS ─── */}
-        <div className="mt-6 rounded-lg border border-border bg-card">
-          <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 sm:px-6">
-            <Sparkles className="size-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">
-              Catálogo de UPSELLs que a IA Zélla sugere
-            </h3>
-          </div>
-          <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6">
-            {Object.entries(catalog).length > 0
-              ? Object.entries(catalog).map(([type, info]) => (
-                  <div
-                    key={type}
-                    className="rounded-md border border-border bg-background/60 p-3"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-foreground">
-                        {info.label}
-                      </p>
-                      <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">
-                        {fmtBRL(info.defaultPrice)}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {info.description}
-                    </p>
-                    <p className="mt-1 text-[10px] text-muted-foreground/70">
-                      Comissão Zélla: {fmtBRL(info.defaultPrice * 0.07)} (7%)
-                    </p>
-                  </div>
-                ))
-              : // Catálogo padrão caso API não responda
-                DEFAULT_CATALOG.map((item) => (
-                  <div
-                    key={item.type}
-                    className="rounded-md border border-border bg-background/60 p-3"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-foreground">
-                        {item.label}
-                      </p>
-                      <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">
-                        {fmtBRL(item.defaultPrice)}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {item.description}
-                    </p>
-                    <p className="mt-1 text-[10px] text-muted-foreground/70">
-                      Comissão Zélla: {fmtBRL(item.defaultPrice * 0.07)} (7%)
-                    </p>
-                  </div>
-                ))}
-          </div>
-        </div>
-
-        {/* ─── RODAPÉ INFORMATIVO ─── */}
-        <div className="mt-6 rounded-lg border border-border bg-secondary/20 p-4 text-[11px] text-muted-foreground sm:px-6">
-          <p className="font-semibold text-foreground">
-            Resumo do modelo de comissão
-          </p>
-          <ul className="mt-2 space-y-1">
-            <li>
-              <strong className="text-foreground">Valores normais das diárias:</strong>{" "}
-              <span className="text-emerald-300">0% taxa</span> — você fica com
-              100% da receita das diárias.
-            </li>
-            <li>
-              <strong className="text-foreground">
-                Valores de UPSELL (serviços extras sugeridos pela IA Zélla):
-              </strong>{" "}
-              <span className="text-blue-300">7% de comissão</span> por quarto,
-              creditada à seuzella.com.
-            </li>
-            <li>
-              <strong className="text-foreground">Periodicidade:</strong> a
-              comissão é acumulada mensalmente e pode ser paga via PIX ou boleto.
-            </li>
-            <li>
-              <strong className="text-foreground">Transparência:</strong> todos
-              os UPSELLs são registrados com timestamp, hóspede e valor — você
-              pode auditar qualquer cobrança.
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
+function ChevronUp({ className }: { className?: string }) {
+  return <span className={className}>▲</span>;
+}
+
+function ChevronDown({ className }: { className?: string }) {
+  return <span className={className}>▼</span>;
+}
+
 function gerarOpcoesMeses(): { value: string; label: string }[] {
   const opts: { value: string; label: string }[] = [];
   const now = new Date();
-  const meses = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro",
-  ];
-  // Últimos 12 meses
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = `${meses[d.getMonth()]} ${d.getFullYear()}`;
+    const label = `${MESES_PT[d.getMonth()]} ${d.getFullYear()}`;
     opts.push({ value, label });
   }
   return opts;
 }
 
-const DEFAULT_CATALOG = [
-  { type: "late_checkout", label: "Late checkout", description: "Extensão do horário de check-out. R$ 50/hora extra.", defaultPrice: 50 },
-  { type: "cafe_premium", label: "Café da manhã premium", description: "Café premium com itens especiais. R$ 35/diária.", defaultPrice: 35 },
-  { type: "massagem", label: "Massagem relaxante", description: "Massagem no quarto ou spa. R$ 150/sessão.", defaultPrice: 150 },
-  { type: "passeio_barco", label: "Passeio de barco", description: "Passeio de barco pela região. R$ 120/pessoa.", defaultPrice: 120 },
-  { type: "transfer_aeroporto", label: "Transfer aeroporto", description: "Transfer ida/volta aeroporto. R$ 80.", defaultPrice: 80 },
-  { type: "jantar_romantico", label: "Jantar romântico", description: "Jantar montado no quarto. R$ 200.", defaultPrice: 200 },
-  { type: "garrafa_vinho", label: "Garrafa de vinho", description: "Garrafa de vinho no quarto. R$ 70.", defaultPrice: 70 },
-  { type: "kit_praia", label: "Kit praia", description: "Guarda-sol + 2 cadeiras. R$ 50/diária.", defaultPrice: 50 },
-];
+// ─────────────────────────────────────────────────────────────────────────────
+// DADOS MOCK — quando API admin não está disponível (Vercel sem DB ou não-ADMIN)
+// ─────────────────────────────────────────────────────────────────────────────
+function gerarDadosMock(mes: number, ano: number): FaturamentoMensal {
+  const seed = mes * 100 + ano;
+  const rng = (() => {
+    let s = seed;
+    return () => {
+      s |= 0;
+      s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  })();
+
+  const totalUpsells = Math.floor(50 + rng() * 200);
+  const totalReceita = Math.floor(totalUpsells * (50 + rng() * 100));
+  const totalComissao = Number((totalReceita * 0.07).toFixed(2));
+  const totalPousadas = Math.floor(10 + rng() * 40);
+
+  const tipos = Object.keys(TYPE_LABELS);
+  const por_tipo = tipos.slice(0, 6).map((type) => {
+    const count = Math.floor(5 + rng() * 40);
+    const total_receita = Math.floor(count * (40 + rng() * 80));
+    return {
+      type,
+      count,
+      total_receita,
+      comissao: Number((total_receita * 0.07).toFixed(2)),
+    };
+  }).sort((a, b) => b.comissao - a.comissao);
+
+  const nomesPousadas = [
+    "Recanto Praia", "Pousada Mar Azul", "Vila do Sol", "Casa da Praia",
+    "Bangalô da Sereia", "Pousada do Farol", "Recanto dos Ventos", "Maré Cheia",
+    "Pé na Areia", "Canto do Mar", "Vila das Conchas", "Pousada Brisas",
+  ];
+  const top_pousadas = nomesPousadas.slice(0, 8).map((nome, idx) => {
+    const upsells = Math.floor(5 + rng() * 30 - idx * 2);
+    return {
+      tenantId: `mock_tenant_${idx}`,
+      tenantName: nome,
+      total_upsells: upsells,
+      total_comissao: Number((upsells * (40 + rng() * 60) * 0.07).toFixed(2)),
+    };
+  }).sort((a, b) => b.total_comissao - a.total_comissao);
+
+  return {
+    mes,
+    ano,
+    total_comissao: totalComissao,
+    total_receita_gerada: totalReceita,
+    total_upsells: totalUpsells,
+    total_pousadas_ativas: totalPousadas,
+    media_por_pousada: Number((totalComissao / totalPousadas).toFixed(2)),
+    projecao_anual: Number((totalComissao * 12).toFixed(2)),
+    por_tipo,
+    top_pousadas,
+  };
+}
+
+function gerarCobrancasMock(mes: number, ano: number): Cobranca[] {
+  const dados = gerarDadosMock(mes, ano);
+  const now = new Date();
+  const vencimento = new Date(ano, mes, 10).toISOString();
+
+  return dados.top_pousadas.map((p, idx) => ({
+    tenantId: p.tenantId,
+    tenantName: p.tenantName,
+    mes,
+    ano,
+    valor: p.total_comissao,
+    vencimento,
+    status: (idx < 5 ? "paga" : idx < 7 ? "pendente" : "vencida") as any,
+    metodo: "cartao" as const,
+  }));
+}

@@ -54,6 +54,7 @@ export function QuickActionsBar({ onActionClick, onQuickActionClick, activeActio
     { id: 'bookings', label: 'Reservas', icon: Calendar, count: dynamicCounts?.bookings ?? 3, minTier: 'lite' },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, minTier: 'pro' },
     { id: 'notifications', label: 'Notificações', icon: Bell, count: dynamicCounts?.notifications ?? 5, minTier: 'gratuito' },
+    { id: 'upsell', label: 'UPSELL', icon: Sparkles, minTier: 'gratuito' },
     { id: 'settings', label: 'Configurações', icon: Settings, minTier: 'gratuito' },
     { id: 'airb', label: 'Zélla AirB', icon: Home, minTier: 'pro' },
     { id: 'locks', label: 'Fechaduras', icon: KeyRound, minTier: 'lite' },

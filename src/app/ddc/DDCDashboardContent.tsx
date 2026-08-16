@@ -24,6 +24,7 @@ import { LinkInBioDDC } from '@/components/linkinbio/LinkInBioDDC';
 import { PlanGate, PlanUpgradeBanner } from '@/components/ddc/PlanGate';
 import { ZellaAirBTab } from '@/components/ddc/ZellaAirBTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
+import { DDCUpsellTab } from '@/components/ddc/DDCUpsellTab';
 import { type PlanTier, DDC_TABS, hasAccess, getNextTier, PLAN_DISPLAY } from '@/lib/plan-features';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -1787,6 +1788,15 @@ export default function DDCDashboardContent() {
               )}
             </div>
           </div>
+        </motion.div>
+      );
+    }
+
+    // ── UPSELL (Comissão Zélla 7% sobre valores extras por quarto)
+    if (activeTab === 'upsell') {
+      return (
+        <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-4">
+          <DDCUpsellTab />
         </motion.div>
       );
     }

@@ -260,6 +260,21 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
     if (text.includes('pet') || text.includes('cachorro') || text.includes('gato') || text.includes('animais')) {
       return 'pet_policy';
     }
+    // UPSELL/comissão inquiry — dono da pousada perguntando sobre como funciona
+    if (
+      text.includes('upsell') ||
+      text.includes('up-sell') ||
+      text.includes('comissão') || text.includes('comissao') ||
+      text.includes('7%') || text.includes('7 por cento') ||
+      text.includes('taxa zélla') || text.includes('taxa zella') ||
+      text.includes('quanto a zélla cobra') || text.includes('quanto a zella cobra') ||
+      text.includes('como funciona a comissão') || text.includes('como funciona a comissao') ||
+      text.includes('cartão de crédito') || text.includes('cartao de credito') ||
+      text.includes('late checkout') || text.includes('café premium') || text.includes('cafe premium') ||
+      text.includes('massagem') || text.includes('passeio de barco')
+    ) {
+      return 'upsell_inquiry';
+    }
     return 'general_inquiry';
   }
 
@@ -385,6 +400,44 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
 
     if (intent === 'wifi_info') {
       return `Temos Wi-Fi de alta velocidade em todas as acomodações. Os dados de acesso estão na recepção ou no manual da casa.`;
+    }
+
+    // UPSELL/comissão inquiry — dono perguntando sobre como funciona
+    if (intent === 'upsell_inquiry') {
+      const msg = messageContent?.toLowerCase() || '';
+
+      // Dono perguntando sobre a comissão (7%)
+      if (msg.includes('comissão') || msg.includes('comissao') || msg.includes('7%') || msg.includes('taxa')) {
+        return nome
+          ? `Oi, ${nome}. Funciona assim: você paga ZERO sobre diárias normais (0%). A Zélla cobra 7% apenas sobre UPSELL — serviços extras que a IA sugere (late checkout, café premium, massagem, etc.). Exemplo: 3 diárias × R$ 350 = R$ 1.050 (zero taxa) + late checkout R$ 200 (7% = R$ 14) = você fica com R$ 1.341, Zélla recebe R$ 14. Detalhes no DDC > aba UPSELL.`
+          : `Funciona assim: ZERO sobre diárias normais (0%). A Zélla cobra 7% apenas sobre UPSELL — serviços extras sugeridos pela IA (late checkout, café premium, massagem, etc.). Exemplo: 3 diárias × R$ 350 = R$ 1.050 (zero) + late checkout R$ 200 (7% = R$ 14) = você fica com R$ 1.341, Zélla recebe R$ 14. Detalhes no DDC > aba UPSELL.`;
+      }
+
+      // Dono perguntando como é cobrado
+      if (msg.includes('cartão') || msg.includes('cartao') || msg.includes('cobrança') || msg.includes('cobranca') || msg.includes('pagar') || msg.includes('pix')) {
+        return nome
+          ? `Oi, ${nome}. A cobrança é automática via cartão de crédito (Stripe) no fim de cada mês. Você cadastra o cartão uma vez no DDC > aba UPSELL. Não há PIX manual — tudo é processado pela Stripe de forma segura. Você acompanha em tempo real o total acumulado no painel.`
+          : `A cobrança é automática via cartão de crédito (Stripe) no fim de cada mês. Você cadastra o cartão uma vez no DDC > aba UPSELL. Não há PIX manual — tudo é processado pela Stripe de forma segura. Você acompanha em tempo real no painel.`;
+      }
+
+      // Dono perguntando o que é UPSELL
+      if (msg.includes('o que é') || msg.includes('o que e') || msg.includes('como funciona') || msg.includes('o que significa')) {
+        return nome
+          ? `Oi, ${nome}. UPSELL é qualquer serviço extra que o hóspede aceita além da diária: late checkout, café da manhã premium, massagem, passeio de barco, etc. A IA Zélla sugere automaticamente durante a conversa. Você paga 7% sobre o EXTRA — diárias normais são 0%. Veja exemplos e calculadora no DDC > aba UPSELL.`
+          : `UPSELL é qualquer serviço extra que o hóspede aceita além da diária: late checkout, café premium, massagem, passeio de barco, etc. A IA Zélla sugere automaticamente na conversa. Você paga 7% sobre o EXTRA — diárias normais são 0%. Veja exemplos e calculadora no DDC > aba UPSELL.`;
+      }
+
+      // Dono perguntando sobre tipos específicos
+      if (msg.includes('late checkout') || msg.includes('café premium') || msg.includes('cafe premium') || msg.includes('massagem') || msg.includes('passeio')) {
+        return nome
+          ? `Oi, ${nome}. A Zélla sugere 15 tipos de UPSELL: late checkout (R$ 50/hora), café premium (R$ 35/diária), massagem (R$ 150), passeio de barco (R$ 120/pessoa), jantar romântico (R$ 200), decoração aniversário (R$ 90), garrafa de vinho (R$ 70), spa day (R$ 250), entre outros. Em todos, a comissão Zélla é 7%. Catálogo completo no DDC > aba UPSELL.`
+          : `A Zélla sugere 15 tipos de UPSELL: late checkout (R$ 50/hora), café premium (R$ 35/diária), massagem (R$ 150), passeio de barco (R$ 120/pessoa), jantar romântico (R$ 200), decoração aniversário (R$ 90), garrafa de vinho (R$ 70), spa day (R$ 250), entre outros. Em todos, a comissão Zélla é 7%. Catálogo completo no DDC > aba UPSELL.`;
+      }
+
+      // Default para perguntas genéricas sobre UPSELL
+      return nome
+        ? `Oi, ${nome}. UPSELL: você paga 0% sobre diárias normais e 7% sobre serviços extras sugeridos pela IA (late checkout, massagem, café premium, etc.). Cobrança automática via cartão no fim do mês. Mais detalhes no DDC > aba UPSELL.`
+        : `UPSELL: você paga 0% sobre diárias normais e 7% sobre serviços extras sugeridos pela IA (late checkout, massagem, café premium, etc.). Cobrança automática via cartão no fim do mês. Mais detalhes no DDC > aba UPSELL.`;
     }
 
     // Resposta padrão — usa motor humanizado para saudação variada
