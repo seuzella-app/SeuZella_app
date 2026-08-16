@@ -169,7 +169,7 @@ const TOOL_EXECUTORS: Record<string, (args: Record<string, any>, tenantId?: stri
   request_caution: async (args) => {
     return { amount: args.amount ?? 500, status: 'requested' };
   },
-  get_serviço extra_items: async () => {
+  get_upsell_items: async () => {
     return {
       items: [
         { id: 'early_checkin', name: 'Check-in Antecipado', price: 50 },

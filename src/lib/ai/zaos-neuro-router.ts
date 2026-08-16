@@ -303,7 +303,7 @@ const DEFAULT_PROVIDERS: ProviderRegistration[] = [
     initialAlpha: 3.0,
     initialBeta: 1.0,
   },
-  // ── NEW (Patch B): GLM-4.7-Flash — Tier 1 ultra-fast for Conductor/Leads/Operations 
+  // ─── NEW (Patch B): GLM-4.7-Flash — Tier 1 ultra-fast for Conductor/Leads/Operations ───
   {
     id: 'zhipu-glm-4-7-flash',
     name: 'Zhipu GLM-4.7-Flash',
@@ -318,7 +318,7 @@ const DEFAULT_PROVIDERS: ProviderRegistration[] = [
     initialAlpha: 2.5,         // mild prior preference (cheap + fast)
     initialBeta: 1.0,
   },
-  // ── NEW (Patch B): Claude 3.5 Haiku — Tier 3 primary for Refactor Agent 
+  // ─── NEW (Patch B): Claude 3.5 Haiku — Tier 3 primary for Refactor Agent ───
   {
     id: 'anthropic-claude-3-5-haiku',
     name: 'Anthropic Claude 3.5 Haiku',
@@ -333,7 +333,7 @@ const DEFAULT_PROVIDERS: ProviderRegistration[] = [
     initialAlpha: 3.0,         // strong prior — known excellent for code
     initialBeta: 1.0,
   },
-  // ── NEW (Patch B): Claude 3.5 Sonnet — Tier 3 option for Cerebro Agent (deep reasoning) 
+  // ─── NEW (Patch B): Claude 3.5 Sonnet — Tier 3 option for Cerebro Agent (deep reasoning) ───
   {
     id: 'anthropic-claude-3-5-sonnet',
     name: 'Anthropic Claude 3.5 Sonnet',
@@ -1738,18 +1738,18 @@ export class ZaosNeuroRouter {
       pricing_optimization: `📊 **Análise de Preços**\n\nCom base nos dados atuais de demanda, recomendo ajuste de +8% nas suítes para o fim de semana. A taxa de ocupação está em 92%, indicando elasticidade favorável.\n\n*Processado via ${providerName}*`,
       guest_communication: `💬 **Mensagem ao Hóspede**\n\nPrezado(a) hóspede, sua solicitação foi recebida. Em breve retornaremos com mais informações.\n\n*Processado via ${providerName}*`,
       review_analysis: `⭐ **Análise de Reviews**\n\nTendência positiva: 87% das avaliações recentes são 4+ estrelas. Principais elogios: localização, café da manhã. Ponto de atenção: Wi-Fi nos quartos superiores.\n\n*Processado via ${providerName}*`,
-      revenue_diagnosis: `💰 **Diagnóstico de Receita**\n\nReceita mensal: R$ 68.900 (+12% vs mês anterior). RevPAR: R$ 342. ADR: R$ 420. Ocupação: 81,4%. Recomendação: focar em serviço extraing de check-out estendido (+R$ 150/mês por checkout).\n\n*Processado via ${providerName}*`,
+      revenue_diagnosis: `💰 **Diagnóstico de Receita**\n\nReceita mensal: R$ 68.900 (+12% vs mês anterior). RevPAR: R$ 342. ADR: R$ 420. Ocupação: 81,4%. Recomendação: focar em upselling de late checkout (+R$ 150/mês por checkout).\n\n*Processado via ${providerName}*`,
       competitor_monitoring: `🔍 **Monitoramento Competitivo**\n\n3 concorrentes monitorados. Seus preços estão 5% abaixo da média local para suítes. Oportunidade: ajustar tarifas premium em +12% sem perder competitividade.\n\n*Processado via ${providerName}*`,
       lead_prospection: `🎯 **Prospecção**\n\n14 novas pousadas identificadas sem sistema de gestão. Lead score médio: 82/100. 5 com potencial alto para abordagem esta semana.\n\n*Processado via ${providerName}*`,
       email_composition: `📧 **Email Composto**\n\nAssunto: Sua estadia na Pousada 🌊\n\nPrezado(a) hóspede,\n\nTemos prazer em confirmar sua reserva...\n\n*Processado via ${providerName}*`,
-      whatsapp_template: `📱 **Template WhatsApp**\n\n"Olá {nome}! 🌟 Sua reserva para {quarto} está confirmada. Check-in: {data}. Qualquer dúvida, estamos aqui! "\n\n*Processado via ${providerName}*`,
+      whatsapp_template: `📱 **Template WhatsApp**\n\n"Olá {nome}! 🌟 Sua reserva para {quarto} está confirmada. Check-in: {data}. Qualquer dúvida, estamos aqui! 😊"\n\n*Processado via ${providerName}*`,
       checkin_assistance: `🔑 **Check-in Assistido**\n\nSeu quarto está pronto! Chave disponível na recepção. WiFi: rede "POUSADA_Guest", senha fornecida no welcome kit.\n\n*Processado via ${providerName}*`,
-      checkout_assistance: `✅ **Check-out**\n\nSeu check-out foi processado com sucesso. Chave devolvida. Obrigado por sua estadia! Avaliação: ★\n\n*Processado via ${providerName}*`,
-      serviço extraing: `💎 **Oferta de Serviço extra**\n\nHóspede qualificado para upgrade Suite Deluxe (+R$ 180/noite). Inclui vista panorâmica e café da manhã gourmet. Taxa de aceitação histórica: 34%.\n\n*Processado via ${providerName}*`,
+      checkout_assistance: `✅ **Check-out**\n\nSeu check-out foi processado com sucesso. Chave devolvida. Obrigado por sua estadia! Avaliação: ★★★★★\n\n*Processado via ${providerName}*`,
+      upselling: `💎 **Oferta de Upsell**\n\nHóspede qualificado para upgrade Suite Deluxe (+R$ 180/noite). Inclui vista panorâmica e café da manhã gourmet. Taxa de aceitação histórica: 34%.\n\n*Processado via ${providerName}*`,
       housekeeping_request: `🧹 **Housekeeping**\n\nSolicitação registrada. Previsão de atendimento: 20 minutos. Camareira Maria designada para o quarto.\n\n*Processado via ${providerName}*`,
       maintenance_request: `🔧 **Manutenção**\n\nChamado aberto. Técnico designado: Carlos. Previsão: 45 minutos para atendimento. Status: pendente.\n\n*Processado via ${providerName}*`,
       complaint_handling: `⚠️ **Tratamento de Reclamação**\n\nReclamação registrada com prioridade ALTA. Supervisor notificado. Proposta: desconto de 20% na próxima estadia + amenities complementares.\n\n*Processado via ${providerName}*`,
-      local_recommendation: `🗺️ **Recomendações Locais**\n\n1. **Restaurante Mar Azul** — frutos do mar, 300m ( 4.7)\n2. **Trilha da Praia do Sancho** — 15 min de caminhada\n3. **Mirante do Pôr do Sol** — melhor horário: 17:30\n\n*Processado via ${providerName}*`,
+      local_recommendation: `🗺️ **Recomendações Locais**\n\n1. **Restaurante Mar Azul** — frutos do mar, 300m (⭐ 4.7)\n2. **Trilha da Praia do Sancho** — 15 min de caminhada\n3. **Mirante do Pôr do Sol** — melhor horário: 17:30\n\n*Processado via ${providerName}*`,
       weather_info: `🌤️ **Previsão do Tempo**\n\nHoje: 28°C, sol com nuvens esparsas. Noite: 22°C. Próximos 3 dias: tempo estável, ideal para praia.\n\n*Processado via ${providerName}*`,
       payment_processing: `💳 **Pagamento**\n\nTransação processada com sucesso. Valor: confirmado via PIX. Comprovante enviado para seu email.\n\n*Processado via ${providerName}*`,
       booking_cancellation: `❌ **Cancelamento**\n\nReserva cancelada conforme política. Reembolso processado em até 5 dias úteis via PIX. Taxa de cancelamento: R$ 0,00 (cancelamento gratuito).\n\n*Processado via ${providerName}*`,

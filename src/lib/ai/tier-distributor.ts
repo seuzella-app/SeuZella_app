@@ -85,8 +85,8 @@ const TIER2_KEYWORDS = [
   'pacote', 'reserva', 'reservar', 'disponibilidade', 'quartos',
   // Pagamento
   'pix', 'pagar', 'pagamento', 'caucao', 'cação', 'sinal',
-  // Serviço extra
-  'check-in antecipado', 'check-out estendido', 'pet', 'entrar mais cedo', 'sair mais tarde',
+  // Upsell
+  'check-in antecipado', 'check-out estendido', 'entrar mais cedo', 'sair mais tarde', 'pet',
 ];
 
 const TIER3_KEYWORDS = [

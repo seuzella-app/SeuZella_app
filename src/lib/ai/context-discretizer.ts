@@ -40,7 +40,7 @@ export const CONTEXT_BUCKETS = [
   'reservation_query', 'pricing_optimization', 'guest_communication',
   'review_analysis', 'revenue_diagnosis', 'competitor_monitoring',
   'lead_prospection', 'email_composition', 'whatsapp_template',
-  'checkin_assistance', 'checkout_assistance', 'serviço extraing',
+  'checkin_assistance', 'checkout_assistance', 'upselling',
   'housekeeping_request', 'maintenance_request', 'complaint_handling',
   'local_recommendation', 'weather_info', 'payment_processing',
   'booking_cancellation', 'availability_check', 'amenity_info',
@@ -144,11 +144,11 @@ function buildBucketRules(): BucketRule[] {
       ],
     },
     {
-      bucket: 'serviço extraing',
+      bucket: 'upselling',
       suggestedTier: 2,
       patterns: [
-        { regex: /\b(serviço extra|upgrade|melhorar quarto|sugest[aã]o (de )?(upgrade|melhoria)|oferta especial|promo[cç][aã]o (para|do) h[oó]spede)\b/i, keywords: ['serviço extra', 'upgrade', 'oferta especial'], confidence: 0.90 },
-        { regex: /\b(check-out estendido|checkout tardio|café da manh[aã]|spa|piscina|experi[eê]ncia|tour|passeio)\b/i, keywords: ['check-out estendido', 'café da manhã', 'passeio'], confidence: 0.82 },
+        { regex: /\b(upsell|upgrade|melhorar quarto|sugest[aã]o (de )?(upgrade|melhoria)|oferta especial|promo[cç][aã]o (para|do) h[oó]spede)\b/i, keywords: ['upsell', 'upgrade', 'oferta especial'], confidence: 0.90 },
+        { regex: /\b(late checkout|checkout tardio|café da manh[aã]|spa|piscina|experi[eê]ncia|tour|passeio)\b/i, keywords: ['late checkout', 'café da manhã', 'passeio'], confidence: 0.82 },
       ],
     },
     {
