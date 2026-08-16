@@ -164,7 +164,7 @@ export function MobilePousadaSuperApp() {
   const handleToggleAI = () => {
     setAiActive((prev) => {
       const next = !prev;
-      toast.success(next ? '⚡ Cérebro Zélla ATIVADO (Recepção Virtual 24h)' : '⏸️ Cérebro Zélla PAUSADO');
+      toast.success(next ? '⚡ Cérebro Zélla ATIVADO (Recepção Virtual 24h)' : '⏸ Cérebro Zélla PAUSADO');
       return next;
     });
   };
@@ -293,9 +293,9 @@ export function MobilePousadaSuperApp() {
   return (
     <div className="w-full min-h-screen bg-[#0a0a0f] text-[#e4e1e9] font-sans flex flex-col pb-24 selection:bg-emerald-500/30 relative" style={{ fontSize: `${fontScale}rem` }}>
       
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           1. TOP APP BAR CYBER-LUXE (Mobile Header com Hambúrguer)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <header className="sticky top-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {/* Botão Hambúrguer para abrir Menu Lateral */}
@@ -338,9 +338,9 @@ export function MobilePousadaSuperApp() {
         </div>
       </header>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           2. CONTEÚDO DAS ABAS (Main Container)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <main className="flex-1 px-4 pt-4 space-y-4">
         
         {/* ABA 1: VISÃO GERAL (Dashboard da Pousada + Bento KPIs) */}
@@ -934,9 +934,9 @@ export function MobilePousadaSuperApp() {
 
       </main>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           3. CYBER-LUXE BOTTOM NAVIGATION BAR (Fixed at bottom)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <nav className="fixed bottom-0 left-0 w-full bg-[#0a0a0f]/95 backdrop-blur-2xl border-t border-white/[0.08] px-2 py-2.5 z-50 flex items-center justify-around">
         
         {/* Tab 1: Visão Geral */}
@@ -996,9 +996,9 @@ export function MobilePousadaSuperApp() {
 
       </nav>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           4. MENU LATERAL DRAWER (Hambúrguer Menu)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -1107,9 +1107,9 @@ export function MobilePousadaSuperApp() {
         )}
       </AnimatePresence>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           5. MODAL CHECK-IN RÁPIDO (Ação Real)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <AnimatePresence>
         {isCheckInOpen && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -1208,9 +1208,9 @@ export function MobilePousadaSuperApp() {
         )}
       </AnimatePresence>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           6. SHEET CENTRAL DE NOTIFICAÇÕES (Sincronizada)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <AnimatePresence>
         {isNotificationsOpen && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-end justify-center">
@@ -1264,9 +1264,9 @@ export function MobilePousadaSuperApp() {
         )}
       </AnimatePresence>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           7. MODAL ADICIONAR QUARTO (Central Zélla)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <AnimatePresence>
         {isAddRoomOpen && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">

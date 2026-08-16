@@ -1,8 +1,8 @@
 /**
- * Comanda Digital & Upsell via PIX One-Shot
+ * Comanda Digital & Serviço extra via PIX One-Shot
  *
  * Permite hóspede solicitar serviços extras via WhatsApp:
- * - Early check-in (R$ 50-100)
+ * - Check-in antecipado (R$ 50-100)
  * - Late check-out (R$ 50-100)
  * - Taxa pet (R$ 50)
  * - Frigobar/consumo
@@ -14,7 +14,7 @@
 
 import { db } from '@/lib/db';
 
-export interface UpsellItem {
+export interface Serviço extraItem {
   id: string;
   tenantId: string;
   name: string;
@@ -26,14 +26,14 @@ export interface UpsellItem {
   extensionHours?: number; // Quantas horas estender
 }
 
-export interface UpsellOrder {
+export interface Serviço extraOrder {
   id: string;
   tenantId: string;
   guestId: string;
   guestName?: string;
   guestPhone: string;
   items: Array<{
-    upsellItemId: string;
+    serviço extraItemId: string;
     name: string;
     price: number;
     quantity: number;
@@ -48,15 +48,15 @@ export interface UpsellOrder {
   paidAt?: string;
 }
 
-// Itens padrão de upsell
-export const DEFAULT_UPSELL_ITEMS: UpsellItem[] = [
+// Itens padrão de serviço extra
+export const DEFAULT_UPSELL_ITEMS: Serviço extraItem[] = [
   {
     id: 'early_checkin', tenantId: '', name: 'Check-in Antecipado',
     description: 'Entrada a partir das 11h (sujeito a disponibilidade)',
     price: 50, category: 'checkin', active: true, extendsLock: true, extensionHours: 3,
   },
   {
-    id: 'late_checkout', tenantId: '', name: 'Check-out Tardio',
+    id: 'late_checkout', tenantId: '', name: 'Check-out Estendido',
     description: 'Saída até às 16h (sujeito a disponibilidade)',
     price: 50, category: 'checkout', active: true, extendsLock: true, extensionHours: 4,
   },
@@ -78,14 +78,14 @@ export const DEFAULT_UPSELL_ITEMS: UpsellItem[] = [
 ];
 
 /**
- * Detecta intenção de upsell na mensagem do hóspede.
+ * Detecta intenção de serviço extra na mensagem do hóspede.
  */
-export function detectUpsellIntent(message: string): UpsellItem | null {
+export function detectServiço extraIntent(message: string): Serviço extraItem | null {
   const lower = message.toLowerCase();
 
   const matchers: Array<{ keywords: string[]; itemId: string }> = [
     { keywords: ['check-in antecipad', 'chegar mais cedo', 'entrar antes', 'checkin mais cedo', 'chegar cedo'], itemId: 'early_checkin' },
-    { keywords: ['check-out tardio', 'sair mais tarde', 'ficar mais tempo', 'sair depois', 'late checkout', 'prorrogar'], itemId: 'late_checkout' },
+    { keywords: ['check-out tardio', 'sair mais tarde', 'ficar mais tempo', 'sair depois', 'check-out estendido', 'prorrogar'], itemId: 'late_checkout' },
     { keywords: ['pet', 'cachorro', 'gato', 'animal', 'cão'], itemId: 'pet_fee' },
     { keywords: ['pessoa extra', 'hóspede adicional', 'mais uma pessoa', 'acompanhante'], itemId: 'extra_person' },
     { keywords: ['café extra', 'cafe da manha extra', 'adicional cafe'], itemId: 'breakfast_extra' },
@@ -100,21 +100,21 @@ export function detectUpsellIntent(message: string): UpsellItem | null {
 }
 
 /**
- * Cria pedido de upsell com PIX.
+ * Cria pedido de serviço extra com PIX.
  */
-export async function createUpsellOrder(params: {
+export async function createServiço extraOrder(params: {
   tenantId: string;
   guestId: string;
   guestName?: string;
   guestPhone: string;
-  items: Array<{ upsellItemId: string; name: string; price: number; quantity: number }>;
+  items: Array<{ serviço extraItemId: string; name: string; price: number; quantity: number }>;
   pixKey: string;
   pixKeyType: string;
-}): Promise<UpsellOrder> {
+}): Promise<Serviço extraOrder> {
   const totalAmount = params.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  const order: UpsellOrder = {
-    id: `upsell_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+  const order: Serviço extraOrder = {
+    id: `serviço extra_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     tenantId: params.tenantId,
     guestId: params.guestId,
     guestName: params.guestName,
@@ -137,21 +137,21 @@ export async function createUpsellOrder(params: {
           amount: totalAmount,
           method: 'PIX',
           status: 'PENDING',
-          metadata: JSON.stringify({ type: 'upsell', order }),
+          metadata: JSON.stringify({ type: 'serviço extra', order }),
         },
       });
     }
   } catch (err) {
-    console.warn('[Upsell] DB persistence failed:', err);
+    console.warn('[Serviço extra] DB persistence failed:', err);
   }
 
   return order;
 }
 
 /**
- * Confirma pagamento de upsell e estende fechadura se necessário.
+ * Confirma pagamento de serviço extra e estende fechadura se necessário.
  */
-export async function confirmUpsellPayment(orderId: string): Promise<{ confirmed: boolean; lockExtended: boolean }> {
+export async function confirmServiço extraPayment(orderId: string): Promise<{ confirmed: boolean; lockExtended: boolean }> {
   let lockExtended = false;
 
   try {
@@ -164,7 +164,7 @@ export async function confirmUpsellPayment(orderId: string): Promise<{ confirmed
       if (!tx) return { confirmed: false, lockExtended: false };
 
       const meta = JSON.parse(tx.metadata || '{}');
-      const order: UpsellOrder = meta.order;
+      const order: Serviço extraOrder = meta.order;
 
       if (order.status === 'paid') return { confirmed: true, lockExtended: order.lockExtended || false };
 
@@ -174,8 +174,8 @@ export async function confirmUpsellPayment(orderId: string): Promise<{ confirmed
 
       // Verifica se precisa estender fechadura
       const needsExtension = order.items.some(item => {
-        const upsellItem = DEFAULT_UPSELL_ITEMS.find(i => i.id === item.upsellItemId);
-        return upsellItem?.extendsLock;
+        const serviço extraItem = DEFAULT_UPSELL_ITEMS.find(i => i.id === item.serviço extraItemId);
+        return serviço extraItem?.extendsLock;
       });
 
       if (needsExtension) {
@@ -184,9 +184,9 @@ export async function confirmUpsellPayment(orderId: string): Promise<{ confirmed
           // TODO: Integrar com locks orchestrator para estender PIN
           order.lockExtended = true;
           lockExtended = true;
-          console.log(`[Upsell] PIN da fechadura estendido para pedido ${orderId}`);
+          console.log(`[Serviço extra] PIN da fechadura estendido para pedido ${orderId}`);
         } catch (err) {
-          console.warn('[Upsell] Lock extension failed:', err);
+          console.warn('[Serviço extra] Lock extension failed:', err);
         }
       }
 
@@ -194,23 +194,23 @@ export async function confirmUpsellPayment(orderId: string): Promise<{ confirmed
         where: { id: tx.id },
         data: {
           status: 'COMPLETED',
-          metadata: JSON.stringify({ type: 'upsell', order }),
+          metadata: JSON.stringify({ type: 'serviço extra', order }),
         },
       });
 
       return { confirmed: true, lockExtended };
     }
   } catch (err) {
-    console.warn('[Upsell] Payment confirmation failed:', err);
+    console.warn('[Serviço extra] Payment confirmation failed:', err);
   }
 
   return { confirmed: false, lockExtended: false };
 }
 
 /**
- * Gera mensagem WhatsApp com QR PIX para upsell.
+ * Gera mensagem WhatsApp com QR PIX para serviço extra.
  */
-export function generateUpsellMessage(item: UpsellItem, pixKey: string, pixKeyType: string): string {
+export function generateServiço extraMessage(item: Serviço extraItem, pixKey: string, pixKeyType: string): string {
   return `${item.name} 💳
 
 ${item.description}

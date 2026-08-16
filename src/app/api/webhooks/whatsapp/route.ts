@@ -27,11 +27,11 @@ import { bridgeWhatsAppIncoming } from '@/lib/notifications/bridges';
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- Meta payload types kept as documentation */
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // META WHATSAPP BUSINESS API — WEBHOOK ENDPOINT
 // GET  → Verificação do Webhook (Meta onboarding flow)
 // POST → Recepção de mensagens + isolamento multi-tenant
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 interface MetaWebhookEntry {
   id: string;
@@ -115,7 +115,7 @@ interface ParsedIncomingMessage {
   wabaId: string;
 }
 
-// ── HMAC Signature Verification (fail-closed em produção) ─────────────────────
+// ── HMAC Signature Verification (fail-closed em produção) 
 
 /**
  * Verifica assinatura HMAC-SHA256 do payload da Meta.
@@ -186,7 +186,7 @@ function verifyMetaSignature(
   }
 }
 
-// ── Safe Payload Parser ───────────────────────────────────────────────────────
+// ── Safe Payload Parser 
 
 function parseIncomingMessages(rawBody: unknown): ParsedIncomingMessage[] {
   const results: ParsedIncomingMessage[] = [];
@@ -253,9 +253,9 @@ function parseIncomingMessages(rawBody: unknown): ParsedIncomingMessage[] {
   return results;
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // GET — Meta Webhook Verification
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -321,14 +321,14 @@ export async function GET(request: NextRequest) {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // POST — Meta Message Reception + Multi-Tenant Isolation
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
-  // ── Step 1: Verify HMAC Signature (fail-closed) ──────────────────
+  // ── Step 1: Verify HMAC Signature (fail-closed) 
   const rawBody = await request.text();
   const signature = request.headers.get('x-hub-signature-256');
 
@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // ── Step 2: Parse the payload safely ────────────────────────────
+  // ── Step 2: Parse the payload safely 
   let parsedBody: unknown;
   try {
     parsedBody = JSON.parse(rawBody);
@@ -352,7 +352,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: 'invalid_json' }, { status: 400 });
   }
 
-  // ── Step 3: Extract incoming messages ────────────────────────────
+  // ── Step 3: Extract incoming messages 
   const messages = parseIncomingMessages(parsedBody);
 
   if (messages.length === 0) {
@@ -363,7 +363,7 @@ export async function POST(request: NextRequest) {
 
   console.log(`[WhatsApp Webhook] 📨 Received ${messages.length} message(s)`);
 
-  // ── Step 4: Multi-Tenant Isolation + Message Processing ──────
+  // ── Step 4: Multi-Tenant Isolation + Message Processing 
   const processingResults: Array<{
     messageId: string;
     from: string;
@@ -377,7 +377,7 @@ export async function POST(request: NextRequest) {
   for (const msg of messages) {
     console.log(`[WhatsApp Webhook] 📨 Processing message from ${msg.from} → ${msg.destinationNumber} (type: ${msg.type})`);
 
-    // ── Tenant lookup via resolveTenantByPhone (v2 — match exato E.164) ──
+    // ── Tenant lookup via resolveTenantByPhone (v2 — match exato E.164) 
     const lookup = await resolveTenantByPhone(msg.destinationNumber, msg.wabaId);
 
     if (!lookup.found) {
@@ -399,7 +399,7 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    // ── Tenant found → check subscription status ─────────────────
+    // ── Tenant found → check subscription status 
     if (lookup.tenantStatus === 'suspended' || lookup.tenantStatus === 'churned') {
       console.warn(
         `[WhatsApp Webhook] ⚠️ SILENT DISCARD — Tenant "${lookup.tenantName}" (${lookup.tenantId})` +
@@ -417,7 +417,7 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    // ── Plan check — GRATUITO não pode receber mensagens reais ──
+    // ── Plan check — GRATUITO não pode receber mensagens reais 
     if (lookup.tenantPlan === 'gratuito') {
       console.warn(
         `[WhatsApp Webhook] ⚠️ SILENT DISCARD — Tenant "${lookup.tenantName}" (${lookup.tenantId})` +
@@ -436,7 +436,7 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    // ── Tenant OK → PROCESS ──
+    // ── Tenant OK → PROCESS 
     console.log(
       `[WhatsApp Webhook] ✅ ACCEPTED — Tenant "${lookup.tenantName}" (${lookup.tenantId})` +
       ` | niche: ${lookup.niche} | plan: ${lookup.tenantPlan}` +
@@ -452,7 +452,7 @@ export async function POST(request: NextRequest) {
       const guestName = msg.contactName || undefined;
       const messageContent = msg.textContent;
 
-      // ── CORREÇÃO v2 — finding 1.4: LGPD Opt-Out INTERCEPTADO SÍNCRONO ──
+      // ── CORREÇÃO v2 — finding 1.4: LGPD Opt-Out INTERCEPTADO SÍNCRONO 
       // Antes de enfileirar para o AI pipeline (que custa LLM tokens + Meta tariff),
       // verificamos se é um pedido de opt-out. Se for, processa imediatamente,
       // envia confirmação, e NÃO enfileira para IA.
@@ -520,7 +520,7 @@ export async function POST(request: NextRequest) {
         continue; // NÃO enfileirar para IA
       }
 
-      // ── Mensagem normal → buffer para AI pipeline ──
+      // ── Mensagem normal → buffer para AI pipeline 
       bufferMessage(
         {
           tenantId,
@@ -539,7 +539,7 @@ export async function POST(request: NextRequest) {
               messageFrom: payload.messageFrom,
             });
 
-            // ── Phase 2: Bridge to DDC Notification Center ───────────────
+            // ── Phase 2: Bridge to DDC Notification Center 
             // Push "new lead" notification into the in-memory store so the
             // DDC mobile notification center sees it. Non-blocking — failures
             // must NOT break the AI pipeline.
@@ -621,7 +621,7 @@ export async function POST(request: NextRequest) {
         );
       });
     } else {
-      // ── Non-text message → registra mídia, sem IA ──
+      // ── Non-text message → registra mídia, sem IA 
       const mediaNote = `[Mídia recebida: ${msg.type}]`;
       console.log(
         `[WhatsApp Webhook] 📎 Non-text message from ${msg.from} (type: ${msg.type}) — recording media entry`
@@ -686,7 +686,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // ── Summary Logging ────────────────────────────────────────────
+  // ── Summary Logging 
   const accepted = processingResults.filter((r) => r.accepted).length;
   const discarded = processingResults.filter((r) => !r.accepted).length;
   const processingTime = Date.now() - startTime;

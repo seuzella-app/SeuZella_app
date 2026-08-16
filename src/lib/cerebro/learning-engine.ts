@@ -28,7 +28,7 @@ import { db } from '@/lib/db';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 
-// ─── Types ─────────────────────────────────────────────────────────────────
+// ── Types 
 
 export type BrainAgeStage =
   | 'newborn'      // 0-7 dias: cérebro fresco, só FAQ inicial
@@ -85,7 +85,7 @@ export interface PersonalizationProfile {
   topQuestionsAsked: string[];
 }
 
-// ─── Constants ─────────────────────────────────────────────────────────────
+// ── Constants 
 
 const COLD_START_FAQ_POUSADA = [
   { question: 'Qual o horário de check-in?', answer: 'Check-in a partir das 14h. Se precisar de early check-in, avise com antecedência!', category: 'policies', priority: 'high' },
@@ -109,7 +109,7 @@ const COLD_START_FAQ_AIRBNB = [
   { question: 'Recebo a chave de quem?', answer: 'Fechadura inteligente — código enviado por mensagem 1h antes do check-in.', category: 'policies', priority: 'high' },
 ];
 
-// ─── GAP 5: Cold start personalizado por nicho ─────────────────────────────
+// ── GAP 5: Cold start personalizado por nicho 
 
 export async function seedColdStartKnowledge(
   tenantId: string,
@@ -160,7 +160,7 @@ export async function seedColdStartKnowledge(
   }
 }
 
-// ─── GAP 9: Brain age metric ───────────────────────────────────────────────
+// ── GAP 9: Brain age metric 
 
 export async function getBrainAge(tenantId: string): Promise<BrainAge> {
   try {
@@ -250,7 +250,7 @@ export async function getBrainAge(tenantId: string): Promise<BrainAge> {
   }
 }
 
-// ─── GAP 1: Feedback loop explícito ────────────────────────────────────────
+// ── GAP 1: Feedback loop explícito 
 
 export async function recordFeedback(input: FeedbackLoopInput): Promise<{
   success: boolean;
@@ -314,7 +314,7 @@ export async function recordFeedback(input: FeedbackLoopInput): Promise<{
   }
 }
 
-// ─── GAP 4: Recalculate KnowledgeEntry effectiveness dinamicamente ─────────
+// ── GAP 4: Recalculate KnowledgeEntry effectiveness dinamicamente 
 
 async function recalculateKnowledgeEffectiveness(
   knowledgeEntryId: string,
@@ -370,7 +370,7 @@ async function recalculateKnowledgeEffectiveness(
   }
 }
 
-// ─── GAP 2: Personalization por pousada ────────────────────────────────────
+// ── GAP 2: Personalization por pousada 
 
 export async function getPersonalizationProfile(tenantId: string): Promise<PersonalizationProfile> {
   try {
@@ -463,7 +463,7 @@ export async function getPersonalizationProfile(tenantId: string): Promise<Perso
   }
 }
 
-// ─── GAP 6: Mark DPO pairs as trained ──────────────────────────────────────
+// ── GAP 6: Mark DPO pairs as trained 
 
 export async function markDpoPairsAsTrained(
   tenantId: string,
@@ -497,7 +497,7 @@ export async function markDpoPairsAsTrained(
   }
 }
 
-// ─── GAP 7: Learning telemetry ────────────────────────────────────────────
+// ── GAP 7: Learning telemetry 
 
 export async function getLearningTelemetry(tenantId: string): Promise<LearningTelemetry> {
   try {
@@ -615,7 +615,7 @@ export async function getLearningTelemetry(tenantId: string): Promise<LearningTe
   }
 }
 
-// ─── GAP 8: Anti-patterns (o que NÃO fazer) ───────────────────────────────
+// ── GAP 8: Anti-patterns (o que NÃO fazer) 
 
 export async function getAntiPatternsForPrompt(tenantId: string): Promise<string[]> {
   try {
@@ -644,7 +644,7 @@ export async function getAntiPatternsForPrompt(tenantId: string): Promise<string
   }
 }
 
-// ─── GAP 3 + 10: Learning cycle (cron diário) ─────────────────────────────
+// ── GAP 3 + 10: Learning cycle (cron diário) 
 
 export async function runLearningCycle(tenantId?: string): Promise<{
   tenantsProcessed: number;
@@ -736,7 +736,7 @@ export async function runLearningCycle(tenantId?: string): Promise<{
   }
 }
 
-// ─── GAP 10: GlmCerebroService integration (modo mock) ─────────────────────
+// ── GAP 10: GlmCerebroService integration (modo mock) 
 
 export async function extractSemanticPatternWithGLM(
   tenantId: string,

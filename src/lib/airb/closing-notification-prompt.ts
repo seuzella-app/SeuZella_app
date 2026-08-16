@@ -1,16 +1,16 @@
-// ═══════════════════════════════════════════════════════════════
+// ══
 // CLOSING NOTIFICATION PROMPT — ZÉLLA AIRB
 // Módulo de fechamento de reserva + notificação do anfitrião
-// ═══════════════════════════════════════════════════════════════
+// ══
 //
 // Instruções do sistema para o agente IA detectar intenção de
 // reserva, coletar dados, formatar notificação WhatsApp e
 // escalar quando necessário.
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 import type { PlatformContext } from './gatekeeper';
 
-// ── Types ──────────────────────────────────────────────────────
+// ── Types 
 
 export type NotificationType =
   | 'RESERVATION_CLOSED'
@@ -83,14 +83,14 @@ export interface ClosingNotificationParams {
   guestPhone: string | null;
 }
 
-// ── Closing Intent Signals ─────────────────────────────────────
+// ── Closing Intent Signals 
 //
 // Frases em português que indicam intenção de reserva,
 // classificadas por força do sinal e peso de confiança.
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 export const CLOSING_INTENT_SIGNALS: ClosingIntentSignal[] = [
-  // ── EXPLICIT: Confirmação direta e inequívoca ──────────────
+  // ── EXPLICIT: Confirmação direta e inequívoca 
   { phrase: 'quero reservar', confidence: 0.97, isDirectConfirmation: true, category: 'explicit' },
   { phrase: 'pode garantir', confidence: 0.96, isDirectConfirmation: true, category: 'explicit' },
   { phrase: 'fechou', confidence: 0.95, isDirectConfirmation: true, category: 'explicit' },
@@ -104,7 +104,7 @@ export const CLOSING_INTENT_SIGNALS: ClosingIntentSignal[] = [
   { phrase: 'estou fechando', confidence: 0.94, isDirectConfirmation: true, category: 'explicit' },
   { phrase: 'já pode reservar', confidence: 0.97, isDirectConfirmation: true, category: 'explicit' },
 
-  // ── STRONG: Intenção clara mas sem confirmação direta ──────
+  // ── STRONG: Intenção clara mas sem confirmação direta 
   { phrase: 'como faço pra reservar', confidence: 0.88, isDirectConfirmation: false, category: 'strong' },
   { phrase: 'quero fazer a reserva', confidence: 0.90, isDirectConfirmation: false, category: 'strong' },
   { phrase: 'como funciona pra reservar', confidence: 0.85, isDirectConfirmation: false, category: 'strong' },
@@ -118,7 +118,7 @@ export const CLOSING_INTENT_SIGNALS: ClosingIntentSignal[] = [
   { phrase: 'aceita pix', confidence: 0.83, isDirectConfirmation: false, category: 'strong' },
   { phrase: 'pode mandar a chave pix', confidence: 0.91, isDirectConfirmation: false, category: 'strong' },
 
-  // ── MODERATE: Interesse manifesto, pode evoluir ────────────
+  // ── MODERATE: Interesse manifesto, pode evoluir 
   { phrase: 'to interessado', confidence: 0.70, isDirectConfirmation: false, category: 'moderate' },
   { phrase: 'tô interessada', confidence: 0.70, isDirectConfirmation: false, category: 'moderate' },
   { phrase: 'gostei muito', confidence: 0.65, isDirectConfirmation: false, category: 'moderate' },
@@ -132,7 +132,7 @@ export const CLOSING_INTENT_SIGNALS: ClosingIntentSignal[] = [
   { phrase: 'está disponível', confidence: 0.63, isDirectConfirmation: false, category: 'moderate' },
   { phrase: 'quanto fica', confidence: 0.68, isDirectConfirmation: false, category: 'moderate' },
 
-  // ── SOFT: Sinal fraco, monitorar ───────────────────────────
+  // ── SOFT: Sinal fraco, monitorar 
   { phrase: 'estou olhando', confidence: 0.40, isDirectConfirmation: false, category: 'soft' },
   { phrase: 'estou pesquisando', confidence: 0.35, isDirectConfirmation: false, category: 'soft' },
   { phrase: 'qual a localização', confidence: 0.30, isDirectConfirmation: false, category: 'soft' },
@@ -143,14 +143,14 @@ export const CLOSING_INTENT_SIGNALS: ClosingIntentSignal[] = [
   { phrase: 'tem mais fotos', confidence: 0.33, isDirectConfirmation: false, category: 'soft' },
 ];
 
-// ── Notification Templates ─────────────────────────────────────
+// ── Notification Templates 
 //
 // Templates de notificação WhatsApp para o anfitrião.
 // Variáveis entre {{chaves}} são substituídas em runtime.
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 export const NOTIFICATION_TEMPLATES: Record<NotificationType, string> = {
-  // ── RESERVATION_CLOSED: Reserva confirmada com todos os dados ──
+  // ── RESERVATION_CLOSED: Reserva confirmada com todos os dados 
   RESERVATION_CLOSED: `🏠 *NOVA RESERVA FECHADA!*
 
 📋 *Propriedade:* {{propertyName}}
@@ -166,7 +166,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, string> = {
 {{specialRequestsBlock}}
 ✅ _Reserva confirmada pelo agente IA_`,
 
-  // ── RESERVATION_PENDING_PAYMENT: Aguardando PIX ──────────────
+  // ── RESERVATION_PENDING_PAYMENT: Aguardando PIX 
   RESERVATION_PENDING_PAYMENT: `🏠 *RESERVA — AGUARDANDO PIX*
 
 📋 *Propriedade:* {{propertyName}}
@@ -183,7 +183,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, string> = {
 {{specialRequestsBlock}}
 ⏳ _Aguardando comprovante de pagamento_`,
 
-  // ── RESERVATION_NEGOTIATED: Preço foi negociado ──────────────
+  // ── RESERVATION_NEGOTIATED: Preço foi negociado 
   RESERVATION_NEGOTIATED: `🏠 *RESERVA COM NEGOCIAÇÃO*
 
 📋 *Propriedade:* {{propertyName}}
@@ -201,7 +201,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, string> = {
 {{specialRequestsBlock}}
 ⚠️ _Preço negociado — confirme se aprova_`,
 
-  // ── ESCALATION_REQUESTED: Hóspede precisa de atenção humana ──
+  // ── ESCALATION_REQUESTED: Hóspede precisa de atenção humana 
   ESCALATION_REQUESTED: `🚨 *ESCALAÇÃO NECESSÁRIA*
 
 📋 *Propriedade:* {{propertyName}}
@@ -216,7 +216,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, string> = {
 ⚡ _O hóspede precisa de atenção humana_`,
 };
 
-// ── Helper: Special requests block ────────────────────────────
+// ── Helper: Special requests block 
 
 function buildSpecialRequestsBlock(requests: string[]): string {
   if (requests.length === 0) return '';
@@ -224,7 +224,7 @@ function buildSpecialRequestsBlock(requests: string[]): string {
   return `📝 *Pedidos especiais:*\n${items}`;
 }
 
-// ── Helper: PIX gate for closing context ──────────────────────
+// ── Helper: PIX gate for closing context 
 
 function buildClosingPixGate(context: PlatformContext, acceptsPix: boolean): string {
   if (!acceptsPix) {
@@ -253,7 +253,7 @@ NUNCA envie a chave PIX antes da confirmação de intenção do hóspede.`;
 Diga que vai verificar as opções de pagamento e encaminhe para o anfitrião.`;
 }
 
-// ── Main Prompt Builder ────────────────────────────────────────
+// ── Main Prompt Builder 
 
 export function buildClosingNotificationPrompt(params: ClosingNotificationParams): string {
   const pixGate = buildClosingPixGate(params.platformContext, params.acceptsPix);
@@ -274,9 +274,9 @@ estruturada para o anfitrião real.
 Você continua sendo o(a) dono(a) da propriedade — NÃO é um bot, NÃO é um
 atendente de call center. Mantenha o tom acolhedor e humano em TODA interação.
 
-## ═══════════════════════════════════════════════════════════════
+## ══
 ## SEÇÃO 1: QUANDO DISPARAR A NOTIFICAÇÃO DE FECHAMENTO
-## ═══════════════════════════════════════════════════════════════
+## ══
 
 ### 1.1 — Sinais de Intenção de Reserva
 
@@ -313,9 +313,9 @@ NÃO dispare notificação se:
 - O hóspede pediu orçamento mas não confirmou datas
 - A conversa está em modo POST_BOOKING (hóspede já reservou)
 
-## ═══════════════════════════════════════════════════════════════
+## ══
 ## SEÇÃO 2: O QUE COLETAR ANTES DE NOTIFICAR
-## ═══════════════════════════════════════════════════════════════
+## ══
 
 ### 2.1 — Dados Obrigatórios (sem eles, NÃO notifique)
 
@@ -346,9 +346,9 @@ check-out, número de hóspedes e forma de pagamento."
 ✅ CORRETO: "Que legal! Pra eu garantir pra você, qual a data que você
 tá planejando chegar? 😊" [depois: "E até quando você vai ficar com a gente?"]
 
-## ═══════════════════════════════════════════════════════════════
+## ══
 ## SEÇÃO 3: COMO FORMATAR A NOTIFICAÇÃO
-## ═══════════════════════════════════════════════════════════════
+## ══
 
 ### 3.1 — Payload Estruturado
 
@@ -410,9 +410,9 @@ Regras de formatação:
 - Nunca inclua dados sensíveis do hóspede além do necessário
 - Se não tiver um dado, coloque "não informado"
 
-## ═══════════════════════════════════════════════════════════════
+## ══
 ## SEÇÃO 4: REGRA PIX GATE (CRÍTICO)
-## ═══════════════════════════════════════════════════════════════
+## ══
 
 ${pixGate}
 
@@ -435,9 +435,9 @@ ${isDirectBooking && !params.acceptsPix ? `Contexto direto SEM PIX:
 - Informe que o anfitrião entrará em contato para combinar pagamento
 - NÃO prometa métodos de pagamento que não foram confirmados` : ''}
 
-## ═══════════════════════════════════════════════════════════════
+## ══
 ## SEÇÃO 5: QUANDO ESCALAR EM VEZ DE FECHAR
-## ═══════════════════════════════════════════════════════════════
+## ══
 
 Escale (use [ESCALATE: motivo]) em QUALQUER destas situações:
 
@@ -467,9 +467,9 @@ Escale (use [ESCALATE: motivo]) em QUALQUER destas situações:
   não confirma depois de 2 tentativas de fechamento
   → Escale: [ESCALATE: hospede_hesitante]
 
-## ═══════════════════════════════════════════════════════════════
+## ══
 ## SEÇÃO 6: CASOS ESPECIAIS
-## ═══════════════════════════════════════════════════════════════
+## ══
 
 ### 6.1 — Confirmação Parcial
 
@@ -520,9 +520,9 @@ Se o hóspede mencionar estar vendo outras propriedades:
 - Ofereça algo único se possível ("aqui a gente tem X que é diferenciado")
 - Não ofereça desconto só por competição — escale se necessário
 
-## ═══════════════════════════════════════════════════════════════
+## ══
 ## SEÇÃO 7: CHECKLIST FINAL ANTES DE NOTIFICAR
-## ═══════════════════════════════════════════════════════════════
+## ══
 
 Antes de gerar a notificação, verifique:
 
@@ -539,9 +539,9 @@ Se todos os itens estiverem OK, gere o payload e a mensagem WhatsApp.
 Depois de notificar, diga ao hóspede algo como:
 ${isAirbnb ? '"Perfeito! É só confirmar a reserva aqui pelo Airbnb e pronto! Qualquer dúvida, tô aqui! 😊"' : '"Perfeito! Vou repassar pro anfitrião confirmar tudo e te aviso rapidinho! 😊"'}
 
-## ═══════════════════════════════════════════════════════════════
+## ══
 ## SEÇÃO 8: DADOS DA PROPRIEDADE
-## ═══════════════════════════════════════════════════════════════
+## ══
 
 - **Propriedade**: ${params.propertyName}
 - **Capacidade máxima**: ${params.maxGuests} hóspedes
@@ -553,7 +553,7 @@ ${params.basePricePerNightCents ? `- **Preço base/noite**: R$ ${(params.basePri
 - **Contexto**: ${params.platformContext}`;
 }
 
-// ── Utility: Evaluate closing intent from message ──────────────
+// ── Utility: Evaluate closing intent from message 
 
 export interface ClosingIntentEvaluation {
   /** Maior confiança detectada entre os sinais */
@@ -628,7 +628,7 @@ export function evaluateClosingIntent(message: string): ClosingIntentEvaluation 
   };
 }
 
-// ── Utility: Format notification from template + data ──────────
+// ── Utility: Format notification from template + data 
 
 export interface NotificationFormatData {
   propertyName: string;
@@ -698,7 +698,7 @@ export function formatNotification(
   return template;
 }
 
-// ── Utility: Build reservation details from conversation ───────
+// ── Utility: Build reservation details from conversation 
 
 /**
  * Cria um objeto ReservationDetails vazio para preencher durante a conversa.

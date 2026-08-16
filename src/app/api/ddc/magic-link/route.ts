@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // MAGIC LINK — Mock Scraper Engine
-// ═══════════════════════════════════════════════════════════════
+// ══
 // Recebe URL do anúncio, simula delay de scraping e devolve
 // dados ricos para hidratar o Dashboard.
 //
 // ⚠️ MODO MOCK — Quando pronto para produção, substituir por
 // chamadas reais ao z-ai-web-dev-sdk (VLM + Web Reader)
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 interface MagicLinkRequest {
   url: string;
@@ -34,7 +34,7 @@ interface MagicLinkResponse {
   highlights: string[];
 }
 
-// ── Mock Data Banks by Source ──────────────────────────────────
+// ── Mock Data Banks by Source 
 
 const POUSADA_MOCKS: Record<string, MagicLinkResponse> = {
   airbnb: {
@@ -134,7 +134,7 @@ const AIRBNB_MOCKS: Record<string, MagicLinkResponse> = {
 
 export async function POST(request: NextRequest) {
   try {
-    // ── Auth check (optional during onboarding, required for production) ──
+    // ── Auth check (optional during onboarding, required for production) 
     // NOTE: Authentication is optional here because this endpoint is used during
     // the onboarding flow before a full session is established. For production,
     // add proper rate-limiting and session enforcement.
@@ -156,11 +156,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Simulate network delay (scraping time) ──────────────
+    // ── Simulate network delay (scraping time) 
     // In production: replace with real VLM + Web Reader SDK calls
     await new Promise(r => setTimeout(r, 4500));
 
-    // ── Select mock data by niche and source ─────────────────
+    // ── Select mock data by niche and source 
     const mockBank = niche === 'airbnb' ? AIRBNB_MOCKS : POUSADA_MOCKS;
     const result = mockBank[source] || mockBank.website;
 

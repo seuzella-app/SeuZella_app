@@ -24,9 +24,9 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // Types — matches API DeliveriesData shape
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 interface EntregasZellaTabProps {
   currentPlan: 'gratuito' | 'lite' | 'pro' | 'max' | 'parceiro';
@@ -80,9 +80,9 @@ interface DeliveryData {
   };
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // Fallback defaults (match API demo values)
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 const FALLBACK_DATA: DeliveryData = {
   responseTime: { avgSeconds: 6.2, targetSeconds: 8, withinTarget: true },
@@ -126,9 +126,9 @@ const FALLBACK_DATA: DeliveryData = {
   },
 };
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // Animation variants
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 const containerVariants = {
   hidden: {},
@@ -146,9 +146,9 @@ const cardVariants = {
   },
 };
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // Helpers
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 function formatBRL(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -178,9 +178,9 @@ function intentLabel(intent: string): string {
   return map[intent] || intent;
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // Skeleton loader
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 function SkeletonCard() {
   return (
@@ -204,9 +204,9 @@ function SkeletonCard() {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // Gradient border wrapper
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 function GradientBorderCard({
   children,
@@ -228,9 +228,9 @@ function GradientBorderCard({
   );
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // Main Component
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 export function EntregasZellaTab({ currentPlan }: EntregasZellaTabProps) {
   const [data, setData] = useState<DeliveryData | null>(null);
@@ -267,7 +267,7 @@ export function EntregasZellaTab({ currentPlan }: EntregasZellaTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* ── Header ─────────────────────────────────────────────── */}
+      {/* ── Header  */}
       <div className="space-y-1">
         <h2 className="text-2xl font-bold text-white tracking-tight">
           Promessas Entregues
@@ -277,16 +277,16 @@ export function EntregasZellaTab({ currentPlan }: EntregasZellaTabProps) {
         </p>
       </div>
 
-      {/* ── Cards Grid ─────────────────────────────────────────── */}
+      {/* ── Cards Grid  */}
       <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* ═══════════════════════════════════════════════════════
+        {/* ══
             Card 1 — ⚡ Nunca mais perca uma reserva
-            ═══════════════════════════════════════════════════════ */}
+            ══ */}
         <motion.div variants={cardVariants}>
           <GradientBorderCard gradientFrom="from-emerald-500/30" gradientTo="to-emerald-500/5">
             <Card className="bg-transparent border-0 shadow-none">
@@ -384,9 +384,9 @@ export function EntregasZellaTab({ currentPlan }: EntregasZellaTabProps) {
           </GradientBorderCard>
         </motion.div>
 
-        {/* ═══════════════════════════════════════════════════════
+        {/* ══
             Card 2 — 📦 Message Bundling Inteligente
-            ═══════════════════════════════════════════════════════ */}
+            ══ */}
         <motion.div variants={cardVariants}>
           <GradientBorderCard gradientFrom="from-emerald-500/30" gradientTo="to-emerald-500/5">
             <Card className="bg-transparent border-0 shadow-none">
@@ -471,9 +471,9 @@ export function EntregasZellaTab({ currentPlan }: EntregasZellaTabProps) {
           </GradientBorderCard>
         </motion.div>
 
-        {/* ═══════════════════════════════════════════════════════
+        {/* ══
             Card 3 — 🧠 Contexto Inteligente (One-Shot Resolution)
-            ═══════════════════════════════════════════════════════ */}
+            ══ */}
         <motion.div variants={cardVariants}>
           <GradientBorderCard gradientFrom="from-emerald-500/30" gradientTo="to-emerald-500/5">
             <Card className="bg-transparent border-0 shadow-none">
@@ -568,9 +568,9 @@ export function EntregasZellaTab({ currentPlan }: EntregasZellaTabProps) {
           </GradientBorderCard>
         </motion.div>
 
-        {/* ═══════════════════════════════════════════════════════
+        {/* ══
             Card 4 — 📊 Painel em Tempo Real
-            ═══════════════════════════════════════════════════════ */}
+            ══ */}
         <motion.div variants={cardVariants}>
           <GradientBorderCard gradientFrom="from-emerald-500/30" gradientTo="to-emerald-500/5">
             <Card className="bg-transparent border-0 shadow-none">
@@ -698,9 +698,9 @@ export function EntregasZellaTab({ currentPlan }: EntregasZellaTabProps) {
           </GradientBorderCard>
         </motion.div>
 
-        {/* ═══════════════════════════════════════════════════════
+        {/* ══
             Card 5 — 🛡️ Escudo Meta 2026
-            ═══════════════════════════════════════════════════════ */}
+            ══ */}
         <motion.div variants={cardVariants}>
           <GradientBorderCard gradientFrom="from-amber-500/30" gradientTo="to-amber-500/5">
             <Card className="bg-transparent border-0 shadow-none">
@@ -791,9 +791,9 @@ export function EntregasZellaTab({ currentPlan }: EntregasZellaTabProps) {
           </GradientBorderCard>
         </motion.div>
 
-        {/* ═══════════════════════════════════════════════════════
+        {/* ══
             Card 6 — 💰 Zero Comissão de OTA
-            ═══════════════════════════════════════════════════════ */}
+            ══ */}
         <motion.div variants={cardVariants}>
           <GradientBorderCard gradientFrom="from-emerald-500/30" gradientTo="to-emerald-500/5">
             <Card className="bg-transparent border-0 shadow-none">

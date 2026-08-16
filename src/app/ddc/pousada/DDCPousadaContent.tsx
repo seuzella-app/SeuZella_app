@@ -101,7 +101,7 @@ import { LocksTab } from '@/components/ddc/LocksTab';
 import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
 import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ── Types 
 
 type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
 
@@ -132,7 +132,7 @@ interface TrainingItem {
   icon: React.ReactNode;
 }
 
-// ─── Mock Data ───────────────────────────────────────────────────────────────
+// ── Mock Data 
 
 const revenueTrendData = [
   { day: '01/02', receita: 2800 },
@@ -220,7 +220,7 @@ const trainingItems: TrainingItem[] = [
   { id: 'tr7', title: 'Cardápio do Restaurante', status: 'pendente', icon: <FileText className="size-4" /> },
 ];
 
-// ─── Chart Configs ───────────────────────────────────────────────────────────
+// ── Chart Configs 
 
 const revenueChartConfig: ChartConfig = {
   receita: {
@@ -239,7 +239,7 @@ const occupancyChartConfig: ChartConfig = {
   taxa: { label: 'Taxa (%)', color: '#10b981' },
 };
 
-// ─── Room & Platform Data ────────────────────────────────────────────────────
+// ── Room & Platform Data 
 
 interface RoomData {
   id: string;
@@ -291,7 +291,7 @@ function getRoomStatusIcon(status: RoomData['status']) {
   }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -332,7 +332,7 @@ function getTrainingStatusIcon(status: string) {
   }
 }
 
-// ─── Sidebar Navigation Items ────────────────────────────────────────────────
+// ── Sidebar Navigation Items 
 
 const pousadaNavItems: NavItem[] = [
   { id: 'financeiro', label: 'Visão Financeira', icon: <LayoutDashboard className="size-4" /> },
@@ -351,7 +351,7 @@ const pousadaNavItems: NavItem[] = [
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+// ── Main Component 
 
 export default function DDCPousadaContent() {
   const { plan: currentPlan } = useCurrentPlan();
@@ -387,7 +387,7 @@ export default function DDCPousadaContent() {
     highlights: ['Centro histórico', 'Vista baía', 'Café artesanal', 'Piscina natural'],
   });
 
-  // ─── Room & Platform State (Central da Pousada) ─────────────────────────
+  // ── Room & Platform State (Central da Pousada) 
   const [rooms, setRooms] = useState<RoomData[]>(INITIAL_ROOMS);
   const [platformLinks, setPlatformLinks] = useState<PlatformLink[]>(INITIAL_PLATFORMS);
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
@@ -451,7 +451,7 @@ export default function DDCPousadaContent() {
     setIsAddGuestOpen(false);
   }, [newGuestForm]);
 
-  // ─── Room & Platform Handlers ───────────────────────────────────────────
+  // ── Room & Platform Handlers 
   const handleAddRoom = useCallback(() => {
     if (!newRoomForm.name.trim()) return;
     const newRoom: RoomData = {
@@ -514,7 +514,7 @@ export default function DDCPousadaContent() {
   const totalGuests = Object.values(guestsState).flat().length;
   const confirmedCount = (guestsState['confirmado']?.length || 0) + (guestsState['checkin-hoje']?.length || 0);
 
-  // ─── Tab Content ────────────────────────────────────────────────────────
+  // ── Tab Content 
 
   const renderFinanceiro = () => (
     <motion.div
@@ -524,9 +524,9 @@ export default function DDCPousadaContent() {
       className="space-y-6"
     >
       {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · theme: Terminal · option: 08 (Verde Matrix) */}
-      {/* ─── DDC POUSADA: HALLMARK OPTION 08 (ESTILO TERMINAL VERDE MATRIX) ─── */}
+      {/* ── DDC POUSADA: HALLMARK OPTION 08 (ESTILO TERMINAL VERDE MATRIX)  */}
 
-      {/* ─── DDC POUSADA WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM ─── */}
+      {/* ── DDC POUSADA WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM  */}
 
       {/* Operational Status Header — Clean Lines, Rounded Corners, No Shadows */}
       <div className="p-4 bg-[#0d0d14] border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -999,7 +999,7 @@ export default function DDCPousadaContent() {
         transition={{ duration: 0.3 }}
         className="space-y-6"
       >
-        {/* ── Cadastro de Quartos ── */}
+        {/* ── Cadastro de Quartos  */}
         <Card className="bg-[#111118] border-zinc-800/60">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -1076,7 +1076,7 @@ export default function DDCPousadaContent() {
           </CardContent>
         </Card>
 
-        {/* ── Plataformas Conectadas ── */}
+        {/* ── Plataformas Conectadas  */}
         <Card className="bg-[#111118] border-zinc-800/60">
           <CardHeader>
             <div className="flex items-center gap-2">

@@ -233,7 +233,7 @@ export function SmartLockSecurityProof() {
         </div>
       </div>
 
-      {/* ── NOVO: Automação Inteligente ── */}
+      {/* ── NOVO: Automação Inteligente  */}
       <div className="mt-6">
         <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
           <Cpu className="w-4 h-4 text-emerald-400" />
@@ -247,8 +247,8 @@ export function SmartLockSecurityProof() {
           />
           <AutoCard
             icon="⏰"
-            title="Upsell estende PIN"
-            desc="Early check-in (+3h) ou late checkout (+4h) pagos via PIX → PIN é revogado e recriado com nova validade."
+            title="Serviço extra estende PIN"
+            desc="Check-in antecipado (+3h) ou check-out estendido (+4h) pagos via PIX → PIN é revogado e recriado com nova validade."
           />
           <AutoCard
             icon="💳"
@@ -263,7 +263,7 @@ export function SmartLockSecurityProof() {
         </div>
       </div>
 
-      {/* ── NOVO: Destravamento Remoto ── */}
+      {/* ── NOVO: Destravamento Remoto  */}
       <div className="mt-4 p-4 rounded-2xl bg-blue-950/30 border border-blue-500/20">
         <div className="flex items-center gap-3 mb-2">
           <Zap className="w-4 h-4 text-blue-400 shrink-0" />
@@ -279,7 +279,7 @@ export function SmartLockSecurityProof() {
         </p>
       </div>
 
-      {/* ── NOVO: Segurança de Nível Bancário ── */}
+      {/* ── NOVO: Segurança de Nível Bancário  */}
       <div className="mt-4 p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/20">
         <div className="flex items-center gap-3 mb-2">
           <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />

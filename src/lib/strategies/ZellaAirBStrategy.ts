@@ -26,7 +26,7 @@
 //
 // =============================================================================
 
-// ── 1. TIPOS FUNDAMENTAIS ──────────────────────────────────────────────────────
+// ── 1. TIPOS FUNDAMENTAIS 
 
 /**
  * O "modo" do tenant — define qual Strategy o orquestrador usa.
@@ -153,7 +153,7 @@ export interface EmergencyContact {
 }
 
 
-// ── 2. INTENÇÕES DO ZÉLLA AIRB ────────────────────────────────────────────────
+// ── 2. INTENÇÕES DO ZÉLLA AIRB 
 
 /**
  * Set de intenções do Zélla AirB — COMPLETAMENTE diferente do Zélla Pousada.
@@ -218,7 +218,7 @@ export const AIRB_INTENT_LABELS: Record<AirBIntent, string> = {
 };
 
 
-// ── 3. CLASSIFICAÇÃO DE INTENÇÃO (Heurísticas + LLM) ──────────────────────────
+// ── 3. CLASSIFICAÇÃO DE INTENÇÃO (Heurísticas + LLM) 
 
 /**
  * Padrões heurísticos para classificação rápida de intenções AirB.
@@ -234,7 +234,7 @@ const AIRB_INTENT_PATTERNS: Array<{
   intent: AirBIntent;
   patterns: Array<{ regex: RegExp; confidence: number }>;
 }> = [
-  // ── PRIORIDADE ALTA: Segurança primeiro ──
+  // ── PRIORIDADE ALTA: Segurança primeiro 
   {
     intent: 'EMERGENCY',
     patterns: [
@@ -250,7 +250,7 @@ const AIRB_INTENT_PATTERNS: Array<{
     ],
   },
 
-  // ── PRIORIDADE MÉDIA-ALTA: Intenções com palavras-chave muito específicas ──
+  // ── PRIORIDADE MÉDIA-ALTA: Intenções com palavras-chave muito específicas 
 
   // WiFi ANTES de Self Check-in ("senha do wifi" vs "código do lockbox")
   {
@@ -275,7 +275,7 @@ const AIRB_INTENT_PATTERNS: Array<{
   {
     intent: 'EXTEND_STAY',
     patterns: [
-      { regex: /\b(estender|ficar (mais|outro)|prolongar|adiantar|checkout tarde|late checkout|mais (uma|1) (noite|diaria|dia))\b/i, confidence: 0.92 },
+      { regex: /\b(estender|ficar (mais|outro)|prolongar|adiantar|checkout tarde|check-out estendido|mais (uma|1) (noite|diaria|dia))\b/i, confidence: 0.92 },
       { regex: /\b(posso (ficar|estender|pernoitar|permanecer) (mais|outro|at[eé]))\b/i, confidence: 0.93 },
     ],
   },
@@ -299,7 +299,7 @@ const AIRB_INTENT_PATTERNS: Array<{
     ],
   },
 
-  // ── PRIORIDADE MÉDIA: Intenções gerais ──
+  // ── PRIORIDADE MÉDIA: Intenções gerais 
 
   // Self Check-in (SEM a palavra "senha" genérica — WiFi já captura)
   {
@@ -350,7 +350,7 @@ const AIRB_INTENT_PATTERNS: Array<{
     ],
   },
 
-  // ── PRIORIDADE BAIXA: Saudação e despedida (genéricas, por último) ──
+  // ── PRIORIDADE BAIXA: Saudação e despedida (genéricas, por último) 
   {
     intent: 'HOST_GREETING',
     patterns: [
@@ -389,7 +389,7 @@ export function classifyAirBIntent(message: string): { intent: AirBIntent; confi
 }
 
 
-// ── 4. TOOLS DO ZÉLLA AIRB ────────────────────────────────────────────────────
+// ── 4. TOOLS DO ZÉLLA AIRB 
 
 /**
  * Ferramentas do Zélla AirB — completamente diferentes do Zélla Pousada.
@@ -598,7 +598,7 @@ export function buildAirBTools(context: AirbnbPropertyContext): AirBToolDefiniti
 }
 
 
-// ── 5. PROMPT BUILDER — O CORAÇÃO DO ZÉLLA AIRB ──────────────────────────────
+// ── 5. PROMPT BUILDER — O CORAÇÃO DO ZÉLLA AIRB 
 
 /**
  * Constrói o system prompt do Zélla AirB.
@@ -624,7 +624,7 @@ export function buildAirBSystemPrompt(
   intent: AirBIntent,
   conversationHistory?: string,
 ): string {
-  // ── Identidade do anfitrião ──
+  // ── Identidade do anfitrião 
   const identityBlock = `Você é o ANFITRIÃO do "${context.name}".
 Você NÃO é uma secretária, NÃO é um robô de atendimento, NÃO é um chatbot genérico.
 Você é como o DONO do imóvel que está recebendo um amigo em casa.
@@ -641,7 +641,7 @@ Tipo: ${context.type}
 Localização: ${context.address}, ${context.neighborhood} — ${context.city}/${context.state}
 Capacidade: Até ${context.maxGuests} hóspedes`;
 
-  // ── Regras do anfitrião ──
+  // ── Regras do anfitrião 
   const rulesBlock = `REGRAS DO ANFITRIÃO:
 1. Responda como se VOCÊ fosse o dono do imóvel — não como um atendente.
 2. Seja CONCISO — mensagens de WhatsApp longas cansam. Máximo 3 parágrafos curtos.
@@ -652,15 +652,15 @@ Capacidade: Até ${context.maxGuests} hóspedes`;
 7. Emergências são PRIORIDADE — responda rápido e dê contatos claros.
 8. Sempre em português do Brasil, natural e coloquial.`;
 
-  // ── Conhecimento do anfitrião ──
+  // ── Conhecimento do anfitrião 
   const knowledgeBlock = buildHostKnowledgeBlock(context);
 
-  // ── Histórico da conversa ──
+  // ── Histórico da conversa 
   const historyBlock = conversationHistory
     ? `\n\n=== HISTÓRICO DA CONVERSA ===\n${conversationHistory}`
     : '';
 
-  // ── Diretrizes específicas por intenção ──
+  // ── Diretrizes específicas por intenção 
   const intentBlock = buildIntentSpecificBlock(intent, context);
 
   return `${identityBlock}\n\n${rulesBlock}\n\n${knowledgeBlock}${historyBlock}\n\n${intentBlock}`;
@@ -805,7 +805,7 @@ Exemplo de tom: "Hmm, não entendi muito bem — pode explicar de outro jeito?"`
 }
 
 
-// ── 6. USER PROMPT BUILDER ────────────────────────────────────────────────────
+// ── 6. USER PROMPT BUILDER 
 
 /**
  * Constrói o user prompt para o LLM.
@@ -826,7 +826,7 @@ Responda como o anfitrião do imóvel.`;
 }
 
 
-// ── 7. EXEMPLO CONCRETO DE CONTEXTO ──────────────────────────────────────────
+// ── 7. EXEMPLO CONCRETO DE CONTEXTO 
 
 /**
  * Dados de exemplo para TESTE da prova de conceito.
@@ -1021,7 +1021,7 @@ export const SAMPLE_AIRBNB_CONTEXT: AirbnbPropertyContext = {
 };
 
 
-// ── 8. PIPELINE DE EXECUÇÃO (Prova de Conceito) ──────────────────────────────
+// ── 8. PIPELINE DE EXECUÇÃO (Prova de Conceito) 
 
 /**
  * Resultado do processamento do Zélla AirB.
@@ -1130,7 +1130,7 @@ async function executeAirBToolsForIntent(
 }
 
 
-// ── 9. INTERFACE DO STRATEGY (ponto de integração futuro) ─────────────────────
+// ── 9. INTERFACE DO STRATEGY (ponto de integração futuro) 
 
 /**
  * Interface que define o contrato de uma Strategy.
@@ -1225,7 +1225,7 @@ export class ZellaAirBStrategy implements IZellaStrategy {
 // =============================================================================
 //
 // Dimensão              | Zélla Pousada (atual)           | Zélla AirB (este arquivo)
-// ──────────────────────┼─────────────────────────────────┼───────────────────────────────
+// ──
 // Papel                 | Secretária recepcionista        | O dono/anfitrião do imóvel
 // Objetivo              | Vender quartos, fechar reserva  | Fazer o hóspede se sentir em casa
 // Tom                   | Profissional, hospitaleiro      | Pessoal, íntimo, amigo

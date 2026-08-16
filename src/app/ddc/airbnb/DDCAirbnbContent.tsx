@@ -89,7 +89,7 @@ import { LocksTab } from '@/components/ddc/LocksTab';
 import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
 import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ── Types 
 
 type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
 
@@ -125,7 +125,7 @@ interface AutomationLog {
   type: 'auto-reply' | 'instruction' | 'update' | 'reminder';
 }
 
-// ─── Mock Data ───────────────────────────────────────────────────────────────
+// ── Mock Data 
 
 const MOCK_PROPERTIES: PropertyData[] = [
   {
@@ -201,7 +201,7 @@ const RESPONSE_TIME_DATA = [
   { day: 'Dom', seconds: 47 },
 ];
 
-// ─── Calendar Helper ─────────────────────────────────────────────────────────
+// ── Calendar Helper 
 
 function generateCalendarDays(): CalendarDay[] {
   const now = new Date();
@@ -225,7 +225,7 @@ function generateCalendarDays(): CalendarDay[] {
   return days;
 }
 
-// ─── Chart Config ────────────────────────────────────────────────────────────
+// ── Chart Config 
 
 const responseTimeChartConfig: ChartConfig = {
   seconds: {
@@ -247,7 +247,7 @@ const paymentChartConfig: ChartConfig = {
   card: { label: 'Cartão', color: '#f59e0b' },
 };
 
-// ─── Animation Variants ─────────────────────────────────────────────────────
+// ── Animation Variants 
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -262,7 +262,7 @@ const staggerItem = {
   visible: { opacity: 1, y: 0 },
 };
 
-// ─── Sidebar Navigation Items ───────────────────────────────────────────────
+// ── Sidebar Navigation Items 
 
 const airbnbNavItems: NavItem[] = [
   { id: 'financeiro', label: 'Painel Financeiro', icon: <TrendingUp className="size-4" /> },
@@ -281,7 +281,7 @@ const airbnbNavItems: NavItem[] = [
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
-// ─── Format Helpers ─────────────────────────────────────────────────────────
+// ── Format Helpers 
 
 function formatBRL(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -294,7 +294,7 @@ function formatCompactBRL(value: number): string {
   return formatBRL(value);
 }
 
-// ─── Main Component ─────────────────────────────────────────────────────────
+// ── Main Component 
 
 export default function DDCAirbnbContent() {
   const { plan: currentPlan } = useCurrentPlan();
@@ -376,7 +376,7 @@ export default function DDCAirbnbContent() {
   const now = new Date();
   const monthName = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
-  // ─── Tab: Painel de Propriedades ────────────────────────────────────────
+  // ── Tab: Painel de Propriedades 
 
   const TabPropriedades = () => (
     <motion.div
@@ -387,7 +387,7 @@ export default function DDCAirbnbContent() {
       className="space-y-6"
     >
       {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · theme: Terminal · option: 08 (Azul Cyber) */}
-      {/* ─── DDC AIRBNB / ANFITRIÕES: HALLMARK OPTION 08 (ESTILO TERMINAL AZUL CYBER) ─── */}
+      {/* ── DDC AIRBNB / ANFITRIÕES: HALLMARK OPTION 08 (ESTILO TERMINAL AZUL CYBER)  */}
 
       {/* N8 Terminal Command Header */}
       <div className="p-3.5 bg-[#040c1a] border border-[#00d8ff]/40 rounded-lg font-mono text-xs text-[#00d8ff] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(0,216,255,0.12)]">
@@ -406,7 +406,7 @@ export default function DDCAirbnbContent() {
         </div>
       </div>
 
-      {/* ─── DDC AIRBNB WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM ─── */}
+      {/* ── DDC AIRBNB WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM  */}
 
       {/* Operational Status Header — Clean Lines, Rounded Corners, No Shadows */}
       <div className="p-4 bg-[#0d0d14] border border-blue-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -643,7 +643,7 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
-  // ─── Tab: Sincronização ────────────────────────────────────────────────
+  // ── Tab: Sincronização 
 
   const TabSincronizacao = () => {
     const days = calendarDays;
@@ -819,7 +819,7 @@ export default function DDCAirbnbContent() {
     );
   };
 
-  // ─── Tab: Automação ────────────────────────────────────────────────────
+  // ── Tab: Automação 
 
   const TabAutomacao = () => (
     <motion.div
@@ -1020,7 +1020,7 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
-  // ─── Tab: Configurações ────────────────────────────────────────────────
+  // ── Tab: Configurações 
 
   const TabConfig = () => (
     <motion.div
@@ -1241,7 +1241,7 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
-  // ─── Tab: Painel Financeiro ──────────────────────────────────────────
+  // ── Tab: Painel Financeiro 
 
   const TabFinanceiro = () => (
     <motion.div
@@ -1432,7 +1432,7 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
-  // ─── Tab Renderer ─────────────────────────────────────────────────────
+  // ── Tab Renderer 
 
   const renderTab = () => {
     switch (activeTab) {

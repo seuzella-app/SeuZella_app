@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Star, MapPin, MessageSquare, ChevronRight } from 'lucide-react';
 import { useNiche } from '@/contexts/NicheContext';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ── Types 
 type DemoPhase =
   | 'instagram'        // Instagram profile with pulsing link
   | 'linkinbio'        // LIB page, no button highlighted yet
@@ -15,7 +15,7 @@ type DemoPhase =
   | 'mapa'             // Button 4 highlighted + map preview
   | 'whatsapp';        // Button 5 → full WhatsApp conversation
 
-// ─── Niche-specific profile data ─────────────────────────────────────────────
+// ── Niche-specific profile data 
 interface ProfileData {
   igHandle: string;
   profileName: string;
@@ -96,7 +96,7 @@ const pousadaProfile: ProfileData = {
     },
     {
       from: 'zella',
-      text: 'Vou gerar a reserva agora mesmo! Aqui está sua chave PIX:\n\n📅 Check-in: 19/07 (sáb)\n📅 Check-out: 21/07 (seg)\n🏡 Chalé Vista Mar — 2 hóspedes\n💳 Valor: R$ 980,00',
+      text: 'Vou gerar a reserva agora mesmo! Aqui está sua chave PIX:\n\n📅 Check-in: 19/07 (sáb)\n📅 Check-out: 21/07 (seg)\n Chalé Vista Mar — 2 hóspedes\n Valor: R$ 980,00',
       pix: true,
       time: '14:24',
     },
@@ -107,7 +107,7 @@ const pousadaProfile: ProfileData = {
     },
     {
       from: 'zella',
-      text: '✅ Pagamento confirmado! R$ 980,00 recebido.\n\n📋 Reserva #ZR-4821\n🏡 Chalé Vista Mar | 19 a 21/07\n👥 2 hóspedes\n\nVou te enviar as instruções de acesso na sexta! Qualquer dúvida é só chamar. Nos vemos em Paraty! 🏝️',
+      text: '✅ Pagamento confirmado! R$ 980,00 recebido.\n\n📋 Reserva #ZR-4821\n Chalé Vista Mar | 19 a 21/07\n 2 hóspedes\n\nVou te enviar as instruções de acesso na sexta! Qualquer dúvida é só chamar. Nos vemos em Paraty! ',
       confirmation: true,
       time: '14:28',
     },
@@ -164,7 +164,7 @@ const anfitriaoProfile: ProfileData = {
     },
     {
       from: 'zella',
-      text: 'Vou gerar a reserva agora mesmo! Aqui está sua chave PIX:\n\n📅 Check-in: 19/07 (sáb)\n📅 Check-out: 21/07 (seg)\n🏖️ Apartamento Vista Mar — 2 hóspedes\n💳 Valor: R$ 700,00',
+      text: 'Vou gerar a reserva agora mesmo! Aqui está sua chave PIX:\n\n📅 Check-in: 19/07 (sáb)\n📅 Check-out: 21/07 (seg)\n Apartamento Vista Mar — 2 hóspedes\n Valor: R$ 700,00',
       pix: true,
       time: '14:24',
     },
@@ -175,7 +175,7 @@ const anfitriaoProfile: ProfileData = {
     },
     {
       from: 'zella',
-      text: '✅ Pagamento confirmado! R$ 700,00 recebido.\n\n📋 Reserva #ZR-4821\n🏖️ Apartamento Vista Mar | 19 a 21/07\n👥 2 hóspedes\n\nVou te enviar as instruções de check-in virtual na sexta! Qualquer dúvida é só chamar. Nos vemos no Rio! 🏖️',
+      text: '✅ Pagamento confirmado! R$ 700,00 recebido.\n\n📋 Reserva #ZR-4821\n Apartamento Vista Mar | 19 a 21/07\n 2 hóspedes\n\nVou te enviar as instruções de check-in virtual na sexta! Qualquer dúvida é só chamar. Nos vemos no Rio! ',
       confirmation: true,
       time: '14:28',
     },
@@ -222,7 +222,7 @@ const parceiroProfile: ProfileData = {
     },
     {
       from: 'zella',
-      text: 'Olá, Bernardo! Bem-vindo! 🏅 Como Parceiro Zélla, seu negócio tem atendimento 24/7 pela IA.\n\nAqui está como funciona:\n\n✅ Respostas automáticas no seu tom de voz\n✅ Fechamento de reservas pelo WhatsApp\n✅ Check-in virtual automático\n✅ Dashboard completo com métricas\n\nTudo isso pelo plano PRO a R$247/mês — preço congelado por 24 meses! Ainda ganha o selo no Link-in-Bio para fixar no Instagram.',
+      text: 'Olá, Bernardo! Bem-vindo! 🏅 Como Parceiro Zélla, seu negócio tem atendimento 24/7 pela IA.\n\nAqui está como funciona:\n\n✅ Respostas automáticas no seu tom de voz\n Fechamento de reservas pelo WhatsApp\n Check-in virtual automático\n Dashboard completo com métricas\n\nTudo isso pelo plano PRO a R$247/mês — preço congelado por 24 meses! Ainda ganha o selo no Link-in-Bio para fixar no Instagram.',
       time: '14:22',
     },
     {
@@ -232,7 +232,7 @@ const parceiroProfile: ProfileData = {
     },
     {
       from: 'zella',
-      text: 'Ótimo! Como parceiro, você tem:\n\n🏅 Selo exclusivo de Parceiro Zélla no Link-in-Bio\n💰 R$150/mês de desconto vs. PRO regular\n🔒 Preço congelado por 24 meses\n👥 Atendimentos e mensagens ilimitados\n⚡ Suporte prioritário VIP\n📸 Link para fixar no Instagram\n\nVagas limitadas — apenas 100 parceiros!',
+      text: 'Ótimo! Como parceiro, você tem:\n\n🏅 Selo exclusivo de Parceiro Zélla no Link-in-Bio\n💰 R$150/mês de desconto vs. PRO regular\n Preço congelado por 24 meses\n Atendimentos e mensagens ilimitados\n Suporte prioritário VIP\n Link para fixar no Instagram\n\nVagas limitadas — apenas 100 parceiros!',
       pix: true,
       time: '14:24',
     },
@@ -243,7 +243,7 @@ const parceiroProfile: ProfileData = {
     },
     {
       from: 'zella',
-      text: '✅ Vaga reservada com sucesso!\n\n📋 Programa Parceiro Zélla\n🏅 Selo de Parceiro no Link-in-Bio\n💰 R$247/mês congelado por 24 meses\n🔒 Economia de R$3.600 vs. PRO regular\n📸 Link para fixar no Instagram\n\nBem-vindo ao time! Vamos transformar seu negócio juntos. 🚀',
+      text: '✅ Vaga reservada com sucesso!\n\n📋 Programa Parceiro Zélla\n Selo de Parceiro no Link-in-Bio\n R$247/mês congelado por 24 meses\n Economia de R$3.600 vs. PRO regular\n Link para fixar no Instagram\n\nBem-vindo ao time! Vamos transformar seu negócio juntos. ',
       confirmation: true,
       time: '14:28',
     },
@@ -251,7 +251,7 @@ const parceiroProfile: ProfileData = {
   showPartnerBadge: true,
 };
 
-// ─── LIB Buttons Data ────────────────────────────────────────────────────────
+// ── LIB Buttons Data 
 const pousadaButtons = [
   { id: 'reservar', label: 'Reservar Agora (PIX Automático)', highlight: true, icon: '🏡', phase: 'reservar' as DemoPhase },
   { id: 'galeria', label: 'Galeria de Fotos do Chalé', highlight: false, icon: '📸', phase: 'galeria' as DemoPhase },
@@ -276,13 +276,13 @@ const parceiroButtons = [
   { id: 'whatsapp-btn', label: 'Conversar no WhatsApp', highlight: false, icon: '💬', phase: 'whatsapp' as DemoPhase },
 ];
 
-// ─── Timing Constants (ms) ───────────────────────────────────────────────────
+// ── Timing Constants (ms) 
 const INSTAGRAM_DURATION = 2500;
 const BUTTON_CYCLE_INTERVAL = 3000; // 3 seconds per button
 const CHAT_MSG_INTERVAL = 2200; // time between chat messages appearing
 const CHAT_PAUSE_AFTER_COMPLETE = 3000; // pause after full conversation before looping
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+// ── Main Component 
 export function LinkInBioDemo() {
   const { isAirbnb, isPousada } = useNiche();
 
@@ -405,7 +405,7 @@ export function LinkInBioDemo() {
         {/* Screen Content */}
         <div className="w-full h-full rounded-[36px] bg-black overflow-hidden relative flex flex-col">
 
-          {/* ─────────────── STATUS BAR (shared) ─────────────── */}
+          {/* ── STATUS BAR (shared)  */}
           <div className="w-full pt-2.5 px-5 flex items-center justify-between text-[9px] font-bold text-white/90 z-20 shrink-0 select-none absolute top-0">
             <span>14:22</span>
             <div className="flex items-center gap-1.5">
@@ -423,7 +423,7 @@ export function LinkInBioDemo() {
             </div>
           </div>
 
-          {/* ─────────────── PHASE: INSTAGRAM ─────────────── */}
+          {/* ── PHASE: INSTAGRAM  */}
           <AnimatePresence mode="wait">
             {phase === 'instagram' && (
               <motion.div
@@ -538,7 +538,7 @@ export function LinkInBioDemo() {
               </motion.div>
             )}
 
-            {/* ─────────────── PHASE: LINK-IN-BIO + BUTTON PREVIEWS ─────────────── */}
+            {/* ── PHASE: LINK-IN-BIO + BUTTON PREVIEWS  */}
             {(phase === 'linkinbio' || phase === 'reservar' || phase === 'galeria' || phase === 'avaliacoes' || phase === 'mapa') && (
               <motion.div
                 key="linkinbio"
@@ -631,7 +631,7 @@ export function LinkInBioDemo() {
                       ))}
                     </div>
 
-                    {/* ──── FUNCTION PREVIEW PANELS ──── */}
+                    {/* ── FUNCTION PREVIEW PANELS  */}
                     <div className="flex-1 min-h-0 mt-2">
                       <AnimatePresence mode="wait">
                         {/* RESERVAR PREVIEW */}
@@ -884,7 +884,7 @@ export function LinkInBioDemo() {
               </motion.div>
             )}
 
-            {/* ─────────────── PHASE: WHATSAPP CONVERSATION ─────────────── */}
+            {/* ── PHASE: WHATSAPP CONVERSATION  */}
             {phase === 'whatsapp' && (
               <motion.div
                 key="whatsapp"

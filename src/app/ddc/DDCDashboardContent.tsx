@@ -408,7 +408,7 @@ export default function DDCDashboardContent() {
     }
   };
 
-  // ─── Helpers ────────────────────────────────────────────────
+  // ── Helpers 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { label: string; cls: string }> = {
       active: { label: 'Ativo', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
@@ -437,7 +437,7 @@ export default function DDCDashboardContent() {
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' });
   };
 
-  // ─── Section Header Component (inline) ─────────────────────
+  // ── Section Header Component (inline) 
   const SectionHeader = ({
     icon: Icon,
     title,
@@ -463,9 +463,9 @@ export default function DDCDashboardContent() {
     </div>
   );
 
-  // ─── VIEW RENDERER ──────────────────────────────────────────
+  // ── VIEW RENDERER 
   const renderActiveTab = () => {
-    // ── OVERVIEW (Dashboard) ──────────────────────────────────
+    // ── OVERVIEW (Dashboard) 
     if (activeTab === 'overview') {
       return (
         <div className="space-y-5">
@@ -675,7 +675,7 @@ export default function DDCDashboardContent() {
                                 `}</style>
 
                                 <div className="text-center text-[9px] text-zinc-500 leading-normal">
-                                  Abra o WhatsApp no celular ➔ Aparelhos Conectados ➔ Conectar um Aparelho ➔ Escaneie o QR Code.
+                                  Abra o WhatsApp no celular ➔ Aparelhos Conectados ➔ Conectar um Aparelho  Escaneie o QR Code.
                                 </div>
 
                                 <Button
@@ -832,7 +832,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── MESSAGES (Mensagens) ──────────────────────────────────
+    // ── MESSAGES (Mensagens) 
     if (activeTab === 'messages') {
       const filtered = conversations.filter(c => {
         const matchSearch = !msgSearch || c.guestName?.toLowerCase().includes(msgSearch.toLowerCase()) || c.guestPhone?.includes(msgSearch);
@@ -937,7 +937,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── GUESTS (Hóspedes) ─────────────────────────────────────
+    // ── GUESTS (Hóspedes) 
     if (activeTab === 'guests') {
       // Plan gate: CRM Pipeline requires PRO or above
       if (!hasAccess(currentPlan, 'pro')) {
@@ -1138,7 +1138,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── TRAINING (Treinamento) ────────────────────────────────
+    // ── TRAINING (Treinamento) 
     if (activeTab === 'training') {
       // Plan gate: Training Center requires PRO or above
       if (!hasAccess(currentPlan, 'pro')) {
@@ -1174,7 +1174,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── BOOKINGS (Reservas) ───────────────────────────────────
+    // ── BOOKINGS (Reservas) 
     if (activeTab === 'bookings') {
       const filterOptions = [
         { val: 'all', label: 'Todas' },
@@ -1384,7 +1384,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── ANALYTICS ────────────────────────────────────────────
+    // ── ANALYTICS 
     if (activeTab === 'analytics') {
       // Plan gate: Analytics requires PRO or above
       if (!hasAccess(currentPlan, 'pro')) {
@@ -1524,7 +1524,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── NOTIFICATIONS (Notificações) ─────────────────────────
+    // ── NOTIFICATIONS (Notificações) 
 
     if (activeTab === 'notifications') {
       const unread = notifications.filter(n => n.status === 'unread');
@@ -1633,7 +1633,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── LINK-IN-BIO (Tab Principal) ──────────────────────────
+    // ── LINK-IN-BIO (Tab Principal) 
     if (activeTab === 'linkinbio') {
       return (
         <motion.div variants={fadeIn} initial="hidden" animate="visible">
@@ -1647,7 +1647,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── SETTINGS (Configurações) ──────────────────────────────
+    // ── SETTINGS (Configurações) 
     if (activeTab === 'settings') {
       return (
         <motion.div variants={fadeIn} initial="hidden" animate="visible" className="bg-[#121216] border border-white/[0.04] rounded-xl p-6 sm:p-8">
@@ -1772,7 +1772,7 @@ export default function DDCDashboardContent() {
                     </div>
                   )}
 
-                  {/* ── Cancel Subscription Section ── */}
+                  {/* ── Cancel Subscription Section  */}
                   {currentPlan !== 'gratuito' && (
                     <div className="pt-4 border-t border-white/[0.04]">
                       <button
@@ -1791,7 +1791,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── FECHADURAS ELETRÔNICAS ─────────────────────────────────
+    // ── FECHADURAS ELETRÔNICAS 
     if (activeTab === 'locks') {
       if (!hasAccess(currentPlan, 'lite')) {
         return (
@@ -1813,7 +1813,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── ZÉLLA AIRB (Airbnb Management) ──────────────────────────
+    // ── ZÉLLA AIRB (Airbnb Management) 
     if (activeTab === 'airb') {
       if (!hasAccess(currentPlan, 'pro')) {
         return (
@@ -1838,7 +1838,7 @@ export default function DDCDashboardContent() {
       );
     }
 
-    // ── ZELLADOR (Suporte) ────────────────────────────────────
+    // ── ZELLADOR (Suporte) 
     if (activeTab === 'zellador') {
       return (
         <motion.div variants={fadeIn} initial="hidden" animate="visible" className="max-w-3xl mx-auto">
@@ -1850,7 +1850,7 @@ export default function DDCDashboardContent() {
     return null;
   };
 
-  // ─── RENDER ──────────────────────────────────────────────────
+  // ── RENDER 
   // Show loading while checking session
   if (sessionStatus === 'loading') {
     return (
@@ -2252,7 +2252,7 @@ export default function DDCDashboardContent() {
         </DialogContent>
       </Dialog>
 
-      {/* ── CANCEL FLOW DIALOG ── */}
+      {/* ── CANCEL FLOW DIALOG  */}
       <Dialog open={showCancelFlow} onOpenChange={(open) => { if (!open) { setShowCancelFlow(false); setCancelStep('warning'); } }}>
         <DialogContent className="bg-[#0a0a0f] border border-white/[0.08] text-white max-w-md p-6 rounded-xl shadow-2xl">
           <AnimatePresence mode="wait">

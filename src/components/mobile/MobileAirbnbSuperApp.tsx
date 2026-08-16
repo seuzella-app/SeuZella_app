@@ -85,7 +85,7 @@ export function MobileAirbnbSuperApp() {
   const handleToggleAI = () => {
     setAiActive((prev) => {
       const next = !prev;
-      toast.success(next ? '🤖 Cérebro Zélla ATIVADO (Anfitrião 24h)' : '⏸️ Cérebro Zélla PAUSADO');
+      toast.success(next ? '🤖 Cérebro Zélla ATIVADO (Anfitrião 24h)' : '⏸ Cérebro Zélla PAUSADO');
       return next;
     });
   };
@@ -93,7 +93,7 @@ export function MobileAirbnbSuperApp() {
   const handleToggleShield = () => {
     setPixShieldActive((prev) => {
       const next = !prev;
-      toast.info(next ? '🛡️ PIX Gatekeeper ATIVADO (Escudo Anti-Ban)' : '⚠️ Escudo Desativado');
+      toast.info(next ? '🛡️ PIX Gatekeeper ATIVADO (Escudo Anti-Ban)' : ' Escudo Desativado');
       return next;
     });
   };
@@ -188,9 +188,9 @@ export function MobileAirbnbSuperApp() {
   return (
     <div className="w-full min-h-screen bg-[#0a0a0f] text-[#e4e1e9] font-sans flex flex-col pb-24 selection:bg-blue-500/30 relative">
       
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           1. TOP APP BAR CYBER-LUXE AIRBNB (Mobile Header com Hambúrguer)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <header className="sticky top-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <button
@@ -232,9 +232,9 @@ export function MobileAirbnbSuperApp() {
         </div>
       </header>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           2. CONTEÚDO DAS ABAS (Main Container)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <main className="flex-1 px-4 pt-4 space-y-4">
         
         {/* ABA 1: FINANCEIRO & HUD AIRBNB */}
@@ -506,9 +506,9 @@ export function MobileAirbnbSuperApp() {
 
       </main>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           3. CYBER-LUXE BOTTOM NAVIGATION BAR AIRBNB (Fixed at bottom)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <nav className="fixed bottom-0 left-0 w-full bg-[#0a0a0f]/95 backdrop-blur-2xl border-t border-white/[0.08] px-2 py-2.5 z-50 flex items-center justify-around">
         <button
           onClick={() => setActiveTab('financeiro')}
@@ -561,9 +561,9 @@ export function MobileAirbnbSuperApp() {
         </button>
       </nav>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           4. MENU LATERAL DRAWER (Hambúrguer Menu Anfitrião)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -664,9 +664,9 @@ export function MobileAirbnbSuperApp() {
         )}
       </AnimatePresence>
 
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ──
           5. SHEET CENTRAL DE NOTIFICAÇÕES (Sincronizada)
-      ───────────────────────────────────────────────────────────── */}
+      ── */}
       <AnimatePresence>
         {isNotificationsOpen && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-end justify-center">

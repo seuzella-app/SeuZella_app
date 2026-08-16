@@ -4,7 +4,7 @@
  *
  * Conecta fechaduras eletrônicas com:
  *   1. FNRH Digital — quando hóspede completa cadastro → PIN gerado automaticamente
- *   2. Upsell — early check-in/late checkout → PIN estendido
+ *   2. Serviço extra — early check-in/check-out estendido → PIN estendido
  *   3. Caução PIX — caução retida → PIN revogado; caução coletada → PIN ativo
  *
  * Cada função é safe-fail: se a integração falhar, o fluxo principal NÃO bloqueia.
@@ -92,12 +92,12 @@ export async function onFNRHCompleted(params: {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Chamado quando hóspede paga upsell (early check-in / late checkout).
+ * Chamado quando hóspede paga serviço extra (early check-in / check-out estendido).
  * Revoga PIN antigo e gera novo com validade estendida.
  *
  * @param params { tenantId, bookingId, extensionHours, extensionType }
  */
-export async function onUpsellPaid(params: {
+export async function onServiço extraPaid(params: {
   tenantId: string;
   bookingId?: string;
   extensionHours: number;
@@ -127,11 +127,11 @@ export async function onUpsellPaid(params: {
     // Calcula nova validade
     const newValidTo = new Date(oldPin.validTo);
     if (params.extensionType === 'early_checkin') {
-      // Early check-in: antecipa validFrom
+      // Check-in antecipado: antecipa validFrom
       const newValidFrom = new Date(oldPin.validFrom);
       newValidFrom.setHours(newValidFrom.getHours() - params.extensionHours);
       // Revoga PIN antigo
-      await revokePin(oldPin.id, `Upsell: early check-in +${params.extensionHours}h`);
+      await revokePin(oldPin.id, `Serviço extra: early check-in +${params.extensionHours}h`);
       // Gera novo PIN com validFrom estendido
       const result = await generatePin({
         deviceId: oldPin.deviceId,
@@ -141,16 +141,16 @@ export async function onUpsellPaid(params: {
         validFrom: newValidFrom,
         validTo: oldPin.validTo,
         autoGenerate: true,
-        note: `PIN estendido via upsell: early check-in +${params.extensionHours}h`,
+        note: `PIN estendido via serviço extra: early check-in +${params.extensionHours}h`,
       });
       if (result.code) {
         return { pinExtended: true, newPinCode: result.code.code };
       }
     } else {
-      // Late checkout: estende validTo
+      // Check-out estendido: estende validTo
       newValidTo.setHours(newValidTo.getHours() + params.extensionHours);
       // Revoga PIN antigo
-      await revokePin(oldPin.id, `Upsell: late checkout +${params.extensionHours}h`);
+      await revokePin(oldPin.id, `Serviço extra: check-out estendido +${params.extensionHours}h`);
       // Gera novo PIN com validTo estendido
       const result = await generatePin({
         deviceId: oldPin.deviceId,
@@ -160,7 +160,7 @@ export async function onUpsellPaid(params: {
         validFrom: oldPin.validFrom,
         validTo: newValidTo,
         autoGenerate: true,
-        note: `PIN estendido via upsell: late checkout +${params.extensionHours}h`,
+        note: `PIN estendido via serviço extra: check-out estendido +${params.extensionHours}h`,
       });
       if (result.code) {
         return { pinExtended: true, newPinCode: result.code.code };
@@ -169,7 +169,7 @@ export async function onUpsellPaid(params: {
 
     return { pinExtended: false, error: 'Falha ao gerar novo PIN' };
   } catch (err: any) {
-    console.error('[LOCK_HOOKS] Upsell → PIN extension falhou:', err);
+    console.error('[LOCK_HOOKS] Serviço extra → PIN extension falhou:', err);
     return { pinExtended: false, error: err?.message ?? 'erro desconhecido' };
   }
 }
