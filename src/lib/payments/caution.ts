@@ -19,7 +19,7 @@ export interface CautionRecord {
   amount: number;
   pixKey: string;
   pixKeyType: string;
-  status: 'pending' | 'collected' | 'held' | 'returned' | 'retained';
+  status: 'pending' | 'collected' | 'held' | 'returned' | 'retained' | 'disabled';
   collectedAt?: string;
   scheduledReturnAt?: string;
   returnedAt?: string;
@@ -29,8 +29,77 @@ export interface CautionRecord {
   createdAt: string;
 }
 
+export interface CautionSettings {
+  habilitada: boolean;
+  valorPadrao: number;
+  janelaEstornoH: number;
+  mensagemCustom?: string;
+}
+
+/**
+ * Lê as configurações de Caução PIX do Property do tenant.
+ * Se db não disponível ou property não encontrado, retorna defaults habilitados.
+ */
+export async function getCautionSettings(tenantId: string): Promise<CautionSettings> {
+  try {
+    if (!db) {
+      return { habilitada: true, valorPadrao: 200, janelaEstornoH: 24 };
+    }
+    const property = await (db as any).property.findFirst({
+      where: { tenantId },
+      select: {
+        caucaoHabilitada: true,
+        caucaoValorPadrao: true,
+        caucaoJanelaEstornoH: true,
+        caucaoMensagemCustom: true,
+      },
+    });
+    if (!property) {
+      return { habilitada: true, valorPadrao: 200, janelaEstornoH: 24 };
+    }
+    return {
+      habilitada: property.caucaoHabilitada ?? true,
+      valorPadrao: property.caucaoValorPadrao ?? 200,
+      janelaEstornoH: property.caucaoJanelaEstornoH ?? 24,
+      mensagemCustom: property.caucaoMensagemCustom ?? '',
+    };
+  } catch {
+    return { habilitada: true, valorPadrao: 200, janelaEstornoH: 24 };
+  }
+}
+
+/**
+ * Atualiza as configurações de Caução PIX do Property do tenant.
+ * Chamada pela API PATCH /api/ddc/caution/settings (RBAC: owner/admin).
+ */
+export async function updateCautionSettings(
+  tenantId: string,
+  settings: Partial<CautionSettings>
+): Promise<CautionSettings> {
+  try {
+    if (!db) {
+      return { habilitada: settings.habilitada ?? true, valorPadrao: settings.valorPadrao ?? 200, janelaEstornoH: settings.janelaEstornoH ?? 24, mensagemCustom: settings.mensagemCustom };
+    }
+    const data: Record<string, unknown> = {};
+    if (typeof settings.habilitada === 'boolean') data.caucaoHabilitada = settings.habilitada;
+    if (typeof settings.valorPadrao === 'number') data.caucaoValorPadrao = settings.valorPadrao;
+    if (typeof settings.janelaEstornoH === 'number') data.caucaoJanelaEstornoH = settings.janelaEstornoH;
+    if (typeof settings.mensagemCustom === 'string') data.caucaoMensagemCustom = settings.mensagemCustom;
+
+    if (Object.keys(data).length > 0) {
+      await (db as any).property.updateMany({ where: { tenantId }, data });
+    }
+    return getCautionSettings(tenantId);
+  } catch (err) {
+    console.warn('[Caution] update settings failed:', err);
+    return getCautionSettings(tenantId);
+  }
+}
+
 /**
  * Cria caução pendente para uma reserva.
+ * RESPEITA O TOGGLE: se caucaoHabilitada=false no Property do tenant,
+ * retorna early com status 'disabled' (não cria transação, não cobra hóspede).
  */
 export async function createCaution(params: {
   tenantId: string;
@@ -41,8 +110,32 @@ export async function createCaution(params: {
   pixKeyType: string;
   checkoutDate?: Date;
 }): Promise<CautionRecord> {
+  // ─────────────────────────────────────────────────────────────────────────
+  // GUARDA DE TOGGLE: se a pousada desabilitou caução, retorna registro 'disabled'
+  // sem persistir transação, sem enviar mensagem ao hóspede, sem criar retenção.
+  // ─────────────────────────────────────────────────────────────────────────
+  const settings = await getCautionSettings(params.tenantId);
+  if (!settings.habilitada) {
+    return {
+      id: `caution_disabled_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      tenantId: params.tenantId,
+      guestId: params.guestId,
+      reservationId: params.reservationId,
+      amount: 0,
+      pixKey: '',
+      pixKeyType: '',
+      status: 'disabled',
+      hasIncident: false,
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  // Respeita valor default configurado pelo dono, se amount não informado
+  const effectiveAmount = params.amount > 0 ? params.amount : settings.valorPadrao;
+  const janelaEstornoH = settings.janelaEstornoH > 0 ? settings.janelaEstornoH : 24;
+
   const scheduledReturn = params.checkoutDate
-    ? new Date(params.checkoutDate.getTime() + 24 * 60 * 60 * 1000)
+    ? new Date(params.checkoutDate.getTime() + janelaEstornoH * 60 * 60 * 1000)
     : undefined;
 
   const caution: CautionRecord = {
@@ -50,7 +143,7 @@ export async function createCaution(params: {
     tenantId: params.tenantId,
     guestId: params.guestId,
     reservationId: params.reservationId,
-    amount: params.amount,
+    amount: effectiveAmount,
     pixKey: params.pixKey,
     pixKeyType: params.pixKeyType,
     status: 'pending',
@@ -65,7 +158,7 @@ export async function createCaution(params: {
         data: {
           tenantId: params.tenantId,
           type: 'CHARGE',
-          amount: params.amount,
+          amount: effectiveAmount,
           method: 'PIX',
           status: 'PENDING',
           metadata: JSON.stringify({ type: 'caution', caution }),
@@ -194,14 +287,30 @@ export async function autoReturnCautions(): Promise<{ returned: number; retained
 
 /**
  * Gera mensagem WhatsApp solicitando caução.
+ * Se o dono cadastrou uma mensagem customizada, usa ela (substituindo placeholders).
+ * Placeholders: {valor}, {pixKey}, {pixKeyType}, {janelaEstornoH}
  */
-export function generateCautionMessage(amount: number, pixKey: string, pixKeyType: string): string {
-  return `🔒 Caução (depósito de segurança)
+export function generateCautionMessage(
+  amount: number,
+  pixKey: string,
+  pixKeyType: string,
+  customMessage?: string,
+  janelaEstornoH: number = 24
+): string {
+  if (customMessage && customMessage.trim().length > 10) {
+    return customMessage
+      .replace(/\{valor\}/gi, amount.toFixed(2))
+      .replace(/\{pixKey\}/gi, pixKey)
+      .replace(/\{pixKeyType\}/gi, pixKeyType.toUpperCase())
+      .replace(/\{janelaEstornoH\}/gi, String(janelaEstornoH));
+  }
 
-Para garantir sua reserva, precisamos de uma caução de R$ ${amount.toFixed(2)}.
-Este valor será estornado automaticamente 24h após seu check-out, caso não haja danos.
+  // Mensagem padrão: máxima 2 emojis, linguagem simples PT-BR
+  return `Oi! Para concluir sua reserva, precisamos de uma caução de R$ ${amount.toFixed(2)}.
 
-💳 PIX (${pixKeyType.toUpperCase()}): ${pixKey}
+🔒 Esse valor é devolvido automaticamente ${janelaEstornoH}h após seu check-out, caso não tenha nenhum dano no quarto.
 
-A caução é uma prática comum em hospedagem e protege tanto você quanto o imóvel. 😊`;
+PIX (${pixKeyType.toUpperCase()}): ${pixKey}
+
+É uma prática comum em hotéis e pousadas do Brasil — protege você e o imóvel. Qualquer dúvida, é só chamar aqui!`;
 }
