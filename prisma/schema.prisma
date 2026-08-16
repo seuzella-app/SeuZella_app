@@ -2423,6 +2423,48 @@ model UpsellRecord {
   // Notas
   notes             String   @default("")
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // BEHAVIORAL ANALYTICS — inspirado no WP Swings Upsell Order Bump
+  // 5 métricas-chave para análise de conversão de ofertas
+  // ─────────────────────────────────────────────────────────────────────────
+  viewCount         Int      @default(0)  // quantas vezes a oferta foi exibida ao hóspede
+  acceptCount       Int      @default(0)  // quantas vezes o hóspede aceitou (1 clique)
+  removeCount       Int      @default(0)  // quantas vezes o hóspede removeu (desistiu)
+  successCount      Int      @default(0)  // quantas vezes a oferta virou reserva confirmada
+  totalSalesAmount  Float    @default(0)  // receita total acumulada (somatório de totalPrice)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CONDITIONAL TRIGGERS — quando a IA deve sugerir este UPSELL
+  // Inspirado nas condições do WP Swings (cart_total, coupon, login_status, etc.)
+  // ─────────────────────────────────────────────────────────────────────────
+  triggerCartMin    Float?   // sugere apenas se carrinho ≥ este valor
+  triggerCartMax    Float?   // sugere apenas se carrinho ≤ este valor
+  triggerCategories String?  // categorias que ativam (JSON array de strings)
+  triggerProducts   String?  // IDs de produtos que ativam (JSON array)
+  triggerSeasons    String?  // alta | média | baixa (JSON array)
+  triggerFeriados   String?  // lista de feriados que ativam (JSON array)
+  triggerWeekdays   String?  // 0=domingo, 6=sábado (JSON array de ints)
+  triggerHourStart  Int?     // hora inicial para ativar (0-23)
+  triggerHourEnd    Int?     // hora final para ativar (0-23)
+  triggerOncePerGuest Boolean @default(true)  // sugere só 1 vez por hóspede
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // OFFER SCHEDULING — quando a oferta está ativa (sandbox mode do WP Swings)
+  // ─────────────────────────────────────────────────────────────────────────
+  offerActive       Boolean  @default(true)  // liga/desliga oferta sem deletar
+  offerStartAt      DateTime?  // início do período de exibição
+  offerEndAt        DateTime?  // fim do período de exibição
+  isSandbox         Boolean  @default(false)  // modo sandbox — não conta em produção
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // OFFER DISPLAY — personalização visual (inspirado no WP Swings)
+  // ─────────────────────────────────────────────────────────────────────────
+  offerTitle        String?  // título custom (default usa catálogo)
+  offerDescription  String?  // descrição custom
+  offerImage        String?  // imagem custom (URL)
+  offerUrgencyText  String?  // texto de urgência ("Últimas 2 horas!", etc.)
+  offerBackgroundColor String? @default("#10b981")  // cor de fundo da oferta
+
   // Relacionamentos (não deletamos o UpsellRecord se o quarto/reserva for deletado —
   // mantém histórico para fins de auditoria financeira)
   tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -2437,6 +2479,8 @@ model UpsellRecord {
   @@index([roomId])
   @@index([reservationId])
   @@index([status, paidAt])
+  @@index([offerActive])
+  @@index([isSandbox])
   @@map("upsell_records")
 }
 

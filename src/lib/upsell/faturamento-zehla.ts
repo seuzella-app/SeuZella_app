@@ -6,7 +6,7 @@
  *   - Agrega comissão 7% de TODAS as pousadas cadastradas (todos os tenants)
  *   - Calcula faturamento mensal da seuzella.com
  *   - Lista pousadas com maior contribuição
- *   - Gera cobrança mensal automática (boleto/PIX) para cada tenant
+ *   - Gera cobrança mensal automática (cartão de crédito via Mercado Pago) para cada tenant
  *
  * Modelo:
  *   - 0% sobre valores normais das diárias (dia a dia)
@@ -271,9 +271,9 @@ export interface CobrancaMensal {
   valor: number; // comissão Zélla a pagar
   vencimento: string;
   status: 'pendente' | 'paga' | 'vencida';
-  metodo: 'pix' | 'boleto';
-  // Chave PIX da seuzella.com (configurada via env)
-  pixKeySeuzella: string;
+  metodo: 'cartao' | 'boleto';
+  // Gateway de pagamento (Mercado Pago)
+  gateway: 'mercadopago' | 'infinitypay';
 }
 
 export async function gerarCobrancasMensais(
@@ -286,7 +286,7 @@ export async function gerarCobrancasMensais(
 }> {
   try {
     const faturas = await listarFaturasMes(mes, ano);
-    const pixKeySeuzella = process.env.SEUZELLA_PIX_KEY || 'seuzella@com.br';
+    const gateway = (process.env.PAYMENT_GATEWAY as 'mercadopago' | 'infinitypay') || 'mercadopago';
 
     const cobrancas: CobrancaMensal[] = faturas.map((f) => ({
       tenantId: f.tenantId,
@@ -296,8 +296,8 @@ export async function gerarCobrancasMensais(
       valor: f.comissao_zehla,
       vencimento: f.vencimento,
       status: f.status,
-      metodo: 'pix',
-      pixKeySeuzella,
+      metodo: 'cartao',
+      gateway,
     }));
 
     const totalAReceber = cobrancas.reduce((s, c) => s + c.valor, 0);

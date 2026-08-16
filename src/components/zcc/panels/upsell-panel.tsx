@@ -254,7 +254,7 @@ export function UpsellPanel() {
           <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 sm:px-6">
             <CreditCard className="size-4 text-primary" />
             <h3 className="text-sm font-semibold text-foreground">
-              Status das cobranças (cartão de crédito · Stripe)
+              Status das cobranças (cartão de crédito · Mercado Pago)
             </h3>
             <span className="ml-auto text-[11px] text-muted-foreground">
               {cobrancas.length} cobrança(s)
@@ -300,7 +300,7 @@ export function UpsellPanel() {
 
           <div className="border-t border-border bg-background/40 px-4 py-2 sm:px-6">
             <p className="text-[10px] text-muted-foreground">
-              💳 Todas as cobranças são automáticas via cartão de crédito (Stripe).
+              💳 Todas as cobranças são automáticas via cartão de crédito (Mercado Pago).
               Não há PIX manual — o dono cadastra o cartão uma vez e a cobrança
               acontece no fim de cada mês.
             </p>
@@ -417,6 +417,12 @@ export function UpsellPanel() {
           )}
         </div>
 
+        {/* ─── BEHAVIORAL ANALYTICS — TAXA DE CONVERSÃO POR TIPO ─── */}
+        <BehavioralAnalyticsCard
+          faturamento={faturamento}
+          loading={loading}
+        />
+
         {/* ─── COBRANÇAS DO MÊS (POR POUSADA) ─── */}
         <div className="rounded-lg border border-border bg-card">
           <button
@@ -489,7 +495,7 @@ export function UpsellPanel() {
               <span className="text-blue-300">7% de comissão</span> por quarto, creditada à seuzella.com.
             </li>
             <li>
-              <strong className="text-foreground">Pagamento:</strong> cobrança automática via cartão de crédito (Stripe)
+              <strong className="text-foreground">Pagamento:</strong> cobrança automática via cartão de crédito (Mercado Pago)
               no fim de cada mês. Não há PIX manual.
             </li>
             <li>
@@ -637,4 +643,153 @@ function gerarCobrancasMock(mes: number, ano: number): Cobranca[] {
     status: (idx < 5 ? "paga" : idx < 7 ? "pendente" : "vencida") as any,
     metodo: "cartao" as const,
   }));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BEHAVIORAL ANALYTICS — Inspiração WP Swings Upsell Order Bump
+// Mostra taxa de conversão (view → accept → success) por tipo de UPSELL
+// ─────────────────────────────────────────────────────────────────────────────
+function BehavioralAnalyticsCard({
+  faturamento,
+  loading,
+}: {
+  faturamento: FaturamentoMensal | null;
+  loading: boolean;
+}) {
+  const [analytics, setAnalytics] = React.useState<any>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = React.useState(true);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // Busca behavioral analytics da API admin
+        const res = await fetch('/api/admin/upsell-analytics');
+        if (res.ok) {
+          const json = await res.json();
+          if (!cancelled && json.success) {
+            setAnalytics(json.data);
+          }
+        }
+      } catch {
+        // Fallback mock
+        if (!cancelled) {
+          setAnalytics(gerarAnalyticsMock());
+        }
+      } finally {
+        if (!cancelled) setLoadingAnalytics(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  return (
+    <div className="rounded-lg border border-border bg-card">
+      <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 sm:px-6">
+        <TrendingUp className="size-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">
+          Behavioral Analytics — conversão por tipo
+        </h3>
+        <span className="ml-auto text-[11px] text-muted-foreground">
+          inspirado em WP Swings Upsell Order Bump
+        </span>
+      </div>
+
+      {analytics && analytics.por_tipo && analytics.por_tipo.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead className="bg-secondary/30">
+              <tr>
+                <th className="px-4 py-2 text-left font-semibold text-muted-foreground sm:px-6">Tipo</th>
+                <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Views</th>
+                <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Aceites</th>
+                <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Removidas</th>
+                <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Sucessos</th>
+                <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Conv. Rate</th>
+                <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Ticket médio</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.por_tipo.map((row: any) => {
+                const convRate = row.view_count > 0
+                  ? (row.success_count / row.view_count) * 100
+                  : 0;
+                return (
+                  <tr key={row.type} className="border-b border-border/50 last:border-0">
+                    <td className="px-4 py-2.5 text-foreground sm:px-6">
+                      {TYPE_LABELS[row.type] || row.type}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground">{row.view_count}</td>
+                    <td className="px-4 py-2.5 text-right text-emerald-300">{row.accept_count}</td>
+                    <td className="px-4 py-2.5 text-right text-red-300">{row.remove_count}</td>
+                    <td className="px-4 py-2.5 text-right text-blue-300 font-bold">{row.success_count}</td>
+                    <td className="px-4 py-2.5 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <div className="h-1.5 w-12 overflow-hidden rounded-full bg-secondary">
+                          <div
+                            className={cn(
+                              "h-full",
+                              convRate >= 30 ? "bg-emerald-500" :
+                              convRate >= 15 ? "bg-amber-500" :
+                              "bg-red-500"
+                            )}
+                            style={{ width: `${Math.min(100, convRate)}%` }}
+                          />
+                        </div>
+                        <span className={cn(
+                          "font-bold",
+                          convRate >= 30 ? "text-emerald-300" :
+                          convRate >= 15 ? "text-amber-300" :
+                          "text-red-300"
+                        )}>
+                          {convRate.toFixed(1)}%
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-foreground">
+                      {fmtBRL(row.average_ticket || 0)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="px-4 py-8 text-center text-xs text-muted-foreground sm:px-6">
+          {loadingAnalytics ? "Carregando analytics..." : "Sem dados comportamentais no período."}
+        </div>
+      )}
+
+      <div className="border-t border-border bg-background/40 px-4 py-2 sm:px-6">
+        <p className="text-[10px] text-muted-foreground">
+          📊 <strong className="text-foreground">Behavioral Analytics</strong> rastreia 5 métricas:
+          views (oferta exibida), aceites (1 clique), removidas (desistiu), sucessos (virou reserva)
+          e ticket médio. <strong className="text-foreground">Conversion Rate</strong> = sucessos ÷ views.
+          A IA Zélla prioriza sugerir UPSELLs com maior taxa histórica.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function gerarAnalyticsMock() {
+  const tipos = ['late_checkout', 'cafe_premium', 'massagem', 'garrafa_vinho', 'kit_praia'];
+  const por_tipo = tipos.map((type, idx) => {
+    const view_count = Math.floor(50 + Math.random() * 200);
+    const accept_count = Math.floor(view_count * (0.2 + Math.random() * 0.3));
+    const remove_count = Math.floor(accept_count * 0.2);
+    const success_count = Math.floor(accept_count * (0.5 + Math.random() * 0.3));
+    const total_sales = success_count * (40 + Math.random() * 100);
+    return {
+      type,
+      view_count,
+      accept_count,
+      remove_count,
+      success_count,
+      total_sales_amount: total_sales,
+      average_ticket: success_count > 0 ? total_sales / success_count : 0,
+    };
+  });
+  return { por_tipo };
 }

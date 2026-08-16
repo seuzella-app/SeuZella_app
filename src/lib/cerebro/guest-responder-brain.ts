@@ -416,8 +416,8 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
       // Dono perguntando como é cobrado
       if (msg.includes('cartão') || msg.includes('cartao') || msg.includes('cobrança') || msg.includes('cobranca') || msg.includes('pagar') || msg.includes('pix')) {
         return nome
-          ? `Oi, ${nome}. A cobrança é automática via cartão de crédito (Stripe) no fim de cada mês. Você cadastra o cartão uma vez no DDC > aba UPSELL. Não há PIX manual — tudo é processado pela Stripe de forma segura. Você acompanha em tempo real o total acumulado no painel.`
-          : `A cobrança é automática via cartão de crédito (Stripe) no fim de cada mês. Você cadastra o cartão uma vez no DDC > aba UPSELL. Não há PIX manual — tudo é processado pela Stripe de forma segura. Você acompanha em tempo real no painel.`;
+          ? `Oi, ${nome}. A cobrança é automática via cartão de crédito (Mercado Pago) no fim de cada mês. Você cadastra o cartão uma vez no DDC > aba UPSELL. Não há PIX manual — tudo é processado pelo Mercado Pago de forma segura. Você acompanha em tempo real o total acumulado no painel.`
+          : `A cobrança é automática via cartão de crédito (Mercado Pago) no fim de cada mês. Você cadastra o cartão uma vez no DDC > aba UPSELL. Não há PIX manual — tudo é processado pelo Mercado Pago de forma segura. Você acompanha em tempo real no painel.`;
       }
 
       // Dono perguntando o que é UPSELL

@@ -230,10 +230,23 @@ EXEMPLO PRÁTICO (use quando o dono pedir exemplo):
 
 COBRANÇA:
 - A comissão é acumulada mensalmente.
-- No fim de cada mês, a seuzella.com cobra automaticamente via CARTÃO DE CRÉDITO (processado pela Stripe).
+- No fim de cada mês, a seuzella.com cobra automaticamente via CARTÃO DE CRÉDITO (processado pelo Mercado Pago).
 - O dono cadastra o cartão uma única vez no DDC > aba UPSELL.
 - Não há PIX manual — tudo é automático e seguro.
 - O DDC mostra em tempo real o total acumulado no mês.
+- Gateway: Mercado Pago (suporta Visa, Master, Elo, Amex, Hipercard).
+
+ORDER BUMP — quando o hóspede está fechando a reserva (pós-PIX),
+a IA Zélla pode sugerir um "bump" — uma oferta única de 1 clique.
+Exemplo: "Que tal adicionar late checkout +4h por R$ 200? Aceitar (checkbox)."
+Se aceitar, soma ao total da reserva. Se não, segue normalmente.
+
+INTELIGÊNCIA COMPORTAMENTAL (Behavioral Analytics):
+- Cada UPSELL rastreia 5 métricas: view_count, accept_count, remove_count, success_count, total_sales.
+- Conversion rate = success_count / view_count * 100
+- A IA prioriza sugerir UPSELLs com maior taxa de conversão histórica.
+- Conditional Triggers: a oferta só é exibida se atender condições (carrinho ≥ R$ X, temporada = alta, dia da semana, horário, etc.).
+- Once per guest: por padrão, cada UPSELL é sugerido 1 vez por hóspede.
 
 CATÁLOGO DE UPSELLs (15 tipos, com preço default):
 - Late checkout: R$ 50/hora extra

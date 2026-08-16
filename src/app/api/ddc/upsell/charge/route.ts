@@ -1,21 +1,21 @@
 /**
  * POST /api/ddc/upsell/charge
  *
- * Dispara cobrança manual via cartão de crédito da comissão Zélla (7%)
+ * Dispara cobrança via cartão de crédito (Mercado Pago) da comissão Zélla (7%)
  * dos UPSELLs confirmados no período especificado.
  *
- * Em produção, esta rota é chamada automaticamente por um cron job no fim
- * de cada mês. Pode ser chamada manualmente pelo dono da pousada.
+ * Em produção, é chamada automaticamente por um cron job no fim de cada mês.
+ * Pode ser chamada manualmente pelo dono da pousada.
  *
  * Body: { month, year } (default mês atual)
- * Retorna: { success, amount_charged, upsell_ids, payment_intent_id? }
+ * Retorna: { success, payment_id?, status?, amount_charged, upsell_ids }
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { cobrarComissaoMensal } from '@/lib/payments/stripe-service';
+import { cobrarComissaoMensal } from '@/lib/payments/mercadopago-service';
 import { withApiGuard } from '@/lib/security/api-guard';
 
 const chargeSchema = z.object({
@@ -38,7 +38,7 @@ const postWrapped = withApiGuard(
 
     if (!result.success) {
       return NextResponse.json(
-        { success: false, error: 'CHARGE_FAILED', message: result.error },
+        { success: false, error: 'CHARGE_FAILED', message: result.error, status: result.status },
         { status: 402 },
       );
     }

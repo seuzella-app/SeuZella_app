@@ -280,7 +280,7 @@ export function DDCUpsellTab() {
                 seuzella.com gera uma cobrança automática via{" "}
                 <strong className="text-foreground">cartão de crédito</strong>{" "}
                 (com aprovação automática). Você não precisa enviar PIX manual —
-                tudo é processado de forma segura pela Stripe. O cartão é
+                tudo é processado de forma segura pelo Mercado Pago. O cartão é
                 cadastrado uma única vez no primeiro pagamento.
               </p>
               <p className="mt-2 text-xs">
@@ -447,7 +447,7 @@ export function DDCUpsellTab() {
           <li>
             <strong className="text-foreground">Pagamento:</strong> cobrança
             automática via cartão de crédito no fim de cada mês (processado
-            pela Stripe). Sem PIX manual.
+            pelo Mercado Pago). Sem PIX manual.
           </li>
           <li>
             <strong className="text-foreground">Transparência:</strong> todos os
