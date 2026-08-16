@@ -17,6 +17,7 @@ import {
   MonitorSmartphone,
   // Tier 3 — Configuration (admin)
   KeyRound,
+  Settings,
   // Sub-items executivos
   ListChecks,
   Bot,
@@ -27,6 +28,7 @@ import {
   ChartColumn,
   Globe,
   Network,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import type { ZccTabId } from "@/lib/zcc/types";
@@ -72,6 +74,7 @@ const EXEC_NAV: NavItem[] = [
 const OPS_NAV: NavItem[] = [
   { id: "airbnb", label: "Airbnb", icon: Home, description: "Canal Airbnb", priority: 1 },
   { id: "pousadas", label: "Pousadas", icon: Hotel, description: "Canal Direto", priority: 1 },
+  { id: "upsell", label: "UPSELL", icon: Sparkles, description: "Comissão Zélla 6% · ZERO em diárias", badge: "6%", priority: 1 },
   { id: "mobile-analytics", label: "Mobile Analytics", icon: MonitorSmartphone, description: "Uso mobile vs desktop · insights", badge: "LIVE", priority: 1 },
   { id: "breakdown", label: "Breakdown", icon: ChartColumn, description: "Receita por fonte", priority: 2 },
   { id: "onboarding", label: "Onboarding", icon: ListChecks, description: "Tracker de clientes", priority: 2 },
@@ -84,6 +87,7 @@ const OPS_NAV: NavItem[] = [
 
 const CONFIG_NAV: NavItem[] = [
   { id: "tokens-ai", label: "Tokens & IA", icon: KeyRound, description: "6 integrações", priority: 1 },
+  { id: "settings", label: "Configurações", icon: Settings, description: "Caução PIX · Webhooks · Notificações", priority: 1 },
   { id: "brain-tests", label: "Testes Cérebro", icon: FlaskConical, description: "Validação", priority: 3 },
   { id: "semantica", label: "Semântica", icon: Network, description: "GraphRAG + Decisões", priority: 2 },
 ];

@@ -38,6 +38,7 @@ import { TenantsPanel } from "./panels/tenants-panel";
 import { RefactorsPanel } from "./panels/refactors-panel";
 import { SandboxPanel } from "./panels/sandbox-panel";
 import { MobileAnalyticsPanel } from "./panels/mobile-devices-panel";
+import { UpsellPanel } from "./panels/upsell-panel";
 import type { ZccTabId } from "@/lib/zcc/types";
 import { leads, integrations } from "@/lib/zcc/mock-data";
 
@@ -353,6 +354,7 @@ export function ZccShell() {
             {/* OPERAÇÃO / TIER 2 */}
             {tab === "airbnb" ? <AirbnbPanel /> : null}
             {tab === "pousadas" ? <PousadasPanel /> : null}
+            {tab === "upsell" ? <UpsellPanel /> : null}
             {tab === "mobile-analytics" ? <MobileAnalyticsPanel /> : null}
             {tab === "burn-rate" ? <BurnRatePanel /> : null}
             {tab === "tenants" ? <TenantsPanel /> : null}
@@ -360,6 +362,7 @@ export function ZccShell() {
 
             {/* CONFIGURAÇÃO / TIER 3 */}
             {tab === "tokens-ai" ? <TokensAIPanel /> : null}
+            {tab === "settings" ? <SettingsPanel /> : null}
             {tab === "semantica" ? <SemanticaPanel /> : null}
           </div>
         </main>

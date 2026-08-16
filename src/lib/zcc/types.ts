@@ -348,7 +348,8 @@ export type ZccTabId =
   | "brain" | "brain-tests" | "refactors" | "sandbox" | "breakdown"
   | "airbnb" | "pousadas" | "burn-rate" | "tenants" | "geo"
   | "tokens-ai" | "semantica"
-  | "mobile-analytics";
+  | "mobile-analytics"
+  | "upsell" | "settings";
 
 // ===== STATS =====
 

@@ -18,11 +18,69 @@
 //   8. Respostas completas e detalhadas em outros (curioso, preocupado)
 // ============================================================================
 
-import type { PersonaMatrAIx } from './personas-matraix';
-import type { PousadaSimulada } from './pousadas-dataset';
+// ============================================================================
+// Tipos de contexto de conversa — usados pelo motor humanizado
+// ============================================================================
+
+export interface HospedeContext {
+  display_name: string;
+  idade_anos?: number;
+  genero?: string;
+  cidade_origem?: string;
+  estado_origem?: string;
+  estilo_dialogo?: EstiloDialogo;
+  prob_reservar_apos_contato?: number;
+  cao_preocupacao_caucao?: number;
+  interesse_checkout_estendido?: number;
+  interesse_upsell?: number;
+  interesse_fechadura_eletronica?: number;
+  canal_preferido?: string;
+  duracao_estadia_dias?: number;
+  grupo_tamanho?: number;
+  padrao_objecoes?: string[];
+  primeira_mensagem_template?: string;
+  isRecorrente?: boolean;
+  reservaConfirmada?: boolean;
+}
+
+export type EstiloDialogo =
+  | 'curioso_detalhista'
+  | 'direto_objetivo'
+  | 'preocupado_regras'
+  | 'impaciente_pressa'
+  | 'amigavel_conversador'
+  | 'formal_educado'
+  | 'desconfiado_cauteloso'
+  | 'entusiasmado_festas'
+  | 'neutro';
+
+export interface PousadaContext {
+  nome: string;
+  cidade: string;
+  estado: string;
+  tipo?: 'simples' | 'standard' | 'boutique' | 'luxo';
+  diariaBase: number;
+  cafeDaManhaIncluso?: boolean;
+  temPiscina?: boolean;
+  vistaMar?: boolean;
+  estacionamento?: boolean;
+  checkIn?: string;
+  checkOut?: string;
+  petFriendly?: boolean;
+  caucaoHabilitada?: boolean;
+  caucaoPadrao?: number;
+  janelaEstornoH?: number;
+  mesesOperacao?: number;
+  qtdReviews?: number;
+  avaliacao?: number;
+  donoPerfil?: {
+    usaIA?: boolean;
+    respostaTempoMedio?: number;
+  };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DETECÇÃO DE EMOÇÃO — analisa primeira mensagem da persona
+// DETECÇÃO DE EMOÇÃO — analisa primeira mensagem do hóspede
 // ─────────────────────────────────────────────────────────────────────────────
 export type EmocaoHospede =
   | 'entusiasmo'      // emojis, exclamações, "amei", "top", "vai ser massa"
@@ -186,7 +244,7 @@ const FECHAMENTOS = [
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-function substituirPlaceholders(texto: string, nome: string, pousada?: PousadaSimulada): string {
+function substituirPlaceholders(texto: string, nome: string, pousada?: PousadaContext): string {
   let result = texto.replace(/\{nome\}/g, nome);
   if (pousada) {
     result = result.replace(/\{pousada\}/g, pousada.nome);
@@ -214,13 +272,13 @@ function talvezEmoji(rng: () => number, probabilidade: number = 0.30): string {
 // GERADOR DE PRIMEIRA RESPOSTA HUMANIZADA
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarPrimeiraResposta(
-  persona: PersonaMatrAIx,
-  pousada: PousadaSimulada,
+  hospede: HospedeContext,
+  pousada: PousadaContext,
   emocao: EmocaoResult,
   rng: () => number,
   isRecorrente: boolean = false,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
 
   // Se é hóspede recorrente (pós-reserva, voltou a chamar), usa saudação de reconhecimento
   if (isRecorrente) {
@@ -232,7 +290,7 @@ export function gerarPrimeiraResposta(
   }
 
   // Saudação conforme estilo da persona
-  const saudacoes = SAUDACOES_POR_ESTILO[persona.estilo_dialogo] || SAUDACOES_GENERICAS;
+  const saudacoes = SAUDACOES_POR_ESTILO[hospede.estilo_dialogo] || SAUDACOES_GENERICAS;
   let saudacao = pick(saudacoes, rng);
 
   // Ajuste conforme emoção detectada
@@ -304,11 +362,11 @@ export function gerarPrimeiraResposta(
 // RESPOSTA A "quem é você?" / "com quem falo?"
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarRespostaIdentidade(
-  persona: PersonaMatrAIx,
-  pousada: PousadaSimulada,
+  hospede: HospedeContext,
+  pousada: PousadaContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
   const resposta = pick(RESPOSTAS_IDENTIDADE, rng);
   return {
     content: substituirPlaceholders(resposta, nome, pousada),
@@ -321,11 +379,11 @@ export function gerarRespostaIdentidade(
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarRespostaObjecaoHumanizada(
   objecao: string,
-  pousada: PousadaSimulada,
-  persona: PersonaMatrAIx,
+  pousada: PousadaContext,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
   const obj = objecao.toLowerCase();
 
   // Preço / desconto
@@ -435,11 +493,11 @@ export function gerarRespostaObjecaoHumanizada(
 // GERA RESPOSTAS DE DETALHES (para personas curiosas/preocupadas)
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarRespostaDetalhes(
-  pousada: PousadaSimulada,
-  persona: PersonaMatrAIx,
+  pousada: PousadaContext,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
   return {
     content: `Claro, ${nome}! Café da manhã das 7h às 10h. ` +
       `Estacionamento ${pousada.estacionamento ? 'coberto, sim' : 'não temos'}. ` +
@@ -453,17 +511,17 @@ export function gerarRespostaDetalhes(
 // GERA COTAÇÃO DIRETA (para personas diretas/impacientes)
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarCotacaoDireta(
-  pousada: PousadaSimulada,
-  persona: PersonaMatrAIx,
+  pousada: PousadaContext,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
-  const total = pousada.diariaBase * persona.duracao_estadia_dias * Math.ceil(persona.grupo_tamanho / 2);
+  const nome = hospede.display_name.split(' ')[0];
+  const total = pousada.diariaBase * hospede.duracao_estadia_dias * Math.ceil(hospede.grupo_tamanho / 2);
   return {
     content: pick([
-      `Total: R$ ${total.toFixed(0)} (${persona.duracao_estadia_dias} diárias, ${persona.grupo_tamanho} pessoas). PIX ou cartão, ${nome}.`,
-      `R$ ${total.toFixed(0)} no total, ${nome}. ${persona.duracao_estadia_dias} diárias. Como prefere pagar?`,
-      `${nome}, fica R$ ${total.toFixed(0)} (${persona.duracao_estadia_dias} diárias). PIX ou cartão?`,
+      `Total: R$ ${total.toFixed(0)} (${hospede.duracao_estadia_dias} diárias, ${hospede.grupo_tamanho} pessoas). PIX ou cartão, ${nome}.`,
+      `R$ ${total.toFixed(0)} no total, ${nome}. ${hospede.duracao_estadia_dias} diárias. Como prefere pagar?`,
+      `${nome}, fica R$ ${total.toFixed(0)} (${hospede.duracao_estadia_dias} diárias). PIX ou cartão?`,
     ], rng),
     intent: 'cotacao_direta',
   };
@@ -473,11 +531,11 @@ export function gerarCotacaoDireta(
 // GERA EXPLICAÇÃO DE CAUÇÃO (para personas preocupadas)
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarExplicacaoCaucao(
-  pousada: PousadaSimulada,
-  persona: PersonaMatrAIx,
+  pousada: PousadaContext,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
   if (pousada.caucaoHabilitada) {
     return {
       content: pick([
@@ -497,14 +555,14 @@ export function gerarExplicacaoCaucao(
 // GERA PROPOSTA FORMAL (para personas formais)
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarPropostaFormal(
-  pousada: PousadaSimulada,
-  persona: PersonaMatrAIx,
+  pousada: PousadaContext,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
-  const total = pousada.diariaBase * persona.duracao_estadia_dias * Math.ceil(persona.grupo_tamanho / 2);
+  const nome = hospede.display_name.split(' ')[0];
+  const total = pousada.diariaBase * hospede.duracao_estadia_dias * Math.ceil(hospede.grupo_tamanho / 2);
   return {
-    content: `Perfeito, ${nome}. Segue proposta: ${persona.duracao_estadia_dias} diárias, ` +
+    content: `Perfeito, ${nome}. Segue proposta: ${hospede.duracao_estadia_dias} diárias, ` +
       `quarto casal, valor R$ ${total.toFixed(2)}. Sem taxas extras. ` +
       `Aguardo confirmação.`,
     intent: 'enviar_proposta',
@@ -515,11 +573,11 @@ export function gerarPropostaFormal(
 // GERA RESPOSTA A PEDIDO DE RECOMENDAÇÕES (passeios, restaurantes)
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarRespostaRecomendacoes(
-  pousada: PousadaSimulada,
-  persona: PersonaMatrAIx,
+  pousada: PousadaContext,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
   const recomendacoes = {
     SC: ['passeio de barco pela Costa Verde & Mar', 'trilha até a Praia do Rosa', 'mercado de ostras da Ribeirão'],
     SP: ['passeio de escunaia em Ilhabela', 'trilha do Camburi', 'Cachoeira da Praia Vermelha'],
@@ -542,11 +600,11 @@ export function gerarRespostaRecomendacoes(
 // GERA PACOTE FESTA (para personas entusiasmadas)
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarRespostaPacote(
-  pousada: PousadaSimulada,
-  persona: PersonaMatrAIx,
+  pousada: PousadaContext,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
   return {
     content: pick([
       `Massa, ${nome}! Posso montar pacote com café da manhã, limpeza diária e late checkout +4h. Calculo e te mando.`,
@@ -560,11 +618,11 @@ export function gerarRespostaPacote(
 // GERA TRANQUILIZAÇÃO (para personas desconfiadas)
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarTranquilizacao(
-  pousada: PousadaSimulada,
-  persona: PersonaMatrAIx,
+  pousada: PousadaContext,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
   return {
     content: `Entendo perfeitamente, ${nome}. A ${pousada.nome} tem CNPJ, ` +
       `${pousada.mesesOperacao} meses de operação, ${pousada.qtdReviews} reviews com nota ${pousada.avaliacao}. ` +
@@ -577,10 +635,10 @@ export function gerarTranquilizacao(
 // GERA FECHAMENTO (convite final para reservar)
 // ─────────────────────────────────────────────────────────────────────────────
 export function gerarFechamento(
-  persona: PersonaMatrAIx,
+  hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
-  const nome = persona.display_name.split(' ')[0];
+  const nome = hospede.display_name.split(' ')[0];
   return {
     content: pick([
       `Quer que eu feche a reserva agora, ${nome}?`,

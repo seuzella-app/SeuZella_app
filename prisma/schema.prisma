@@ -146,6 +146,9 @@ model Tenant {
   lockEvents        LockEvent[]
   lockOAuthAccounts LockOAuthAccount[]
 
+  // 💰 UPSELL — Comissão Zélla de 6% sobre valores extras por quarto
+  upsellRecords     UpsellRecord[]
+
   // AIRB PRO — Módulos da análise competitiva ProHost (P0/P1)
   airbExpenses      AirbExpense[]
   airbOperationTasks AirbOperationTask[]
@@ -2361,6 +2364,80 @@ model LockOAuthAccount {
   @@index([tenantId])
   @@index([provider])
   @@map("lock_oauth_accounts")
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// UPSELL — Comissão Zélla de 6% sobre valores extras por quarto
+// ----------------------------------------------------------------------------
+// Modelo que registra cada UPSELL aceito pelo hóspede (late checkout,
+// café da manhã premium, massagem, passeio de barco, etc.).
+// A Zélla cobra 6% de comissão SOMENTE sobre o valor do UPSELL —
+// valores normais das diárias (dia a dia) têm ZERO taxa.
+// ----------------------------------------------------------------------------
+// Tipos de UPSELL suportados:
+//   late_checkout           — extensão de horário de check-out (R$ 50/hora extra)
+//   cafe_premium           — café da manhã premium (R$ 35/diária)
+//   massagem               — massagem relaxante (R$ 150/sessão)
+//   passeio_barco          — passeio de barco (R$ 120/pessoa)
+//   transfer_aeroporto     — transfer ida/volta aeroporto (R$ 80)
+//   jantar_romantico       — jantar romântico montado no quarto (R$ 200)
+//   decoracao_aniversario  — decoração quarto para aniversário (R$ 90)
+//   garrafa_vinho          — garrafa de vinho (R$ 70)
+//   aula_surf              — aula de surf (R$ 100/pessoa)
+//   passeio_bugue          — passeio de bugue (R$ 90/pessoa)
+//   spa_day                — spa day com hidratação (R$ 250)
+//   kit_praia              — kit praia: guarda-sol + cadeiras (R$ 50/diária)
+//   late_checkin_madrugada — late check-in madrugada (R$ 30)
+//   limpeza_diaria_extra   — limpeza extra (R$ 40)
+//   outros                 — outros (descrição livre)
+// ════════════════════════════════════════════════════════════════════════════
+model UpsellRecord {
+  id                String   @id @default(cuid())
+  tenantId          String
+  roomId            String?  // quarto onde o UPSELL foi aplicado (pode ser null se for geral)
+  reservationId     String? // reserva associada (pode ser null se for walk-in)
+  guestId           String?  // hóspede que aceitou o UPSELL
+
+  // Tipo e descrição
+  type              String   // late_checkout | cafe_premium | massagem | passeio_barco | ...
+  description       String   @default("")  // descrição amigável exibida no DDC
+  quantity          Int      @default(1)   // quantidade (ex: 2 massagens, 3 diárias de café premium)
+
+  // Valores
+  unitPrice         Float    // preço unitário em BRL
+  totalPrice        Float    // unitPrice * quantity
+  comissionRate     Float    @default(0.06) // taxa Zélla (6% = 0.06)
+  comissionAmount   Float    // totalPrice * comissionRate (valor creditado à seuzella.com)
+
+  // Status
+  status            String   @default("pending")  // pending | confirmed | paid | cancelled
+  paidAt            DateTime? // quando a comissão foi paga à seuzella.com
+  confirmedAt       DateTime? // quando o UPSELL foi confirmado (pós check-out)
+
+  // Contexto
+  suggestedByZehla  Boolean  @default(true)  // true = sugerido pela IA Zélla; false = adicionado manualmente pelo dono
+  feriado           String?  // feriado próximo (se houver) — para análise sazonal
+  temporada         String?  // alta | média | baixa
+  yieldMultiplier   Float?   @default(1.0) // yield aplicado na diária do UPSELL (se houve yield)
+
+  // Notas
+  notes             String   @default("")
+
+  // Relacionamentos (não deletamos o UpsellRecord se o quarto/reserva for deletado —
+  // mantém histórico para fins de auditoria financeira)
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, type])
+  @@index([roomId])
+  @@index([reservationId])
+  @@index([status, paidAt])
+  @@map("upsell_records")
 }
 
 // ════════════════════════════════════════════════════════════════════════════

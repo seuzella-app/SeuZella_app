@@ -19,6 +19,15 @@ import {
   summarizeCitationForWhatsApp,
 } from './yield-citation-hook';
 import { detectBrazilianHighSeasonHoliday } from '@/lib/ai/tools/dynamic-yield-engine';
+import {
+  detectarEmocao,
+  gerarPrimeiraResposta,
+  gerarRespostaIdentidade,
+  gerarRespostaObjecaoHumanizada,
+  type HospedeContext,
+  type PousadaContext,
+  type EstiloDialogo,
+} from '@/lib/ai/humanized-dialogue';
 
 export type ResponseChannel = 'whatsapp' | 'airbnb_inbox' | 'web_chat';
 export type SectorNiche = 'pousada' | 'airbnb';
@@ -185,12 +194,12 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
           )
         : undefined;
       rawResponse = analysis.summary || this.generateFallbackResponse(
-        intent, niche, propertyName, propertyContext?.basePrice, yieldSummaryForFallback,
+        intent, niche, propertyName, propertyContext?.basePrice, yieldSummaryForFallback, guestName, messageContent,
       );
     } catch (err) {
       console.warn('[GuestResponderBrain] Falha na inferência primária, aplicando fallback:', err);
       rawResponse = this.generateFallbackResponse(
-        intent, niche, propertyName, propertyContext?.basePrice,
+        intent, niche, propertyName, propertyContext?.basePrice, undefined, guestName, messageContent,
       );
       provider = 'Fallback-Local';
     }
@@ -284,6 +293,9 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
 
   /**
    * Resposta rápida de contingência em caso de falha da rede da IA.
+   *
+   * V2 — Motor humanizado: usa saudações variadas, identidade Zélla/Zé e
+   * detecção de emoção. Eliminada a saudação robotizada "Olá!" genérica.
    * Aceita basePrice opcional para citar valor real quando disponível.
    */
   private static generateFallbackResponse(
@@ -292,21 +304,108 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
     propertyName: string,
     basePrice?: number,
     yieldSummary?: string,
+    guestName?: string,
+    messageContent?: string,
   ): string {
+    // Extrai nome do hóspede (primeiro nome) ou usa fallback genérico
+    const nome = guestName ? guestName.split(' ')[0] : '';
+
+    // Constrói contexto para o motor humanizado
+    const hospede: HospedeContext = {
+      display_name: guestName || 'amigo(a)',
+      estilo_dialogo: 'neutro' as EstiloDialogo,
+    };
+
+    const pousada: PousadaContext = {
+      nome: propertyName,
+      cidade: '',
+      estado: '',
+      diariaBase: basePrice ?? 0,
+      cafeDaManhaIncluso: true,
+      temPiscina: false,
+      vistaMar: false,
+      estacionamento: true,
+      checkIn: '14:00',
+      checkOut: '11:00',
+      caucaoHabilitada: false,
+      caucaoPadrao: 0,
+      janelaEstornoH: 24,
+    };
+
+    // RNG determinístico baseado no timestamp (variação natural das saudações)
+    const rng = (() => {
+      let s = Date.now() % 2147483647;
+      return () => {
+        s |= 0;
+        s = (s + 0x6D2B79F5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    })();
+
+    // Detecta emoção na primeira mensagem
+    const emocao = messageContent ? detectarEmocao(messageContent) : null;
+
+    // Detecta perguntas sobre identidade ("com quem falo?")
+    if (messageContent) {
+      const msg = messageContent.toLowerCase();
+      if (msg.includes('quem é você') || msg.includes('com quem falo') || msg.includes('quem fala') || msg.includes('quem é vc')) {
+        const resposta = gerarRespostaIdentidade(hospede, pousada, rng);
+        return resposta.content;
+      }
+    }
+
     if (intent === 'pricing_inquiry') {
       // Se temos yield calculado, usa o summary real
-      if (yieldSummary) return yieldSummary;
+      if (yieldSummary) {
+        // Prefixa com saudação humanizada
+        const saudacao = gerarPrimeiraResposta(hospede, pousada, emocao || { emocao: 'neutro', confianca: 0.5, intensidade: 'leve' }, rng, false);
+        return `${saudacao.content.split('.')[0]}. ${yieldSummary}`;
+      }
       const baseLabel = basePrice && basePrice > 0
-        ? `a partir de R$ ${basePrice.toFixed(2).replace('.', ',')}`
-        : 'a partir de R$ 450,00';
-      return `Olá! Nossas diárias na ${propertyName} começam ${baseLabel}. Qual a data pretendida e quantas pessoas virão para eu confirmar a disponibilidade exata?`;
+        ? `R$ ${basePrice.toFixed(2).replace('.', ',')}`
+        : 'R$ 450,00';
+      // Saudação variada conforme motor humanizado
+      const saudacoes = [
+        nome ? `Oi, ${nome}! Aqui é a Zélla, pode me chamar de Zé. Diária na ${propertyName} a partir de ${baseLabel}.` : `Oi! Aqui é a Zélla. Diária na ${propertyName} a partir de ${baseLabel}.`,
+        nome ? `Olá, ${nome}! Zélla aqui. Posso te ajudar com a reserva? Diária a partir de ${baseLabel}.` : `Olá! Zélla aqui. Posso te ajudar? Diária a partir de ${baseLabel}.`,
+        nome ? `Oi, ${nome}! Sou a Zélla — pode me chamar de Zé. A ${propertyName} tem diária a partir de ${baseLabel}. Qual a data pretendida?` : `Oi! Sou a Zélla, pode me chamar de Zé. A ${propertyName} tem diária a partir de ${baseLabel}. Qual a data pretendida?`,
+      ];
+      return saudacoes[Math.floor(rng() * saudacoes.length)];
     }
+
     if (intent === 'checkin_info') {
-      return `O check-in na ${propertyName} é realizado a partir das 14h. Se precisar de check-in antecipado, nos avise com antecedência!`;
+      const saudacoes = [
+        nome ? `Oi, ${nome}! Check-in na ${propertyName} a partir das 14h. Se precisar chegar antes, me avisa!` : `Oi! Check-in na ${propertyName} a partir das 14h. Se precisar chegar antes, me avisa!`,
+        nome ? `Olá, ${nome}! Zélla aqui. O check-in é a partir das 14h. Posso flexibilizar conforme disponibilidade.` : `Olá! Zélla aqui. Check-in a partir das 14h. Posso flexibilizar conforme disponibilidade.`,
+      ];
+      return saudacoes[Math.floor(rng() * saudacoes.length)];
     }
+
     if (intent === 'wifi_info') {
-      return `Temos Wi-Fi de alta velocidade disponível em todas as acomodações. Os dados de acesso estão dispostos na recepção/manual da casa.`;
+      return `Temos Wi-Fi de alta velocidade em todas as acomodações. Os dados de acesso estão na recepção ou no manual da casa.`;
     }
-    return `Olá! Recebi sua mensagem sobre a ${propertyName} e já vou te passar todos os detalhes. Como posso te ajudar em relação às suas datas?`;
+
+    // Resposta padrão — usa motor humanizado para saudação variada
+    if (emocao && emocao.emocao === 'pressa') {
+      return nome
+        ? `Oi, ${nome}. Zélla aqui. Manda rápido o que você precisa.`
+        : `Oi. Zélla aqui. Manda o que você precisa.`;
+    }
+    if (emocao && emocao.emocao === 'desconfianca') {
+      return nome
+        ? `Oi, ${nome}. Aqui é a Zélla — pode me chamar de Zé. Pode perguntar o que quiser, vou ser transparente com você.`
+        : `Oi. Aqui é a Zélla — pode me chamar de Zé. Pode perguntar tudo, vou ser transparente.`;
+    }
+    if (emocao && emocao.emocao === 'entusiasmo') {
+      return nome
+        ? `Oi, ${nome}! Zélla aqui. Que bom que você animou! Vou te ajudar com tudo.`
+        : `Oi! Zélla aqui. Que bom que você animou! Vou te ajudar com tudo.`;
+    }
+
+    // Default humanizado
+    const saudacao = gerarPrimeiraResposta(hospede, pousada, emocao || { emocao: 'neutro', confianca: 0.5, intensidade: 'leve' }, rng, false);
+    return saudacao.content;
   }
 }
