@@ -1,7 +1,7 @@
 -- CreateTable: UpsellRecord
--- Comissão Zélla de 6% sobre valores extras por quarto (UPSELL)
+-- Comissão Zélla de 7% sobre valores extras por quarto (UPSELL)
 -- Valores normais das diárias (dia a dia) têm ZERO taxa.
--- A Zélla cobra SOMENTE 6% sobre o valor do UPSELL sugerido pela IA.
+-- A Zélla cobra SOMENTE 7% sobre o valor do UPSELL sugerido pela IA.
 
 CREATE TABLE "upsell_records" (
     "id" TEXT NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE "upsell_records" (
     "quantity" INTEGER NOT NULL DEFAULT 1,
     "unitPrice" DOUBLE PRECISION NOT NULL,
     "totalPrice" DOUBLE PRECISION NOT NULL,
-    "comissionRate" DOUBLE PRECISION NOT NULL DEFAULT 0.06,
+    "comissionRate" DOUBLE PRECISION NOT NULL DEFAULT 0.07,
     "comissionAmount" DOUBLE PRECISION NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'pending',
     "paidAt" TIMESTAMP(3),

@@ -3,7 +3,7 @@
  * POST /api/ddc/upsell
  *
  * Lista e cria UPSELLs para o tenant autenticado.
- * A Zélla cobra 6% de comissão sobre valores de UPSELL (zero em valores normais).
+ * A Zélla cobra 7% de comissão sobre valores de UPSELL (zero em valores normais).
  */
 
 import { NextRequest, NextResponse } from 'next/server';

@@ -149,6 +149,204 @@ const PERIOD_LABEL: Record<PeriodView, string> = {
   dia: "por dia", semana: "por semana", mes: "por mês", meses: "por trimestre", ano: "por ano",
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RECEITA DE COMISSÕES UPSELL — 7% por quarto (creditada à seuzella.com)
+// ─────────────────────────────────────────────────────────────────────────────
+// Modelo de comissão Zélla:
+//   - Valores NORMAIS das diárias: 0% taxa (você fica com 100%)
+//   - Valores de UPSELL (serviços extras sugeridos pela IA Zélla): 7% por quarto
+//
+// Esta seção mostra o total acumulado no período (mês atual default),
+// agregando todas as pousadas cadastradas. Os valores são buscados da
+// API /api/ddc/upsell/metrics, com fallback mock quando Vercel serverless
+// não tem DB conectado.
+// ─────────────────────────────────────────────────────────────────────────────
+function UpsellComissionRevenueCard({ period }: { period: PeriodView }) {
+  const [metrics, setMetrics] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // Busca métricas do mês atual
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+        const res = await fetch(
+          `/api/ddc/upsell/metrics?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+        );
+        if (res.ok) {
+          const json = await res.json();
+          if (!cancelled && json.success) {
+            setMetrics(json.data);
+          }
+        }
+      } catch {
+        // Fallback mock quando DB indisponível (Vercel serverless sem DB)
+        if (!cancelled) {
+          setMetrics({
+            total_aceitos: 0,
+            total_receita_extra: 0,
+            total_comissao_zehla: 0,
+            total_comissao_pendente: 0,
+            total_comissao_paga: 0,
+            por_tipo: [],
+            media_por_reserva: 0,
+          });
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [period]);
+
+  // Projeção anual (12× o mês atual) — estimativa conservadora
+  const projecaoAnual = (metrics?.total_comissao_zehla ?? 0) * 12;
+  // Meta mensal estimada (R$ 5.000 de comissão Zélla/mês para escalar)
+  const metaMensal = 5000;
+  const progressoMeta = Math.min(100, ((metrics?.total_comissao_zehla ?? 0) / metaMensal) * 100);
+
+  return (
+    <section className="rounded-lg border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 p-4 sm:p-5">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-300">
+          <DollarSign className="size-3.5" />
+          Receita de Comissões UPSELL (7% por quarto) · {PERIOD_LABEL[period]}
+        </h3>
+        <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-300">
+          creditada à seuzella.com
+        </span>
+      </div>
+
+      <p className="mb-4 text-[11px] text-muted-foreground">
+        Modelo: <strong className="text-foreground">0% sobre diárias normais</strong> (você fica com
+        100% das diárias) + <strong className="text-foreground">7% sobre UPSELL</strong> (serviços extras
+        sugeridos pela IA Zélla — late checkout, café premium, massagem, etc.).
+      </p>
+
+      {/* KPIs principais */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-md border border-border bg-background p-3">
+          <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+            UPSELLs no mês
+          </p>
+          <p className="mt-1 text-xl font-bold text-foreground">
+            {metrics?.total_aceitos ?? 0}
+          </p>
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Aceitos por hóspedes
+          </p>
+        </div>
+        <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+          <p className="text-[10px] font-semibold uppercase text-emerald-300/70">
+            Receita extra pousadas
+          </p>
+          <p className="mt-1 text-xl font-bold text-emerald-300">
+            {fmtBRL(metrics?.total_receita_extra ?? 0)}
+          </p>
+          <p className="mt-1 text-[10px] text-emerald-300/70">
+            Gerada por UPSELLs
+          </p>
+        </div>
+        <div className="rounded-md border border-blue-500/30 bg-blue-500/5 p-3">
+          <p className="text-[10px] font-semibold uppercase text-blue-300/70">
+            Comissão Zélla (7%)
+          </p>
+          <p className="mt-1 text-xl font-bold text-blue-300">
+            {fmtBRL(metrics?.total_comissao_zehla ?? 0)}
+          </p>
+          <p className="mt-1 text-[10px] text-blue-300/70">
+            Creditada à seuzella.com
+          </p>
+        </div>
+        <div className="rounded-md border-2 border-amber-500/40 bg-amber-500/5 p-3">
+          <p className="text-[10px] font-semibold uppercase text-amber-300/70">
+            Projeção anual
+          </p>
+          <p className="mt-1 text-xl font-bold text-amber-300">
+            {fmtBRL(projecaoAnual)}
+          </p>
+          <p className="mt-1 text-[10px] text-amber-300/70">
+            12× o mês atual
+          </p>
+        </div>
+      </div>
+
+      {/* Progresso da meta mensal */}
+      <div className="mt-4 rounded-md border border-border bg-background p-3">
+        <div className="mb-2 flex items-center justify-between text-[11px]">
+          <span className="text-muted-foreground">Progresso da meta mensal</span>
+          <span className="font-semibold text-foreground">
+            {fmtBRL(metrics?.total_comissao_zehla ?? 0)} / {fmtBRL(metaMensal)}
+          </span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+          <div
+            className="h-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all"
+            style={{ width: `${progressoMeta}%` }}
+          />
+        </div>
+        <p className="mt-2 text-[10px] text-muted-foreground">
+          {progressoMeta >= 100
+            ? "🎉 Meta mensal atingida! Parabéns."
+            : `Faltam ${fmtBRL(Math.max(0, metaMensal - (metrics?.total_comissao_zehla ?? 0)))} para bater a meta de R$ ${metaMensal.toLocaleString("pt-BR")}/mês.`}
+        </p>
+      </div>
+
+      {/* Detalhamento por status */}
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="rounded border border-amber-500/30 bg-amber-500/5 p-2">
+          <p className="text-[9px] uppercase text-amber-300/70">Pendente</p>
+          <p className="text-xs font-bold text-amber-300">
+            {fmtBRL(metrics?.total_comissao_pendente ?? 0)}
+          </p>
+        </div>
+        <div className="rounded border border-emerald-500/30 bg-emerald-500/5 p-2">
+          <p className="text-[9px] uppercase text-emerald-300/70">Pago</p>
+          <p className="text-xs font-bold text-emerald-300">
+            {fmtBRL(metrics?.total_comissao_paga ?? 0)}
+          </p>
+        </div>
+        <div className="rounded border border-border bg-background p-2">
+          <p className="text-[9px] uppercase text-muted-foreground">Média/reserva</p>
+          <p className="text-xs font-bold text-foreground">
+            {fmtBRL(metrics?.media_por_reserva ?? 0)}
+          </p>
+        </div>
+        <div className="rounded border border-border bg-background p-2">
+          <p className="text-[9px] uppercase text-muted-foreground">Tipos ativos</p>
+          <p className="text-xs font-bold text-foreground">
+            {metrics?.por_tipo?.length ?? 0}/15
+          </p>
+        </div>
+      </div>
+
+      {/* Link para aba UPSELL */}
+      <div className="mt-4 flex items-center justify-between rounded-md border border-primary/30 bg-primary/5 p-3">
+        <div className="flex items-center gap-2">
+          <DollarSign className="size-4 text-primary" />
+          <p className="text-[11px] text-muted-foreground">
+            Ver detalhes completos (tabela, histórico, calculadora)
+          </p>
+        </div>
+        <Link
+          href="/zcc?tab=upsell"
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          Abrir aba UPSELL
+          <ArrowUpRight className="size-3" />
+        </Link>
+      </div>
+
+      {loading ? (
+        <p className="mt-3 text-[10px] text-muted-foreground">Carregando métricas...</p>
+      ) : null}
+    </section>
+  );
+}
+
 export function FinanceiroPanel() {
   const [period, setPeriod] = React.useState<PeriodView>("mes");
   const [customCosts, setCustomCosts] = React.useState<CustomCost[]>(DEFAULT_COSTS);
@@ -438,6 +636,9 @@ export function FinanceiroPanel() {
 
         {/* ── SIMULAÇÃO DE IMPACTO DAS OTIMIZAÇÕES DE INFERÊNCIA ── */}
         <InferenceSimulationCard />
+
+        {/* ── RECEITA DE COMISSÕES UPSELL (7% por quarto) ── */}
+        <UpsellComissionRevenueCard period={period} />
 
         {/* ── CUSTOS EDITÁVEIS ── */}
         <section>

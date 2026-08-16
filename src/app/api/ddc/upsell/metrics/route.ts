@@ -2,7 +2,7 @@
  * GET /api/ddc/upsell/metrics
  *
  * Retorna métricas mensais de UPSELL para o DDC.
- * Inclui: total de UPSELLs aceitos, receita extra, comissão Zélla (6%),
+ * Inclui: total de UPSELLs aceitos, receita extra, comissão Zélla (7%),
  * breakdown por tipo, por status, média por reserva.
  *
  * Query params:

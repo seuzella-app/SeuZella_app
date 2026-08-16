@@ -1,18 +1,18 @@
 /**
- * UPSELL Engine — Comissão Zélla de 6% sobre valores extras por quarto
+ * UPSELL Engine — Comissão Zélla de 7% sobre valores extras por quarto
  * ============================================================================
  *
  * FILOSOFIA:
  *   - Valores NORMAIS das diárias (dia a dia): ZERO taxa para a pousada.
  *     A Zélla não cobra nada sobre o preço base de R$ 350/noite, por exemplo.
  *   - Valores de UPSELL sugeridos pela IA Zélla (late checkout, café premium,
- *     massagem, passeio de barco, etc.): 6% de comissão creditada à seuzella.com.
+ *     massagem, passeio de barco, etc.): 7% de comissão creditada à seuzella.com.
  *
  * EXEMPLO PRÁTICO:
  *   - Hóspede reserva 3 diárias × R$ 350 = R$ 1.050 (valor normal → 0% taxa)
- *   - Hóspede aceita late checkout +4h: R$ 200 extra (UPSELL → 6% = R$ 12)
- *   - Hóspede aceita café premium 3×: R$ 105 extra (UPSELL → 6% = R$ 6,30)
- *   - Total: R$ 1.355 para a pousada, R$ 18,30 de comissão Zélla
+ *   - Hóspede aceita late checkout +4h: R$ 200 extra (UPSELL → 7% = R$ 14)
+ *   - Hóspede aceita café premium 3×: R$ 105 extra (UPSELL → 7% = R$ 7,35)
+ *   - Total: R$ 1.355 para a pousada, R$ 21,35 de comissão Zélla
  *
  * COMO É DESCONTADO:
  *   - A cada UPSELL confirmado, o sistema registra o valor e a comissão.
@@ -57,7 +57,7 @@ export interface UpsellRecord {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  comissionRate: number;  // 0.06 = 6%
+  comissionRate: number;  // 0.07 = 7%
   comissionAmount: number; // totalPrice * comissionRate
   status: UpsellStatus;
   paidAt?: Date;
@@ -74,7 +74,7 @@ export interface UpsellRecord {
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTES — Taxa Zélla e tipos padrão
 // ─────────────────────────────────────────────────────────────────────────────
-export const COMISSAO_ZELLA_RATE = 0.06; // 6% sobre UPSELL (zero em valores normais)
+export const COMISSAO_ZELLA_RATE = 0.07; // 7% sobre UPSELL (zero em valores normais)
 
 export const UPSELL_TYPES_CATALOG: Record<UpsellType, {
   label: string;
@@ -179,7 +179,7 @@ export const UPSELL_TYPES_CATALOG: Record<UpsellType, {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Calcula o valor da comissão Zélla (6%) sobre um UPSELL.
+ * Calcula o valor da comissão Zélla (7%) sobre um UPSELL.
  * ZERO sobre valores normais das diárias.
  */
 export function calcularComissaoZehla(totalPrice: number, rate: number = COMISSAO_ZELLA_RATE): number {
@@ -309,7 +309,7 @@ export async function listarUpsells(params: {
  * Retorna:
  *   - total_aceitos: número de UPSELLs aceitos no período
  *   - total_receita_extra: receita extra gerada para a pousada
- *   - total_comissao_zehla: comissão Zélla acumulada (6%)
+ *   - total_comissao_zehla: comissão Zélla acumulada (7%)
  *   - por_tipo: breakdown por tipo de UPSELL
  *   - por_quarto: breakdown por quarto (roomId)
  *   - por_status: pendente / confirmado / pago / cancelado
@@ -533,11 +533,11 @@ A IA Zélla sugere esses serviços automaticamente durante a conversa com o hós
   zero_taxa: `Para valores NORMAIS das diárias (dia a dia, feriados comuns, alta temporada) 
 a Zélla cobra ZERO taxa. Você fica com 100% do valor da reserva.`,
   comissao_6: `Para valores de UPSELL (serviços extras sugeridos pela IA Zélla) a Zélla 
-cobre 6% de comissão, creditada à seuzella.com. Por exemplo: se o hóspede aceita 
-um late checkout de R$ 200, a Zélla recebe R$ 12 (6%).`,
+cobre 7% de comissão, creditada à seuzella.com. Por exemplo: se o hóspede aceita 
+um late checkout de R$ 200, a Zélla recebe R$ 14 (7%).`,
   como_descontado: `A comissão é acumulada mensalmente. Você paga a seuzella.com o total 
 de UPSELLs confirmados no mês anterior. O DDC mostra em tempo real o total acumulado.`,
   exemplo: `Exemplo: Hóspede reserva 3 diárias × R$ 350 = R$ 1.050 (valor normal → 0% taxa).
-Aceita late checkout +4h: R$ 200 (UPSELL → 6% = R$ 12). Aceita café premium 3×: R$ 105 
-(UPSELL → 6% = R$ 6,30). Total: R$ 1.355 para a pousada, R$ 18,30 de comissão Zélla.`,
+Aceita late checkout +4h: R$ 200 (UPSELL → 7% = R$ 14). Aceita café premium 3×: R$ 105 
+(UPSELL → 7% = R$ 7,35). Total: R$ 1.355 para a pousada, R$ 21,35 de comissão Zélla.`,
 };

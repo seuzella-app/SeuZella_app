@@ -144,6 +144,301 @@ function MetricCard({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CALCULADORA DE UPSELL — simula cenários e mostra comissão Zélla (7%)
+// ─────────────────────────────────────────────────────────────────────────────
+interface UpsellItemConfig {
+  type: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+function UpsellCalculator() {
+  const [diariaBase, setDiariaBase] = React.useState(350);
+  const [qtdDiarias, setQtdDiarias] = React.useState(3);
+  const [qtdPessoas, setQtdPessoas] = React.useState(2);
+  const [upsells, setUpsells] = React.useState<UpsellItemConfig[]>([
+    { type: "late_checkout", quantity: 4, unitPrice: 50 },
+    { type: "cafe_premium", quantity: 3, unitPrice: 35 },
+  ]);
+
+  const CATALOG_LABELS: Record<string, { label: string; defaultPrice: number; unitLabel: string }> = {
+    late_checkout: { label: "Late checkout (R$ 50/hora)", defaultPrice: 50, unitLabel: "horas" },
+    cafe_premium: { label: "Café da manhã premium (R$ 35/diária)", defaultPrice: 35, unitLabel: "diárias" },
+    massagem: { label: "Massagem relaxante (R$ 150)", defaultPrice: 150, unitLabel: "sessões" },
+    passeio_barco: { label: "Passeio de barco (R$ 120/pessoa)", defaultPrice: 120, unitLabel: "pessoas" },
+    transfer_aeroporto: { label: "Transfer aeroporto (R$ 80)", defaultPrice: 80, unitLabel: "trajetos" },
+    jantar_romantico: { label: "Jantar romântico (R$ 200)", defaultPrice: 200, unitLabel: "eventos" },
+    decoracao_aniversario: { label: "Decoração aniversário (R$ 90)", defaultPrice: 90, unitLabel: "eventos" },
+    garrafa_vinho: { label: "Garrafa de vinho (R$ 70)", defaultPrice: 70, unitLabel: "garrafas" },
+    kit_praia: { label: "Kit praia (R$ 50/diária)", defaultPrice: 50, unitLabel: "diárias" },
+    spa_day: { label: "Spa day (R$ 250/pessoa)", defaultPrice: 250, unitLabel: "pessoas" },
+  };
+
+  // Cálculos
+  const valorDiarias = diariaBase * qtdDiarias * Math.ceil(qtdPessoas / 2);
+  const valorUpsellTotal = upsells.reduce((s, u) => s + u.quantity * u.unitPrice, 0);
+  const comissaoZehla = Number((valorUpsellTotal * 0.07).toFixed(2));
+  const comissaoSobreDiarias = 0; // ZERO em valores normais
+  const totalReceitaPousada = valorDiarias + valorUpsellTotal;
+  const totalComissaoZehla = comissaoZehla + comissaoSobreDiarias;
+
+  const addUpsell = () => {
+    setUpsells([...upsells, { type: "late_checkout", quantity: 1, unitPrice: 50 }]);
+  };
+  const removeUpsell = (idx: number) => {
+    setUpsells(upsells.filter((_, i) => i !== idx));
+  };
+  const updateUpsell = (idx: number, field: keyof UpsellItemConfig, value: any) => {
+    const next = [...upsells];
+    next[idx] = { ...next[idx], [field]: value };
+    setUpsells(next);
+  };
+
+  return (
+    <div className="mt-6 rounded-lg border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 p-4 sm:p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Sparkles className="size-5 text-emerald-400" />
+        <h3 className="text-base font-bold text-foreground">
+          Calculadora de UPSELL — simule seu cenário
+        </h3>
+      </div>
+
+      <p className="mb-4 text-[12px] text-muted-foreground">
+        Use a calculadora para estimar quanto a Zélla ganha em comissão (7% sobre UPSELL) e quanto sua pousada fica com o cenário simulado. <strong className="text-foreground">Diárias normais: 0% taxa. UPSELL: 7% comissão por quarto.</strong>
+      </p>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* ─── Configuração da reserva ─── */}
+        <div>
+          <h4 className="mb-3 text-sm font-semibold text-foreground">
+            1. Diárias normais (zero taxa)
+          </h4>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
+                Valor da diária base (R$)
+              </label>
+              <input
+                type="number"
+                min={0}
+                step={10}
+                value={diariaBase}
+                onChange={(e) => setDiariaBase(Number(e.target.value) || 0)}
+                className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus:border-primary/50 focus:outline-none"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
+                  Qtd. diárias
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={30}
+                  value={qtdDiarias}
+                  onChange={(e) => setQtdDiarias(Number(e.target.value) || 1)}
+                  className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus:border-primary/50 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
+                  Qtd. pessoas
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={qtdPessoas}
+                  onChange={(e) => setQtdPessoas(Number(e.target.value) || 1)}
+                  className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus:border-primary/50 focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3">
+              <p className="text-[11px] text-muted-foreground">
+                Subtotal diárias (valor normal):
+              </p>
+              <p className="text-xl font-bold text-emerald-300">
+                {fmtBRL(valorDiarias)}
+              </p>
+              <p className="mt-1 text-[10px] text-emerald-300/70">
+                ✅ ZERO taxa Zélla — você fica com 100%
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Configuração dos UPSELLs ─── */}
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-foreground">
+              2. UPSELLs (7% comissão Zélla)
+            </h4>
+            <button
+              type="button"
+              onClick={addUpsell}
+              className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              + Adicionar
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {upsells.length === 0 ? (
+              <div className="rounded-md border border-dashed border-border bg-background/40 p-4 text-center text-[11px] text-muted-foreground">
+                Nenhum UPSELL adicionado. Clique em "+ Adicionar" para simular.
+              </div>
+            ) : (
+              upsells.map((u, idx) => (
+                <div key={idx} className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-background p-2">
+                  <div className="min-w-[140px] flex-1">
+                    <label className="mb-1 block text-[10px] text-muted-foreground">Tipo</label>
+                    <select
+                      value={u.type}
+                      onChange={(e) => {
+                        const newType = e.target.value;
+                        const newPrice = CATALOG_LABELS[newType]?.defaultPrice ?? 50;
+                        updateUpsell(idx, "type", newType);
+                        updateUpsell(idx, "unitPrice", newPrice);
+                      }}
+                      className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground focus:border-primary/50 focus:outline-none"
+                    >
+                      {Object.entries(CATALOG_LABELS).map(([t, info]) => (
+                        <option key={t} value={t}>
+                          {info.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="w-16">
+                    <label className="mb-1 block text-[10px] text-muted-foreground">Qtd</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={u.quantity}
+                      onChange={(e) => updateUpsell(idx, "quantity", Number(e.target.value) || 1)}
+                      className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground focus:border-primary/50 focus:outline-none"
+                    />
+                  </div>
+                  <div className="w-20">
+                    <label className="mb-1 block text-[10px] text-muted-foreground">Preço (R$)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={5}
+                      value={u.unitPrice}
+                      onChange={(e) => updateUpsell(idx, "unitPrice", Number(e.target.value) || 0)}
+                      className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground focus:border-primary/50 focus:outline-none"
+                    />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] text-muted-foreground">Subtotal</p>
+                    <p className="text-xs font-bold text-foreground">
+                      {fmtBRL(u.quantity * u.unitPrice)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeUpsell(idx)}
+                    className="h-8 w-8 rounded-md border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                    title="Remover"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-3 rounded-md border border-blue-500/30 bg-blue-500/10 p-3">
+            <p className="text-[11px] text-muted-foreground">
+              Subtotal UPSELLs (comissão 7%):
+            </p>
+            <p className="text-xl font-bold text-blue-300">
+              {fmtBRL(valorUpsellTotal)}
+            </p>
+            <p className="mt-1 text-[10px] text-blue-300/70">
+              💎 Comissão Zélla: <strong>{fmtBRL(comissaoZehla)}</strong> (7%)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── RESULTADO FINAL ─── */}
+      <div className="mt-6 rounded-lg border-2 border-emerald-500/50 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 p-4 sm:p-5">
+        <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
+          <TrendingUp className="size-4 text-emerald-400" />
+          Resultado final do cenário
+        </h4>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-md border border-border bg-background p-3">
+            <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+              Receita pousada
+            </p>
+            <p className="mt-1 text-lg font-bold text-emerald-300">
+              {fmtBRL(totalReceitaPousada)}
+            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              Diárias + UPSELLs
+            </p>
+          </div>
+          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+            <p className="text-[10px] font-semibold uppercase text-emerald-300/70">
+              Comissão sobre diárias
+            </p>
+            <p className="mt-1 text-lg font-bold text-emerald-300">
+              {fmtBRL(0)}
+            </p>
+            <p className="mt-1 text-[10px] text-emerald-300/70">
+              ✅ ZERO taxa
+            </p>
+          </div>
+          <div className="rounded-md border border-blue-500/30 bg-blue-500/5 p-3">
+            <p className="text-[10px] font-semibold uppercase text-blue-300/70">
+              Comissão sobre UPSELL
+            </p>
+            <p className="mt-1 text-lg font-bold text-blue-300">
+              {fmtBRL(comissaoZehla)}
+            </p>
+            <p className="mt-1 text-[10px] text-blue-300/70">
+              7% por quarto
+            </p>
+          </div>
+          <div className="rounded-md border-2 border-amber-500/40 bg-amber-500/5 p-3">
+            <p className="text-[10px] font-semibold uppercase text-amber-300/70">
+              % que vai para a Zélla
+            </p>
+            <p className="mt-1 text-lg font-bold text-amber-300">
+              {totalReceitaPousada > 0
+                ? ((totalComissaoZehla / totalReceitaPousada) * 100).toFixed(2)
+                : "0.00"}
+              %
+            </p>
+            <p className="mt-1 text-[10px] text-amber-300/70">
+              Do total da reserva
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-md border border-border bg-background/60 p-3 text-[11px] text-muted-foreground">
+          <strong className="text-foreground">Resumo:</strong> com{" "}
+          {qtdDiarias} diária(s) × R$ {diariaBase.toFixed(2)} ({qtdPessoas} pessoa
+          (s)) = <strong className="text-foreground">{fmtBRL(valorDiarias)}</strong> (zero
+          taxa) + <strong className="text-foreground">{upsells.length}</strong> UPSELL(s)
+          totalizando <strong className="text-foreground">{fmtBRL(valorUpsellTotal)}</strong>{" "}
+          (7% = <strong className="text-blue-300">{fmtBRL(comissaoZehla)}</strong> de comissão
+          Zélla). <strong className="text-foreground">Você fica com {fmtBRL(totalReceitaPousada - comissaoZehla)}</strong> e a
+          seuzella.com recebe <strong className="text-blue-300">{fmtBRL(comissaoZehla)}</strong>.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PAINEL PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
 export function UpsellPanel() {
@@ -218,7 +513,7 @@ export function UpsellPanel() {
     <div className="flex h-full flex-col bg-background">
       <PanelHeader
         title="UPSELL"
-        description="Comissão Zélla 6% sobre valores extras · ZERO em diárias normais"
+        description="Comissão Zélla 7% sobre valores extras · ZERO em diárias normais"
         icon={<Sparkles className="size-5" />}
         actions={
           <>
@@ -293,10 +588,10 @@ export function UpsellPanel() {
                   <p className="text-[11px] font-bold uppercase tracking-wider text-blue-300">
                     Valores de UPSELL
                   </p>
-                  <p className="mt-1 text-lg font-bold text-foreground">6% comissão</p>
+                  <p className="mt-1 text-lg font-bold text-foreground">7% comissão</p>
                   <p className="mt-1 text-[11px]">
                     Para serviços extras sugeridos pela IA Zélla, a comissão é{" "}
-                    <strong className="text-foreground">6% por quarto</strong>,
+                    <strong className="text-foreground">7% por quarto</strong>,
                     creditada à seuzella.com.
                   </p>
                 </div>
@@ -309,10 +604,10 @@ export function UpsellPanel() {
                 <p className="mt-1 text-[11px]">
                   Hóspede reserva 3 diárias × R$ 350 = R$ 1.050 (valor normal →{" "}
                   <strong className="text-emerald-300">0% taxa</strong>). Aceita
-                  late checkout +4h: R$ 200 (UPSELL → 6% = R$ 12). Aceita café
-                  premium 3×: R$ 105 (UPSELL → 6% = R$ 6,30).{" "}
+                  late checkout +4h: R$ 200 (UPSELL → 7% = R$ 14). Aceita café
+                  premium 3×: R$ 105 (UPSELL → 7% = R$ 7,35).{" "}
                   <strong className="text-foreground">
-                    Total: R$ 1.355 para a pousada, R$ 18,30 de comissão Zélla.
+                    Total: R$ 1.355 para a pousada, R$ 21,35 de comissão Zélla.
                   </strong>
                 </p>
               </div>
@@ -346,7 +641,7 @@ export function UpsellPanel() {
             color="emerald"
           />
           <MetricCard
-            label="Comissão Zélla (6%)"
+            label="Comissão Zélla (7%)"
             value={fmtBRL(metrics?.total_comissao_zehla ?? 0)}
             sublabel="A pagar à seuzella.com"
             icon={Wallet}
@@ -391,7 +686,7 @@ export function UpsellPanel() {
                       Receita extra
                     </th>
                     <th className="px-4 py-2 text-right font-semibold text-muted-foreground">
-                      Comissão Zélla (6%)
+                      Comissão Zélla (7%)
                     </th>
                   </tr>
                 </thead>
@@ -541,6 +836,9 @@ export function UpsellPanel() {
           )}
         </div>
 
+        {/* ─── CALCULADORA DE UPSELL ─── */}
+        <UpsellCalculator />
+
         {/* ─── CATÁLOGO DE UPSELLs DISPONÍVEIS ─── */}
         <div className="mt-6 rounded-lg border border-border bg-card">
           <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5 sm:px-6">
@@ -568,7 +866,7 @@ export function UpsellPanel() {
                       {info.description}
                     </p>
                     <p className="mt-1 text-[10px] text-muted-foreground/70">
-                      Comissão Zélla: {fmtBRL(info.defaultPrice * 0.06)} (6%)
+                      Comissão Zélla: {fmtBRL(info.defaultPrice * 0.07)} (7%)
                     </p>
                   </div>
                 ))
@@ -590,7 +888,7 @@ export function UpsellPanel() {
                       {item.description}
                     </p>
                     <p className="mt-1 text-[10px] text-muted-foreground/70">
-                      Comissão Zélla: {fmtBRL(item.defaultPrice * 0.06)} (6%)
+                      Comissão Zélla: {fmtBRL(item.defaultPrice * 0.07)} (7%)
                     </p>
                   </div>
                 ))}
@@ -612,7 +910,7 @@ export function UpsellPanel() {
               <strong className="text-foreground">
                 Valores de UPSELL (serviços extras sugeridos pela IA Zélla):
               </strong>{" "}
-              <span className="text-blue-300">6% de comissão</span> por quarto,
+              <span className="text-blue-300">7% de comissão</span> por quarto,
               creditada à seuzella.com.
             </li>
             <li>

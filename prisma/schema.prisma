@@ -146,7 +146,7 @@ model Tenant {
   lockEvents        LockEvent[]
   lockOAuthAccounts LockOAuthAccount[]
 
-  // 💰 UPSELL — Comissão Zélla de 6% sobre valores extras por quarto
+  // 💰 UPSELL — Comissão Zélla de 7% sobre valores extras por quarto
   upsellRecords     UpsellRecord[]
 
   // AIRB PRO — Módulos da análise competitiva ProHost (P0/P1)
@@ -2367,11 +2367,11 @@ model LockOAuthAccount {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// UPSELL — Comissão Zélla de 6% sobre valores extras por quarto
+// UPSELL — Comissão Zélla de 7% sobre valores extras por quarto
 // ----------------------------------------------------------------------------
 // Modelo que registra cada UPSELL aceito pelo hóspede (late checkout,
 // café da manhã premium, massagem, passeio de barco, etc.).
-// A Zélla cobra 6% de comissão SOMENTE sobre o valor do UPSELL —
+// A Zélla cobra 7% de comissão SOMENTE sobre o valor do UPSELL —
 // valores normais das diárias (dia a dia) têm ZERO taxa.
 // ----------------------------------------------------------------------------
 // Tipos de UPSELL suportados:
@@ -2406,7 +2406,7 @@ model UpsellRecord {
   // Valores
   unitPrice         Float    // preço unitário em BRL
   totalPrice        Float    // unitPrice * quantity
-  comissionRate     Float    @default(0.06) // taxa Zélla (6% = 0.06)
+  comissionRate     Float    @default(0.07) // taxa Zélla (7% = 0.07)
   comissionAmount   Float    // totalPrice * comissionRate (valor creditado à seuzella.com)
 
   // Status

@@ -1,15 +1,15 @@
 /**
- * Testes do UPSELL Engine — Comissão Zélla 6% sobre valores extras
+ * Testes do UPSELL Engine — Comissão Zélla 7% sobre valores extras
  * ==================================================================
  *
  * Valida:
- *   1. Calcular comissão 6% corretamente sobre UPSELL
+ *   1. Calcular comissão 7% corretamente sobre UPSELL
  *   2. ZERO comissão sobre valores normais (simulado via interface)
  *   3. Catálogo de UPSELLs tem 15 tipos
  *   4. Criar/listar UPSELLs (com fallback mock quando DB indisponível)
  *   5. Confirmar/cancelar/pagar UPSELL
  *   6. gerarSugestaoUpsell produz texto em PT-BR
- *   7. EXPLICACAO_UPSELL contém regras (0% normal, 6% upsell)
+ *   7. EXPLICACAO_UPSELL contém regras (0% normal, 7% upsell)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -29,8 +29,8 @@ import {
 } from '@/lib/upsell/upsell-engine';
 
 describe('UPSELL Engine — Constantes e catálogo', () => {
-  it('COMISSAO_ZELLA_RATE é 6% (0.06)', () => {
-    expect(COMISSAO_ZELLA_RATE).toBe(0.06);
+  it('COMISSAO_ZELLA_RATE é 7% (0.07)', () => {
+    expect(COMISSAO_ZELLA_RATE).toBe(0.07);
   });
 
   it('Catálogo tem 15 tipos de UPSELL', () => {
@@ -62,16 +62,16 @@ describe('UPSELL Engine — Constantes e catálogo', () => {
 });
 
 describe('UPSELL Engine — calcularComissaoZehla', () => {
-  it('Calcula 6% sobre R$ 200 = R$ 12', () => {
-    expect(calcularComissaoZehla(200)).toBe(12);
+  it('Calcula 7% sobre R$ 200 = R$ 14', () => {
+    expect(calcularComissaoZehla(200)).toBe(14);
   });
 
-  it('Calcula 6% sobre R$ 1000 = R$ 60', () => {
-    expect(calcularComissaoZehla(1000)).toBe(60);
+  it('Calcula 7% sobre R$ 1000 = R$ 70', () => {
+    expect(calcularComissaoZehla(1000)).toBe(70);
   });
 
-  it('Calcula 6% sobre R$ 50,50 = R$ 3,03', () => {
-    expect(calcularComissaoZehla(50.50)).toBe(3.03);
+  it('Calcula 7% sobre R$ 50,50 = R$ 3,54', () => {
+    expect(calcularComissaoZehla(50.50)).toBe(3.54);
   });
 
   it('Retorna 0 para valores negativos ou zero', () => {
@@ -79,7 +79,7 @@ describe('UPSELL Engine — calcularComissaoZehla', () => {
     expect(calcularComissaoZehla(-100)).toBe(0);
   });
 
-  it('Aceita taxa customizada (não usa default 6%)', () => {
+  it('Aceita taxa customizada (não usa default 7%)', () => {
     expect(calcularComissaoZehla(100, 0.10)).toBe(10); // 10%
     expect(calcularComissaoZehla(100, 0)).toBe(0); // 0% (valores normais)
   });
@@ -102,8 +102,8 @@ describe('UPSELL Engine — criarUpsell', () => {
       expect(record.quantity).toBe(4);
       expect(record.unitPrice).toBe(50);
       expect(record.totalPrice).toBe(200);
-      expect(record.comissionRate).toBe(0.06);
-      expect(record.comissionAmount).toBe(12);
+      expect(record.comissionRate).toBe(0.07);
+      expect(record.comissionAmount).toBe(14);
       expect(record.status).toBe('pending');
       expect(record.suggestedByZehla).toBe(true);
     }
@@ -119,7 +119,7 @@ describe('UPSELL Engine — criarUpsell', () => {
     if (record) {
       expect(record.unitPrice).toBe(150); // default
       expect(record.totalPrice).toBe(150);
-      expect(record.comissionAmount).toBe(9); // 6% de 150
+      expect(record.comissionAmount).toBe(10.5); // 7% de 150
     }
   });
 
@@ -134,7 +134,7 @@ describe('UPSELL Engine — criarUpsell', () => {
     expect(record).not.toBeNull();
     if (record) {
       expect(record.totalPrice).toBe(105);
-      expect(record.comissionAmount).toBe(6.3); // 6% de 105
+      expect(record.comissionAmount).toBe(7.35); // 7% de 105
     }
   });
 
@@ -246,14 +246,14 @@ describe('UPSELL Engine — EXPLICACAO_UPSELL', () => {
     expect(EXPLICACAO_UPSELL.zero_taxa.toLowerCase()).toContain('100%');
   });
 
-  it('Comissão 6% é mencionada explicitamente', () => {
-    expect(EXPLICACAO_UPSELL.comissao_6).toContain('6%');
+  it('Comissão 7% é mencionada explicitamente', () => {
+    expect(EXPLICACAO_UPSELL.comissao_6).toContain('7%');
   });
 
   it('Exemplo prático contém números coerentes', () => {
     expect(EXPLICACAO_UPSELL.exemplo).toContain('1.050');
-    expect(EXPLICACAO_UPSELL.exemplo).toContain('R$ 12');
-    expect(EXPLICACAO_UPSELL.exemplo).toContain('R$ 18,30');
+    expect(EXPLICACAO_UPSELL.exemplo).toContain('R$ 14');
+    expect(EXPLICACAO_UPSELL.exemplo).toContain('R$ 21,35');
   });
 });
 
@@ -263,7 +263,7 @@ describe('UPSELL Engine — Cenário completo de exemplo prático', () => {
     const valorDiarias = 3 * 350;
     expect(valorDiarias).toBe(1050);
 
-    // Aceita late checkout +4h: R$ 200 (UPSELL → 6% = R$ 12)
+    // Aceita late checkout +4h: R$ 200 (UPSELL → 7% = R$ 14)
     const lateCheckout = await criarUpsell({
       tenantId: 'test_tenant',
       type: 'late_checkout',
@@ -271,9 +271,9 @@ describe('UPSELL Engine — Cenário completo de exemplo prático', () => {
       unitPrice: 50,
     });
     expect(lateCheckout?.totalPrice).toBe(200);
-    expect(lateCheckout?.comissionAmount).toBe(12);
+    expect(lateCheckout?.comissionAmount).toBe(14);
 
-    // Aceita café premium 3×: R$ 105 (UPSELL → 6% = R$ 6,30)
+    // Aceita café premium 3×: R$ 105 (UPSELL → 7% = R$ 7,35)
     const cafePremium = await criarUpsell({
       tenantId: 'test_tenant',
       type: 'cafe_premium',
@@ -281,14 +281,14 @@ describe('UPSELL Engine — Cenário completo de exemplo prático', () => {
       unitPrice: 35,
     });
     expect(cafePremium?.totalPrice).toBe(105);
-    expect(cafePremium?.comissionAmount).toBe(6.3);
+    expect(cafePremium?.comissionAmount).toBe(7.35);
 
-    // Total: R$ 1.355 para a pousada, R$ 18,30 de comissão Zélla
+    // Total: R$ 1.355 para a pousada, R$ 21,35 de comissão Zélla
     const totalReceitaPousada = valorDiarias + (lateCheckout?.totalPrice ?? 0) + (cafePremium?.totalPrice ?? 0);
     const totalComissaoZehla = (lateCheckout?.comissionAmount ?? 0) + (cafePremium?.comissionAmount ?? 0);
 
     expect(totalReceitaPousada).toBe(1355);
-    expect(totalComissaoZehla).toBeCloseTo(18.3, 2);
+    expect(totalComissaoZehla).toBeCloseTo(21.35, 2);
 
     // Valores normais das diárias têm ZERO taxa
     const comissaoSobreDiarias = calcularComissaoZehla(valorDiarias, 0);
