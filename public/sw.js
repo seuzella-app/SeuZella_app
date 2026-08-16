@@ -1,270 +1,168 @@
-// SEU ZÉLLA — PWA Service Worker v2 (Offline Fallback + Web Push + Background Sync)
 // ============================================================================
-// CHANGES FROM v1:
-//   - Bumped cache version v1 → v2
-//   - Stale-while-revalidate for static assets (JS, CSS, fonts)
-//   - Network-first strategy for API GETs (notifications, booking-sync)
-//   - Background sync queue for offline actions (markAsRead, markAllAsRead)
-//   - Push event handler with structured payload parsing
-//   - Notificationclick handler with deep-link support
-//   - Skip-waiting + clients.claim for instant activation
+// Zélla Service Worker — PWA offline support
+// ============================================================================
+// Cache estratégias:
+//   - Static assets (JS, CSS, fonts): Cache-First com fallback network
+//   - API calls: Network-First com fallback cache (para quando offline)
+//   - Imagens: Stale-While-Revalidate
 // ============================================================================
 
-const CACHE_NAME = 'seuzella-pwa-v2';
-const OFFLINE_URL = '/offline.html';
+const CACHE_VERSION = 'zehla-v1';
+const STATIC_CACHE = `${CACHE_VERSION}-static`;
+const API_CACHE = `${CACHE_VERSION}-api`;
+const IMAGE_CACHE = `${CACHE_VERSION}-images`;
 
-// Asset patterns that benefit from stale-while-revalidate caching
-const ASSET_PATTERNS = [
-  /\/_next\/static\//,
-  /\/fonts\//,
-  /\/sounds\//,
-  /\/icons?\//,
-  /\.(?:js|css|woff2?|ttf|png|jpg|jpeg|svg|gif|webp|mp3)$/i,
+const STATIC_ASSETS = [
+  '/',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
 ];
 
-// API GET endpoints safe to cache with network-first strategy
-const API_CACHE_PATTERNS = [
-  /\/api\/ddc\/notifications/,
-  /\/api\/v1\/guest\/ddc\/notifications/,
-  /\/api\/ddc\/bookings/,
-];
-
-// ─── Install: pre-cache offline page + activate immediately ────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// INSTALL — pré-cacheia assets estáticos
+// ─────────────────────────────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL))
+    caches.open(STATIC_CACHE).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    })
   );
   self.skipWaiting();
 });
 
-// ─── Activate: clean old caches + claim clients ────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTIVATE — limpa caches antigos
+// ─────────────────────────────────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-          return undefined;
-        })
-      )
-    )
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter(name => name.startsWith('zehla-') && !name.startsWith(CACHE_VERSION))
+          .map(name => caches.delete(name))
+      );
+    })
   );
   self.clients.claim();
 });
 
-// ─── Background Sync Queue (for offline actions) ────────────────────────────
-const SYNC_QUEUE_DB = 'zella-sync-queue';
-const SYNC_QUEUE_STORE = 'pending-actions';
-
-function openSyncQueue() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(SYNC_QUEUE_DB, 1);
-    req.onupgradeneeded = () => {
-      req.result.createObjectStore(SYNC_QUEUE_STORE, { autoIncrement: true });
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function enqueueAction(action) {
-  try {
-    const db = await openSyncQueue();
-    const tx = db.transaction(SYNC_QUEUE_STORE, 'readwrite');
-    tx.objectStore(SYNC_QUEUE_STORE).add(action);
-    await tx.done;
-    if (self.registration?.sync) {
-      await self.registration.sync.register('zella-sync');
-    }
-  } catch (err) {
-    console.error('[SW v2] enqueueAction failed:', err);
-  }
-}
-
-async function flushQueue() {
-  let db;
-  try {
-    db = await openSyncQueue();
-  } catch {
-    return;
-  }
-  const tx = db.transaction(SYNC_QUEUE_STORE, 'readwrite');
-  const store = tx.objectStore(SYNC_QUEUE_STORE);
-  const allReq = store.getAll();
-  await new Promise((resolve) => {
-    allReq.onsuccess = () => resolve();
-    allReq.onerror = () => resolve();
-  });
-  const actions = allReq.result ?? [];
-  for (const action of actions) {
-    try {
-      await fetch(action.url, action.init);
-    } catch (err) {
-      console.error('[SW v2] flushQueue fetch failed for', action.url, err);
-    }
-  }
-  store.clear();
-  await tx.done;
-}
-
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'zella-sync') {
-    event.waitUntil(flushQueue());
-  }
-});
-
-// ─── Fetch handler: navigation + assets + API strategies ────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// FETCH — estratégia por tipo de recurso
+// ─────────────────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests (except PUT/POST to /api/ddc/notifications — queued)
-  if (request.method !== 'GET') {
-    // Intercept notification mutations and queue if offline
-    if (
-      request.method === 'PUT' &&
-      /\/api\/ddc\/notifications/.test(url.pathname)
-    ) {
-      event.respondWith(
-        (async () => {
-          try {
-            const cloned = request.clone();
-            const response = await fetch(request);
-            if (!response.ok && response.status >= 500) {
-              throw new Error(`Server error ${response.status}`);
-            }
-            return response;
-          } catch {
-            // Network failed — queue for background sync
-            const body = await request.clone().text();
-            await enqueueAction({
-              url: request.url,
-              init: {
-                method: request.method,
-                headers: Object.fromEntries(request.headers.entries()),
-                body,
-              },
-            });
-            return new Response(
-              JSON.stringify({ success: true, queued: true, mode: 'offline' }),
-              { status: 202, headers: { 'Content-Type': 'application/json' } }
-            );
-          }
-        })()
-      );
-    }
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+
+  // Skip cross-origin requests
+  if (url.origin !== self.location.origin) return;
+
+  // Skip Next.js HMR (dev only)
+  if (url.pathname.startsWith('/_next/webpack-hmr')) return;
+
+  // Strategy: STATIC — Cache-First
+  if (
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.match(/\.(js|css|woff2?|ttf|eot)$/)
+  ) {
+    event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }
 
-  // ── Navigation: network-first, fallback to offline page ──
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Cache successful navigation responses
-          if (response.ok) {
-            const cloned = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
-          }
-          return response;
-        })
-        .catch(() => caches.match(OFFLINE_URL))
-    );
+  // Strategy: IMAGES — Stale-While-Revalidate
+  if (url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/)) {
+    event.respondWith(staleWhileRevalidate(request, IMAGE_CACHE));
     return;
   }
 
-  // ── API GETs: network-first, fallback to cache ──
-  if (API_CACHE_PATTERNS.some((p) => p.test(url.pathname))) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const cloned = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
-          }
-          return response;
-        })
-        .catch(() => caches.match(request).then((r) => r || new Response('[]', { status: 503 })))
-    );
+  // Strategy: API — Network-First com fallback cache
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(networkFirstWithCacheFallback(request, API_CACHE));
     return;
   }
 
-  // ── Static assets: stale-while-revalidate ──
-  if (ASSET_PATTERNS.some((p) => p.test(url.pathname))) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const fetchPromise = fetch(request)
-          .then((response) => {
-            if (response.ok) {
-              const cloned = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
-            }
-            return response;
-          })
-          .catch(() => cached);
-        return cached || fetchPromise;
-      })
-    );
+  // Strategy: HTML — Network-First (sempre fresco)
+  if (request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(networkFirstWithCacheFallback(request, STATIC_CACHE));
     return;
   }
 });
 
-// ─── Web Push Notification Event Handler ─────────────────────────────────────
-self.addEventListener('push', (event) => {
-  let data = {};
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+async function cacheFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  if (cached) return cached;
   try {
-    data = event.data ? event.data.json() : {};
-  } catch {
-    data = { title: event.data?.text() ?? 'Seu Zélla' };
+    const response = await fetch(request);
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  } catch (err) {
+    return new Response('Offline', { status: 503 });
   }
-  const title = data.title || 'Seu Zélla — Novo Alerta';
-  const options = {
-    body: data.body || 'Você recebeu um novo alerta no DDC.',
-    icon: data.icon || '/SeuZella_Logo_site.png',
-    badge: data.badge || '/SeuZella_Logo_site.png',
-    vibrate: data.vibrate || [200, 100, 200],
-    tag: data.tag || 'zella-notification',
-    renotify: !!data.renotify,
-    data: {
-      url: data.url || data.actionUrl || '/mobile/pousada',
-      ...data.data,
-    },
-    actions: data.actions || [
-      { action: 'open', title: 'Abrir' },
-      { action: 'dismiss', title: 'Dispensar' },
-    ],
-  };
+}
 
-  event.waitUntil(self.registration.showNotification(title, options));
-});
+async function networkFirstWithCacheFallback(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  try {
+    const response = await fetch(request);
+    if (response.ok && request.method === 'GET') {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (err) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    return new Response(JSON.stringify({ error: 'OFFLINE' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}
 
-// ─── Notificationclick handler — deep-link to URL ──────────────────────────
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  const fetchPromise = fetch(request).then((response) => {
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  }).catch(() => cached);
+  return cached || fetchPromise;
+}
 
-  if (event.action === 'dismiss') return;
-
-  const targetUrl = event.notification.data?.url || '/mobile/pousada';
-
+// ─────────────────────────────────────────────────────────────────────────────
+// PUSH NOTIFICATIONS (futuro)
+// ─────────────────────────────────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  const data = event.data.json();
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (const client of windowClients) {
-        if (client.url.includes(targetUrl) && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
+    self.registration.showNotification(data.title || 'Zélla', {
+      body: data.body,
+      icon: '/icon-192.png',
+      badge: '/icon-badge.png',
+      data: data.url || '/',
+      tag: data.tag || 'zehla-notification',
+      requireInteraction: data.urgent || false,
     })
   );
 });
 
-// ─── Message handler — for skipWaiting trigger from page ────────────────────
-self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
+      if (clients.length > 0) {
+        clients[0].focus();
+        clients[0].postMessage({ type: 'NOTIFICATION_CLICK', url: event.notification.data });
+      } else {
+        self.clients.openWindow(event.notification.data);
+      }
+    })
+  );
 });

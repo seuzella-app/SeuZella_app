@@ -225,6 +225,12 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
 
+  // ── WAF (Web Application Firewall) — bot detection + IP block + attack detection
+  // Sprint: Fase 0.5 — Cloudflare WAF + attack detection in-code
+  const { wafMiddleware } = await import('./lib/security/waf-middleware');
+  const wafResponse = wafMiddleware(request);
+  if (wafResponse) return wafResponse;
+
   // ── NEXTAUTH_SECRET Validation ──
   // NO hardcoded fallback — missing secret always throws
   const nextAuthSecret = process.env.NEXTAUTH_SECRET;
