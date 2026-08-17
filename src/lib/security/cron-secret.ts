@@ -81,17 +81,28 @@ export function verifyCronSecret(req: NextRequest): CronAuthResult {
     return { ok: true, source: 'header' };
   }
 
-  // Tenta query ?secret=
-  const querySecret = req.nextUrl.searchParams.get('secret');
+  // Tenta query ?secret= — com encadeamento opcional para compatibilidade com Request padrão
+  let querySecret: string | null = null;
+  try {
+    // NextRequest tem nextUrl; Request padrão não tem
+    if (req.nextUrl?.searchParams) {
+      querySecret = req.nextUrl.searchParams.get('secret');
+    } else if (req.url) {
+      const url = new URL(req.url);
+      querySecret = url.searchParams.get('secret');
+    }
+  } catch {
+    // Se não conseguir parsear URL, ignora silenciosamente
+  }
   if (querySecret && timingSafeEqual(querySecret, cronSecret!)) {
     return { ok: true, source: 'query' };
   }
 
-  // Rejeita silenciosamente (não revela motivo)
+  // Rejeita silenciosamente (não revela motivo) — payload padronizado
   return {
     ok: false,
     response: NextResponse.json(
-      { error: 'unauthorized' },
+      { error: 'unauthorized', code: 'UNAUTHORIZED' },
       { status: 401, headers: { 'WWW-Authenticate': 'Bearer' } }
     ),
   };

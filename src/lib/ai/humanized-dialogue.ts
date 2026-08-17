@@ -122,8 +122,9 @@ export function detectarEmocao(mensagem: string): EmocaoResult {
     return { emocao: 'desconfianca', confianca: 0.85, intensidade: 'moderada' };
   }
 
-  // Sinais de curiosidade
-  if (/(como funciona|me conta|me fala sobre|quero saber|pode explicar|diferencial|passeio|atraç|experiência|atividade)/i.test(msg)) {
+  // Sinais de curiosidade — apenas se NÃO for saudação neutra (evita falso positivo em "Oi, tudo bem?")
+  if (/(como funciona|me conta|me fala sobre|quero saber|pode explicar|diferencial|passeio|atraç|experiência|atividade)/i.test(msg)
+      && !/^(oi|olá|ola|bom dia|boa tarde|boa noite|tudo bem|como vai)/i.test(msg.trim())) {
     return { emocao: 'curiosidade', confianca: 0.75, intensidade: 'moderada' };
   }
 
@@ -536,11 +537,16 @@ export function gerarExplicacaoDeposito(
   rng: () => number,
 ): { content: string; intent: string } {
   const nome = hospede.display_name.split(' ')[0];
-  if (pousada.depositoHabilitada) {
+  // Suporta tanto depositoHabilitada quanto depositHabilitada (compatibilidade de aliases)
+  const habilitada = (pousada as any).depositoHabilitada ?? (pousada as any).depositHabilitada ?? false;
+  const padrao = (pousada as any).depositoPadrao ?? (pousada as any).depositPadrao ?? 0;
+  const janela = pousada.janelaEstornoH ?? 24;
+
+  if (habilitada) {
     return {
       content: pick([
-        `Cancelamento grátis até 7 dias antes, ${nome}. Depósito: R$ ${pousada.depositoPadrao} via PIX. Devolvo em ${pousada.janelaEstornoH}h após o check-out se não houver danos. Automático.`,
-        `Política de cancelamento: 7 dias antes sem custo. Depósito R$ ${pousada.depositoPadrao} — volta em ${pousada.janelaEstornoH}h após o check-out. Sem dor de cabeça, ${nome}.`,
+        `Cancelamento grátis até 7 dias antes, ${nome}. Depósito: R$ ${padrao} via PIX. Devolvo em ${janela}h após o check-out se não houver danos. Automático.`,
+        `Política de cancelamento: 7 dias antes sem custo. Depósito R$ ${padrao} — volta em ${janela}h após o check-out. Sem dor de cabeça, ${nome}.`,
       ], rng),
       intent: 'explicar_deposito',
     };
@@ -550,6 +556,9 @@ export function gerarExplicacaoDeposito(
     intent: 'sem_deposito',
   };
 }
+
+// Alias para compatibilidade com código legado que usa gerarExplicacaoCaucao
+export const gerarExplicacaoCaucao = gerarExplicacaoDeposito;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GERA PROPOSTA FORMAL (para personas formais)

@@ -1,31 +1,41 @@
 // ============================================================================
-// Zélla Service Worker — PWA offline support
+// Zélla Service Worker — PWA v2 (com Background Sync)
 // ============================================================================
 // Cache estratégias:
-//   - Static assets (JS, CSS, fonts): Cache-First com fallback network
-//   - API calls: Network-First com fallback cache (para quando offline)
+//   - Static assets: Cache-First
+//   - API calls: Network-First com fallback cache
 //   - Imagens: Stale-While-Revalidate
+//   - Background Sync: fila de requisições offline
 // ============================================================================
 
-const CACHE_VERSION = 'zehla-v1';
+const CACHE_VERSION = 'seuzella-pwa-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
+const SYNC_QUEUE = 'zella-sync';
 
 const STATIC_ASSETS = [
   '/',
+  '/offline.html',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INSTALL — pré-cacheia assets estáticos
+// INSTALL — pré-cacheia assets
 // ─────────────────────────────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+      return cache.addAll(STATIC_ASSETS).catch(() => {
+        // Se algum asset não existir, ignora (não quebra o SW)
+        return Promise.all(
+          STATIC_ASSETS.map(url =>
+            cache.add(url).catch(() => null)
+          )
+        );
+      });
     })
   );
   self.skipWaiting();
@@ -39,7 +49,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter(name => name.startsWith('zehla-') && !name.startsWith(CACHE_VERSION))
+          .filter(name => name.startsWith('seuzella-pwa-') && !name.startsWith(CACHE_VERSION))
           .map(name => caches.delete(name))
       );
     })
@@ -48,19 +58,23 @@ self.addEventListener('activate', (event) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FETCH — estratégia por tipo de recurso
+// FETCH — estratégia por tipo
 // ─────────────────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') return;
+  if (request.method !== 'GET') {
+    // Para POST/PUT/DELETE não-GET: se offline, enfileira em Background Sync
+    if (!navigator.onLine && 'sync' in registration) {
+      event.respondWith(
+        handleOfflineMutation(request).catch(() => new Response('', { status: 503 }))
+      );
+    }
+    return;
+  }
 
-  // Skip cross-origin requests
   if (url.origin !== self.location.origin) return;
-
-  // Skip Next.js HMR (dev only)
   if (url.pathname.startsWith('/_next/webpack-hmr')) return;
 
   // Strategy: STATIC — Cache-First
@@ -92,6 +106,71 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BACKGROUND SYNC — processa fila de requisições offline
+// ─────────────────────────────────────────────────────────────────────────────
+self.addEventListener('sync', (event) => {
+  if (event.tag === SYNC_QUEUE) {
+    event.waitUntil(processSyncQueue());
+  }
+});
+
+async function handleOfflineMutation(request) {
+  // Enfileira a requisição para processar quando voltar online
+  try {
+    const body = await request.clone().text();
+    const queueItem = {
+      url: request.url,
+      method: request.method,
+      headers: Object.fromEntries(request.headers.entries()),
+      body,
+      timestamp: Date.now(),
+    };
+
+    // Salva no IndexedDB (ou cache como fallback)
+    const cache = await caches.open(`${CACHE_VERSION}-sync`);
+    const response = new Response(JSON.stringify(queueItem));
+    await cache.put(`sync-${Date.now()}-${Math.random()}`, response);
+
+    // Registra para Background Sync
+    if ('sync' in registration) {
+      await registration.sync.register(SYNC_QUEUE);
+    }
+
+    return new Response(JSON.stringify({ success: true, queued: true }), {
+      status: 202,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'OFFLINE_QUEUE_FAILED' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+async function processSyncQueue() {
+  const cache = await caches.open(`${CACHE_VERSION}-sync`);
+  const keys = await cache.keys();
+
+  for (const key of keys) {
+    const response = await cache.match(key);
+    const text = await response.text();
+    try {
+      const item = JSON.parse(text);
+      await fetch(item.url, {
+        method: item.method,
+        headers: item.headers,
+        body: item.body,
+      });
+      await cache.delete(key);
+    } catch (err) {
+      // Se falhar, mantém na fila para próxima tentativa
+      console.warn('[SW] Sync falhou para', key.url, err);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 async function cacheFirst(request, cacheName) {
@@ -103,7 +182,7 @@ async function cacheFirst(request, cacheName) {
     if (response.ok) cache.put(request, response.clone());
     return response;
   } catch (err) {
-    return new Response('Offline', { status: 503 });
+    return caches.match('/offline.html') || new Response('Offline', { status: 503 });
   }
 }
 
@@ -118,6 +197,9 @@ async function networkFirstWithCacheFallback(request, cacheName) {
   } catch (err) {
     const cached = await cache.match(request);
     if (cached) return cached;
+    if (request.headers.get('accept')?.includes('text/html')) {
+      return caches.match('/offline.html') || new Response('Offline', { status: 503 });
+    }
     return new Response(JSON.stringify({ error: 'OFFLINE' }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
@@ -136,7 +218,7 @@ async function staleWhileRevalidate(request, cacheName) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PUSH NOTIFICATIONS (futuro)
+// PUSH NOTIFICATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 self.addEventListener('push', (event) => {
   if (!event.data) return;
@@ -165,4 +247,13 @@ self.addEventListener('notificationclick', (event) => {
       }
     })
   );
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MESSAGE — skipWaiting para atualização imediata
+// ─────────────────────────────────────────────────────────────────────────────
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

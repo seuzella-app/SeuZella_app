@@ -247,13 +247,13 @@ export function SmartLockSecurityProof() {
           />
           <AutoCard
             icon="⏰"
-            title="Serviços extras estendem PIN"
-            desc="Check-in antecipado (+3h) ou check-out estendido (+4h) pagos via PIX → PIN é revogado e recriado com nova validade."
+            title="UPSELL estende PIN automaticamente"
+            desc="Late checkout, café premium ou outros serviços extras aceitos pelo hóspede → PIN é atualizado com nova validade. Tudo automático via IA Zélla."
           />
           <AutoCard
             icon="💳"
-            title="Depósito PIX protege acesso"
-            desc="Depósito retida = PIN revogado imediatamente. Depósito coletada = acesso garantido. Tudo automático."
+            title="Automação inteligente de acesso"
+            desc="Cancelamento de reserva = PIN revogado. Reserva confirmada = PIN ativado. FNRH completo = PIN gerado. Tudo integrado com o Cérebro Zélla."
           />
           <AutoCard
             icon="🔄"

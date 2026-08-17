@@ -63,6 +63,10 @@ const PROTECTION_PATTERNS = [
   'withWebhookGuard',       // Webhook Guard (HMAC)
   'verifyZCCAccessOrReject', // ZCC admin access
   'verifyCronSecret',       // Cron secret verification
+  'verifyCronAuth',         // Cron auth unificado (M2M + CRON_SECRET)
+  'verifyCronM2MToken',     // M2M Ed25519 token verification
+  'cron-auth-unified',      // Import de cron-auth-unified
+  'cron-auth',              // Import de cron-auth
   'cron-secret',            // Import de cron-secret
   'verifyWhatsAppWebhook',  // WhatsApp HMAC
   'verifyMercadoPagoWebhook', // MP HMAC
@@ -80,10 +84,13 @@ const PROTECTION_PATTERNS = [
   'createHmac',             // HMAC verification (webhooks)
   'timingSafeEqual',        // Timing-safe comparison
   'verifyMetaSignature',    // Meta webhook signature
+  'verifyMetaWebhook',      // Meta webhook verification (alias)
+  'verifyMercadoPagoWebhook', // MP webhook verification (alias)
   'X_HUB_SIGNATURE',       // Meta hub signature env
   'process.env.META_APP_SECRET', // Meta secret check
   'process.env.MP_WEBHOOK_SECRET', // MP secret check
-  'process.env.STRIPE_WEBHOOK_SECRET', // Stripe secret check
+  'process.env.MERCADOPAGO_WEBHOOK_SECRET', // MP secret check (novo nome)
+  'process.env.STRIPE_WEBHOOK_SECRET', // Stripe secret check (legacy)
   'process.env.ASAAS_WEBHOOK_SECRET', // Asaas secret check
 ];
 

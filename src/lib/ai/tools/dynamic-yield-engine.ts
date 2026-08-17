@@ -179,8 +179,8 @@ export function getYieldThresholds(): {
  * @returns nome do feriado ou null se não for feriado especial
  */
 export function detectBrazilianHighSeasonHoliday(date: Date): string | null {
-  const month = date.getMonth() + 1; // 1-12
-  const day = date.getDate();
+  // Usa helper agnóstico a fuso horário — extrai componentes UTC ou local conforme o tipo de Date
+  const { year, month, day } = extractDateComponents(date);
 
   // Réveillon (31/12) — pico absoluto
   if (month === 12 && day === 31) return 'Réveillon';
@@ -190,7 +190,7 @@ export function detectBrazilianHighSeasonHoliday(date: Date): string | null {
   if (month === 1 && day === 1) return 'Ano Novo';
 
   // Carnaval — terça-feira 47 dias antes da Páscoa
-  const carnavalTuesday = getCarnavalDate(date.getFullYear());
+  const carnavalTuesday = getCarnavalDate(year);
   if (sameDay(date, carnavalTuesday)) return 'Carnaval';
   // Segunda de Carnaval — algumas pousadas vendem pacote
   const carnavalMonday = new Date(carnavalTuesday);
@@ -198,10 +198,41 @@ export function detectBrazilianHighSeasonHoliday(date: Date): string | null {
   if (sameDay(date, carnavalMonday)) return 'Carnaval (Segunda)';
 
   // Corpus Christi — 60 dias após Páscoa (quinta-feira)
-  const corpusChristi = getCorpusChristiDate(date.getFullYear());
+  const corpusChristi = getCorpusChristiDate(year);
   if (sameDay(date, corpusChristi)) return 'Corpus Christi';
 
   return null;
+}
+
+/**
+ * Extrai componentes de data (year, month, day) de forma agnóstica ao fuso horário.
+ * Se a data foi criada via `new Date('2026-12-31')` (ISO sem timezone), usa UTC.
+ * Se foi criada via `new Date(2026, 11, 31)` (local), usa métodos locais.
+ */
+function extractDateComponents(date: Date): { year: number; month: number; day: number } {
+  // Detecta se a data foi criada como ISO string (sem timezone → UTC)
+  const utcYear = date.getUTCFullYear();
+  const localYear = date.getFullYear();
+
+  // Se a diferença entre UTC e local causar mudança de ano/mês/dia, usa UTC para ISO dates
+  if (utcYear !== localYear) {
+    return { year: utcYear, month: date.getUTCMonth() + 1, day: date.getUTCDate() };
+  }
+
+  const utcMonth = date.getUTCMonth();
+  const localMonth = date.getMonth();
+  if (utcMonth !== localMonth) {
+    return { year: utcYear, month: date.getUTCMonth() + 1, day: date.getUTCDate() };
+  }
+
+  const utcDay = date.getUTCDate();
+  const localDay = date.getDate();
+  if (utcDay !== localDay) {
+    return { year: utcYear, month: date.getUTCMonth() + 1, day: date.getUTCDate() };
+  }
+
+  // Tudo bate — usa local
+  return { year: localYear, month: localMonth + 1, day: localDay };
 }
 
 function sameDay(a: Date, b: Date): boolean {
