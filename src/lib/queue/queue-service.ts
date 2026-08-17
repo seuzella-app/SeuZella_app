@@ -160,11 +160,38 @@ export const QUEUE_NAMES = {
 // REGISTRA PROCESSORS PADRÃO (mock)
 // ─────────────────────────────────────────────────────────────────────────────
 if (typeof window === 'undefined') {
-  // WhatsApp webhook processor
+  // WhatsApp webhook processor — chama processIncomingMessage do Cérebro Zélla
   registerProcessor(QUEUE_NAMES.WHATSAPP_WEBHOOK, async (job) => {
-    console.log(`[QUEUE] Processando webhook WhatsApp: ${job.data?.entry?.[0]?.id || 'unknown'}`);
-    // Em produção: chamar GuestResponderBrain.processGuestMessage()
-    // Salvar mensagem no banco, etc.
+    console.log(`[QUEUE] Processando webhook WhatsApp: hóspede=${job.data?.guestPhone || 'unknown'}`);
+    try {
+      // Import dinâmico para evitar circular dependency
+      const { processIncomingMessage } = await import('@/lib/whatsapp-ai-responder');
+      const { bufferMessage } = await import('@/lib/message-bundler');
+
+      // Usa bufferMessage para agrupar múltiplas mensagens do mesmo hóspede (1.5s)
+      await new Promise<void>((resolve, reject) => {
+        bufferMessage(
+          {
+            tenantId: job.data.tenantId,
+            guestPhone: job.data.guestPhone,
+            guestName: job.data.guestName,
+            messageContent: job.data.messageContent,
+            messageFrom: job.data.messageFrom || 'whatsapp',
+          },
+          async (params: any) => {
+            try {
+              await processIncomingMessage(params);
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          },
+        );
+      });
+    } catch (err) {
+      console.error('[QUEUE] WhatsApp webhook processamento falhou:', err);
+      throw err; // retry automático do queue
+    }
   });
 
   // Mercado Pago webhook processor
