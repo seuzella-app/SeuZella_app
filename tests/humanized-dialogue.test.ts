@@ -56,8 +56,8 @@ const POUSADA_PADRAO: PousadaContext = {
   estacionamento: true,
   checkIn: '14:00',
   checkOut: '11:00',
-  caucaoHabilitada: true,
-  caucaoPadrao: 200,
+  depositHabilitada: true,
+  depositPadrao: 200,
   janelaEstornoH: 24,
   mesesOperacao: 36,
   qtdReviews: 120,
@@ -284,7 +284,7 @@ describe('Motor de Diálogo Humanizado — gerarRespostaObjecaoHumanizada', () =
       HOSPEDE_PADRAO,
       rng,
     );
-    expect(['rebater_caucao', 'rebater_caucao_desligada']).toContain(result.intent);
+    expect(['rebater_deposit', 'rebater_deposit_desligada']).toContain(result.intent);
     // Deve mencionar estorno ou devolução
     expect(result.content.toLowerCase()).toMatch(/estorno|devolv|automático|automático/);
   });
@@ -322,7 +322,7 @@ describe('Motor de Diálogo Humanizado — gerarRespostaObjecaoHumanizada', () =
       HOSPEDE_PADRAO,
       rng,
     );
-    expect(['rebater_confianca', 'rebater_credibilidade', 'rebater_caucao']).toContain(result.intent);
+    expect(['rebater_confianca', 'rebater_credibilidade', 'rebater_deposit']).toContain(result.intent);
   });
 });
 
@@ -345,18 +345,18 @@ describe('Motor de Diálogo Humanizado — funções auxiliares', () => {
   it('gerarExplicacaoCaucao menciona janela de estorno quando caução habilitada', () => {
     const rng = rngWithSeed(8);
     const result = gerarExplicacaoCaucao(POUSADA_PADRAO, HOSPEDE_PADRAO, rng);
-    expect(result.intent).toBe('explicar_caucao');
+    expect(result.intent).toBe('explicar_deposit');
     expect(result.content).toContain('24'); // janelaEstornoH
   });
 
   it('gerarExplicacaoCaucao diz "não pedimos caução" quando desabilitada', () => {
     const rng = rngWithSeed(9);
     const result = gerarExplicacaoCaucao(
-      { ...POUSADA_PADRAO, caucaoHabilitada: false },
+      { ...POUSADA_PADRAO, depositHabilitada: false },
       HOSPEDE_PADRAO,
       rng,
     );
-    expect(result.intent).toBe('sem_caucao');
+    expect(result.intent).toBe('sem_deposit');
     expect(result.content.toLowerCase()).toMatch(/não pedimos|sem caução|confiança total/);
   });
 });

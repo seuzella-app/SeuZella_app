@@ -307,7 +307,7 @@ describe('[SEC-2] Self-Defense — Immune System', () => {
     const results = await defense.reactToAnomalies([
       {
         anomalyType: 'error_spike',
-        scope: 'module:openwa-client',
+        scope: 'module:meta-cloud-client',
         severity: 'emergency',
         observed: 100,
         baseline: 2,
@@ -315,7 +315,7 @@ describe('[SEC-2] Self-Defense — Immune System', () => {
     ]);
     expect(results.length).toBeGreaterThan(0);
     expect(results[0].action).toBe('circuit_breaker_trip');
-    expect(results[0].target).toBe('openwa-client');
+    expect(results[0].target).toBe('meta-cloud-client');
     // Mesmo em emergency, circuit breaker é capped em 30min
     expect(results[0].ttlMinutes).toBeLessThanOrEqual(30);
   });

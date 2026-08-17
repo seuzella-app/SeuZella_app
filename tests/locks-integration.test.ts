@@ -32,7 +32,7 @@ describe('PARTE 1: Estrutura de arquivos de locks', () => {
     const content = fs.readFileSync(p, 'utf-8');
     expect(content).toContain('onFNRHCompleted');
     expect(content).toContain('onUpsellPaid');
-    expect(content).toContain('onCautionStatusChange');
+    expect(content).toContain('onDepositStatusChange');
   });
 
   it('5 providers existem', () => {
