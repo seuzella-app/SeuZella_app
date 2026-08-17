@@ -186,7 +186,7 @@ export function ZellaSalesWidget() {
                   <span className="text-[10px] bg-[#00a884]/20 text-[#00a884] px-1.5 py-0.2 rounded font-semibold border border-[#00a884]/30">Zelador</span>
                 </div>
                 <p className="text-[12px] text-gray-200 font-medium leading-tight">
-                  &quot;Olá! Quer um zelador pra responder suas mensagens de WhatsApp 24h por dia? Clica aqui! 😊&quot;
+                  &quot;Como vai? Tudo bem? Respondendo muitas mensagens no Whatsapp?&quot;
                 </p>
               </div>
             </div>

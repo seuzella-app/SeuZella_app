@@ -27,13 +27,20 @@ export function CTASection({ onNavigate }: CTASectionProps) {
 
         <div className="relative z-10">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-neutral-100 mb-4">
-            Pronto para transformar{' '}
-            <span className={`font-bold ${isPousada ? 'text-emerald-400' : 'text-blue-400'}`}>
-              {isPousada ? 'sua pousada?' : isAirbnb ? 'seus imóveis?' : 'seu negócio?'}
-            </span>
+            {isPousada ? (
+              <>Sua pousada atendida{' '}
+              <span className="font-bold text-emerald-400">24 horas por dia</span></>
+            ) : isAirbnb ? (
+              <>Seus hóspedes respondidos{' '}
+              <span className="font-bold text-blue-400">a qualquer hora</span></>
+            ) : (
+              <>Sua hospedagem funcionando{' '}
+              <span className="font-bold text-emerald-400">sem você estar online</span></>
+            )}
+            {' '}
           </h2>
           <p className="text-neutral-400 text-lg mb-8 max-w-2xl mx-auto">
-            Escolha seu plano e comece a automatizar suas reservas hoje mesmo.
+            Escolha seu plano e comece a atender hóspedes automaticamente hoje mesmo.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

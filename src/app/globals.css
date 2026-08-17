@@ -324,3 +324,24 @@
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* ─────────────────────────────────────────────────────────── */
+/* OTA Logos Marquee — movimento lento direita → esquerda    */
+/* ─────────────────────────────────────────────────────────── */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+.marquee-content {
+  animation: marquee-scroll 40s linear infinite;
+  width: max-content;
+}
+
+.marquee-content:hover {
+  animation-play-state: paused;
+}
