@@ -50,7 +50,7 @@ export const MOCK_POUSADA_OVERVIEW: PousadaOverviewMetrics = {
   checkInsToday: 4,               // TODO(REAL): db.booking.count({ where: { checkIn: today } })
   checkOutsToday: 2,              // TODO(REAL): db.booking.count({ where: { checkOut: today } })
   aiResponseTimeMs: 380,          // TODO(REAL): telemetry.average('ai_latency_ms')
-  whatsappStatus: 'connected',    // TODO(REAL): openwaClient.getStatus(tenantId)
+  whatsappStatus: 'connected',    // TODO(REAL): meta-cloudClient.getStatus(tenantId)
 };
 
 // ── Rooms Mock (Pousada) ─────────────────────────────────────────────────────

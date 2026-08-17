@@ -38,7 +38,7 @@ export default function PoliticaPrivacidadePage() {
               <li>Nome, telefone, CPF/RG (para FNRH Digital — Ficha Nacional de Registro de Hóspedes)</li>
               <li>Histórico de conversa com a IA (mensagens enviadas e recebidas)</li>
               <li>Dados de reserva (datas, valor, quarto, forma de pagamento)</li>
-              <li>Caução PIX (valor depositado, status, estorno)</li>
+              <li>Depósito PIX (valor depositado, status, estorno)</li>
               <li>Código de fechadura eletrônica (PIN gerado, validade, uso)</li>
             </ul>
             <p className="mt-2 mb-2"><strong>Dados de Visitantes da Landing Page:</strong></p>
@@ -102,7 +102,7 @@ export default function PoliticaPrivacidadePage() {
               <li><strong>Tenant cancelado:</strong> 90 dias para exportar/delete</li>
               <li><strong>Logs de auditoria LGPD (LockEvent):</strong> 5 anos</li>
               <li><strong>PINs de fechadura:</strong> revogados ao expirar, mantidos no log por 5 anos</li>
-              <li><strong>Caução PIX:</strong> registros mantidos por 5 anos (obrigação fiscal)</li>
+              <li><strong>Depósito PIX:</strong> registros mantidos por 5 anos (obrigação fiscal)</li>
             </ul>
           </section>
 

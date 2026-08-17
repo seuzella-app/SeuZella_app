@@ -443,7 +443,7 @@ Se a chave PIX não estiver configurada, diga: "Para confirmar a reserva, entre 
 `;
   }
 
-  // LITE plan: inject caution directive
+  // LITE plan: inject deposit directive
   if (planType === 'lite') {
     systemPrompt += `
 === DIRETIVA PLANO LITE ===

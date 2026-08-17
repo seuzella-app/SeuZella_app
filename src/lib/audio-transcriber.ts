@@ -11,7 +11,7 @@ export interface TranscribeAudioParams {
   mediaId?: string;
   base64Data?: string;
   mimeType?: string;
-  provider?: 'meta' | 'openwa';
+  provider?: 'meta' | 'meta-cloud';
 }
 
 export interface TranscribeAudioResult {

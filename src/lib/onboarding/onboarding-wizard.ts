@@ -57,7 +57,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'pix-key',
     title: '4. Cadastrar chave PIX',
-    description: 'Chave PIX que os hóspedes usarão para pagar reservas e caução. Pode ser CPF, CNPJ, email, telefone ou chave aleatória.',
+    description: 'Chave PIX que os hóspedes usarão para pagar reservas e depósito. Pode ser CPF, CNPJ, email, telefone ou chave aleatória.',
     estimatedMinutes: 3,
     required: true,
     completed: false,

@@ -42,16 +42,16 @@ export default function PoliticaCobrancaPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-emerald-400 mb-2">4. Caução PIX (Hóspedes)</h2>
+            <h2 className="text-lg font-bold text-emerald-400 mb-2">4. Depósito PIX (Hóspedes)</h2>
             <p>
-              Para reservas confirmadas, o sistema pode solicitar uma caução PIX ao hóspede
-              (valor definido pelo pousadeiro, padrão R$ 500). A caução funciona como
+              Para reservas confirmadas, o sistema pode solicitar uma depósito PIX ao hóspede
+              (valor definido pelo pousadeiro, padrão R$ 500). A depósito funciona como
               garantia contra danos. O estorno é automático 24 horas após o check-out,
               caso não haja retenção por parte do pousadeiro.
             </p>
             <p className="mt-2">
-              Se a caução for retida, o PIN da fechadura é revogado imediatamente
-              (integração onCautionStatusChange).
+              Se a depósito for retida, o PIN da fechadura é revogado imediatamente
+              (integração onDepositStatusChange).
             </p>
           </section>
 

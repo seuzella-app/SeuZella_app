@@ -82,7 +82,7 @@ export default function TermosUsoPage() {
               <li>Panic Revoke: revogação de todos os PINs em 1 clique</li>
               <li>Cron de manutenção a cada 15 minutos (revoga PINs expirados)</li>
               <li>FNRH Digital: PIN gerado automaticamente após cadastro completo do hóspede</li>
-              <li>Caução PIX: acesso revogado se caução for retida</li>
+              <li>Depósito PIX: acesso revogado se depósito for retida</li>
               <li>Serviços extras: check-in antecipado e check-out estendido estendem PIN automaticamente</li>
             </ul>
           </section>

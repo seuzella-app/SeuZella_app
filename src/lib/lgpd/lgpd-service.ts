@@ -303,7 +303,7 @@ Contratada (Operadora): seuzella.com — CNPJ _____________
 2. FINALIDADES DO PROCESSAMENTO
    - Atendimento ao hóspede via WhatsApp (resposta a cotações, reservas)
    - Gestão de reservas e check-in/check-out
-   - Cobrança de caução PIX e UPSELLs
+   - Cobrança de depósito PIX e UPSELLs
    - Análise de satisfação (NPS)
    - Cumprimento de obrigações fiscais (5 anos)
 
@@ -311,7 +311,7 @@ Contratada (Operadora): seuzella.com — CNPJ _____________
    - Identificação: nome, CPF, RG, nacionalidade
    - Contato: telefone (WhatsApp), email
    - Reserva: datas, valor, quarto, forma de pagamento
-   - Financeiro: PIX pago, caução, UPSELLs
+   - Financeiro: PIX pago, depósito, UPSELLs
    - Comunicação: histórico de mensagens WhatsApp
 
 4. DURAÇÃO

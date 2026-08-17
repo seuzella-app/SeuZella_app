@@ -342,8 +342,8 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
       estacionamento: true,
       checkIn: '14:00',
       checkOut: '11:00',
-      caucaoHabilitada: false,
-      caucaoPadrao: 0,
+      depositoHabilitada: false,
+      depositoPadrao: 0,
       janelaEstornoH: 24,
     };
 

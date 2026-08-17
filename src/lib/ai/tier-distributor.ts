@@ -84,7 +84,7 @@ const TIER2_KEYWORDS = [
   'preco', 'preço', 'valor', 'quanto custa', 'quanto fica', 'diaria', 'diária', 'tarifa',
   'pacote', 'reserva', 'reservar', 'disponibilidade', 'quartos',
   // Pagamento
-  'pix', 'pagar', 'pagamento', 'caucao', 'cação', 'sinal',
+  'pix', 'pagar', 'pagamento', 'deposito', 'cação', 'sinal',
   // Upsell
   'check-in antecipado', 'check-out estendido', 'entrar mais cedo', 'sair mais tarde', 'pet',
 ];

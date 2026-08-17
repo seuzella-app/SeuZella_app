@@ -141,7 +141,7 @@ export function LiveAgentsPanel() {
       } else if (msg.includes("seguran") || msg.includes("ataque") || msg.includes("hack")) {
         routedTo = "selfdefense"; agentName = "Self-Defense Guard";
       } else if (msg.includes("whatsapp") || msg.includes("mensagem")) {
-        routedTo = "openwa"; agentName = "OpenWA Gateway Agent";
+        routedTo = "meta-cloud"; agentName = "Meta Cloud API Gateway Agent";
       } else if (msg.includes("ocup") || msg.includes("quarto") || msg.includes("pousada")) {
         routedTo = "pousadabrain"; agentName = "Pousadas BI Agent";
       } else if (msg.includes("marketing") || msg.includes("campanha")) {

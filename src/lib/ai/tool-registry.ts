@@ -166,7 +166,7 @@ const TOOL_EXECUTORS: Record<string, (args: Record<string, any>, tenantId?: stri
       extraProfitGenerated: result.extraProfitGenerated,
     };
   },
-  request_caution: async (args) => {
+  request_deposit: async (args) => {
     return { amount: args.amount ?? 500, status: 'requested' };
   },
   get_upsell_items: async () => {
@@ -195,7 +195,7 @@ for (const toolDef of AVAILABLE_TOOLS) {
         ? 'pricing'
         : toolDef.name.includes('lock') || toolDef.name.includes('pin')
         ? 'locks'
-        : toolDef.name.includes('pix') || toolDef.name.includes('caution')
+        : toolDef.name.includes('pix') || toolDef.name.includes('deposit')
         ? 'payment'
         : toolDef.name.includes('availability') || toolDef.name.includes('room')
         ? 'availability'

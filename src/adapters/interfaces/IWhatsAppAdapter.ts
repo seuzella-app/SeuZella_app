@@ -1,5 +1,5 @@
 // ============================================================================
-// IWhatsAppAdapter — contract for WhatsApp Business / OpenWA integration
+// IWhatsAppAdapter — contract for WhatsApp Business / Meta Cloud API integration
 // ============================================================================
 
 export interface WhatsAppMessageInput {

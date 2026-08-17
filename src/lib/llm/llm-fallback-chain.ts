@@ -132,7 +132,7 @@ export function classifyComplexity(message: string): ModelTier {
   // BALANCED — objeções, contexto médio
   if (
     lower.includes('desconto') || lower.includes('mais barato') ||
-    lower.includes('caução') || lower.includes('preocupad') ||
+    lower.includes('depósito') || lower.includes('preocupad') ||
     lower.includes('como funciona') || lower.includes('explica') ||
     wordCount > 30
   ) {

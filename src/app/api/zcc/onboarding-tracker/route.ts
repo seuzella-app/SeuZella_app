@@ -11,7 +11,7 @@ export interface TenantOnboardingStatus {
     paymentConfirmed: boolean;     // TODO(REAL): subscription.status === 'active'
     emailSent: boolean;            // TODO(REAL): tenant.welcomeEmailSent === true
     magicScanExecuted: boolean;    // TODO(REAL): property.scannedAt !== null
-    whatsappConnected: boolean;    // TODO(REAL): openwa.getStatus(tenantId) === 'connected'
+    whatsappConnected: boolean;    // TODO(REAL): meta-cloud.getStatus(tenantId) === 'connected'
     autoPinActivated: boolean;     // TODO(REAL): db.lock.count({ tenantId }) > 0
   };
   overallProgressPercent: number;

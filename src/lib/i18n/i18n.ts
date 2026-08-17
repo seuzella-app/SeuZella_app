@@ -49,9 +49,9 @@ const translations = {
     lgpd_delete_request: 'Solicitar exclusão dos meus dados',
     lgpd_data_portability: 'Exportar meus dados',
 
-    // Caução
-    caution_explanation: 'Depósito de segurança via PIX. Devolvido automaticamente após o check-out.',
-    caution_amount_label: 'Valor da caução',
+    // Depósito
+    deposit_explanation: 'Depósito de segurança via PIX. Devolvido automaticamente após o check-out.',
+    deposit_amount_label: 'Valor da depósito',
 
     // Pagamento
     payment_pix: 'PIX',
@@ -85,8 +85,8 @@ const translations = {
     lgpd_consent_message: 'Acepto recibir mensajes por WhatsApp (LGPD art. 8º)',
     lgpd_delete_request: 'Solicitar exclusión de mis datos',
     lgpd_data_portability: 'Exportar mis datos',
-    caution_explanation: 'Depósito de seguridad vía PIX. Devuelto automáticamente después del checkout.',
-    caution_amount_label: 'Valor de la caución',
+    deposit_explanation: 'Depósito de seguridad vía PIX. Devuelto automáticamente después del checkout.',
+    deposit_amount_label: 'Valor de la caución',
     payment_pix: 'PIX',
     payment_card: 'Tarjeta de crédito',
     payment_mercadopago: 'Mercado Pago',
@@ -114,8 +114,8 @@ const translations = {
     lgpd_consent_message: 'I agree to receive WhatsApp messages (LGPD art. 8)',
     lgpd_delete_request: 'Request deletion of my data',
     lgpd_data_portability: 'Export my data',
-    caution_explanation: 'Security deposit via PIX. Automatically refunded after checkout.',
-    caution_amount_label: 'Deposit amount',
+    deposit_explanation: 'Security deposit via PIX. Automatically refunded after checkout.',
+    deposit_amount_label: 'Deposit amount',
     payment_pix: 'PIX',
     payment_card: 'Credit card',
     payment_mercadopago: 'Mercado Pago',

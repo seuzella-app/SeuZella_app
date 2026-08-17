@@ -99,7 +99,7 @@ export class BudgetGuard {
             const projectedDailyRatio = projectedDaily / this.config.dailyBudgetUsd;
             return projectedDailyRatio <= this.config.criticalThreshold;
           }
-          // If no cost estimate provided, allow but with caution
+          // If no cost estimate provided, allow but with deposit
           return true;
         }
         // CRITICAL: block Tier 2

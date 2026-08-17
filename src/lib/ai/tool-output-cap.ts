@@ -39,7 +39,7 @@ const ESSENTIAL_FIELDS: Record<string, string[]> = {
   get_occupancy: ['totalRooms', 'occupiedRooms', 'rate'],
   send_guest_guide: ['sent', 'guideUrl'],
   calculate_dynamic_price: ['basePrice', 'yieldPrice', 'tier'],
-  request_caution: ['amount', 'status'],
+  request_deposit: ['amount', 'status'],
   get_upsell_items: ['items', 'totalExtra'],
   get_fnrh_status: ['status', 'missingFields'],
 };

@@ -192,14 +192,12 @@ model Property {
   bankAccountType String? // cc | cp
   bankCpf         String?
 
-  // ===== Caução PIX (toggle do tenant) =====
-  // Permite que o dono/anfitrião habilite ou desabilite a exigência de caução
-  // PIX para hóspedes. Quando false, todo o fluxo de caução é pulado
-  // (createCaution retorna early, IA não solicita caução, ganchos de locks não revogam).
-  caucaoHabilitada     Boolean @default(true)
-  caucaoValorPadrao    Float   @default(200) // valor default em BRL (configurável por pousada)
-  caucaoJanelaEstornoH Int     @default(24)  // horas após check-out para auto-estorno
-  caucaoMensagemCustom String? @default("") // mensagem WhatsApp customizada (opcional)
+  // ===== Caução PIX — REMOVIDO =====
+  // A caução foi removida do sistema Zélla em 17/08/2026.
+  // Decisão: caução é responsabilidade pessoal do dono da pousada,
+  // não faz parte do escopo do Seu Zélla. Se o dono pratica caução,
+  // fará isso por conta própria, sem envolvimento do sistema.
+  // Os campos abaixo foram removidos do schema.
 
   // Link-in-Bio fields
   slug                    String  @unique

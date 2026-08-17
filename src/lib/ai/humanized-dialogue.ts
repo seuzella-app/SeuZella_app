@@ -30,7 +30,7 @@ export interface HospedeContext {
   estado_origem?: string;
   estilo_dialogo?: EstiloDialogo;
   prob_reservar_apos_contato?: number;
-  cao_preocupacao_caucao?: number;
+  cao_preocupacao_deposito?: number;
   interesse_checkout_estendido?: number;
   interesse_upsell?: number;
   interesse_fechadura_eletronica?: number;
@@ -67,8 +67,8 @@ export interface PousadaContext {
   checkIn?: string;
   checkOut?: string;
   petFriendly?: boolean;
-  caucaoHabilitada?: boolean;
-  caucaoPadrao?: number;
+  depositoHabilitada?: boolean;
+  depositoPadrao?: number;
   janelaEstornoH?: number;
   mesesOperacao?: number;
   qtdReviews?: number;
@@ -400,21 +400,21 @@ export function gerarRespostaObjecaoHumanizada(
     };
   }
 
-  // Caução
-  if (obj.includes('cauç') || obj.includes('caucao') || obj.includes('caução')) {
-    if (pousada.caucaoHabilitada) {
+  // Depósito
+  if (obj.includes('deposit') || obj.includes('deposito') || obj.includes('depósito')) {
+    if (pousada.depositoHabilitada) {
       return {
         content: pick([
-          `A caução é uma garantia comum em hotéis e pousadas, ${nome}. Devolvemos em ${pousada.janelaEstornoH}h após o check-out se não houver danos. É automático, você nem precisa pedir.`,
-          `Entendo sua preocupação, ${nome}. A caução fica registrada no sistema e o estorno é automático em ${pousada.janelaEstornoH}h após o check-out. Sem dor de cabeça.`,
-          `${nome}, a caução é só uma garantia — igual ao que hotel faz. Volta pra você em ${pousada.janelaEstornoH}h após o check-out, automaticamente.`,
+          `A depósito é uma garantia comum em hotéis e pousadas, ${nome}. Devolvemos em ${pousada.janelaEstornoH}h após o check-out se não houver danos. É automático, você nem precisa pedir.`,
+          `Entendo sua preocupação, ${nome}. A depósito fica registrada no sistema e o estorno é automático em ${pousada.janelaEstornoH}h após o check-out. Sem dor de cabeça.`,
+          `${nome}, a depósito é só uma garantia — igual ao que hotel faz. Volta pra você em ${pousada.janelaEstornoH}h após o check-out, automaticamente.`,
         ], rng),
-        intent: 'rebater_caucao',
+        intent: 'rebater_deposito',
       };
     } else {
       return {
-        content: `Boa notícia, ${nome}: não pedimos caução aqui. Você reserva direto, sem se preocupar.`,
-        intent: 'rebater_caucao_desligada',
+        content: `Boa notícia, ${nome}: não pedimos depósito aqui. Você reserva direto, sem se preocupar.`,
+        intent: 'rebater_deposito_desligada',
       };
     }
   }
@@ -463,7 +463,7 @@ export function gerarRespostaObjecaoHumanizada(
   if (obj.includes('pix') && obj.includes('desconhec') || obj.includes('calote') || obj.includes('golpe')) {
     return {
       content: pick([
-        `A caução vai pra conta CNPJ da pousada, ${nome}. Devolução automática via PIX após o check-out. Você recebe comprovante.`,
+        `A depósito vai pra conta CNPJ da pousada, ${nome}. Devolução automática via PIX após o check-out. Você recebe comprovante.`,
         `${nome}, a operação é registrada no sistema. Tudo documentado, com estorno automático.`,
       ], rng),
       intent: 'rebater_confianca',
@@ -530,24 +530,24 @@ export function gerarCotacaoDireta(
 // ─────────────────────────────────────────────────────────────────────────────
 // GERA EXPLICAÇÃO DE CAUÇÃO (para personas preocupadas)
 // ─────────────────────────────────────────────────────────────────────────────
-export function gerarExplicacaoCaucao(
+export function gerarExplicacaoDeposito(
   pousada: PousadaContext,
   hospede: HospedeContext,
   rng: () => number,
 ): { content: string; intent: string } {
   const nome = hospede.display_name.split(' ')[0];
-  if (pousada.caucaoHabilitada) {
+  if (pousada.depositoHabilitada) {
     return {
       content: pick([
-        `Cancelamento grátis até 7 dias antes, ${nome}. Caução: R$ ${pousada.caucaoPadrao} via PIX. Devolvo em ${pousada.janelaEstornoH}h após o check-out se não houver danos. Automático.`,
-        `Política de cancelamento: 7 dias antes sem custo. Caução R$ ${pousada.caucaoPadrao} — volta em ${pousada.janelaEstornoH}h após o check-out. Sem dor de cabeça, ${nome}.`,
+        `Cancelamento grátis até 7 dias antes, ${nome}. Depósito: R$ ${pousada.depositoPadrao} via PIX. Devolvo em ${pousada.janelaEstornoH}h após o check-out se não houver danos. Automático.`,
+        `Política de cancelamento: 7 dias antes sem custo. Depósito R$ ${pousada.depositoPadrao} — volta em ${pousada.janelaEstornoH}h após o check-out. Sem dor de cabeça, ${nome}.`,
       ], rng),
-      intent: 'explicar_caucao',
+      intent: 'explicar_deposito',
     };
   }
   return {
-    content: `Cancelamento grátis até 7 dias antes, ${nome}. Não pedimos caução aqui — confiança total.`,
-    intent: 'sem_caucao',
+    content: `Cancelamento grátis até 7 dias antes, ${nome}. Não pedimos depósito aqui — confiança total.`,
+    intent: 'sem_deposito',
   };
 }
 
@@ -626,7 +626,7 @@ export function gerarTranquilizacao(
   return {
     content: `Entendo perfeitamente, ${nome}. A ${pousada.nome} tem CNPJ, ` +
       `${pousada.mesesOperacao} meses de operação, ${pousada.qtdReviews} reviews com nota ${pousada.avaliacao}. ` +
-      `A caução é registrada no sistema e o estorno é automático após o check-out.`,
+      `A depósito é registrada no sistema e o estorno é automático após o check-out.`,
     intent: 'tranquilizar',
   };
 }

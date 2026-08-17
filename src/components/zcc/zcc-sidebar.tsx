@@ -87,7 +87,7 @@ const OPS_NAV: NavItem[] = [
 
 const CONFIG_NAV: NavItem[] = [
   { id: "tokens-ai", label: "Tokens & IA", icon: KeyRound, description: "6 integrações", priority: 1 },
-  { id: "settings", label: "Configurações", icon: Settings, description: "Caução PIX · Webhooks · Notificações", priority: 1 },
+  { id: "settings", label: "Configurações", icon: Settings, description: "Depósito PIX · Webhooks · Notificações", priority: 1 },
   { id: "brain-tests", label: "Testes Cérebro", icon: FlaskConical, description: "Validação", priority: 3 },
   { id: "semantica", label: "Semântica", icon: Network, description: "GraphRAG + Decisões", priority: 2 },
 ];

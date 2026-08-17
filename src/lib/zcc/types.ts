@@ -244,7 +244,7 @@ export interface RefactorSuggestion {
 export type AgentId =
   | "conductor" | "concierge" | "cfo" | "guardian"
   | "sales" | "marketing" | "dspy" | "graphrag"
-  | "selfdefense" | "openwa" | "pousadabrain" | "partnerhunter";
+  | "selfdefense" | "meta-cloud" | "pousadabrain" | "partnerhunter";
 
 export type AgentStatus = "idle" | "active" | "thinking" | "error" | "offline";
 export type AgentDepartment = "command" | "comms" | "finance" | "operations" | "sales" | "tech" | "marketing";

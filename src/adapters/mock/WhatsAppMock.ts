@@ -1,5 +1,5 @@
 // ============================================================================
-// WhatsAppMock — Digital Twin WhatsApp Business / OpenWA
+// WhatsAppMock — Digital Twin WhatsApp Business / Meta Cloud API
 // ----------------------------------------------------------------------------
 // Records every outbound message with status 'sent'. The Behavioral Engine
 // drives inbound messages through `simulateInbound()`.

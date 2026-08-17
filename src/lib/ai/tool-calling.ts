@@ -127,12 +127,12 @@ export const AVAILABLE_TOOLS: ToolDefinition[] = [
     },
   },
   {
-    name: 'request_caution',
-    description: 'Solicita caução (depósito de segurança) do hóspede via PIX. Use quando uma reserva for confirmada e a pousada exigir caução.',
+    name: 'request_deposit',
+    description: 'Solicita depósito (depósito de segurança) do hóspede via PIX. Use quando uma reserva for confirmada e a pousada exigir depósito.',
     parameters: {
       type: 'object',
       properties: {
-        amount: { type: 'number', description: 'Valor da caução em reais (default: 200)' },
+        amount: { type: 'number', description: 'Valor da depósito em reais (default: 200)' },
       },
       required: [],
     },

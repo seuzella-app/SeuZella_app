@@ -139,7 +139,7 @@ async function trySendWhatsApp(
   }
 
   try {
-    // Tenta usar o pipeline existente de WhatsApp (Cloud API ou OpenWA)
+    // Tenta usar o pipeline existente de WhatsApp (Cloud API ou Meta Cloud API)
     // Dynamic import para evitar carregar o módulo pesado em cold start
     const { sendWhatsAppMessage } = await import('@/lib/whatsapp-send');
     const result = await sendWhatsAppMessage(cleanPhone, text);

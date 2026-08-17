@@ -252,8 +252,8 @@ export function SmartLockSecurityProof() {
           />
           <AutoCard
             icon="💳"
-            title="Caução PIX protege acesso"
-            desc="Caução retida = PIN revogado imediatamente. Caução coletada = acesso garantido. Tudo automático."
+            title="Depósito PIX protege acesso"
+            desc="Depósito retida = PIN revogado imediatamente. Depósito coletada = acesso garantido. Tudo automático."
           />
           <AutoCard
             icon="🔄"

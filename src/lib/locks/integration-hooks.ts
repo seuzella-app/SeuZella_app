@@ -5,7 +5,7 @@
  * Conecta fechaduras eletrônicas com:
  *   1. FNRH Digital — quando hóspede completa cadastro → PIN gerado automaticamente
  *   2. Upsell — check-in antecipado/check-out estendido → PIN estendido
- *   3. Caução PIX — caução retida → PIN revogado; caução coletada → PIN ativo
+ *   3. Depósito PIX — depósito retida → PIN revogado; depósito coletada → PIN ativo
  *
  * Cada função é safe-fail: se a integração falhar, o fluxo principal NÃO bloqueia.
  */
@@ -179,17 +179,17 @@ export async function onUpsellPaid(params: {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Chamado quando status da caução muda.
+ * Chamado quando status da depósito muda.
  * - 'collected' → garante PIN ativo
  * - 'retained' → revoga PIN imediatamente (hóspede perdeu acesso)
  * - 'returned' → mantém PIN até check-out
  *
- * @param params { tenantId, bookingId, cautionStatus }
+ * @param params { tenantId, bookingId, depositStatus }
  */
-export async function onCautionStatusChange(params: {
+export async function onDepositStatusChange(params: {
   tenantId: string;
   bookingId?: string;
-  cautionStatus: 'pending' | 'collected' | 'held' | 'returned' | 'retained';
+  depositStatus: 'pending' | 'collected' | 'held' | 'returned' | 'retained';
 }): Promise<{ action: string; success: boolean; error?: string }> {
   try {
     if (!params.bookingId) {
@@ -208,23 +208,23 @@ export async function onCautionStatusChange(params: {
       return { action: 'no_pins', success: true };
     }
 
-    if (params.cautionStatus === 'retained') {
-      // Caução retida → revoga TODOS os PINs ativos
+    if (params.depositStatus === 'retained') {
+      // Depósito retida → revoga TODOS os PINs ativos
       for (const pin of activePins) {
-        await revokePin(pin.id, 'Caução PIX retida — acesso revogado');
+        await revokePin(pin.id, 'Depósito PIX retida — acesso revogado');
       }
       return { action: 'revoked_all', success: true };
     }
 
-    if (params.cautionStatus === 'collected') {
-      // Caução coletada → garante que PINs estão ativos (nada a fazer se já ativos)
+    if (params.depositStatus === 'collected') {
+      // Depósito coletada → garante que PINs estão ativos (nada a fazer se já ativos)
       return { action: 'ensured_active', success: true };
     }
 
     // 'pending', 'held', 'returned' → não altera PINs
     return { action: 'no_action', success: true };
   } catch (err: any) {
-    console.error('[LOCK_HOOKS] Caução → PIN falhou:', err);
+    console.error('[LOCK_HOOKS] Depósito → PIN falhou:', err);
     return { action: 'error', success: false, error: err?.message ?? 'erro desconhecido' };
   }
 }
