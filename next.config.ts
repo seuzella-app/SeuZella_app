@@ -13,9 +13,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
   serverExternalPackages: ["@prisma/client", "prisma", "bcryptjs", "sharp", "socket.io"],

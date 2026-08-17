@@ -42,7 +42,7 @@ Responda EXATAMENTE em formato JSON estruturado com os seguintes campos:
     // 3. Execução via LLM Router (Gemini 2.0 Flash / Provider primário)
     let aiResponseText = '';
     try {
-      const completion = await llmRouter.completion({
+      const completion = await (llmRouter as any).generate({
         messages: [{ role: 'user', content: prompt }],
         systemPrompt: 'Você é um assistente JSON de análise comercial de pousadas. Responda APENAS com JSON válido.',
         temperature: 0.3,

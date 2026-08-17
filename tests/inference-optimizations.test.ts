@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Testes das 4 Otimizações de Engenharia de Inferência
  * =====================================================

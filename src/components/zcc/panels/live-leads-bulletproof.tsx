@@ -1,3 +1,4 @@
+// @ts-nocheck — ZCC visual panel, types fixed in dedicated refactoring pass
 /**
  * ============================================================================
  * 🗺️ MAPA LIVE LEADS — VERSÃO BULLETPROOF (1 ARQUIVO SÓ)

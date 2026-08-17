@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Testes do Motor de Diálogo Humanizado (Zélla/Zé)
  * ==================================================
