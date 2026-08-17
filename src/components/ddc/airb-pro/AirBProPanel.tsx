@@ -1519,13 +1519,14 @@ function gerarRentabilidadeMock(periodo: string) {
     { nome: 'Casa Praia - Búzios', receita: 6800, despesas: 1500, lucro: 5300, margem: 77.9, ocupacao: 85, adr: 226 },
     { nome: 'Studio Pinheiros - SP', receita: 3100, despesas: 620, lucro: 2480, margem: 80.0, ocupacao: 68, adr: 103 },
   ];
-  const totals = imoveis.reduce((acc, i) => ({
+  const totals: any = imoveis.reduce((acc, i) => ({
     receita: acc.receita + i.receita,
     despesas: acc.despesas + i.despesas,
     lucro: acc.lucro + i.lucro,
     ocupacao: acc.ocupacao + i.ocupacao,
     adr: acc.adr + i.adr,
-  }), { receita: 0, despesas: 0, lucro: 0, ocupacao: 0, adr: 0 });
+    margem: 0,
+  }), { receita: 0, despesas: 0, lucro: 0, ocupacao: 0, adr: 0, margem: 0 });
   totals.margem = totals.receita > 0 ? (totals.lucro / totals.receita) * 100 : 0;
   totals.ocupacao = totals.ocupacao / imoveis.length;
   totals.adr = totals.adr / imoveis.length;
@@ -1817,7 +1818,7 @@ function gerarPrecificacaoMock(basePrice: number, datesInput: string) {
     extraProfit: totalSuggested - totalBase,
     hasSurge: isFeriado,
     hasScarcity: isFeriado,
-    citations: dates.map((d, i) => `${d.trim()}: Diária sugerida R$ ${(basePrice * multiplier).toFixed(2)} (base R$ ${basePrice.toFixed(2)})${isFeriado ? ' — ALTA DEMANDA' : ''}`),
+    citations: dates.map((d) => `${d.trim()}: Diária sugerida R$ ${(basePrice * multiplier).toFixed(2)} (base R$ ${basePrice.toFixed(2)})${isFeriado ? ' — ALTA DEMANDA' : ''}`),
   };
 }
 

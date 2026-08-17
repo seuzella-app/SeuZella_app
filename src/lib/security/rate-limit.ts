@@ -10,8 +10,19 @@
  * ============================================================================
  */
 
-import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+// Dynamic imports — só carrega @upstash/* se disponível e configurado
+let Ratelimit: any = null;
+let Redis: any = null;
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  Ratelimit = require('@upstash/ratelimit').Ratelimit;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  Redis = require('@upstash/redis').Redis;
+} catch {
+  // Pacotes não instalados — usa fallback in-memory
+  console.warn('[RATE_LIMIT] @upstash/ratelimit e @upstash/redis não instalados — usando fallback in-memory');
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIG
