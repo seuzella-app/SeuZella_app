@@ -103,6 +103,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.2",
     "axios": "^1.7.9",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
