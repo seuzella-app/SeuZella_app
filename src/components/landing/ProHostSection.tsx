@@ -5,28 +5,20 @@ import { motion, useInView } from 'framer-motion';
 import {
   FileText,
   Wallet,
-  Sparkles,
-  ClipboardList,
-  Target,
-  Handshake,
-  Check,
-  ArrowRight,
-  Zap,
   TrendingUp,
   DollarSign,
   BarChart3,
+  ClipboardList,
+  Target,
+  Check,
+  ArrowRight,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import { useNiche } from '@/contexts/NicheContext';
 
-// ────────────────────────────────────────────────────────────────────────────
-// PROHOST SECTION — Evidencia as 6 melhorias ProHost no Zélla AirB
-// (mostrada APENAS quando o nicho ativo = airbnb / "Para Anfitriões")
-// ────────────────────────────────────────────────────────────────────────────
-
 type ProHostFeature = {
   id: string;
-  tier: 'P0' | 'P1';
   icon: LucideIcon;
   badge: string;
   title: string;
@@ -37,124 +29,95 @@ type ProHostFeature = {
 
 const features: ProHostFeature[] = [
   {
-    id: 'pdf-reports',
-    tier: 'P0',
-    icon: FileText,
-    badge: 'Relatórios em PDF',
-    title: '7 tipos de relatório, 3 formatos',
-    desc: 'Gere relatórios profissionais de faturamento, ocupação, operações, hóspedes, metas e comissões em PDF (via impressão do browser), XLSX ou CSV. Histórico persistente de cada relatório gerado, com filtro por período e exportação direta para o contador.',
-    highlights: [
-      'monthly_summary, reservations, financial',
-      'guests, operations, goals, commissions',
-      'PDF via browser print, XLSX, CSV',
-      'Histórico persistente por tenant',
-    ],
-    heroStat: { val: '7', label: 'tipos de relatório' },
-  },
-  {
-    id: 'financial',
-    tier: 'P0',
-    icon: Wallet,
-    badge: 'Gestão Financeira',
-    title: 'Receitas, despesas e lucro de cada imóvel',
-    desc: 'Cadastre todas as despesas em 8 categorias (custos fixos, variáveis, manutenção, contas, marketing, comissões, impostos, outros). Avisos automáticos de vencimentos atrasados, status de cada conta (pendente/paga/atrasada/cancelada), repetição mensal/semanal/anual. Veja exatamente quanto entra, quanto sai e quanto sobra de cada imóvel.',
-    highlights: [
-      '8 categorias de despesa',
-      'Aviso automático de contas atrasadas',
-      'Recorrência mensal/semanal/anual',
-      'Visão simplificada de entradas e saídas',
-    ],
-    heroStat: { val: '8', label: 'categorias de despesa' },
-  },
-  {
-    id: 'rentabilidade',
-    tier: 'P0',
+    id: 'lucro-imovel',
     icon: TrendingUp,
-    badge: 'Lucro Real por Imóvel',
+    badge: 'Lucro por Imóvel',
     title: 'Saiba exatamente quanto você lucra',
-    desc: 'Painel de lucro por imóvel: receita total, despesas detalhadas, lucro líquido, margem de lucro, taxa de ocupação e preço médio da diária. Escolha o período (mês, trimestre, ano). Ranking automático dos imóveis que mais lucram. Pare de precificar no achismo e tome decisões com números reais.',
+    desc: 'Veja a receita, as despesas e o lucro real de cada imóvel. Escolha o período (mês, trimestre ou ano) e descubra quais imóveis mais lucram — sem achismo, com números reais.',
     highlights: [
-      'Receita - despesas = lucro líquido por imóvel',
-      'Margem de lucro, ocupação e preço médio da diária',
-      'Período: mês, trimestre ou ano',
-      'Ranking de imóveis mais lucrativos',
+      'Receita menos despesas = lucro real de cada imóvel',
+      'Margem de lucro e taxa de ocupação',
+      'Período por mês, trimestre ou ano',
     ],
     heroStat: { val: '100%', label: 'transparência financeira' },
   },
   {
-    id: 'precificacao',
-    tier: 'P0',
+    id: 'preco-ideal',
     icon: DollarSign,
-    badge: 'Preço Ideal da Diária',
-    title: 'O sistema sugere o preço ideal para cada data',
-    desc: 'Simule o preço da diária para datas futuras considerando feriados brasileiros (Réveillon, Carnaval, Natal, Semana Santa), alta ou baixa temporada e a ocupação do imóvel. O sistema sugere automaticamente o melhor preço para você ganhar mais sem perder reservas.',
+    badge: 'Preço Ideal',
+    title: 'O sistema sugere o melhor preço para cada data',
+    desc: 'Simule o preço da diária para qualquer data. O sistema considera feriados (Réveillon, Carnaval, Natal), alta ou baixa temporada e a ocupação do seu imóvel para sugerir o preço que maximiza seu ganho sem espantar hóspedes.',
     highlights: [
-      'Detecção automática de feriados brasileiros',
-      'Preço maior em datas de alta procura',
+      'Feriados brasileiros detectados automaticamente',
+      'Preço maior em datas de muita procura',
       'Alerta quando há poucos quartos livres',
-      'Simulação por data ou período',
     ],
     heroStat: { val: '+37%', label: 'receita extra com preço inteligente' },
   },
   {
-    id: 'comparativo',
-    tier: 'P0',
+    id: 'comparar',
     icon: BarChart3,
-    badge: 'Comparativo de Imóveis',
-    title: 'Ranking de performance lado a lado',
-    desc: 'Compare todos os seus imóveis em um único painel: receita, despesas, lucro, ocupação, preço médio da diária e receita por quarto. Ranking visual do que mais lucra para o que menos lucra. Barras coloridas. Identifique rapidamente quais imóveis estão rendendo abaixo do esperado.',
+    badge: 'Comparar Imóveis',
+    title: 'Ranking de qual imóvel lucra mais',
+    desc: 'Compare todos os seus imóveis lado a lado em um único painel. Veja receita, despesas, lucro e ocupação de cada um. Ranking visual do que mais lucra para o que menos lucra.',
     highlights: [
       'Comparação lado a lado de todos os imóveis',
       'Ranking por lucro, ocupação ou preço médio',
-      'Receita por quarto disponível',
-      'Identificação de imóveis que rendem menos',
+      'Identifique quais imóveis rendem menos',
     ],
-    heroStat: { val: '6', label: 'métricas comparadas' },
+    heroStat: { val: '6', label: 'informações comparadas' },
   },
   {
-    id: 'operations',
-    tier: 'P1',
-    icon: ClipboardList,
-    badge: 'Operações & Cleaning',
-    title: 'Checklists automáticos de limpeza',
-    desc: 'Tarefas de limpeza, manutenção, inspeção e reposição com checklists automáticos (10 itens para limpeza, 8 para manutenção). Workflow pending → in_progress → completed, prioridade low/normal/high/urgent, custos por tarefa, responsável atribuído, fotos e notas em metadata.',
+    id: 'financeiro',
+    icon: Wallet,
+    badge: 'Controle Financeiro',
+    title: 'Tudo que entra e sai de cada imóvel',
+    desc: 'Cadastre receitas e despesas em 8 categorias (contas fixas, manutenção, impostos, etc). Avisos de contas atrasadas, repetição automática de contas mensais e visão completa do que entra e sai.',
     highlights: [
-      '4 tipos: cleaning/maintenance/inspection/restock',
-      'Checklists automáticos (10 + 8 itens)',
-      'Workflow de status com timestamps',
-      'Custos + responsável + fotos',
+      '8 categorias de despesa',
+      'Aviso automático de contas atrasadas',
+      'Contas que se repetem todo mês',
+    ],
+    heroStat: { val: '8', label: 'categorias de despesa' },
+  },
+  {
+    id: 'relatorios',
+    icon: FileText,
+    badge: 'Relatórios Profissionais',
+    title: 'Gere relatórios em PDF e Excel',
+    desc: 'Crie relatórios de faturamento, ocupação, hóspedes e operações em PDF ou Excel com poucos cliques. Envie direto para o contador ou para donos de imóveis que você administra.',
+    highlights: [
+      '7 tipos de relatório',
+      'Exporta em PDF e Excel',
+      'Filtro por período',
+    ],
+    heroStat: { val: '7', label: 'tipos de relatório' },
+  },
+  {
+    id: 'operacoes',
+    icon: ClipboardList,
+    badge: 'Operações e Limpeza',
+    title: 'Checklist de limpeza e manutenção',
+    desc: 'Tarefas de limpeza, manutenção e inspeção com checklist automático. Acompanhe o status de cada tarefa, atribua responsáveis e saiba exatamente quando o imóvel está pronto para o próximo hóspede.',
+    highlights: [
+      'Checklist automático de limpeza e manutenção',
+      'Acompanhe status de cada tarefa',
+      'Atribua responsáveis e custos',
     ],
     heroStat: { val: '18', label: 'itens de checklist' },
   },
   {
-    id: 'goals',
-    tier: 'P1',
+    id: 'metas',
     icon: Target,
-    badge: 'Metas & KPIs',
-    title: '7 KPIs com projeção linear',
-    desc: 'Defina metas de receita, ocupação, reservas, preço médio da diária, receita por quarto, hóspedes e avaliações. 5 períodos (diário/semanal/mensal/trimestral/anual), projeção linear automática baseada no ritmo atual, barra de progresso visual e auto-atualização de currentValue a partir de dados reais.',
+    badge: 'Metas e Acompanhamento',
+    title: 'Defina metas e acompanhe o progresso',
+    desc: 'Estabeleça metas de receita, ocupação, reservas e avaliações. O sistema acompanha seu progresso automaticamente e mostra se você está no caminho certo para bater cada meta.',
     highlights: [
-      '7 tipos de meta (receita, ocupação, reservas, preço médio, receita por quarto, hóspedes e avaliações)',
-      '5 períodos configuráveis',
-      'Projeção linear automática',
-      'Auto-update via dados reais',
+      'Metas de receita, ocupação e reservas',
+      'Acompanhamento automático do progresso',
+      'Visão diária, semanal, mensal ou anual',
     ],
-    heroStat: { val: '7', label: 'tipos de KPI' },
-  },
-  {
-    id: 'commissions',
-    tier: 'P1',
-    icon: Handshake,
-    badge: 'Comissões de Parceiros',
-    title: '4 tipos de parceiro, regra flexível',
-    desc: 'Gerencie comissões de affiliates, agentes, parceiros e influencers. Regra percentual ou fixa, geração automática de partnerCode único, workflow pending → payable → paid. Resumo consolidado por parceiro com total pendente, a pagar e pago.',
-    highlights: [
-      '4 tipos: affiliate/agent/partner/influencer',
-      'Regra % ou valor fixo',
-      'partnerCode auto-gerado',
-      'Workflow pending → payable → paid',
-    ],
-    heroStat: { val: '4', label: 'tipos de parceiro' },
+    heroStat: { val: '7', label: 'tipos de meta' },
   },
 ];
 
@@ -163,7 +126,6 @@ export function ProHostSection() {
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const { isAirbnb } = useNiche();
 
-  // Não renderiza para Pousada nem Parceiro — só Anfitriões (Airbnb)
   if (!isAirbnb) return null;
 
   return (
@@ -172,7 +134,6 @@ export function ProHostSection() {
       id="prohost"
       className="py-28 sm:py-32 lg:py-40 bg-gradient-to-b from-[#0a0a0a] via-[#080a12] to-[#0a0a0a] relative overflow-hidden"
     >
-      {/* Glow de fundo */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-blue-500/[0.04] blur-[140px] pointer-events-none" />
       <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-indigo-500/[0.03] blur-[100px] pointer-events-none" />
 
@@ -184,23 +145,18 @@ export function ProHostSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-20"
         >
-          {/* Badge superior */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-gradient-to-r from-blue-500/15 via-indigo-500/15 to-violet-500/15 border border-blue-500/30 backdrop-blur-sm"
           >
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+            <Zap className="w-3.5 h-3.5 text-blue-400" />
             <span className="text-xs font-bold uppercase tracking-wider text-blue-300">
-              Zélla AirB Pro — Novidade
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-[10px] font-bold text-blue-200">
-              NEW
+              Zélla AirB Pro
             </span>
           </motion.div>
 
-          {/* Headline */}
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight leading-tight">
             O anfitrião agora tem{' '}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent font-bold">
@@ -208,13 +164,12 @@ export function ProHostSection() {
             </span>
           </h2>
 
-          <p className="text-neutral-400 text-lg max-w-3xl mx-auto leading-relaxed">
-            Inspirado nas melhores práticas do mercado, o <strong className="text-white">Zélla AirB Pro</strong> reúne
-            6 módulos profissionais que transformam sua operação Airbnb numa máquina de receber hóspede, controlar
-            financeiro e escalar sem contratar equipe. Tudo dentro do mesmo painel.
+          <p className="text-neutral-400 text-lg max-w-2xl mx-auto leading-relaxed">
+            Tudo que você precisa para gerenciar seus imóveis, atender hóspedes e
+            aumentar seu lucro — em um só painel.
           </p>
 
-          {/* Métricas topo */}
+          {/* Métricas topo — simples e diretas */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -223,34 +178,26 @@ export function ProHostSection() {
           >
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-black bg-gradient-to-br from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                6
+                7
               </div>
               <div className="text-[11px] text-neutral-500 font-semibold mt-1 uppercase tracking-wider">
-                Novos Módulos
+                Ferramentas
               </div>
             </div>
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-black bg-gradient-to-br from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                3
+                24h
               </div>
               <div className="text-[11px] text-neutral-500 font-semibold mt-1 uppercase tracking-wider">
-                Críticos (P0)
+                Atendimento Automático
               </div>
             </div>
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-black bg-gradient-to-br from-amber-400 to-orange-400 bg-clip-text text-transparent">
-                3
+                +37%
               </div>
               <div className="text-[11px] text-neutral-500 font-semibold mt-1 uppercase tracking-wider">
-                Avançados (P1)
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-black bg-gradient-to-br from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-                +6.500
-              </div>
-              <div className="text-[11px] text-neutral-500 font-semibold mt-1 uppercase tracking-wider">
-                Linhas de Código
+                Receita Extra
               </div>
             </div>
           </motion.div>
@@ -265,8 +212,6 @@ export function ProHostSection() {
         >
           {features.map((feature, i) => {
             const Icon = feature.icon;
-            const isP0 = feature.tier === 'P0';
-
             return (
               <motion.div
                 key={feature.id}
@@ -276,27 +221,15 @@ export function ProHostSection() {
                 whileHover={{ y: -4 }}
                 className="group relative rounded-2xl bg-white/[0.025] border border-white/[0.06] hover:border-blue-500/30 hover:bg-white/[0.04] transition-all duration-300 overflow-hidden"
               >
-                {/* Glow no hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.04] via-transparent to-violet-500/[0.04] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                 <div className="relative p-7 flex flex-col h-full">
-                  {/* Topo: ícone + tier badge */}
                   <div className="flex items-start justify-between mb-6">
                     <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                       <Icon className="w-5 h-5 text-blue-400" />
                     </div>
-                    <span
-                      className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                        isP0
-                          ? 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-400'
-                          : 'bg-amber-500/10 border border-amber-500/25 text-amber-400'
-                      }`}
-                    >
-                      {feature.tier}
-                    </span>
                   </div>
 
-                  {/* Hero Stat */}
                   <div className="mb-5">
                     <div className="flex items-end gap-2">
                       <span className="text-5xl font-black tracking-tighter bg-gradient-to-br from-blue-400 to-indigo-400 bg-clip-text text-transparent leading-none">
@@ -309,22 +242,18 @@ export function ProHostSection() {
                     <div className="h-px mt-3 bg-gradient-to-r from-blue-500/40 to-transparent" />
                   </div>
 
-                  {/* Badge (categoria) */}
                   <span className="text-blue-400 text-[11px] font-bold uppercase tracking-wider mb-2">
                     {feature.badge}
                   </span>
 
-                  {/* Título */}
                   <h3 className="text-lg font-bold text-white mb-3 leading-tight">
                     {feature.title}
                   </h3>
 
-                  {/* Descrição */}
                   <p className="text-neutral-400 text-[13px] leading-relaxed mb-5 flex-grow">
                     {feature.desc}
                   </p>
 
-                  {/* Highlights */}
                   <ul className="space-y-2 mb-6">
                     {feature.highlights.map((h, hi) => (
                       <li
@@ -337,10 +266,9 @@ export function ProHostSection() {
                     ))}
                   </ul>
 
-                  {/* Footer do card */}
                   <div className="pt-4 border-t border-white/[0.05] flex items-center justify-between">
                     <span className="text-[10px] text-neutral-600 font-medium uppercase tracking-wider">
-                      Sub-tab "Pro" no DDC
+                      No seu painel
                     </span>
                     <ArrowRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-300" />
                   </div>
@@ -365,7 +293,7 @@ export function ProHostSection() {
               <div className="text-left">
                 <div className="text-white font-bold text-sm">Tudo isso já está no seu painel</div>
                 <div className="text-neutral-400 text-xs">
-                  Acesse <span className="text-blue-400 font-mono">/ddc/airbnb</span> → sub-tab "Pro"
+                  Acesse o painel do anfitrião e comece a usar
                 </div>
               </div>
             </div>
@@ -379,7 +307,7 @@ export function ProHostSection() {
           </div>
         </motion.div>
 
-        {/* Trial callout */}
+        {/* Cadastro */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
@@ -392,7 +320,7 @@ export function ProHostSection() {
               href="/login"
               className="text-blue-400 hover:text-blue-300 font-bold underline decoration-blue-500/30 hover:decoration-blue-400 underline-offset-4 transition-colors"
             >
-              Comece agora pelo Cadastro →
+              Assine agora →
             </a>
           </p>
         </motion.div>
