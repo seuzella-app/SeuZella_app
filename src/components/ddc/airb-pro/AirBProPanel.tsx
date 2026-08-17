@@ -72,9 +72,9 @@ export function AirBProPanel(_props: AirBProPanelProps = {}) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('reports');
 
   const subTabs: { id: SubTab; label: string; icon: typeof FileText }[] = [
-    { id: 'rentabilidade', label: 'Rentabilidade', icon: TrendingUp },
-    { id: 'precificacao', label: 'Precificação', icon: DollarSign },
-    { id: 'comparativo', label: 'Comparativo', icon: BarChart3 },
+    { id: 'rentabilidade', label: 'Lucro por Imóvel', icon: TrendingUp },
+    { id: 'precificacao', label: 'Preço Ideal', icon: DollarSign },
+    { id: 'comparativo', label: 'Comparar Imóveis', icon: BarChart3 },
     { id: 'reports', label: 'Relatórios', icon: FileText },
     { id: 'finance', label: 'Financeiro', icon: Receipt },
     { id: 'operations', label: 'Operações', icon: Wrench },
@@ -191,7 +191,7 @@ function ReportsPanel({ tenantName }: { tenantName: string }) {
   const reportTypes: { value: ReportType; label: string; desc: string }[] = [
     { value: 'monthly_summary', label: 'Resumo Mensal', desc: 'Visão geral do mês com KPIs' },
     { value: 'reservations', label: 'Reservas', desc: 'Lista detalhada de reservas' },
-    { value: 'financial', label: 'Financeiro', desc: 'DRE, fluxo de caixa, despesas' },
+    { value: 'financial', label: 'Financeiro', desc: 'Receitas, despesas e lucro' },
     { value: 'guests', label: 'Hóspedes', desc: 'CRM completo de hóspedes' },
     { value: 'operations', label: 'Operações', desc: 'Tarefas de limpeza/manutenção' },
     { value: 'goals', label: 'Metas', desc: 'Progresso de metas e KPIs' },
@@ -1419,7 +1419,7 @@ function RentabilidadePanel() {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
-        <span className="ml-2 text-sm text-zinc-500">Carregando rentabilidade...</span>
+        <span className="ml-2 text-sm text-zinc-500">Carregando lucro por imóvel...</span>
       </div>
     );
   }
@@ -1454,13 +1454,13 @@ function RentabilidadePanel() {
         <KpiCard label="Lucro Líquido" value={formatBRL(totals.lucro)} icon={<DollarSign className="w-4 h-4" />} color={totals.lucro >= 0 ? 'text-emerald-400' : 'text-red-400'} />
         <KpiCard label="Margem" value={`${totals.margem.toFixed(1)}%`} icon={<TrendingUp className="w-4 h-4" />} color={totals.margem >= 0 ? 'text-emerald-400' : 'text-red-400'} />
         <KpiCard label="Ocupação" value={`${totals.ocupacao.toFixed(1)}%`} icon={<BarChart3 className="w-4 h-4" />} color="text-blue-400" />
-        <KpiCard label="ADR" value={formatBRL(totals.adr)} icon={<DollarSign className="w-4 h-4" />} color="text-amber-400" />
+        <KpiCard label="Diária Média" value={formatBRL(totals.adr)} icon={<DollarSign className="w-4 h-4" />} color="text-amber-400" />
       </div>
 
       {/* Tabela por imóvel */}
       <div className="rounded-lg border border-white/[0.06] bg-[#0a0a0f] overflow-hidden">
         <div className="px-4 py-3 border-b border-white/[0.06]">
-          <h3 className="text-sm font-bold text-white">Rentabilidade por Imóvel</h3>
+          <h3 className="text-sm font-bold text-white">Lucro por Imóvel</h3>
         </div>
         {imoveis.length > 0 ? (
           <div className="overflow-x-auto">
@@ -1473,7 +1473,7 @@ function RentabilidadePanel() {
                   <th className="text-right px-4 py-2 font-medium">Lucro</th>
                   <th className="text-right px-4 py-2 font-medium">Margem</th>
                   <th className="text-right px-4 py-2 font-medium">Ocupação</th>
-                  <th className="text-right px-4 py-2 font-medium">ADR</th>
+                  <th className="text-right px-4 py-2 font-medium">Diária Média</th>
                 </tr>
               </thead>
               <tbody>
@@ -1566,7 +1566,7 @@ function ComparativoPanel() {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
-        <span className="ml-2 text-sm text-zinc-500">Carregando comparativo...</span>
+        <span className="ml-2 text-sm text-zinc-500">Carregando comparativo de imóveis...</span>
       </div>
     );
   }
@@ -1613,8 +1613,8 @@ function ComparativoPanel() {
                   <span>Receita: <strong className="text-emerald-400/80">{formatBRL(imv.receita)}</strong></span>
                   <span>Despesas: <strong className="text-red-400/80">{formatBRL(imv.despesas)}</strong></span>
                   <span>Ocupação: <strong className="text-blue-400/80">{imv.ocupacao.toFixed(0)}%</strong></span>
-                  <span>ADR: <strong className="text-amber-400/80">{formatBRL(imv.adr)}</strong></span>
-                  <span>RevPAR: <strong className="text-purple-400/80">{formatBRL(imv.revpar)}</strong></span>
+                  <span>Diária Média: <strong className="text-amber-400/80">{formatBRL(imv.adr)}</strong></span>
+                  <span>Receita/Quarto: <strong className="text-purple-400/80">{formatBRL(imv.revpar)}</strong></span>
                 </div>
               </div>
             ))}
@@ -1710,10 +1710,10 @@ function PrecificacaoPanel() {
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-white/[0.06] bg-[#0a0a0f] p-4">
-        <h3 className="text-sm font-bold text-white mb-3">Precificação Dinâmica — Yield Booster</h3>
+        <h3 className="text-sm font-bold text-white mb-3">Preço Ideal da Diária</h3>
         <p className="text-[11px] text-zinc-500 mb-4">
-          Simule o preço ideal de diária para datas futuras. O sistema considera feriados brasileiros,
-          sazonalidade (alta/baixa temporada) e ocupação para sugerir o melhor preço.
+          Simule o preço ideal da diária para datas futuras. O sistema considera feriados brasileiros,
+          alta ou baixa temporada e a ocupação do imóvel para sugerir o melhor preço.
         </p>
 
         {/* Input preço base */}
@@ -1761,7 +1761,7 @@ function PrecificacaoPanel() {
           disabled={loading}
           className="px-4 py-2 rounded-md text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20 hover:bg-blue-500/25 disabled:opacity-50"
         >
-          {loading ? 'Calculando...' : 'Simular Precificação'}
+          {loading ? 'Calculando...' : 'Simular Preço Ideal'}
         </button>
       </div>
 
@@ -1772,7 +1772,7 @@ function PrecificacaoPanel() {
             <KpiCard label="Total Base" value={formatBRL(result.baseTotal || 0)} icon={<DollarSign className="w-4 h-4" />} color="text-zinc-400" />
             <KpiCard label="Total Sugerido" value={formatBRL(result.totalPrice || 0)} icon={<TrendingUp className="w-4 h-4" />} color="text-emerald-400" />
             <KpiCard label="Lucro Extra" value={formatBRL(result.extraProfit || 0)} icon={<ArrowUpRight className="w-4 h-4" />} color="text-amber-400" />
-            <KpiCard label="Surge Ativo" value={result.hasSurge ? 'SIM' : 'NÃO'} icon={<Zap className="w-4 h-4" />} color={result.hasSurge ? 'text-red-400' : 'text-zinc-500'} />
+            <KpiCard label="Alta Demanda" value={result.hasSurge ? 'SIM' : 'NÃO'} icon={<Zap className="w-4 h-4" />} color={result.hasSurge ? 'text-red-400' : 'text-zinc-500'} />
           </div>
 
           {/* Citations por data */}
@@ -1789,14 +1789,14 @@ function PrecificacaoPanel() {
             </div>
           )}
 
-          {/* Alerta de escassez */}
+          {/* Alerta de alta demanda */}
           {result.hasScarcity && (
             <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3">
               <p className="text-[11px] text-red-400 font-bold">
-                ESCASSEZ MÁXIMA — últimos quartos / véspera de feriado
+                ALTA DEMANDA — poucos quartos disponíveis / véspera de feriado
               </p>
               <p className="text-[10px] text-red-400/70 mt-1">
-                Considere aumentar ainda mais o preço. A demanda supera a oferta.
+                Considere aumentar ainda mais o preço. A procura está maior que a oferta.
               </p>
             </div>
           )}
