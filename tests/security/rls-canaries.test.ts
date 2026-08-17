@@ -106,6 +106,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  if (!DB_AVAILABLE) return;
   await prisma.policyAudit.deleteMany({
     where: { tenantId: { in: ['canary_tenant_A', 'canary_tenant_B'] } },
   });
@@ -115,7 +116,9 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  await prisma.$disconnect();
+  if (DB_AVAILABLE) {
+    await prisma.$disconnect();
+  }
 });
 
 // --- Testes: PolicyAudit -----------------------------------------------------
@@ -400,7 +403,7 @@ describeOrSkip('Canary — Schema invariants pós-migration', () => {
 
 // --- Testes: PostgreSQL RLS (apenas quando provider=postgres) ----------------
 
-describe('Canary — PostgreSQL RLS (skip em SQLite)', () => {
+describeOrSkip('Canary — PostgreSQL RLS (skip em SQLite)', () => {
   beforeAll(() => {
     const provider = process.env.DATABASE_PROVIDER ?? 'sqlite';
     if (provider !== 'postgres') {

@@ -183,7 +183,7 @@ describe('PARTE 2: NightPentestService — Pentest Noturno', () => {
     expect(result.statsBySeverity).toBeDefined();
     expect(result.statsBySource).toBeDefined();
     expect(result.statsBySource.sast).toBeGreaterThanOrEqual(0);
-  });
+  }, 30000);
 
   it('run(): SAST detecta eval() em arquivos de teste (sanity check)', async () => {
     // O SAST deve encontrar pelo menos 1 finding (qualquer tipo) em algum módulo

@@ -236,10 +236,12 @@ function extractDateComponents(date: Date): { year: number; month: number; day: 
 }
 
 function sameDay(a: Date, b: Date): boolean {
+  const compA = extractDateComponents(a);
+  const compB = extractDateComponents(b);
   return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
+    compA.year === compB.year &&
+    compA.month === compB.month &&
+    compA.day === compB.day
   );
 }
 

@@ -247,13 +247,13 @@ export function SmartLockSecurityProof() {
           />
           <AutoCard
             icon="⏰"
-            title="UPSELL estende PIN automaticamente"
+            title="Upsell estende PIN automaticamente"
             desc="Late checkout, café premium ou outros serviços extras aceitos pelo hóspede → PIN é atualizado com nova validade. Tudo automático via IA Zélla."
           />
           <AutoCard
             icon="💳"
-            title="Automação inteligente de acesso"
-            desc="Cancelamento de reserva = PIN revogado. Reserva confirmada = PIN ativado. FNRH completo = PIN gerado. Tudo integrado com o Cérebro Zélla."
+            title="Caução & Acesso Inteligente"
+            desc="Cancelamento de reserva = PIN revogado. Reserva confirmada = PIN ativado. Caução validada = PIN gerado. Tudo integrado com o Cérebro Zélla."
           />
           <AutoCard
             icon="🔄"

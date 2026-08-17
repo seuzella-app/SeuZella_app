@@ -102,7 +102,7 @@ export function verifyCronSecret(req: NextRequest): CronAuthResult {
   return {
     ok: false,
     response: NextResponse.json(
-      { error: 'unauthorized', code: 'UNAUTHORIZED' },
+      { error: 'UNAUTHORIZED', code: 'UNAUTHORIZED' },
       { status: 401, headers: { 'WWW-Authenticate': 'Bearer' } }
     ),
   };

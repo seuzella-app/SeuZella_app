@@ -108,34 +108,34 @@ export function detectarEmocao(mensagem: string): EmocaoResult {
     return { emocao: 'entusiasmo', confianca: 0.85, intensidade };
   }
 
+  // Sinais de desconfiança (avaliar antes de pressa)
+  if (/(confiá|confiavel|golpe|calote|cnpj|embratur|reclame aqu|reclameaqui|já ouvi histórias|problema com)/i.test(msg)) {
+    return { emocao: 'desconfianca', confianca: 0.85, intensidade: 'moderada' };
+  }
+
   // Sinais de ansiedade
   if (/(e se|tenho medo|preocupad|ficou sabido|garantia|seguro|seguranç|posso confiar)/i.test(msg)) {
     return { emocao: 'ansiedade', confianca: 0.80, intensidade: 'moderada' };
   }
 
   // Sinais de pressa
-  if (/(urgente|hoje|agora|rápido|rapido|já|pressa|correndo|hoje mesmo|o mais rápido)/i.test(msg)) {
+  if (/(urgente|hoje|agora|rápido|rapido|\bjá\b|pressa|correndo|hoje mesmo|o mais rápido)/i.test(msg)) {
     return { emocao: 'pressa', confianca: 0.90, intensidade: 'forte' };
   }
 
-  // Sinais de desconfiança
-  if (/(confiá|confiavel|golpe|calote|cnpj|embratur|reclame aqu|reclameaqui|já ouvi histórias|problema com)/i.test(msg)) {
-    return { emocao: 'desconfianca', confianca: 0.85, intensidade: 'moderada' };
-  }
-
-  // Sinais de curiosidade — apenas se NÃO for saudação neutra (evita falso positivo em "Oi, tudo bem?")
+  // Sinais de curiosidade — apenas se NÃO for saudação neutra/formal
   if (/(como funciona|me conta|me fala sobre|quero saber|pode explicar|diferencial|passeio|atraç|experiência|atividade)/i.test(msg)
-      && !/^(oi|olá|ola|bom dia|boa tarde|boa noite|tudo bem|como vai)/i.test(msg.trim())) {
+      && !/^(oi|olá|ola|bom dia|boa tarde|boa noite)/i.test(msg.trim())) {
     return { emocao: 'curiosidade', confianca: 0.75, intensidade: 'moderada' };
   }
 
   // Preocupação financeira
-  if (/(caro|caríssimo|carissimo|orçamento|fora do meu|apertado|aperto|não tenho como|difícil pagar|difícil cobrir)/i.test(msg)) {
+  if (/(caro|caríssimo|carissimo|orçamento|fora do meu|apertado|aperto|não tenho como|difícil pagar|difícil cobrir|acima do)/i.test(msg)) {
     return { emocao: 'preocupacao_fin', confianca: 0.80, intensidade: 'moderada' };
   }
 
   // Calor humano
-  if (/(tudo bem|como vai|oi, tudo certo|bom dia|boa tarde|boa noite|como está|espero que esteja bem)/i.test(msg)) {
+  if (/(tudo bem|como vai|oi, tudo certo|como está|espero que esteja bem)/i.test(msg)) {
     return { emocao: 'calor', confianca: 0.70, intensidade: 'leve' };
   }
 
@@ -402,44 +402,45 @@ export function gerarRespostaObjecaoHumanizada(
     };
   }
 
-  // Depósito
-  if (obj.includes('deposit') || obj.includes('deposito') || obj.includes('depósito')) {
-    if (pousada.depositoHabilitada) {
+  // Depósito / Caução
+  if (obj.includes('deposit') || obj.includes('deposito') || obj.includes('depósito') || obj.includes('caucao') || obj.includes('caução')) {
+    const habilitada = (pousada as any).depositHabilitada ?? (pousada as any).depositoHabilitada ?? true;
+    if (habilitada) {
       return {
         content: pick([
-          `A depósito é uma garantia comum em hotéis e pousadas, ${nome}. Devolvemos em ${pousada.janelaEstornoH}h após o check-out se não houver danos. É automático, você nem precisa pedir.`,
-          `Entendo sua preocupação, ${nome}. A depósito fica registrada no sistema e o estorno é automático em ${pousada.janelaEstornoH}h após o check-out. Sem dor de cabeça.`,
-          `${nome}, a depósito é só uma garantia — igual ao que hotel faz. Volta pra você em ${pousada.janelaEstornoH}h após o check-out, automaticamente.`,
+          `A caução/depósito é uma garantia comum em hotéis e pousadas, ${nome}. Devolvemos o valor em ${pousada.janelaEstornoH}h após o check-out se não houver danos. O estorno é automático.`,
+          `Entendo sua preocupação, ${nome}. O depósito/caução fica registrado no sistema e o estorno é automático em ${pousada.janelaEstornoH}h após o check-out. Sem dor de cabeça.`,
+          `${nome}, o valor é só uma garantia de caução — igual ao que hotel faz. O estorno é automático e devolvemos em ${pousada.janelaEstornoH}h após o check-out.`,
         ], rng),
-        intent: 'rebater_deposito',
+        intent: 'rebater_deposit',
       };
     } else {
       return {
-        content: `Boa notícia, ${nome}: não pedimos depósito aqui. Você reserva direto, sem se preocupar.`,
-        intent: 'rebater_deposito_desligada',
+        content: `Boa notícia, ${nome}: não pedimos caução nem depósito aqui. Você reserva direto, sem se preocupar.`,
+        intent: 'rebater_deposit_desligada',
       };
     }
   }
 
-  // Check-in
-  if (obj.includes('check-in') || obj.includes('check in') || obj.includes('cedo')) {
-    return {
-      content: pick([
-        `Podemos flexibilizar o check-in em até 2h antes, ${nome}. Depende da limpeza do dia. Posso confirmar na véspera.`,
-        `Se o quarto estiver pronto, liberamos antes, ${nome}. Te aviso na véspera.`,
-      ], rng),
-      intent: 'rebater_checkin',
-    };
-  }
-
-  // Check-out estendido / late checkout
-  if (obj.includes('check-out') || obj.includes('checkout') || obj.includes('estendido') || obj.includes('tarde')) {
+  // Check-out estendido / late checkout (avaliar antes de check-in)
+  if (obj.includes('check-out') || obj.includes('checkout') || obj.includes('estendido') || obj.includes('tarde') || obj.includes('sair mais tarde')) {
     return {
       content: pick([
         `Sim, ${nome}! Oferecemos late checkout com taxa de R$ 50 por hora extra. Topa?`,
         `Tem sim, ${nome}. Late checkout: R$ 50/hora extra. Fica mais confortado pra viajar.`,
       ], rng),
       intent: 'oferecer_late_checkout',
+    };
+  }
+
+  // Check-in
+  if (obj.includes('check-in') || obj.includes('check in') || (obj.includes('cedo') && !obj.includes('check-out') && !obj.includes('checkout'))) {
+    return {
+      content: pick([
+        `Podemos flexibilizar o check-in em até 2h antes, ${nome}. Depende da limpeza do dia. Posso confirmar na véspera.`,
+        `Se o quarto estiver pronto, liberamos antes, ${nome}. Te aviso na véspera.`,
+      ], rng),
+      intent: 'rebater_checkin',
     };
   }
 
@@ -519,11 +520,12 @@ export function gerarCotacaoDireta(
 ): { content: string; intent: string } {
   const nome = hospede.display_name.split(' ')[0];
   const total = pousada.diariaBase * hospede.duracao_estadia_dias * Math.ceil(hospede.grupo_tamanho / 2);
+  const totalFormatado = total >= 1000 ? total.toLocaleString('pt-BR') : total.toFixed(0);
   return {
     content: pick([
-      `Total: R$ ${total.toFixed(0)} (${hospede.duracao_estadia_dias} diárias, ${hospede.grupo_tamanho} pessoas). PIX ou cartão, ${nome}.`,
-      `R$ ${total.toFixed(0)} no total, ${nome}. ${hospede.duracao_estadia_dias} diárias. Como prefere pagar?`,
-      `${nome}, fica R$ ${total.toFixed(0)} (${hospede.duracao_estadia_dias} diárias). PIX ou cartão?`,
+      `Total: R$ ${totalFormatado} (${hospede.duracao_estadia_dias} diárias, ${hospede.grupo_tamanho} pessoas). PIX ou cartão, ${nome}.`,
+      `R$ ${totalFormatado} no total, ${nome}. ${hospede.duracao_estadia_dias} diárias. Como prefere pagar?`,
+      `${nome}, fica R$ ${totalFormatado} (${hospede.duracao_estadia_dias} diárias). PIX ou cartão?`,
     ], rng),
     intent: 'cotacao_direta',
   };
@@ -539,8 +541,8 @@ export function gerarExplicacaoDeposito(
 ): { content: string; intent: string } {
   const nome = hospede.display_name.split(' ')[0];
   // Suporta tanto depositoHabilitada quanto depositHabilitada (compatibilidade de aliases)
-  const habilitada = (pousada as any).depositoHabilitada ?? (pousada as any).depositHabilitada ?? false;
-  const padrao = (pousada as any).depositoPadrao ?? (pousada as any).depositPadrao ?? 0;
+  const habilitada = (pousada as any).depositHabilitada ?? (pousada as any).depositoHabilitada ?? false;
+  const padrao = (pousada as any).depositPadrao ?? (pousada as any).depositoPadrao ?? 0;
   const janela = pousada.janelaEstornoH ?? 24;
 
   if (habilitada) {
@@ -549,12 +551,12 @@ export function gerarExplicacaoDeposito(
         `Cancelamento grátis até 7 dias antes, ${nome}. Depósito: R$ ${padrao} via PIX. Devolvo em ${janela}h após o check-out se não houver danos. Automático.`,
         `Política de cancelamento: 7 dias antes sem custo. Depósito R$ ${padrao} — volta em ${janela}h após o check-out. Sem dor de cabeça, ${nome}.`,
       ], rng),
-      intent: 'explicar_deposito',
+      intent: 'explicar_deposit',
     };
   }
   return {
-    content: `Cancelamento grátis até 7 dias antes, ${nome}. Não pedimos depósito aqui — confiança total.`,
-    intent: 'sem_deposito',
+    content: `Cancelamento grátis até 7 dias antes, ${nome}. Não pedimos depósito nem caução aqui — confiança total.`,
+    intent: 'sem_deposit',
   };
 }
 

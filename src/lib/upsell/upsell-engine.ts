@@ -220,33 +220,33 @@ export async function criarUpsell(params: {
   yieldMultiplier?: number;
   notes?: string;
 }): Promise<UpsellRecord | null> {
+  const catalog = UPSELL_TYPES_CATALOG[params.type];
+  const quantity = params.quantity ?? 1;
+  const unitPrice = params.unitPrice ?? catalog.defaultPrice;
+  const totalPrice = Number((unitPrice * quantity).toFixed(2));
+  const comissionAmount = calcularComissaoZehla(totalPrice);
+
+  const data = {
+    tenantId: params.tenantId,
+    roomId: params.roomId ?? null,
+    reservationId: params.reservationId ?? null,
+    guestId: params.guestId ?? null,
+    type: params.type,
+    description: params.description ?? catalog.description,
+    quantity,
+    unitPrice,
+    totalPrice,
+    comissionRate: COMISSAO_ZELLA_RATE,
+    comissionAmount,
+    status: 'pending' as const,
+    suggestedByZehla: params.suggestedByZehla ?? true,
+    feriado: params.feriado ?? null,
+    temporada: params.temporada ?? null,
+    yieldMultiplier: params.yieldMultiplier ?? null,
+    notes: params.notes ?? '',
+  };
+
   try {
-    const catalog = UPSELL_TYPES_CATALOG[params.type];
-    const quantity = params.quantity ?? 1;
-    const unitPrice = params.unitPrice ?? catalog.defaultPrice;
-    const totalPrice = Number((unitPrice * quantity).toFixed(2));
-    const comissionAmount = calcularComissaoZehla(totalPrice);
-
-    const data = {
-      tenantId: params.tenantId,
-      roomId: params.roomId ?? null,
-      reservationId: params.reservationId ?? null,
-      guestId: params.guestId ?? null,
-      type: params.type,
-      description: params.description ?? catalog.description,
-      quantity,
-      unitPrice,
-      totalPrice,
-      comissionRate: COMISSAO_ZELLA_RATE,
-      comissionAmount,
-      status: 'pending' as const,
-      suggestedByZehla: params.suggestedByZehla ?? true,
-      feriado: params.feriado ?? null,
-      temporada: params.temporada ?? null,
-      yieldMultiplier: params.yieldMultiplier ?? null,
-      notes: params.notes ?? '',
-    };
-
     if (!db || !(db as any).upsellRecord) {
       // Sem banco — retorna objeto em memória
       return {

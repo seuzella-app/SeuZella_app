@@ -204,7 +204,8 @@ export function summarizeCitationForWhatsApp(
 // ─────────────────────────────────────────────────────────────────────────────
 
 function formatDateBR(date: Date): string {
-  const d = String(date.getDate()).padStart(2, '0');
-  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const isUtcMidnight = date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0;
+  const d = String(isUtcMidnight ? date.getUTCDate() : date.getDate()).padStart(2, '0');
+  const m = String((isUtcMidnight ? date.getUTCMonth() : date.getMonth()) + 1).padStart(2, '0');
   return `${d}/${m}`;
 }

@@ -115,6 +115,8 @@ const TAB_TITLES: Record<ZccTabId, string> = {
   "tokens-ai": "Tokens & IA",
   semantica: "Semântica",
   "mobile-analytics": "Mobile Analytics",
+  upsell: "UPSELL",
+  settings: "Configurações",
 };
 
 function GlobalKpiBar() {
@@ -135,14 +137,21 @@ function GlobalKpiBar() {
   }, []);
 
   const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = "/zcc-lis-integrated.zip";
-    link.download = "zcc-lis-integrated.zip";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setDownloaded(true);
-    setTimeout(() => setDownloaded(false), 3000);
+    try {
+      const dataStr =
+        "data:text/json;charset=utf-8," +
+        encodeURIComponent(JSON.stringify(leads, null, 2));
+      const link = document.createElement("a");
+      link.href = dataStr;
+      link.download = "zcc-live-leads-export.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setDownloaded(true);
+      setTimeout(() => setDownloaded(false), 3000);
+    } catch {
+      // fallback
+    }
   };
 
   return (
