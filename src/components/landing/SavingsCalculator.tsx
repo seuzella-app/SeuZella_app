@@ -661,7 +661,7 @@ function AirbnbCalculator() {
             onClick={() => { const el = document.querySelector('#precos'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}
             className="inline-flex items-center gap-2 px-8 py-3.5 text-white font-bold rounded-xl transition-all duration-200 shadow-xl cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-blue-500/30"
           >
-            Começar meu teste grátis <ArrowRight className="w-4 h-4" />
+            Assinar agora <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>

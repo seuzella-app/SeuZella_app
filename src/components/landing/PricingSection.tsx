@@ -559,7 +559,7 @@ export function PricingSection() {
                             <div className="flex items-center gap-1.5 mt-1.5">
                               <CalendarCheck2 className="w-3.5 h-3.5 text-blue-400" />
                               <span className="text-blue-400 text-xs font-semibold">
-                                7 dias grátis — cancele quando quiser
+                                Acesso imediato após pagamento
                               </span>
                             </div>
                           )}

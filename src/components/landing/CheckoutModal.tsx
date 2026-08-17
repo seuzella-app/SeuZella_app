@@ -389,7 +389,7 @@ export function CheckoutModal({
                 >
                   {price === 0 ? (
                     <>
-                      Comecar gratis
+                      Assinar agora
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </>
                   ) : (
