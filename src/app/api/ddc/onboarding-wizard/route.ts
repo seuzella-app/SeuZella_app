@@ -71,6 +71,10 @@ export async function GET(request: NextRequest) {
           aiTone: meta.aiTone || 'descontraida',
           whatsappConnected: meta.whatsappConnected || false,
           autoPinActive: meta.autoPinActive || false,
+          highSeasonMultiplierPercent: meta.highSeasonMultiplierPercent ?? 40,
+          notifyBeforePriceChange: meta.notifyBeforePriceChange ?? true,
+          autoUpsellActive: meta.autoUpsellActive ?? true,
+          acceptedUpsellSuccessFeeTerms: meta.acceptedUpsellSuccessFeeTerms ?? true,
         },
         rooms: property.rooms || [],
         stepsCompleted,
@@ -155,6 +159,13 @@ export async function POST(request: NextRequest) {
         meta.aiAssistantName = data.assistantName || 'Zélla';
         updateData.metadata = JSON.stringify(meta);
         break;
+      case 'yield_upsell':
+        meta.highSeasonMultiplierPercent = Number(data.highSeasonMultiplierPercent) || 40;
+        meta.notifyBeforePriceChange = data.notifyBeforePriceChange ?? true;
+        meta.autoUpsellActive = data.autoUpsellActive ?? true;
+        meta.acceptedUpsellSuccessFeeTerms = data.acceptedUpsellSuccessFeeTerms ?? true;
+        updateData.metadata = JSON.stringify(meta);
+        break;
       case 'autopin':
         meta.autoPinActive = data.active || false;
         updateData.metadata = JSON.stringify(meta);
@@ -167,7 +178,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Verifica se completou todos os steps
-    const allSteps = ['basic_info', 'rooms', 'policies', 'pix', 'whatsapp', 'personality'];
+    const allSteps = ['basic_info', 'rooms', 'policies', 'pix', 'whatsapp', 'personality', 'yield_upsell'];
     const completedAll = allSteps.every(s => stepsCompleted.has(s));
 
     return NextResponse.json({

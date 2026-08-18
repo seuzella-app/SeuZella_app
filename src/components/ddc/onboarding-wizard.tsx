@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2, Bed, Shield, CreditCard, MessageCircle, Sparkles,
   CheckCircle2, ChevronRight, ChevronLeft, Rocket, X, Info,
+  TrendingUp, BellRing, Percent, Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ import { toast } from "sonner";
  *   4. PIX (chave PIX para pagamentos)
  *   5. WhatsApp (instruções para conectar Cloud API)
  *   6. Personalidade (tom de voz da IA)
+ *   7. Alta Demanda & Upsell (precificação inteligente, notificação prévia e aceite dos 7% de sucesso)
  *
  * Conexões:
  *   - GET/POST /api/ddc/onboarding-wizard
@@ -32,6 +34,7 @@ const STEPS = [
   { id: "pix", label: "PIX", icon: CreditCard },
   { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
   { id: "personality", label: "Personalidade", icon: Sparkles },
+  { id: "yield_upsell", label: "Alta Demanda & Upsell", icon: TrendingUp },
 ];
 
 interface OnboardingWizardProps {
@@ -53,6 +56,10 @@ export function OnboardingWizard({ tenantId, onClose, onComplete }: OnboardingWi
     pixKey: "", pixKeyType: "cpf",
     tone: "descontraida", expressions: [] as string[], greeting: "",
     assistantName: "Zélla",
+    highSeasonMultiplierPercent: 40,
+    notifyBeforePriceChange: true,
+    autoUpsellActive: true,
+    acceptedUpsellSuccessFeeTerms: true,
   });
 
   // Load existing data
@@ -71,6 +78,10 @@ export function OnboardingWizard({ tenantId, onClose, onComplete }: OnboardingWi
             pixKey: p.pixKey || "", pixKeyType: p.pixKeyType || "cpf",
             tone: p.aiTone || "descontraida", greeting: p.aiGreeting || "",
             assistantName: p.aiAssistantName || "Zélla",
+            highSeasonMultiplierPercent: p.highSeasonMultiplierPercent ?? 40,
+            notifyBeforePriceChange: p.notifyBeforePriceChange ?? true,
+            autoUpsellActive: p.autoUpsellActive ?? true,
+            acceptedUpsellSuccessFeeTerms: p.acceptedUpsellSuccessFeeTerms ?? true,
           }));
           setStepsCompleted(json.data.stepsCompleted || []);
         }
@@ -360,6 +371,135 @@ export function OnboardingWizard({ tenantId, onClose, onComplete }: OnboardingWi
                     onChange={(v) => setFormData({ ...formData, greeting: v })}
                     placeholder="Ex: Olá! Seja bem-vindo à nossa pousada!"
                   />
+                </div>
+              </motion.div>
+            )}
+
+            {currentStep === 6 && (
+              <motion.div key="yield_upsell" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <TrendingUp className="size-4 text-emerald-400" />
+                    Alta Demanda & Parceria de UPSELL
+                  </h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                    Transparência Total
+                  </span>
+                </div>
+                
+                <p className="text-[11px] text-muted-foreground mb-4 leading-relaxed">
+                  No dia a dia normal, o Seu Zélla atende 24h e fecha reservas no PIX com <strong className="text-emerald-400">0% de taxa</strong> (100% da diária no seu bolso). 
+                  Nos feriados e datas festivas da sua região, o fluxo de mensagens cresce: o Zélla atende a avalanche, valoriza o valor por quarto e vende comodidades extras (UPSELL).
+                </p>
+
+                <div className="space-y-4">
+                  {/* Multiplicador de Valorização */}
+                  <div className="rounded-lg border border-border bg-card/60 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
+                        <Percent className="size-3.5 text-primary" />
+                        Valorização sugerida por quarto em feriados/festas
+                      </label>
+                      <span className="text-xs font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        +{formData.highSeasonMultiplierPercent}%
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 pt-1">
+                      {[
+                        { val: 25, label: "+25%", desc: "Moderada" },
+                        { val: 40, label: "+40%", desc: "Recomendada" },
+                        { val: 60, label: "+60%", desc: "Alta Procura" },
+                        { val: 100, label: "+100%", desc: "Réveillon / Carnaval" },
+                      ].map((item) => (
+                        <button
+                          key={item.val}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, highSeasonMultiplierPercent: item.val })}
+                          className={cn(
+                            "rounded-md border p-2 text-center transition-all",
+                            formData.highSeasonMultiplierPercent === item.val
+                              ? "border-emerald-500 bg-emerald-500/15 text-emerald-300 font-bold shadow-sm"
+                              : "border-border bg-background hover:border-border/80 text-muted-foreground"
+                          )}
+                        >
+                          <div className="text-xs">{item.label}</div>
+                          <div className="text-[9px] text-muted-foreground">{item.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Mecanismo de Notificação e Aprovação Prévia */}
+                  <div className="rounded-lg border border-border bg-card/60 p-3.5 space-y-3">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.notifyBeforePriceChange}
+                        onChange={(e) => setFormData({ ...formData, notifyBeforePriceChange: e.target.checked })}
+                        className="mt-0.5 rounded border-border text-primary focus:ring-primary size-4"
+                      />
+                      <div>
+                        <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                          <BellRing className="size-3.5 text-amber-400" />
+                          Avisar-me com antecedência antes de aplicar valores de pico
+                        </span>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          O Cérebro Zélla monitora o calendário da sua cidade. Ao detectar aumento de mensagens, calcula e sugere os valores de diária e upsell no DDC e DDC Mobile para você aprovar ou ajustar.
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer pt-2 border-t border-border/50">
+                      <input
+                        type="checkbox"
+                        checked={formData.autoUpsellActive}
+                        onChange={(e) => setFormData({ ...formData, autoUpsellActive: e.target.checked })}
+                        className="mt-0.5 rounded border-border text-primary focus:ring-primary size-4"
+                      />
+                      <div>
+                        <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                          <Sparkles className="size-3.5 text-teal-400" />
+                          Oferecer comodidades extras de UPSELL por quarto aos hóspedes
+                        </span>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          Late check-out, early check-in, café especial, upgrade de suíte, kit praia e passeios locais.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Simulação Matemática Prática */}
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-3.5">
+                    <p className="text-[11px] font-bold text-emerald-300 mb-1.5 flex items-center gap-1.5">
+                      <Info className="size-3.5" />
+                      Como funciona a matemática na prática:
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="bg-black/30 p-2 rounded border border-white/5">
+                        <span className="text-muted-foreground block">☀️ Dia a dia normal</span>
+                        <span className="font-bold text-foreground">Diária R$ 300</span>
+                        <span className="text-emerald-400 block font-semibold">Taxa Zélla = R$ 0,00 (0%)</span>
+                      </div>
+                      <div className="bg-black/30 p-2 rounded border border-white/5">
+                        <span className="text-muted-foreground block">🎉 Feriado (+{formData.highSeasonMultiplierPercent}% + R$ 500 Upsell)</span>
+                        <span className="font-bold text-foreground">Lucro Extra = +R$ 500</span>
+                        <span className="text-emerald-300 block font-semibold">Pousada fica com R$ 465 (+93%) · Zélla 7% (R$ 35)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Termo de Transparência e Aceite */}
+                  <label className="flex items-start gap-2.5 p-3 rounded-lg border border-primary/30 bg-primary/[0.05] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.acceptedUpsellSuccessFeeTerms}
+                      onChange={(e) => setFormData({ ...formData, acceptedUpsellSuccessFeeTerms: e.target.checked })}
+                      className="mt-0.5 rounded border-border text-primary focus:ring-primary size-4"
+                    />
+                    <span className="text-[10px] text-zinc-300 leading-tight">
+                      <strong className="text-white">Estou ciente e de acordo:</strong> Diárias normais têm ZERO taxa o ano todo. A taxa de sucesso de 7% incide única e exclusivamente sobre o faturamento extra de UPSELL vendido em datas de alta demanda com notificação prévia.
+                    </span>
+                  </label>
                 </div>
               </motion.div>
             )}

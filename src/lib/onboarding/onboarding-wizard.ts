@@ -72,8 +72,17 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     helpUrl: '/docs/onboarding/personalidade-ia',
   },
   {
+    id: 'yield-upsell-rules',
+    title: '6. Alta Demanda & Parceria de UPSELL',
+    description: 'Defina a % de valorização dos quartos em feriados/festas e ative a notificação prévia de preços com 7% de sucesso em upsells.',
+    estimatedMinutes: 3,
+    required: true,
+    completed: false,
+    helpUrl: '/docs/onboarding/yield-upsell',
+  },
+  {
     id: 'calendar-sync',
-    title: '6. Sincronizar calendário',
+    title: '7. Sincronizar calendário',
     description: 'Conecte seu Google Calendar ou Airbnb iCal para evitar reservas duplicadas.',
     estimatedMinutes: 10,
     required: false,
