@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 /**
  * Helper seguro para parse de JSON sem risco de SyntaxError
  */
-function safeParseJSON<T = Record<string, any>>(raw: string | null | undefined, fallback: T): T {
+function safeParseJSON(raw: string | null | undefined, fallback: Record<string, any> = {}): Record<string, any> {
   if (!raw) return fallback;
   try {
     const parsed = JSON.parse(raw);
