@@ -64,6 +64,9 @@ function PousadaCalculator() {
 
   const [contatosMes, setContatosMes] = useState(80);
   const [valorMedio, setValorMedio] = useState(350);
+  const [incluirUpsellFeriados, setIncluirUpsellFeriados] = useState(false);
+  const [feriadosAno, setFeriadosAno] = useState(8);
+  const [upsellPorFeriado, setUpsellPorFeriado] = useState(950);
 
   const custoZellaMensal = CUSTO_ZELLA_PRO_POUSADA;
   const estadiaMedia = ESTADIA_MEDIA_HOSPEDAGEM;
@@ -79,13 +82,33 @@ function PousadaCalculator() {
     const receitaExtraAnual = receitaExtraMensal * 12;
     const economiaAnual = economiaMensal * 12;
     const custoZellaAnual = custoZellaMensal * 12;
-    const lucroLiquidoAnual = receitaExtraAnual + economiaAnual - custoZellaAnual;
+
+    const totalUpsellAnual = incluirUpsellFeriados ? feriadosAno * upsellPorFeriado : 0;
+    const taxaZellaUpsellAnual = totalUpsellAnual * 0.07;
+    const lucroLiquidoUpsellPousada = totalUpsellAnual - taxaZellaUpsellAnual;
+
+    const lucroLiquidoAnual = receitaExtraAnual + economiaAnual + lucroLiquidoUpsellPousada - custoZellaAnual;
     const roiPercent = custoZellaAnual > 0
-      ? Math.round(((receitaExtraAnual + economiaAnual - custoZellaAnual) / custoZellaAnual) * 100)
+      ? Math.round(((receitaExtraAnual + economiaAnual + lucroLiquidoUpsellPousada - custoZellaAnual) / custoZellaAnual) * 100)
       : 0;
 
-    return { conversoesSem, conversoesCom, conversoesAMais, receitaSem, receitaCom, receitaExtraMensal, receitaExtraAnual, economiaAnual, custoZellaAnual, lucroLiquidoAnual, roiPercent };
-  }, [contatosMes, valorMedio, estadiaMedia, custoZellaMensal, economiaMensal]);
+    return {
+      conversoesSem,
+      conversoesCom,
+      conversoesAMais,
+      receitaSem,
+      receitaCom,
+      receitaExtraMensal,
+      receitaExtraAnual,
+      economiaAnual,
+      custoZellaAnual,
+      totalUpsellAnual,
+      taxaZellaUpsellAnual,
+      lucroLiquidoUpsellPousada,
+      lucroLiquidoAnual,
+      roiPercent,
+    };
+  }, [contatosMes, valorMedio, estadiaMedia, custoZellaMensal, economiaMensal, incluirUpsellFeriados, feriadosAno, upsellPorFeriado]);
 
   return (
     <motion.div
@@ -100,7 +123,7 @@ function PousadaCalculator() {
 
       <div className="relative z-10">
         {/* Inputs */}
-        <div className="max-w-2xl mx-auto mb-14">
+        <div className="max-w-2xl mx-auto mb-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
             <div className="space-y-3">
               <label className="block text-neutral-300 text-sm font-medium">Contatos de WhatsApp por mês</label>
@@ -124,6 +147,120 @@ function PousadaCalculator() {
               </div>
               <p className="text-neutral-500 text-[11px]">Valor médio cobrado por noite de hospedagem</p>
             </div>
+          </div>
+        </div>
+
+        {/* OPÇÃO DE UPSELL EM DATAS ESPECIAIS / FERIADOS */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 sm:p-6 transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                    Simular Motor de UPSELL em Feriados & Alta Demanda
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                      Opcional
+                    </span>
+                  </h4>
+                  <p className="text-neutral-400 text-xs mt-0.5">
+                    Em 90% do ano (dia a dia), a taxa é <strong className="text-emerald-400">ZERO (0%)</strong>. Em feriados com avalanche de mensagens, o Zélla vende extras com 7% de sucesso.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIncluirUpsellFeriados(!incluirUpsellFeriados)}
+                className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  incluirUpsellFeriados ? 'bg-emerald-500' : 'bg-neutral-800'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                    incluirUpsellFeriados ? 'translate-x-7' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {incluirUpsellFeriados && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-5 pt-5 border-t border-white/[0.06] space-y-4 overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <label className="block text-neutral-400 text-[11px] font-medium mb-1.5">
+                        Feriados & datas comemorativas no ano
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setFeriadosAno(Math.max(2, feriadosAno - 1))}
+                          className="w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white font-bold hover:bg-white/[0.1]"
+                        >
+                          -
+                        </button>
+                        <div className="flex-1 h-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center font-bold text-white">
+                          {feriadosAno} datas de pico
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFeriadosAno(Math.min(18, feriadosAno + 1))}
+                          className="w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white font-bold hover:bg-white/[0.1]"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-neutral-400 text-[11px] font-medium mb-1.5">
+                        Estimativa de serviços extras vendidos por feriado (R$)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setUpsellPorFeriado(Math.max(200, upsellPorFeriado - 100))}
+                          className="w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white font-bold hover:bg-white/[0.1]"
+                        >
+                          -
+                        </button>
+                        <div className="flex-1 h-9 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center font-bold text-emerald-300">
+                          {fmt(upsellPorFeriado)} / feriado
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setUpsellPorFeriado(Math.min(5000, upsellPorFeriado + 100))}
+                          className="w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white font-bold hover:bg-white/[0.1]"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div>
+                      <span className="text-emerald-300 font-bold block">
+                        + {fmt(calc.lucroLiquidoUpsellPousada)} / ano no seu caixa
+                      </span>
+                      <span className="text-neutral-400 text-[11px]">
+                        Total vendido: {fmt(calc.totalUpsellAnual)} · Taxa Zélla (7% sobre o extra): {fmt(calc.taxaZellaUpsellAnual)}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 self-start sm:self-auto">
+                      93% do lucro extra no seu bolso
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -203,6 +340,8 @@ function PousadaCalculator() {
             <div className="flex items-start gap-2"><span className="w-1 h-1 rounded-full mt-1.5 shrink-0 bg-emerald-500" /><span>Com Zélla: <strong className="text-emerald-400">35% de conversão</strong> — resposta instantânea + PIX convertem mais</span></div>
             <div className="flex items-start gap-2"><span className="w-1 h-1 rounded-full mt-1.5 shrink-0 bg-blue-500" /><span>Estadia média: <strong className="text-neutral-400">2,5 noites</strong> por reserva</span></div>
             <div className="flex items-start gap-2"><span className="w-1 h-1 rounded-full mt-1.5 shrink-0 bg-blue-500" /><span>Economia recepcionista: <strong className="text-neutral-400">R$ 1.200/mês</strong> cobrindo madrugadas e fins de semana</span></div>
+            <div className="flex items-start gap-2"><span className="w-1 h-1 rounded-full mt-1.5 shrink-0 bg-emerald-400" /><span>Diárias normais (90% do ano): <strong className="text-emerald-400">0% de taxa Zélla</strong> — 100% da diária no seu bolso</span></div>
+            <div className="flex items-start gap-2"><span className="w-1 h-1 rounded-full mt-1.5 shrink-0 bg-emerald-400" /><span>Feriados & Pico de Demanda: <strong className="text-emerald-300">7% taxa de sucesso</strong> cobrada exclusivamente sobre o ganho extra de UPSELL</span></div>
           </div>
         </div>
 

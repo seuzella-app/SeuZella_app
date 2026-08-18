@@ -508,6 +508,7 @@ interface UpsellItemConfig {
 }
 
 function UpsellCalculator() {
+  const [cenarioPeriodo, setCenarioPeriodo] = React.useState<'feriado' | 'dia_a_dia'>('feriado');
   const [diariaBase, setDiariaBase] = React.useState(350);
   const [qtdDiarias, setQtdDiarias] = React.useState(3);
   const [qtdPessoas, setQtdPessoas] = React.useState(2);
@@ -517,7 +518,7 @@ function UpsellCalculator() {
   ]);
 
   const valorDiarias = diariaBase * qtdDiarias * Math.ceil(qtdPessoas / 2);
-  const valorUpsellTotal = upsells.reduce((s, u) => s + u.quantity * u.unitPrice, 0);
+  const valorUpsellTotal = cenarioPeriodo === 'dia_a_dia' ? 0 : upsells.reduce((s, u) => s + u.quantity * u.unitPrice, 0);
   const comissaoZehla = Number((valorUpsellTotal * 0.07).toFixed(2));
   const totalReceitaPousada = valorDiarias + valorUpsellTotal;
   const voceFicaCom = totalReceitaPousada - comissaoZehla;
@@ -532,18 +533,54 @@ function UpsellCalculator() {
 
   return (
     <div className="rounded-lg border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 p-5">
-      <div className="mb-4 flex items-center gap-2">
-        <Calculator className="size-5 text-emerald-400" />
-        <h3 className="text-base font-bold text-foreground">
-          Calculadora — simule seu cenário
-        </h3>
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Calculator className="size-5 text-emerald-400" />
+          <h3 className="text-base font-bold text-foreground">
+            Calculadora — Simule seu Cenário de Faturamento
+          </h3>
+        </div>
+
+        {/* Toggle de Cenário */}
+        <div className="flex items-center rounded-lg border border-border bg-background/80 p-1 text-xs">
+          <button
+            type="button"
+            onClick={() => setCenarioPeriodo('dia_a_dia')}
+            className={cn(
+              "px-3 py-1 rounded-md font-semibold transition-all",
+              cenarioPeriodo === 'dia_a_dia'
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            ☀️ Dia a Dia (90% do ano)
+          </button>
+          <button
+            type="button"
+            onClick={() => setCenarioPeriodo('feriado')}
+            className={cn(
+              "px-3 py-1 rounded-md font-semibold transition-all",
+              cenarioPeriodo === 'feriado'
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            🎉 Feriados & Pico de Demanda
+          </button>
+        </div>
       </div>
 
-      <p className="mb-4 text-xs text-muted-foreground">
-        Use a calculadora para estimar quanto sua pousada ganha e quanto paga
-        de comissão à Zélla em qualquer cenário.{" "}
-        <strong className="text-foreground">Diárias normais: 0% taxa. UPSELL: 7% comissão por quarto.</strong>
-      </p>
+      <div className="mb-4 rounded-md border border-border/60 bg-background/50 p-3 text-xs text-muted-foreground">
+        {cenarioPeriodo === 'dia_a_dia' ? (
+          <p>
+            <strong className="text-emerald-400">☀️ Cenário de Dia a Dia Normal (90% do ano):</strong> O fluxo de mensagens é regular. Todas as diárias fechadas no PIX Direto operam com <strong className="text-emerald-400">ZERO taxa (0%)</strong>. 100% da receita fica com a sua pousada.
+          </p>
+        ) : (
+          <p>
+            <strong className="text-emerald-300">🎉 Cenário de Feriados & Datas Festivas (Picos de Demanda):</strong> O volume de mensagens explode. O Zélla atende instantaneamente a avalanche de contatos, valoriza os quartos e vende serviços adicionais por quarto (<strong className="text-foreground">UPSELL</strong>), cobrando <strong className="text-foreground">apenas 7% sobre o valor EXTRA vendido</strong>.
+          </p>
+        )}
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Diárias */}
@@ -603,20 +640,30 @@ function UpsellCalculator() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h4 className="text-sm font-semibold text-foreground">
-              2. UPSELLs (7% comissão Zélla)
+              2. UPSELLs ({cenarioPeriodo === 'dia_a_dia' ? 'Inativo no Dia a Dia' : '7% comissão Zélla'})
             </h4>
-            <button
-              type="button"
-              onClick={addUpsell}
-              className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
-            >
-              <Plus className="size-3" />
-              Adicionar
-            </button>
+            {cenarioPeriodo === 'feriado' && (
+              <button
+                type="button"
+                onClick={addUpsell}
+                className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                <Plus className="size-3" />
+                Adicionar
+              </button>
+            )}
           </div>
 
           <div className="space-y-2">
-            {upsells.length === 0 ? (
+            {cenarioPeriodo === 'dia_a_dia' ? (
+              <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-4 text-center text-xs text-muted-foreground">
+                <span className="text-emerald-300 font-semibold block mb-1">
+                  ☀️ 90% do Ano: Dia a Dia e Fins de Semana Normais
+                </span>
+                Todas as reservas fecham no PIX Direto com <strong className="text-emerald-400">ZERO comissão (0%)</strong>. 
+                Alterne acima para <strong className="text-foreground">"🎉 Feriados & Pico de Demanda"</strong> para simular o ganho extra com serviços por quarto.
+              </div>
+            ) : upsells.length === 0 ? (
               <div className="rounded-md border border-dashed border-border bg-background/40 p-4 text-center text-[11px] text-muted-foreground">
                 Nenhum UPSELL adicionado. Clique em "+ Adicionar" para simular.
               </div>
