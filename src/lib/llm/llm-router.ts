@@ -277,6 +277,10 @@ export interface LLMCallResult {
  *   2. Zai GLM 5.2 (sempre disponível se configurada)
  *   3. Groq Llama 3.3 70B (contingência ultra-rápida)
  *   4. Fallback local (template fixo)
+ *
+ * PROMPTGUARD: injeta system prompt obrigatório do setor + valida resposta.
+ * Se a resposta falhar na validação (delírio, vazamento, injection), descarta
+ * e tenta próximo provider.
  */
 export async function callLLMBySector(
   sector: LLMSector,
@@ -285,6 +289,10 @@ export async function callLLMBySector(
 ): Promise<LLMCallResult> {
   const startTime = Date.now();
   const primaryConfig = SECTOR_MODELS[sector];
+
+  // PROMPTGUARD: usa system prompt do setor se não fornecido
+  const { getSystemPromptForSector, validateLLMResponse, sanitizeResponse } = await import('./prompt-guard');
+  const effectiveSystemPrompt = systemPrompt || getSystemPromptForSector(sector);
 
   // Define cadeia de fallback: primário → Zai GLM → Groq Llama → fallback local
   const fallbackChain: { config: LLMModelConfig | null; useZai: boolean }[] = [
@@ -308,14 +316,31 @@ export async function callLLMBySector(
 
       if (useZai) {
         // Fallback para Zai GLM 5.2
-        text = await callZai('glm-4-flash', prompt, systemPrompt, 500);
+        text = await callZai('glm-4-flash', prompt, effectiveSystemPrompt, 500);
       } else if (config) {
         const apiKey = getApiKey(config.provider);
         if (config.provider === 'zai') {
-          text = await callZai(config.model, prompt, systemPrompt, config.maxTokens);
+          text = await callZai(config.model, prompt, effectiveSystemPrompt, config.maxTokens);
         } else {
-          text = await callOpenAICompatible(config, apiKey, prompt, systemPrompt);
+          text = await callOpenAICompatible(config, apiKey, prompt, effectiveSystemPrompt);
         }
+      }
+
+      // PROMPTGUARD: sanitiza resposta (remove null bytes, zero-width chars)
+      text = sanitizeResponse(text);
+
+      // PROMPTGUARD: valida resposta contra delírios/vazamentos
+      const validation = validateLLMResponse(sector, text);
+      if (!validation.valid) {
+        console.warn(`[LLM_ROUTER] Resposta REJEITADA pelo PromptGuard (${circuitKey}): ${validation.reason}`);
+        recordFailure(circuitKey);
+        lastError = new Error(`PromptGuard rejection: ${validation.reason}`);
+        continue; // Tenta próximo provider
+      }
+
+      // Se passou na validação e tem sanitized, usa
+      if (validation.sanitized) {
+        text = validation.sanitized;
       }
 
       recordSuccess(circuitKey);
