@@ -164,6 +164,120 @@ const LEGAL_PAGES: Record<string, LegalDoc> = {
       },
     ],
   },
+  'programa-amortizacao': {
+    title: 'Programa de Amortização por Indicação',
+    subtitle: 'Regras oficiais do sistema de créditos que abate a mensalidade de pousadas e anfitriões que indicam o Seu Zélla',
+    icon: Scale,
+    lastUpdated: '03 de Agosto, 2026',
+    badge: 'Programa de Recompensas',
+    markdownFile: '06_PROGRAMA_AMORTIZACAO.md',
+    sections: [
+      {
+        heading: '1. Natureza da Recompensa',
+        content:
+          'O Programa de Amortização por Indicação NÃO paga valores via PIX ao referrer. Toda indicação convertida ' +
+          'gera CRÉDITOS que AMORTIZAM (reduzem) o valor da mensalidade do referrer na próxima fatura. Créditos não ' +
+          'são conversíveis em dinheiro, transferíveis entre contas, nem acumuláveis com outros programas de afiliados. ' +
+          'Esta é uma bonificação de fidelidade, não uma comissão comercial.',
+      },
+      {
+        heading: '2. Elegibilidade por Plano',
+        content:
+          'Participam plenamente do sistema de amortização: PRO, MAX e PARCEIRO (geram crédito a cada conversão ' +
+          'confirmada). LITE participa do programa piloto: tem 60 dias iniciais de Link-in-Bio gratuito e, ao atingir ' +
+          '10 indicações pagas, ganha 12 meses adicionais de Link-in-Bio e passa a gerar créditos de amortização. ' +
+          'O plano GRATUITO não participa — é necessário assinar no mínimo LITE para ter acesso ao Link-in-Bio rastreado.',
+      },
+      {
+        heading: '3. Valor do Crédito por Conversão',
+        content:
+          'Por cada novo cliente que assinar um plano pago via sua indicação, o referrer recebe: R$ 30 (LITE), ' +
+          'R$ 60 (PRO), R$ 120 (MAX) e R$ 25 (PARCEIRO). Os valores são fixos e referem-se à primeira mensalidade ' +
+          'paga pelo novo cliente. Mensalidades subsequentes do mesmo cliente não geram novos créditos. Não há ' +
+          'limite máximo de conversões por mês — quanto mais indicações convertidas, mais créditos acumulados.',
+      },
+      {
+        heading: '4. Canais de Rastreamento Válidos',
+        content:
+          'A indicação é comprovada por um destes três canais oficiais: (a) Link-in-Bio curto no formato ' +
+          '/r/CODIGO que grava cookie de 90 dias no navegador do lead; (b) E-mail com token assinado criptograficamente ' +
+          'em base64 que prova que o lead veio do seu e-mail específico; (c) Deep link do WhatsApp com código embutido ' +
+          'na mensagem. Cliques sem cookie válido não geram crédito. O lead deve usar o mesmo navegador/dispositivo ' +
+          'do clique no momento da assinatura, e o cookie deve estar dentro da janela de 90 dias.',
+      },
+      {
+        heading: '5. Mecanismos Anti-Fraude',
+        content:
+          'Aplicamos fingerprint SHA-256 combinando IP + User-Agent + Accept-Language do visitante. Deduplicação ' +
+          'automática de cliques por dispositivo a cada 24 horas (mesmo IP/navegador não conta como clique novo). ' +
+          'Auto-indicação é bloqueada: o sistema verifica se o e-mail do novo cliente é diferente do e-mail do ' +
+          'referrer, se o tenantId é diferente, e se o fingerprint não corresponde ao do referrer. Conversões exigem: ' +
+          'cookie de indicação ativo, assinatura paga confirmada pelo gateway, e-mail do novo cliente diferente do ' +
+          'referrer, e pelo menos 24 horas entre o clique e a conversão.',
+      },
+      {
+        heading: '6. Janela de Confirmação (Anti-Chargeback)',
+        content:
+          'Todo crédito fica em status "pending" por 30 dias após a conversão. Em caso de reembolso, chargeback ' +
+          'ou cancelamento do novo cliente dentro desse período, o crédito é estornado (status "reversed") e não ' +
+          'amortiza a mensalidade do referrer. Após 30 dias sem chargeback, o crédito passa a "confirmed" e fica ' +
+          'disponível para uso imediato. Um job cron diário processa todas as conversões pendentes que completaram ' +
+          '30 dias e as confirma automaticamente.',
+      },
+      {
+        heading: '7. Limite Mensal de Amortização',
+        content:
+          'O referrer pode abater no máximo 50% do valor da própria mensalidade com créditos em cada ciclo. ' +
+          'Créditos excedentes permanecem disponíveis para o mês seguinte. Isso garante que sempre haja um pagamento ' +
+          'mínimo mensal, impedindo que o sistema vire "assinatura gratuita indefinida" e mantendo a sustentabilidade ' +
+          'econômica do programa. Exemplo: mensalidade PRO de R$ 397, máximo de amortização = R$ 198,50.',
+      },
+      {
+        heading: '8. Validade dos Créditos',
+        content:
+          'Créditos não utilizados expiram 12 meses após a data de confirmação. O sistema aplica automaticamente ' +
+          'os créditos mais antigos primeiro (FIFO - First In, First Out) para evitar perda por expiração. ' +
+          'Notificações por e-mail são enviadas 30 dias antes da expiração. Créditos expirados não podem ser ' +
+          'restaurados sob nenhuma circunstância.',
+      },
+      {
+        heading: '9. Regra Especial LITE — Milestone de 10 Conversões',
+        content:
+          'O plano LITE tem apenas 60 dias iniciais de Link-in-Bio gratuito. Ao atingir 10 indicações convertidas ' +
+          '(qualquer plano: LITE, PRO, MAX ou PARCEIRO), o sistema concede automaticamente: (a) 12 meses adicionais ' +
+          'de Link-in-Bio gratuito (totalizando mais 365 dias a partir da data do milestone); (b) acesso permanente ' +
+          'ao sistema de amortização (a partir de então, novas conversões geram créditos normalmente). Esta bonificação ' +
+          'é definitiva e não é revogada mesmo se o plano mudar para PRO/MAX no futuro. O progresso do milestone é ' +
+          'mostrado em tempo real no dashboard.',
+      },
+      {
+        heading: '10. Mudança de Plano',
+        content:
+          'Se o referrer fizer upgrade de LITE para PRO/MAX antes de atingir o milestone de 10 conversões, passa ' +
+          'imediatamente a gerar créditos por novas conversões (antigas continuam contando para o milestone). Os ' +
+          'créditos gerados pós-milestone permanecem válidos. Em caso de downgrade para GRATUITO, créditos existentes ' +
+          'são preservados mas não podem ser aplicados (gratuito não tem mensalidade para amortizar) — ficam congelados ' +
+          'até novo upgrade. Não há perda de créditos por downgrade.',
+      },
+      {
+        heading: '11. Encerramento e Suspensão',
+        content:
+          'O Seu Zélla reserva-se o direito de suspender ou encerrar contas que tentem burlar o sistema de indicação: ' +
+          'auto-indicação, cliques artificiais via bots/proxies, IPs de datacenter conhecidos, farms de contas, e ' +
+          'padrões de uso anômalos. Créditos obtidos fraudulentamente são anulados retroativamente. O programa pode ' +
+          'ser descontinuado com aviso prévio de 30 dias via e-mail e banner no dashboard, preservando créditos já ' +
+          'confirmados para uso até a data de expiração natural.',
+      },
+      {
+        heading: '12. Disposições Finais',
+        content:
+          'Este Programa é uma bonificação opcional e não constitui obrigação contratual. Modificações nas regras ' +
+          'serão comunicadas com 30 dias de antecedência. Caso de dúvida sobre interpretação, prevalece a versão ' +
+          'mais favorável ao referrer. Para esclarecimentos, contate suporte@zehla.com.br. Ao utilizar seus links ' +
+          'de indicação, você concorda com todas as regras aqui descritas.',
+      },
+    ],
+  },
 };
 
 const FALLBACK: LegalDoc = {
@@ -182,6 +296,7 @@ const SLUG_LIST = [
   { slug: 'politica-privacidade', label: 'Política de Privacidade', icon: Lock },
   { slug: 'politica-cobranca', label: 'Política de Cobrança', icon: CreditCard },
   { slug: 'contrato-saas', label: 'Contrato SaaS', icon: Scale },
+  { slug: 'programa-amortizacao', label: 'Programa de Amortização', icon: Scale },
 ];
 
 export default function LegalDocumentPage() {

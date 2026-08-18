@@ -1,0 +1,34 @@
+name: ⚡ High-Load Stress Test @ 75 RPS (300k msgs/dia)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tests/stress-neuro-router.test.ts'
+      - 'src/lib/router/**'
+      - 'src/app/api/webhook-whatsapp/**'
+      - '.github/workflows/stress-test-ci.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  stress-test:
+    name: ZaosNeuroRouter 75 RPS High Concurrency & Tiering Matrix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run 75 RPS High Concurrency & Router Stress Test Suite
+        run: npx vitest run tests/stress-neuro-router.test.ts

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 // Cron: Snapshot performance metrics every 6 hours
 // Triggered by Vercel Cron: 0 */6 * * *
@@ -10,13 +11,8 @@ import { db } from '@/lib/db';
 // Schema: PerformanceSnapshot uses @@unique([tenantId, date]) so each tenant
 // gets its own daily snapshot.
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.log('[Cron:metrics] No auth — skipping');
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
-  }
+  const auth = await verifyCronAuth(request, 'reports:read');
+  if (!auth.ok) return auth.response!;
 
   try {
     const today = new Date().toISOString().split('T')[0];

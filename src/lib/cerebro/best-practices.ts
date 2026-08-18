@@ -19,7 +19,7 @@
 import { db } from '@/lib/db';
 import { logSink } from './log-sink';
 
-// ── Knowledge Chunks ───────────────────────────────────────────────────────
+// ── Knowledge Chunks 
 
 interface KnowledgeEntry {
   sourceRef: string;
@@ -33,7 +33,7 @@ interface KnowledgeEntry {
 }
 
 const BEST_PRACTICES: KnowledgeEntry[] = [
-  // ── NEXT.JS 16 ──────────────────────────────────────────────────────────
+  // ── NEXT.JS 16 
   {
     sourceRef: 'bp:nextjs:server-components',
     filePath: 'nextjs/server-components.md',
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     metadata: { category: 'nextjs', language: 'typescript', tags: ['api-routes', 'webhook', 'rate-limiting', 'serverless'] },
   },
 
-  // ── PRISMA ──────────────────────────────────────────────────────────────
+  // ── PRISMA 
   {
     sourceRef: 'bp:prisma:upsert-race-safe',
     filePath: 'prisma/upsert-race-safe.md',
@@ -216,7 +216,7 @@ const tenant = await db.tenant.findUnique({
     metadata: { category: 'prisma', language: 'typescript', tags: ['select', 'performance', 'security'] },
   },
 
-  // ── WHATSAPP CLOUD API ───────────────────────────────────────────────────
+  // ── WHATSAPP CLOUD API 
   {
     sourceRef: 'bp:whatsapp:hmac-verification',
     filePath: 'whatsapp/hmac-verification.md',
@@ -276,7 +276,7 @@ await sendWhatsAppMessage(guestPhone, result.aiResponse);
     metadata: { category: 'whatsapp', language: 'typescript', tags: ['bundling', 'cost', 'meta', 'qstash'] },
   },
 
-  // ── VERCEL SERVERLESS ────────────────────────────────────────────────────
+  // ── VERCEL SERVERLESS 
   {
     sourceRef: 'bp:vercel:redis-not-memory',
     filePath: 'vercel/redis-not-memory.md',
@@ -341,7 +341,7 @@ return NextResponse.json({ ok: true }); // demora 500ms+
     metadata: { category: 'vercel', language: 'typescript', tags: ['fire-and-forget', 'performance', 'serverless', 'async'] },
   },
 
-  // ── LGPD ────────────────────────────────────────────────────────────────
+  // ── LGPD 
   {
     sourceRef: 'bp:lgpd:opt-out-sync',
     filePath: 'lgpd/opt-out-sync.md',
@@ -375,7 +375,7 @@ SAIR, STOP, PARAR, CANCELAR, DESCADASTRAR, UNSUBSCRIBE, NAOQUERO, REMOVER, OPTOU
     metadata: { category: 'lgpd', language: 'typescript', tags: ['lgpd', 'opt-out', 'consent', 'whatsapp'] },
   },
 
-  // ── SEGURANÇA MULTI-TENANT ───────────────────────────────────────────────
+  // ── SEGURANÇA MULTI-TENANT 
   {
     sourceRef: 'bp:security:multi-tenant-isolation',
     filePath: 'security/multi-tenant-isolation.md',
@@ -438,7 +438,7 @@ const guests = await db.guest.findMany({
   },
 ];
 
-// ── Populator ───────────────────────────────────────────────────────────────
+// ── Populator 
 
 export interface PopulateResult {
   total: number;

@@ -1,0 +1,114 @@
+# /etc/cron.d/seuzella — Cron jobs for Seu Zélla on VPS Hostinger MVK 4
+# ============================================================================
+# IMPORTANTE:
+#   - Substitua https://seuzella.com.br pelo domínio real
+#   - Substitua SEU_CRON_SECRET_AQUI pelo valor de CRON_SECRET no .env
+#   - Os arquivos de log em /var/log/seuzella/ devem ter permissão www-data:www-data
+#   - systemd timers (recomendado) podem ser usados como alternativa
+#
+# INSTALAÇÃO:
+#   sudo cp deploy/vps-crontab /etc/cron.d/seuzella
+#   sudo chown root:root /etc/cron.d/seuzella
+#   sudo chmod 644 /etc/cron.d/seuzella
+#   sudo systemctl reload cron
+# ============================================================================
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+# ─── Variáveis (substitua em produção) ─────────────────────────────────────
+ZELLA_BASE_URL="https://seuzella.com.br"
+ZELLA_CRON_SECRET="SEU_CRON_SECRET_AQUI"
+ZELLA_LOG_DIR="/var/log/seuzella/cron"
+
+# Garantir que diretório de logs existe
+# sudo mkdir -p $ZELLA_LOG_DIR && sudo chown www-data:www-data $ZELLA_LOG_DIR
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 17 CRON JOBS DO CÉREBRO ZÉLLA
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ─── 1. Cérebro Watchdog (a cada 1 minuto) ─────────────────────────────────
+# AnomalyDetector — detecta anomalias em tempo real (4 estratégias)
+* * * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/cerebro-watchdog" > $ZELLA_LOG_DIR/cerebro-watchdog.log 2>&1 || echo "[$(date)] FAIL cerebro-watchdog" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 2. Cérebro Analyze (a cada 15 minutos) ────────────────────────────────
+# GlmCerebroService.analyzeAnomalies — chama GLM 5.2 se houver anomalias
+*/15 * * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/cerebro-analyze" > $ZELLA_LOG_DIR/cerebro-analyze.log 2>&1 || echo "[$(date)] FAIL cerebro-analyze" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 3. Cérebro Budget Forecast (diário 06:00 UTC = 03:00 BRT) ─────────────
+# Forecast de custo Meta para todos tenants ativos
+0 6 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/cerebro-budget-forecast" > $ZELLA_LOG_DIR/cerebro-budget-forecast.log 2>&1 || echo "[$(date)] FAIL cerebro-budget-forecast" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 4. Cérebro Orchestrator (a cada 5 minutos) ────────────────────────────
+# Master loop do Cérebro — coordena todos módulos
+*/5 * * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/cerebro-orchestrator" > $ZELLA_LOG_DIR/cerebro-orchestrator.log 2>&1 || echo "[$(date)] FAIL cerebro-orchestrator" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 5. Cérebro Churn Predict (diário 07:00 UTC) ────────────────────────────
+# Prevê churn de tenants inativos
+0 7 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/cerebro-churn-predict" > $ZELLA_LOG_DIR/cerebro-churn-predict.log 2>&1 || echo "[$(date)] FAIL cerebro-churn-predict" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 6. Cérebro Cleanup (semanal — domingo 02:00 UTC) ──────────────────────
+# Limpa logs antigos, anomaly events expirados
+0 2 * * 0 www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/cerebro-cleanup" > $ZELLA_LOG_DIR/cerebro-cleanup.log 2>&1 || echo "[$(date)] FAIL cerebro-cleanup" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 7. Cérebro Distill (diário 23:00 UTC) ──────────────────────────────────
+# Knowledge distiller — consolida aprendizado em chunks
+0 23 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/cerebro-distill" > $ZELLA_LOG_DIR/cerebro-distill.log 2>&1 || echo "[$(date)] FAIL cerebro-distill" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 8. Cérebro Refactor Check (a cada 6 horas) ─────────────────────────────
+# Verifica erros recorrentes e sugere refactor
+0 */6 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/cerebro-refactor-check" > $ZELLA_LOG_DIR/cerebro-refactor-check.log 2>&1 || echo "[$(date)] FAIL cerebro-refactor-check" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 9. Budget Reset (diário meia-noite UTC) ────────────────────────────────
+# Reseta daily budget guard + verifica ad budgets baixos
+0 0 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/budget-reset" > $ZELLA_LOG_DIR/budget-reset.log 2>&1 || echo "[$(date)] FAIL budget-reset" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 10. Metrics Snapshot (diário 22:00 UTC = 19:00 BRT) ───────────────────
+# Snapshot de métricas diárias (MRR, ocupação, conversão)
+0 22 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/metrics-snapshot" > $ZELLA_LOG_DIR/metrics-snapshot.log 2>&1 || echo "[$(date)] FAIL metrics-snapshot" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 11. Weekly Report (segunda-feira 10:00 UTC = 07:00 BRT) ────────────────
+0 10 * * 1 www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/weekly-report" > $ZELLA_LOG_DIR/weekly-report.log 2>&1 || echo "[$(date)] FAIL weekly-report" >> $ZELLA_LOG_DIR/errors.log
+
+# ═══════════════════════════════════════════════════════════════════════════
+# NOVOS CRONS (Gap 2, 3, 10)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ─── 12. OTA Token Expiry (a cada hora) ──────────────────────────────────────
+# Verifica OAuth tokens Booking.com/Airbnb expirando em < 24h
+0 * * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/ota-token-expiry" > $ZELLA_LOG_DIR/ota-token-expiry.log 2>&1 || echo "[$(date)] FAIL ota-token-expiry" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 13. Plan Expiry (diário 12:00 UTC = 09:00 BRT) ─────────────────────────
+# Verifica trials/assinaturas expirando em 3 dias ou 24h
+0 12 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/plan-expiry" > $ZELLA_LOG_DIR/plan-expiry.log 2>&1 || echo "[$(date)] FAIL plan-expiry" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 14. Booking Daily (diário 09:00 UTC = 06:00 BRT) ──────────────────────
+# Dispara notificações de checkin_today e checkout_today
+0 9 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/booking-daily" > $ZELLA_LOG_DIR/booking-daily.log 2>&1 || echo "[$(date)] FAIL booking-daily" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 15. Payment Overdue (a cada 6 horas) ──────────────────────────────────
+# Verifica pagamentos pendentes há mais de 24h
+0 */6 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/payment-overdue" > $ZELLA_LOG_DIR/payment-overdue.log 2>&1 || echo "[$(date)] FAIL payment-overdue" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 16. Achievements Check (diário 03:30 UTC = 00:30 BRT) ──────────────────
+# Verifica se tenants atingiram milestones (first_booking, 10, 100, revenue_record, partner_level_up)
+30 3 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/achievements-check" > $ZELLA_LOG_DIR/achievements-check.log 2>&1 || echo "[$(date)] FAIL achievements-check" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 17. Plan Limits Check (diário 11:00 UTC = 08:00 BRT) ───────────────────
+# Verifica limites LITE (50 hóspedes, 500 mensagens) em 80% e 100%
+0 11 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/plan-limits-check" > $ZELLA_LOG_DIR/plan-limits-check.log 2>&1 || echo "[$(date)] FAIL plan-limits-check" >> $ZELLA_LOG_DIR/errors.log
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LOG ROTATION (rotação semanal dos logs)
+# ═══════════════════════════════════════════════════════════════════════════
+0 3 * * 0 www-data find $ZELLA_LOG_DIR -name "*.log" -mtime +7 -delete 2>/dev/null
+
+# ─── 18. Link-in-Bio Expiry Check (diário 13:00 UTC = 10:00 BRT) ───────────
+# Verifica Link-in-Bio de LITE: dia 58 avisa, dia 60 desativa + oferece addon R$47
+0 13 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/linkinbio-expiry-check" > $ZELLA_LOG_DIR/linkinbio-expiry-check.log 2>&1 || echo "[$(date)] FAIL linkinbio-expiry-check" >> $ZELLA_LOG_DIR/errors.log
+
+# ─── 19. Learning Cycle (diário 07:00 UTC = 04:00 BRT) ─────────────────────
+# Consolida aprendizado: DPO pairs trained, effectiveness recalculated, anti-patterns
+0 7 * * * www-data curl -fsS -H "Authorization: Bearer $ZELLA_CRON_SECRET" "$ZELLA_BASE_URL/api/cron/learning-cycle" > $ZELLA_LOG_DIR/learning-cycle.log 2>&1 || echo "[$(date)] FAIL learning-cycle" >> $ZELLA_LOG_DIR/errors.log

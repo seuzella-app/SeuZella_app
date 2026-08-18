@@ -11,15 +11,13 @@
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+import { withSecurity, type SecurityContext } from '@/lib/security/api-shield';
 import { sendTestAlert } from '@/lib/cerebro/alert-bus';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import type { Severity } from '@/lib/cerebro/types';
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  // ── Auth ZCC ──
-  const security = await verifyZCCAccessOrReject(request);
-  if (!security.allowed) return security.response!;
+async function postHandler(request: NextRequest, _ctx: SecurityContext): Promise<NextResponse> {
+  // (auth já validada pelo withSecurity — V11-P0.7)
 
   try {
     const body = await request.json().catch(() => ({}));
@@ -64,10 +62,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  // ── Auth ZCC ──
-  const security = await verifyZCCAccessOrReject(request);
-  if (!security.allowed) return security.response!;
+async function getHandler(request: NextRequest, _ctx: SecurityContext): Promise<NextResponse> {
+  // (auth já validada pelo withSecurity — V11-P0.7)
 
   // GET apenas mostra status do AlertBus sem disparar
   const mode = getCerebroMode();
@@ -87,3 +83,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       : 'Modo LIVE ativo. POST com body { "severity": "warning" } para disparar alerta de teste.',
   });
 }
+
+// V11-P0.7: exports wrapped com withSecurity + auth zcc-admin
+export const POST = withSecurity(postHandler, {
+  auth: 'zcc-admin',
+  routeLabel: 'zcc-cerebro-test-alert-post',
+});
+
+export const GET = withSecurity(getHandler, {
+  auth: 'zcc-admin',
+  routeLabel: 'zcc-cerebro-test-alert-get',
+});

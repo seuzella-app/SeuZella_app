@@ -1,0 +1,41 @@
+name: CI - Full E2E Cascade, Pentest & Cérebro Zélla Live Monitor
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/ci-e2e-full-cascade.yml'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-cascade-test:
+    name: Run Full E2E Cascade & Pentest Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Typecheck TypeScript Code
+        run: npx tsc --noEmit
+
+      - name: Execute E2E Cascade & Cérebro Zélla Test Suite
+        run: npx vitest run tests/e2e-cascade-full.test.ts

@@ -74,7 +74,7 @@ export function PainPointsSection() {
           </h2>
 
           <p className="text-neutral-300 text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed font-normal">
-            Esqueça bots robóticos de IA genéricos. O Zélla combina atendimento humanizado em tempo real no WhatsApp, precificação inteligente de diárias e controle financeiro total no DDC.
+            Esqueça bots robóticos de IA genéricos. O Zélla combina atendimento humanizado em tempo real no WhatsApp, precificação inteligente de diárias e controle financeiro total no Dashboard.
           </p>
         </motion.div>
 

@@ -14,8 +14,9 @@ import { getBundlerStats } from '@/lib/message-bundler';
 import { getMetaCostSavings, checkMetaBudget } from '@/lib/meta-cost-guard';
 import { getEffectivePlan } from '@/lib/plan-resolver';
 import { sendEmail } from '@/lib/email-sender';
+import { verifyCronM2MToken, auditCronExecution } from '@/lib/security/cron-auth';
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// ── Types 
 
 interface WeeklyReportData {
   propertyName: string;
@@ -60,7 +61,7 @@ interface TenantReportResult {
   error?: string;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 function daysUntilOctober2026(): number {
   const now = new Date();
@@ -84,7 +85,7 @@ function formatBrl(value: number): string {
   });
 }
 
-// ── Data Gathering ─────────────────────────────────────────────────────────────
+// ── Data Gathering 
 
 async function gatherWeeklyData(
   tenantId: string,
@@ -168,7 +169,7 @@ async function gatherWeeklyData(
     getEffectivePlan(tenantId),
   ]);
 
-  // ── Calculate metrics ───────────────────────────────────────────────────────
+  // ── Calculate metrics 
 
   // Response time
   const avgDurationMs =
@@ -278,7 +279,7 @@ async function gatherWeeklyData(
   };
 }
 
-// ── Email HTML Template ────────────────────────────────────────────────────────
+// ── Email HTML Template 
 
 function generateReportHtml(data: WeeklyReportData): string {
   const {
@@ -578,24 +579,20 @@ function generateReportHtml(data: WeeklyReportData): string {
   `.trim();
 }
 
-// ── Main Handler ───────────────────────────────────────────────────────────────
+// ── Main Handler 
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   console.log('[Cron:weekly-report] Starting weekly email report batch...');
 
-  // ── Step 1: Authorization ─────────────────────────────────────────────────
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json(
-      { ok: false, error: 'Unauthorized — invalid CRON_SECRET' },
-      { status: 401 }
-    );
+  // ── Step 1: Authorization M2M EdDSA (V11-P0) 
+  const auth = await verifyCronM2MToken(request, 'reports:read');
+  if (!auth.ok) {
+    return auth.response;
   }
+  const principal = auth.principal;
 
-  // ── Step 2: Check database availability ───────────────────────────────────
+  // ── Step 2: Check database availability 
   const dbAvailable = await isDatabaseAvailable();
   if (!dbAvailable) {
     console.warn('[Cron:weekly-report] Database unavailable — skipping reports');
@@ -607,7 +604,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // ── Step 3: Find all active, paying tenants ──────────────────────────────
+  // ── Step 3: Find all active, paying tenants 
   const tenants = await db.tenant.findMany({
     where: {
       status: 'active',
@@ -628,7 +625,7 @@ export async function GET(request: NextRequest) {
     `[Cron:weekly-report] Found ${tenants.length} active paying tenants`
   );
 
-  // ── Step 4: Calculate date range (last 7 days) ──────────────────────────
+  // ── Step 4: Calculate date range (last 7 days) 
   const now = new Date();
   const weekEnd = new Date(now);
   weekEnd.setHours(23, 59, 59, 999);
@@ -636,7 +633,7 @@ export async function GET(request: NextRequest) {
   weekStart.setDate(weekStart.getDate() - 7);
   weekStart.setHours(0, 0, 0, 0);
 
-  // ── Step 5: Process each tenant ──────────────────────────────────────────
+  // ── Step 5: Process each tenant 
   const results: TenantReportResult[] = [];
 
   for (const tenant of tenants) {
@@ -701,7 +698,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // ── Step 6: Summary ──────────────────────────────────────────────────────
+  // ── Step 6: Summary 
   const sentCount = results.filter((r) => r.sent).length;
   const failedCount = results.filter((r) => !r.sent).length;
   const noEmailCount = results.filter((r) => r.email === null).length;
@@ -711,7 +708,19 @@ export async function GET(request: NextRequest) {
     `[Cron:weekly-report] Batch complete: ${sentCount} sent, ${failedCount} failed, ${noEmailCount} no email — ${elapsedMs}ms`
   );
 
-  // ── Cérebro: roda budget forecast global para detectar tenants em risco ──
+  // ── Auditoria M2M (V11-P0) 
+  await auditCronExecution({
+    prisma: db,
+    tenantId: 'system',
+    principal,
+    entryPoint: 'glm_cerebro',
+    policyId: 'cron:weekly-report',
+    severity: 'info',
+    action: 'allow',
+    latencyMs: elapsedMs,
+  }).catch(err => console.error('[Cron:weekly-report] audit log failed:', err));
+
+  // ── Cérebro: roda budget forecast global para detectar tenants em risco 
   // Em modo mock apenas registra no DB. Em live mode + critical dispara alertas.
   let cerebroForecast: { tenantsAtRisk: number; analysesCreated: number } | null = null;
   try {

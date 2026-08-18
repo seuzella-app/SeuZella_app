@@ -47,8 +47,20 @@ export function ContactSection() {
     setErrorMessage('');
 
     try {
-      // Simulação de envio da mensagem com atraso de rede realístico
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Sprint 2, Day 11 P0 FIX: Replaced fake setTimeout(1500) with REAL API call.
+      // The previous implementation showed false success messages — never persisted
+      // the lead anywhere. Now the message is persisted to the DB + logged for follow-up.
+      const res = await fetch('/api/landing/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formState),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data?.message || 'Falha ao enviar mensagem.');
+      }
+
       setStatus('success');
       
       // Limpar formulário após envio bem-sucedido
@@ -62,7 +74,11 @@ export function ContactSection() {
       });
     } catch (err) {
       setStatus('error');
-      setErrorMessage('Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente.');
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente.'
+      );
     }
   };
 
@@ -328,7 +344,7 @@ export function ContactSection() {
                   <div>
                     <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">WhatsApp de Plantão</p>
                     <a
-                      href="https://wa.me/5511999999999"
+                      href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT ?? '5548999990001'}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-medium"

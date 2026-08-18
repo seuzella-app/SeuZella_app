@@ -18,6 +18,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sanitizeObject, validatePayloadSize, SanitizationResult } from './input-sanitizer';
 import { apiRatelimit, authRatelimit, RatelimitInstance } from '@/lib/rate-limit';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 
 // ── Configuration ──
 
@@ -83,6 +84,14 @@ export interface SecurityOptions {
   isAuthRoute?: boolean;
   /** Custom label for logging */
   routeLabel?: string;
+  /**
+   * V11-P0.7 — Authentication mode for the route.
+   * - 'zcc-admin': calls verifyZCCAccessOrReject (admin Zélla only)
+   * - undefined: legacy behavior (no enforced auth in shield)
+   *
+   * Future: 'nextauth' | 'cron-m2m' | 'public'
+   */
+  auth?: 'zcc-admin';
 }
 
 export interface SecurityContext {
@@ -93,7 +102,7 @@ export interface SecurityContext {
   rateLimitResult: { success: boolean; remaining: number; reset: number } | null;
 }
 
-type ApiHandler = (request: NextRequest, context: SecurityContext) => Promise<NextResponse>;
+type ApiHandler = (request: NextRequest, context: SecurityContext) => Promise<NextResponse | Response>;
 
 /**
  * Wraps an API route handler with full Zero Trust security.
@@ -222,20 +231,50 @@ export function withSecurity(
       }
     }
 
-    // ── 5. EXECUTE HANDLER ──
+    // ── 5. AUTH GATE (V11-P0.7) ──
+    // Quando options.auth === 'zcc-admin', aplica verifyZCCAccessOrReject
+    // (admin Zélla apenas). Em rejeição, retorna a response 404 silenciosa
+    // (padrão do zcc-security para não vazar info de existência da rota).
+    if (options.auth === 'zcc-admin') {
+      try {
+        const zccResult = await verifyZCCAccessOrReject(request);
+        if (!zccResult.allowed) {
+          // Repassa a response do zcc-security (já com headers 404 + audit)
+          const rejectResponse = zccResult.response
+            ?? NextResponse.json({ error: 'Not found' }, { status: 404 });
+          // Injeta security headers na response de rejeição
+          for (const [key, value] of Object.entries(securityHeaders(requestId))) {
+            rejectResponse.headers.set(key, value);
+          }
+          return rejectResponse;
+        }
+      } catch (authError) {
+        console.error(`[API_SHIELD] ZCC auth error on ${pathname}:`, authError);
+        return NextResponse.json(
+          { error: 'AUTH_ERROR', requestId },
+          { status: 500, headers: securityHeaders(requestId) }
+        );
+      }
+    }
+
+    // ── 6. EXECUTE HANDLER ──
     try {
       const response = await handler(request, ctx);
 
-      // Inject security headers into response
+      // Inject security headers into response (suporta NextResponse e Response nativo)
       const headers = securityHeaders(requestId);
       if (ctx.rateLimitResult) {
         headers['X-RateLimit-Remaining'] = String(ctx.rateLimitResult.remaining);
       }
       for (const [key, value] of Object.entries(headers)) {
-        response.headers.set(key, value);
+        try {
+          response.headers.set(key, value);
+        } catch {
+          // Algumas responses (streaming) podem não permitir set após envio
+        }
       }
 
-      return response;
+      return response as NextResponse;
     } catch (error) {
       console.error(`[API_SHIELD] Handler error on ${pathname}:`, error);
       return NextResponse.json(

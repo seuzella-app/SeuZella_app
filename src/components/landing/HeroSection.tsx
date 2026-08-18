@@ -91,7 +91,7 @@ export function HeroSection() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 lg:px-10 pt-28 pb-12 sm:pt-36 sm:pb-16 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 pt-28 pb-12 sm:pt-36 sm:pb-16 w-full">
         <div className="flex flex-col items-center text-center">
 
           {/* ── Text Content — Staggered Entrance ── */}
@@ -101,62 +101,63 @@ export function HeroSection() {
             animate="visible"
             className="flex flex-col items-center max-w-5xl mx-auto w-full"
           >
-            {/* Badge — eyebrow */}
-            <motion.div variants={staggerItem} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] mb-6">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400 text-xs font-bold uppercase tracking-[0.05em]">
-                Deixa com o Zélla
-              </span>
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            {/* HOTSPOT 1: Niche Switcher Toggle at the very top */}
+            <motion.div
+              variants={staggerItem}
+              className="flex flex-col items-center gap-2 mb-6"
+            >
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 shadow-lg shadow-emerald-500/10">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-300 text-xs font-bold uppercase tracking-wider">
+                  Selecione o seu perfil de atendimento:
+                </span>
+              </div>
+              <NicheToggle niche={niche} onNicheChange={setNiche} />
             </motion.div>
 
-            {/* Headline — 3 Explicite Lines as requested */}
+            {/* Headline — Dynamic Pure Niche Copy com Degradê Azul Claro + Verde no Destaque */}
             <motion.h1
               variants={staggerItem}
-              className="text-[2.2rem] sm:text-[3.2rem] md:text-[4rem] lg:text-[4.75rem] font-satoshi font-extrabold tracking-[-0.03em] md:tracking-[-0.04em] leading-[1.08] text-white mb-6 text-center max-w-5xl mx-auto flex flex-col items-center justify-center gap-1 sm:gap-2"
+              key={`headline-${niche}`}
+              className="text-[2.2rem] sm:text-[3.2rem] md:text-[3.8rem] lg:text-[4.2rem] font-satoshi font-extrabold tracking-[-0.03em] md:tracking-[-0.04em] leading-[1.12] text-white mb-6 text-center max-w-4xl mx-auto"
             >
-              <span className="block text-white">Ele responde e organiza.</span>
-              <span className="block text-white/95">Economiza tempo e dinheiro.</span>
-              <span className="block bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent drop-shadow-sm">
-                Reservas diretas com o Zélla.
-              </span>
+              {isPousada ? (
+                <>
+                  <span className="text-white">Transforme o WhatsApp da sua Pousada numa </span>
+                  <span className="bg-gradient-to-r from-sky-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
+                    Recepção Inteligente 24 horas com o Seu Zélla.
+                  </span>
+                </>
+              ) : (
+                <span className="block bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
+                  {content.switcher.headline}
+                </span>
+              )}
             </motion.h1>
 
-            {/* Subtitle — Updated copy */}
-            <motion.p variants={staggerItem} className="text-[15px] sm:text-[17px] md:text-lg text-neutral-300 leading-relaxed mb-8 max-w-3xl mx-auto font-normal">
-              O Zélla ajuda a lucrar mais com preços inteligentes e gastar menos no WhatsApp (sim, o Whatsapp vai cobrar). Responde 24h por dia e manda sua chave PIX para o hóspede. Você vai ter total controle financeiro em seu Dashboard.
+            {/* Subtitle — Dynamic Pure Niche Copy */}
+            <motion.p
+              variants={staggerItem}
+              key={`sub-${niche}`}
+              className="text-[16px] sm:text-[18px] md:text-xl text-zinc-300 leading-relaxed mb-8 max-w-3xl mx-auto font-normal"
+            >
+              {content.switcher.subheadline}
             </motion.p>
 
             {/* Hero stat chip */}
             <motion.div variants={staggerItem} className="mb-8 flex justify-center">
               <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-xl border ${
                 isPousada
-                  ? 'bg-emerald-500/[0.08] border-emerald-500/20'
-                  : 'bg-blue-500/[0.08] border-blue-500/20'
+                  ? 'bg-emerald-500/[0.08] border-emerald-500/30 text-emerald-400'
+                  : 'bg-blue-500/[0.08] border-blue-500/30 text-blue-400'
               }`}>
-                <span className={`text-2xl sm:text-3xl font-black tracking-tight ${
-                  isPousada ? 'text-emerald-400' : 'text-blue-400'
-                }`}>
+                <span className="text-2xl sm:text-3xl font-black tracking-tight">
                   {content.switcher.heroStat.val}
                 </span>
-                <span className="text-neutral-300 text-xs sm:text-sm font-semibold text-left">
+                <span className="text-zinc-300 text-xs sm:text-sm font-semibold text-left">
                   {content.switcher.heroStat.label}
                 </span>
               </div>
-            </motion.div>
-
-            {/* ── Niche Switcher — Escolha seu perfil ── */}
-            <motion.div
-              variants={staggerItem}
-              className="flex flex-col items-center gap-4 mb-6"
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.04]">
-                <Sparkles className="w-3 h-3 text-emerald-400" />
-                <span className="text-neutral-400 text-[11px] font-semibold uppercase tracking-[0.03em]">
-                  Escolha seu perfil
-                </span>
-              </div>
-              <NicheToggle niche={niche} onNicheChange={setNiche} />
             </motion.div>
 
             {/* ── Social proof ── */}

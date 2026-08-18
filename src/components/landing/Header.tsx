@@ -135,7 +135,7 @@ export function Header() {
           : 'bg-transparent py-5'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-10 flex items-center justify-between gap-6 md:gap-8 lg:gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 flex items-center justify-between gap-4 sm:gap-6 md:gap-8 lg:gap-10">
         {/* ── Brand Logo ─────────────────────────────────────────────────── */}
         <Link
           href="/"
@@ -155,10 +155,10 @@ export function Header() {
                 key={link.name}
                 href={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium tracking-[-0.01em] rounded-[8px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 ${accent.ring} focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+                className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-bold tracking-[-0.01em] rounded-[8px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 ${accent.ring} focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
                   isActive
                     ? `${accent.text}`
-                    : 'text-white/60 hover:text-white/90'
+                    : 'text-white hover:text-emerald-400'
                 }${link.lgOnly ? ' hidden lg:inline-flex' : ''}`}
               >
                 {/* Active dot indicator */}

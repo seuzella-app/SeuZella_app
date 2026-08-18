@@ -8,15 +8,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { canAddProperty, getMaxProperties } from '@/lib/features';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { requireTenantId } from '@/lib/security/tenant-context';
+import { withApiGuard } from '@/lib/security/api-guard';
 
 // Demo tenant ID (in production, this would come from auth)
 const DEMO_TENANT_ID = 'demo';
 
 async function getTenantId(request: NextRequest): Promise<string | null> {
-  // TODO: In production, extract from auth session
-  // For now, find the first tenant
-  const tenant = await db.tenant.findFirst({ where: { status: 'active' } });
-  return tenant?.id ?? null;
+  // Primeiro tenta NextAuth session (usuário autenticado)
+  try {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.tenantId) {
+      return session.user.tenantId as string;
+    }
+  } catch {
+    // sessão inválida — continua para fallback
+  }
+
+  // Fallback desenvolvimento (BYPASS_MIDDLEWARE_AUTH)
+  if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true' && process.env.NODE_ENV !== 'production') {
+    const tenant = await db.tenant.findFirst({ where: { status: 'active' } });
+    return tenant?.id ?? null;
+  }
+
+  // Produção sem sessão → rejeita
+  return null;
 }
 
 export async function GET(request: NextRequest) {

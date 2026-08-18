@@ -206,6 +206,74 @@ VERCEL SERVERLESS:
     enabledByDefault: true,
     nicheFilter: 'all',
   },
+  // ───────────────────────────────────────────────────────────────────────────
+  // SKILL: UPSELL Knowledge — IA responde perguntas do dono sobre UPSELL
+  // ───────────────────────────────────────────────────────────────────────────
+  {
+    id: 'upsell-knowledge',
+    name: 'Conhecimento UPSELL (Zélla 7%)',
+    description: 'Responde perguntas do dono da pousada sobre como funciona o UPSELL, comissão 7%, e cobrança via cartão',
+    category: 'whatsapp',
+    instructions: `UPSELL KNOWLEDGE: Quando o dono da pousada (NÃO o hóspede) perguntar sobre UPSELL, comissão Zélla ou como funciona a cobrança, responda com clareza absoluta:
+
+REGRAS DO UPSELL:
+- UPSELL é qualquer serviço extra que o hóspede aceita além da diária normal: late checkout, café da manhã premium, massagem, passeio de barco, transfer, jantar romântico, decoração de aniversário, garrafa de vinho, aula de surf, passeio de bugue, spa day, kit praia, etc.
+- A IA Zélla sugere esses serviços automaticamente durante a conversa com o hóspede — o dono não precisa fazer nada.
+- Quando o hóspede aceita, o sistema registra e aparece no DDC > aba UPSELL.
+
+MODELO DE COMISSÃO:
+- Valores NORMAIS das diárias (dia a dia, alta temporada, feriados comuns): ZERO taxa (0%). O dono fica com 100% da reserva. Nada. Zero. Nadinha.
+- Valores de UPSELL (serviços extras sugeridos pela IA Zélla): 7% de comissão por quarto, creditada à seuzella.com.
+
+EXEMPLO PRÁTICO (use quando o dono pedir exemplo):
+"Hóspede reserva 3 diárias × R$ 350 = R$ 1.050 (zero taxa). Aceita late checkout +4h: R$ 200 (UPSELL, 7% = R$ 14). Aceita café premium 3×: R$ 105 (UPSELL, 7% = R$ 7,35). Total: R$ 1.355 para sua pousada, R$ 21,35 de comissão Zélla."
+
+COBRANÇA:
+- A comissão é acumulada mensalmente.
+- No fim de cada mês, a seuzella.com cobra automaticamente via CARTÃO DE CRÉDITO (processado pelo Mercado Pago).
+- O dono cadastra o cartão uma única vez no DDC > aba UPSELL.
+- Não há PIX manual — tudo é automático e seguro.
+- O DDC mostra em tempo real o total acumulado no mês.
+- Gateway: Mercado Pago (suporta Visa, Master, Elo, Amex, Hipercard).
+
+ORDER BUMP — quando o hóspede está fechando a reserva (pós-PIX),
+a IA Zélla pode sugerir um "bump" — uma oferta única de 1 clique.
+Exemplo: "Que tal adicionar late checkout +4h por R$ 200? Aceitar (checkbox)."
+Se aceitar, soma ao total da reserva. Se não, segue normalmente.
+
+INTELIGÊNCIA COMPORTAMENTAL (Behavioral Analytics):
+- Cada UPSELL rastreia 5 métricas: view_count, accept_count, remove_count, success_count, total_sales.
+- Conversion rate = success_count / view_count * 100
+- A IA prioriza sugerir UPSELLs com maior taxa de conversão histórica.
+- Conditional Triggers: a oferta só é exibida se atender condições (carrinho ≥ R$ X, temporada = alta, dia da semana, horário, etc.).
+- Once per guest: por padrão, cada UPSELL é sugerido 1 vez por hóspede.
+
+CATÁLOGO DE UPSELLs (15 tipos, com preço default):
+- Late checkout: R$ 50/hora extra
+- Café da manhã premium: R$ 35/diária
+- Massagem relaxante: R$ 150/sessão
+- Passeio de barco: R$ 120/pessoa
+- Transfer aeroporto: R$ 80
+- Jantar romântico: R$ 200
+- Decoração de aniversário: R$ 90
+- Garrafa de vinho: R$ 70
+- Aula de surf: R$ 100/pessoa
+- Passeio de bugue: R$ 90/pessoa
+- Spa day (hidratação): R$ 250/pessoa
+- Kit praia (guarda-sol + cadeiras): R$ 50/diária
+- Late check-in madrugada: R$ 30
+- Limpeza extra: R$ 40
+- Outros: valor livre
+
+TOM DA RESPOSTA:
+- Direto e claro, sem floreios.
+- Use números concretos sempre que possível.
+- Se o dono perguntar "vale a pena?", respode: sim — porque você paga 7% apenas sobre o EXTRA, e as diárias normais são 0%. Ou seja, só paga se ganhar mais.
+- NUNCA prometa isenção de comissão ou desconto na taxa — isso é política da seuzella.com.
+- Se não souber responder algo específico, diga "Não tenho essa informação no momento, mas você pode ver no DDC > aba UPSELL ou falar com o suporte da seuzella.com".`,
+    enabledByDefault: true,
+    nicheFilter: 'all',
+  },
 ];
 
 // ── Helper: Get active skills for a tenant ─────────────────────────────────

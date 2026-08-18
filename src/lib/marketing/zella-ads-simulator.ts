@@ -573,3 +573,32 @@ export class ZellaAdsSimulator {
     };
   }
 }
+
+/**
+ * INTEGRAÇÃO COM O PLAYBOOK DE ESTRUTURAÇÃO COMERCIAL (FULL SALES SYSTEM)
+ * Mapeamento dos grupos de anúncios Google Ads aos roteiros de SPIN Selling e esteira de produtos.
+ */
+export const FULL_SALES_SYSTEM_ADS_INTEGRATION = {
+  productTierMatrix: {
+    isca: { name: 'VSL Diagnóstico + Teste WhatsApp', price: 0, target: 'Leads de Topo de Funil / Ads' },
+    frontEnd: { name: 'Plano PRO (Carro Chefe)', price: 397, target: 'Pousadas 6 a 12 quartos / Anfitriões' },
+    parceiroPro: { name: 'Plano Zélla Parceiro PRO', price: 247, target: 'Primeiras 100 pousadas da região' },
+    backEnd: { name: 'Conciliação PIX + Locks API', price: 150, target: 'Clientes ativos buscando automação total' },
+    highEnd: { name: 'Imersão & Mentoria Hoteleira', price: 2500, target: 'Grandes redes e gerenciadores de >15 imóveis' },
+  },
+
+  spinSellingByAdsGroup: {
+    1: { group: 'Madrugada', spinStage: 'Implicação', question: 'Quantas reservas você perdeu no mês passado por responder apenas de manhã?' },
+    2: { group: 'Distância', spinStage: 'Problema', question: 'Como você faz para entregar senhas quando o hóspede chega fora do horário?' },
+    3: { group: 'Overbooking', spinStage: 'Implicação', question: 'Qual foi o prejuízo financeiro e em nota da pousada no último overbooking?' },
+    4: { group: 'PIX Manual', spinStage: 'Necessidade', question: 'Se o PIX do hóspede fosse validado em 5s, quanto tempo sua equipe economizaria?' },
+    5: { group: 'Concorrência', spinStage: 'Situação', question: 'Em quanto tempo a sua pousada responde o primeiro contato no WhatsApp?' },
+    6: { group: 'Feriado', spinStage: 'Problema', question: 'Como sua recepção lida com 50 cotações simultâneas antes do feriado?' },
+    7: { group: 'Fechadura Eletrônica', spinStage: 'Necessidade', question: 'Gostaria que o Seu Zélla enviasse o PIN da fechadura assim que a reserva for paga?' },
+    8: { group: 'Remarketing', spinStage: 'Fechamento', question: 'Pronto para transformar seu WhatsApp em um canal 24h sem comissão das OTAs?' },
+  },
+
+  slaResponseSeconds: 10,
+  sdrHandoffThresholdRooms: 6, // Pousadas com >6 quartos agendam call com Closer humano
+};
+

@@ -41,6 +41,7 @@ import {
   getCerebroMode,
 } from './types';
 import { callOpenAICompatible, type AdapterMessage } from '@/lib/ai/llm-adapters';
+import { getAgencyPrompt, LGPD_CHECK_PROMPT, type ZellaAgentId } from './agency-agents-catalog';
 
 // ── Configuração ────────────────────────────────────────────────────────────
 
@@ -678,9 +679,105 @@ Responda em JSON com exatamente esta estrutura:
       hasApiKey: !!this.config.apiKey,
     };
   }
-}
 
-// ── Singleton instance ─────────────────────────────────────────────────────
+  /**
+   * Run with Agency Agent — Executa uma chamada LLM usando a personalidade
+   * de um agency-agent especialista (importado do repo msitarzewski/agency-agents).
+   *
+   * Substitui system prompts genéricos por personalidades específicas:
+   *   - 'cerebro-agent' → AI-Generated Code Security Auditor
+   *   - 'leads-agent' → Sales Pipeline Analyst
+   *   - 'finance-agent' → Financial Analyst
+   *   - ... (12 agentes total)
+   *
+   * LGPD_CHECK_PROMPT é automaticamente anexado como guarda transversal.
+   *
+   * @example
+   *   const result = await service.runWithAgent('leads-agent', {
+   *     userMessage: 'Analise estes 5 leads novos...',
+   *   });
+   */
+  async runWithAgent(
+    agentId: ZellaAgentId,
+    params: {
+      userMessage: string;
+      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+      temperature?: number;
+      maxTokens?: number;
+      jsonMode?: boolean;
+    },
+  ): Promise<{
+    content: string;
+    inputTokens: number;
+    outputTokens: number;
+    costUsd: number;
+    agentId: ZellaAgentId;
+    model: string;
+    mode: 'mock' | 'live';
+  }> {
+    const agencyPrompt = getAgencyPrompt(agentId);
+    const fullSystemPrompt = `${agencyPrompt}\n\n${LGPD_CHECK_PROMPT}`;
+
+    const messages: AdapterMessage[] = [
+      { role: 'system', content: fullSystemPrompt },
+      ...(params.history ?? []).map(m => ({ role: m.role, content: m.content } as AdapterMessage)),
+      { role: 'user', content: params.userMessage },
+    ];
+
+    // Modelo recomendado para este agente
+    const model = process.env.GLM_MODEL || 'glm-5.2';
+
+    if (this.mode === 'mock' || !this.config.apiKey) {
+      // Modo mock — retorna resposta sintética
+      return {
+        content: `[MOCK MODE — Agente: ${agentId}]\n\nEm modo live, esta mensagem seria gerada pelo GLM 5.2 com a personalidade do agency-agent "${agentId}".\n\nInput recebido: ${params.userMessage.slice(0, 200)}...`,
+        inputTokens: 0,
+        outputTokens: 0,
+        costUsd: 0,
+        agentId,
+        model,
+        mode: 'mock',
+      };
+    }
+
+    try {
+      const response = await callOpenAICompatible({
+        apiKey: this.config.apiKey,
+        baseUrl: this.config.baseUrl,
+        model,
+        messages,
+        temperature: params.temperature ?? 0.3,
+        maxTokens: params.maxTokens ?? 1500,
+        jsonMode: params.jsonMode ?? false,
+      });
+
+      const costUsd =
+        (response.inputTokens * 0.00140 + response.outputTokens * 0.00440) / 1000;
+
+      return {
+        content: response.content,
+        inputTokens: response.inputTokens,
+        outputTokens: response.outputTokens,
+        costUsd,
+        agentId,
+        model,
+        mode: 'live',
+      };
+    } catch (err: any) {
+      // Fallback gracioso para mock em caso de erro
+      console.warn(`[GLM_SERVICE] Agency agent ${agentId} falhou, usando mock:`, err?.message);
+      return {
+        content: `[FALLBACK MOCK — Agente: ${agentId}]\n\nGLM 5.2 indisponível (${err?.message ?? 'erro desconhecido'}).\n\nInput: ${params.userMessage.slice(0, 200)}...`,
+        inputTokens: 0,
+        outputTokens: 0,
+        costUsd: 0,
+        agentId,
+        model,
+        mode: 'mock',
+      };
+    }
+  }
+}
 
 let singletonService: GlmCerebroService | null = null;
 

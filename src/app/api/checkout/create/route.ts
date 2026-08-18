@@ -197,11 +197,9 @@ export async function POST(request: NextRequest) {
               email: email,
               phone: phone || null,
               niche: niche,
-              plan: 'gratuito', // Será atualizado pelo webhook quando pagamento confirmar
+              plan: 'lite', // Plano inicial — atualizado pelo webhook quando pagamento confirmar
               status: 'active',
               role: 'owner',
-              trialStart: new Date(),
-              trialEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias trial
             },
           });
           tenantId = newTenant.id;
@@ -258,33 +256,11 @@ export async function POST(request: NextRequest) {
         paymentMethod,
         amount,
         paymentStatus: 'pending',
-        trialStart: planType === 'gratuito' ? new Date() : null,
-        trialEnd: planType === 'gratuito' ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : null,
       },
     });
 
-    // ── Plano Gratuito: ativação imediata ───────────────────────────────────
-    if (planType === 'gratuito') {
-      await db.subscription.update({
-        where: { id: subscription.id },
-        data: { status: 'active', paymentStatus: 'approved' },
-      });
-      await db.tenant.update({
-        where: { id: tenantId },
-        data: { plan: 'gratuito', subscriptionAt: new Date() },
-      });
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          subscriptionId: subscription.id,
-          redirectUrl: '/ddc',
-          planType: 'gratuito',
-          amount: 0,
-          message: 'Trial iniciado com sucesso!',
-        },
-      });
-    }
+    // ── Ativação imediata para pagamentos confirmados (sem trial) ──────────
+    // (Após pagamento ser confirmado pelo webhook, o status muda para 'active')
 
     // ── Step 4: Build do Payload Padronizado ────────────────────────────────
     const checkoutPayload = buildCheckoutPayload({

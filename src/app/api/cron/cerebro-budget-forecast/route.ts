@@ -22,6 +22,10 @@ import { getCerebroMode } from '@/lib/cerebro/types';
 import { getGlmCerebroService } from '@/lib/cerebro/glm-service';
 import { dispatchAlert } from '@/lib/cerebro/alert-bus';
 import type { CerebroAnalysisResult } from '@/lib/cerebro/types';
+import { verifyCronM2MToken, auditCronExecution } from '@/lib/security/cron-auth';
+import { db } from '@/lib/db';
+// Notification bridge — Phase 2: pushes budget forecast alerts into DDC for the tenant
+import { bridgeCerebroAlert } from '@/lib/notifications/bridges';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return runBudgetForecast(request);
@@ -35,12 +39,12 @@ async function runBudgetForecast(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
   const mode = getCerebroMode();
 
-  // ── Auth (fail-open para cron visibility, log se mismatch) ──
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization');
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[cerebro-budget-forecast] Auth mismatch — running anyway');
+  // ── Auth M2M EdDSA (V11-P0) — fail-closed ──
+  const auth = await verifyCronM2MToken(request, 'billing:read');
+  if (!auth.ok) {
+    return auth.response;
   }
+  const principal = auth.principal;
 
   try {
     const service = getGlmCerebroService();
@@ -48,6 +52,17 @@ async function runBudgetForecast(request: NextRequest): Promise<NextResponse> {
 
     if (forecasts.length === 0) {
       const processingTime = Date.now() - startTime;
+      // ── Auditoria M2M (V11-P0) ──
+      await auditCronExecution({
+        prisma: db,
+        tenantId: 'system',
+        principal,
+        entryPoint: 'glm_cerebro',
+        policyId: 'cron:cerebro-budget-forecast',
+        severity: 'info',
+        action: 'allow',
+        latencyMs: processingTime,
+      }).catch(err => console.error('[cerebro-budget-forecast] audit log failed:', err));
       logSink.info({
         module: 'cerebro-budget-forecast',
         event: 'no_tenants_at_risk',
@@ -141,6 +156,19 @@ Analysis ID: ${analysisId}`,
             context: { tenantId: forecast.tenantId, severity: forecast.severity },
           });
         }
+      }
+
+      // ── Notification bridge: push cost_alert to the tenant's DDC ──
+      // Independent of AlertBus — this is the tenant-facing notification.
+      try {
+        bridgeCerebroAlert({
+          alertType: 'cost_alert',
+          value: forecast.projectedUsagePercent,
+          expected: 100,
+          tenantId: forecast.tenantId,
+        });
+      } catch (bridgeErr) {
+        console.error('[cerebro-budget-forecast] bridgeCerebroAlert error:', bridgeErr);
       }
     }
 

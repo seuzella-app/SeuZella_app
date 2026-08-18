@@ -42,10 +42,30 @@ export function getNextAuthSecret(): string {
 export const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN ?? '';
 export const MP_WEBHOOK_URL = process.env.MP_WEBHOOK_URL ?? '';
 
-// Payment Gateway (Unified — MP + Stripe)
+// Payment Gateway (Unified — MP + Asaas + Stripe)
 export const PAYMENT_WEBHOOK_SECRET = process.env.PAYMENT_WEBHOOK_SECRET ?? process.env.MP_WEBHOOK_SECRET ?? '';
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY ?? '';
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? '';
+export const STRIPE_ACCOUNT_ID = process.env.STRIPE_ACCOUNT_ID ?? '';
+
+// Asaas — Brazilian gateway (PIX, card, boleto, native recurring)
+export const ASAAS_ACCESS_TOKEN = process.env.ASAAS_ACCESS_TOKEN ?? '';
+export const ASAAS_ENVIRONMENT = (process.env.ASAAS_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox';
+export const ASAAS_WEBHOOK_SECRET = process.env.ASAAS_WEBHOOK_SECRET ?? '';
+export const ASAAS_AUTO_NFSE = process.env.ASAAS_AUTO_NFSE ?? 'true';
+export const ASAAS_MUNICIPAL_SERVICE_CODE = process.env.ASAAS_MUNICIPAL_SERVICE_CODE ?? '01.01';
+export const ASAAS_MUNICIPAL_SERVICE_NAME = process.env.ASAAS_MUNICIPAL_SERVICE_NAME ?? 'Licenciamento ou cessão de direito de uso de programas de computação';
+
+// Default gateway selection — overrides preference order in gateway-factory.ts
+// Valid values: 'asaas' | 'mercadopago' | 'stripe' | undefined (auto-detect)
+export const DEFAULT_PAYMENT_GATEWAY = process.env.DEFAULT_PAYMENT_GATEWAY as 'asaas' | 'mercadopago' | 'stripe' | undefined;
+
+// ── Public WhatsApp numbers (Landing Page + ZCC) ───────────────────────────
+// Replace placeholder values via env vars when going live.
+// Format: country code + DDD + number (e.g. "5548999999999")
+// DO NOT keep the default zeros in production — set NEXT_PUBLIC_WHATSAPP_COMMERCIAL.
+export const WHATSAPP_COMMERCIAL = process.env.NEXT_PUBLIC_WHATSAPP_COMMERCIAL ?? '5548999990000';
+export const WHATSAPP_SUPPORT = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT ?? '5548999990001';
 
 // AI Providers
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? '';

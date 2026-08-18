@@ -1,0 +1,38 @@
+name: CI - Suite 2: Unit & Business Logic Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/**'
+      - 'tests/unit-business-logic.test.ts'
+      - '.github/workflows/ci-unit-logic.yml'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  unit-logic-test:
+    name: Run Business Logic & Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Execute Unit & Logic Vitest Suite
+        run: npx vitest run tests/unit-business-logic.test.ts

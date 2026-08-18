@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 // ===== ENUMS (from backup) =====
@@ -17,13 +18,14 @@ enum LeadStatus {
 }
 
 // Fonte da verdade absoluta para planos:
-// GRATUITO = plano free (7 dias trial)
-// LITE = plano básico
-// PRO = plano profissional
-// MAX = plano premium
-// PARCEIRO = parceiro Zélla (Link-in-Bio + comissão)
+// 4 planos pagos (sem trial gratuito):
+// LITE     = R$ 197/mês (50 hóspedes, 500 mensagens, IA limitada)
+// PRO      = R$ 397/mês (ilimitado, OAuth Airbnb, dynamic pricing)
+// MAX      = R$ 797/mês (tudo de PRO + competitor monitoring + multi-property)
+// PARCEIRO = R$ 247/mês (PRO + tab Conquistas + referral gamification)
+//
+// NOTA: Não há trial gratuito. Clientes pagam a partir do primeiro mês.
 enum Plan {
-  GRATUITO
   LITE
   PRO
   MAX
@@ -74,10 +76,8 @@ model Tenant {
   whatsappPhoneNumber String? @unique // Número WhatsApp Business API (E.164) — roteamento de webhook
   whatsappBusinessId  String? @unique // WhatsApp Business Account ID (WABA) — isolamento multi-tenant
   role           String    @default("owner") // owner | admin | staff
-  plan           String    @default("gratuito") // gratuito | lite | pro | max | parceiro
+  plan           String    @default("lite") // lite | pro | max | parceiro
   status         String    @default("active") // active | suspended | churned
-  trialStart     DateTime?
-  trialEnd       DateTime?
   subscriptionAt DateTime?
 
   // From old Tenant
@@ -126,8 +126,35 @@ model Tenant {
   pricingRules      DynamicPricingRule[]
   pricingCalculations PricingCalculation[]
 
+  // Zélla — Yield Booster (Lucro Extra Gerado pela IA)
+  yieldProfitRecords YieldProfitRecord[]
+
+  // Zélla — Mobile Device Tracking (ZCC → /mobile/* monitoring)
+  mobileDevicePings DevicePing[]
+
   // Zélla — Guia Digital Hóspede
   guestGuides       GuestGuide[]
+
+  // Créditos de Amortização por Indicação
+  referralCodes     ReferralCode[]
+  amortizationCredits AmortizationCredit[]
+  liteMilestone     LiteMilestone?
+
+  // 🔐 Fechaduras Eletrônicas
+  lockDevices       LockDevice[]
+  lockCodes         LockCode[]
+  lockEvents        LockEvent[]
+  lockOAuthAccounts LockOAuthAccount[]
+
+  // 💰 UPSELL — Comissão Zélla de 7% sobre valores extras por quarto
+  upsellRecords     UpsellRecord[]
+
+  // AIRB PRO — Módulos da análise competitiva ProHost (P0/P1)
+  airbExpenses      AirbExpense[]
+  airbOperationTasks AirbOperationTask[]
+  airbGoals         AirbGoal[]
+  airbCommissions   AirbCommission[]
+  airbReports       AirbReport[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -147,6 +174,11 @@ model Property {
   city            String  @default("")
   state           String  @default("")
   zipCode         String  @default("")
+  // Geolocalização — preenchida no cadastro do cliente Zélla
+  // (quando o cliente paga um plano, endereço → lat/lng via geocoding)
+  // Usada para plotar bolinha VERDE no LiveLeadsMap (ZCC > Live Leads)
+  latitude        Float?
+  longitude       Float?
   type            String  @default("pousada") // pousada | hotel | hostel | chalé | resort
   website         String?
   description     String  @default("")
@@ -159,6 +191,13 @@ model Property {
   bankAccount     String?
   bankAccountType String? // cc | cp
   bankCpf         String?
+
+  // ===== Caução PIX — REMOVIDO =====
+  // A caução foi removida do sistema Zélla em 17/08/2026.
+  // Decisão: caução é responsabilidade pessoal do dono da pousada,
+  // não faz parte do escopo do Seu Zélla. Se o dono pratica caução,
+  // fará isso por conta própria, sem envolvimento do sistema.
+  // Os campos abaixo foram removidos do schema.
 
   // Link-in-Bio fields
   slug                    String  @unique
@@ -864,15 +903,13 @@ model Message {
 model Subscription {
   id                 String    @id @default(cuid())
   tenantId           String
-  planType           String // gratuito | lite | pro | max | parceiro
+  planType           String // lite | pro | max | parceiro
   status             String    @default("pending") // pending | active | canceled | expired
   paymentMethod      String // pix | cartao
   amount             Float
   paymentId          String? // Mercado Pago/Stripe payment ID
   paymentStatus      String? // pending | approved | rejected | refunded
   checkoutUrl        String? // URL for payment checkout
-  trialStart         DateTime?
-  trialEnd           DateTime?
   currentPeriodStart DateTime?
   currentPeriodEnd   DateTime?
   cancelAtPeriodEnd  Boolean   @default(false)
@@ -2037,11 +2074,982 @@ model BrainHealthLog {
 model CompiledPrompt {
   id               String   @id @default(cuid())
   tenantId         String
+  niche            String?  @map("niche")
   version          String
-  compiledJson     String
-  accuracyScore    Float?
+  compiledJson     String   @map("compiledJson")
+  promptText       String?  @map("promptText")
+  accuracyScore    Float?   @map("accuracyScore")
+  successRate      Float    @default(0.0) @map("successRate")
+  active           Boolean  @default(false)
   createdAt        DateTime @default(now())
 
   @@index([tenantId, version])
+  @@index([niche, active, successRate])
   @@map("compiled_prompts")
+}
+
+// ===== CRÉDITOS DE AMORTIZAÇÃO POR INDICAÇÃO =====
+// Sistema de recompensas: indicações convertidas viram créditos que
+// amortizam a mensalidade do referrer. Anti-fraude via fingerprint +
+// janela de 24h + auto-conversão apenas após 30 dias sem chargeback.
+// Não paga via PIX — apenas desconto na próxima fatura.
+
+model ReferralCode {
+  id              String   @id @default(cuid())
+  tenantId        String
+  code            String   @unique // 8-12 chars, alfanumérico
+  channel         String   @default("linkinbio") // linkinbio | email | whatsapp | manual
+  label           String?  // apelido dado pelo referrer (ex: "Campanha Verão")
+  clicksCount     Int      @default(0)
+  conversionsCount Int     @default(0)
+  isActive        Boolean  @default(true)
+  expiresAt       DateTime? // null = sem expiração
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clicks          ReferralClick[]
+  conversions     ReferralConversion[]
+
+  @@index([tenantId])
+  @@index([code])
+  @@map("referral_codes")
+}
+
+model ReferralClick {
+  id              String   @id @default(cuid())
+  referralCodeId  String
+  // Anti-fraud fingerprint — SHA-256(ip + userAgent + acceptLanguage)
+  fingerprint     String
+  ip              String?
+  userAgent       String?
+  referrer        String?  // HTTP Referer header
+  utmSource       String?
+  utmCampaign     String?
+  // Dispositivo/browser coarse-grained para dashboard
+  deviceType      String?  // mobile | desktop | tablet
+  country         String?  // via IP geolocation
+  // Status do clique: pending (ainda não converteu) | converted | expired
+  status          String   @default("pending")
+  convertedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  referralCode    ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  conversion      ReferralConversion?
+
+  @@index([referralCodeId])
+  @@index([fingerprint])
+  @@index([status])
+  @@index([createdAt])
+  @@map("referral_clicks")
+}
+
+model ReferralConversion {
+  id                 String   @id @default(cuid())
+  referralCodeId     String
+  clickId            String   @unique // 1:1 com ReferralClick
+  // Tenant do novo cliente que assinou via indicação
+  newTenantId        String?
+  newTenantEmail     String   // para anti-fraude (não pode == referrer email)
+  newTenantPlan      String   // lite | pro | max | parceiro
+  paymentAmount      Float    // valor pago pelo novo cliente
+  // Quanto de crédito foi gerado para o referrer
+  creditAmountCents  Int      // em centavos para evitar float
+  // pending (30 dias anti-chargeback) | confirmed | reversed | expired
+  status             String   @default("pending")
+  confirmedAt        DateTime? // após 30 dias sem chargeback
+  reversedAt         DateTime?
+  reversalReason     String?
+  createdAt          DateTime @default(now())
+
+  referralCode       ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  click              ReferralClick @relation(fields: [clickId], references: [id], onDelete: Cascade)
+
+  @@index([referralCodeId])
+  @@index([newTenantEmail])
+  @@index([status])
+  @@map("referral_conversions")
+}
+
+model AmortizationCredit {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  amountCents        Int      // valor em centavos
+  source             String   // referral | lite_milestone | parceiro_bonus | signup_bonus
+  sourceReferralId   String?  // FK lógica para ReferralConversion.id
+  description        String
+  status             String   @default("available") // available | applied | expired
+  appliedToSubscriptionId String?
+  expiresAt          DateTime // 12 meses para expirar
+  appliedAt          DateTime?
+  createdAt          DateTime @default(now())
+
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("amortization_credits")
+}
+
+model LiteMilestone {
+  id                 String   @id @default(cuid())
+  tenantId           String   @unique
+  paidReferralsCount Int      @default(0)
+  // Quando atingir 10 → achievedAt é preenchido e libera 12 meses de Link-in-Bio
+  achievedAt         DateTime?
+  linkinbioExtendedUntil DateTime?
+  // Lista de tenantIds que esse LITE indicou e converteram
+  convertedEmailsJson String  @default("[]")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("lite_milestones")
+}
+
+// =============================================================================
+// 🔐 FECHADURAS ELETRÔNICAS — Smart Lock Management
+// =============================================================================
+// Modelo completo para gestão de fechaduras eletrônicas em Pousadas e AirBnB.
+// Suporta marcas com API (TTLock, Tuya, Igloohome, Nuki, August) e marcas
+// manuais (Intelbras, Yale, Papaiz, Philco, Samsung) — orquestrador inteligente.
+// =============================================================================
+
+model LockDevice {
+  id              String   @id @default(cuid())
+  tenantId        String
+  // propertyId pode ser Property.id (pousada) OU AirBProperty.id (airbnb) — discriminated by propertyType
+  propertyId      String
+  propertyType    String   @default("pousada")  // pousada | airbnb
+  // Identificação amigável do dispositivo (ex: "Suíte Master 104")
+  nickname        String
+  // Localização dentro do imóvel (ex: "Porta frontal", "Porta dos fundos")
+  location        String?
+  // Marca e modelo da fechadura
+  brand           String   // ttlock | tuya | igloohome | nuki | august | intelbras | yale | papaiz | philco | samsung
+  model           String?  // ex: "TTLock X15", "Intelbras FR 1100"
+  // Tipo de integração: api (com OAuth) ou manual (host cola PIN)
+  providerType    String   @default("manual")  // api | manual
+  // ID externo retornado pelo provedor (quando providerType=api)
+  externalDeviceId String?
+  // Referência à conta OAuth (quando providerType=api)
+  oauthAccountId  String?
+  // Número de série físico da fechadura (etiqueta na embalagem)
+  serialNumber    String?
+  // Status operacional
+  status          String   @default("active")  // active | inactive | offline | error
+  batteryLevel    Int?     // 0-100 (quando reportado pela API)
+  online          Boolean  @default(false)
+  lastSeenAt      DateTime?
+  // Metadados adicionais específicos do provedor (JSON)
+  metadata        String   @default("{}")
+  // Notas internas do host
+  notes           String?
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  codes           LockCode[]
+  events          LockEvent[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([propertyType])
+  @@index([brand])
+  @@map("lock_devices")
+}
+
+model LockCode {
+  id              String   @id @default(cuid())
+  deviceId        String
+  tenantId        String?
+  // Vinculação opcional a hóspede/reserva (quando gerada para um hóspede específico)
+  guestName       String?
+  guestPhone      String?
+  bookingId       String?
+  // O código PIN em si (string para suportar formatos variados: 4-8 dígitos, com #, etc.)
+  code            String
+  // Tipo do código
+  codeType        String   @default("online_pin")  // online_pin | offline_pin | manual | qrcode
+  // Origem do código: gerado via API, ou colado manualmente pelo host
+  source          String   @default("manual")  // api | manual
+  // Janela de validade (rigorosa — coração da segurança)
+  validFrom       DateTime
+  validTo         DateTime
+  // Quando foi usado pela primeira vez (registro do evento)
+  usedAt          DateTime?
+  // Revogação manual (caso de emergência)
+  revokedAt       DateTime?
+  revokedReason   String?
+  // Entrega ao hóspede
+  deliveredVia    String?  // whatsapp | email | copy | none
+  deliveredAt     DateTime?
+  // Status derivado: scheduled | active | used | expired | revoked
+  status          String   @default("scheduled")
+  // Observação visível para o host
+  note            String?
+  // ID externo retornado pelo provedor da API (TTLock keyboardPwdId, Tuya pinId, etc.)
+  // Necessário para revogar o PIN via API quando o host clicar em "Revogar"
+  externalCodeId  String?
+
+  device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  events          LockEvent[]
+
+  createdAt       DateTime @default(now())
+
+  @@index([deviceId])
+  @@index([tenantId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([validFrom])
+  @@index([validTo])
+  // Unique constraint: um mesmo dispositivo não pode ter 2 PINs idênticos ativos
+  // (previne birthday paradox collision identificado nos testes de stress)
+  @@unique([deviceId, code, validFrom])
+  @@map("lock_codes")
+}
+
+model LockEvent {
+  id              String   @id @default(cuid())
+  deviceId        String
+  codeId          String?
+  tenantId        String?
+  // Tipo do evento para auditoria LGPD
+  eventType       String   // generated | delivered | used | revoked | expired | failed | panic_revoke | battery_low | status_change
+  // Metadados do evento (JSON: IP, user-agent, etc.)
+  metadata        String   @default("{}")
+  // Mensagem legível
+  message         String?
+
+  device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  code            LockCode?  @relation(fields: [codeId], references: [id], onDelete: SetNull)
+  tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+
+  @@index([deviceId])
+  @@index([codeId])
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("lock_events")
+}
+
+model LockOAuthAccount {
+  id              String   @id @default(cuid())
+  tenantId        String
+  provider        String   // ttlock | tuya | igloohome | nuki | august
+  // ID da conta no provedor (ex: TTLock username hash)
+  externalAccountId String
+  displayName     String?
+  // Tokens criptografados com AES-256-GCM (mesma middleware do projeto)
+  accessToken     String
+  refreshToken    String?
+  expiresAt       DateTime?
+  // Status da conexão
+  status          String   @default("active")  // active | expired | revoked
+  lastSyncAt      DateTime?
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, provider, externalAccountId])
+  @@index([tenantId])
+  @@index([provider])
+  @@map("lock_oauth_accounts")
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// UPSELL — Comissão Zélla de 7% sobre valores extras por quarto
+// ----------------------------------------------------------------------------
+// Modelo que registra cada UPSELL aceito pelo hóspede (late checkout,
+// café da manhã premium, massagem, passeio de barco, etc.).
+// A Zélla cobra 7% de comissão SOMENTE sobre o valor do UPSELL —
+// valores normais das diárias (dia a dia) têm ZERO taxa.
+// ----------------------------------------------------------------------------
+// Tipos de UPSELL suportados:
+//   late_checkout           — extensão de horário de check-out (R$ 50/hora extra)
+//   cafe_premium           — café da manhã premium (R$ 35/diária)
+//   massagem               — massagem relaxante (R$ 150/sessão)
+//   passeio_barco          — passeio de barco (R$ 120/pessoa)
+//   transfer_aeroporto     — transfer ida/volta aeroporto (R$ 80)
+//   jantar_romantico       — jantar romântico montado no quarto (R$ 200)
+//   decoracao_aniversario  — decoração quarto para aniversário (R$ 90)
+//   garrafa_vinho          — garrafa de vinho (R$ 70)
+//   aula_surf              — aula de surf (R$ 100/pessoa)
+//   passeio_bugue          — passeio de bugue (R$ 90/pessoa)
+//   spa_day                — spa day com hidratação (R$ 250)
+//   kit_praia              — kit praia: guarda-sol + cadeiras (R$ 50/diária)
+//   late_checkin_madrugada — late check-in madrugada (R$ 30)
+//   limpeza_diaria_extra   — limpeza extra (R$ 40)
+//   outros                 — outros (descrição livre)
+// ════════════════════════════════════════════════════════════════════════════
+model UpsellRecord {
+  id                String   @id @default(cuid())
+  tenantId          String
+  roomId            String?  // quarto onde o UPSELL foi aplicado (pode ser null se for geral)
+  reservationId     String? // reserva associada (pode ser null se for walk-in)
+  guestId           String?  // hóspede que aceitou o UPSELL
+
+  // Tipo e descrição
+  type              String   // late_checkout | cafe_premium | massagem | passeio_barco | ...
+  description       String   @default("")  // descrição amigável exibida no DDC
+  quantity          Int      @default(1)   // quantidade (ex: 2 massagens, 3 diárias de café premium)
+
+  // Valores
+  unitPrice         Float    // preço unitário em BRL
+  totalPrice        Float    // unitPrice * quantity
+  comissionRate     Float    @default(0.07) // taxa Zélla (7% = 0.07)
+  comissionAmount   Float    // totalPrice * comissionRate (valor creditado à seuzella.com)
+
+  // Status
+  status            String   @default("pending")  // pending | confirmed | paid | cancelled
+  paidAt            DateTime? // quando a comissão foi paga à seuzella.com
+  confirmedAt       DateTime? // quando o UPSELL foi confirmado (pós check-out)
+
+  // Contexto
+  suggestedByZehla  Boolean  @default(true)  // true = sugerido pela IA Zélla; false = adicionado manualmente pelo dono
+  feriado           String?  // feriado próximo (se houver) — para análise sazonal
+  temporada         String?  // alta | média | baixa
+  yieldMultiplier   Float?   @default(1.0) // yield aplicado na diária do UPSELL (se houve yield)
+
+  // Notas
+  notes             String   @default("")
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BEHAVIORAL ANALYTICS — inspirado no WP Swings Upsell Order Bump
+  // 5 métricas-chave para análise de conversão de ofertas
+  // ─────────────────────────────────────────────────────────────────────────
+  viewCount         Int      @default(0)  // quantas vezes a oferta foi exibida ao hóspede
+  acceptCount       Int      @default(0)  // quantas vezes o hóspede aceitou (1 clique)
+  removeCount       Int      @default(0)  // quantas vezes o hóspede removeu (desistiu)
+  successCount      Int      @default(0)  // quantas vezes a oferta virou reserva confirmada
+  totalSalesAmount  Float    @default(0)  // receita total acumulada (somatório de totalPrice)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CONDITIONAL TRIGGERS — quando a IA deve sugerir este UPSELL
+  // Inspirado nas condições do WP Swings (cart_total, coupon, login_status, etc.)
+  // ─────────────────────────────────────────────────────────────────────────
+  triggerCartMin    Float?   // sugere apenas se carrinho ≥ este valor
+  triggerCartMax    Float?   // sugere apenas se carrinho ≤ este valor
+  triggerCategories String?  // categorias que ativam (JSON array de strings)
+  triggerProducts   String?  // IDs de produtos que ativam (JSON array)
+  triggerSeasons    String?  // alta | média | baixa (JSON array)
+  triggerFeriados   String?  // lista de feriados que ativam (JSON array)
+  triggerWeekdays   String?  // 0=domingo, 6=sábado (JSON array de ints)
+  triggerHourStart  Int?     // hora inicial para ativar (0-23)
+  triggerHourEnd    Int?     // hora final para ativar (0-23)
+  triggerOncePerGuest Boolean @default(true)  // sugere só 1 vez por hóspede
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // OFFER SCHEDULING — quando a oferta está ativa (sandbox mode do WP Swings)
+  // ─────────────────────────────────────────────────────────────────────────
+  offerActive       Boolean  @default(true)  // liga/desliga oferta sem deletar
+  offerStartAt      DateTime?  // início do período de exibição
+  offerEndAt        DateTime?  // fim do período de exibição
+  isSandbox         Boolean  @default(false)  // modo sandbox — não conta em produção
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // OFFER DISPLAY — personalização visual (inspirado no WP Swings)
+  // ─────────────────────────────────────────────────────────────────────────
+  offerTitle        String?  // título custom (default usa catálogo)
+  offerDescription  String?  // descrição custom
+  offerImage        String?  // imagem custom (URL)
+  offerUrgencyText  String?  // texto de urgência ("Últimas 2 horas!", etc.)
+  offerBackgroundColor String? @default("#10b981")  // cor de fundo da oferta
+
+  // Relacionamentos (não deletamos o UpsellRecord se o quarto/reserva for deletado —
+  // mantém histórico para fins de auditoria financeira)
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, type])
+  @@index([roomId])
+  @@index([reservationId])
+  @@index([status, paidAt])
+  @@index([offerActive])
+  @@index([isSandbox])
+  @@map("upsell_records")
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// AIRB PRO — MÓDULOS INSPIRADOS NA ANÁLISE COMPETITIVA PROHOST
+// Implementados de forma additiva — não alteram modelos existentes.
+// Mapeiam para: P0-1 PDF Reports, P0-2 Financial, P0-3 Trial Self-Service,
+//               P1-1 Operations, P1-2 Goals, P1-3 Commissions
+// ════════════════════════════════════════════════════════════════════════════
+
+// P0-2: GESTÃO FINANCEIRA — Despesas categorizadas e fluxo de caixa
+model AirbExpense {
+  id          String   @id @default(cuid())
+  tenantId    String
+  category    String   // fixed_cost | variable | maintenance | utilities | marketing | commission | tax | other
+  description String
+  amount      Float
+  dueDate     DateTime?
+  paidAt      DateTime?
+  status      String   @default("pending") // pending | paid | overdue | cancelled
+  recurrence  String   @default("one_time") // one_time | monthly | weekly | yearly
+  document    String?  // URL/caminho do comprovante
+  metadata    String   @default("{}") // JSON: nota fiscal, fornecedor, etc.
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, category])
+  @@index([tenantId, dueDate])
+  @@map("airb_expenses")
+}
+
+// P1-1: OPERAÇÕES — Limpeza, manutenção e checklist de checkout
+model AirbOperationTask {
+  id            String   @id @default(cuid())
+  tenantId      String
+  propertyId    String?  // referência à AirBProperty (nullable para tarefas gerais)
+  type          String   // cleaning | maintenance | inspection | restock | other
+  status        String   @default("pending") // pending | in_progress | completed | cancelled
+  priority      String   @default("normal") // low | normal | high | urgent
+  title         String
+  description   String   @default("")
+  assignedTo    String?  // nome do responsável (camareira, zelador, etc.)
+  scheduledFor  DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  estimatedMin  Int      @default(60)
+  actualMin     Int?
+  checklist     String   @default("[]") // JSON array de {item, done}
+  cost          Float    @default(0)
+  metadata      String   @default("{}") // JSON: fotos, notas, etc.
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, type])
+  @@index([tenantId, scheduledFor])
+  @@map("airb_operation_tasks")
+}
+
+// P1-2: METAS — Dashboard de metas e KPIs (estende modelo Target existente)
+model AirbGoal {
+  id           String   @id @default(cuid())
+  tenantId     String
+  type         String   // revenue | occupancy | bookings | adr | revpar | guests | reviews
+  period       String   // daily | weekly | monthly | quarterly | yearly
+  targetValue  Float
+  currentValue Float    @default(0)
+  unit         String   @default("BRL") // BRL | percent | count
+  startDate    DateTime
+  endDate      DateTime
+  status       String   @default("active") // active | achieved | missed | paused
+  notes        String   @default("")
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, type, period])
+  @@index([tenantId, endDate])
+  @@map("airb_goals")
+}
+
+// P1-3: COMISSIONAMENTO — Parceiros e afiliados
+model AirbCommission {
+  id           String   @id @default(cuid())
+  tenantId     String
+  partnerName  String
+  partnerEmail String?
+  partnerPhone String?
+  partnerCode  String?  // código de indicação único
+  referralType String   @default("affiliate") // affiliate | agent | partner | influencer
+  rule         String   @default("percentage") // percentage | fixed
+  rate         Float    // percentual (0-100) ou valor fixo
+  basisAmount  Float    @default(0) // base de cálculo (ex: primeira mensalidade)
+  status       String   @default("pending") // pending | payable | paid | cancelled
+  dueDate      DateTime?
+  paidAt       DateTime?
+  notes        String   @default("")
+  metadata     String   @default("{}") // JSON: contrato, comprovante, etc.
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, partnerCode])
+  @@map("airb_commissions")
+}
+
+// P0-3: TRIAL SELF-SERVICE — Onboarding automatizado sem contato comercial
+model AirbTrialSignup {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  phone         String?
+  name          String?
+  companyName   String?
+  niche         String   @default("pousada") // pousada | airbnb
+  source        String   @default("organic") // organic | ads | referral | partner
+  utmSource     String?
+  utmCampaign   String?
+  utmMedium     String?
+  status        String   @default("started") // started | verified | converted | abandoned | expired
+  magicToken    String?  @unique // token para magic-link
+  verifiedAt    DateTime?
+  convertedAt   DateTime?
+  tenantId      String?  // preenchido quando converte em Tenant real
+  abandonReason String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@map("airb_trial_signups")
+}
+
+// P0-1: PDF REPORTS — Registro de relatórios gerados (histórico)
+model AirbReport {
+  id           String   @id @default(cuid())
+  tenantId     String
+  type         String   // monthly_summary | reservations | financial | guests | operations | goals
+  format       String   @default("pdf") // pdf | xlsx | csv
+  period       String   // ex: "2026-07" ou "2026-07-01_2026-07-31"
+  status       String   @default("generated") // generated | failed | archived
+  fileName     String
+  fileSizeKb   Int      @default(0)
+  generatedBy  String   @default("system") // system | user
+  metadata     String   @default("{}") // JSON: filtros, parâmetros, etc.
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId, type, createdAt])
+  @@index([tenantId, period])
+  @@map("airb_reports")
+}
+
+// ===== V11-P0: POLICY AUDIT =====
+// Audit trail para o PolicyRegistry (camada de Guardrails).
+// Cada decisão de policy (allow | redact | transform | reject | escalate)
+// é registrada aqui com hash do input para correlação forense.
+model PolicyAudit {
+  id              String   @id @default(cuid())
+  tenantId        String
+  policyId        String
+  policyVersion   String
+  severity        String   // info | warn | block | critical
+  action          String   // allow | redact | transform | reject | escalate
+  source          String   // whatsapp | webchat | api | cron | internal
+  entryPoint      String   @map("entry_point")
+  // cognitive_pipeline | glm_cerebro | agent_orchestrator | unknown
+  inputHash       String?  @map("input_hash")
+  matchedRule     String?  @map("matched_rule")
+  matchedPattern  String?  @map("matched_pattern")
+  redactedOutput  String?  @map("redacted_output")
+  latencyMs       Int?     @map("latency_ms")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@index([policyId, severity])
+  @@index([entryPoint, createdAt])
+  @@map("policy_audit")
+}
+
+// ===== YIELD PROFIT RECORD (Lucro Extra Gerado pela IA — ZaosYieldEngine) =====
+// Registra cada vez que o motor de Yield Management gerou um valor ACIMA da tarifa base
+// do pousadeiro. Base para o "ZÉLLA BOOST" (performance share 10-12% sobre lucro extra).
+//
+// Estratégia comercial:
+//   Fase 1 (Temporada 2026/2027): gratuito — apenas registra para mostrar no DDC
+//   Fase 2 (Temporada 2027/2028): ZELLA_BOOST_SHARE_PERCENT aplicado sobre extraProfit
+model YieldProfitRecord {
+  id              String   @id @default(cuid())
+  tenantId        String
+
+  // Contexto do cálculo
+  propertyId      String?  // Property.id (pousada) ou null
+  airbPropertyId  String?  // AirBProperty.id (Airbnb) ou null
+  reservationId   String?  // Reservation.id que gerou o lucro (quando aplicável)
+  roomId          String?  // Room.id (quando aplicável)
+
+  // Data da diária que recebeu yield
+  targetDate      DateTime // data da diária reajustada
+
+  // Valores financeiros (todos em BRL)
+  baseRate        Float    // tarifa base cadastrada pelo pousadeiro (ex: 1200.00)
+  yieldRate       Float    // tarifa reajustada pelo yield (ex: 1920.00)
+  extraProfit     Float    // yieldRate - baseRate (ex: 720.00) — LUCRO EXTRA GERADO
+  surgeMultiplier  Float    // multiplicador aplicado (1.0 / 1.25 / 1.60)
+
+  // Tier de escassez (NOMINAL / DEMAND_SURGE / SCARCITY_LOCK)
+  tierName        String   @default("NOMINAL")
+
+  // Bônus Share (Fase 2 — ZÉLLA BOOST)
+  // 0 durante Fase 1 (gratuito). Em Fase 2: extraProfit * ZELLA_BOOST_SHARE_PERCENT
+  bonusShareBrl   Float    @default(0) // quanto o Seu Zélla cobrou sobre o lucro extra
+  bonusShareRate  Float    @default(0) // % aplicada (0 em Fase 1, 0.10-0.12 em Fase 2)
+
+  // Status do registro
+  status          String   @default("confirmed") // confirmed | refunded | reversed
+  // confirmed  = hóspede pagou o valor yield
+  // refunded   = hóspede cancelou dentro da janela de cortesia (não conta)
+  // reversed   = chargeback ou estorno
+
+  // Metadados de auditoria
+  triggerReason   String   @default("occupancy") // occupancy | holiday_proximity | manual
+  isSpecialHoliday Boolean @default(false) // Réveillon, Natal, Carnaval
+  holidayName     String?  // "Réveillon", "Carnaval", etc.
+
+  // Idempotência: uma diária por reserva só pode ter 1 yield (evita duplicação)
+  yieldHash       String   // hash determinístico de tenantId + reservationId + targetDate
+
+  createdAt       DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([yieldHash])
+  @@index([tenantId, targetDate])
+  @@index([tenantId, status])
+  @@index([tenantId, isSpecialHoliday])
+  @@index([tenantId, createdAt])
+  @@map("yield_profit_records")
+}
+
+// ===== DEVICE PING (Tracking unificado — Desktop + Mobile) =====
+// Registra pings de TODAS as rotas (/ddc/* e /mobile/*) para permitir:
+//   - Comparação Desktop vs Mobile (ZCC > Mobile Analytics)
+//   - Detecção de pico de uso por horário
+//   - Insights automáticos (bounce rate, sessões curtas, etc.)
+//   - Sugestões de melhoria de UX
+//
+// LGPD compliant: nenhum dado pessoal coletado sem consentimento explícito.
+// deviceId é efêmero (sessionStorage, destruído ao fechar aba).
+model DevicePing {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenantName  String?  // nome amigável (do Tenant.name) — opcional
+
+  niche       String   // "pousada" | "airbnb"
+  route       String   // "/ddc/pousada" | "/mobile/pousada" | "/ddc/airbnb" | "/mobile/airbnb"
+  isMobile    Boolean  @default(false) // true = /mobile/*, false = /ddc/*
+  deviceId    String   @unique // sessionStorage UUID (efêmero, ~30min)
+
+  userAgent   String?  @db.Text // apenas para parse de tipo de dispositivo
+  viewport    String?  // ex: "390x844"
+  tabName     String?  // aba ativa dentro do app (ex: "visao_geral", "financeiro")
+
+  firstSeen   DateTime @default(now())
+  lastSeen    DateTime @default(now())
+  pingCount   Int      @default(1) // quantos pings esta sessão enviou
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, lastSeen])
+  @@index([niche, isMobile, lastSeen])
+  @@index([isMobile, lastSeen])
+  @@index([route, lastSeen])
+  @@index([lastSeen])
+  @@map("device_pings")
+}
+
+// ===== NIGHT AUDIT REPORT — Relatório Noturno Automático (03:00 BRT) =====
+// Gerado diariamente pelo GLM 5.2 com:
+//   1. Varredura de código (vulnerabilidades, hooks perigosos, secrets)
+//   2. Métricas do dia (leads captados, convertidos, cliques, regiões, cidades)
+//   3. Análise de segurança + recomendações
+//   4. Resumo executivo para o operador do ZCC
+//
+// Mostrado na "Sala de Guerra" (Visão Geral do ZCC) em card exclusivo.
+// Cron: /api/cron/cerebro-night-audit (schedule: "0 6 * * *" = 03:00 BRT)
+model NightAuditReport {
+  id              String   @id @default(cuid())
+  // Data de referência (YYYY-MM-DD em BRT) — para qual dia o audit foi feito
+  auditDate       String   // ex: "2026-08-15"
+  // Janela de execução (start/end ISO timestamps)
+  startedAt       DateTime // quando começou
+  completedAt    DateTime? // quando terminou (null = ainda rodando ou falhou)
+  durationMs     Int      @default(0) // tempo total de execução
+
+  // Status: running | completed | failed | partial
+  status          String   @default("running")
+
+  // ── RESUMO EXECUTIVO (gerado pelo GLM 5.2) ──
+  summary         String   @default("") // 1-3 parágrafos PT-BR legíveis
+  severity        String   @default("info") // info|warning|critical|emergency
+  // Confidence do GLM (0-1) — quanto o modelo confia no relatório
+  confidence      Float    @default(0)
+
+  // ── VULNERABILIDADES DE CÓDIGO (JSON array) ──
+  // Cada item: { severity, type, file, line, description, recommendation, cwe? }
+  vulnFindings    String   @default("[]")
+  vulnCountCritical Int    @default(0)
+  vulnCountHigh     Int    @default(0)
+  vulnCountMedium   Int    @default(0)
+  vulnCountLow       Int    @default(0)
+  vulnCountInfo      Int    @default(0)
+
+  // ── MÉTRICAS DO DIA (JSON object) ──
+  // { leadsCaptured, leadsConverted, clicks, regions: [{uf, count}], cities: [...],
+  //   pousadasConverted: [...], devicesMobile, devicesDesktop }
+  metricsJson     String   @default("{}")
+
+  // ── ANÁLISE LLM (JSON com resposta completa do GLM 5.2) ──
+  llmAnalysis     String   @default("{}") // JSON: { recommendations, risks, opportunities }
+  llmTokensInput  Int      @default(0)
+  llmTokensOutput Int      @default(0)
+  llmCostUsd      Float    @default(0)
+
+  // Modo de execução (mock|live) — depende de CEREBRO_LIVE_MODE + GLM_5_2_API_KEY
+  mode            String   @default("mock")
+
+  // Erro (se status=failed) — stack trace ou mensagem
+  errorMessage    String?
+
+  createdAt       DateTime @default(now())
+
+  @@unique([auditDate]) // 1 audit por dia
+  @@index([status, createdAt])
+  @@index([severity, createdAt])
+  @@index([auditDate])
+  @@map("night_audit_reports")
+}
+
+// ===== CODE VULNERABILITY — Findings de SAST + Pentest (Grande Run #1) =====
+// Cada vulnerabilidade encontrada no código ou via pentest de API.
+// Fingerprint estável (hash de file+line+type) permite diferenciar:
+//   - newly_detected (não existia no run anterior)
+//   - persisting (ainda presente)
+//   - resolved (sumiu desde o último run)
+//   - false_positive (marcado manualmente)
+model CodeVulnerability {
+  id              String   @id @default(cuid())
+  // Link para o NightAuditReport que detectou (null se foi pulse-only)
+  auditReportId   String?
+  // Fingerprint estável: SHA-256 de `${file}:${line}:${type}`
+  // Permite deduplicar entre runs e detectar "novas" vs "persistindo"
+  fingerprint     String   @unique
+
+  // Identificação do finding
+  severity        String   // critical | high | medium | low | info
+  type            String   // eval_usage | sql_injection | hardcoded_secret | idor | bola | ...
+  file            String   // path relativo (para SAST) ou URL (para pentest)
+  line            Int      @default(0) // linha (SAST) ou 0 (pentest)
+  description     String
+  recommendation  String
+  cwe             String?  // ex: CWE-89
+
+  // Para pentest findings (vulns via HTTP, não SAST)
+  // NÃO armazenar secrets/PAYLOAD sensível em texto plano — apenas hash
+  httpRequest     String?  // método + path (ex: "GET /api/v1/reservations/OTHER_TENANT_ID")
+  httpStatus      Int?     // status code retornado
+  httpResponseBody String? @db.Text // resposta (truncada para 2KB)
+  exploitProof    String?  @db.Text // como explorar (PT-BR, sem PoC funcional)
+
+  // Workflow de correção
+  status          String   @default("open") // open | fixed | wont_fix | false_positive
+  detectedAt      DateTime @default(now())
+  firstDetectedAt DateTime @default(now())
+  lastDetectedAt  DateTime @default(now())
+  timesDetected   Int      @default(1) // quantas vezes foi detectado (persistência)
+  fixedAt         DateTime?
+  fixedBy         String?  // "GLM 5.2" | "human" | "auto-remediator"
+
+  // Fonte da detecção
+  detectionSource String   @default("sast") // sast | pentest | npm_audit | pulse_mini_scan
+
+  @@index([status, severity])
+  @@index([fingerprint])
+  @@index([file])
+  @@index([severity, lastDetectedAt])
+  @@index([detectionSource, lastDetectedAt])
+  @@map("code_vulnerabilities")
+}
+
+// ===== NIGHT PULSE LOG — Pulsos de Vida (a cada 30min, 24/7) =====
+// Cada pulso é uma execução leve do Cérebro durante a madrugada:
+//   - HEARTBEAT: status de serviços + latência DB/GLM
+//   - MINI_SCAN: varredura de 1 módulo aleatório (3-5 patterns)
+//   - METRICS_SNAPSHOT: captura métricas live e compara com baseline
+// Custo: ~$0.0003/pulso (200 tokens de análise)
+model NightPulseLog {
+  id              String   @id @default(cuid())
+  pulseType       String   // heartbeat | mini_scan | metrics_snapshot
+  startedAt       DateTime @default(now())
+  durationMs      Int      @default(0)
+  status          String   @default("ok") // ok | warning | critical | failed
+
+  // Resultado do pulso (JSON estruturado)
+  // HEARTBEAT: { dbLatencyMs, glmLatencyMs, services: [{name, status}] }
+  // MINI_SCAN: { module, filesScanned, findingsCount, findings: [...] }
+  // METRICS_SNAPSHOT: { activeUsers, activeConversations, errorRate, ... }
+  resultJson      String   @default("{}")
+
+  // Se o pulso detectou algo crítico, dispara alerta
+  triggeredAlert  Boolean  @default(false)
+  alertMessage    String?
+
+  // Custo LLM (tokens só usados em METRICS_SNAPSHOT com análise)
+  llmTokensInput  Int      @default(0)
+  llmTokensOutput Int      @default(0)
+  llmCostUsd      Float    @default(0)
+  mode            String   @default("mock") // mock | live
+
+  @@index([pulseType, startedAt])
+  @@index([status, startedAt])
+  @@index([triggeredAlert, startedAt])
+  @@map("night_pulse_logs")
+}
+
+// ===== NIGHT ACTIVITY EVENT — Atividade suspeita rastreada =====
+// Eventos de atividade em 4 superfícies:
+//   - landing_page: visitas com bounce rate anômalo, user agents suspeitos
+//   - ddc: logins falhos, tentativas de IDOR, sessões suspeitas
+//   - linkinbio: cliques repetidos, padrões de spam, links quebrados
+//   - zella_parceiros: indicações falsas, IPs suspeitos, conversões impossíveis
+model NightActivityEvent {
+  id              String   @id @default(cuid())
+  // Qual superfície detectou o evento
+  surface         String   // landing_page | ddc | linkinbio | zella_parceiros
+  // Tipo de evento suspeito
+  eventType       String   // anomalous_bounce_rate | failed_logins_spike | idor_attempt | spam_clicks | fake_referral | ...
+  severity        String   @default("info") // info | warning | critical
+
+  // Detalhes do evento (JSON)
+  // { threshold, observed, count, samples: [...], affectedResources: [...] }
+  detailsJson     String   @default("{}")
+
+  // Quando detectado (janela de análise: 24h)
+  detectedAt      DateTime @default(now())
+  windowStart     DateTime // início da janela analisada
+  windowEnd       DateTime // fim da janela analisada
+
+  // Métricas relevantes
+  affectedCount   Int      @default(0) // quantos usuários/recursos afetados
+  thresholdValue  Float    @default(0) // limite que dispara alerta
+  observedValue   Float    @default(0) // valor observado
+
+  // Link para o audit report que capturou este evento
+  auditReportId   String?
+
+  // Se foi resolvido/investigado
+  investigatedAt DateTime?
+  investigatedBy  String?
+  resolutionNotes String?
+
+  @@index([surface, detectedAt])
+  @@index([severity, detectedAt])
+  @@index([eventType, detectedAt])
+  @@map("night_activity_events")
+}
+
+// ===== CEREBRO KNOWLEDGE FACT — Fatos validados pelo Cérebro (Delirium Zero) =====
+// Cada fato é extraído do Night Audit ou de análises LLM e serve como
+// CONTEXTO INJETADO nas chamadas do Cérebro (evita alucinação).
+//
+// Workflow Delirium Zero:
+//   1. Night Audit roda às 03:00 BRT
+//   2. CerebroLearningService extrai fatos do audit
+//   3. Persiste aqui com confidence 0-1
+//   4. Quando operador pergunta algo, busca fatos relevantes (TF-IDF)
+//   5. Injeta no system prompt do GLM 5.2 → resposta baseada em dados
+model CerebroKnowledgeFact {
+  id          String   @id @default(cuid())
+  // Tipo do fato (para filtragem)
+  factType    String   // vulnerability_pattern | metric_baseline | anomaly_confirmed |
+                       // recommendation_acted | code_smell | performance_pattern
+  // Conteúdo do fato (PT-BR, direto)
+  statement   String   @db.Text
+  // Fonte validada — citada na resposta do LLM (audit:X, arquivo:linha)
+  source      String
+  // Confidence 0-1 (1 = validado, 0.5 = LLM achismo)
+  confidence  Float    @default(0.5)
+  // Contexto adicional (JSON)
+  context     String   @default("{}") @db.Text
+  // Tags para busca TF-IDF (separadas por vírgula)
+  tags        String   @default("")
+  // Versão (incrementa quando fato é atualizado)
+  version     Int      @default(1)
+  // Modo de extração (mock|live)
+  mode        String   @default("mock")
+  // Quando foi extraído (linka ao audit)
+  auditDate   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([factType, confidence])
+  @@index([source])
+  @@index([auditDate])
+  @@index([confidence])
+  @@map("cerebro_knowledge_facts")
+}
+
+// ===== CEREBRO WORKFLOW — Fluxos de IA personalizáveis por pousada =====
+// Inspirado no Dify (langgenius/dify): workflow DAG com nós LLM, tool, if-else.
+// Cada pousada pode ter seu próprio fluxo de atendimento.
+model CerebroWorkflow {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String   // "Fluxo Réveillon", "Fluxo Check-in Express"
+  description String?
+  // JSON: [{ type: "llm"|"tool"|"if-else"|"output", id, input, output, next }]
+  nodesJson   String   @db.Text
+  status      String   @default("draft") // draft | active | archived
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, status])
+  @@index([status, updatedAt])
+  @@map("cerebro_workflows")
+}
+
+// ===== LLM CALL LOG — Observabilidade de chamadas LLM (LLMOps) =====
+// Cada chamada LLM é logada com tokens, latência, custo, modelo, feedback.
+// Permite análise de custo/latência/sucesso no ZCC > Cérebro > LLMOps.
+model LLMCallLog {
+  id              String   @id @default(cuid())
+  tenantId        String?
+  model           String   // glm-5.2, glm-4.7-flash, deepseek-r1
+  provider        String   // zhipu, groq, openrouter, anthropic
+  promptTokens    Int      @default(0)
+  completionTokens Int     @default(0)
+  totalTokens     Int      @default(0)
+  latencyMs       Int      @default(0)
+  costUsd         Float    @default(0)
+  success         Boolean  @default(true)
+  errorMessage    String?  @db.Text
+  feedback        String?  // thumbs_up | thumbs_down | null
+  // Hash do prompt (LGPD: não armazenar prompt bruto)
+  promptHash      String?
+  // Contexto: qual módulo chamou
+  source          String   @default("unknown") // cerebro | guest_responder | intent_router | prompt_ide
+  agentId         String?  // qual agency agent (se aplicável)
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([model, createdAt])
+  @@index([success, createdAt])
+  @@index([source, createdAt])
+  @@map("llm_call_logs")
 }

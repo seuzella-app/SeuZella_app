@@ -13,6 +13,67 @@ import { classifyIntent, type IntentResult } from './intent-router';
 import { retrieveRelevantKnowledge, formatRAGContext } from './semantic-rag';
 import { executeToolCallingLoop, AVAILABLE_TOOLS } from './tool-calling';
 import { getNeuroRouter, type LLMResponse } from './zaos-neuro-router';
+import { db } from '@/lib/db';
+import { hybridGraphSearch } from '@/lib/ml/graph-rag';
+import { SemanticaClient } from '@/lib/semantica/client';
+import { logSink } from '@/lib/cerebro/log-sink';
+
+// ── V11-P0.6: DSPy CompiledPrompt loader ──────────────────────────────────
+// Feature flag: USE_DSPY_COMPILED_PROMPTS=true ativa o carregamento de prompts
+// otimizados pelo DSPy MIPROv2 a partir da tabela CompiledPrompt.
+// Fallback hierárquico: se desativado ou falha, usa o systemPrompt legado.
+
+const USE_DSPY_COMPILED_PROMPTS = process.env.USE_DSPY_COMPILED_PROMPTS === 'true';
+
+interface CompiledPromptLookup {
+  systemPrompt: string;
+  version: string;
+  source: 'dspy_compiled' | 'legacy_fallback';
+}
+
+/**
+ * Resolve o system prompt final, priorizando prompts compilados pelo DSPy
+ * (V11-P0.6 — ativação de ML morto). Fallback hierárquico para o prompt
+ * legado passado pelo caller em caso de falha ou feature flag desligada.
+ *
+ * Lookup: CompiledPrompt WHERE tenantId = ? AND niche = ? AND active = true
+ *         ORDER BY successRate DESC LIMIT 1
+ */
+async function resolveSystemPrompt(
+  tenantId: string,
+  niche: string,
+  legacyPrompt: string,
+): Promise<CompiledPromptLookup> {
+  if (!USE_DSPY_COMPILED_PROMPTS) {
+    return { systemPrompt: legacyPrompt, version: 'legacy', source: 'legacy_fallback' };
+  }
+
+  try {
+    if (!db || !(db as any).compiledPrompt) {
+      return { systemPrompt: legacyPrompt, version: 'legacy', source: 'legacy_fallback' };
+    }
+
+    const compiled = await (db as any).compiledPrompt.findFirst({
+      where: { tenantId, niche, active: true },
+      orderBy: { successRate: 'desc' },
+    });
+
+    if (compiled && compiled.promptText) {
+      console.log(
+        `[HARNESS_DSP_PROMPT_LOADED] tenant=${tenantId} niche=${niche} version=${compiled.version} successRate=${compiled.successRate}`
+      );
+      return {
+        systemPrompt: compiled.promptText,
+        version: compiled.version,
+        source: 'dspy_compiled',
+      };
+    }
+  } catch (err) {
+    console.error('[HARNESS_DSP_PROMPT_FALLBACK] Erro ao buscar prompt compilado, recorrendo ao legado:', err);
+  }
+
+  return { systemPrompt: legacyPrompt, version: 'legacy-fallback', source: 'legacy_fallback' };
+}
 
 export interface CognitivePipelineRequest {  
   message: string;  
@@ -51,11 +112,16 @@ export const BLOCKED_RESPONSE = 'Desculpe, não entendi muito bem. Poderia refor
 /**  
  * Executa o pipeline cognitivo completo para uma mensagem recebida.  
  */  
-export async function executeCognitivePipeline(  
-  request: CognitivePipelineRequest,  
-): Promise<CognitivePipelineResult> {  
-  const { message, tenantId, sessionId, systemPrompt } = request;  
+export async function executeCognitivePipeline(
+  request: CognitivePipelineRequest,
+): Promise<CognitivePipelineResult> {
+  const { message, tenantId, sessionId } = request;
   const startTime = Date.now();
+
+  // ── V11-P0.6: Resolve system prompt via DSPy CompiledPrompt (com fallback) ──
+  // niche='pousada' é o padrão do Seu Zélla; em P1 pode ser parametrizado por tenant.
+  const promptResolution = await resolveSystemPrompt(tenantId, 'pousada', request.systemPrompt);
+  const systemPrompt = promptResolution.systemPrompt;
 
   // Etapa 1: Guardrails  
   const guardResult = guardWhatsAppMessage(message);  
@@ -117,39 +183,145 @@ export async function executeCognitivePipeline(
     }  
   }
 
-  // Etapa 3b: Dúvida Geral (RAG Pipeline)  
-  const ragResult = await retrieveRelevantKnowledge(tenantId, guardResult.sanitizedContent);  
-  const contextBlock = formatRAGContext(ragResult);  
+  // Etapa 3b: Dúvida Geral (GraphRAG + RAG Pipeline com fallback gracioso)
+  //
+  // ESTRATÉGIA:
+  //   1. Tenta GraphRAG (Semantica sidecar) primeiro — retorna contexto
+  //      hierárquico resolvido com SUPERSEDES aplicado.
+  //   2. Se Semantica falhar/timeout → cai em retrieveRelevantKnowledge()
+  //      (RAG vetorial TF-IDF/Gemini, legado).
+  //   3. Combina ambos quando GraphRAG retorna contexto (preferido)
+  //      e adiciona entries do RAG vetorial como complemento.
+  //
+  // FEATURE FLAGS:
+  //   USE_SEMANTICA_GRAPH=true  → ativa GraphRAG (com fallback)
+  //   USE_SEMANTICA_GRAPH=false → só RAG vetorial (legado, default)
+  //
+  let graphRagContext = '';
+  let graphRagSource: 'semantica' | 'fallback' | 'disabled' = 'disabled';
+  let graphRagLatencyMs = 0;
 
-  const enrichedPrompt = contextBlock  
-    ? `${systemPrompt}\n\n${contextBlock}`  
-    : systemPrompt;  
+  if (SemanticaClient.isEnabled() && SemanticaClient.isConfigured()) {
+    const graphRagStart = Date.now();
+    try {
+      graphRagContext = await hybridGraphSearch(tenantId, guardResult.sanitizedContent);
+      graphRagLatencyMs = Date.now() - graphRagStart;
+      graphRagSource = 'semantica';
+      logSink.info({
+        module: 'cognitive-router',
+        event: 'graphrag_hit',
+        message: `GraphRAG retornou contexto (${graphRagLatencyMs}ms)`,
+        context: { tenantId, latencyMs: graphRagLatencyMs, source: graphRagSource },
+      });
+    } catch (err) {
+      graphRagLatencyMs = Date.now() - graphRagStart;
+      graphRagSource = 'fallback';
+      logSink.warn({
+        module: 'cognitive-router',
+        event: 'graphrag_fallback',
+        message: `GraphRAG falhou, usando RAG vetorial apenas`,
+        context: { tenantId, error: err instanceof Error ? err.message : String(err) },
+      });
+    }
+  }
 
-  const router = await getNeuroRouter();  
-  const aiResult = await router.generate({  
-    message: guardResult.sanitizedContent,  
-    systemPrompt: enrichedPrompt,  
-    sessionId,  
+  // RAG vetorial (sempre executa — complementa GraphRAG)
+  const ragResult = await retrieveRelevantKnowledge(tenantId, guardResult.sanitizedContent);
+  const vectorContextBlock = formatRAGContext(ragResult);
+
+  // Monta contexto final: GraphRAG (preferido) + RAG vetorial (complemento)
+  let contextBlock = '';
+  if (graphRagContext) {
+    contextBlock = graphRagContext;
+    if (vectorContextBlock) {
+      contextBlock += `\n\n### CONHECIMENTO ADICIONAL (vetorial) ###\n${vectorContextBlock}`;
+    }
+  } else {
+    contextBlock = vectorContextBlock;
+  }
+
+  const enrichedPrompt = contextBlock
+    ? `${systemPrompt}\n\n${contextBlock}`
+    : systemPrompt;
+
+  const router = await getNeuroRouter();
+  const aiResult = await router.generate({
+    message: guardResult.sanitizedContent,
+    systemPrompt: enrichedPrompt,
+    sessionId,
     tier: 2,
     tenantId,  // Per-tenant budget isolation
-  });  
+  });
 
-  return {  
-    success: true,  
-    response: aiResult.response,  
-    intent: intentResult.intent,  
-    confidence: intentResult.confidence,  
-    providerId: aiResult.providerId,  
-    tierUsed: aiResult.tier,  
-    isMock: aiResult.isMock,  
-    requiresHumanHandover: false,  
-    securityAlerts: guardResult.alerts,  
-    searchStats: {  
-      totalKnowledgeEntries: ragResult.totalKnowledgeEntries,  
-      vocabSize: ragResult.vocabSize,  
-      searchTimeMs: ragResult.searchTimeMs,  
-    },  
-  };  
+  // ── AUDIT-PATH (async, não bloqueia resposta) ─────────────────────
+  // Registra decisão no Semantica para auditabilidade (cadeia causal).
+  // Erro aqui NÃO afeta a resposta ao hóspede.
+  if (SemanticaClient.isEnabled() && SemanticaClient.isConfigured()) {
+    recordDecisionAsync(tenantId, {
+      category: 'guest_response',
+      scenario: guardResult.sanitizedContent.slice(0, 500),
+      reasoning: graphRagContext
+        ? `GraphRAG (${graphRagSource}) retornou contexto hierárquico. RAG vetorial: ${ragResult.totalKnowledgeEntries} entries.`
+        : `RAG vetorial apenas (${ragResult.totalKnowledgeEntries} entries). GraphRAG desabilitado.`,
+      outcome: 'success',
+      response: aiResult.response.slice(0, 500),
+      confidence: aiResult.confidence || intentResult.confidence,
+      metadata: {
+        providerId: aiResult.providerId,
+        tier: aiResult.tier,
+        latencyMs: Date.now() - startTime,
+        sessionId,
+        intent: intentResult.intent,
+        fallbackUsed: graphRagSource === 'fallback',
+      },
+    }).catch(() => {
+      // Silent fail — auditoria não pode bloquear resposta
+    });
+  }
+
+  return {
+    success: true,
+    response: aiResult.response,
+    intent: intentResult.intent,
+    confidence: intentResult.confidence,
+    providerId: aiResult.providerId,
+    tierUsed: aiResult.tier,
+    isMock: aiResult.isMock,
+    requiresHumanHandover: false,
+    securityAlerts: guardResult.alerts,
+    searchStats: {
+      totalKnowledgeEntries: ragResult.totalKnowledgeEntries,
+      vocabSize: ragResult.vocabSize,
+      searchTimeMs: ragResult.searchTimeMs + graphRagLatencyMs,
+    },
+  };
+}
+
+/**
+ * Registra uma decisão no Semantica de forma assíncrona (não-bloqueante).
+ * Usado para auditabilidade — toda resposta da IA fica rastreável.
+ */
+async function recordDecisionAsync(
+  tenantId: string,
+  decision: {
+    category: 'guest_response' | 'intent_classification' | 'tool_calling' | 'human_handover' | 'message_blocked';
+    scenario: string;
+    reasoning: string;
+    outcome: 'success' | 'failure' | 'escalated' | 'blocked' | 'pending';
+    response?: string;
+    confidence: number;
+    metadata?: any;
+  }
+): Promise<void> {
+  try {
+    await SemanticaClient.recordDecision({
+      tenantId,
+      ...decision,
+    });
+  } catch (err) {
+    // Silent fail — auditoria não pode quebrar o fluxo principal
+    console.warn('[CognitiveRouter] Falha ao registrar decisão (não-bloqueante):', err);
+  }
 }
 
 /**  

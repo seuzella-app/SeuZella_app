@@ -53,6 +53,7 @@ import {
   Crown,
   TrendingUp,
 } from 'lucide-react';
+import { AirBProPanel } from '@/components/ddc/airb-pro/AirBProPanel';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -818,7 +819,7 @@ export function ZellaAirBTab({ currentPlan, onUpgrade }: ZellaAirBTabProps) {
   const [scrapeStep, setScrapeStep] = useState(-1); // -1 = not scraping
   const [scrapedRegionalKnowledge, setScrapedRegionalKnowledge] = useState<RegionalPOI[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'properties' | 'conversations' | 'onboarding'>('onboarding');
+  const [activeSubTab, setActiveSubTab] = useState<'properties' | 'conversations' | 'onboarding' | 'pro'>('onboarding');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [regionalPois, setRegionalPois] = useState<RegionalPOI[]>([]);
   const [regionalLoading, setRegionalLoading] = useState(false);
@@ -1229,6 +1230,17 @@ export function ZellaAirBTab({ currentPlan, onUpgrade }: ZellaAirBTabProps) {
           <MessageSquare className="w-3.5 h-3.5" />
           Conversas ({conversations.length})
         </button>
+        <button
+          onClick={() => { setActiveSubTab('pro'); setSelectedPropertyId(null); }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-t text-xs font-bold transition-colors cursor-pointer ${
+            activeSubTab === 'pro'
+              ? 'text-white bg-white/[0.04] border-b-2 border-[#FF5A5F]'
+              : 'text-zinc-500 hover:text-zinc-300'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Pro (Relatórios, Financeiro, Operações)
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -1557,6 +1569,13 @@ export function ZellaAirBTab({ currentPlan, onUpgrade }: ZellaAirBTabProps) {
                 ))}
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* ── AIRB PRO (Relatórios, Financeiro, Operações, Metas, Comissões) ── */}
+        {activeSubTab === 'pro' && (
+          <motion.div key="pro" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <AirBProPanel />
           </motion.div>
         )}
       </AnimatePresence>

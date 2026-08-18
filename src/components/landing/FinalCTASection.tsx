@@ -42,7 +42,7 @@ export function FinalCTASection() {
               transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
             >
               <img
-                src="/logo-zella-b01.png"
+                src="/SeuZella_Logo_site.png"
                 alt="Zélla"
                 className="h-7 sm:h-8 w-auto object-contain block"
               />

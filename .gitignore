@@ -38,12 +38,19 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local skills gitlinks & tools
+.agents/skills/ui-ux-pro-max-skill
+.tools/
+
+
+
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 local-*
-.claude
+# V11-P0.1: .claude/AGENTS.md agora é parte do User Harness versionado
+# .claude  (removido para permitir commit do AGENTS.md)
 .z-ai-config
 *.log
 dev.log
@@ -62,6 +69,12 @@ server.log
 /upload/
 # DB file
 db/*.db
+prisma/*.db
+prisma/dev.db
+prisma/prod.db
 # Worklog
 worklog.md
 temp_openwa/
+test-integration.db
+test-integration.db-journal
+cache/

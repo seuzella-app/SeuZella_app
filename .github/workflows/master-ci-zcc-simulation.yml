@@ -1,0 +1,101 @@
+name: 🧬 Master CI — ZCC Digital Twin & Cérebro Zélla ML Suite
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: test
+  NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+  UPSTASH_REDIS_REST_URL: http://localhost:8079
+  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
+  DATABASE_URL: file:./test-ci.db
+  CI: 'true'
+
+jobs:
+  digital-twin-suite:
+    name: 🌐 ZCC Digital Twin & Financial Growth Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Execute ZCC Digital Twin & Amortization Tests
+        run: |
+          npx vitest run \
+            tests/zcc-digital-twin/adapter-swap.test.ts \
+            tests/zcc-digital-twin/digital-twin.test.ts \
+            tests/zcc-digital-twin-financial-growth.test.ts \
+            tests/marketing-google-ads-simulation.test.ts \
+            tests/sustainability-growth-churn.test.ts
+
+  cerebro-ml-suite:
+    name: 🧠 Cérebro Zélla ML & SOTA Algorithms Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Execute Cérebro Zélla ML & GraphRAG Tests
+        run: |
+          npx vitest run \
+            tests/graph-rag.test.ts \
+            tests/dspy-optimizer.test.ts \
+            tests/dpo-collector.test.ts \
+            tests/zella-confidence-lock.test.ts \
+            tests/zella-multi-turn-drift.test.ts \
+            tests/zella-red-teaming.test.ts \
+            tests/cerebro-ml-learning.test.ts \
+            tests/cerebro-ml-anti-hacker.test.ts \
+            tests/cerebro-ml-auto-adjustment.test.ts \
+            tests/cerebro-ml-bug-detection.test.ts
+
+  production-build:
+    name: 🚀 Production Build Verification (Next.js & Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Run Next.js Production Build
+        run: npx next build

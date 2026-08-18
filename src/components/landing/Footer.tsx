@@ -29,6 +29,7 @@ export function Footer() {
     { label: 'Política de Privacidade', href: '/legal/politica-privacidade' },
     { label: 'Política de Cobrança', href: '/legal/politica-cobranca' },
     { label: 'Contrato SaaS', href: '/legal/contrato-saas' },
+    { label: 'Programa de Amortização', href: '/legal/programa-amortizacao' },
   ];
 
   const socialLinks = [
@@ -50,11 +51,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
           
           {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* Brand Logo */}
-          <div className="flex items-center gap-3">
-            <ZellaLogoStatic />
-          </div>
+          <div className="lg:col-span-4 space-y-5">
+            {/* Brand Logo Oficial */}
+            <div className="flex items-center">
+              <img
+                src="/Arte_SeuZellaCom_Logo.png"
+                alt="Seu Zélla Logo"
+                className="h-11 w-auto object-contain select-none"
+              />
+            </div>
             
             <p className="text-neutral-500 text-xs leading-relaxed max-w-sm">
               Plataforma inteligente de automação de reservas e atendimento 24/7 do Seu Zélla, {isPousada ? 'feita especificamente para pousadas e hotéis boutique brasileiros' : 'feita especificamente para anfitriões Airbnb e gestores de imóveis'}. Converta mais hóspedes e impulsione seu negócio sem complicação.
@@ -85,7 +90,7 @@ export function Footer() {
                 <Mail className="w-3.5 h-3.5" />
                 contato@zehla.com.br
               </a>
-              <a href="https://wa.me/5548999999999" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-neutral-500 hover:text-emerald-400 text-xs transition-colors">
+              <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_COMMERCIAL ?? '5548999990000'}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-neutral-500 hover:text-emerald-400 text-xs transition-colors">
                 <Phone className="w-3.5 h-3.5" />
                 WhatsApp Comercial
               </a>
@@ -160,6 +165,13 @@ export function Footer() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                 <span>SLA 99.9% no plano MAX</span>
               </div>
+              <Link
+                href="/legal/programa-amortizacao"
+                className="flex items-center gap-2 text-neutral-500 hover:text-emerald-400 text-xs transition-colors"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                <span>Indique e ganhe créditos (até 50% OFF)</span>
+              </Link>
             </div>
           </div>
         </div>

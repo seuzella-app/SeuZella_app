@@ -13,7 +13,7 @@ import {
   LayoutDashboard,
 } from 'lucide-react';
 
-// ─── Google SVG Icon ────────────────────────────────────────
+// ── Google SVG Icon 
 function GoogleIcon({ className = '' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none">
@@ -25,7 +25,7 @@ function GoogleIcon({ className = '' }: { className?: string }) {
   );
 }
 
-// ─── Animation Variants ─────────────────────────────────────
+// ── Animation Variants 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0 },
@@ -36,7 +36,7 @@ const stagger = {
   animate: { transition: { staggerChildren: 0.06 } },
 };
 
-// ─── Main Page ──────────────────────────────────────────────
+// ── Main Page 
 export default function LoginPage() {
   return (
     <Suspense
@@ -155,7 +155,7 @@ function LoginContent() {
     }
   }, [errorParam]);
 
-  // ── Magic Link ──────────────────────────────────────────
+  // ── Magic Link 
   const handleMagicLink = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!magicEmail || !magicEmail.includes('@')) {
@@ -184,7 +184,7 @@ function LoginContent() {
     }
   }, [magicEmail]);
 
-  // ── Credentials Login ───────────────────────────────────
+  // ── Credentials Login 
   const handleCredentialLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!credentialData.email || !credentialData.password) {
@@ -216,7 +216,7 @@ function LoginContent() {
     }
   }, [credentialData, callbackUrl, router]);
 
-  // ── Google OAuth ────────────────────────────────────────
+  // ── Google OAuth 
   const handleGoogleLogin = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -228,7 +228,7 @@ function LoginContent() {
     }
   }, [callbackUrl]);
 
-  // ── Register ────────────────────────────────────────────
+  // ── Register 
   const handleRegister = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (signUpData.password !== signUpData.confirmPassword) {
@@ -281,7 +281,7 @@ function LoginContent() {
     }
   }, [signUpData, agreedTerms, router]);
 
-  // ── Loading overlay ─────────────────────────────────────
+  // ── Loading overlay 
   if (magicLoginParam === 'true' && isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#080b14]">
@@ -310,7 +310,7 @@ function LoginContent() {
 
       <div className="relative w-full max-w-md mx-auto">
         <AnimatePresence mode="wait">
-          {/* ═══════════ SIGN IN VIEW ═══════════ */}
+          {/* ══ SIGN IN VIEW  */}
           {viewMode === 'signin' && (
             <motion.div
               key="signin"
@@ -454,7 +454,7 @@ function LoginContent() {
                 )}
               </AnimatePresence>
 
-              {/* ── Demo Quick Login ── */}
+              {/* ── Demo Quick Login  */}
               {isZCC && (
                 <motion.div variants={fadeUp} className="w-full">
                   <div className="p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.12] space-y-2">
@@ -496,7 +496,7 @@ function LoginContent() {
                 </motion.div>
               )}
 
-              {/* ── Demo Quick Login for DDC ── */}
+              {/* ── Demo Quick Login for DDC  */}
               {!isZCC && (
                 <motion.div variants={fadeUp} className="w-full">
                   <button
@@ -512,7 +512,7 @@ function LoginContent() {
                 </motion.div>
               )}
 
-              {/* ── ZCC Admin Quick Login (123/123) ── */}
+              {/* ── ZCC Admin Quick Login (123/123)  */}
               <motion.div variants={fadeUp} className="w-full">
                 <button
                   type="button"
@@ -542,7 +542,7 @@ function LoginContent() {
             </motion.div>
           )}
 
-          {/* ═══════════ MAGIC LINK SENT VIEW ═══════════ */}
+          {/* ══ MAGIC LINK SENT VIEW  */}
           {viewMode === 'magic-sent' && (
             <motion.div
               key="magic-sent"
@@ -638,7 +638,7 @@ function LoginContent() {
             </motion.div>
           )}
 
-          {/* ═══════════ SIGN UP VIEW ═══════════ */}
+          {/* ══ SIGN UP VIEW  */}
           {viewMode === 'signup' && (
             <motion.div
               key="signup"

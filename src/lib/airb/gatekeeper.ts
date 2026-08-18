@@ -46,7 +46,7 @@ export const FEATURE_GATES: Record<AirBPlanType, {
 
 // Map tenant plan to AirB plan type
 // The tenant might have a Pousada plan (pro/max) — AirB has separate subscription
-function resolveAirBPlan(tenantId: string): AirBPlanType | null {
+function resolveAirBPlan(_tenantId: string): AirBPlanType | null {
   // For now, we derive from tenant plan since AirB subscriptions are new
   // In production, this checks AirBSubscription table first
   return null; // Will be resolved in checkEntitlement

@@ -32,9 +32,12 @@ import ZAI from 'z-ai-web-dev-sdk';
 import {
   callOpenAICompatible,
   callAnthropic,
+  callAnthropicWithTools,
   callGemini,
   callOpenAIWithTools,
   callGeminiWithTools,
+  callGeminiWithAudio,
+  mapWhatsappAudioToGemini,
   AdapterMessage,
   AdapterToolDef,
   AdapterToolResponse,
@@ -300,7 +303,159 @@ const DEFAULT_PROVIDERS: ProviderRegistration[] = [
     initialAlpha: 3.0,
     initialBeta: 1.0,
   },
+  // ─── NEW (Patch B): GLM-4.7-Flash — Tier 1 ultra-fast for Conductor/Leads/Operations ───
+  {
+    id: 'zhipu-glm-4-7-flash',
+    name: 'Zhipu GLM-4.7-Flash',
+    tier: 1,
+    costPer1kInput: 0.00010,   // $0.10 / 1M input
+    costPer1kOutput: 0.00010,  // $0.10 / 1M output
+    expectedLatencyMs: 35,     // sub-40ms target for WhatsApp
+    maxContextTokens: 128_000,
+    supportsJson: true,
+    supportsTools: true,
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    initialAlpha: 2.5,         // mild prior preference (cheap + fast)
+    initialBeta: 1.0,
+  },
+  // ─── NEW (Patch B): Claude 3.5 Haiku — Tier 3 primary for Refactor Agent ───
+  {
+    id: 'anthropic-claude-3-5-haiku',
+    name: 'Anthropic Claude 3.5 Haiku',
+    tier: 3,
+    costPer1kInput: 0.00080,   // $0.80 / 1M
+    costPer1kOutput: 0.00400,  // $4.00 / 1M
+    expectedLatencyMs: 90,
+    maxContextTokens: 200_000,
+    supportsJson: true,
+    supportsTools: true,
+    baseUrl: 'https://api.anthropic.com/v1',
+    initialAlpha: 3.0,         // strong prior — known excellent for code
+    initialBeta: 1.0,
+  },
+  // ─── NEW (Patch B): Claude 3.5 Sonnet — Tier 3 option for Cerebro Agent (deep reasoning) ───
+  {
+    id: 'anthropic-claude-3-5-sonnet',
+    name: 'Anthropic Claude 3.5 Sonnet',
+    tier: 3,
+    costPer1kInput: 0.00300,   // $3.00 / 1M
+    costPer1kOutput: 0.01500,  // $15.00 / 1M
+    expectedLatencyMs: 120,
+    maxContextTokens: 200_000,
+    supportsJson: true,
+    supportsTools: true,
+    baseUrl: 'https://api.anthropic.com/v1',
+    initialAlpha: 2.5,
+    initialBeta: 1.0,
+  },
 ];
+
+/* ================================================================== */
+/* Per-Agent Fallback Chain Configuration (Patch D)                    */
+/* ================================================================== */
+
+/**
+ * Per-Agent Fallback Chain Configuration
+ *
+ * Maps each logical ZCC agent to its preferred primary + fallback LLM provider.
+ * Consumed by dispatchWithFailover() to enforce deterministic failover order
+ * BEFORE Thompson Sampling kicks in for last-resort selection.
+ *
+ * DESIGN PRINCIPLES:
+ *   1. Primary is chosen for cost/latency fit to the agent's task profile
+ *   2. Fallback is from a DIFFERENT provider family (no correlated failures)
+ *   3. Tier matches the agent's reasoning complexity:
+ *      - Tier 1 = ultra-fast routing/triage (Conductor, Operations, Leads)
+ *      - Tier 2 = standard reasoning (Data, Comms)
+ *      - Tier 3 = deep reasoning (Finance, Cerebro, Refactor)
+ *
+ * MATRIX (validated against user spec 2026-08-04):
+ *
+ *   Agente        | Primário                  | Fallback                  | Tier
+ *   --------------|---------------------------|---------------------------|-----
+ *   conductor     | GLM-4.7-Flash             | Gemini 2.0 Flash          | 1
+ *   data          | Gemini 2.0 Flash          | GLM-4.7-Flash             | 2
+ *   finance       | DeepSeek V4 Flash         | GLM-5.2                   | 3
+ *   leads         | GLM-4.7-Flash             | DeepSeek V4 Flash         | 1
+ *   comms         | Gemini 2.0 Flash          | GLM-4.7-Flash             | 2
+ *   operations    | GLM-4.7-Flash             | DeepSeek V4 Flash         | 1
+ *   cerebro       | DeepSeek V4 Flash         | GLM-5.2                   | 3
+ *   refactor      | Claude 3.5 Haiku          | DeepSeek V4 Flash         | 3
+ */
+export interface AgentFallbackChain {
+  /** Provider ID do primário (deve estar registrado em DEFAULT_PROVIDERS) */
+  primary: string | null;
+  /** Provider ID do fallback (deve estar em DEFAULT_PROVIDERS, família diferente) */
+  fallback: string | null;
+  /** Tier máximo permitido para este agente (controla custo) */
+  tier: 1 | 2 | 3;
+  /** Descrição humana para observabilidade */
+  rationale: string;
+}
+
+export const AGENT_FALLBACK_CHAINS: Record<string, AgentFallbackChain> = {
+  conductor: {
+    primary: 'zhipu-glm-4-7-flash',
+    fallback: 'gemini-flash',
+    tier: 1,
+    rationale: 'Roteamento simples e JSON schema — ultra-baixo custo, sub-40ms',
+  },
+  data: {
+    primary: 'gemini-flash',
+    fallback: 'zhipu-glm-4-7-flash',
+    tier: 2,
+    rationale: 'RAG + sumarização longa — janela 1M do Gemini é diferencial',
+  },
+  finance: {
+    primary: 'deepseek-v4-flash',
+    fallback: 'zhipu-glm5',
+    tier: 3,
+    rationale: 'Raciocínio matemático sem alucinação — DeepSeek imbatível em lógica',
+  },
+  leads: {
+    primary: 'zhipu-glm-4-7-flash',
+    fallback: 'deepseek-v4-flash',
+    tier: 1,
+    rationale: 'Scoring e classificação tabular — JSON schema + baixo custo',
+  },
+  comms: {
+    primary: 'gemini-flash',
+    fallback: 'zhipu-glm-4-7-flash',
+    tier: 2,
+    rationale: 'Suporte a áudios diretos no WhatsApp (sem Whisper) + mensagens longas',
+  },
+  operations: {
+    primary: 'zhipu-glm-4-7-flash',
+    fallback: 'deepseek-v4-flash',
+    tier: 1,
+    rationale: 'Decisão binária e checklists de check-in — ultra-rápido',
+  },
+  cerebro: {
+    primary: 'deepseek-v4-flash',
+    fallback: 'zhipu-glm5',
+    tier: 3,
+    rationale: 'Raciocínio estendido para detecção de anomalias',
+  },
+  refactor: {
+    primary: 'anthropic-claude-3-5-haiku',
+    fallback: 'deepseek-v4-flash',
+    tier: 3,
+    rationale: 'Auto-fix de código/Prisma — Claude é rei em geração e correção de SQL',
+  },
+};
+
+/**
+ * Helper: Resolve the fallback chain for an agent.
+ * Falls back to Thompson Sampling mode (primary=null) for unknown agents.
+ */
+export function getAgentChain(agentId: string): AgentFallbackChain {
+  return AGENT_FALLBACK_CHAINS[agentId] ?? {
+    primary: null,
+    fallback: null,
+    tier: 2,
+    rationale: 'Agente não mapeado — Thompson Sampling decide dinamicamente',
+  };
+}
 
 /* ================================================================== */
 /* Seeded PRNG — Mulberry32                                             */
@@ -759,6 +914,122 @@ export class ZaosNeuroRouter {
     }
   }
 
+  /**
+   * Apply exponential decay to all Thompson Sampling posteriors.
+   *
+   * PROBLEM: Standard Thompson Sampling assumes stationary rewards — if a
+   * provider's quality changes (degrades or improves) over time, the
+   * accumulated α/β counts dominate and the sampler can't adapt.
+   *
+   * SOLUTION: Apply exponential decay (γ < 1) to α and β periodically.
+   * This effectively limits the "memory" of the sampler, making it
+   * responsive to recent observations while keeping prior strength bounded.
+   *
+   * RECOMMENDED USAGE:
+   *  - Daily cron with γ = 0.95 (keeps ~95% of historical evidence per day)
+   *  - After 30 days of decay: effective evidence = 0.95^30 ≈ 21% of original
+   *  - Providers that recently degraded will have their posterior mean shift
+   *    downward within ~3-5 days (instead of weeks)
+   *
+   * GUARDRAILS:
+   *  - Never decays below the prior (initialAlpha, initialBeta)
+   *  - Logs decay applied per provider for observability
+   *
+   * @param gamma - Decay factor (default 0.95). Must be in (0, 1).
+   * @returns Stats about decay applied per provider
+   */
+  applyPosteriorDecay(gamma: number = 0.95): {
+    providerId: string;
+    beforeAlpha: number;
+    beforeBeta: number;
+    afterAlpha: number;
+    afterBeta: number;
+    effectiveEvidenceKept: number;
+  }[] {
+    if (gamma <= 0 || gamma >= 1) {
+      throw new Error(`gamma must be in (0, 1), got ${gamma}`);
+    }
+
+    const results: Array<{
+      providerId: string;
+      beforeAlpha: number;
+      beforeBeta: number;
+      afterAlpha: number;
+      afterBeta: number;
+      effectiveEvidenceKept: number;
+    }> = [];
+
+    for (const [providerId, provider] of this.providers) {
+      const beforeAlpha = provider.alpha;
+      const beforeBeta = provider.beta;
+      const priorAlpha = provider.registration.initialAlpha ?? 1.0;
+      const priorBeta = provider.registration.initialBeta ?? 1.0;
+
+      // Decay toward prior (not toward 0 — we want to keep some baseline confidence)
+      const decayedAlpha = priorAlpha + (provider.alpha - priorAlpha) * gamma;
+      const decayedBeta = priorBeta + (provider.beta - priorBeta) * gamma;
+
+      provider.alpha = Math.max(priorAlpha, decayedAlpha);
+      provider.beta = Math.max(priorBeta, decayedBeta);
+
+      // Effective evidence kept (sum of α + β - prior)
+      const beforeEvidence = beforeAlpha + beforeBeta - priorAlpha - priorBeta;
+      const afterEvidence = provider.alpha + provider.beta - priorAlpha - priorBeta;
+      const effectiveKept = beforeEvidence > 0 ? afterEvidence / beforeEvidence : 1;
+
+      results.push({
+        providerId,
+        beforeAlpha,
+        beforeBeta,
+        afterAlpha: provider.alpha,
+        afterBeta: provider.beta,
+        effectiveEvidenceKept: effectiveKept,
+      });
+    }
+
+    // Log observability
+    if (typeof console !== 'undefined') {
+      console.log(`[ZaosNeuroRouter] Posterior decay applied (γ=${gamma}):`, {
+        providers: results.map(r => ({
+          id: r.providerId,
+          α: `${r.beforeAlpha.toFixed(2)} → ${r.afterAlpha.toFixed(2)}`,
+          β: `${r.beforeBeta.toFixed(2)} → ${r.afterBeta.toFixed(2)}`,
+          kept: `${(r.effectiveEvidenceKept * 100).toFixed(1)}%`,
+        })),
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Returns a snapshot of all provider posteriors for observability/dashboard.
+   * Useful for monitoring drift over time and confirming decay is working.
+   */
+  getPosteriorSnapshot(): Array<{
+    providerId: string;
+    providerName: string;
+    tier: number;
+    alpha: number;
+    beta: number;
+    posteriorMean: number; // α / (α + β)
+    totalRequests: number;
+    avgLatencyMs: number;
+    circuitState: string;
+  }> {
+    return Array.from(this.providers.values()).map(p => ({
+      providerId: p.registration.id,
+      providerName: p.registration.name,
+      tier: p.registration.tier,
+      alpha: p.alpha,
+      beta: p.beta,
+      posteriorMean: p.alpha / (p.alpha + p.beta),
+      totalRequests: p.totalRequests,
+      avgLatencyMs: p.totalRequests > 0 ? p.totalLatencyMs / p.totalRequests : 0,
+      circuitState: p.circuitBreaker.getState(),
+    }));
+  }
+
   /* -------------------------------------------------------------- */
   /* Provider Management                                             */
   /* -------------------------------------------------------------- */
@@ -1040,6 +1311,145 @@ export class ZaosNeuroRouter {
   }
 
   /* -------------------------------------------------------------- */
+  /* Dispatch with Failover (Patch A)                                 */
+  /* -------------------------------------------------------------- */
+
+  /**
+   * Dispatch with explicit failover chain.
+   *
+   * Tries providers in order: agentFallbackChain → thompsonSampledHealthyProviders → mock.
+   *
+   * FAILOVER CONTRACT:
+   *   1. Primary provider (from AGENT_FALLBACK_CHAINS[agentId].primary)
+   *   2. Fallback provider (from AGENT_FALLBACK_CHAINS[agentId].fallback)
+   *   3. Thompson Sampling among healthy providers of same tier
+   *   4. Mock response (last resort — keeps guest unblocked)
+   *
+   * LATENCY BUDGET per failover hop: <50ms (circuit breaker check + adapter call setup)
+   * TOTAL BUDGET for full chain: <150ms (3 hops × 50ms) before falling to mock
+   *
+   * @param agentId - Logical agent ID (e.g. 'conductor', 'finance', 'refactor')
+   * @param request - Standard LLMRequest
+   * @returns LLMResponse with providerId reflecting which provider actually served
+   *          + failoverHops[] showing the chain of providers tried
+   */
+  async dispatchWithFailover(
+    agentId: string,
+    request: LLMRequest,
+  ): Promise<LLMResponse & { failoverHops: string[] }> {
+    const startTime = Date.now();
+    const chain = getAgentChain(agentId);
+    const failoverHops: string[] = [];
+
+    // Build candidate list in priority order:
+    // 1. Declared primary (if registered + circuit closed)
+    // 2. Declared fallback (if registered + circuit closed)
+    // 3. Any other healthy provider at chain.tier or below (Thompson-sorted)
+    const candidates: RouterProviderState[] = [];
+    const seen = new Set<string>();
+
+    for (const candidateId of [chain.primary, chain.fallback]) {
+      if (!candidateId) continue;
+      const prov = this.providers.get(candidateId);
+      if (prov && prov.circuitBreaker.allow() && !seen.has(candidateId)) {
+        candidates.push(prov);
+        seen.add(candidateId);
+      }
+    }
+
+    // Append Thompson-sorted healthy providers as additional fallbacks
+    const healthy = this.filterByCircuitBreakers()
+      .filter(p => p.registration.tier <= (chain.tier ?? 2))
+      .filter(p => !seen.has(p.registration.id));
+    // Sort by posterior mean descending (highest success probability first)
+    healthy.sort((a, b) => (b.alpha / (b.alpha + b.beta)) - (a.alpha / (a.alpha + a.beta)));
+    candidates.push(...healthy);
+
+    // If no candidates at all (all circuits open), include primary even if circuit open
+    if (candidates.length === 0 && chain.primary) {
+      const prov = this.providers.get(chain.primary);
+      if (prov) candidates.push(prov);
+    }
+
+    // Try each candidate in order
+    let lastError: Error | null = null;
+    for (const candidate of candidates) {
+      const providerId = candidate.registration.id;
+      failoverHops.push(providerId);
+      const hopStart = Date.now();
+
+      try {
+        const result = await this.dispatchWithProvider(
+          candidate,
+          request,
+          startTime,
+          this.contextDiscretizer.classify(request.message),
+          this.budgetGuard.getLevel(),
+          candidates,
+          this.requestCounter,
+        );
+
+        // Log failover if we hopped past the primary
+        if (failoverHops.length > 1) {
+          console.warn(
+            `[ZaosNeuroRouter] Failover for agent "${agentId}": ` +
+            `primary=${chain.primary} → served by ${providerId} ` +
+            `after ${failoverHops.length - 1} hop(s), ` +
+            `hop_latency=${Date.now() - hopStart}ms, total_latency=${Date.now() - startTime}ms`,
+          );
+        }
+
+        return { ...result, failoverHops };
+      } catch (err) {
+        lastError = err as Error;
+        console.warn(
+          `[ZaosNeuroRouter] Provider ${providerId} failed for agent "${agentId}": ` +
+          `${(err as Error).message}. Trying next in chain...`,
+        );
+        // Record failure so Circuit Breaker can trip after 3 consecutive errors
+        this.recordFeedback(providerId, false, Date.now() - hopStart);
+        continue;
+      }
+    }
+
+    // All providers exhausted — last-resort mock (keeps guest unblocked)
+    console.error(
+      `[ZaosNeuroRouter] ALL providers exhausted for agent "${agentId}". ` +
+      `Hops tried: ${failoverHops.join(' → ')}. Falling back to mock. Last error: ${lastError?.message}`,
+    );
+
+    const mockProviderId = chain.primary ?? 'deepseek-v4-flash';
+    const mockProvider = this.providers.get(mockProviderId);
+    const mockProviderName = mockProvider?.registration.name ?? 'Mock (unknown)';
+    const mockResponse = this.generateMockResponse(
+      request.message,
+      this.contextDiscretizer.classify(request.message).bucket,
+      mockProviderName,
+    );
+
+    return {
+      response: mockResponse,
+      providerId: 'mock-fallback',
+      providerName: 'Mock (all providers exhausted)',
+      tier: 0,
+      bucket: 'failover_exhausted',
+      confidence: 0,
+      latencyMs: Date.now() - startTime,
+      costUsd: 0,
+      inputTokens: Math.ceil(request.message.length / 4),
+      outputTokens: Math.ceil(mockResponse.length / 4),
+      cacheHit: false,
+      compressionRatio: 0,
+      circuitState: 'OPEN_ALL',
+      budgetLevel: this.budgetGuard.getLevel(),
+      thompsonTheta: 0,
+      allThetas: {},
+      isMock: true,
+      failoverHops,
+    };
+  }
+
+  /* -------------------------------------------------------------- */
   /* Native Function Calling                                          */
   /* -------------------------------------------------------------- */
 
@@ -1258,6 +1668,24 @@ export class ZaosNeuroRouter {
       });
     }
 
+    // NEW (Patch B): Anthropic Claude supports tool calling via its own format
+    if (providerId.includes('anthropic') || providerId.includes('claude')) {
+      const apiKey = process.env.ANTHROPIC_API_KEY || '';
+      const model = providerId === 'anthropic-claude-3-5-haiku'
+        ? 'claude-3-5-haiku-20241022'
+        : providerId === 'anthropic-claude-3-5-sonnet'
+          ? 'claude-3-5-sonnet-20241022'
+          : 'claude-3-5-haiku-20241022';
+      return callAnthropicWithTools({
+        apiKey,
+        model,
+        messages,
+        tools,
+        temperature: temp,
+        maxTokens,
+      });
+    }
+
     // All other tool-supporting providers use OpenAI-compatible format
     let apiKey = '';
     let realModel = providerId;
@@ -1272,7 +1700,7 @@ export class ZaosNeuroRouter {
       apiKey = process.env.DEEPSEEK_API_KEY || '';
     } else if (providerId.includes('glm5') || providerId.includes('zhipu')) {
       apiKey = process.env.GLM_5_2_API_KEY || process.env.ZHIPU_API_KEY || '';
-      realModel = 'glm-5.2';
+      realModel = providerId === 'zhipu-glm-4-7-flash' ? 'glm-4.7-flash' : 'glm-5.2';
     } else if (providerId.includes('kimi') || providerId.includes('moonshot')) {
       apiKey = process.env.KIMI_K2_6_API_KEY || process.env.MOONSHOT_API_KEY || '';
       realModel = 'kimi-k2.6';
@@ -1390,9 +1818,15 @@ export class ZaosNeuroRouter {
     if (providerId.includes('gemini')) {
       const apiKey = process.env.GEMINI_API_KEY || '';
       return callGemini({ apiKey, model: providerId, messages, temperature: temp, maxTokens, jsonMode });
-    } else if (providerId.includes('anthropic')) {
+    } else if (providerId.includes('anthropic') || providerId.includes('claude')) {
       const apiKey = process.env.ANTHROPIC_API_KEY || '';
-      return callAnthropic({ apiKey, model: providerId, messages, temperature: temp, maxTokens });
+      // Map provider ID to actual Anthropic model name (providerId is NOT a valid model)
+      const model = providerId === 'anthropic-claude-3-5-haiku'
+        ? 'claude-3-5-haiku-20241022'
+        : providerId === 'anthropic-claude-3-5-sonnet'
+          ? 'claude-3-5-sonnet-20241022'
+          : 'claude-3-5-haiku-20241022'; // safe default
+      return callAnthropic({ apiKey, model, messages, temperature: temp, maxTokens });
     } else {
       let apiKey = '';
       let realModel = providerId;
@@ -1413,7 +1847,8 @@ export class ZaosNeuroRouter {
         apiKey = process.env.DEEPSEEK_API_KEY || '';
       } else if (providerId.includes('glm5') || providerId.includes('zhipu')) {
         apiKey = process.env.GLM_5_2_API_KEY || process.env.ZHIPU_API_KEY || '';
-        realModel = 'glm-5.2';
+        // GLM-4.7-Flash uses different model name than GLM-5.2
+        realModel = providerId === 'zhipu-glm-4-7-flash' ? 'glm-4.7-flash' : 'glm-5.2';
       } else if (providerId.includes('kimi') || providerId.includes('moonshot')) {
         apiKey = process.env.KIMI_K2_6_API_KEY || process.env.MOONSHOT_API_KEY || '';
         realModel = 'kimi-k2.6';

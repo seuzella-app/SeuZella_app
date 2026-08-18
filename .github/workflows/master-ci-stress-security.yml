@@ -1,0 +1,107 @@
+name: 💥 Master CI — Concurrency, Smart Locks & Infrastructure Suite
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: test
+  NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+  UPSTASH_REDIS_REST_URL: http://localhost:8079
+  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
+  DATABASE_URL: file:./test-integration.db
+  CI: 'true'
+
+jobs:
+  smart-locks-suite:
+    name: 🔒 Smart Locks Hardware & SQLite DB Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Push Prisma Schema to SQLite DB
+        run: npx prisma db push --accept-data-loss
+
+      - name: Execute Smart Locks Test Suite
+        run: |
+          npx vitest run \
+            tests/locks-db-integration.test.ts \
+            tests/smart-locks.test.ts \
+            tests/locks-device-state-battery.test.ts \
+            tests/locks-brand-matrix.test.ts \
+            tests/locks-panic-revoke-stress.test.ts \
+            tests/locks-race-conditions.test.ts \
+            tests/locks-real-life-flows.test.ts \
+            tests/locks-whatsapp-delivery.test.ts
+
+  avalanche-concurrency:
+    name: ⚡ Avalanche Concurrency & High Load Stress
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Execute Avalanche Stress & Neuro-Router Tests
+        run: |
+          npx vitest run \
+            tests/stress-avalanche-k6.test.ts \
+            tests/stress-neuro-router.test.ts \
+            tests/high-stress-concurrency.test.ts \
+            tests/locks-stress-avalanche.test.ts
+
+  runtime-smoke:
+    name: 🔍 Runtime Integration & Webhook Cascade Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Run Integration Smoke Test Suite
+        run: |
+          npx vitest run \
+            tests/e2e-cascade-full.test.ts \
+            tests/observability-disaster-recovery.test.ts \
+            tests/subscription-lifecycle-idempotency.test.ts \
+            tests/payments.test.ts \
+            tests/openwa-gateway.test.ts

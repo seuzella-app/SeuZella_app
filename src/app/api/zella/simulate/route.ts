@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// ═══════════════════════════════════════════════════════════════
+// ══
 // ZELLA SIMULATOR — Message Bundler + One-Shot Resolution
 // Mock Mode: simulates the AI response pipeline with
 // intelligent message grouping for Meta tariff economy.
-// ═══════════════════════════════════════════════════════════════
+// ══
 
 const META_COST_PER_TARIFF = 0.0068; // US$ per Meta conversation tariff
 
@@ -25,7 +25,7 @@ interface SimulateRequest {
   niche: 'pousada' | 'airbnb';
 }
 
-// ── Smart Response Generator (Mock) ─────────────────────────────
+// ── Smart Response Generator (Mock) 
 
 function generateBundledResponse(messages: string[], propertyData: SimulateRequest['propertyData'], niche: 'pousada' | 'airbnb'): string {
   const propertyName = propertyData.propertyName || (niche === 'pousada' ? 'nossa pousada' : 'nosso imóvel');
@@ -188,7 +188,7 @@ function generateBundledResponse(messages: string[], propertyData: SimulateReque
   return parts.join('\n\n');
 }
 
-// ── Single (non-bundled) Response ──────────────────────────────
+// ── Single (non-bundled) Response 
 
 function generateSingleResponse(message: string, propertyData: SimulateRequest['propertyData'], niche: 'pousada' | 'airbnb'): string {
   const propertyName = propertyData.propertyName || (niche === 'pousada' ? 'nossa pousada' : 'nosso imóvel');
@@ -211,7 +211,7 @@ function generateSingleResponse(message: string, propertyData: SimulateRequest['
   return `Obrigado pela mensagem! 😊 Sou a assistente virtual da **${propertyName}** e posso te ajudar com valores, disponibilidade, horários e muito mais. O que gostaria de saber?`;
 }
 
-// ── POST Handler ───────────────────────────────────────────────
+// ── POST Handler 
 
 export async function POST(request: NextRequest) {
   let body: SimulateRequest;

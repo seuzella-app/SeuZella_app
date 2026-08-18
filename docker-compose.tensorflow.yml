@@ -1,0 +1,31 @@
+# ============================================================================
+# ZÉLLA — TensorFlow Sidecar Docker Compose
+# ============================================================================
+# Roda na VPS Hostinger MVK4 junto com o Next.js + Semantica sidecar
+# ============================================================================
+
+version: "3.8"
+
+services:
+  tf-sidecar:
+    build: ./deploy/tensorflow-sidecar
+    container_name: zella-tf-sidecar
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8501:8501"
+    environment:
+      - TF_API_KEY=${TF_API_KEY}
+      - TF_SIDECAR_PORT=8501
+      - TF_MODELS_DIR=/app/models
+    volumes:
+      - ./deploy/tensorflow-sidecar/models:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"

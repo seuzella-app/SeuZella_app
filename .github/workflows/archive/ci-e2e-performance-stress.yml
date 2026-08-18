@@ -1,0 +1,40 @@
+name: ⚡ E2E Webhook & Cérebro Performance Gate
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/app/api/webhook-whatsapp/**'
+      - 'src/lib/cerebro/cerebro-orchestrator.ts'
+      - 'src/lib/ai/zaos-neuro-router.ts'
+      - 'tests/zella-sales-brain.test.ts'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  performance-stress-gate:
+    name: 🚀 High Throughput & Latency Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: 💎 Generate Prisma Client
+        run: npx prisma generate
+
+      - name: 🧪 Run Webhook & Orchestrator Performance Tests
+        run: npx vitest run tests/zella-sales-brain.test.ts --reporter=verbose
+        env:
+          NODE_ENV: test
+          CEREBRO_LIVE_MODE: false
+          CEREBRO_MONTHLY_BUDGET_USD: 20

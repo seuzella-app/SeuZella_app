@@ -48,6 +48,14 @@ const LEGAL_DOCUMENTS = [
     badge: 'Minuta Contratual',
     color: 'from-cyan-500/20 to-sky-500/20 text-cyan-400 border-cyan-500/30',
   },
+  {
+    slug: 'programa-amortizacao',
+    title: 'Programa de Amortização por Indicação',
+    description: 'Regras completas do sistema de créditos: como indicar, como acumular, anti-fraude, regra especial LITE e muito mais. Documento oficial que rege o programa.',
+    icon: Scale,
+    badge: 'Programa de Recompensas',
+    color: 'from-emerald-500/20 to-cyan-500/20 text-emerald-400 border-emerald-500/30',
+  },
 ];
 
 export default function LegalHubPage() {

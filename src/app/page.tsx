@@ -6,6 +6,7 @@ import { HeroSection } from '@/components/landing/HeroSection';
 import { PainPointsSection } from '@/components/landing/PainPointsSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
+import { ProHostSection } from '@/components/landing/ProHostSection';
 import { DashboardPreviewSection } from '@/components/landing/DashboardPreviewSection';
 import { NicheSwitcherSection } from '@/components/landing/NicheSwitcherSection';
 import BookingPlatformsMarquee from '@/components/landing/BookingPlatformsMarquee';
@@ -14,6 +15,7 @@ import { PricingSection } from '@/components/landing/PricingSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { CTASection } from '@/components/landing/CTASection';
+import { BetaFounderSection } from '@/components/landing/BetaFounderSection';
 import { FinalCTASection } from '@/components/landing/FinalCTASection';
 import { ContactSection } from '@/components/landing/ContactSection';
 import { TrustBadgesSection } from '@/components/landing/TrustBadgesSection';
@@ -44,6 +46,8 @@ export default function HomePage() {
           <SectionDivider />
           <FeaturesSection />
           <SectionDivider />
+          <ProHostSection />
+          <SectionDivider />
           <DashboardPreviewSection />
           <SectionDivider />
           <NicheSwitcherSection />
@@ -62,6 +66,9 @@ export default function HomePage() {
             const el = document.querySelector('#precos');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }} />
+          {/* Sprint 2, Day 11: Mount BetaFounderSection — previously written but never rendered.
+              This was 149 lines of dead code with scarcity copy "100 vagas limitadas". */}
+          <BetaFounderSection />
           <FinalCTASection />
           <section id="contato">
             <ContactSection />

@@ -173,6 +173,54 @@ export const DDC_TABS: TabDef[] = [
     lockedDescription: 'Seu zelador digital para imóveis Airbnb. Responda hóspedes como o dono que sabe tudo.',
     lockedFeatures: ['Magic Onboarding via link Airbnb', 'Cadastro automático de imóveis', 'IA anfitrião 24/7 no WhatsApp', 'Detecção pré/pós-reserva', 'Até 4 imóveis no PRO, 12 no MAX'],
   },
+  {
+    id: 'credits',
+    label: 'Créditos de Amortização',
+    minTier: 'lite',
+    upgradeTarget: 'lite',
+    lockedLabel: 'Créditos de Amortização',
+    lockedDescription: 'Indique o Seu Zélla e ganhe créditos que abatem até 50% da sua mensalidade. LITE, PRO, MAX e PARCEIRO participam.',
+    lockedFeatures: ['Link-in-Bio rastreado', 'Código por e-mail e WhatsApp', 'Anti-fraude com fingerprint', 'Saldo de créditos em tempo real', 'Milestone LITE: 10 conversões = 12 meses grátis'],
+  },
+  // ── Sprint 3, Day 13-14: MAX tab — BI Avançado ─────────────────────────
+  // Available to MAX plan (R$797). Without this tab, MAX had ZERO additional
+  // DDC tabs vs PRO (R$397) — massive value perception problem.
+  {
+    id: 'bi',
+    label: 'BI Avançado',
+    minTier: 'max',
+    upgradeTarget: 'max',
+    lockedLabel: 'Business Intelligence',
+    lockedDescription: 'Heatmap de ocupação, previsão de demanda, benchmark vs mercado e alertas de churn.',
+    lockedFeatures: ['Heatmap de ocupação por canal', 'Previsão de demanda (7/30 dias)', 'Benchmark vs mercado regional', 'Alertas de churn preditivo', 'Análise de ADR por período'],
+  },
+  // ── Sprint 3, Day 13-14: MAX tab — Multi-propriedades ──────────────────
+  // MAX supports up to 12 properties (PRO = 4). Without a dedicated tab to
+  // switch/manage properties, multi-property operation was impossible.
+  {
+    id: 'properties',
+    label: 'Propriedades',
+    minTier: 'max',
+    upgradeTarget: 'max',
+    lockedLabel: 'Gestão Multi-Propriedades',
+    lockedDescription: 'Gerencie até 12 propriedades em uma única conta com troca rápida.',
+    lockedFeatures: ['Até 12 propriedades', 'Troca rápida entre propriedades', 'Visão consolidada', 'Relatórios por propriedade', 'Permissões por equipe'],
+  },
+  // ── Fechaduras Eletrônicas ──────────────────────────────────────────────
+  // Trunfo do Seu Zélla — orquestrador de 10 marcas brasileiras.
+  // 5 com API automática (TTLock, Tuya, Igloohome, Nuki, August) +
+  // 5 em modo manual (Intelbras, Yale, Papaiz, Philco, Samsung).
+  // PINs temporários com validade rígida, entrega via WhatsApp pós-PIX,
+  // revogação de emergência e auditoria LGPD completa.
+  {
+    id: 'locks',
+    label: 'Fechaduras',
+    minTier: 'lite',
+    upgradeTarget: 'pro',
+    lockedLabel: 'Fechaduras Eletrônicas',
+    lockedDescription: 'Gerencie fechaduras inteligentes e PINs temporários automáticos. Compatível com 10 marcas brasileiras.',
+    lockedFeatures: ['10 marcas (TTLock, Intelbras, Yale, Igloohome, etc.)', 'PINs com validade rígida por minuto', 'Envio automático via WhatsApp pós-PIX', 'Revogação de emergência 1-clique', 'Auditoria LGPD completa'],
+  },
 ];
 
 // ── Sub-features dentro de Configurações ──────────────────────────────────────
@@ -270,6 +318,7 @@ export const QUICK_ACTIONS: QuickActionDef[] = [
   { id: 'notifications', label: 'Notificações', minTier: 'gratuito', upgradeTarget: 'lite' },
   { id: 'settings', label: 'Configurações', minTier: 'gratuito', upgradeTarget: 'lite' },
   { id: 'airb', label: 'Zélla AirB', minTier: 'pro', upgradeTarget: 'pro' },
+  { id: 'locks', label: 'Fechaduras', minTier: 'lite', upgradeTarget: 'pro' },
 ];
 
 // ── Feature highlights por plano (para upgrade nudges) ────────────────────────

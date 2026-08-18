@@ -68,12 +68,20 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST Handler para receber mensagens em tempo real da API oficial do WhatsApp Cloud.
- * 
+ *
+ * PERFORMANCE: responde 200 OK imediatamente após validação + enfileiramento.
+ * O processamento da mensagem (chamada GLM 5.2, montagem de resposta, envio)
+ * acontece de forma assíncrona via queue, evitando timeout do webhook da Meta (>5s).
+ *
  * SECURITY (Zero Trust):
  * - In production, requires HMAC-SHA256 signature verification via hub.signature header.
  * - Validates tenant isolation to prevent Cross-Tenant Data Leak.
  * - No mock/fallback mode in production.
  */
+
+// Vercel: permite até 60s de processamento (plano Pro). VPS Docker: sem limite.
+export const maxDuration = 30;
+
 export async function POST(request: NextRequest) {
   try {
     // SECURITY: Read raw body for signature verification BEFORE parsing
@@ -160,22 +168,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Escudo Anti-Taxas Meta 2026: Message Bundler ──
-    bufferMessage(
-      {
-        tenantId: tenantId!,
-        guestPhone: fromPhone,
-        guestName: contactName,
-        messageContent: messageText,
-        messageFrom: 'whatsapp',
-      },
-      processIncomingMessage,
-    ).catch((err) => {
-      console.error('[whatsapp-webhook] Erro crítico ao processar mensagem (bundled):', err);
+    // ── Queue: enfileira mensagem para processamento assíncrono ──
+    // Responde 200 OK imediato para a Meta (<2s). O processamento completo
+    // (GLM 5.2, montagem de resposta, envio via WhatsApp API) acontece
+    // no worker do queue, evitando timeout do webhook.
+    const { enqueueJob, QUEUE_NAMES } = await import('@/lib/queue/queue-service');
+    await enqueueJob(QUEUE_NAMES.WHATSAPP_WEBHOOK, {
+      tenantId: tenantId!,
+      guestPhone: fromPhone,
+      guestName: contactName,
+      messageContent: messageText,
+      messageFrom: 'whatsapp',
+      displayPhoneNumber,
+      messageTimestamp: message.timestamp,
+    }).catch((err) => {
+      console.error('[whatsapp-webhook] Erro ao enfileirar mensagem:', err);
+      // Fallback: processa síncrono se queue falhar
+      bufferMessage(
+        {
+          tenantId: tenantId!,
+          guestPhone: fromPhone,
+          guestName: contactName,
+          messageContent: messageText,
+          messageFrom: 'whatsapp',
+        },
+        processIncomingMessage,
+      ).catch((err2) => {
+        console.error('[whatsapp-webhook] Erro crítico no fallback síncrono:', err2);
+      });
     });
 
     return NextResponse.json(
-      { success: true, processed: true },
+      { success: true, processed: true, queued: true },
       { headers: { 'X-Security-Shield': 'zero-trust-v1' } }
     );
   } catch (error) {

@@ -19,6 +19,11 @@ import {
   CalendarCheck2,
   KeyRound,
   DollarSign,
+  BellRing,
+  Percent,
+  TrendingUp,
+  Info,
+  Calendar,
 } from 'lucide-react';
 import { useNiche } from '@/contexts/NicheContext';
 import { getNicheContent } from '@/data/niche-content';
@@ -93,7 +98,7 @@ const plans: Plan[] = [
     priceLabelAirbnb: 'R$247',
     onlyCard: false,
     desc: 'Plano PRO completo por R$247/mês — preço congelado por 24 meses + selo exclusivo de Parceiro Zélla no seu perfil Link-in-Bio. Atendimento e mensagens ilimitados.',
-    descAirbnb: 'Plano PRO completo por R$247/mês — preço congelado por 24 meses + selo exclusivo de Parceiro Zélla no seu perfil. Atendimento automatizado e mensagens ilimitadas.',
+    descAirbnb: 'Plano MAX completo por R$247/mês — preço congelado por 24 meses + selo exclusivo de Parceiro Zélla no seu perfil. Atendimento automatizado e mensagens ilimitadas.',
     cta: 'Garantir Vaga de Parceiro',
     ctaStyle: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/30',
     ctaStyleAirbnb: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/30',
@@ -107,6 +112,7 @@ const plans: Plan[] = [
       { text: 'Preço congelado por 24 meses', included: true },
       { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
       { text: '🗣️ Clone Digital de Tom de Voz (aprende seu estilo e tom de fala)', included: true },
+      { text: '💡 Upsell com Notificação Prévia (7% taxa de sucesso só sobre ganho extra)', included: true },
       { text: 'Selo exclusivo de Parceiro Zélla no Link-in-Bio', included: true },
       { text: 'Perfil Link-in-Bio fornecido pelo Zélla', included: true },
       { text: 'Link para fixar no perfil do Instagram', included: true },
@@ -122,19 +128,21 @@ const plans: Plan[] = [
       { text: 'Economia de R$150/mês vs. PRO regular', included: true },
     ],
     featuresAirbnb: [
-      { text: 'Plano PRO completo — R$247/mês', included: true },
+      { text: 'Plano MAX completo — R$247/mês', included: true },
       { text: 'Preço congelado por 24 meses', included: true },
+      { text: '🛡️ 100% Preço Fixo (Zero Comissões ou Taxas de Reserva/Upsell)', included: true },
       { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
-      { text: '🗣️ Clone Digital de Tom de Voz (aprende seu estilo e tom de fala)', included: true },
+      { text: '🗣️ Clone Digital de Tom de Voz Avançado (aprende sotaque, gírias e expressões)', included: true },
       { text: 'Selo exclusivo de Parceiro Zélla', included: true },
-      { text: 'Magic Onboarding — URL do anúncio (5 min)', included: true },
-      { text: 'Até 4 imóveis cadastrados', included: true },
-      { text: 'Mensagens ilimitadas (sem recargas)', included: true },
-      { text: '🔓 Check-in virtual via Fechadura Eletrônica (PIN Criptografado no WhatsApp)', included: true },
-      { text: 'PIX Gatekeeper anti-banimento', included: true },
-      { text: 'Dashboard com portfólio completo', included: true },
-      { text: 'Suporte prioritário', included: true },
-      { text: 'Economia de R$150/mês vs. PRO regular', included: true },
+      { text: 'Até 12 imóveis cadastrados', included: true },
+      { text: '🔓 Gestão de Fechaduras Eletrônicas Ilimitadas (Multi-propriedades + PIN Criptografado)', included: true },
+      { text: 'Calendar Sync — sincronização Airbnb, Booking, Vrbo (iCal)', included: true },
+      { text: 'Atendimento personalizado — treinamento dedicado p/ seu portfólio', included: true },
+      { text: 'Onboarding personalizado com nossa equipe', included: true },
+      { text: 'Consultoria mensal de otimização de portfólio', included: true },
+      { text: 'Relatórios avançados (PDF/XLSX) para gestão financeira', included: true },
+      { text: 'Suporte VIP prioritário', included: true },
+      { text: 'Economia de R$150/mês vs. MAX regular', included: true },
     ],
   },
 
@@ -160,6 +168,7 @@ const plans: Plan[] = [
     features: [
       { text: '50 hóspedes atendidos por mês', included: true },
       { text: '500 mensagens mensais', included: true },
+      { text: '💡 Upsell Inteligente com Notificação Prévia (7% só sobre ganho extra)', included: true },
       { text: 'Recarga de 250 mensagens por R$97 (se precisar)', included: true },
       { text: 'WhatsApp 24/7 com tom personalizado', included: true },
       { text: 'Checkout PIX integrado (Mercado Pago)', included: true },
@@ -204,34 +213,30 @@ const plans: Plan[] = [
     features: [
       { text: 'Hóspedes ilimitados', included: true },
       { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
-      { text: '🗣️ Clone Digital de Tom de Voz (aprende seu tom de fala e sotaque exato)', included: true },
-      { text: 'Link-in-bio profissional liberado', included: true },
-      { text: 'Mensagens ilimitadas (sem recargas)', included: true },
-      { text: 'WhatsApp com tom 100% personalizado', included: true },
-      { text: '🔓 Fechaduras Eletrônicas (Tuya, TTLock, Intelbras, Yale - PIN Rígido por Minuto)', included: true },
-      { text: 'Checkout Cartão integrado', included: true },
-      { text: 'Dashboard completo', included: true },
-      { text: 'Sugestões de preços inteligentes', included: true },
-      { text: 'Campanhas automatizadas', included: true },
-      { text: 'Análise de sentimento', included: true },
-      { text: 'Suporte prioritário', included: true },
-      { text: 'Economia inteligente nas mensagens', included: true },
+      { text: '🗣️ Responde com o tom de voz da sua Pousada', included: true },
+      { text: '💡 Upsell Inteligente com Notificação Prévia (7% taxa de sucesso só sobre ganho extra)', included: true },
+      { text: 'Link-in-bio profissional para o Instagram da Pousada', included: true },
+      { text: 'Mensagens ilimitadas 24 horas por dia', included: true },
+      { text: '🔓 Fechaduras Eletrônicas (Tuya, TTLock, Intelbras, Yale)', included: true },
+      { text: 'Recebimento de reservas no PIX e Cartão', included: true },
+      { text: 'Painel financeiro completo de ocupação e receitas', included: true },
+      { text: 'Sugestões de preços para datas comemorativas', included: true },
+      { text: 'Suporte prioritário no WhatsApp', included: true },
     ],
     featuresAirbnb: [
-      { text: 'Zélla AirB 24/7 no WhatsApp — responde por você', included: true },
+      { text: 'Atendimento 24h no WhatsApp para seus Imóveis', included: true },
+      { text: '🛡️ 100% Preço Fixo (Zero Comissões ou Taxas de Reserva/Upsell)', included: true },
       { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
-      { text: '🗣️ Clone Digital de Tom de Voz (aprende seu tom de fala e estilo exato)', included: true },
-      { text: 'Magic Onboarding — cole a URL do anúncio e pronto (5 min)', included: true },
+      { text: '🗣️ Responde dúvidas dos hóspedes com o seu estilo exato', included: true },
+      { text: 'Leitura rápida do anúncio — cole a URL e ative em 5 minutos', included: true },
       { text: 'Até 4 imóveis cadastrados', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
-      { text: '🔓 Check-in virtual automático (Fechaduras Tuya/TTLock/Intelbras/Yale - PIN com Validade Rígida)', included: true },
-      { text: 'PIX Gatekeeper — bloqueia PIX p/ hóspedes Airbnb (anti-banimento)', included: true },
-      { text: 'Lifecycle Hooks automáticos (regras, check-in, avaliação)', included: true },
-      { text: 'Respostas sobre vizinhança incluídas (restaurantes, praias, etc.)', included: true },
-      { text: 'Dashboard com portfólio completo (ocupação, receita, avaliações)', included: true },
-      { text: 'Campanhas de reengajamento para hóspedes recorrentes', included: true },
-      { text: 'Análise de sentimento dos hóspedes', included: true },
-      { text: 'Suporte prioritário', included: true },
+      { text: '🔓 Entrega automática da senha da porta (Fechaduras Eletrônicas)', included: true },
+      { text: 'Proteção contra banimento — detecta a origem do hóspede', included: true },
+      { text: 'Lembretes automáticos no WhatsApp (regras, entrada e avaliação)', included: true },
+      { text: 'Dicas locais inclusas (restaurantes, praias, passeios)', included: true },
+      { text: 'Painel completo com ocupação e faturamento por imóvel', included: true },
+      { text: 'Suporte prioritário no WhatsApp', included: true },
     ],
   },
 
@@ -270,6 +275,7 @@ const plans: Plan[] = [
       { text: 'Tudo do plano PRO', included: true },
       { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
       { text: '🗣️ Clone Digital de Tom de Voz Avançado (aprende sotaque, gírias e expressões)', included: true },
+      { text: '💡 Upsell Inteligente com Notificação Prévia (7% taxa de sucesso só sobre ganho extra)', included: true },
       { text: '🔓 Fechaduras Eletrônicas Ilimitadas (PIN Criptografado + Algoritmo Offline Time-Based)', included: true },
       { text: 'Link-in-bio profissional liberado', included: true },
       { text: 'Mensagens ilimitadas (sem recargas)', included: true },
@@ -287,6 +293,7 @@ const plans: Plan[] = [
     featuresAirbnb: [
       { text: 'Tudo do plano PRO (4 imóveis inclusos)', included: true },
       { text: 'Até 12 imóveis cadastrados', included: true },
+      { text: '🛡️ 100% Preço Fixo (Zero Comissões ou Taxas de Reserva/Upsell)', included: true },
       { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
       { text: '🗣️ Clone Digital de Tom de Voz Avançado (aprende sotaque, gírias e expressões)', included: true },
       { text: '🔓 Gestão de Fechaduras Eletrônicas Ilimitadas (Multi-propriedades + PIN Criptografado + Fallback Offline)', included: true },
@@ -331,7 +338,7 @@ export function PricingSection() {
     const count = visiblePlans.length;
     if (count <= 2) return 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto';
     if (count === 3) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto';
-    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto';
+    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto';
     return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
   }, [visiblePlans.length]);
 
@@ -565,7 +572,7 @@ export function PricingSection() {
                             <div className="flex items-center gap-1.5 mt-1.5">
                               <CalendarCheck2 className="w-3.5 h-3.5 text-blue-400" />
                               <span className="text-blue-400 text-xs font-semibold">
-                                7 dias grátis — cancele quando quiser
+                                Acesso imediato após pagamento
                               </span>
                             </div>
                           )}
@@ -657,6 +664,135 @@ export function PricingSection() {
               );
             })}
           </motion.div>
+        </AnimatePresence>
+
+        {/* Pousada Upsell & Faturamento Transparente */}
+        <AnimatePresence mode="wait">
+          {isPousada && (
+            <motion.div
+              key="pousada-upsell-transparency"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="max-w-4xl mx-auto mb-16 mt-4"
+            >
+              <div className="rounded-2xl border border-emerald-500/25 bg-gradient-to-b from-emerald-950/20 via-zinc-900/90 to-zinc-950/95 p-6 sm:p-8 backdrop-blur-md shadow-2xl">
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-5 border-b border-white/[0.08]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-extrabold text-lg sm:text-xl">
+                        Faturamento Transparente & Upsell Inteligente
+                      </h4>
+                      <p className="text-neutral-400 text-xs mt-0.5">
+                        Zero surpresas na sua fatura: entenda como o Zélla multiplica a receita da sua pousada
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    Diárias Normais: 0% Taxa
+                  </span>
+                </div>
+
+                {/* 3 Pillars Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {/* Pillar 1 */}
+                  <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-4.5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-base">💡</span>
+                        <h5 className="text-white font-bold text-sm">O que é UPSELL?</h5>
+                      </div>
+                      <p className="text-neutral-300 text-xs leading-relaxed">
+                        É a venda de <strong className="text-emerald-300 font-semibold">serviços extras por quarto</strong> para quem já reservou: Late Check-out, Early Check-in, Café da Manhã Gourmet, Upgrade de Quarto, Kit Praia ou Passeios.
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2.5 border-t border-white/[0.04]">
+                      <span className="text-[11px] font-semibold text-emerald-400">
+                        + Receita por hóspede sem custo de aquisição
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Pillar 2 */}
+                  <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-4.5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <BellRing className="w-4 h-4 text-amber-400" />
+                        <h5 className="text-white font-bold text-sm">Avisa com Antecedência</h5>
+                      </div>
+                      <p className="text-neutral-300 text-xs leading-relaxed">
+                        O Cérebro Zélla monitora feriados prolongados e festas regionais. Quando detecta que o fluxo de mensagens vai explodir, ele <strong className="text-amber-300 font-semibold">calcula os valores ideais de upsell e notifica você antes</strong> no DDC e DDC Mobile.
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2.5 border-t border-white/[0.04]">
+                      <span className="text-[11px] font-semibold text-amber-400">
+                        ⚡ Antecipação total antes dos feriados
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Pillar 3 */}
+                  <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-4.5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Percent className="w-4 h-4 text-blue-400" />
+                        <h5 className="text-white font-bold text-sm">Regra dos 7% de Sucesso</h5>
+                      </div>
+                      <p className="text-neutral-300 text-xs leading-relaxed">
+                        Nas diárias normais da sua pousada, a taxa é <strong className="text-white">ZERO (0%)</strong>. A comissão de 7% só é cobrada sobre o valor <strong className="text-blue-300 font-semibold">EXTRA</strong> que o Zélla vendeu em Upsell. Se não vender, é R$ 0,00.
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2.5 border-t border-white/[0.04]">
+                      <span className="text-[11px] font-semibold text-blue-400">
+                        🛡️ Cobrança 100% atrelada ao seu lucro
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mathematical Example Card */}
+                <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    <h5 className="text-white font-bold text-xs sm:text-sm uppercase tracking-wider">
+                      Matemática da sua Fatura Mensal (Exemplo Prático)
+                    </h5>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3 text-center">
+                    <div className="rounded-lg bg-black/40 border border-white/5 p-3">
+                      <p className="text-neutral-400 text-[10px] uppercase">Plano Base PRO</p>
+                      <p className="text-lg sm:text-xl font-extrabold text-white mt-0.5">R$ 397</p>
+                      <p className="text-neutral-500 text-[10px]">mensalidade fixa</p>
+                    </div>
+                    <div className="rounded-lg bg-black/40 border border-white/5 p-3">
+                      <p className="text-neutral-400 text-[10px] uppercase">Upsells Vendidos</p>
+                      <p className="text-lg sm:text-xl font-extrabold text-emerald-400 mt-0.5">R$ 1.000</p>
+                      <p className="text-neutral-500 text-[10px]">receita extra no feriado</p>
+                    </div>
+                    <div className="rounded-lg bg-black/40 border border-white/5 p-3">
+                      <p className="text-neutral-400 text-[10px] uppercase">Taxa Zélla (7%)</p>
+                      <p className="text-lg sm:text-xl font-extrabold text-amber-400 mt-0.5">R$ 70</p>
+                      <p className="text-neutral-500 text-[10px]">sobre o valor extra</p>
+                    </div>
+                    <div className="rounded-lg bg-emerald-500/20 border border-emerald-500/30 p-3">
+                      <p className="text-emerald-300 text-[10px] font-bold uppercase">Seu Lucro Líquido</p>
+                      <p className="text-lg sm:text-xl font-black text-emerald-300 mt-0.5">+ R$ 930</p>
+                      <p className="text-emerald-400/80 text-[10px] font-semibold">limpo no seu bolso</p>
+                    </div>
+                  </div>
+                  <p className="text-neutral-300 text-xs leading-relaxed">
+                    <strong className="text-white">Resumo da Fatura:</strong> Você pagará <span className="text-white font-semibold">R$ 467</span> (R$ 397 do plano + R$ 70 de comissão de upsell) e sua pousada colocou <span className="text-emerald-400 font-semibold">R$ 930 de receita limpa</span> a mais no caixa. Tudo acompanhado em tempo real no seu Dashboard DDC.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* Airbnb ROI Value Calculator */}

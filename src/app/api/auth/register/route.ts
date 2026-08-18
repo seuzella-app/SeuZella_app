@@ -64,11 +64,9 @@ export async function POST(request: NextRequest) {
           email: data.email,
           passwordHash,
           phone: data.phone,
-          plan: 'gratuito',
+          plan: 'lite',
           status: 'active',
           niche: data.niche,
-          trialStart: new Date(),
-          trialEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           property: {
             create: {
               name: data.pousadaName,
@@ -94,12 +92,10 @@ export async function POST(request: NextRequest) {
           },
           subscriptions: {
             create: {
-              planType: 'gratuito',
+              planType: 'lite',
               status: 'active',
-              amount: 0,
+              amount: 197,
               paymentMethod: 'pix',
-              trialStart: new Date(),
-              trialEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             },
           },
         },
@@ -169,7 +165,6 @@ export async function POST(request: NextRequest) {
         email: result.tenant.email,
         plan: result.tenant.plan,
         niche: (result.tenant as any).niche,
-        trialEnd: result.tenant.trialEnd,
       },
       userId: result.tenant.id,
     });

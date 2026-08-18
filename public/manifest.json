@@ -1,0 +1,65 @@
+{
+  "name": "Zélla — Atendimento inteligente para pousadas",
+  "short_name": "Zélla",
+  "description": "IA humanizada para pousadas e hotéis. Atendimento 24/7 via WhatsApp com UPSELL inteligente.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f766e",
+  "categories": ["business", "productivity", "travel"],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "DDC (Dashboard do Dono)",
+      "short_name": "DDC",
+      "url": "/ddc",
+      "icons": [{ "src": "/icon-shortcut-ddc.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "ZCC (Central de Controle)",
+      "short_name": "ZCC",
+      "url": "/zcc",
+      "icons": [{ "src": "/icon-shortcut-zcc.png", "sizes": "96x96" }]
+    }
+  ],
+  "scope": "/",
+  "id": "/",
+  "prefer_related_applications": false,
+  "related_applications": []
+}

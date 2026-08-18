@@ -1,6 +1,13 @@
 /**
  * Utilitário de envio de mensagens via API oficial do WhatsApp Cloud (v21.0).
+ * ============================================================================
+ *
+ * ATUALIZAÇÃO: Meta Cloud API removido — apenas Meta Cloud API oficial.
+ * Motivo: risco de banimento permanente com Meta Cloud API (15-30% em 6 meses).
+ * Meta Cloud API oficial = ZERO risco de banimento.
+ *
  * Suporta o modo "DB-only" caso as credenciais não estejam configuradas.
+ * ============================================================================
  */
 export interface SendWhatsAppResponse {
   success: boolean;
@@ -10,41 +17,25 @@ export interface SendWhatsAppResponse {
 }
 
 /**
- * Envia uma mensagem de texto para o número especificado no WhatsApp.
+ * Envia uma mensagem de texto para o número especificado no WhatsApp via Meta Cloud API.
  * Divide automaticamente a mensagem em partes (chunks) caso ultrapasse o limite de 4096 caracteres da Meta.
  *
  * @param toPhone - Número de telefone do destinatário com DDI (ex: 5511988888888)
  * @param text - Conteúdo da mensagem
  * @returns Promessa com o resultado do envio
  */
-import { sendOpenWAMessage } from './openwa-client';
-
 export async function sendWhatsAppMessage(toPhone: string, text: string): Promise<SendWhatsAppResponse> {
-  const provider = (process.env.WHATSAPP_PROVIDER || '').toLowerCase();
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const openwaUrl = process.env.OPENWA_SERVER_URL;
 
-  // Se o provedor for explicitamente OpenWA ou houver servidor OpenWA sem credenciais Meta
-  if (provider === 'openwa' || (openwaUrl && !token)) {
-    console.log(`[whatsapp-send] Roteando envio de mensagem via Gateway OpenWA (${toPhone})`);
-    const openwaRes = await sendOpenWAMessage(toPhone, text);
-    return {
-      success: openwaRes.success,
-      messageId: openwaRes.messageId,
-      isMock: openwaRes.isMock,
-      error: openwaRes.error,
-    };
-  }
-
-  // Modo DB-only / Mockup (graceful degradation)
+  // Modo DB-only / Mockup (graceful degradation) — quando credenciais Meta não configuradas
   if (!token || !phoneNumberId) {
     console.log(`[whatsapp-send] [MOCK] Envio de mensagem para ${toPhone} em modo DB-only.`);
     console.log(`[whatsapp-send] [MOCK] Conteúdo: "${text.substring(0, 80)}${text.length > 80 ? '...' : ''}"`);
-    
+
     // Simula atraso de rede
     await new Promise((resolve) => setTimeout(resolve, 300));
-    
+
     return {
       success: true,
       messageId: `mock-wamid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -66,7 +57,7 @@ export async function sendWhatsAppMessage(toPhone: string, text: string): Promis
           messageChunks.push(remainingText);
           break;
         }
-        
+
         // Cortar em um espaço para evitar quebrar palavras
         let cutIndex = remainingText.lastIndexOf(' ', MAX_LENGTH);
         if (cutIndex === -1 || cutIndex < MAX_LENGTH - 200) {

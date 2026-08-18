@@ -1,0 +1,55 @@
+# ============================================================================
+# ZÉLLA — CI: Locks Integration Tests
+# ============================================================================
+# Valida integrações de fechaduras eletrônicas:
+#   - FNRH → PIN generation
+#   - Upsell → PIN extension
+#   - Caução PIX → PIN revocation
+#   - Cron de locks (manutenção automática)
+#   - remoteUnlock (Nuki/August)
+#   - Landing page atualizada
+# ============================================================================
+
+name: 🔐 Locks Integration Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/locks/**'
+      - 'src/app/api/ddc/locks/**'
+      - 'src/app/api/cron/locks-maintenance/**'
+      - 'src/components/landing/SmartLockSecurityProof.tsx'
+      - 'src/components/mobile/MobileAirbnbSuperApp.tsx'
+      - 'src/lib/db/tenant-prisma.ts'
+      - 'vercel.json'
+      - 'tests/locks-integration.test.ts'
+      - '.github/workflows/ci-locks-integration.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/lib/locks/**'
+
+jobs:
+  test:
+    name: 🔐 Locks Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🔐 Run Locks Tests
+        run: npx vitest run tests/locks-integration.test.ts --reporter=verbose

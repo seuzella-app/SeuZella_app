@@ -28,8 +28,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import { runAnomalyDetection } from '@/lib/cerebro/anomaly-detector';
+// Notification bridge — Phase 2: pushes analysis anomalies into DDC for the tenant
+import { bridgeCerebroAlert } from '@/lib/notifications/bridges';
 import { getGlmCerebroService } from '@/lib/cerebro/glm-service';
 import { dispatchAlert } from '@/lib/cerebro/alert-bus';
+import { verifyCronM2MToken, auditCronExecution } from '@/lib/security/cron-auth';
+import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return runAnalysis(request);
@@ -43,16 +47,12 @@ async function runAnalysis(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
   const mode = getCerebroMode();
 
-  // ── Auth (CRON_SECRET) ──
-  // Nota: mantemos fail-open para cron (diferente do cerebro-watchdog que é fail-closed)
-  // porque Vercel Cron envia o header automaticamente. Se falhar auth, logamos mas rodamos.
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get('authorization');
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[cerebro-analyze] Auth mismatch — running anyway (cron fail-open for visibility)');
-    // Em produção crítica, converter para fail-closed:
-    // return NextResponse.json({ ok: false, error: 'UNAUTHORIZED' }, { status: 401 });
+  // ── Auth M2M EdDSA (V11-P0) — fail-closed ──
+  const auth = await verifyCronM2MToken(request, 'cerebro:read');
+  if (!auth.ok) {
+    return auth.response;
   }
+  const principal = auth.principal;
 
   try {
     // ── 1. Roda AnomalyDetector para coletar anomalias atuais ──
@@ -81,6 +81,34 @@ async function runAnalysis(request: NextRequest): Promise<NextResponse> {
     // ── 2. Chama GlmCerebroService para análise contextual ──
     const service = getGlmCerebroService();
     const analysisResult = await service.analyzeAnomalies(anomalies);
+
+    // ── Notification bridge: push each anomaly into DDC tenant notifications ──
+    for (const anomaly of anomalies) {
+      try {
+        const tenantIdMatch = /^tenant:([a-zA-Z0-9_-]+)$/.exec(anomaly.scope ?? '');
+        const tenantId = tenantIdMatch?.[1];
+        const alertTypeMap: Record<string, 'ai_offline' | 'ai_online' | 'pattern_learned' | 'anomaly_response_time' | 'anomaly_conversion' | 'anomaly_revenue' | 'cost_alert' | 'escalation_spike'> = {
+          ai_offline: 'ai_offline',
+          ai_online: 'ai_online',
+          pattern_learned: 'pattern_learned',
+          response_time: 'anomaly_response_time',
+          conversion: 'anomaly_conversion',
+          revenue: 'anomaly_revenue',
+          cost: 'cost_alert',
+          escalation_spike: 'escalation_spike',
+        };
+        const alertType = alertTypeMap[anomaly.anomalyType];
+        if (!alertType) continue;
+        bridgeCerebroAlert({
+          alertType,
+          value: anomaly.observed,
+          expected: anomaly.baseline,
+          tenantId,
+        });
+      } catch (bridgeErr) {
+        console.error('[cerebro-analyze] bridgeCerebroAlert error:', bridgeErr);
+      }
+    }
 
     // ── 3. Persiste análise no DB ──
     const analysisId = await service.persistAnalysis(analysisResult);
@@ -131,6 +159,18 @@ Analysis ID: ${analysisId}`,
     }
 
     const processingTime = Date.now() - startTime;
+
+    // ── Auditoria M2M (V11-P0) ──
+    await auditCronExecution({
+      prisma: db,
+      tenantId: 'system',
+      principal,
+      entryPoint: 'glm_cerebro',
+      policyId: 'cron:cerebro-analyze',
+      severity: 'info',
+      action: 'allow',
+      latencyMs: processingTime,
+    }).catch(err => console.error('[cerebro-analyze] audit log failed:', err));
 
     logSink.info({
       module: 'cerebro-analyze',

@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import { resolveTenantId, mapGuest } from '@/lib/ddc/ddc-mapper';
 import { createError, apiSuccess } from '@/lib/error-handler';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 interface RouteContext { params: Promise<{ id: string }> }
 

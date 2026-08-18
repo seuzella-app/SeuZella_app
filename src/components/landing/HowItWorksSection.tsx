@@ -192,8 +192,8 @@ export function HowItWorksSection() {
     : 'Em 3 passos, sem sair do sofá';
 
   const headerDesc = isPousada
-    ? 'Do cadastro à primeira reserva automatizada em menos de 24 horas. Sem precisar de conhecimento técnico.'
-    : 'Da URL do anúncio ao primeiro check-in virtual automaticamente. Sem precisar de conhecimento técnico.';
+    ? 'Do cadastro à primeira reserva automatizada em menos de 24 horas. Sem precisar de conhecimento técnico. Dashboard completo.'
+    : 'Da URL do anúncio ao primeiro check-in virtual automaticamente. Sem precisar de conhecimento técnico. Dashboard completo.';
 
   return (
     <section ref={sectionRef} id="como-funciona" className="relative overflow-hidden py-24 sm:py-32 bg-[#09090b]">
@@ -250,7 +250,7 @@ export function HowItWorksSection() {
         <AnimatePresence mode="wait">
           <div
             key={`steps-${niche}`}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {content.steps.map((step, i) => (
               <StepCard

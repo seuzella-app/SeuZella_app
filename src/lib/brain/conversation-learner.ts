@@ -24,6 +24,9 @@
  */
 
 import { db } from '@/lib/db';
+import { SemanticaClient } from '@/lib/semantica/client';
+import { checkAndOptimizePrompts } from '@/lib/ml/brain-health-optimizer';
+import { logSink } from '@/lib/cerebro/log-sink';
 
 // ── Tipos ───────────────────────────────────────────────────────────
 
@@ -203,6 +206,13 @@ export async function learnFromConversation(
           result.details.push(`NOVO padrão (sentimento: ${sentimentScore.toFixed(2)}): "${sanitized.question.substring(0, 60)}..."`);
           existingQuestions.add(sanitized.question.toLowerCase().trim());
 
+          // ── WRITE-PATH: Sincroniza padrão aprendido no grafo Semantica ──
+          // Não-bloqueante: erros aqui não afetam o loop de aprendizado.
+          // Extrai entidades da resposta e cria nós/arestas no Apache AGE.
+          syncPatternToGraphRAG(tenantId, sanitized.question, sanitized.answer, conversationId, newEntry.id).catch((err) => {
+            console.warn('[ConversationLearner] GraphRAG sync falhou (não-bloqueante):', err);
+          });
+
           // Log de atividade de aprendizado
           await db.aIActivityLog.create({
             data: {
@@ -256,7 +266,17 @@ export async function learnFromConversation(
       result.details.push(`DECAY: ${decayResult.decayed} padrões sofreram decaimento por inatividade`);
     }
 
-    // 8. Atualizar contadores no AgentConfig
+    // ── 8. Brain Health Check: otimiza prompts se métricas indicarem problema ──
+    try {
+      const healthResult = await checkAndOptimizePrompts(tenantId);
+      if (healthResult.optimizationTriggered) {
+        result.details.push(`BRAIN HEALTH: ${healthResult.reason}`);
+      }
+    } catch {
+      // Brain health é best-effort — não bloqueia aprendizado
+    }
+
+    // 9. Atualizar contadores no AgentConfig
     await updateAgentConfigLearningStats(tenantId, result);
 
   } catch (error) {
@@ -972,5 +992,127 @@ export async function loadAntiPatternsForPrompt(
   } catch (err) {
     console.error('[ConversationLearner] Falha ao carregar anti-padrões:', err);
     return '';
+  }
+}
+
+// ============================================================================
+// WRITE-PATH: GraphRAG Sync — Sincroniza padrão aprendido no grafo Semantica
+// ============================================================================
+// Quando o ConversationLearner aprende um novo padrão Q&A, esta função:
+//   1. Identifica o tipo de entidade (RULE, POLICY, AMENITY, etc.)
+//   2. Cria um GraphNode no Apache AGE via SemanticaClient
+//   3. Tenta detectar relações com nós existentes (REQUIRES, OVERLAPS)
+//   4. Registra proveniência (source='auto_learned', sourceConversationId)
+//
+// Não-bloqueante: erros aqui não afetam o loop de aprendizado.
+// Feature flag: USE_SEMANTICA_GRAPH=true (default false)
+// ============================================================================
+
+const ENTITY_KEYWORDS: Array<{ keywords: string[]; type: 'CHECKIN' | 'CHECKOUT' | 'POLICY' | 'AMENITY' | 'SERVICE' | 'PAYMENT' | 'CANCEL' | 'RULE' | 'FAQ' }> = [
+  { keywords: ['check-in', 'checkin', 'entrada', 'chegada', 'horario de entrada'], type: 'CHECKIN' },
+  { keywords: ['check-out', 'checkout', 'saida', 'partida', 'horario de saida'], type: 'CHECKOUT' },
+  { keywords: ['pet', 'cachorro', 'gato', 'animal', 'cao'], type: 'POLICY' },
+  { keywords: ['piscina', 'sauna', 'academia', 'jacuzzi'], type: 'AMENITY' },
+  { keywords: ['cafe da manha', 'café', 'breakfast', 'refeicao'], type: 'SERVICE' },
+  { keywords: ['wifi', 'wi-fi', 'internet', 'senha'], type: 'AMENITY' },
+  { keywords: ['estacionamento', 'garagem', 'vaga'], type: 'AMENITY' },
+  { keywords: ['pix', 'cartao', 'cartão', 'pagamento', 'cobranca'], type: 'PAYMENT' },
+  { keywords: ['cancelamento', 'cancelar', 'reembolso', 'no-show'], type: 'CANCEL' },
+  { keywords: ['reserva', 'agendar', 'disponibilidade'], type: 'RULE' },
+];
+
+function detectEntityType(text: string): 'CHECKIN' | 'CHECKOUT' | 'POLICY' | 'AMENITY' | 'SERVICE' | 'PAYMENT' | 'CANCEL' | 'RULE' | 'FAQ' {
+  const lower = text.toLowerCase();
+  for (const { keywords, type } of ENTITY_KEYWORDS) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      return type;
+    }
+  }
+  return 'FAQ';
+}
+
+function extractEntityName(text: string, type: string): string {
+  // Extrai um nome curto baseado no tipo
+  const lower = text.toLowerCase();
+  const typeLabels: Record<string, string> = {
+    CHECKIN: 'Check-in',
+    CHECKOUT: 'Check-out',
+    POLICY: 'Política',
+    AMENITY: 'Comodidade',
+    SERVICE: 'Serviço',
+    PAYMENT: 'Pagamento',
+    CANCEL: 'Cancelamento',
+    RULE: 'Regra',
+    FAQ: 'FAQ',
+  };
+  // Tenta extrair primeira frase curta
+  const firstSentence = text.split(/[.!?]/)[0]?.trim().slice(0, 50) || text.slice(0, 50);
+  return `${typeLabels[type] || 'Item'}: ${firstSentence}`;
+}
+
+async function syncPatternToGraphRAG(
+  tenantId: string,
+  question: string,
+  answer: string,
+  conversationId: string,
+  knowledgeEntryId: string,
+): Promise<void> {
+  // Verifica se Semantica está ativo
+  if (!SemanticaClient.isEnabled() || !SemanticaClient.isConfigured()) {
+    return; // Silent skip — não é erro, só não está configurado
+  }
+
+  try {
+    // Combina questão + resposta para análise semântica
+    const fullText = `${question}\n${answer}`;
+
+    // Detecta tipo de entidade baseado em palavras-chave
+    const entityType = detectEntityType(fullText);
+    const nodeName = extractEntityName(answer, entityType);
+
+    // Cria nó no grafo
+    const node = await SemanticaClient.addNode({
+      tenantId,
+      type: entityType,
+      name: nodeName,
+      content: answer.slice(0, 500), // Limite de 500 chars
+      provenance: {
+        source: 'auto_learned',
+        sourceRef: `knowledge_entry:${knowledgeEntryId}`,
+        extractedBy: 'conversation-learner',
+      },
+      confidence: 0.5, // Confiança inicial — aumenta conforme padrão é verificado
+    });
+
+    logSink.info({
+      module: 'conversation-learner',
+      event: 'graphrag_node_created',
+      message: `Nó criado no grafo: ${node.id} (${entityType})`,
+      context: { tenantId, nodeId: node.id, entityType, knowledgeEntryId, conversationId },
+    });
+
+    // Tenta detectar conflitos com nós existentes
+    // (Semantica detecta automaticamente se houver sobreposição)
+    try {
+      const conflicts = await SemanticaClient.detectConflicts(tenantId);
+      if (conflicts.length > 0) {
+        logSink.warn({
+          module: 'conversation-learner',
+          event: 'graphrag_conflicts_detected',
+          message: `${conflicts.length} conflito(s) detectado(s) após aprendizado`,
+          context: { tenantId, conflictIds: conflicts.map((c: any) => c.id) },
+        });
+      }
+    } catch {
+      // Conflito detection é best-effort — não falha o sync
+    }
+  } catch (err) {
+    // Erro silencioso — não bloqueia aprendizado
+    logSink.warn({
+      module: 'conversation-learner',
+      event: 'graphrag_sync_failed',
+      message: `Falha ao sincronizar padrão no grafo: ${err instanceof Error ? err.message : String(err)}`,
+      context: { tenantId, knowledgeEntryId, conversationId },
+    });
   }
 }

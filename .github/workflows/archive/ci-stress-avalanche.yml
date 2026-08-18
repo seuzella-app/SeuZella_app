@@ -1,0 +1,31 @@
+name: CI - Suite 6: Stress & Avalanche Performance Tests
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Cron noturno (3h AM)
+  workflow_dispatch:      # Sob demanda
+
+permissions:
+  contents: read
+
+jobs:
+  stress-avalanche-test:
+    name: Run Stress Avalanche K6 Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Execute Stress Avalanche Vitest Suite
+        run: npx vitest run tests/stress-avalanche-k6.test.ts

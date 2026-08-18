@@ -18,7 +18,8 @@ import {
   Lock,
   Smartphone,
   Sparkles,
-  Home
+  Home,
+  KeyRound
 } from 'lucide-react';
 import { type PlanTier, hasAccess } from '@/lib/plan-features';
 
@@ -48,13 +49,15 @@ export function QuickActionsBar({ onActionClick, onQuickActionClick, activeActio
   const actions: ActionItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, minTier: 'gratuito' },
     { id: 'messages', label: 'Mensagens', icon: MessageCircle, count: dynamicCounts?.messages ?? 12, minTier: 'gratuito' },
-    { id: 'guests', label: 'Hóspedes', icon: Users, count: dynamicCounts?.guests ?? 45, minTier: 'pro' },
-    { id: 'training', label: 'Treinamento', icon: GraduationCap, minTier: 'pro' },
     { id: 'bookings', label: 'Reservas', icon: Calendar, count: dynamicCounts?.bookings ?? 3, minTier: 'lite' },
+    { id: 'upsell', label: 'UPSELL', icon: Sparkles, minTier: 'gratuito' },
+    { id: 'guests', label: 'Hóspedes', icon: Users, count: dynamicCounts?.guests ?? 45, minTier: 'pro' },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, minTier: 'pro' },
+    { id: 'training', label: 'Treinamento', icon: GraduationCap, minTier: 'pro' },
     { id: 'notifications', label: 'Notificações', icon: Bell, count: dynamicCounts?.notifications ?? 5, minTier: 'gratuito' },
     { id: 'settings', label: 'Configurações', icon: Settings, minTier: 'gratuito' },
     { id: 'airb', label: 'Zélla AirB', icon: Home, minTier: 'pro' },
+    { id: 'locks', label: 'Fechaduras', icon: KeyRound, minTier: 'lite' },
   ];
 
   const quickActions = [

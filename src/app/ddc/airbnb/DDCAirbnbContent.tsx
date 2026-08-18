@@ -13,6 +13,7 @@ import {
   Cell,
 } from 'recharts';
 import { DDCShell, type NavItem } from '@/components/ddc/DDCShell';
+import { NotificationFAB } from '@/components/ddc/notifications/NotificationFAB';
 import { MagicScanner, type MagicScanResult } from '@/components/ddc/MagicScanner';
 import { ZellaSimulator } from '@/components/ddc/ZellaSimulator';
 import { WhatsAppDeviceManager } from '@/components/ddc/WhatsAppDeviceManager';
@@ -57,6 +58,7 @@ import {
   Zap,
   Plus,
   Home,
+  Trophy,
   CalendarDays,
   Activity,
   MessageSquare,
@@ -75,11 +77,21 @@ import {
   Users,
   CreditCard,
   Link as LinkIcon,
+  Gift,
+  BarChart2,
+  Building2,
+  Coins,
 } from 'lucide-react';
+import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
+import { BITab } from '@/components/ddc/BITab';
+import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
+import { LocksTab } from '@/components/ddc/LocksTab';
+import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
+import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ── Types 
 
-type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config';
+type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
 
 interface PropertyData {
   id: string;
@@ -113,7 +125,7 @@ interface AutomationLog {
   type: 'auto-reply' | 'instruction' | 'update' | 'reminder';
 }
 
-// ─── Mock Data ───────────────────────────────────────────────────────────────
+// ── Mock Data 
 
 const MOCK_PROPERTIES: PropertyData[] = [
   {
@@ -189,7 +201,7 @@ const RESPONSE_TIME_DATA = [
   { day: 'Dom', seconds: 47 },
 ];
 
-// ─── Calendar Helper ─────────────────────────────────────────────────────────
+// ── Calendar Helper 
 
 function generateCalendarDays(): CalendarDay[] {
   const now = new Date();
@@ -213,7 +225,7 @@ function generateCalendarDays(): CalendarDay[] {
   return days;
 }
 
-// ─── Chart Config ────────────────────────────────────────────────────────────
+// ── Chart Config 
 
 const responseTimeChartConfig: ChartConfig = {
   seconds: {
@@ -235,7 +247,7 @@ const paymentChartConfig: ChartConfig = {
   card: { label: 'Cartão', color: '#f59e0b' },
 };
 
-// ─── Animation Variants ─────────────────────────────────────────────────────
+// ── Animation Variants 
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -250,7 +262,7 @@ const staggerItem = {
   visible: { opacity: 1, y: 0 },
 };
 
-// ─── Sidebar Navigation Items ───────────────────────────────────────────────
+// ── Sidebar Navigation Items 
 
 const airbnbNavItems: NavItem[] = [
   { id: 'financeiro', label: 'Painel Financeiro', icon: <TrendingUp className="size-4" /> },
@@ -261,10 +273,15 @@ const airbnbNavItems: NavItem[] = [
   { id: 'whatsapp', label: 'Connection Center', icon: <Smartphone className="size-4" /> },
   { id: 'linkinbio', label: 'Link-in-Bio Instagram', icon: <LinkIcon className="size-4" /> },
   { id: 'guia', label: 'Guia Digital', icon: <QrCode className="size-4" /> },
+  { id: 'fechaduras', label: 'Fechaduras Eletrônicas', icon: <Key className="size-4" />, tier: 'lite' },
+  { id: 'creditos', label: 'Créditos de Amortização', icon: <Coins className="size-4" />, tier: 'lite' },
+  { id: 'bi', label: 'BI Avançado', icon: <BarChart2 className="size-4" />, tier: 'max' },
+  { id: 'properties', label: 'Multi-Propriedades', icon: <Building2 className="size-4" />, tier: 'max' },
+  { id: 'conquistas', label: 'Conquistas', icon: <Trophy className="size-4" />, tier: 'parceiro' },
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
-// ─── Format Helpers ─────────────────────────────────────────────────────────
+// ── Format Helpers 
 
 function formatBRL(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -277,9 +294,10 @@ function formatCompactBRL(value: number): string {
   return formatBRL(value);
 }
 
-// ─── Main Component ─────────────────────────────────────────────────────────
+// ── Main Component 
 
 export default function DDCAirbnbContent() {
+  const { plan: currentPlan } = useCurrentPlan();
   const [activeTab, setActiveTab] = useState<AirbnbTab>('financeiro');
   const [calendarDays] = useState<CalendarDay[]>(generateCalendarDays);
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
@@ -316,6 +334,16 @@ export default function DDCAirbnbContent() {
     setScannedData(result);
   }, []);
 
+  // Tab navigation handler (declared before early return — Rules of Hooks)
+  const handleTabChange = useCallback((id: string) => {
+    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties', 'fechaduras', 'conquistas'];
+    if (validTabs.includes(id as AirbnbTab)) {
+      setActiveTab(id as AirbnbTab);
+    } else {
+      setActiveTab('financeiro');
+    }
+  }, []);
+
   const handleAddProperty = useCallback(() => {
     if (!newPropertyForm.name.trim()) return;
     const newProp: PropertyData = {
@@ -348,7 +376,7 @@ export default function DDCAirbnbContent() {
   const now = new Date();
   const monthName = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
-  // ─── Tab: Painel de Propriedades ────────────────────────────────────────
+  // ── Tab: Painel de Propriedades 
 
   const TabPropriedades = () => (
     <motion.div
@@ -358,43 +386,87 @@ export default function DDCAirbnbContent() {
       variants={staggerContainer}
       className="space-y-6"
     >
-      {/* Scan Summary Banner — mostra dados extraídos do Magic Scanner */}
-      <Card className="bg-gradient-to-r from-blue-500/[0.08] to-indigo-500/[0.05] border-blue-500/20 overflow-hidden">
+      {/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · theme: Terminal · option: 08 (Azul Cyber) */}
+      {/* ── DDC AIRBNB / ANFITRIÕES: HALLMARK OPTION 08 (ESTILO TERMINAL AZUL CYBER)  */}
+
+      {/* N8 Terminal Command Header */}
+      <div className="p-3.5 bg-[#040c1a] border border-[#00d8ff]/40 rounded-lg font-mono text-xs text-[#00d8ff] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(0,216,255,0.12)]">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[#00d8ff] font-bold">&gt; zella-airbnb --terminal</span>
+          <span className="text-zinc-400">|</span>
+          <span className="text-[#93c5fd]">--ical [SYNC_100%]</span>
+          <span className="text-[#93c5fd]">--fechaduras [AUTO_PIN]</span>
+          <span className="text-[#93c5fd]">--status [SUPERHOST_ACTIVE]</span>
+          <span className="text-[#00d8ff] font-bold animate-pulse">▮</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-[#00d8ff]/10 text-[#00d8ff] border border-[#00d8ff]/30 text-[10px] font-mono uppercase tracking-widest">
+            [MODE: TERMINAL_AZUL_08]
+          </Badge>
+        </div>
+      </div>
+
+      {/* ── DDC AIRBNB WEB: CYBER-LUXE GLASSMORPHISM DESIGN SYSTEM  */}
+
+      {/* Operational Status Header — Clean Lines, Rounded Corners, No Shadows */}
+      <div className="p-4 bg-[#0d0d14] border border-blue-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
+            <Home className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white tracking-tight">Cockpit Anfitrião ProHost — Cérebro Zélla 24h</span>
+              <span className="w-2 h-2 rounded-full bg-blue-400" />
+              <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[10px] uppercase font-mono rounded-full px-2.5 py-0.5">SUPERHOST ATIVO</Badge>
+            </div>
+            <p className="text-xs text-white/60 mt-0.5">Gestão de múltiplos imóveis, sincronização de calendários iCAL e automação de PINs no WhatsApp</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs font-mono">
+          <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 font-bold">🧠 DSPY STANFORD: OPTIMIZED</span>
+          <span className="px-3 py-1 bg-white/[0.02] border border-white/10 rounded-full text-blue-400">⚡ iCAL: 100% SYNC</span>
+          <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-300">🔑 AUTO-PIN: ON</span>
+        </div>
+      </div>
+
+      {/* Property Information Card — Clean Line Border, Rounded Corners */}
+      <Card className="bg-[#0d0d14] border border-white/10 rounded-2xl overflow-hidden shadow-none">
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-blue-500/15 flex items-center justify-center">
+            <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-white font-semibold text-sm">{scannedData.propertyName}</h3>
-                <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-[10px]">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />iCal Sincronizado
+                <h3 className="text-white font-bold text-base tracking-tight">{scannedData.propertyName}</h3>
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[10px] rounded-full px-2.5">
+                  CALENDÁRIO iCAL CONECTADO
                 </Badge>
               </div>
-              <p className="text-zinc-400 text-xs mb-3">{scannedData.description || ''}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="flex items-center gap-1.5">
+              <p className="text-white/60 text-xs mb-3">{scannedData.description || ''}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="flex items-center gap-1.5 text-zinc-300">
                   <MapPin className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs text-zinc-300">{scannedData.location || '—'}</span>
+                  <span>{scannedData.location || '—'}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 text-zinc-300">
                   <Clock className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs text-zinc-300">Check-in {scannedData.checkInTime} / Check-out {scannedData.checkOutTime}</span>
+                  <span>Check-in {scannedData.checkInTime} / Out {scannedData.checkOutTime}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 text-zinc-300">
                   <Wifi className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs text-zinc-300">{scannedData.amenities.length} comodidades</span>
+                  <span>{scannedData.amenities.length} comodidades</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 text-zinc-300">
                   <Bot className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-xs text-zinc-300 truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
+                  <span className="truncate">{(scannedData.aiVoiceTone || '').split('—')[0]}</span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {scannedData.amenities.map((amenity) => (
-                  <Badge key={amenity} variant="outline" className="text-[10px] border-blue-500/20 text-blue-300 bg-blue-500/5">
-                    {amenity}
+                  <Badge key={amenity} variant="outline" className="text-[10px] border-blue-500/30 text-blue-300 bg-blue-500/5 rounded-full px-2.5">
+                    +{amenity}
                   </Badge>
                 ))}
               </div>
@@ -406,103 +478,103 @@ export default function DDCAirbnbContent() {
       {/* Header bar */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Portfólio de Imóveis Airbnb</h2>
-          <p className="text-sm text-zinc-500">{totalProperties} imóveis conectados e monitorados pela IA</p>
+          <h2 className="text-lg font-bold text-white tracking-tight">Portfólio de Imóveis Airbnb</h2>
+          <p className="text-sm text-zinc-400">{totalProperties} imóveis conectados e monitorados pela IA Zélla</p>
         </div>
         <Button
           onClick={() => setIsAddPropertyOpen(true)}
           size="sm"
-          className="bg-blue-600 hover:bg-blue-500 text-white cursor-pointer active:scale-95 transition-all"
+          className="bg-blue-600 hover:bg-blue-500 text-white font-medium cursor-pointer active:scale-95 transition-all rounded-full px-4"
         >
           <Plus className="size-4 mr-1" />
           Adicionar Imóvel
         </Button>
       </div>
 
-      {/* Summary Stats */}
+      {/* Summary Stats — Clean Solid Lines, Rounded-2xl */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-colors">
+          <Card className="bg-[#0d0d14] border border-white/10 hover:border-blue-500/30 transition-all rounded-2xl shadow-none">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <Home className="h-4 w-4 text-blue-400" />
-                <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[9px] rounded-full">CONECTADO</Badge>
               </div>
-              <p className="text-2xl font-bold text-white">{totalProperties}</p>
-              <p className="text-xs text-zinc-400 mt-1">Total de Imóveis</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalProperties}</p>
+              <p className="text-xs text-zinc-400 mt-1 font-mono uppercase">Total Imóveis</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-colors">
+          <Card className="bg-[#0d0d14] border border-blue-500/30 hover:border-blue-500/60 transition-all rounded-2xl shadow-none">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <DollarSign className="h-4 w-4 text-blue-400" />
-                <TrendingUp className="h-3 w-3 text-emerald-400" />
+                <TrendingUp className="h-3.5 w-3.5 text-blue-400" />
               </div>
-              <p className="text-2xl font-bold text-white">{formatCompactBRL(totalRevenue)}</p>
-              <p className="text-xs text-zinc-400 mt-1">Receita do Mês</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{formatCompactBRL(totalRevenue)}</p>
+              <p className="text-xs text-blue-400 mt-1 font-mono uppercase">Receita Bruta do Mês</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-colors">
+          <Card className="bg-[#0d0d14] border border-white/10 hover:border-blue-500/30 transition-all rounded-2xl shadow-none">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <Star className="h-4 w-4 text-amber-400" />
-                <span className="text-xs text-emerald-400">+0.03</span>
+                <span className="text-xs text-blue-400 font-bold">+0.03</span>
               </div>
-              <p className="text-2xl font-bold text-white">{avgRating}</p>
-              <p className="text-xs text-zinc-400 mt-1">Avaliação Média</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{avgRating}</p>
+              <p className="text-xs text-zinc-400 mt-1 font-mono uppercase">Avaliação Média</p>
             </CardContent>
           </Card>
         </motion.div>
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-colors">
+          <Card className="bg-[#0d0d14] border border-white/10 hover:border-blue-500/30 transition-all rounded-2xl shadow-none">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <MessageSquare className="h-4 w-4 text-blue-400" />
-                <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                <ArrowUpRight className="h-3.5 w-3.5 text-blue-400" />
               </div>
-              <p className="text-2xl font-bold text-white">{totalReviews}</p>
-              <p className="text-xs text-zinc-400 mt-1">Total de Reviews</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{totalReviews}</p>
+              <p className="text-xs text-zinc-400 mt-1 font-mono uppercase">Total Avaliações</p>
             </CardContent>
           </Card>
         </motion.div>
       </div>
 
-      {/* Property Cards Grid */}
+      {/* Property Cards Grid — Clean Lines, Rounded-2xl */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {propertiesState.map((property) => (
           <motion.div key={property.id} variants={staggerItem}>
-            <Card className="bg-zinc-900/60 border-zinc-800/50 hover:border-blue-500/30 transition-all duration-300 group">
+            <Card className="bg-[#0d0d14] border border-blue-500/30 hover:border-blue-500/60 transition-all duration-300 group rounded-2xl shadow-none">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-white text-base group-hover:text-blue-300 transition-colors">
+                    <CardTitle className="text-white text-base group-hover:text-blue-400 transition-colors font-bold">
                       {property.name}
                     </CardTitle>
-                    <CardDescription className="text-zinc-500 text-xs mt-0.5">
+                    <CardDescription className="text-zinc-400 text-xs mt-0.5 font-mono">
                       {property.location}
                     </CardDescription>
                   </div>
                   <Badge
                     className={
                       property.connected
-                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
-                        : 'bg-red-500/15 text-red-400 border-red-500/30 hover:bg-red-500/20'
+                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 font-mono text-[10px] rounded-full px-2.5'
+                        : 'bg-red-500/10 text-red-400 border-red-500/30 font-mono text-[10px] rounded-full px-2.5'
                     }
                     variant="outline"
                   >
                     {property.connected ? (
                       <>
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        OAuth Conectado
+                        <CheckCircle2 className="h-3 w-3 mr-1 text-blue-400" />
+                        CONECTADO
                       </>
                     ) : (
                       <>
                         <CircleX className="h-3 w-3 mr-1" />
-                        Desconectado
+                        OFFLINE
                       </>
                     )}
                   </Badge>
@@ -511,39 +583,39 @@ export default function DDCAirbnbContent() {
               <CardContent className="pt-0 space-y-4">
                 {/* Occupancy */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-zinc-400">Ocupação mensal</span>
-                    <span className="text-sm font-semibold text-white">{property.occupancy}%</span>
+                  <div className="flex items-center justify-between mb-1.5 font-mono">
+                    <span className="text-xs text-zinc-400">Ocupação Mensal</span>
+                    <span className="text-sm font-bold text-blue-400">{property.occupancy}%</span>
                   </div>
-                  <Progress value={property.occupancy} className="h-1.5 bg-zinc-800 [&>div]:bg-blue-500" />
+                  <Progress value={property.occupancy} className="h-1.5 bg-white/10 [&>div]:bg-blue-400 rounded-full" />
                 </div>
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="text-center">
+                <div className="grid grid-cols-3 gap-3 font-mono">
+                  <div className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/10">
                     <div className="flex items-center justify-center gap-0.5 mb-0.5">
                       <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                      <span className="text-sm font-semibold text-white">{property.rating}</span>
+                      <span className="text-sm font-bold text-white">{property.rating}</span>
                     </div>
-                    <p className="text-[10px] text-zinc-500">Avaliação</p>
+                    <p className="text-[10px] text-zinc-400">AVALIAÇÃO</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-white">{property.reviews}</p>
-                    <p className="text-[10px] text-zinc-500">Reviews</p>
+                  <div className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/10">
+                    <p className="text-sm font-bold text-white">{property.reviews}</p>
+                    <p className="text-[10px] text-zinc-400">REVIEWS</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-emerald-400">{formatBRL(property.revenue)}</p>
-                    <p className="text-[10px] text-zinc-500">Receita</p>
+                  <div className="text-center p-2 rounded-xl bg-white/[0.02] border border-white/10">
+                    <p className="text-sm font-bold text-blue-400">{formatBRL(property.revenue)}</p>
+                    <p className="text-[10px] text-zinc-400">RECEITA</p>
                   </div>
                 </div>
 
-                <Separator className="bg-zinc-800/50" />
+                <Separator className="bg-white/10" />
 
                 <Button
                   variant="ghost"
-                  className="w-full text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm"
+                  className="w-full text-blue-400 hover:text-white hover:bg-blue-500/10 text-xs font-mono rounded-xl"
                 >
-                  Ver Detalhes
+                  Ver Detalhes do Imóvel
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardContent>
@@ -553,16 +625,16 @@ export default function DDCAirbnbContent() {
 
         {/* Add New Property Card */}
         <motion.div variants={staggerItem}>
-          <Card className="bg-zinc-900/30 border-2 border-dashed border-zinc-700/50 hover:border-blue-500/40 transition-all duration-300 cursor-pointer group min-h-[280px] flex items-center justify-center">
+          <Card className="bg-[#0d0d14] border-2 border-dashed border-white/10 hover:border-blue-500/40 transition-all duration-300 cursor-pointer group min-h-[280px] flex items-center justify-center rounded-2xl shadow-none">
             <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 rounded-full bg-zinc-800/60 flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 group-hover:border-blue-500/30 border border-zinc-700/50 transition-all">
-                <Plus className="h-6 w-6 text-zinc-400 group-hover:text-blue-400 transition-colors" />
+              <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-500/20 border border-blue-500/20 transition-all">
+                <Plus className="h-6 w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
               </div>
-              <p className="text-sm font-medium text-zinc-300 group-hover:text-blue-300 transition-colors">
+              <p className="text-sm font-bold text-white group-hover:text-blue-300 transition-colors">
                 Conectar Novo Imóvel
               </p>
-              <p className="text-xs text-zinc-500 mt-1">
-                Vincule sua propriedade via OAuth
+              <p className="text-xs text-zinc-400 mt-1">
+                Vincule sua propriedade via OAuth iCAL
               </p>
             </CardContent>
           </Card>
@@ -571,7 +643,7 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
-  // ─── Tab: Sincronização ────────────────────────────────────────────────
+  // ── Tab: Sincronização 
 
   const TabSincronizacao = () => {
     const days = calendarDays;
@@ -747,7 +819,7 @@ export default function DDCAirbnbContent() {
     );
   };
 
-  // ─── Tab: Automação ────────────────────────────────────────────────────
+  // ── Tab: Automação 
 
   const TabAutomacao = () => (
     <motion.div
@@ -948,7 +1020,7 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
-  // ─── Tab: Configurações ────────────────────────────────────────────────
+  // ── Tab: Configurações 
 
   const TabConfig = () => (
     <motion.div
@@ -1169,7 +1241,7 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
-  // ─── Tab: Painel Financeiro ──────────────────────────────────────────
+  // ── Tab: Painel Financeiro 
 
   const TabFinanceiro = () => (
     <motion.div
@@ -1229,7 +1301,7 @@ export default function DDCAirbnbContent() {
         {/* MRR Card */}
         <Card className="bg-[#111118] border-zinc-800/60 hover:border-blue-500/30 transition-colors">
           <CardHeader className="pb-2">
-            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Faturamento Mês (MRR)</CardDescription>
+            <CardDescription className="text-zinc-400 text-xs uppercase tracking-wider">Faturamento do Mês</CardDescription>
             <CardTitle className="text-2xl font-bold text-white">
               {formatBRL(totalRevenue)}
             </CardTitle>
@@ -1360,7 +1432,7 @@ export default function DDCAirbnbContent() {
     </motion.div>
   );
 
-  // ─── Tab Renderer ─────────────────────────────────────────────────────
+  // ── Tab Renderer 
 
   const renderTab = () => {
     switch (activeTab) {
@@ -1382,20 +1454,18 @@ export default function DDCAirbnbContent() {
         return <GuestGuidePanel niche="airbnb" propertyName={scannedData.propertyName} />;
       case 'config':
         return <TabConfig />;
+      case 'creditos':
+        return <CreditsTab plan="pro" niche="airbnb" />;
+      case 'bi':
+        return <BITab />;
+      case 'properties':
+        return <MultiPropertiesTab />;
+      case 'fechaduras':
+        return <LocksTab niche="airbnb" />;
+      case 'conquistas':
+        return <ConquistasTab />;
     }
   };
-
-  const handleTabChange = useCallback((id: string) => {
-    let normalized: AirbnbTab = 'financeiro';
-    if (id === 'visao-geral' || id === 'financeiro') normalized = 'financeiro';
-    else if (id === 'entregas-zella' || id === 'propriedades') normalized = 'propriedades';
-    else if (id === 'sync-ical' || id === 'sincronizacao') normalized = 'sincronizacao';
-    else if (id === 'guia-hospedes' || id === 'config' || id === 'guia') normalized = 'config';
-    else if (['automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia'].includes(id)) {
-      normalized = id as AirbnbTab;
-    }
-    setActiveTab(normalized);
-  }, []);
 
   return (
     <DDCShell
@@ -1404,6 +1474,7 @@ export default function DDCAirbnbContent() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       propertyName={scannedData.propertyName}
+      currentPlan={currentPlan}
     >
       <AnimatePresence mode="wait">
         {renderTab()}
@@ -1469,6 +1540,7 @@ export default function DDCAirbnbContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <NotificationFAB niche="airbnb" plan={currentPlan} />
     </DDCShell>
   );
 }

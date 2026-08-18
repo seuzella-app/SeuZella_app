@@ -1,0 +1,43 @@
+name: CI - Security Gate & Unit Tests (Vitest)
+
+on:
+  push:
+    paths:
+      - 'tests/**'
+      - 'src/lib/message-bundler.ts'
+      - 'src/lib/zcc-security.ts'
+      - 'src/lib/airb/gatekeeper.ts'
+      - '.github/workflows/ci-security-gate.yml'
+  pull_request:
+    paths:
+      - 'tests/**'
+      - 'src/lib/zcc-security.ts'
+
+permissions:
+  contents: read
+
+jobs:
+  security-tests:
+    name: Run Vitest Security & Messaging Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXTAUTH_SECRET: 'ci-secret-antigravity-key-32chars'
+      NEXTAUTH_URL: 'http://localhost:3000'
+      DATABASE_URL: 'file:./db/ci.db'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Run Vitest Security Suite
+        run: npx vitest run tests/zcc-security.test.ts

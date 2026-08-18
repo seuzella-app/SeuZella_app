@@ -127,6 +127,35 @@ export const AVAILABLE_TOOLS: ToolDefinition[] = [
     },
   },
   {
+    name: 'request_deposit',
+    description: 'Solicita depósito (depósito de segurança) do hóspede via PIX. Use quando uma reserva for confirmada e a pousada exigir depósito.',
+    parameters: {
+      type: 'object',
+      properties: {
+        amount: { type: 'number', description: 'Valor da depósito em reais (default: 200)' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_upsell_items',
+    description: 'Retorna a lista de serviços extras disponíveis (early check-in, late check-out, taxa pet, etc.) com preços.',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: 'get_fnrh_status',
+    description: 'Verifica se o hóspede já preencheu a FNRH (Ficha Nacional de Registro de Hóspedes). Retorna status e campos faltantes.',
+    parameters: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+  },
+  {
     name: 'get_occupancy',
     description: 'Retorna a taxa de ocupação atual da pousada: total de quartos, quartos ocupados, quartos disponíveis, e taxa de ocupação em %.',
     parameters: {

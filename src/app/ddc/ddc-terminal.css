@@ -1,0 +1,63 @@
+/* ==============================================================================
+   DDC TERMINAL THEME — Cyber-Luxe Glassmorphism (Clean Line Layout)
+   ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+
+[data-ddc-theme="terminal"] {
+  --ddc-bg: #0a0a0f;
+  --ddc-bg-soft: #0d0d14;
+  --ddc-bg-card: #0d0d14;
+  --ddc-fg: #f4f4f5;
+  --ddc-fg-soft: #e4e4e7;
+  --ddc-fg-muted: #a1a1aa;
+  --ddc-accent: #10b981;
+  --ddc-accent-glow: transparent;
+  --ddc-border: rgba(16, 185, 129, 0.3);
+  --ddc-border-strong: rgba(16, 185, 129, 0.5);
+  --ddc-shadow: none;
+
+  font-family: var(--ddc-font-mono), 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  color-scheme: dark;
+  background-color: #0a0a0f !important;
+}
+
+[data-ddc-theme="terminal"][data-ddc-accent="blue"] {
+  --ddc-bg: #0a0a0f;
+  --ddc-bg-soft: #0d0d14;
+  --ddc-bg-card: #0d0d14;
+  --ddc-fg: #f4f4f5;
+  --ddc-fg-soft: #e4e4e7;
+  --ddc-fg-muted: #a1a1aa;
+  --ddc-accent: #3b82f6;
+  --ddc-accent-glow: transparent;
+  --ddc-border: rgba(59, 130, 246, 0.3);
+  --ddc-border-strong: rgba(59, 130, 246, 0.5);
+  --ddc-shadow: none;
+}
+
+/* Base Body Styles */
+[data-ddc-theme="terminal"] {
+  background-color: #0a0a0f !important;
+  color: var(--ddc-fg-soft);
+  min-height: 100vh;
+}
+
+/* Scrollbars */
+[data-ddc-theme="terminal"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-ddc-theme="terminal"] ::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+
+[data-ddc-theme="terminal"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+[data-ddc-theme="terminal"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

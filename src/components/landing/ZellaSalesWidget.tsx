@@ -102,17 +102,23 @@ export function ZellaSalesWidget() {
       });
 
       const data = await response.json();
+      const replyText = data.reply || 'Tô por aqui! Como posso te ajudar na sua pousada?';
+
+      // Simulação de cadência humana natural (delay proporcional ao tamanho do texto: 1.2s a 2.5s)
+      const typingDelay = Math.min(2500, Math.max(1200, replyText.length * 20));
+      await new Promise((res) => setTimeout(res, typingDelay));
 
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.reply || 'Tô por aqui! Como posso te ajudar na sua pousada?',
+        content: replyText,
         recommendedPlan: data.recommendedPlan,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
     } catch {
+      await new Promise((res) => setTimeout(res, 1200));
       setMessages((prev) => [
         ...prev,
         {
@@ -142,35 +148,48 @@ export function ZellaSalesWidget() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto font-sans">
-      {/* Tooltip de Saudação Flutuante */}
+      {/* Tooltip de Saudação Flutuante Aprimorado com Foto Oficial Zélla */}
       <AnimatePresence>
         {!isOpen && hasPrompted && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            initial={{ opacity: 0, y: 12, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => setIsOpen(true)}
-            className="mb-3 max-w-xs cursor-pointer p-4 rounded-2xl rounded-br-none bg-[#111b21] border border-[#00a884]/40 shadow-2xl text-white backdrop-blur-xl relative group hover:border-[#00a884] transition-all duration-300"
+            className="mb-3 max-w-[300px] cursor-pointer p-3.5 rounded-2xl rounded-br-none bg-[#0d1418]/95 border border-[#00a884]/40 shadow-2xl text-white backdrop-blur-xl relative group hover:border-[#00a884] transition-all duration-300"
           >
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setHasPrompted(false);
               }}
-              className="absolute -top-2 -left-2 bg-[#202c33] hover:bg-red-500 text-gray-300 hover:text-white p-1 rounded-full text-xs transition-colors"
+              className="absolute -top-2 -left-2 bg-[#202c33] hover:bg-red-500 text-gray-300 hover:text-white p-1 rounded-full text-xs transition-colors z-10"
+              aria-label="Fechar notificação"
             >
               <X className="w-3 h-3" />
             </button>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00a884] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00a884]"></span>
-              </span>
-              <span className="text-xs font-bold text-[#00a884]">Seu Zélla • Zelador</span>
+            <div className="flex items-center gap-3">
+              <div className="relative shrink-0">
+                <img
+                  src="/Ze_SeuZella_Chat.png"
+                  alt="Seu Zélla Avatar"
+                  className="w-11 h-11 rounded-full object-cover border border-[#00a884]/40 shadow-md"
+                />
+                <span className="absolute bottom-0 right-0 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#00a884] border-2 border-[#0d1418]"></span>
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-xs font-bold text-[#00a884]">Seu Zélla</span>
+                  <span className="text-[10px] bg-[#00a884]/20 text-[#00a884] px-1.5 py-0.2 rounded font-semibold border border-[#00a884]/30">Zelador</span>
+                </div>
+                <p className="text-[12px] text-gray-200 font-medium leading-tight">
+                  &quot;Como vai? Tudo bem? Respondendo muitas mensagens no Whatsapp?&quot;
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-gray-200 font-medium leading-relaxed">
-              &quot;Olá! Eu sou o Seu Zélla! Quer um zelador pra responder suas mensagens de WhatsApp 24h por dia? Clica aqui! 😊&quot;
-            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -197,13 +216,15 @@ export function ZellaSalesWidget() {
               <path d="M16,0 L0,12 L16,24 Z" />
             </svg>
 
-            {/* Header Estilo WhatsApp */}
+            {/* Header Estilo WhatsApp com Foto Oficial Ze_SeuZella_Chat.png */}
             <div className="p-3.5 bg-[#202c33] border-b border-[#2a3942] flex items-center justify-between shadow-md">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-[#00a884] flex items-center justify-center text-slate-950 font-bold text-lg shadow-md border border-white/20">
-                    Zé
-                  </div>
+                  <img
+                    src="/Ze_SeuZella_Chat.png"
+                    alt="Seu Zélla Avatar"
+                    className="w-10 h-10 rounded-full object-cover border border-emerald-400/40 shadow-md"
+                  />
                   <span className="absolute bottom-0 right-0 h-3 w-3 bg-emerald-400 rounded-full border-2 border-[#202c33]" />
                 </div>
                 <div>
@@ -338,11 +359,13 @@ export function ZellaSalesWidget() {
           }}
           aria-label="Abrir atendimento Seu Zélla no WhatsApp"
         >
-          {/* Bico do Balão do Logo no Botão */}
+          {/* Bico do Balão do Logo no Botão com Foto Oficial Ze_SeuZella_Chat.png */}
           <div className="relative flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full bg-slate-950 text-[#00a884] flex items-center justify-center font-extrabold text-sm shadow-md">
-              Zé
-            </div>
+            <img
+              src="/Ze_SeuZella_Chat.png"
+              alt="Seu Zélla"
+              className="w-8 h-8 rounded-full object-cover border border-emerald-300/60 shadow-md"
+            />
             <span className="absolute -top-1 -right-1 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-slate-950"></span>

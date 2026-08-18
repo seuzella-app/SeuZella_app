@@ -7,7 +7,7 @@ import { db } from '@/lib/db';
 import { buildAirBSystemPrompt, getAgentForIntent, type AirBIntent } from './system-prompt';
 import { queryRAG } from './rag-pipeline';
 import { filterPixFromResponse, type PlatformContext, checkEntitlement } from './gatekeeper';
-import { llmRouter } from '../ai/llm-router';
+// import { llmRouter } from '../ai/llm-router'; // unused — will be needed when live LLM calls are wired
 
 interface ProcessAirBMessageParams {
   tenantId: string;
@@ -32,7 +32,7 @@ export async function processAirBMessage(params: ProcessAirBMessageParams): Prom
     throw new Error(`Conversation not found: ${conversationId}`);
   }
 
-  const property = conversation.property;
+  const {property} = conversation;
 
   // 2. Check active AI conversations entitlement
   const entitlement = await checkEntitlement(tenantId, 'ACCESS_AI_CONVERSATIONS', undefined, property.id);
@@ -125,7 +125,7 @@ export async function processAirBMessage(params: ProcessAirBMessageParams): Prom
   const brainRes = await GuestResponderBrain.processGuestMessage({
     tenantId,
     niche: 'airbnb',
-    channel: conversation.platformContext && (conversation.platformContext as any).platform === 'airbnb' ? 'airbnb_inbox' : 'whatsapp',
+    channel: conversation.platformContext && (conversation.platformContext as unknown as Record<string, unknown>).platform === 'airbnb' ? 'airbnb_inbox' : 'whatsapp',
     messageContent,
     history: recentMessages.map(msg => ({
       from: msg.direction === 'inbound' ? 'guest' : 'ai',

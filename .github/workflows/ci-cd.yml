@@ -1,0 +1,169 @@
+# ============================================================================
+# Zélla — CI/CD Pipeline
+# ============================================================================
+# Roda a cada push/PR em main:
+#   1. TypeCheck (tsc --noEmit)
+#   2. ESLint (Airbnb rules)
+#   3. Vitest (testes unitários + integração)
+#   4. Build (next build)
+#   5. Security scan (npm audit + secrets detection)
+#   6. Prisma validate
+# ============================================================================
+
+name: Zélla CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  DATABASE_URL: 'file:./ci-test.db'
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # JOB 1: TypeCheck + Lint
+  # ───────────────────────────────────────────────────────────────────────────
+  typecheck-lint:
+    name: TypeCheck + ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: TypeCheck
+        run: npx tsc --noEmit
+        continue-on-error: false
+
+      - name: ESLint
+        run: npx eslint src/ --max-warnings=50
+        continue-on-error: true
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # JOB 2: Testes unitários e de integração
+  # ───────────────────────────────────────────────────────────────────────────
+  test:
+    name: Testes (Vitest)
+    runs-on: ubuntu-latest
+    needs: typecheck-lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Create test database
+        run: npx prisma db push
+
+      - name: Run tests
+        run: npx vitest run --reporter=verbose
+        env:
+          DATABASE_URL: 'file:./ci-test.db'
+          NODE_ENV: 'test'
+          NEXTAUTH_SECRET: 'test-secret-for-ci'
+          BYPASS_MIDDLEWARE_AUTH: 'true'
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # JOB 3: Build (Next.js)
+  # ───────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build (Next.js)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build Next.js
+        run: npx next build
+        env:
+          DATABASE_URL: 'file:./ci-build.db'
+          NEXTAUTH_SECRET: 'build-secret-for-ci'
+          SKIP_ENV_VALIDATION: 'true'
+        continue-on-error: true
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # JOB 4: Security scan
+  # ───────────────────────────────────────────────────────────────────────────
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: typecheck-lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (high+critical)
+        run: npm audit --audit-level=high --omit=dev
+        continue-on-error: true
+
+      - name: Detect hardcoded secrets
+        run: |
+          ! grep -rn "sk_ant_\|sk_live_\|ghp_\|AKIA\|-----BEGIN RSA" src/ 2>/dev/null
+        continue-on-error: false
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+        continue-on-error: false
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # JOB 5: Deploy Vercel (apenas em push para main)
+  # ───────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy Vercel
+    runs-on: ubuntu-latest
+    needs: [test, build, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel
+        run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

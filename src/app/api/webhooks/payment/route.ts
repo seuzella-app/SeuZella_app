@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+import { sendEmail } from '@/lib/email-sender';
+import { generateWelcomeEmailHtml } from '@/lib/email-templates/welcome-email';
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ══
 // SEUZÉLLA — Webhook de Provisionamento (PASSO 2 + PASSO 3)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ══
 // Rota secreta de sistema que escuta o Gateway de Pagamentos e realiza o
 // "Provisionamento Mágico" do cliente:
 //
@@ -17,9 +19,9 @@ import crypto from 'crypto';
 // 3. Dispara telemetria ZCC com MRR e dados LGPD-compliant
 //
 // SEGURANÇA: HMAC-SHA256 obrigatório em produção. Zero Trust.
-// ═══════════════════════════════════════════════════════════════════════════════
+// ══
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types 
 
 interface WebhookPayload {
   // Evento do gateway
@@ -68,7 +70,7 @@ interface ProvisioningResult {
   isNewTenant: boolean;
 }
 
-// ── HMAC Signature Verification ───────────────────────────────────────────────
+// ── HMAC Signature Verification 
 
 function verifyWebhookSignature(
   rawBody: string,
@@ -92,7 +94,7 @@ function verifyWebhookSignature(
     return { valid: false, reason: 'MISSING_SIGNATURE: No signature header provided' };
   }
 
-  // ── Formato 1: Stripe-style (t=TIMESTAMP,v1=HMAC_HEX) ────────────────
+  // ── Formato 1: Stripe-style (t=TIMESTAMP,v1=HMAC_HEX) 
   if (signatureHeader.includes('t=') && signatureHeader.includes('v1=')) {
     const parts = signatureHeader.split(',');
     const tPart = parts.find(p => p.startsWith('t='));
@@ -132,7 +134,7 @@ function verifyWebhookSignature(
     }
   }
 
-  // ── Formato 2: Mercado Pago-style (ts=TIMESTAMP,v1=HMAC_HEX) ─────────
+  // ── Formato 2: Mercado Pago-style (ts=TIMESTAMP,v1=HMAC_HEX) 
   if (signatureHeader.includes('ts=') && signatureHeader.includes('v1=')) {
     const parts = signatureHeader.split(',');
     const tsPart = parts.find(p => p.startsWith('ts='));
@@ -172,7 +174,7 @@ function verifyWebhookSignature(
     }
   }
 
-  // ── Formato 3: Simple HMAC-SHA256 (sha256=HEX) ────────────────────────
+  // ── Formato 3: Simple HMAC-SHA256 (sha256=HEX) 
   if (signatureHeader.startsWith('sha256=')) {
     const receivedHash = signatureHeader.slice('sha256='.length);
     const expectedHash = crypto
@@ -197,7 +199,7 @@ function verifyWebhookSignature(
   return { valid: false, reason: 'UNKNOWN_SIGNATURE_FORMAT: Signature header format not recognized' };
 }
 
-// ── Plan Tier Resolver (amount → planTier) ────────────────────────────────────
+// ── Plan Tier Resolver (amount → planTier) 
 
 const AMOUNT_TO_TIER: Array<{ minAmount: number; maxAmount: number; tier: string }> = [
   { minAmount: 0, maxAmount: 0, tier: 'gratuito' },
@@ -216,7 +218,7 @@ function resolvePlanTier(amount: number): string {
   return 'gratuito';
 }
 
-// ── Magic Provisioning Engine ─────────────────────────────────────────────────
+// ── Magic Provisioning Engine 
 
 async function provisionNewCustomer(payload: WebhookPayload): Promise<ProvisioningResult> {
   const meta = payload.metadata || {};
@@ -272,9 +274,9 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ══
   // 🪄 PROVISIONAMENTO MÁGICO — Novo Cliente
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ══
 
   const now = new Date();
   const periodEnd = new Date(now);
@@ -373,6 +375,24 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
 
   console.log(`[webhooks/payment] ✅ PROVISIONED: tenant=${tenant.id} plan=${planTier} niche=${niche} user=${adminUser.id}`);
 
+  // 6. Dispara email de boas-vindas pós-compra com link direto ao DDC
+  if (customerEmail) {
+    try {
+      const emailHtml = generateWelcomeEmailHtml({
+        customerName,
+        customerEmail,
+        niche: niche as 'pousada' | 'airbnb',
+        planTier,
+        propertyName: propertyName || undefined,
+        magicLoginUrl: `https://smart-hotel-zehla.vercel.app/ddc/${niche}`,
+      });
+      await sendEmail(customerEmail, `🚀 Bem-vindo ao Seu Zélla SmartHotel — Acesse seu Painel ${niche.toUpperCase()}`, emailHtml);
+      console.log(`[webhooks/payment] 📧 WELCOME EMAIL DISPATCHED to ${customerEmail}`);
+    } catch (emailErr) {
+      console.error('[webhooks/payment] Failed to send welcome email:', emailErr);
+    }
+  }
+
   return {
     tenantId: tenant.id,
     userId: adminUser.id,
@@ -384,7 +404,7 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
   };
 }
 
-// ── ZCC Telemetry Notifier (PASSO 3 — LGPD Compliant) ────────────────────────
+// ── ZCC Telemetry Notifier (PASSO 3 — LGPD Compliant) 
 
 async function notifyZCCConversion(result: ProvisioningResult, payload: WebhookPayload): Promise<void> {
   try {
@@ -392,15 +412,15 @@ async function notifyZCCConversion(result: ProvisioningResult, payload: WebhookP
     const customerName = meta.customerName || payload.payer?.first_name || '';
     const amount = payload.amount || 0;
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ══
     // 🔒 LGPD COMPLIANCE — Dados minimizados para o dashboard corporativo
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ══
     // Regra: enviar APENAS:
     //   - Iniciais do proprietário (ex: "J.S.")
     //   - Região (state do property, se disponível)
     //   - Valor do pacote (R$)
     // NÃO enviar: nome completo, email, telefone, CPF
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ══
 
     const lgpdInitials = customerName
       .split(' ')
@@ -477,16 +497,16 @@ async function notifyZCCConversion(result: ProvisioningResult, payload: WebhookP
   }
 }
 
-// ── Main Handler ──────────────────────────────────────────────────────────────
+// ── Main Handler 
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    // ── Step 1: Captura raw body para verificação de assinatura ────────────
+    // ── Step 1: Captura raw body para verificação de assinatura 
     const rawBody = await request.text();
 
-    // ── Step 2: Validação HMAC da assinatura ──────────────────────────────
+    // ── Step 2: Validação HMAC da assinatura 
     const signatureHeader = request.headers.get('x-signature')
       || request.headers.get('stripe-signature')
       || request.headers.get('x-hub-signature-256');
@@ -508,7 +528,7 @@ export async function POST(request: NextRequest) {
       console.warn(`[webhooks/payment] ⚠️ DEV WARNING: ${verification.reason} — allowing for testing`);
     }
 
-    // ── Step 3: Parse do payload ──────────────────────────────────────────
+    // ── Step 3: Parse do payload 
     let payload: WebhookPayload;
     try {
       payload = JSON.parse(rawBody);
@@ -519,23 +539,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Step 4: Roteamento por tipo de evento ─────────────────────────────
+    // ── Step 4: Roteamento por tipo de evento 
     const eventType = payload.event;
 
-    // Eventos que disparam provisionamento
+// Eventos que disparam provisionamento
     const PROVISIONING_EVENTS = ['payment.created', 'invoice.paid'];
     // Eventos que disparam atualização de status
     const STATUS_UPDATE_EVENTS = ['payment.updated'];
     // Eventos que disparam cancelamento
     const CANCELLATION_EVENTS = ['subscription.canceled', 'invoice.payment_failed'];
+    // Notification bridge — Phase 2
+    const { bridgePaymentEvent } = await import('@/lib/notifications/bridges');
 
     if (PROVISIONING_EVENTS.includes(eventType) && payload.status === 'approved') {
-      // ═══════════════════════════════════════════════════════════════════════
+      // ══
       // 🪄 PROVISIONAMENTO MÁGICO
-      // ═══════════════════════════════════════════════════════════════════════
+      // ══
       const result = await provisionNewCustomer(payload);
 
-      // ── PASSO 3: Notificador ZCC (telemetria de conversão) ─────────────
+      // ── PASSO 3: Notificador ZCC (telemetria de conversão) 
       await notifyZCCConversion(result, payload);
 
       const durationMs = Date.now() - startTime;
@@ -555,7 +577,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (STATUS_UPDATE_EVENTS.includes(eventType)) {
-      // ── Atualização de status de pagamento ──────────────────────────────
+      // ── Atualização de status de pagamento 
       if (payload.paymentId && payload.status) {
         const transaction = await db.paymentTransaction.findFirst({
           where: { externalId: String(payload.paymentId) },
@@ -591,6 +613,21 @@ export async function POST(request: NextRequest) {
                 where: { id: subscription.tenantId },
                 data: { plan: subscription.planType, subscriptionAt: now, status: 'active' },
               });
+
+              // ── Notification bridge: payment received 
+              try {
+                bridgePaymentEvent({
+                  niche: 'all',
+                  paymentId: String(payload.paymentId),
+                  amount: Number(transaction.amount ?? 0),
+                  guestName: subscription.tenantId,
+                  method: 'pix',
+                  status: 'received',
+                  tenantId: subscription.tenantId,
+                });
+              } catch (notifErr) {
+                console.error('[webhooks/payment] bridgePaymentEvent error:', notifErr);
+              }
             }
           } else if (payload.status === 'rejected') {
             const subscription = await db.subscription.findUnique({
@@ -601,6 +638,19 @@ export async function POST(request: NextRequest) {
                 where: { id: subscription.id },
                 data: { paymentStatus: 'rejected' },
               });
+              // ── Notification bridge: payment failed 
+              try {
+                bridgePaymentEvent({
+                  niche: 'all',
+                  paymentId: String(payload.paymentId),
+                  amount: Number(transaction.amount ?? 0),
+                  guestName: subscription.tenantId,
+                  status: 'failed',
+                  tenantId: subscription.tenantId,
+                });
+              } catch (notifErr) {
+                console.error('[webhooks/payment] bridgePaymentEvent rejected error:', notifErr);
+              }
             }
           }
         }
@@ -613,7 +663,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (CANCELLATION_EVENTS.includes(eventType)) {
-      // ── Cancelamento / Falha de pagamento ───────────────────────────────
+      // ── Cancelamento / Falha de pagamento 
       const meta = payload.metadata || {};
       if (meta.tenantId) {
         // Marca subscription como cancelada
@@ -643,7 +693,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Evento não reconhecido — ack silencioso ──────────────────────────
+    // ── Evento não reconhecido — ack silencioso 
     console.log(`[webhooks/payment] Unhandled event: ${eventType} — acknowledging silently`);
     return NextResponse.json(
       { received: true, event: eventType },
@@ -658,7 +708,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// ── GET: Health check (útil para monitoramento) ──────────────────────────────
+// ── GET: Health check (útil para monitoramento) 
 export async function GET() {
   return NextResponse.json({
     status: 'active',

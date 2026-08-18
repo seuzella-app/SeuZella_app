@@ -1,0 +1,120 @@
+name: 🛡️ CI/CD — ZCC Central Control & Hostinger VPS Pre-Flight
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/app/zcc/**'
+      - 'src/components/zcc/**'
+      - 'src/app/api/zcc/**'
+      - 'src/lib/zcc/**'
+      - 'deploy/**'
+      - 'tests/**'
+      - '.github/workflows/ci-zcc-vps-preflight.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/app/zcc/**'
+      - 'src/components/zcc/**'
+      - 'src/app/api/zcc/**'
+      - 'src/lib/zcc/**'
+      - 'deploy/**'
+      - 'tests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+  NODE_ENV: test
+  CI: 'true'
+  NEXTAUTH_SECRET: 'ci-secret-key-32-characters-minimum-length-xyz'
+  CRON_SECRET: 'ci-cron-secret-token'
+  BYPASS_MIDDLEWARE_AUTH: 'true'
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # JOB 1: ZCC & Cérebro Testing Suite
+  # ───────────────────────────────────────────────────────────────────────────
+  zcc-test-suite:
+    name: 🌐 ZCC Digital Twin, Security & ML Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run ZCC Digital Twin & Simulation Tests
+        run: |
+          npx vitest run \
+            tests/zcc-digital-twin/adapter-swap.test.ts \
+            tests/zcc-digital-twin/digital-twin.test.ts \
+            tests/zcc-digital-twin-financial-growth.test.ts \
+            tests/marketing-google-ads-simulation.test.ts \
+            tests/sustainability-growth-churn.test.ts
+
+      - name: Run ZCC Security, Night Audit & SAST Tests
+        run: |
+          npx vitest run \
+            tests/zcc-security.test.ts \
+            tests/night-audit-system.test.ts \
+            tests/security/api-routes-sast.test.ts \
+            tests/semantica-lgpd.test.ts
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # JOB 2: Hostinger VPS Deployment Pre-Flight Validation
+  # ───────────────────────────────────────────────────────────────────────────
+  vps-preflight:
+    name: 🚀 Hostinger VPS Pre-Flight & Build Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Validate Shell Script Syntax (deploy-vps.sh & setup-vps.sh)
+        run: |
+          bash -n deploy/deploy-vps.sh
+          bash -n deploy/setup-vps.sh
+
+      - name: Validate PM2 Ecosystem Config
+        run: |
+          node -c deploy/ecosystem.config.js
+
+      - name: Validate Prisma Schema
+        run: npx prisma validate
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
+
+      - name: Production Build Smoke Test
+        run: npx next build
+        env:
+          NEXTAUTH_SECRET: 'build-secret-for-ci-vps'
+          SKIP_ENV_VALIDATION: 'true'

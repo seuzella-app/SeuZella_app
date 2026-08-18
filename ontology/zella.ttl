@@ -1,0 +1,285 @@
+# ============================================================================
+# ZÉLLA — Ontologia do Domínio de Hospitalidade (OWL/Turtle)
+# ============================================================================
+# Define as classes, propriedades e restrições do domínio Seu Zélla:
+#   - Pousada, Hóspede, Reserva, Quarto, Serviço, Política
+#   - has_policy, requires, forbids, supersedes, enables
+#   - Restrições SHACL para validação do grafo
+#
+# Usado por:
+#   - Semantica OntologyValidator (SHACL)
+#   - Semantica ReasoningEngine (Rete/Datalog)
+#   - Export W3C OWL para interoperabilidade
+#
+# Padrão: OWL 2 DL / Turtle (terse RDF triple language)
+# ============================================================================
+
+@prefix : <http://seuzella.com.br/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# ============================================================================
+# ONTOLOGY DECLARATION
+# ============================================================================
+
+<http://seuzella.com.br/ontology> a owl:Ontology ;
+    rdfs:label "Seu Zélla Hospitality Ontology" ;
+    rdfs:comment "Ontologia do domínio de hospitalidade para o Seu Zélla. Define entidades, relações e regras para GraphRAG." ;
+    owl:versionInfo "1.0.0" ;
+    rdfs:seeAlso <https://github.com/MarcioCau14/SmartHotel_Zehla> .
+
+# ============================================================================
+# CLASSES (Entity Types)
+# ============================================================================
+
+:Pousada a owl:Class ;
+    rdfs:label "Pousada" ;
+    rdfs:comment "Estabelecimento de hospedagem (pousada, hotel, hostel)" .
+
+:Hospede a owl:Class ;
+    rdfs:label "Hóspede" ;
+    rdfs:comment "Pessoa que se hospeda na pousada (anonimizado para LGPD)" .
+
+:Reserva a owl:Class ;
+    rdfs:label "Reserva" ;
+    rdfs:comment "Reserva de hospedagem com data de check-in e check-out" .
+
+:Quarto a owl:Class ;
+    rdfs:label "Quarto" ;
+    rdfs:comment "Acomodação disponível para reserva" .
+
+:Servico a owl:Class ;
+    rdfs:label "Serviço" ;
+    rdfs:comment "Serviço oferecido pela pousada (café da manhã, lavanderia, etc)" .
+
+:Politica a owl:Class ;
+    rdfs:label "Política" ;
+    rdfs:comment "Regra ou política da pousada (check-in, cancelamento, pets, etc)" .
+
+:Comodidade a owl:Class ;
+    rdfs:label "Comodidade" ;
+    rdfs:comment "Amenidade disponível (piscina, wifi, estacionamento, etc)" .
+
+:Pagamento a owl:Class ;
+    rdfs:label "Pagamento" ;
+    rdfs:comment "Regra de pagamento (PIX, cartão, descontos)" .
+
+# Subclasses de Política
+:CheckInPolicy a owl:Class ;
+    rdfs:subClassOf :Politica ;
+    rdfs:label "Política de Check-in" .
+
+:CheckOutPolicy a owl:Class ;
+    rdfs:subClassOf :Politica ;
+    rdfs:label "Política de Check-out" .
+
+:CancelamentoPolicy a owl:Class ;
+    rdfs:subClassOf :Politica ;
+    rdfs:label "Política de Cancelamento" .
+
+:PetPolicy a owl:Class ;
+    rdfs:subClassOf :Politica ;
+    rdfs:label "Política de Pets" .
+
+# ============================================================================
+# OBJECT PROPERTIES (Relation Types)
+# ============================================================================
+
+:has_policy a owl:ObjectProperty ;
+    rdfs:label "tem política" ;
+    rdfs:domain :Pousada ;
+    rdfs:range :Politica ;
+    rdfs:comment "Uma pousada tem políticas associadas" .
+
+:requires a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:label "requer" ;
+    rdfs:domain :Politica ;
+    rdfs:range :Politica ;
+    rdfs:comment "Uma política requer outra como pré-requisito (transitiva)" .
+
+:forbids a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:label "proíbe" ;
+    rdfs:domain :Politica ;
+    rdfs:range :Politica ;
+    rdfs:comment "Uma política proíbe outra (simétrica)" .
+
+:supersedes a owl:ObjectProperty, owl:IrreflexiveProperty ;
+    rdfs:label "sobrepõe" ;
+    rdfs:domain :Politica ;
+    rdfs:range :Politica ;
+    rdfs:comment "Uma política mais específica/recente sobrepõe uma mais genérica/antiga" .
+
+:overlaps a owl:ObjectProperty, owl:SymmetricProperty, owl:ReflexiveProperty ;
+    rdfs:label "sobrepõe-se" ;
+    rdfs:domain :Politica ;
+    rdfs:range :Politica ;
+    rdfs:comment "Duas políticas se sobrepõem parcialmente (simétrica e reflexiva)" .
+
+:enables a owl:ObjectProperty ;
+    rdfs:label "habilita" ;
+    rdfs:domain :Politica ;
+    rdfs:range :Politica ;
+    rdfs:comment "Uma política habilita outra" .
+
+:has_amenity a owl:ObjectProperty ;
+    rdfs:label "tem comodidade" ;
+    rdfs:domain :Pousada ;
+    rdfs:range :Comodidade .
+
+:has_service a owl:ObjectProperty ;
+    rdfs:label "tem serviço" ;
+    rdfs:domain :Pousada ;
+    rdfs:range :Servico .
+
+:has_room a owl:ObjectProperty ;
+    rdfs:label "tem quarto" ;
+    rdfs:domain :Pousada ;
+    rdfs:range :Quarto .
+
+:booked_by a owl:ObjectProperty ;
+    rdfs:label "reservado por" ;
+    rdfs:domain :Quarto ;
+    rdfs:range :Hospede .
+
+:has_reservation a owl:ObjectProperty ;
+    rdfs:label "tem reserva" ;
+    rdfs:domain :Hospede ;
+    rdfs:range :Reserva .
+
+# ============================================================================
+# DATA PROPERTIES
+# ============================================================================
+
+:checkInTime a owl:DatatypeProperty ;
+    rdfs:label "horário de check-in" ;
+    rdfs:range xsd:string .
+
+:checkOutTime a owl:DatatypeProperty ;
+    rdfs:label "horário de check-out" ;
+    rdfs:range xsd:string .
+
+:pricePerNight a owl:DatatypeProperty ;
+    rdfs:label "preço por diária" ;
+    rdfs:range xsd:decimal .
+
+:confidence a owl:DatatypeProperty ;
+    rdfs:label "confiança" ;
+    rdfs:range xsd:float ;
+    rdfs:comment "Confiança do nó no grafo (0-1)" .
+
+# ============================================================================
+# SHACL CONSTRAINTS (Validation Rules)
+# ============================================================================
+
+:PousadaShape a sh:NodeShape ;
+    sh:targetClass :Pousada ;
+    sh:property [
+        sh:path :has_policy ;
+        sh:minCount 1 ;
+        sh:message "Toda pousada deve ter pelo menos 1 política" ;
+    ] ;
+    sh:property [
+        sh:path :has_room ;
+        sh:minCount 1 ;
+        sh:message "Toda pousada deve ter pelo menos 1 quarto" ;
+    ] .
+
+:PoliticaShape a sh:NodeShape ;
+    sh:targetClass :Politica ;
+    sh:property [
+        sh:path :confidence ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        sh:message "Confiança deve estar entre 0 e 1" ;
+    ] .
+
+:CheckInPolicyShape a sh:NodeShape ;
+    sh:targetClass :CheckInPolicy ;
+    sh:property [
+        sh:path :checkInTime ;
+        sh:minCount 1 ;
+        sh:message "Toda política de check-in deve ter um horário definido" ;
+    ] .
+
+# ============================================================================
+# REASONING RULES (Datalog-style inference rules)
+# ============================================================================
+# Se A requires B e B requires C, então A requires C (transitive)
+# Se A supersedes B e B supersedes C, então A supersedes C (transitive)
+# Se A forbids B, então B forbids A (symmetric — já declarado acima)
+
+# Rule: transitive requires
+:requires_transitive a sh:SPARQLRule ;
+    sh:prefixes <http://seuzella.com.br/ontology> ;
+    sh:construct """
+        CONSTRUCT { ?a :requires ?c }
+        WHERE {
+            ?a :requires ?b .
+            ?b :requires ?c .
+            FILTER(?a != ?c)
+        }
+    """ .
+
+# Rule: if A supersedes B and B has policy X, then A has policy X
+:supersedes_inherit a sh:SPARQLRule ;
+    sh:prefixes <http://seuzella.com.br/ontology> ;
+    sh:construct """
+        CONSTRUCT { ?a :has_policy ?p }
+        WHERE {
+            ?a :supersedes ?b .
+            ?b :has_policy ?p .
+            FILTER NOT EXISTS { ?a :has_policy ?p }
+        }
+    """ .
+
+# ============================================================================
+# SKOS VOCABULARY (categorização de tipos de nó)
+# ============================================================================
+
+:NodeTypeScheme a skos:ConceptScheme ;
+    rdfs:label "Tipos de Nó no Grafo Seu Zélla" ;
+    skos:hasTopConcept :RULE, :POLICY, :AMENITY, :CHECKIN, :CHECKOUT, :PAYMENT, :CANCEL, :SERVICE .
+
+:RULE a skos:Concept ;
+    skos:prefLabel "Regra" ;
+    skos:definition "Regra rígida não negociável" ;
+    skos:topConceptOf :NodeTypeScheme .
+
+:POLICY a skos:Concept ;
+    skos:prefLabel "Política" ;
+    skos:definition "Política negociável com condições" ;
+    skos:topConceptOf :NodeTypeScheme .
+
+:AMENITY a skos:Concept ;
+    skos:prefLabel "Comodidade" ;
+    skos:definition "Amenidade disponível (piscina, wifi, etc)" ;
+    skos:topConceptOf :NodeTypeScheme .
+
+:CHECKIN a skos:Concept ;
+    skos:prefLabel "Check-in" ;
+    skos:definition "Procedimento de check-in" ;
+    skos:topConceptOf :NodeTypeScheme .
+
+:CHECKOUT a skos:Concept ;
+    skos:prefLabel "Check-out" ;
+    skos:definition "Procedimento de check-out" ;
+    skos:topConceptOf :NodeTypeScheme .
+
+:PAYMENT a skos:Concept ;
+    skos:prefLabel "Pagamento" ;
+    skos:definition "Regra de pagamento (PIX, cartão)" ;
+    skos:topConceptOf :NodeTypeScheme .
+
+:CANCEL a skos:Concept ;
+    skos:prefLabel "Cancelamento" ;
+    skos:definition "Política de cancelamento" ;
+    skos:topConceptOf :NodeTypeScheme .
+
+:SERVICE a skos:Concept ;
+    skos:prefLabel "Serviço" ;
+    skos:definition "Serviço adicional (café da manhã, lavanderia)" ;
+    skos:topConceptOf :NodeTypeScheme .

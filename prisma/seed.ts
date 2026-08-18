@@ -319,8 +319,6 @@ async function main() {
       role: 'owner',
       plan: 'professional',
       status: 'active',
-      trialStart: new Date(),
-      trialEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     },
   });
 
@@ -730,8 +728,6 @@ async function main() {
       phone: '11999999999',
       plan: 'pro',
       status: 'active',
-      trialStart: new Date(),
-      trialEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       property: {
         create: {
           name: 'Pousada Paraíso Demo',

@@ -1,0 +1,47 @@
+name: CI - ZCC Zélla Central Control (Command Center)
+
+on:
+  push:
+    paths:
+      - 'src/app/zcc/**'
+      - 'src/components/zcc/**'
+      - 'src/app/api/zcc/**'
+      - '.github/workflows/ci-zcc-control.yml'
+  pull_request:
+    paths:
+      - 'src/app/zcc/**'
+      - 'src/components/zcc/**'
+      - 'src/app/api/zcc/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-zcc-control:
+    name: Validate ZCC Command Center Components & APIs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXTAUTH_SECRET: 'ci-secret-antigravity-key-32chars'
+      NEXTAUTH_URL: 'http://localhost:3000'
+      DATABASE_URL: 'file:./db/ci.db'
+      ALLOW_PROD_RESET: 'true'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Typecheck ZCC Command Center Module
+        run: npx tsc --noEmit

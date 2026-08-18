@@ -27,9 +27,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import { runAnomalyDetection, getAnomalyDetector } from '@/lib/cerebro/anomaly-detector';
+// Notification bridge — Phase 2: pushes AI anomaly alerts into DDC for the tenant
+import { bridgeCerebroAlert } from '@/lib/notifications/bridges';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  return runWatchdog(request);
+  
+    // Auth unificada: M2M EdDSA JWT primeiro, fallback CRON_SECRET
+  const auth = await verifyCronAuth(request, 'cerebro:write');
+  if (!auth.ok) return auth.response!;
+return runWatchdog(request);
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -83,6 +90,36 @@ async function runWatchdog(request: NextRequest): Promise<NextResponse> {
           mode,
         },
       });
+
+      // ── Notification bridge: push each anomaly into DDC tenant notifications ──
+      // Extract tenantId from scope (format: "tenant:<id>") and call bridgeCerebroAlert.
+      // Non-blocking: errors logged but never break the watchdog loop.
+      for (const anomaly of anomalies) {
+        try {
+          const tenantIdMatch = /^tenant:([a-zA-Z0-9_-]+)$/.exec(anomaly.scope ?? '');
+          const tenantId = tenantIdMatch?.[1];
+          const alertTypeMap: Record<string, 'ai_offline' | 'ai_online' | 'pattern_learned' | 'anomaly_response_time' | 'anomaly_conversion' | 'anomaly_revenue' | 'cost_alert' | 'escalation_spike'> = {
+            ai_offline: 'ai_offline',
+            ai_online: 'ai_online',
+            pattern_learned: 'pattern_learned',
+            response_time: 'anomaly_response_time',
+            conversion: 'anomaly_conversion',
+            revenue: 'anomaly_revenue',
+            cost: 'cost_alert',
+            escalation_spike: 'escalation_spike',
+          };
+          const alertType = alertTypeMap[anomaly.anomalyType];
+          if (!alertType) continue;
+          bridgeCerebroAlert({
+            alertType,
+            value: anomaly.observed,
+            expected: anomaly.baseline,
+            tenantId,
+          });
+        } catch (bridgeErr) {
+          console.error('[cerebro-watchdog] bridgeCerebroAlert error:', bridgeErr);
+        }
+      }
     }
 
     // ── 3. TODO Passo 5: dispara alertas para anomalias critical/emergency ──

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSpreadsheet, generateCSV } from '@/lib/export-spreadsheet';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { withApiGuard } from '@/lib/security/api-guard';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
