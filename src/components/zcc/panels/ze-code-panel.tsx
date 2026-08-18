@@ -1,892 +1,877 @@
-// @ts-nocheck — ZCC visual panel (ZéCode), types fixed in dedicated refactoring pass
-"use client";
+'use client';
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+// ============================================================================
+// ZÉLLA — ZéCodePanel (DEV FULL STACK Interno — Inspirado no CodeRabbit)
+// ============================================================================
+// Painel master do ZéCode, substituindo o antigo "RefactorSuggestionsPanel".
+// Trabalha em PARALELO com o Cérebro Zélla:
+//   - Cérebro Zélla (aba `cerebro`) = "código vivo" — runtime, anomalias, budget
+//   - ZéCode (aba `ze-code`) = "DEV FULL STACK" — revisão e evolução do código
+//
+// 5 VIEWS:
+//   1. Overview     — codebase domain + safety locks + stats unificadas
+//   2. Reviews      — disparar e listar Code Reviews (CodeRabbit-style)
+//   3. Refactors    — fila de sugestões de refatoração (approve/reject/apply)
+//   4. Gaps         — gaps detectados (missing tests/types/error handling)
+//   5. Bottlenecks  — gargalos detectados (N+1, sync IO, missing index)
+//
+// AÇÕES:
+//   - "Evolve Code" — comando master que roda todas as detecções
+//   - "Trigger Review" — dispara review manual
+//   - "Approve / Reject / Apply" — ações por sugestão (com safety locks)
+// ============================================================================
+
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Code2, ChevronRight, ChevronDown, Check, X, Wrench, FileCode2,
-  Sparkles, ThumbsUp, ThumbsDown, Loader2, TrendingUp, GitBranch,
-  Zap, AlertTriangle, ShieldCheck, Eye, Brain, Activity,
-  FolderTree, RefreshCw, FileSearch, ShieldAlert, Lock,
-} from "lucide-react";
-import { PanelHeader } from "../shared/panel-header";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+  Code2, Brain, Shield, Zap, GitBranch, Check, X,
+  FileCode, TrendingUp, Database, RefreshCw, Lock, Activity,
+  Wrench, Target, Gauge,
+} from 'lucide-react';
 import type {
-  ZeCodeFinding, ZeCodeScanMode, ZeCodeScanResponse,
-  ZeCodeFileNode, ZeCodeAnalysisKind, ZeCodeSeverity, ZeCodeStatus,
-} from "@/lib/zcc/types";
+  ZeCodeStats,
+  ZeCodeView,
+  GapFinding,
+  BottleneckFinding,
+  EvolveResult,
+} from '@/lib/cerebro/ze-code/types';
 
-/*
- * ZeCodePanel — DEV FULL STACK interno (inspirado em CodeRabbit.ai).
- *
- * Diferente do Cérebro Zélla (runtime), ZéCode atua sobre o código-fonte:
- *   - Análise de código (bottlenecks, gaps, improvements, refactors)
- *   - Propõe mudanças com diff visual (current vs proposed)
- *   - Safety checks em cada proposta (no shell, no fs_write, no eval)
- *   - Approve/Reject/Aply pelo operador (READ-ONLY no FS por design)
- *
- * Modos de scan:
- *   - quick     → 5 hot files críticos (rápido)
- *   - deep      → 20 arquivos de src/ (profundo)
- *   - targeted  → 1 arquivo/diretório específico
- *   - diff      → pending git changes (quando aplicável)
- */
+// ── Light types for proxy responses (reviews + refactors come from DB) ──────
 
-type Finding = ZeCodeFinding;
-
-const KIND_ICON: Record<ZeCodeAnalysisKind, React.ElementType> = {
-  bottleneck: Zap,
-  gap: FileSearch,
-  improvement: Sparkles,
-  refactor: Wrench,
-  security: ShieldAlert,
-  tech_debt: AlertTriangle,
-  anti_pattern: X,
-};
-
-const KIND_LABEL: Record<ZeCodeAnalysisKind, string> = {
-  bottleneck: "BOTTLENECK",
-  gap: "GAP",
-  improvement: "IMPROVEMENT",
-  refactor: "REFACTOR",
-  security: "SECURITY",
-  tech_debt: "TECH DEBT",
-  anti_pattern: "ANTI-PATTERN",
-};
-
-const KIND_COLOR: Record<ZeCodeAnalysisKind, string> = {
-  bottleneck: "border-amber-500/40 bg-amber-500/10 text-amber-400",
-  gap: "border-sky-500/40 bg-sky-500/10 text-sky-400",
-  improvement: "border-primary/40 bg-primary/10 text-primary",
-  refactor: "border-violet-500/40 bg-violet-500/10 text-violet-400",
-  security: "border-red-500/40 bg-red-500/10 text-red-400",
-  tech_debt: "border-orange-500/40 bg-orange-500/10 text-orange-400",
-  anti_pattern: "border-pink-500/40 bg-pink-500/10 text-pink-400",
-};
-
-const SEVERITY_COLOR: Record<ZeCodeSeverity, string> = {
-  info: "text-muted-foreground",
-  low: "text-sky-400",
-  medium: "text-amber-400",
-  high: "text-orange-400",
-  critical: "text-red-400",
-};
-
-const STATUS_BADGE: Record<ZeCodeStatus, string> = {
-  pending_review: "border-amber-500/30 bg-amber-500/10 text-amber-400",
-  approved: "border-sky-500/30 bg-sky-500/10 text-sky-400",
-  rejected: "border-red-500/30 bg-red-500/10 text-red-400",
-  applied: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-  blocked_safety: "border-red-600/40 bg-red-600/10 text-red-500",
-};
-
-const STATUS_LABEL: Record<ZeCodeStatus, string> = {
-  pending_review: "PENDING REVIEW",
-  approved: "APPROVED",
-  rejected: "REJECTED",
-  applied: "APPLIED",
-  blocked_safety: "BLOCKED · SAFETY",
-};
-
-const SCAN_MODES: { mode: ZeCodeScanMode; label: string; description: string; icon: React.ElementType }[] = [
-  { mode: "quick", label: "Quick", description: "5 hot files críticos", icon: Zap },
-  { mode: "deep", label: "Deep", description: "20 arquivos src/", icon: FolderTree },
-  { mode: "targeted", label: "Targeted", description: "Arquivo específico", icon: FileSearch },
-  { mode: "diff", label: "Diff", description: "Pending changes", icon: GitBranch },
-];
-
-function relativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const s = Math.floor(diffMs / 1000);
-  if (s < 60) return `${s}s atrás`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m atrás`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h atrás`;
-  const d = Math.floor(h / 24);
-  return `${d}d atrás`;
+interface ReviewListItem {
+  id?: string;
+  scope?: string;
+  reviewMode?: string;
+  highLevelSummary?: string;
+  createdAt?: string;
+  status?: string;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+interface RefactorListItem {
+  id: string;
+  filePath: string;
+  lineRange: string;
+  currentCode: string;
+  proposedCode: string;
+  rationale: string;
+  status: 'pending_review' | 'approved' | 'rejected' | 'applied';
+  confidence: number;
+  mode: 'mock' | 'live';
+  createdAt: string;
+  reviewNotes?: string | null;
+}
 
-export function ZeCodePanel() {
-  const [scanMode, setScanMode] = React.useState<ZeCodeScanMode>("quick");
-  const [targetPath, setTargetPath] = React.useState<string>("");
-  const [isScanning, setIsScanning] = React.useState(false);
-  const [scanResult, setScanResult] = React.useState<ZeCodeScanResponse | null>(null);
-  const [findings, setFindings] = React.useState<Finding[]>([]);
-  const [fileTree, setFileTree] = React.useState<ZeCodeFileNode[] | null>(null);
-  const [fileTreeLoading, setFileTreeLoading] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState<{ path: string; content: string } | null>(null);
-  const [showFileTree, setShowFileTree] = React.useState(false);
+// ── Helpers ────────────────────────────────────────────────────────────────
 
-  const handleScan = async () => {
-    setIsScanning(true);
-    try {
-      const body: { mode: ZeCodeScanMode; targetPath?: string } = { mode: scanMode };
-      if (scanMode === "targeted" && targetPath) {
-        body.targetPath = targetPath;
-      }
-      const res = await fetch("/api/zcc/zecode", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data: ZeCodeScanResponse = await res.json();
-      if (!data.ok) {
-        toast.error("Scan falhou", { description: data.error || "Erro desconhecido" });
-        return;
-      }
-      setScanResult(data);
-      setFindings(data.findings);
-      toast.success(`Scan concluído: ${data.findings.length} findings`, {
-        description: `${data.filesScanned} arquivos · ${data.durationMs}ms · ${data.llmProvider}/${data.llmModel}`,
-      });
-    } catch (err) {
-      toast.error("Erro ao executar scan", {
-        description: err instanceof Error ? err.message : "Erro desconhecido",
-      });
-    } finally {
-      setIsScanning(false);
-    }
-  };
+function severityColor(s: string): string {
+  switch (s) {
+    case 'emergency': return '#dc2626';
+    case 'critical': return '#ef4444';
+    case 'warning': return '#f59e0b';
+    case 'info': return '#3b82f6';
+    default: return '#888';
+  }
+}
 
-  const loadFileTree = async () => {
-    setFileTreeLoading(true);
-    try {
-      const res = await fetch("/api/zcc/zecode?path=src");
-      const data = await res.json();
-      if (data.ok) {
-        setFileTree(data.nodes);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setFileTreeLoading(false);
-    }
-  };
+function severityLabel(s: string): string {
+  return s.toUpperCase();
+}
 
-  const loadFile = async (path: string) => {
-    try {
-      const res = await fetch(`/api/zcc/zecode?file=${encodeURIComponent(path)}`);
-      const data = await res.json();
-      if (data.ok) {
-        setSelectedFile({ path, content: data.content });
-        setTargetPath(path);
-        setScanMode("targeted");
-      }
-    } catch {
-      // ignore
-    }
-  };
+function confidenceColor(c: number): string {
+  if (c >= 0.8) return '#10b981';
+  if (c >= 0.6) return '#3b82f6';
+  if (c >= 0.4) return '#f59e0b';
+  return '#ef4444';
+}
 
-  const updateFindingStatus = (id: string, status: ZeCodeStatus) => {
-    setFindings((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, status, reviewedAt: new Date().toISOString() } : f))
-    );
-  };
+function formatTimeAgo(iso: string): string {
+  if (!iso) return '—';
+  const diff = Date.now() - new Date(iso).getTime();
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return `${seconds}s atrás`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}min atrás`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h atrás`;
+  return `${Math.floor(hours / 24)}d atrás`;
+}
 
-  const handleApprove = (f: Finding) => {
-    updateFindingStatus(f.id, "approved");
-    toast.success(`Finding aprovado: ${f.title}`, {
-      description: `${f.filePath}:${f.lineRange} · pronto para aplicar`,
-    });
-  };
+// ── Sub-component: StatCard ─────────────────────────────────────────────────
 
-  const handleReject = (f: Finding) => {
-    updateFindingStatus(f.id, "rejected");
-    toast.error(`Finding rejeitado: ${f.title}`);
-  };
+function StatCard({
+  label, value, sub, icon, color,
+}: {
+  label: string; value: string | number; sub?: string;
+  icon: React.ReactNode; color: string;
+}) {
+  return (
+    <div className="rounded p-2.5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+      <div className="flex items-center gap-1 mb-1">
+        <span style={{ color }}>{icon}</span>
+        <span className="text-[9px] font-mono uppercase tracking-wider" style={{ color: 'var(--zcc-text-muted)' }}>
+          {label}
+        </span>
+      </div>
+      <div className="text-sm font-bold font-mono" style={{ color }}>{value}</div>
+      {sub && (
+        <div className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--zcc-text-muted)' }}>{sub}</div>
+      )}
+    </div>
+  );
+}
 
-  const handleApply = (f: Finding) => {
-    updateFindingStatus(f.id, "applied");
-    toast.success(`Proposta aplicada (mock): ${f.title}`, {
-      description: "Em produção, geraria commit + CI/CD acionado",
-    });
-  };
+// ── Sub-component: SafetyLockBadge ──────────────────────────────────────────
 
-  const kpis = React.useMemo(() => {
-    const total = findings.length;
-    const pending = findings.filter((f) => f.status === "pending_review").length;
-    const approved = findings.filter((f) => f.status === "approved").length;
-    const rejected = findings.filter((f) => f.status === "rejected").length;
-    const applied = findings.filter((f) => f.status === "applied").length;
-    const blocked = findings.filter((f) => f.status === "blocked_safety").length;
-    const avgConfidence = findings.length > 0
-      ? findings.reduce((sum, f) => sum + f.confidence, 0) / findings.length
-      : 0;
-    return { total, pending, approved, rejected, applied, blocked, avgConfidence };
-  }, [findings]);
+function SafetyLockBadge({ label, active, value }: { label: string; active: boolean; value?: string }) {
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-1 rounded" style={{
+      background: active ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)',
+      border: `1px solid ${active ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
+    }}>
+      <Lock className="w-2.5 h-2.5" style={{ color: active ? '#10b981' : '#ef4444' }} />
+      <span className="text-[9px] font-mono font-medium" style={{ color: active ? '#10b981' : '#ef4444' }}>
+        {label}
+      </span>
+      {value && (
+        <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>· {value}</span>
+      )}
+    </div>
+  );
+}
+
+// ── Sub-component: DiffViewer ───────────────────────────────────────────────
+
+function DiffViewer({ current, proposed }: { current: string | null; proposed: string | null }) {
+  if (!current && !proposed) return null;
+  const currentLines = (current || '').split('\n');
+  const proposedLines = (proposed || '').split('\n');
+  const maxLines = Math.max(currentLines.length, proposedLines.length, 6);
 
   return (
-    <div className="flex h-full flex-col bg-background">
-      <PanelHeader
-        title="ZéCode · DEV FULL STACK"
-        description="Agente interno de evolução do código · refactor · gargalos · gaps · segurança"
-        icon={<Code2 className="size-5" />}
-        actions={
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-400">
-              <Lock className="size-3" />
-              READ-ONLY
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-medium text-primary">
-              <Brain className="size-3" />
-              Paralelo ao Cérebro
-            </span>
-            {kpis.total > 0 ? (
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-medium text-primary">
-                <Sparkles className="size-3" />
-                {kpis.avgConfidence.toFixed(0)}% conf.
-              </span>
-            ) : null}
-          </div>
-        }
-      />
-
-      <div className="zcc-scroll flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-        {/* ===== ARQUITETURA ZÉCODE vs CÉREBRO ===== */}
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="size-4 text-primary" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Arquitetura Paralela
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-md border border-sky-500/30 bg-sky-500/5 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Brain className="size-4 text-sky-400" />
-                <p className="text-sm font-semibold text-sky-400">Cérebro Zélla</p>
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Código vivo · decisões em runtime · produção · conversas com hóspedes ·
-                roteamento de LLMs · budget guard · learning. <strong className="text-foreground">Não mexe no código-fonte.</strong>
-              </p>
-            </div>
-            <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Code2 className="size-4 text-primary" />
-                <p className="text-sm font-semibold text-primary">ZéCode</p>
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                DEV FULL STACK interno · analisar código · propor refactors ·
-                identificar gargalos/gaps/débito técnico · audit de segurança. <strong className="text-foreground">Não opera em runtime.</strong>
-              </p>
-            </div>
-          </div>
+    <div className="grid grid-cols-2 gap-2 mt-2">
+      <div>
+        <div className="text-[9px] font-mono uppercase tracking-wider mb-1" style={{ color: '#ef4444' }}>
+          − ATUAL
         </div>
-
-        {/* ===== CONTROLES DE SCAN ===== */}
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <Eye className="size-3.5 text-primary" />
-              Modo de Scan
-            </h3>
-            <button
-              type="button"
-              onClick={() => {
-                setShowFileTree((v) => !v);
-                if (!fileTree) loadFileTree();
-              }}
-              className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <FolderTree className="size-3" />
-              {showFileTree ? "Ocultar" : "Explorar"} código
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-            {SCAN_MODES.map((m) => {
-              const Icon = m.icon;
-              const isActive = scanMode === m.mode;
-              return (
-                <button
-                  key={m.mode}
-                  type="button"
-                  onClick={() => setScanMode(m.mode)}
-                  className={cn(
-                    "flex flex-col items-start gap-1 rounded-md border p-2.5 text-left transition-all",
-                    isActive
-                      ? "border-primary/50 bg-primary/10"
-                      : "border-border bg-background hover:bg-secondary/40"
-                  )}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <Icon className={cn("size-3.5", isActive ? "text-primary" : "text-muted-foreground")} />
-                    <span className={cn("text-xs font-semibold", isActive ? "text-primary" : "text-foreground")}>
-                      {m.label}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{m.description}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {scanMode === "targeted" ? (
-            <div className="mb-3">
-              <label className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Caminho alvo
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={targetPath}
-                  onChange={(e) => setTargetPath(e.target.value)}
-                  placeholder="ex: src/lib/llm/llm-router.ts"
-                  className="h-8 flex-1 rounded-md border border-border bg-background px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={loadFileTree}
-                  disabled={fileTreeLoading}
-                  className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <RefreshCw className={cn("size-3", fileTreeLoading && "animate-spin")} />
-                  Browse
-                </button>
-              </div>
+        <pre className="text-[10px] font-mono p-2 rounded overflow-x-auto max-h-48 overflow-y-auto"
+          style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          {currentLines.slice(0, maxLines).map((line, i) => (
+            <div key={i} className="flex">
+              <span className="text-zinc-600 select-none mr-2">{i + 1}</span>
+              <span className="text-red-300/70 whitespace-pre">{line}</span>
             </div>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={handleScan}
-            disabled={isScanning || (scanMode === "targeted" && !targetPath)}
-            className="inline-flex items-center gap-2 rounded-md border border-primary/50 bg-primary/15 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-primary hover:bg-primary/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isScanning ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <Zap className="size-3.5" />
-            )}
-            {isScanning ? "Escaneando..." : "Executar Scan"}
-          </button>
-
-          {scanResult ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <Activity className="size-3 text-emerald-400" />
-                Último scan: {relativeTime(scanResult.startedAt)}
-              </span>
-              <span>·</span>
-              <span>{scanResult.filesScanned} arquivos</span>
-              <span>·</span>
-              <span>{scanResult.durationMs}ms</span>
-              <span>·</span>
-              <span className="font-mono text-primary">{scanResult.llmProvider}/{scanResult.llmModel}</span>
-              {scanResult.costUsd > 0 ? (
-                <>
-                  <span>·</span>
-                  <span className="text-emerald-400">${scanResult.costUsd.toFixed(5)}</span>
-                </>
-              ) : null}
-              {scanResult.safetySummary.blocked > 0 ? (
-                <>
-                  <span>·</span>
-                  <span className="text-red-400 font-bold">
-                    {scanResult.safetySummary.blocked} props bloqueadas
-                  </span>
-                </>
-              ) : null}
-            </div>
-          ) : null}
+          ))}
+        </pre>
+      </div>
+      <div>
+        <div className="text-[9px] font-mono uppercase tracking-wider mb-1" style={{ color: '#10b981' }}>
+          + SUGERIDO
         </div>
-
-        {/* ===== FILE TREE EXPLORER ===== */}
-        <AnimatePresence initial={false}>
-          {showFileTree ? (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="overflow-hidden"
-            >
-              <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                  <FolderTree className="size-3.5 text-primary" />
-                  Explorador de Código
-                  <span className="text-[9px] text-muted-foreground/60 normal-case">
-                    · clique para carregar
-                  </span>
-                </h3>
-                <div className="max-h-64 overflow-y-auto zcc-scroll">
-                  {fileTreeLoading ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : fileTree && fileTree.length > 0 ? (
-                    <ul className="space-y-0.5">
-                      {fileTree.map((node) => (
-                        <FileTreeNode
-                          key={node.path}
-                          node={node}
-                          depth={0}
-                          onSelect={loadFile}
-                          selectedPath={selectedFile?.path}
-                        />
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-[11px] text-muted-foreground py-4 text-center">
-                      Nenhum arquivo encontrado.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-
-        {/* ===== SELECTED FILE PREVIEW ===== */}
-        <AnimatePresence initial={false}>
-          {selectedFile ? (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="overflow-hidden"
-            >
-              <div className="rounded-lg border border-border bg-card">
-                <div className="flex items-center justify-between border-b border-border px-3 py-2">
-                  <span className="flex items-center gap-2 text-[11px] font-semibold text-foreground">
-                    <FileCode2 className="size-3.5 text-primary" />
-                    <code className="font-mono">{selectedFile.path}</code>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFile(null)}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                </div>
-                <pre className="zcc-scroll max-h-72 overflow-auto p-3 text-[10px] leading-relaxed font-mono text-muted-foreground">
-                  <code>{selectedFile.content}</code>
-                </pre>
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-
-        {/* ===== KPIs ===== */}
-        {findings.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
-            <ZeCodeKpi label="Total" value={kpis.total} icon={<Code2 className="size-4" />} accent="primary" index={0} />
-            <ZeCodeKpi label="Pendentes" value={kpis.pending} icon={<Loader2 className="size-4" />} accent="amber" index={1} />
-            <ZeCodeKpi label="Aprovadas" value={kpis.approved} icon={<ThumbsUp className="size-4" />} accent="sky" index={2} />
-            <ZeCodeKpi label="Aplicadas" value={kpis.applied} icon={<Check className="size-4" />} accent="emerald" index={3} />
-            <ZeCodeKpi label="Bloqueadas" value={kpis.blocked} icon={<Lock className="size-4" />} accent="rose" index={4} />
-            <ZeCodeKpi label="Conf. média" value={`${kpis.avgConfidence.toFixed(0)}%`} icon={<TrendingUp className="size-4" />} accent="primary" index={5} />
-          </div>
-        ) : null}
-
-        {/* ===== FINDINGS ===== */}
-        {findings.length > 0 ? (
-          <>
-            <div className="flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                <GitBranch className="size-3.5 text-primary" />
-                FINDINGS · {findings.length}
-              </h3>
-              <span className="text-[10px] text-muted-foreground">
-                Pendentes: <span className="font-bold text-amber-400">{kpis.pending}</span> ·
-                Rejeitadas: <span className="font-bold text-red-400">{kpis.rejected}</span>
-              </span>
+        <pre className="text-[10px] font-mono p-2 rounded overflow-x-auto max-h-48 overflow-y-auto"
+          style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.2)' }}>
+          {proposedLines.slice(0, maxLines).map((line, i) => (
+            <div key={i} className="flex">
+              <span className="text-zinc-600 select-none mr-2">{i + 1}</span>
+              <span className="text-emerald-300/70 whitespace-pre">{line}</span>
             </div>
-
-            <div className="space-y-3">
-              <AnimatePresence mode="popLayout">
-                {findings.map((f, idx) => (
-                  <FindingCard
-                    key={f.id}
-                    finding={f}
-                    index={idx}
-                    onApprove={() => handleApprove(f)}
-                    onReject={() => handleReject(f)}
-                    onApply={() => handleApply(f)}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          </>
-        ) : !scanResult ? (
-          <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center">
-            <Code2 className="size-8 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm font-medium text-foreground">ZéCode aguardando scan</p>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Selecione um modo acima e execute um scan para ver findings de refactor, gargalos, gaps e segurança.
-            </p>
-          </div>
-        ) : (
-          <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
-            <Check className="size-8 text-emerald-400 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-foreground">Nenhum finding crítico</p>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Scan concluído em {scanResult.durationMs}ms · {scanResult.filesScanned} arquivos ·
-              nenhuma melhoria urgente identificada.
-            </p>
-          </div>
-        )}
-
-        {/* ===== RODAPÉ ===== */}
-        <div className="rounded-lg border border-border bg-card p-3 text-[10px] text-muted-foreground">
-          <p className="leading-relaxed">
-            <strong className="text-foreground">ZéCode</strong> é o agente DEV FULL STACK interno do ZCC,
-            inspirado em <code className="font-mono text-primary">CodeRabbit.ai</code> mas adaptado para o
-            codebase do projeto. Opera em <strong className="text-foreground">paralelo ao Cérebro Zélla</strong>{" "}
-            (que cuida do runtime), focando apenas em evolução do código-fonte: análise, refactors,
-            gargalos, gaps, débito técnico e audit de segurança.
-          </p>
-          <p className="mt-2 leading-relaxed">
-            <strong className="text-foreground">Travas ativas:</strong>{" "}
-            READ-ONLY no filesystem · whitelist de extensões (.ts, .tsx, .js, .json, .prisma) ·
-            blacklist de paths (.env*, .git, node_modules) · limite 256KB/arquivo · máximo 20 arquivos/scan ·
-            bloqueio automático de propostas com <code className="font-mono">shell_exec</code>,
-            <code className="font-mono">fs_write</code> ou <code className="font-mono">eval</code> ·
-            aprovação humana obrigatória para qualquer mudança.
-          </p>
-        </div>
+          ))}
+        </pre>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SUB-COMPONENTS
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Sub-component: FindingCard (genérico para Gaps e Bottlenecks) ────────────
 
-function ZeCodeKpi({
-  label, value, icon, accent, index,
+function FindingCard({
+  finding,
+  onApply,
+  actionLoading,
+  expanded,
+  onToggleExpand,
+  categoryLabel,
 }: {
-  label: string;
-  value: number | string;
-  icon: React.ReactNode;
-  accent: "primary" | "emerald" | "amber" | "rose" | "sky";
-  index: number;
+  finding: GapFinding | BottleneckFinding;
+  onApply: () => void;
+  actionLoading: boolean;
+  expanded: boolean;
+  onToggleExpand: () => void;
+  categoryLabel: string;
 }) {
-  const colorMap: Record<string, string> = {
-    primary: "border-primary/30 bg-primary/5 text-primary",
-    emerald: "border-emerald-500/30 bg-emerald-500/5 text-emerald-400",
-    amber: "border-amber-500/30 bg-amber-500/5 text-amber-400",
-    rose: "border-red-500/30 bg-red-500/5 text-red-400",
-    sky: "border-sky-500/30 bg-sky-500/5 text-sky-400",
-  };
+  const f = finding as GapFinding & BottleneckFinding;
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.03 }}
-      className={cn("rounded-lg border p-3", colorMap[accent])}
+      exit={{ opacity: 0, y: -8 }}
+      className="zcc-panel p-4"
     >
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
-        <span className="[&_svg]:size-3.5">{icon}</span>
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <FileCode className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--zcc-kinpaku)' }} />
+            <span className="text-xs font-mono truncate" style={{ color: 'var(--zcc-champagne)' }}>
+              {f.filePath}
+            </span>
+            <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+              L{f.lineRange}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[9px] font-mono flex-wrap" style={{ color: 'var(--zcc-text-muted)' }}>
+            <span className="px-1.5 py-0.5 rounded uppercase font-bold"
+              style={{ background: `${severityColor(f.severity)}20`, color: severityColor(f.severity) }}>
+              {severityLabel(f.severity)}
+            </span>
+            <span className="px-1.5 py-0.5 rounded uppercase"
+              style={{ background: 'rgba(212,168,67,0.1)', color: 'var(--zcc-kinpaku)' }}>
+              {categoryLabel}
+            </span>
+            <span className="px-1.5 py-0.5 rounded uppercase"
+              style={{ background: `${confidenceColor(f.confidence)}20`, color: confidenceColor(f.confidence) }}>
+              {(f.confidence * 100).toFixed(0)}%
+            </span>
+            <span className="px-1.5 py-0.5 rounded uppercase"
+              style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--zcc-text-muted)' }}>
+              {f.detectedBy}
+            </span>
+            {f.estimatedImpact && (
+              <span className="px-1.5 py-0.5 rounded uppercase"
+                style={{
+                  background: f.estimatedImpact === 'critical' ? 'rgba(220,38,38,0.15)' : 'rgba(245,158,11,0.1)',
+                  color: f.estimatedImpact === 'critical' ? '#dc2626' : '#f59e0b',
+                }}>
+                IMPACT: {f.estimatedImpact.toUpperCase()}
+              </span>
+            )}
+            <span>·</span>
+            <span>{formatTimeAgo(f.createdAt)}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button onClick={onApply} disabled={actionLoading}
+            className="p-1.5 rounded transition-colors"
+            style={{
+              background: 'rgba(59,130,246,0.1)', color: '#3b82f6',
+              border: '1px solid rgba(59,130,246,0.3)',
+              cursor: actionLoading ? 'wait' : 'pointer',
+            }}
+            title="Marcar como aplicada (humano aprova — safety lock)">
+            {actionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+          </button>
+        </div>
       </div>
-      <p className="mt-1 text-xl font-bold text-foreground sm:text-2xl">{value}</p>
+
+      <div className="mb-2">
+        <div className="text-xs font-semibold mb-0.5" style={{ color: 'var(--zcc-champagne)' }}>
+          {f.title}
+        </div>
+        <p className="text-xs" style={{ color: 'var(--zcc-text-secondary)' }}>
+          {f.description}
+        </p>
+      </div>
+
+      <button onClick={onToggleExpand}
+        className="text-[9px] font-mono uppercase tracking-wider flex items-center gap-1 mt-2"
+        style={{ color: 'var(--zcc-kinpaku)', cursor: 'pointer' }}>
+        {expanded ? '▼' : '▶'} Ver diff do código
+      </button>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}>
+            <DiffViewer current={f.currentCode} proposed={f.suggestedCode} />
+            {f.rationale && (
+              <div className="mt-2 p-2 rounded text-[10px] font-mono" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <span style={{ color: 'var(--zcc-text-muted)' }}>Rationale: </span>
+                <span style={{ color: 'var(--zcc-text-secondary)' }}>{f.rationale}</span>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
 
-function FileTreeNode({
-  node, depth, onSelect, selectedPath,
-}: {
-  node: ZeCodeFileNode;
-  depth: number;
-  onSelect: (path: string) => void;
-  selectedPath?: string;
-}) {
-  const [expanded, setExpanded] = React.useState(depth < 1);
-  const isDir = node.type === "directory";
-  const isSelected = selectedPath === node.path;
+// ── Main Component ───────────────────────────────────────────────────────────
+
+export function ZeCodePanel() {
+  const [view, setView] = useState<ZeCodeView>('overview');
+  const [stats, setStats] = useState<ZeCodeStats | null>(null);
+  const [gaps, setGaps] = useState<GapFinding[]>([]);
+  const [bottlenecks, setBottlenecks] = useState<BottleneckFinding[]>([]);
+  const [refactors, setRefactors] = useState<RefactorListItem[]>([]);
+  const [reviews, setReviews] = useState<ReviewListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [evolveResult, setEvolveResult] = useState<EvolveResult | null>(null);
+
+  // ── Fetchers ──
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/zcc/ze-code/stats');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setStats(json.data);
+      }
+    } catch (e) {
+      console.error('[ZeCodePanel] stats fetch error:', e);
+    }
+  }, []);
+
+  const fetchGaps = useCallback(async () => {
+    try {
+      const res = await fetch('/api/zcc/ze-code/gaps?maxFiles=15');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setGaps(json.data.gaps || []);
+      }
+    } catch (e) {
+      console.error('[ZeCodePanel] gaps fetch error:', e);
+    }
+  }, []);
+
+  const fetchBottlenecks = useCallback(async () => {
+    try {
+      const res = await fetch('/api/zcc/ze-code/bottlenecks?maxFiles=15');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setBottlenecks(json.data.bottlenecks || []);
+      }
+    } catch (e) {
+      console.error('[ZeCodePanel] bottlenecks fetch error:', e);
+    }
+  }, []);
+
+  const fetchRefactors = useCallback(async () => {
+    try {
+      const res = await fetch('/api/zcc/ze-code/refactors?limit=20');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setRefactors(json.data || []);
+      }
+    } catch (e) {
+      console.error('[ZeCodePanel] refactors fetch error:', e);
+    }
+  }, []);
+
+  const fetchReviews = useCallback(async () => {
+    try {
+      const res = await fetch('/api/zcc/ze-code/review?limit=20');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setReviews(json.data?.reviews || []);
+      }
+    } catch (e) {
+      console.error('[ZeCodePanel] reviews fetch error:', e);
+    }
+  }, []);
+
+  // ── Initial load + auto-refresh ──
+
+  useEffect(() => {
+    async function loadAll() {
+      setLoading(true);
+      await Promise.all([fetchStats(), fetchRefactors(), fetchReviews()]);
+      setLoading(false);
+    }
+    loadAll();
+    const interval = setInterval(() => {
+      fetchStats();
+    }, 60_000); // refresh stats a cada 60s
+    return () => clearInterval(interval);
+  }, [fetchStats, fetchRefactors, fetchReviews]);
+
+  // ── Lazy load gaps/bottlenecks when view switches ──
+
+  useEffect(() => {
+    if (view === 'gaps' && gaps.length === 0) fetchGaps();
+    if (view === 'bottlenecks' && bottlenecks.length === 0) fetchBottlenecks();
+  }, [view, gaps.length, bottlenecks.length, fetchGaps, fetchBottlenecks]);
+
+  // ── Actions ──
+
+  const handleEvolve = async (): Promise<void> => {
+    setActionLoading('evolve');
+    try {
+      const res = await fetch('/api/zcc/ze-code/evolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope: 'directory', target: 'src/', maxFiles: 10 }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          setEvolveResult(json.data);
+          // Refresh all views
+          await Promise.all([fetchStats(), fetchGaps(), fetchBottlenecks(), fetchRefactors()]);
+        }
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleApply = async (category: 'review' | 'refactor' | 'gap' | 'bottleneck', suggestionId: string): Promise<void> => {
+    setActionLoading(`${category}-${suggestionId}`);
+    try {
+      await fetch('/api/zcc/ze-code/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, suggestionId }),
+      });
+      // Refresh appropriate view
+      if (category === 'gap') await fetchGaps();
+      if (category === 'bottleneck') await fetchBottlenecks();
+      if (category === 'refactor') await fetchRefactors();
+      if (category === 'review') await fetchReviews();
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRefactorAction = async (suggestionId: string, action: 'approve' | 'reject' | 'apply'): Promise<void> => {
+    setActionLoading(`refactor-${suggestionId}-${action}`);
+    try {
+      await fetch(`/api/zcc/ze-code/refactors?action=${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ suggestionId, notes: action === 'reject' ? (window.prompt('Notas:') || '') : '' }),
+      });
+      await fetchRefactors();
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // ── Render ──
+
+  const views: { id: ZeCodeView; label: string; icon: React.ElementType }[] = [
+    { id: 'overview',    label: 'Overview',    icon: Activity },
+    { id: 'reviews',     label: 'Reviews',     icon: GitBranch },
+    { id: 'refactors',  label: 'Refactors',    icon: Wrench },
+    { id: 'gaps',        label: 'Gaps',        icon: Target },
+    { id: 'bottlenecks', label: 'Gargalos',    icon: Gauge },
+  ];
 
   return (
-    <li>
-      <button
-        type="button"
-        onClick={() => {
-          if (isDir) setExpanded((v) => !v);
-          else onSelect(node.path);
-        }}
-        className={cn(
-          "flex items-center gap-1.5 w-full rounded-md px-1.5 py-1 text-left text-[11px] hover:bg-secondary/40 transition-colors",
-          isSelected ? "bg-primary/15 text-primary" : "text-muted-foreground"
-        )}
-        style={{ paddingLeft: `${depth * 12 + 6}px` }}
-      >
-        {isDir ? (
-          <ChevronDown className={cn("size-3 shrink-0 transition-transform", !expanded && "-rotate-90")} />
-        ) : (
-          <FileCode2 className="size-3 shrink-0" />
-        )}
-        <span className="truncate font-mono">{node.name}</span>
-        {node.language ? (
-          <span className="ml-auto text-[8px] uppercase opacity-50">{node.language}</span>
-        ) : null}
-      </button>
-      {isDir && expanded && node.children && node.children.length > 0 ? (
-        <ul className="space-y-0.5">
-          {node.children.map((child) => (
-            <FileTreeNode
-              key={child.path}
-              node={child}
-              depth={depth + 1}
-              onSelect={onSelect}
-              selectedPath={selectedPath}
-            />
-          ))}
-        </ul>
-      ) : null}
-    </li>
-  );
-}
-
-function FindingCard({
-  finding, index, onApprove, onReject, onApply,
-}: {
-  finding: Finding;
-  index: number;
-  onApprove: () => void;
-  onReject: () => void;
-  onApply: () => void;
-}) {
-  const [expanded, setExpanded] = React.useState(false);
-  const KindIcon = KIND_ICON[finding.kind];
-
-  const confidenceColor =
-    finding.confidence >= 85 ? "text-emerald-400" :
-    finding.confidence >= 75 ? "text-amber-400" :
-    "text-red-400";
-
-  const confidenceBg =
-    finding.confidence >= 85 ? "bg-emerald-500" :
-    finding.confidence >= 75 ? "bg-amber-500" :
-    "bg-red-500";
-
-  const isBlocked = finding.status === "blocked_safety";
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.25, delay: index * 0.04 }}
-      className={cn(
-        "rounded-lg border bg-card overflow-hidden",
-        isBlocked ? "border-red-600/40" : "border-border"
-      )}
-    >
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-start gap-3 p-3 text-left hover:bg-secondary/30 transition-colors"
-      >
-        <span className={cn(
-          "mt-0.5 grid size-7 shrink-0 place-items-center rounded-md border",
-          KIND_COLOR[finding.kind]
-        )}>
-          <KindIcon className="size-3.5" />
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={cn(
-              "inline-flex items-center rounded border px-1 py-0.5 text-[8px] font-bold uppercase",
-              KIND_COLOR[finding.kind]
-            )}>
-              {KIND_LABEL[finding.kind]}
+    <div className="space-y-5">
+      {/* ===== TOP: ZéCode Header + Master Actions ===== */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="zcc-panel p-5"
+        style={{ borderColor: 'var(--zcc-kinpaku)', borderWidth: 1 }}>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <Code2 className="w-5 h-5" style={{ color: 'var(--zcc-kinpaku)' }} />
+            <h3 className="text-sm font-bold" style={{ color: 'var(--zcc-champagne)' }}>
+              ZéCode — DEV FULL STACK Interno
+            </h3>
+            {stats && (
+              <span
+                className="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider"
+                style={{
+                  background: stats.mode === 'live' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
+                  color: stats.mode === 'live' ? '#10b981' : '#f59e0b',
+                  border: `1px solid ${stats.mode === 'live' ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                }}>
+                {stats.mode === 'live' ? '● LIVE' : '● MOCK'}
+              </span>
+            )}
+            <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+              · Inspirado no CodeRabbit · Trabalha em paralelo ao Cérebro Zélla
             </span>
-            <span className={cn(
-              "inline-flex items-center rounded border px-1 py-0.5 text-[8px] font-bold uppercase",
-              STATUS_BADGE[finding.status]
-            )}>
-              {STATUS_LABEL[finding.status]}
-            </span>
-            <span className={cn(
-              "text-[9px] font-bold uppercase tracking-wide",
-              SEVERITY_COLOR[finding.severity]
-            )}>
-              {finding.severity}
-            </span>
-            <p className="text-sm font-semibold text-foreground flex-1 min-w-0">
-              {finding.title}
-            </p>
           </div>
-          <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">
-            {finding.description}
-          </p>
-          <div className="mt-2 flex items-center gap-3 text-[10px] text-muted-foreground">
-            <span className="font-mono">{finding.filePath}</span>
-            {finding.lineRange ? (
-              <>
-                <span>·</span>
-                <span className="font-mono">{finding.lineRange}</span>
-              </>
-            ) : null}
-            <span>·</span>
-            <span>{relativeTime(finding.createdAt)}</span>
-          </div>
+          <button
+            onClick={handleEvolve}
+            disabled={actionLoading === 'evolve'}
+            className="flex items-center gap-1.5 px-4 py-2 rounded text-[10px] font-mono font-bold uppercase tracking-wider transition-all"
+            style={{
+              background: 'rgba(212,168,67,0.12)',
+              color: 'var(--zcc-kinpaku)',
+              border: '1px solid rgba(212,168,67,0.3)',
+              cursor: actionLoading === 'evolve' ? 'wait' : 'pointer',
+              opacity: actionLoading === 'evolve' ? 0.6 : 1,
+            }}>
+            {actionLoading === 'evolve' ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+            Evoluir Código
+          </button>
         </div>
 
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className={cn("font-mono text-sm font-bold", confidenceColor)}>
-            {finding.confidence}%
-          </span>
-          <div className="h-1.5 w-12 overflow-hidden rounded-full bg-secondary/40">
-            <div
-              className={cn("h-full", confidenceBg)}
-              style={{ width: `${finding.confidence}%` }}
-            />
-          </div>
-          <ChevronRight className={cn("size-3 text-muted-foreground transition-transform", expanded && "rotate-90")} />
+        {/* View Tabs */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {views.map(v => {
+            const Icon = v.icon;
+            return (
+              <button
+                key={v.id}
+                onClick={() => setView(v.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider transition-all"
+                style={{
+                  background: view === v.id ? 'rgba(212,168,67,0.15)' : 'rgba(255,255,255,0.03)',
+                  color: view === v.id ? 'var(--zcc-kinpaku)' : 'var(--zcc-text-muted)',
+                  border: `1px solid ${view === v.id ? 'rgba(212,168,67,0.3)' : 'rgba(255,255,255,0.05)'}`,
+                  cursor: 'pointer',
+                }}>
+                <Icon className="w-3 h-3" />
+                <span>{v.label}</span>
+              </button>
+            );
+          })}
         </div>
-      </button>
+      </motion.div>
 
-      <AnimatePresence initial={false}>
-        {expanded ? (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="border-t border-border overflow-hidden"
-          >
-            {/* SAFETY CHECKS */}
-            {finding.safetyChecks.length > 0 ? (
-              <div className="px-3 py-2 border-b border-border bg-secondary/20">
-                <p className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  <ShieldCheck className="size-3 text-primary" />
-                  Safety Checks ({finding.safetyChecks.filter((c) => c.passed).length}/{finding.safetyChecks.length})
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                  {finding.safetyChecks.map((c) => (
-                    <div key={c.id} className="flex items-center gap-1.5 text-[10px]">
-                      {c.passed ? (
-                        <Check className="size-3 text-emerald-400" />
-                      ) : (
-                        <X className="size-3 text-red-400" />
-                      )}
-                      <span className={c.passed ? "text-muted-foreground" : "text-red-400 font-medium"}>
-                        {c.label}
-                      </span>
+      {/* ===== VIEW: OVERVIEW ===== */}
+      {view === 'overview' && (
+        <div className="space-y-5">
+          {/* Codebase Domain */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="zcc-panel p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Database className="w-4 h-4" style={{ color: 'var(--zcc-kinpaku)' }} />
+              <h4 className="text-sm font-bold" style={{ color: 'var(--zcc-champagne)' }}>Codebase Domain</h4>
+              <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+                · Quanto o ZéCode conhece do projeto
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <StatCard label="ARQUIVOS" value={stats?.domain.totalCodeFiles ?? '—'} sub="código-fonte" icon={<FileCode className="w-3 h-3" />} color="#3b82f6" />
+              <StatCard label="DB CHUNKS" value={stats?.domain.dbChunks ?? '—'} sub="indexados" icon={<Database className="w-3 h-3" />} color="#10b981" />
+              <StatCard label="TF-IDF DOCS" value={stats?.domain.tfidf.totalDocs ?? '—'} sub={stats?.domain.tfidf.isLoaded ? 'loaded' : 'cold'} icon={<TrendingUp className="w-3 h-3" />} color="#10b981" />
+              <StatCard label="TERMS" value={stats?.domain.tfidf.totalTerms ?? '—'} sub="vocabulário" icon={<Brain className="w-3 h-3" />} color="var(--zcc-kinpaku)" />
+              <StatCard label="LAST SCAN" value={stats?.domain.lastScanAt ? formatTimeAgo(stats.domain.lastScanAt) : '—'} icon={<Activity className="w-3 h-3" />} color="#888" />
+            </div>
+
+            {/* Top directories */}
+            {stats?.domain.topDirectories && stats.domain.topDirectories.length > 0 && (
+              <div className="mt-4">
+                <div className="text-[9px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--zcc-text-muted)' }}>
+                  TOP DIRETÓRIOS
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {stats.domain.topDirectories.map(d => (
+                    <div key={d.dir} className="flex items-center gap-1.5 px-2 py-1 rounded" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                      <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-champagne)' }}>{d.dir || '(root)'}</span>
+                      <span className="text-[9px] font-mono font-bold" style={{ color: 'var(--zcc-kinpaku)' }}>{d.files}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            ) : null}
+            )}
+          </motion.div>
 
-            {/* RATIONALE */}
-            {finding.rationale ? (
-              <div className="px-3 py-2 border-b border-border">
-                <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                  Rationale
-                </p>
-                <p className="text-[11px] text-foreground leading-relaxed">{finding.rationale}</p>
-              </div>
-            ) : null}
-
-            {/* CODE DIFF */}
-            {(finding.currentCode || finding.proposedCode) ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border">
-                {finding.currentCode ? (
-                  <div className="bg-background/50">
-                    <div className="flex items-center justify-between border-b border-border px-3 py-1.5">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-red-400">
-                        − CURRENT CODE
-                      </span>
-                      <span className="text-[9px] text-muted-foreground font-mono">{finding.lineRange || "—"}</span>
-                    </div>
-                    <pre className="zcc-scroll max-h-64 overflow-auto p-3 text-[10px] leading-relaxed font-mono text-muted-foreground">
-                      <code>{finding.currentCode}</code>
-                    </pre>
-                  </div>
-                ) : null}
-                {finding.proposedCode ? (
-                  <div className="bg-emerald-500/5">
-                    <div className="flex items-center justify-between border-b border-border px-3 py-1.5">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
-                        + PROPOSED CODE
-                      </span>
-                      <span className="text-[9px] text-muted-foreground font-mono">
-                        {finding.currentCode && finding.proposedCode
-                          ? `-${finding.currentCode.split("\n").length} +${finding.proposedCode.split("\n").length} linhas`
-                          : `+${finding.proposedCode.split("\n").length} linhas`}
-                      </span>
-                    </div>
-                    <pre className="zcc-scroll max-h-64 overflow-auto p-3 text-[10px] leading-relaxed font-mono text-emerald-300">
-                      <code>{finding.proposedCode}</code>
-                    </pre>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            {/* ACTIONS */}
-            <div className="border-t border-border bg-card px-3 py-2 flex flex-wrap items-center gap-2">
-              {isBlocked ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-red-500">
-                  <Lock className="size-3" />
-                  Bloqueada por trava de segurança
-                </span>
-              ) : finding.status === "pending_review" ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={onApprove}
-                    className="inline-flex items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                  >
-                    <ThumbsUp className="size-3" />
-                    Aprovar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onReject}
-                    className="inline-flex items-center gap-1 rounded-md border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[10px] font-bold uppercase text-red-400 hover:bg-red-500/20 transition-colors"
-                  >
-                    <ThumbsDown className="size-3" />
-                    Rejeitar
-                  </button>
-                </>
-              ) : null}
-
-              {finding.status === "approved" ? (
-                <button
-                  type="button"
-                  onClick={onApply}
-                  className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase text-primary hover:bg-primary/20 transition-colors"
-                >
-                  <Wrench className="size-3" />
-                  Aplicar em produção
-                </button>
-              ) : null}
-
-              {finding.status === "applied" ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-emerald-400">
-                  <Check className="size-3" />
-                  Aplicada · commit gerado
-                </span>
-              ) : null}
-
-              {finding.status === "rejected" ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-red-400">
-                  <X className="size-3" />
-                  Rejeitada pelo operador
-                </span>
-              ) : null}
-
-              <span className="ml-auto text-[9px] text-muted-foreground">
-                Criada {relativeTime(finding.createdAt)}
+          {/* Safety Locks */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="zcc-panel p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Shield className="w-4 h-4" style={{ color: 'var(--zcc-kinpaku)' }} />
+              <h4 className="text-sm font-bold" style={{ color: 'var(--zcc-champagne)' }}>Safety Locks</h4>
+              <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+                · Travas precisas para super trabalho
               </span>
             </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              <SafetyLockBadge label="Allowlist Ext" active={!!stats?.safety.extensionAllowlist.length} value={`${stats?.safety.extensionAllowlist.length ?? 0} exts`} />
+              <SafetyLockBadge label="Skip Dirs" active={!!stats?.safety.blockedDirs.length} value={`${stats?.safety.blockedDirs.length ?? 0} dirs`} />
+              <SafetyLockBadge label="Max File Size" active={true} value={`${stats?.safety.maxFileSizeKb ?? 100}KB`} />
+              <SafetyLockBadge label="Auto-Apply" active={false} value="SEMPRE OFF" />
+              <SafetyLockBadge label="Budget" active={(stats?.safety.budgetUsagePercent ?? 0) < 100} value={`$${stats?.safety.monthSpendUsd.toFixed(2) ?? 0}/$${stats?.safety.monthlyBudgetUsd.toFixed(2) ?? 20}`} />
+              <SafetyLockBadge label="Rate Limit" active={true} value={`${stats?.safety.reviewsLastHour ?? 0}/${stats?.safety.rateLimitPerHour ?? 10}/h`} />
+              <SafetyLockBadge label="Live Mode" active={stats?.safety.liveModeEnabled ?? false} value={stats?.safety.liveModeEnabled ? 'ON' : 'OFF'} />
+              <SafetyLockBadge label="GODMODE" active={stats?.safety.godmodeRequired ?? true} value="Required" />
+            </div>
           </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </motion.div>
+
+          {/* Unified Counts */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="zcc-panel p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Target className="w-4 h-4" style={{ color: 'var(--zcc-kinpaku)' }} />
+              <h4 className="text-sm font-bold" style={{ color: 'var(--zcc-champagne)' }}>Unified Counts</h4>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+              <StatCard label="REVIEWS" value={stats?.counts.reviewsTotal ?? 0} sub={`${stats?.counts.reviewsPending ?? 0} pend.`} icon={<GitBranch className="w-3 h-3" />} color="#3b82f6" />
+              <StatCard label="REFACTORS" value={stats?.counts.refactorsTotal ?? 0} sub={`${stats?.counts.refactorsPending ?? 0} pend.`} icon={<Wrench className="w-3 h-3" />} color="var(--zcc-kinpaku)" />
+              <StatCard label="GAPS" value={stats?.counts.gapsTotal ?? 0} sub={`${stats?.counts.gapsPending ?? 0} pend.`} icon={<Target className="w-3 h-3" />} color="#f59e0b" />
+              <StatCard label="GARGALOS" value={stats?.counts.bottlenecksTotal ?? 0} sub={`${stats?.counts.bottlenecksPending ?? 0} pend.`} icon={<Gauge className="w-3 h-3" />} color="#ef4444" />
+              <StatCard label="APLICADAS" value={stats?.counts.appliedTotal ?? 0} icon={<Check className="w-3 h-3" />} color="#10b981" />
+              <StatCard label="LAST ACT." value={stats?.lastActivityAt ? formatTimeAgo(stats.lastActivityAt) : '—'} icon={<Activity className="w-3 h-3" />} color="#888" />
+            </div>
+          </motion.div>
+
+          {/* Evolve Result (if any) */}
+          {evolveResult && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="zcc-panel p-5"
+              style={{ borderColor: evolveResult.status === 'completed' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)', borderWidth: 1 }}>
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="w-4 h-4" style={{ color: evolveResult.status === 'completed' ? '#10b981' : '#ef4444' }} />
+                <h4 className="text-sm font-bold" style={{ color: 'var(--zcc-champagne)' }}>
+                  Último Evolve · {evolveResult.jobId}
+                </h4>
+                <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+                  · {evolveResult.durationMs}ms · ${evolveResult.costUsd.toFixed(4)}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                <StatCard label="GAPS" value={evolveResult.gapsCreated} icon={<Target className="w-3 h-3" />} color="#f59e0b" />
+                <StatCard label="GARGALOS" value={evolveResult.bottlenecksCreated} icon={<Gauge className="w-3 h-3" />} color="#ef4444" />
+                <StatCard label="REVIEWS" value={evolveResult.reviewsCreated} icon={<GitBranch className="w-3 h-3" />} color="#3b82f6" />
+                <StatCard label="REFACTORS" value={evolveResult.refactorsCreated} icon={<Wrench className="w-3 h-3" />} color="var(--zcc-kinpaku)" />
+              </div>
+              <pre className="text-[10px] font-mono p-3 rounded overflow-x-auto" style={{ background: 'rgba(255,255,255,0.02)', color: 'var(--zcc-text-secondary)' }}>
+                {evolveResult.summary}
+              </pre>
+              {evolveResult.warnings.length > 0 && (
+                <div className="mt-2 p-2 rounded text-[10px] font-mono" style={{ background: 'rgba(245,158,11,0.08)', color: '#f59e0b' }}>
+                  ⚠ Warnings: {evolveResult.warnings.join('; ')}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Architecture Diagram (textual) */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="zcc-panel p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Brain className="w-4 h-4" style={{ color: 'var(--zcc-kinpaku)' }} />
+              <h4 className="text-sm font-bold" style={{ color: 'var(--zcc-champagne)' }}>Arquitetura · Cérebro Zélla vs ZéCode</h4>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 rounded" style={{ background: 'rgba(74,154,154,0.05)', border: '1px solid rgba(74,154,154,0.15)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Brain className="w-4 h-4" style={{ color: 'var(--zcc-patina)' }} />
+                  <span className="text-xs font-bold" style={{ color: 'var(--zcc-patina)' }}>Cérebro Zélla</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(74,154,154,0.1)', color: 'var(--zcc-patina)' }}>
+                    código vivo
+                  </span>
+                </div>
+                <ul className="text-[10px] font-mono space-y-1" style={{ color: 'var(--zcc-text-secondary)' }}>
+                  <li>· Anomalias runtime (CPU, RAM, error rate)</li>
+                  <li>· Budget forecast por tenant</li>
+                  <li>· Inadimplência & churn risk</li>
+                  <li>· LogSink + AlertBus (SSE stream)</li>
+                  <li>· Cron 07:00 UTC — análise diária</li>
+                </ul>
+              </div>
+              <div className="p-3 rounded" style={{ background: 'rgba(212,168,67,0.05)', border: '1px solid rgba(212,168,67,0.15)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Code2 className="w-4 h-4" style={{ color: 'var(--zcc-kinpaku)' }} />
+                  <span className="text-xs font-bold" style={{ color: 'var(--zcc-kinpaku)' }}>ZéCode</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(212,168,67,0.1)', color: 'var(--zcc-kinpaku)' }}>
+                    DEV FULL STACK
+                  </span>
+                </div>
+                <ul className="text-[10px] font-mono space-y-1" style={{ color: 'var(--zcc-text-secondary)' }}>
+                  <li>· Code Review estilo CodeRabbit (4 modes)</li>
+                  <li>· Refactor suggestions para erros recorrentes</li>
+                  <li>· Gap detection (testes, tipos, validation)</li>
+                  <li>· Bottleneck detection (N+1, sync IO, missing index)</li>
+                  <li>· Sandbox + safety locks + GODMODE</li>
+                </ul>
+              </div>
+            </div>
+            <div className="mt-3 text-center text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+              Ambos usam GLM 5.2 embarcado (lib/cerebro/glm-service) · ambos têm budget guard · trabalham em paralelo, sem overlap de responsabilidade
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ===== VIEW: REVIEWS ===== */}
+      {view === 'reviews' && (
+        <div className="space-y-3">
+          {loading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="zcc-panel p-4 h-24 shimmer" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              ))}
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="zcc-panel p-8 text-center">
+              <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-30" style={{ color: 'var(--zcc-text-muted)' }} />
+              <p className="text-xs" style={{ color: 'var(--zcc-text-muted)' }}>
+                Nenhuma review ainda. Use a aba <button onClick={() => setView('overview')} className="underline" style={{ color: 'var(--zcc-kinpaku)' }}>Overview → Evoluir Código</button> ou dispare manualmente via API.
+              </p>
+            </div>
+          ) : (
+            reviews.map((r, i) => (
+              <motion.div key={r.id || i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="zcc-panel p-4">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <GitBranch className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--zcc-kinpaku)' }} />
+                      <span className="text-xs font-mono truncate" style={{ color: 'var(--zcc-champagne)' }}>
+                        {r.scope || r.reviewMode || 'review'}
+                      </span>
+                      <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+                        {formatTimeAgo(r.createdAt || '')}
+                      </span>
+                    </div>
+                    <p className="text-xs" style={{ color: 'var(--zcc-text-secondary)' }}>
+                      {r.highLevelSummary || '(no summary)'}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ===== VIEW: REFACTORS ===== */}
+      {view === 'refactors' && (
+        <div className="space-y-3">
+          {loading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="zcc-panel p-4 h-24 shimmer" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              ))}
+            </div>
+          ) : refactors.length === 0 ? (
+            <div className="zcc-panel p-8 text-center">
+              <Wrench className="w-8 h-8 mx-auto mb-2 opacity-30" style={{ color: 'var(--zcc-text-muted)' }} />
+              <p className="text-xs" style={{ color: 'var(--zcc-text-muted)' }}>
+                Nenhuma sugestão de refactor. Aguardando cron diário (07:00 UTC) detectar erros recorrentes...
+              </p>
+            </div>
+          ) : (
+            refactors.map((s, i) => (
+              <motion.div key={s.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ delay: i * 0.03 }} className="zcc-panel p-4">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <FileCode className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--zcc-kinpaku)' }} />
+                      <span className="text-xs font-mono truncate" style={{ color: 'var(--zcc-champagne)' }}>{s.filePath}</span>
+                      <span className="text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>L{s.lineRange}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[9px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+                      <span className="px-1.5 py-0.5 rounded uppercase font-bold"
+                        style={{ background: `${severityColor(s.status === 'applied' ? 'info' : 'warning')}20`, color: severityColor(s.status === 'applied' ? 'info' : 'warning') }}>
+                        {s.status?.toUpperCase()}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded uppercase"
+                        style={{ background: `${confidenceColor(s.confidence)}20`, color: confidenceColor(s.confidence) }}>
+                        {(s.confidence * 100).toFixed(0)}%
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded uppercase"
+                        style={{ background: s.mode === 'live' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)', color: s.mode === 'live' ? '#10b981' : '#f59e0b' }}>
+                        {s.mode?.toUpperCase()}
+                      </span>
+                      <span>·</span>
+                      <span>{formatTimeAgo(s.createdAt)}</span>
+                    </div>
+                  </div>
+                  {s.status === 'pending_review' && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => handleRefactorAction(s.id, 'reject')} disabled={actionLoading?.startsWith(`refactor-${s.id}`)}
+                        className="p-1.5 rounded transition-colors"
+                        style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
+                        title="Rejeitar">
+                        <X className="w-3 h-3" />
+                      </button>
+                      <button onClick={() => handleRefactorAction(s.id, 'approve')} disabled={actionLoading?.startsWith(`refactor-${s.id}`)}
+                        className="p-1.5 rounded transition-colors"
+                        style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}
+                        title="Aprovar">
+                        <Check className="w-3 h-3" />
+                      </button>
+                      <button onClick={() => handleRefactorAction(s.id, 'apply')} disabled={actionLoading?.startsWith(`refactor-${s.id}`)}
+                        className="p-1.5 rounded transition-colors"
+                        style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}
+                        title="Marcar como aplicada">
+                        <GitBranch className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="mb-2">
+                  <p className="text-xs" style={{ color: 'var(--zcc-text-secondary)' }}>{s.rationale}</p>
+                </div>
+                <button onClick={() => setExpandedId(expandedId === s.id ? null : s.id)}
+                  className="text-[9px] font-mono uppercase tracking-wider flex items-center gap-1"
+                  style={{ color: 'var(--zcc-kinpaku)', cursor: 'pointer' }}>
+                  {expandedId === s.id ? '▼' : '▶'} Ver diff do código
+                </button>
+                <AnimatePresence>
+                  {expandedId === s.id && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                      <DiffViewer current={s.currentCode} proposed={s.proposedCode} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ===== VIEW: GAPS ===== */}
+      {view === 'gaps' && (
+        <div className="space-y-3">
+          {gaps.length === 0 && !loading ? (
+            <div className="zcc-panel p-8 text-center">
+              <Target className="w-8 h-8 mx-auto mb-2 opacity-30" style={{ color: 'var(--zcc-text-muted)' }} />
+              <p className="text-xs" style={{ color: 'var(--zcc-text-muted)' }}>
+                Nenhum gap detectado. Clique em <button onClick={() => { fetchGaps(); }} className="underline" style={{ color: 'var(--zcc-kinpaku)' }}>refresh</button> ou use <button onClick={handleEvolve} className="underline" style={{ color: 'var(--zcc-kinpaku)' }}>Evoluir Código</button>.
+              </p>
+            </div>
+          ) : gaps.length === 0 ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => <div key={i} className="zcc-panel p-4 h-24 shimmer" style={{ background: 'rgba(255,255,255,0.04)' }} />)}
+            </div>
+          ) : (
+            gaps.map(g => (
+              <FindingCard
+                key={g.id}
+                finding={g}
+                onApply={() => handleApply('gap', g.id)}
+                actionLoading={actionLoading === `gap-${g.id}`}
+                expanded={expandedId === g.id}
+                onToggleExpand={() => setExpandedId(expandedId === g.id ? null : g.id)}
+                categoryLabel={g.gapType.replace(/_/g, ' ')}
+              />
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ===== VIEW: BOTTLENECKS ===== */}
+      {view === 'bottlenecks' && (
+        <div className="space-y-3">
+          {bottlenecks.length === 0 && !loading ? (
+            <div className="zcc-panel p-8 text-center">
+              <Gauge className="w-8 h-8 mx-auto mb-2 opacity-30" style={{ color: 'var(--zcc-text-muted)' }} />
+              <p className="text-xs" style={{ color: 'var(--zcc-text-muted)' }}>
+                Nenhum gargalo detectado. Clique em <button onClick={() => { fetchBottlenecks(); }} className="underline" style={{ color: 'var(--zcc-kinpaku)' }}>refresh</button> ou use <button onClick={handleEvolve} className="underline" style={{ color: 'var(--zcc-kinpaku)' }}>Evoluir Código</button>.
+              </p>
+            </div>
+          ) : bottlenecks.length === 0 ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => <div key={i} className="zcc-panel p-4 h-24 shimmer" style={{ background: 'rgba(255,255,255,0.04)' }} />)}
+            </div>
+          ) : (
+            bottlenecks.map(b => (
+              <FindingCard
+                key={b.id}
+                finding={b}
+                onApply={() => handleApply('bottleneck', b.id)}
+                actionLoading={actionLoading === `bottleneck-${b.id}`}
+                expanded={expandedId === b.id}
+                onToggleExpand={() => setExpandedId(expandedId === b.id ? null : b.id)}
+                categoryLabel={b.bottleneckType.replace(/_/g, ' ')}
+              />
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ===== FOOTER ===== */}
+      <div className="text-center text-[9px] font-mono py-2" style={{ color: 'var(--zcc-text-muted)' }}>
+        ZéCode trabalha em paralelo ao Cérebro Zélla · ambos usam GLM 5.2 embarcado · safety locks sempre ativos · auto-apply SEMPRE off · GODMODE requerido para forceLive
+      </div>
+    </div>
   );
 }
