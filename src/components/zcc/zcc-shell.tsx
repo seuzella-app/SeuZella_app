@@ -106,7 +106,6 @@ const TAB_TITLES: Record<ZccTabId, string> = {
   "brain-tests": "Testes Cérebro",
   refactors: "ZéCode",
   zecode: "ZéCode",
-  "ze-code": "ZéCode",
   sandbox: "Sandbox",
   breakdown: "Breakdown",
   airbnb: "Airbnb",
@@ -359,7 +358,7 @@ export function ZccShell() {
             {tab === "pulse-check" ? <PulseCheckPanel /> : null}
             {tab === "brain" ? <CerebroPanel /> : null}
             {tab === "brain-tests" ? <CerebroTestPanel /> : null}
-            {tab === "zecode" || tab === "ze-code" ? <ZeCodePanel /> : null}
+            {tab === "zecode" ? <ZeCodePanel /> : null}
             {tab === "sandbox" ? <SandboxPanel /> : null}
             {tab === "breakdown" ? <FinancialBreakdownPanel /> : null}
 

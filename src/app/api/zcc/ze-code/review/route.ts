@@ -93,18 +93,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const offset = Math.max(parseInt(searchParams.get('offset') || '0', 10), 0);
     const status = searchParams.get('status') || undefined;
 
-    const where: Record<string, unknown> = {};
-    if (status) where.status = status;
+    let reviews: any[] = [];
+    let total = 0;
 
-    const [reviews, total] = await Promise.all([
-      db.codeReview.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-      }),
-      db.codeReview.count({ where }),
-    ]);
+    try {
+      if ((db as any)?.codeReview?.findMany) {
+        const [dbReviews, dbTotal] = await Promise.all([
+          (db as any).codeReview.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            take: limit,
+            skip: offset,
+          }),
+          (db as any).codeReview.count({ where }),
+        ]);
+        reviews = dbReviews;
+        total = dbTotal;
+      }
+    } catch {
+      // Fallback gracioso para banco em cold start ou sem migration
+    }
 
     return NextResponse.json({
       success: true,

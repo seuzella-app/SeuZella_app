@@ -1888,6 +1888,56 @@ model RefactorSuggestion {
   @@map("refactor_suggestions")
 }
 
+/// Registro de uma revisão de código conduzida pelo ZéCode / CodeReviewer.
+model CodeReview {
+  id               String              @id @default(cuid())
+  reviewMode       String              // "diff" | "file" | "directory" | "hotspot"
+  scope            String              // ex "file:src/lib/auth.ts"
+  highLevelSummary String              @default("")
+  severity         String              @default("info") // "info" | "warning" | "critical" | "emergency"
+  stats            String              @default("{}") // JSON com contadores
+  costUsd          Float               @default(0)
+  mode             String              @default("mock") // "mock" | "live"
+  status           String              @default("running") // "running" | "completed" | "failed"
+  triggeredBy      String?
+  errorMessage     String?
+  createdAt        DateTime            @default(now())
+  completedAt      DateTime?
+  comments         CodeReviewComment[]
+
+  @@index([status, createdAt])
+  @@index([scope])
+  @@map("code_reviews")
+}
+
+/// Comentário específico de linha ou bloco apontado pelo CodeReviewer / ZéCode.
+model CodeReviewComment {
+  id            String     @id @default(cuid())
+  reviewId      String
+  review        CodeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  filePath      String
+  startLine     Int?
+  endLine       Int?
+  category      String     @default("code_quality")
+  severity      String     @default("info")
+  title         String
+  description   String
+  suggestedCode String?
+  currentCode   String?
+  rationale     String?
+  confidence    Float      @default(0.8)
+  status        String     @default("pending") // "pending" | "approved" | "rejected" | "applied" | "dismissed"
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  reviewNotes   String?
+  createdAt     DateTime   @default(now())
+
+  @@index([reviewId])
+  @@index([filePath])
+  @@index([status])
+  @@map("code_review_comments")
+}
+
 /// Audit de envio de alertas pelo AlertBus. Cada alerta enviado (email, Slack,
 /// SMS, dashboard) gera uma entrada aqui para rastreabilidade.
 model AlertDelivery {

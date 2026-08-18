@@ -345,7 +345,7 @@ export interface OperatorKPI {
 export type ZccTabId =
   | "overview" | "live-leads" | "financeiro"
   | "onboarding" | "live-agents" | "pulse-check"
-  | "brain" | "brain-tests" | "zecode" | "ze-code" | "sandbox" | "breakdown"
+  | "brain" | "brain-tests" | "zecode" | "sandbox" | "breakdown"
   | "airbnb" | "pousadas" | "burn-rate" | "tenants" | "geo"
   | "tokens-ai" | "semantica"
   | "mobile-analytics"
