@@ -25,6 +25,8 @@ import {
   marcarComoPago,
   gerarSugestaoUpsell,
   EXPLICACAO_UPSELL,
+  obterExplicacaoFaturamentoUpsell,
+  preverDemandaENotificarPousadeiro,
   type UpsellType,
 } from '@/lib/upsell/upsell-engine';
 
@@ -236,7 +238,7 @@ describe('UPSELL Engine — EXPLICACAO_UPSELL', () => {
     expect(EXPLICACAO_UPSELL.titulo).toBeTruthy();
     expect(EXPLICACAO_UPSELL.o_que_e).toBeTruthy();
     expect(EXPLICACAO_UPSELL.zero_taxa).toBeTruthy();
-    expect(EXPLICACAO_UPSELL.comissao_6).toBeTruthy();
+    expect(EXPLICACAO_UPSELL.comissao_7).toBeTruthy();
     expect(EXPLICACAO_UPSELL.como_descontado).toBeTruthy();
     expect(EXPLICACAO_UPSELL.exemplo).toBeTruthy();
   });
@@ -247,13 +249,44 @@ describe('UPSELL Engine — EXPLICACAO_UPSELL', () => {
   });
 
   it('Comissão 7% é mencionada explicitamente', () => {
-    expect(EXPLICACAO_UPSELL.comissao_6).toContain('7%');
+    expect(EXPLICACAO_UPSELL.comissao_7).toContain('7%');
+  });
+
+  it('Notificação com antecedência é explicada', () => {
+    expect(EXPLICACAO_UPSELL.notificacao_previa).toContain('Cérebro Zélla');
+    expect(EXPLICACAO_UPSELL.notificacao_previa).toContain('DDC');
   });
 
   it('Exemplo prático contém números coerentes', () => {
-    expect(EXPLICACAO_UPSELL.exemplo).toContain('1.050');
-    expect(EXPLICACAO_UPSELL.exemplo).toContain('R$ 14');
-    expect(EXPLICACAO_UPSELL.exemplo).toContain('R$ 21,35');
+    expect(EXPLICACAO_UPSELL.exemplo).toContain('1.000');
+    expect(EXPLICACAO_UPSELL.exemplo).toContain('R$ 70');
+    expect(EXPLICACAO_UPSELL.exemplo).toContain('R$ 467');
+  });
+
+  it('obterExplicacaoFaturamentoUpsell diferencia Pousada (7%) de Airbnb (0%)', () => {
+    const pousadaInfo = obterExplicacaoFaturamentoUpsell('pousada');
+    expect(pousadaInfo.taxaPercentual).toBe(7);
+    expect(pousadaInfo.regraComissao).toContain('7%');
+
+    const airbnbInfo = obterExplicacaoFaturamentoUpsell('airbnb');
+    expect(airbnbInfo.taxaPercentual).toBe(0);
+    expect(airbnbInfo.regraComissao).toContain('Zero comissão');
+  });
+
+  it('preverDemandaENotificarPousadeiro gera alerta proativo no DDC', () => {
+    const alerta = preverDemandaENotificarPousadeiro({
+      tenantId: 'tenant_123',
+      nomePousada: 'Pousada Mar Azul',
+      proximoEvento: 'Feriado de Tiradentes',
+      dataEvento: '21/04',
+      estimativaAumentoFluxo: '180%',
+    });
+
+    expect(alerta.notificacaoDDC.titulo).toContain('Tiradentes');
+    expect(alerta.notificacaoDDC.mensagem).toContain('Pousada Mar Azul');
+    expect(alerta.notificacaoDDC.sugestoesQuarto.length).toBeGreaterThan(0);
+    expect(alerta.notificacaoDDC.sugestoesQuarto[0].precoSugerido).toBe(200);
+    expect(alerta.notificacaoDDC.sugestoesQuarto[0].comissaoZella).toBe(14);
   });
 });
 

@@ -548,21 +548,85 @@ export function gerarSugestaoUpsell(
 }
 
 /**
- * Explicação amigável para o dono da pousada sobre como funciona a comissão.
+ * Explicação amigável para o dono da pousada sobre como funciona a comissão de UPSELL.
  */
 export const EXPLICACAO_UPSELL = {
-  titulo: 'Como funciona a comissão Zélla?',
-  o_que_e: `UPSELL é qualquer serviço extra que o hóspede aceita além da diária normal: 
-late checkout, café da manhã premium, massagem, passeio de barco, transfer, etc. 
-A IA Zélla sugere esses serviços automaticamente durante a conversa com o hóspede.`,
-  zero_taxa: `Para valores NORMAIS das diárias (dia a dia, feriados comuns, alta temporada) 
-a Zélla cobra ZERO taxa. Você fica com 100% do valor da reserva.`,
-  comissao_6: `Para valores de UPSELL (serviços extras sugeridos pela IA Zélla) a Zélla 
-cobre 7% de comissão, creditada à seuzella.com. Por exemplo: se o hóspede aceita 
-um late checkout de R$ 200, a Zélla recebe R$ 14 (7%).`,
-  como_descontado: `A comissão é acumulada mensalmente. Você paga a seuzella.com o total 
-de UPSELLs confirmados no mês anterior. O DDC mostra em tempo real o total acumulado.`,
-  exemplo: `Exemplo: Hóspede reserva 3 diárias × R$ 350 = R$ 1.050 (valor normal → 0% taxa).
-Aceita late checkout +4h: R$ 200 (UPSELL → 7% = R$ 14). Aceita café premium 3×: R$ 105 
-(UPSELL → 7% = R$ 7,35). Total: R$ 1.355 para a pousada, R$ 21,35 de comissão Zélla.`,
+  titulo: 'Como funciona a taxa de UPSELL do Seu Zélla?',
+  o_que_e: `UPSELL é qualquer serviço ou comodidade adicional por quarto que o hóspede adquire além da diária normal: 
+late check-out (saída estendida), early check-in (entrada antecipada), café da manhã especial/premium, 
+upgrade de quarto ou suíte, massagem relaxante, kit praia, passeios locais de barco/bugue ou decoração romântica. 
+O UPSELL aumenta o seu faturamento por hóspede sem a necessidade de gastar com novos clientes.`,
+  zero_taxa: `Para valores NORMAIS das diárias (dia a dia, fins de semana comuns e alta temporada), 
+o Seu Zélla cobra ZERO taxa (0%). Você fica com 100% do valor da diária da pousada.`,
+  comissao_7: `A taxa de 7% de sucesso incide EXCLUSIVAMENTE sobre o faturamento EXTRA que o Zélla gerou 
+em serviços de UPSELL por quarto durante períodos de alta procura, feriados prolongados e festas locais. 
+Se o Zélla não vender nenhum upsell no mês, a taxa é R$ 0,00.`,
+  comissao_6: `7% de taxa de sucesso sobre UPSELL (diárias normais = ZERO taxa).`,
+  notificacao_previa: `O Cérebro Zélla monitora o calendário de feriados e festas locais da sua cidade. 
+Quando detecta que o fluxo de mensagens vai aumentar, ele calcula e sugere os valores de upsell 
+para cada quarto da pousada e NOTIFICA o dono da pousada com antecedência no DDC e DDC Mobile.`,
+  como_descontado: `Sua fatura mensal = Valor Fixo do Pacote Escolhido (ex: PRO R$ 397) + 7% das vendas extras de UPSELL. 
+A comissão é exibida em tempo real no seu painel DDC com total transparência.`,
+  exemplo: `Exemplo real: Pacote PRO (R$ 397) + R$ 1.000 em serviços extras de Upsell vendidos no feriado. 
+Taxa de 7% = R$ 70. Fatura mensal final = R$ 467. A pousada fica com R$ 930 de lucro limpo adicional.`,
+  anfitriao_airbnb: `Para Anfitriões de Imóveis (Airbnb), o Seu Zélla opera com 100% de mensalidade fixa e 
+ZERO taxa sobre reservas e ZERO taxa sobre upsell, eliminando as taxas pesadas de 15% a 20% das OTAs.`,
 };
+
+/**
+ * Retorna a explicação resumida de faturamento e UPSELL conforme o nicho.
+ */
+export function obterExplicacaoFaturamentoUpsell(niche: 'pousada' | 'airbnb'): {
+  titulo: string;
+  regraComissao: string;
+  detalheFatura: string;
+  taxaPercentual: number;
+} {
+  if (niche === 'airbnb') {
+    return {
+      titulo: '100% Preço Fixo — Zero Taxas Adicionais',
+      regraComissao: 'Zero comissão sobre reservas e zero comissão sobre upsell. Você economiza 15% a 20% das OTAs.',
+      detalheFatura: 'Sua fatura mensal é estritamente o valor fixo do pacote contratado.',
+      taxaPercentual: 0,
+    };
+  }
+
+  return {
+    titulo: 'Diárias 0% Taxa + 7% apenas sobre o ganho EXTRA de Upsell',
+    regraComissao: '7% de taxa de sucesso cobrada apenas quando houver venda extra de upsell em datas de alta procura, com notificação prévia no DDC.',
+    detalheFatura: 'Fatura Mensal = Valor do Pacote Base + 7% sobre os upsells confirmados por quarto.',
+    taxaPercentual: 7,
+  };
+}
+
+/**
+ * Detecta feriados e eventos com alta demanda e prepara sugestões proativas de upsell
+ * com notificação ao proprietário no DDC / DDC Mobile.
+ */
+export function preverDemandaENotificarPousadeiro(params: {
+  tenantId: string;
+  nomePousada: string;
+  proximoEvento: string;
+  dataEvento: string;
+  estimativaAumentoFluxo: string;
+}): {
+  notificacaoDDC: {
+    titulo: string;
+    mensagem: string;
+    sugestoesQuarto: Array<{ servico: string; precoSugerido: number; comissaoZella: number }>;
+  };
+} {
+  const sugestoes = [
+    { servico: 'Late Check-out (+4 horas)', precoSugerido: 200, comissaoZella: 14 },
+    { servico: 'Café da Manhã Gourmet Especial', precoSugerido: 105, comissaoZella: 7.35 },
+    { servico: 'Kit Praia & Passeio Local', precoSugerido: 180, comissaoZella: 12.60 },
+  ];
+
+  return {
+    notificacaoDDC: {
+      titulo: `🚨 Alta Demanda Prevista: ${params.proximoEvento} (${params.dataEvento})`,
+      mensagem: `Olá, ${params.nomePousada}! O Cérebro Zélla detectou aumento de ${params.estimativaAumentoFluxo} no fluxo de cotações para o período de ${params.proximoEvento}. Sugerimos ativar as ofertas de UPSELL por quarto para maximizar sua diária. Fatura com 7% apenas sobre o valor extra vendido.`,
+      sugestoesQuarto: sugestoes,
+    },
+  };
+}
