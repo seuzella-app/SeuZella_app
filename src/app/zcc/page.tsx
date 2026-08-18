@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import {
   Brain, ArrowLeft, Bell, Building2, Activity,
   Users, Shield, DollarSign, Key, TrendingUp,
-  Home, Globe, Flame, Command, Code, FlaskConical,
+  Home, Globe, Flame, Command, Code, FlaskConical, GitPullRequest,
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { CerebroVivoPanel } from '@/components/zcc/CerebroVivoPanel';
-import { RefactorSuggestionsPanel } from '@/components/zcc/RefactorSuggestionsPanel';
+import { ZeCodePanel } from '@/components/zcc/ZeCodePanel';
 import { SandboxPanel } from '@/components/zcc/SandboxPanel';
 import { FintechHub } from '@/components/zcc/FintechHub';
 import { ApiKeysPanel } from '@/components/zcc/ApiKeysPanel';
@@ -22,6 +22,7 @@ import { TenantXRay } from '@/components/zcc/TenantXRay';
 import { ClientOverview } from '@/components/zcc/ClientOverview';
 import { GeoMetricsPanel } from '@/components/zcc/GeoMetricsPanel';
 import { FinancialBreakdownPanel } from '@/components/zcc/FinancialBreakdownPanel';
+import { CodeReviewerPanel } from '@/components/zcc/CodeReviewerPanel';
 import { globalMetrics as _globalMetrics, airbnbMetrics as _airbnbMetrics, parceiroMetrics as _parceiroMetrics } from '@/lib/zcc-clients-data';
 
 // ── API Hydration Hook ───────────────────────────────────────────────────────
@@ -59,13 +60,14 @@ const parceiroMetrics = _parceiroMetrics;
 
 // ── Tab Configuration ──────────────────────────────────────────────────────────
 
-type ZCCTab = 'overview' | 'pulse' | 'cerebro' | 'refactors' | 'sandbox' | 'financeiro' | 'airbnb' | 'burnrate' | 'tenants' | 'tokens' | 'geo' | 'financial';
+type ZCCTab = 'overview' | 'pulse' | 'cerebro' | 'ze-code' | 'sandbox' | 'financeiro' | 'airbnb' | 'burnrate' | 'tenants' | 'tokens' | 'geo' | 'financial' | 'code-reviewer';
 
 const tabs: { id: ZCCTab; label: string; icon: React.ElementType; desc: string; group: 'core' | 'ops' | 'config' }[] = [
   { id: 'overview', label: 'Visão Geral', icon: Command, desc: 'Command Center', group: 'core' },
   { id: 'pulse', label: 'Pulse Check', icon: Activity, desc: 'Telemetria & Infra', group: 'core' },
   { id: 'cerebro', label: 'Cérebro', icon: Brain, desc: 'IA em tempo real', group: 'core' },
-  { id: 'refactors', label: 'Refactors', icon: Code, desc: 'Auto-aprendizado', group: 'core' },
+  { id: 'ze-code', label: 'ZéCode', icon: Code, desc: 'DEV FULL STACK (CodeRabbit-style)', group: 'core' },
+  { id: 'code-reviewer', label: 'Code Reviewer', icon: GitPullRequest, desc: 'Revisão IA estilo CodeRabbit', group: 'core' },
   { id: 'sandbox', label: 'Sandbox', icon: FlaskConical, desc: 'Z-Lab Simulação', group: 'core' },
   { id: 'financeiro', label: 'Financeiro', icon: DollarSign, desc: 'Receitas & Pagamentos', group: 'core' },
   { id: 'airbnb', label: 'Airbnb', icon: Home, desc: 'Anfitriões & Imóveis', group: 'ops' },
@@ -382,8 +384,8 @@ export default function ZCCPage() {
             {/* ===== TAB: CÉREBRO ZÉLLA ===== */}
             {activeTab === 'cerebro' && <CerebroVivoPanel />}
 
-            {/* ===== TAB: REFACTORS (Auto-aprendizado) ===== */}
-            {activeTab === 'refactors' && <RefactorSuggestionsPanel />}
+            {/* ===== TAB: ZÉCODE (DEV FULL STACK — substitui antigo "refactors") ===== */}
+            {activeTab === 'ze-code' && <ZeCodePanel />}
 
             {/* ===== TAB: SANDBOX (Z-Lab Simulation) ===== */}
             {activeTab === 'sandbox' && <SandboxPanel />}
@@ -413,6 +415,9 @@ export default function ZCCPage() {
 
             {/* ===== TAB: FINANCIAL DETAIL ===== */}
             {activeTab === 'financial' && <FinancialBreakdownPanel />}
+
+            {/* ===== TAB: CODE REVIEWER (CodeRabbit-style) ===== */}
+            {activeTab === 'code-reviewer' && <CodeReviewerPanel />}
 
 
           </motion.div>
