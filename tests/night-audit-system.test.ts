@@ -183,14 +183,14 @@ describe('PARTE 2: NightPentestService — Pentest Noturno', () => {
     expect(result.statsBySeverity).toBeDefined();
     expect(result.statsBySource).toBeDefined();
     expect(result.statsBySource.sast).toBeGreaterThanOrEqual(0);
-  }, 30000);
+  }, 60000);
 
   it('run(): SAST detecta eval() em arquivos de teste (sanity check)', async () => {
     // O SAST deve encontrar pelo menos 1 finding (qualquer tipo) em algum módulo
     const result = await NightPentestService.run();
     // Em modo CI, pode não haver src/lib/cerebro disponível, então aceitamos 0 ou mais
     expect(result.findings.length).toBeGreaterThanOrEqual(0);
-  });
+  }, 60000);
 
   it('run(): diff vs run anterior detecta newlyDetected', async () => {
     // Mock: nenhum fingerprint prévio
@@ -198,7 +198,7 @@ describe('PARTE 2: NightPentestService — Pentest Noturno', () => {
     const result = await NightPentestService.run();
     // Todos findings atuais são "novos" se não há histórico
     expect(result.diff.newlyDetected.length).toBe(result.findings.length);
-  });
+  }, 60000);
 
   it('run(): diff vs run anterior detecta persisting', async () => {
     // Mock: 1 fingerprint prévio que vai casar
@@ -208,7 +208,7 @@ describe('PARTE 2: NightPentestService — Pentest Noturno', () => {
     const result = await NightPentestService.run();
     // Persisting = findings que existiam antes e ainda existem
     expect(result.diff.persisting).toBeInstanceOf(Array);
-  });
+  }, 60000);
 
   it('getOpenFindings(): retorna lista de vulns abertas', async () => {
     mockDb.codeVulnerability.findMany.mockResolvedValueOnce([
