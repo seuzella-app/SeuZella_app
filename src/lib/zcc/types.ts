@@ -345,11 +345,103 @@ export interface OperatorKPI {
 export type ZccTabId =
   | "overview" | "live-leads" | "financeiro"
   | "onboarding" | "live-agents" | "pulse-check"
-  | "brain" | "brain-tests" | "refactors" | "sandbox" | "breakdown"
+  | "brain" | "brain-tests" | "zecode" | "sandbox" | "breakdown"
   | "airbnb" | "pousadas" | "burn-rate" | "tenants" | "geo"
   | "tokens-ai" | "semantica"
   | "mobile-analytics"
   | "upsell" | "settings";
+
+// ===== ZÉCODE — DEV FULL STACK INTERNO =====
+// ZéCode = agente DEV FULL STACK interno do ZCC (inspirado em CodeRabbit.ai).
+// Diferente do Cérebro Zélla (que toma decisões runtime em produção),
+// o ZéCode atua sobre o código-fonte: análise, refactor, gargalos, gaps.
+// Opera em paralelo ao Cérebro, sem conflito (escopos diferentes).
+
+export type ZeCodeAnalysisKind =
+  | "bottleneck"        // gargalo de performance
+  | "gap"               // gap de funcionalidade / ausência de teste / etc
+  | "improvement"       // melhoria incremental
+  | "refactor"          // refactor estrutural
+  | "security"          // audit de segurança
+  | "tech_debt"          // débito técnico identificado
+  | "anti_pattern";     // anti-pattern detectado
+
+export type ZeCodeSeverity = "info" | "low" | "medium" | "high" | "critical";
+
+export type ZeCodeStatus =
+  | "pending_review"
+  | "approved"
+  | "rejected"
+  | "applied"
+  | "blocked_safety"; // bloqueado por trava de segurança
+
+export interface ZeCodeFinding {
+  id: string;
+  kind: ZeCodeAnalysisKind;
+  severity: ZeCodeSeverity;
+  title: string;
+  description: string;
+  filePath: string;
+  lineRange: string;
+  confidence: number; // 0-100
+  status: ZeCodeStatus;
+  currentCode: string;
+  proposedCode: string;
+  rationale: string;
+  createdAt: string;
+  reviewedAt: string | null;
+  // TRAVAS DE SEGURANÇA
+  safetyChecks: ZeCodeSafetyCheck[];
+}
+
+export interface ZeCodeSafetyCheck {
+  id: string;
+  label: string;
+  passed: boolean;
+  detail?: string;
+}
+
+export interface ZeCodeFileNode {
+  path: string;
+  name: string;
+  type: "file" | "directory";
+  size?: number;
+  children?: ZeCodeFileNode[];
+  language?: string;
+}
+
+export type ZeCodeScanMode =
+  | "quick"          // scan rápido de hot files
+  | "deep"           // scan profundo (todos arquivos src/)
+  | "targeted"       // scan de arquivo/path específico
+  | "diff";          // scan de diff git (pending changes)
+
+export interface ZeCodeScanRequest {
+  mode: ZeCodeScanMode;
+  targetPath?: string;
+  kinds?: ZeCodeAnalysisKind[];
+  maxFindings?: number;
+}
+
+export interface ZeCodeScanResponse {
+  ok: boolean;
+  scanId: string;
+  startedAt: string;
+  finishedAt: string;
+  durationMs: number;
+  filesScanned: number;
+  findings: ZeCodeFinding[];
+  safetySummary: {
+    totalChecks: number;
+    passed: number;
+    blocked: number;
+  };
+  llmProvider: string;
+  llmModel: string;
+  tokensIn: number;
+  tokensOut: number;
+  costUsd: number;
+}
 
 // ===== STATS =====
 

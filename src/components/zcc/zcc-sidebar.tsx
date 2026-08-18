@@ -81,7 +81,7 @@ const OPS_NAV: NavItem[] = [
   { id: "burn-rate", label: "Burn Rate", icon: Flame, description: "Runway", priority: 3 },
   { id: "tenants", label: "Tenants", icon: Users, description: "Multi-empresa", priority: 3 },
   { id: "geo", label: "Geo", icon: Globe, description: "Distribuição geográfica", priority: 3 },
-  { id: "refactors", label: "Refactors", icon: Code2, description: "Melhorias de código", priority: 3 },
+  { id: "zecode", label: "ZéCode", icon: Code2, description: "DEV FULL STACK interno · refactor · gargalos · gaps", badge: "DEV", priority: 1 },
   { id: "sandbox", label: "Sandbox", icon: FlaskRound, description: "Experimentação", priority: 3 },
 ];
 

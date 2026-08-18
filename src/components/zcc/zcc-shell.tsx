@@ -36,7 +36,7 @@ import { FinanceiroPanel } from "./panels/financeiro-panel";
 import { PulseCheckPanel } from "./panels/pulse-check-panel";
 import { BurnRatePanel } from "./panels/burn-rate-panel";
 import { TenantsPanel } from "./panels/tenants-panel";
-import { RefactorsPanel } from "./panels/refactors-panel";
+import { ZeCodePanel } from "./panels/ze-code-panel";
 import { SandboxPanel } from "./panels/sandbox-panel";
 import { MobileAnalyticsPanel } from "./panels/mobile-devices-panel";
 import { UpsellPanel } from "./panels/upsell-panel";
@@ -104,7 +104,8 @@ const TAB_TITLES: Record<ZccTabId, string> = {
   "pulse-check": "Pulse Check",
   brain: "Cérebro",
   "brain-tests": "Testes Cérebro",
-  refactors: "Refactors",
+  refactors: "ZéCode",
+  zecode: "ZéCode",
   sandbox: "Sandbox",
   breakdown: "Breakdown",
   airbnb: "Airbnb",
@@ -357,7 +358,7 @@ export function ZccShell() {
             {tab === "pulse-check" ? <PulseCheckPanel /> : null}
             {tab === "brain" ? <CerebroPanel /> : null}
             {tab === "brain-tests" ? <CerebroTestPanel /> : null}
-            {tab === "refactors" ? <RefactorsPanel /> : null}
+            {tab === "zecode" ? <ZeCodePanel /> : null}
             {tab === "sandbox" ? <SandboxPanel /> : null}
             {tab === "breakdown" ? <FinancialBreakdownPanel /> : null}
 
