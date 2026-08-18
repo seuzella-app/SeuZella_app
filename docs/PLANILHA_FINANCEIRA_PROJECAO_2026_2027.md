@@ -1,6 +1,6 @@
-# 📊 PLANILHA DE PROJEÇÃO FINANCEIRA & OPERACIONAL — SEU ZÉLLA
+# 📊 PLANILHA DE PROJEÇÃO FINANCEIRA, LEGAL & OPERACIONAL — SEU ZÉLLA
 ### Período: 20 de Agosto de 2026 a 28 de Fevereiro de 2027 (6 Meses / Temporada de Verão)
-**Plataforma:** Seu Zélla (`seuzella.com`) | **Infraestrutura:** Hostinger VPS KVM 4 | **Campanhas:** Google Ads + Alex Ribeiro
+**Plataforma:** Seu Zélla (`seuzella.com`) | **Infra:** Hostinger VPS KVM 4 | **Gateways:** Asaas vs Mercado Pago | **Marketing:** Google Ads + Alex Ribeiro
 
 ---
 
@@ -11,114 +11,112 @@
 │ AGO/26         SET/26           OUT/26           NOV/26           DEZ/26           JAN-FEV/27   │
 ├────────────────┼────────────────┼────────────────┼────────────────┼────────────────┼────────────┤
 │ MÊS 1          │ MÊS 2          │ MÊS 3          │ MÊS 4          │ MÊS 5          │ MÊS 6      │
-│ Setup & Testes │ 5 Pousadas     │ Início Ads     │ Escala Ads     │ Pico Verão     │ Férias &   │
-│ Internos       │ Piloto Amigas  │ + Alex Ribeiro │ Feriadões      │ Réveillon      │ Carnaval   │
+│ Setup Técnico, │ 5 Pousadas     │ Início Ads     │ Escala Ads     │ Pico Verão     │ Férias &   │
+│ CNPJ e e-CNPJ  │ Piloto Amigas  │ + Alex Ribeiro │ Feriadões      │ Réveillon      │ Carnaval   │
 │ (Zero Receita) │ (Validação)    │ (1º Faturam.)  │ (Aquecimento)  │ (Hiper-Demanda)│(Maturação) │
 └────────────────┴────────────────┴────────────────┴────────────────┴────────────────┴────────────┘
 ```
 
 ---
 
-## 🛠️ 2. Custos Fixos & Infraestrutura Técnica
+## 🏢 2. Custos de Abertura de Empresa, Contabilidade & Legal
 
-| Item | Especificação Técnica | Mês 1 | Mês 2 | Mês 3 | Mês 4 | Mês 5 | Mês 6 | Total Período |
+| Item | Descrição / Detalhes | Mês 1 | Mês 2 | Mês 3 | Mês 4 | Mês 5 | Mês 6 | Total Período |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **VPS Hostinger KVM 4** | 4 vCPU, 16GB RAM, 200GB NVMe, 16TB Banda | R$ 59,99 | R$ 59,99 | R$ 59,99 | R$ 59,99 | R$ 59,99 | R$ 59,99 | **R$ 359,94** |
+| **Taxas Junta Comercial / DARE** | Abertura de SLU / LTDA Unipessoal | R$ 380,00 | R$ 0,00 | R$ 0,00 | R$ 0,00 | R$ 0,00 | R$ 0,00 | **R$ 380,00** |
+| **Certificado Digital e-CNPJ A1** | Validade de 1 ano (obrigatório p/ NFS-e) | R$ 189,00 | R$ 0,00 | R$ 0,00 | R$ 0,00 | R$ 0,00 | R$ 0,00 | **R$ 189,00** |
+| **Contabilidade Online** | Assessoria fiscal/contábil (SaaS / CNAE 6202-3)| R$ 0,00* | R$ 189,00 | R$ 189,00 | R$ 189,00 | R$ 189,00 | R$ 189,00 | **R$ 945,00** |
+| **Subtotal Custos Legais/Contábeis**| | **R$ 569,00** | **R$ 189,00** | **R$ 189,00** | **R$ 189,00** | **R$ 189,00** | **R$ 189,00** | **R$ 1.514,00** |
+
+*\* Mês 1 com isenção da mensalidade contábil na contratação da abertura de empresa.*
+
+---
+
+## 💳 3. Comparativo de Gateways de Pagamento: Asaas vs Mercado Pago
+
+Abaixo está o comparativo técnico e financeiro detalhado para auxiliar na sua decisão:
+
+| Recurso / Taxa | 🔵 Asaas (Recomendado para SaaS B2B) | 🟡 Mercado Pago | Análise Estratégica do Seu Zélla |
+| :--- | :--- | :--- | :--- |
+| **Mensalidade / Taxa de Adesão** | **R$ 0,00** (Zero custo fixo) | **R$ 0,00** (Zero custo fixo) | Empate. |
+| **Taxa PIX por Transação** | **R$ 1,89 fixo** (ou R$ 0,99 com volume) | **0,99%** sobre o valor | **Asaas vence**: em planos de R$ 397, R$ 1,89 fixo custa apenas **0,47%** (no Mercado Pago custaria R$ 3,93). |
+| **Cartão de Crédito à Vista** | **2,99% + R$ 0,49** (D+30) ou 3,49% (D+1) | **3,03%** (D+30) ou **4,99%** (D+1) | **Asaas vence** na liquidação rápida e taxas de antecipação. |
+| **Gestão de Assinaturas & Recorrência**| **Nativa e Especializada em SaaS**: Régua de cobrança automática por WhatsApp/E-mail, retentativa inteligente de cartão e faturamento híbrido dia 5. | Genérica para e-commerce. Menos flexível para cobranças B2B com vencimento em data fixa. | **Asaas vence com folga**: O Seu Zélla já possui o SDK e webhook nativo implementado para o Asaas. |
+| **Emissão Automática de NFS-e Municipal** | **NATIVA na API do Asaas** (~R$ 0,49/nota). Emite a nota fiscal automaticamente assim que o pagamento é confirmado. | **NÃO POSSUI**. Obriga a contratar um software terceiro (ex: Focus NFe / eNotas) por **+R$ 150 a R$ 250/mês**. | **Vantagem Absoluta Asaas**: Economia de R$ 1.200 a R$ 1.800/ano em ferramentas de emissão fiscal. |
+| **Transferência / Saque p/ Banco** | **Grátis** via PIX para mesma titularidade | **Grátis** via PIX | Empate. |
+
+> [!TIP]
+> **Veredito:** O **Asaas é a escolha ideal para o Seu Zélla**. Além de taxas menores em tickets de R$ 197 a R$ 697 no PIX, ele elimina o custo de R$ 180/mês de integradores de notas fiscais (eNotas/Focus NFe) porque emite a NFS-e diretamente pela sua própria conta.
+
+---
+
+## 🛠️ 4. Custos Fixos de Infraestrutura & Ferramentas
+
+| Item | Especificação | Mês 1 | Mês 2 | Mês 3 | Mês 4 | Mês 5 | Mês 6 | Total Período |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **VPS Hostinger KVM 4** | 4 vCPU, 16GB RAM, 200GB NVMe | R$ 59,99 | R$ 59,99 | R$ 59,99 | R$ 59,99 | R$ 59,99 | R$ 59,99 | **R$ 359,94** |
 | **Domínio `seuzella.com`** | Registro 1º ano Hostinger | R$ 0,01 | R$ 0,00 | R$ 0,00 | R$ 0,00 | R$ 0,00 | R$ 0,00 | **R$ 0,01** |
-| **Claude Code / Dev Tools** | Ferramentas de apoio / Pair programming | R$ 0,00 | R$ 0,00 | R$ 110,00 | R$ 110,00 | R$ 110,00 | R$ 110,00 | **R$ 440,00** |
+| **Claude Code / Dev Tools** | Apoio desenvolvimento a partir de M3 | R$ 0,00 | R$ 0,00 | R$ 110,00 | R$ 110,00 | R$ 110,00 | R$ 110,00 | **R$ 440,00** |
 | **Google Ads (Tráfego Pago)**| R$ 1.200/semana (M3, M4 e M5) | R$ 0,00 | R$ 0,00 | R$ 4.800,00 | R$ 4.800,00 | R$ 4.800,00 | R$ 0,00* | **R$ 14.400,00** |
-| **Subtotal Custos Fixos/Mídia**| | **R$ 60,00** | **R$ 59,99** | **R$ 4.969,99** | **R$ 4.969,99** | **R$ 4.969,99** | **R$ 169,99** | **R$ 15.199,95** |
+| **Subtotal Infra & Mídia** | | **R$ 60,00** | **R$ 59,99** | **R$ 4.969,99** | **R$ 4.969,99** | **R$ 4.969,99** | **R$ 169,99** | **R$ 15.199,95** |
 
-*\* No Mês 6 (Carnaval), as pousadas já estão com 100% de ocupação; o foco operacional passa a ser retenção, suporte e conversão orgânica via indicações.*
-
----
-
-## 🧠 3. Modelo de Consumo de IA (LLMs & Token Economy)
-
-O **Cérebro Zélla** opera com arquitetura híbrida Neuro-Simbólica de baixíssimo custo:
-1. **Filtro Estático / Regex / Embeddings Locais**: Resolve 60% das dúvidas simples (Wi-Fi, regras, horários) a custo zero.
-2. **Groq (Llama 3 70B/8B)**: Cotações rápidas e atendimento 24/7 a ~$0,05 por milhão de tokens.
-3. **Google Gemini 1.5 Flash**: Processamento multimodal e mensagens humanizadas a ~$0,075 por milhão de tokens.
-4. **OpenAI / Claude**: Reservado exclusivamente para casos complexos e night audit.
-
-* **Custo Médio por Pousada Ativa:** ~R$ 18,50/mês (cobrindo ~1.500 conversas/mês no WhatsApp).
-* **Custo de Produção Interna / Testes / Night Audit:** ~R$ 60,00/mês.
+*\* Mês 6 (Carnaval) com pousadas lotadas; foco 100% em retenção e indicações orgânicas.*
 
 ---
 
-## 🏄 4. Estratégia de Marketing: Alex Ribeiro & Hotspots Nacionais
+## 🧠 5. Consumo de IA & Variáveis Operacionais
 
-### Autoridade do Embaixador
-* **Alex Ribeiro**: Surfista Profissional de elite, dono de pousada na Praia do Rosa (SC), 80.000 seguidores no Instagram.
-* **Conexão Genuína**: Hospedou-se por décadas competindo nos principais polos de surf e pousadas do país.
-
-### Hotspots Segmentados no Google Ads
-* **Santa Catarina**: Praia do Rosa, Garopaba, Imbituba, Guarda do Embaú, Florianópolis.
-* **Paraná**: Matinhos / Ilha do Mel.
-* **São Paulo**: Guarujá, Bertioga, Litoral Norte (São Sebastião, Maresias, Ilhabela), Ubatuba.
-* **Rio de Janeiro**: Sul Fluminense (Paraty, Angra) e Região dos Lagos (Saquarema, Búzios, Cabo Frio).
-* **Bahia**: Itacaré, Praia do Forte, Costa do Sauípe.
-* **Pernambuco**: Porto de Galinhas, Maracaípe, Fernando de Noronha.
-* **Ceará & Rio Grande do Norte**: Preá, Pipa, Baía Formosa.
-
-### Calendário de Feriados & Gatilhos de Venda
-* **Setembro**: Independência (07/Set - feriadão).
-* **Outubro**: N. Sra. Aparecida / Crianças (12/Out - feriadão).
-* **Novembro**: Finados (02/Nov), Proclamação (15/Nov) e Consciência Negra (20/Nov).
-* **Dezembro**: Natal e Réveillon (pico de faturamento anual das pousadas).
-* **Janeiro**: Férias escolares e altíssima demanda contínua.
-* **Fevereiro**: Férias e Carnaval (pico final de fechamento de diárias).
+* **Custo de IA / LLMs por Pousada:** ~R$ 18,50/mês (Groq Llama 3 70B/8B + Gemini 1.5 Flash).
+* **Taxa de Gateway Asaas Média (PIX + Cartão Recorrente):** ~2,4% sobre o faturamento bruto.
+* **Emissão NFS-e Asaas:** R$ 0,49 por nota emitida.
+* **Imposto Simples Nacional (Anexo III com Fator R):** 6,0% sobre o faturamento bruto a partir do início das vendas.
 
 ---
 
-## 📊 5. Planilha Detalhada: Cenário 1 (Crescimento Normal / Conservador)
+## 📊 6. DRE & Projeção Financeira: Cenário 1 (Conservador)
 
-*Premissas: Ticket médio R$ 347,00/mês, conversão média de Ads B2B (CAC ~R$ 400), churn mensal de 3%.*
+*Premissas: Ticket médio R$ 347,00/mês, conversão média Google Ads (CAC ~R$ 400), 48 pousadas ativas no Mês 6.*
 
-| Mês | Pousadas Ativas | Faturamento Mensal | Custo Infra + IA | Custo Marketing | Saldo Líquido do Mês | Saldo de Caixa Acumulado |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Mês 1 (20/Ago - 20/Set)** | 0 (Testes) | R$ 0,00 | R$ 120,00 | R$ 0,00 | -R$ 120,00 | **-R$ 120,00** |
-| **Mês 2 (21/Set - 20/Out)** | 5 (Piloto) | R$ 0,00 | R$ 152,50 | R$ 0,00 | -R$ 152,50 | **-R$ 272,50** |
-| **Mês 3 (21/Out - 20/Nov)** | 12 (+7 pagantes) | R$ 2.429,00 | R$ 392,00 | R$ 4.800,00 | -R$ 2.763,00 | **-R$ 3.035,50** |
-| **Mês 4 (21/Nov - 20/Dez)** | 24 (+12 novas) | R$ 8.328,00 | R$ 614,00 | R$ 4.800,00 | +R$ 2.914,00 | **-R$ 121,50** |
-| **Mês 5 (21/Dez - 20/Jan)** | 38 (+14 novas) | R$ 13.186,00 | R$ 873,00 | R$ 4.800,00 | +R$ 7.513,00 | **+R$ 7.391,50** |
-| **Mês 6 (21/Jan - 28/Fev)** | 48 (+10 novas) | R$ 16.656,00 | R$ 1.058,00 | R$ 0,00 | +R$ 15.598,00 | **+R$ 22.989,50** |
-| **TOTAL CONSOLIDADO** | — | **R$ 40.599,00** | **R$ 3.209,50** | **R$ 14.400,00** | — | **+R$ 22.989,50** |
-
----
-
-## 🔥 6. Planilha Detalhada: Cenário 2 (Efeito "Boom de Alta Temporada")
-
-*Premissas: Efeito de autoridade do Alex Ribeiro + desespero dos donos de pousadas no pré-Réveillon. CAC reduz para ~R$ 160.*
-
-| Mês | Pousadas Ativas | Faturamento Mensal | Custo Infra + IA | Custo Marketing | Saldo Líquido do Mês | Saldo de Caixa Acumulado |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Mês 1 (20/Ago - 20/Set)** | 0 (Testes) | R$ 0,00 | R$ 120,00 | R$ 0,00 | -R$ 120,00 | **-R$ 120,00** |
-| **Mês 2 (21/Set - 20/Out)** | 5 (Piloto) | R$ 0,00 | R$ 152,50 | R$ 0,00 | -R$ 152,50 | **-R$ 272,50** |
-| **Mês 3 (21/Out - 20/Nov)** | 22 (+17 pagantes) | R$ 7.634,00 | R$ 577,00 | R$ 4.800,00 | +R$ 2.257,00 | **+R$ 1.984,50** |
-| **Mês 4 (21/Nov - 20/Dez)** | 50 (+28 novas) | R$ 17.350,00 | R$ 1.095,00 | R$ 4.800,00 | +R$ 11.455,00 | **+R$ 13.439,50** |
-| **Mês 5 (21/Dez - 20/Jan)** | 85 (+35 novas) | R$ 29.495,00 | R$ 1.742,50 | R$ 4.800,00 | +R$ 22.952,50 | **+R$ 36.392,00** |
-| **Mês 6 (21/Jan - 28/Fev)** | 115 (+30 novas) | R$ 39.905,00 | R$ 2.297,50 | R$ 0,00 | +R$ 37.607,50 | **+R$ 74.000,00** |
-| **TOTAL CONSOLIDADO** | — | **R$ 94.384,00** | **R$ 5.984,00** | **R$ 14.400,00** | — | **+R$ 74.000,00** |
+| Rubrica Financeira | Mês 1 (Ago/Set) | Mês 2 (Set/Out) | Mês 3 (Out/Nov) | Mês 4 (Nov/Dez) | Mês 5 (Dez/Jan) | Mês 6 (Jan/Fev) | Total Período |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Pousadas Ativas (Base)** | 0 | 5 (Piloto) | 12 (+7 pag.) | 24 (+12 pag.) | 38 (+14 pag.) | 48 (+10 pag.) | **48 Ativas** |
+| **Faturamento Bruto** | **R$ 0,00** | **R$ 0,00** | **R$ 2.429,00** | **R$ 8.328,00** | **R$ 13.186,00**| **R$ 16.656,00**| **R$ 40.599,00** |
+| (-) Impostos (Simples 6%) | R$ 0,00 | R$ 0,00 | -R$ 145,74 | -R$ 499,68 | -R$ 791,16 | -R$ 999,36 | **-R$ 2.435,94** |
+| (-) Taxas Gateway Asaas + NFS-e| R$ 0,00 | R$ 0,00 | -R$ 61,73 | -R$ 211,63 | -R$ 335,08 | -R$ 423,26 | **-R$ 1.031,70** |
+| (-) Custos IA / LLMs | -R$ 60,00 | -R$ 92,50 | -R$ 222,00 | -R$ 444,00 | -R$ 703,00 | -R$ 888,00 | **-R$ 2.409,50** |
+| (-) Custos Legais & Contador | -R$ 569,00 | -R$ 189,00 | -R$ 189,00 | -R$ 189,00 | -R$ 189,00 | -R$ 189,00 | **-R$ 1.514,00** |
+| (-) Infra Hostinger & Ferramentas| -R$ 60,00 | -R$ 59,99 | -R$ 169,99 | -R$ 169,99 | -R$ 169,99 | -R$ 169,99 | **-R$ 799,95** |
+| (-) Google Ads (Marketing) | R$ 0,00 | R$ 0,00 | -R$ 4.800,00 | -R$ 4.800,00 | -R$ 4.800,00 | R$ 0,00 | **-R$ 14.400,00** |
+| **Resultado Líquido do Mês** | **-R$ 689,00** | **-R$ 341,49** | **-R$ 3.159,46**| **+R$ 2.013,70**| **+R$ 6.197,77**| **+R$ 13.986,39**| **+R$ 18.007,91** |
+| **Saldo de Caixa Acumulado** | **-R$ 689,00** | **-R$ 1.030,49**| **-R$ 4.189,95**| **-R$ 2.176,25**| **+R$ 4.021,52**| **+R$ 18.007,91**| **+R$ 18.007,91** |
 
 ---
 
-## 🎯 7. Avaliação Técnica: O Boom é Realmente Possível?
+## 🔥 7. DRE & Projeção Financeira: Cenário 2 (Efeito "Boom de Verão")
 
-### **RESPOSTA: SIM, É ALTAMENTE VIÁVEL E SUSTENTÁVEL.**
+*Premissas: Efeito de autoridade do Alex Ribeiro nos polos de surf + desespero pré-Réveillon. 115 pousadas ativas no Mês 6.*
 
-1. **Alinhamento Perfeito de Persona e Embaixador**:
-   - Donos de pousadas litorâneas não confiam em anúncios de agências corporativas de São Paulo. Mas quando o **Alex Ribeiro**, surfista respeitado que vive a realidade da Praia do Rosa, mostra o WhatsApp dele vendendo no piloto automático, a barreira de desconfiança é quebrada instantaneamente.
-2. **Timing de Mercado Insuperável**:
-   - Outubro e Novembro são os meses de maior ansiedade para a hotelaria nacional. O proprietário sabe que a temporada de Verão define o lucro do ano inteiro.
-3. **Robustez da Infraestrutura Hostinger KVM 4**:
-   - 4 vCPUs e 16 GB de RAM aguentam facilmente até **300 pousadas simultâneas** com o runtime compilado do Next.js e conexões em pool com o PostgreSQL.
-4. **Alavancagem de Lucro Líquido**:
-   - A partir do Mês 4, a empresa opera com margem de contribuição superior a **80%**, permitindo reinvestir em novos canais ou manter caixa robusto.
+| Rubrica Financeira | Mês 1 (Ago/Set) | Mês 2 (Set/Out) | Mês 3 (Out/Nov) | Mês 4 (Nov/Dez) | Mês 5 (Dez/Jan) | Mês 6 (Jan/Fev) | Total Período |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Pousadas Ativas (Base)** | 0 | 5 (Piloto) | 22 (+17 pag.)| 50 (+28 pag.) | 85 (+35 pag.) | 115 (+30 pag.)| **115 Ativas** |
+| **Faturamento Bruto** | **R$ 0,00** | **R$ 0,00** | **R$ 7.634,00** | **R$ 17.350,00**| **R$ 29.495,00**| **R$ 39.905,00**| **R$ 94.384,00** |
+| (-) Impostos (Simples 6%) | R$ 0,00 | R$ 0,00 | -R$ 458,04 | -R$ 1.041,00 | -R$ 1.769,70 | -R$ 2.394,30 | **-R$ 5.663,04** |
+| (-) Taxas Gateway Asaas + NFS-e| R$ 0,00 | R$ 0,00 | -R$ 191,55 | -R$ 440,90 | -R$ 749,53 | -R$ 1.014,07 | **-R$ 2.396,05** |
+| (-) Custos IA / LLMs | -R$ 60,00 | -R$ 92,50 | -R$ 407,00 | -R$ 925,00 | -R$ 1.572,50 | -R$ 2.127,50 | **-R$ 5.184,50** |
+| (-) Custos Legais & Contador | -R$ 569,00 | -R$ 189,00 | -R$ 189,00 | -R$ 189,00 | -R$ 189,00 | -R$ 189,00 | **-R$ 1.514,00** |
+| (-) Infra Hostinger & Ferramentas| -R$ 60,00 | -R$ 59,99 | -R$ 169,99 | -R$ 169,99 | -R$ 169,99 | -R$ 169,99 | **-R$ 799,95** |
+| (-) Google Ads (Marketing) | R$ 0,00 | R$ 0,00 | -R$ 4.800,00 | -R$ 4.800,00 | -R$ 4.800,00 | R$ 0,00 | **-R$ 14.400,00** |
+| **Resultado Líquido do Mês** | **-R$ 689,00** | **-R$ 341,49** | **+R$ 1.418,42**| **+R$ 9.784,11**| **+R$ 20.244,28**| **+R$ 34.010,14**| **+R$ 64.426,46** |
+| **Saldo de Caixa Acumulado** | **-R$ 689,00** | **-R$ 1.030,49**| **+R$ 387,93** | **+R$ 10.172,04**| **+R$ 30.416,32**| **+R$ 64.426,46**| **+R$ 64.426,46** |
 
 ---
 
-## 💰 8. Recomendação Final de Capital de Giro
+## 💰 8. Necessidade Real de Capital de Giro & Próximos Passos
 
-* **Capital de Giro Inicial Necessário:** **R$ 3.500,00 a R$ 4.000,00**.
-* Este montante cobre a VPS Hostinger, o domínio, os testes de IA dos Meses 1 e 2 e o primeiro ciclo de Google Ads até a entrada das primeiras faturas do Asaas.
+1. **Aporte Inicial Mínimo para Segurança Total:**
+   * **Cenário 1:** **R$ 4.200,00 a R$ 4.500,00** (cobre abertura de CNPJ, e-CNPJ, taxas contábeis, Hostinger e o 1º mês de Google Ads até o payback do Mês 4).
+   * **Cenário 2 (Boom):** **R$ 1.500,00 a R$ 2.000,00** já são suficientes, pois a empresa atinge ponto de equilíbrio (*breakeven*) logo no Mês 3.
+2. **Recomendação Operacional:**
+   * Abrir o CNPJ no Mês 1 (SLU no Simples Nacional com CNAE de desenvolvimento de software).
+   * Emitir o Certificado Digital A1.
+   * Cadastrar a conta PJ diretamente no **Asaas** para habilitar o faturamento híbrido dia 5 e emissão automática de NFS-e Municipal.
