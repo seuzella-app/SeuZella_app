@@ -62,7 +62,9 @@ export function Footer() {
             </div>
             
             <p className="text-neutral-500 text-xs leading-relaxed max-w-sm">
-              Plataforma inteligente de automação de reservas e atendimento 24/7 do Seu Zélla, {isPousada ? 'feita especificamente para pousadas e hotéis boutique brasileiros' : 'feita especificamente para anfitriões Airbnb e gestores de imóveis'}. Converta mais hóspedes e impulsione seu negócio sem complicação.
+              {isPousada
+                ? "Nunca mais perca uma reserva por demora no WhatsApp. O Seu Zélla responde na hora, tira dúvidas sobre a região e fecha diárias para sua pousada 24 horas por dia."
+                : "Instruções de acesso, dicas do bairro e reservas confirmadas na hora. O Seu Zélla cuida de cada detalhe com seus hóspedes 24 horas por dia para você alugar mais e se preocupar menos."}
             </p>
 
             {/* Social Links */}
