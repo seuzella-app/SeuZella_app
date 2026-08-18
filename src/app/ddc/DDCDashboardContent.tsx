@@ -25,6 +25,7 @@ import { PlanGate, PlanUpgradeBanner } from '@/components/ddc/PlanGate';
 import { ZellaAirBTab } from '@/components/ddc/ZellaAirBTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
 import { DDCUpsellTab } from '@/components/ddc/DDCUpsellTab';
+import { DDCBillingTab } from '@/components/ddc/DDCBillingTab';
 import { type PlanTier, DDC_TABS, hasAccess, getNextTier, PLAN_DISPLAY } from '@/lib/plan-features';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -1853,6 +1854,15 @@ export default function DDCDashboardContent() {
       return (
         <motion.div variants={fadeIn} initial="hidden" animate="visible" className="max-w-3xl mx-auto">
           <ZelladorChat userPlan={currentPlan} />
+        </motion.div>
+      );
+    }
+
+    // ── FATURAMENTO & ASSINATURA (ASAAS GATEWAY)
+    if (activeTab === 'billing' || activeTab === 'payment') {
+      return (
+        <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-4">
+          <DDCBillingTab tenantId={propertyId || 'demo-pousada'} />
         </motion.div>
       );
     }
