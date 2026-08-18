@@ -9,7 +9,13 @@
 // 5. Emissão e consulta de NFS-e Municipal automática
 // ==============================================================================
 
-import { ASAAS_ACCESS_TOKEN, ASAAS_ENVIRONMENT } from '@/lib/env';
+import {
+  ASAAS_ACCESS_TOKEN,
+  ASAAS_ENVIRONMENT,
+  ASAAS_AUTO_NFSE,
+  ASAAS_MUNICIPAL_SERVICE_CODE,
+  ASAAS_MUNICIPAL_SERVICE_NAME,
+} from '@/lib/env';
 
 export const ASAAS_BASE_URL =
   ASAAS_ENVIRONMENT === 'production'
@@ -286,5 +292,57 @@ export class AsaasBillingService {
     if (!res.ok) return null;
     const json = (await res.json()) as { data?: AsaasFiscalInvoice[] };
     return json.data && json.data.length > 0 ? json.data[0] : null;
+  }
+
+  /**
+   * Agenda ou emite a Nota Fiscal de Serviço (NFS-e) municipal para um pagamento quitado
+   */
+  static async scheduleFiscalInvoice(params: {
+    paymentId: string;
+    customerDocument?: string;
+    serviceCode?: string;
+    description?: string;
+    effectiveDate?: string;
+  }): Promise<AsaasFiscalInvoice | null> {
+    if (!this.isConfigured() || params.paymentId.startsWith('pay_mock')) {
+      return {
+        id: `inv_mock_${params.paymentId}`,
+        payment: params.paymentId,
+        status: 'PENDING',
+        number: 'RPS_MOCK',
+      };
+    }
+
+    const headers = this.getHeaders();
+    const serviceCode = params.serviceCode || ASAAS_MUNICIPAL_SERVICE_CODE;
+    const serviceName = ASAAS_MUNICIPAL_SERVICE_NAME;
+
+    try {
+      const res = await fetch(`${ASAAS_BASE_URL}/invoices`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          payment: params.paymentId,
+          serviceDescription: params.description || `Serviços de Software e IA Seu Zélla — ${serviceName}`,
+          municipalServiceCode: serviceCode,
+          municipalServiceName: serviceName,
+          effectiveDate: params.effectiveDate || new Date().toISOString().split('T')[0],
+          taxes: {
+            retainIss: false,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        console.warn(`[AsaasBilling] Falha ao agendar NFS-e para payment ${params.paymentId}: ${err}`);
+        return null;
+      }
+
+      return (await res.json()) as AsaasFiscalInvoice;
+    } catch (err) {
+      console.warn('[AsaasBilling] Erro ao chamar API de NFS-e do Asaas:', err);
+      return null;
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { AsaasBillingService } from '@/lib/billing/asaas';
 
 /**
  * POST /api/webhooks/asaas
@@ -119,6 +120,17 @@ export async function POST(request: NextRequest) {
           });
         } catch (e) {
           console.warn('[AsaasWebhook] Falha ao criar transaction record:', e);
+        }
+
+        // 3. Disparo automático de Nota Fiscal Municipal (NFS-e) via Asaas
+        try {
+          await AsaasBillingService.scheduleFiscalInvoice({
+            paymentId: payment.id,
+            description: payment.description,
+          });
+          console.log(`[AsaasWebhook] 📄 Solicitação de NFS-e enviada ao Asaas para payment: ${payment.id}`);
+        } catch (nfseErr) {
+          console.warn('[AsaasWebhook] Aviso: agendamento de NFS-e não concluiu:', nfseErr);
         }
 
         console.log(`[AsaasWebhook] ✅ Pagamento quitado com sucesso para Tenant: ${tenant.name} (${tenant.id})`);

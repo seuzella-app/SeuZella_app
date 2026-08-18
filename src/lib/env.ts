@@ -52,6 +52,9 @@ export const STRIPE_ACCOUNT_ID = process.env.STRIPE_ACCOUNT_ID ?? '';
 export const ASAAS_ACCESS_TOKEN = process.env.ASAAS_ACCESS_TOKEN ?? '';
 export const ASAAS_ENVIRONMENT = (process.env.ASAAS_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox';
 export const ASAAS_WEBHOOK_SECRET = process.env.ASAAS_WEBHOOK_SECRET ?? '';
+export const ASAAS_AUTO_NFSE = process.env.ASAAS_AUTO_NFSE ?? 'true';
+export const ASAAS_MUNICIPAL_SERVICE_CODE = process.env.ASAAS_MUNICIPAL_SERVICE_CODE ?? '01.01';
+export const ASAAS_MUNICIPAL_SERVICE_NAME = process.env.ASAAS_MUNICIPAL_SERVICE_NAME ?? 'Licenciamento ou cessão de direito de uso de programas de computação';
 
 // Default gateway selection — overrides preference order in gateway-factory.ts
 // Valid values: 'asaas' | 'mercadopago' | 'stripe' | undefined (auto-detect)
