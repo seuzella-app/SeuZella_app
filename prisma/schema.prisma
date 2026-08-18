@@ -1938,6 +1938,96 @@ model CodeReviewComment {
   @@map("code_review_comments")
 }
 
+/// Gap (lacuna de código) detectado pelo ZéCode: missing test, missing type,
+/// missing error handling, missing input validation, missing auth check,
+/// missing rate limit, missing logger, missing doc.
+/// Persistido para permitir workflow approve/reject/apply + histórico.
+model GapFinding {
+  id              String   @id @default(cuid())
+  /// Identificador do job Evolve que gerou este finding
+  jobId           String?
+  /// Path relativo do arquivo (ex: "src/lib/auth.ts")
+  filePath        String
+  /// Range de linhas "10-15" ou "1" (file-level)
+  lineRange       String
+  /// Tipo do gap: "missing_test" | "missing_type" | "missing_error_handling" |
+  /// "missing_input_validation" | "missing_auth_check" | "missing_rate_limit" |
+  /// "missing_logger" | "missing_doc"
+  gapType         String
+  /// Severity: "info" | "warning" | "critical" | "emergency"
+  severity        String   @default("info")
+  title           String
+  description     String
+  /// Trecho de código atual (com secrets redacted)
+  currentCode     String?
+  /// Sugestão de código para preencher o gap
+  suggestedCode   String?
+  rationale       String?
+  /// 0..1 — confiança da detecção
+  confidence      Float    @default(0.6)
+  /// "heuristic" (regex/AST) | "llm" (GLM 5.2) | "hybrid"
+  detectedBy      String   @default("heuristic")
+  /// "pending" | "approved" | "rejected" | "applied" | "dismissed"
+  status          String   @default("pending")
+  /// Quem aplicou (ZCC admin email)
+  appliedBy       String?
+  appliedAt       DateTime?
+  /// Quem revisou (reject/approve)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNotes     String?
+  /// Path do PR criado (se autoCreatePR=true)
+  prUrl           String?
+  prBranch        String?
+  createdAt       DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([filePath])
+  @@index([gapType])
+  @@index([jobId])
+  @@map("gap_findings")
+}
+
+/// Bottleneck (gargalo de performance) detectado pelo ZéCode: n+1 query,
+/// sync blocking IO, missing DB index, large payload, memory leak risk,
+/// unnecessary re-render, expensive loop, missing pagination.
+model BottleneckFinding {
+  id               String   @id @default(cuid())
+  /// Identificador do job Evolve que gerou este finding
+  jobId            String?
+  filePath         String
+  lineRange        String
+  /// "n_plus_one_query" | "sync_blocking_io" | "missing_db_index" |
+  /// "large_payload" | "memory_leak_risk" | "unnecessary_re_render" |
+  /// "expensive_loop" | "missing_pagination"
+  bottleneckType   String
+  severity         String   @default("warning")
+  title            String
+  description      String
+  currentCode      String?
+  suggestedCode    String?
+  rationale        String?
+  confidence       Float    @default(0.7)
+  detectedBy       String   @default("heuristic")
+  /// "low" | "medium" | "high" | "critical"
+  estimatedImpact  String   @default("medium")
+  status           String   @default("pending")
+  appliedBy        String?
+  appliedAt        DateTime?
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  reviewNotes      String?
+  prUrl            String?
+  prBranch         String?
+  createdAt        DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([filePath])
+  @@index([bottleneckType])
+  @@index([jobId])
+  @@map("bottleneck_findings")
+}
+
 /// Audit de envio de alertas pelo AlertBus. Cada alerta enviado (email, Slack,
 /// SMS, dashboard) gera uma entrada aqui para rastreabilidade.
 model AlertDelivery {
