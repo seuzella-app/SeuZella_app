@@ -2082,6 +2082,99 @@ model KnowledgeChunk {
 }
 
 // ============================================================================
+// ZÉCODE — GITHUB GITOPS LAYER (PAT Vault + Audit Log)
+// ============================================================================
+// Camada de integração GitHub × ZCC: armazena credenciais (PAT Fine-Grained,
+// GitHub App, Deploy Keys) criptografadas com AES-256-GCM. Toda leitura, uso,
+// rotação e revogação é registrada em PatAuditLog para auditoria completa.
+// Doc: "Bíblia do ZéCode — GitHub GitOps" (Cap. 4)
+// ============================================================================
+
+/// Credencial GitHub criptografada (PAT Fine-Grained ou GitHub App private key).
+/// Master key vem de env var GITHUB_PAT_MASTER_KEY (32 bytes base64).
+/// NUNCA armazenar PAT em texto plano — sempre via encryptPat() de pat-vault.ts.
+model GitHubCredential {
+  id               String   @id @default(cuid())
+  /// Label amigável: "prod-corporate" | "staging" | "github-app-bot"
+  label            String   @unique
+  /// Tipo de credencial: "fine_grained_pat" | "github_app" | "deploy_key"
+  authType         String
+  /// Payload JSON criptografado (AES-256-GCM): { iv, ciphertext, tag }
+  encryptedPat     String   @db.Text
+  /// SHA-256 hash do PAT (para dedup rápida sem descriptografar)
+  patFingerprint   String
+  /// Permissões declaradas: ["contents:write", "pull_requests:write", "issues:write", "workflows:read", "metadata:read"]
+  scopes           String[]
+  /// Repos permitidos: ["MarcioCau14/SmartHotel_Zehla", ...]
+  repositoryAccess String[]
+  /// Para GitHub App: App ID (numérico)
+  githubAppId      String?
+  /// Para GitHub App: Client ID (string)
+  githubClientId   String?
+  /// Para GitHub App: Installation ID (encontrado em /user/installations)
+  installationId   String?
+  /// Para GitHub App: webhook secret (criptografado separadamente)
+  webhookSecret    String?  @db.Text
+  /// Data de expiração do PAT (máx 90 dias recomendado)
+  expiresAt        DateTime
+  /// ID da credencial anterior na cadeia de rotação (null se nunca rotacionado)
+  rotatedFromId    String?
+  rotatedFrom      GitHubCredential? @relation("RotationChain", fields: [rotatedFromId], references: [id])
+  rotatedTo        GitHubCredential[]
+  /// Quem criou (admin user id do NextAuth)
+  createdBy        String
+  isActive         Boolean  @default(true)
+  lastUsedAt       DateTime?
+  lastValidatedAt  DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  auditLogs        PatAuditLog[]
+
+  @@index([patFingerprint])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@index([authType])
+  @@map("github_credentials")
+}
+
+/// Audit log de TODA operação envolvendo credenciais GitHub.
+/// Cada chamada de API, validação, rotação e revogação é registrada.
+/// Permite forense em caso de incidente e compliance.
+model PatAuditLog {
+  id            String   @id @default(cuid())
+  credentialId  String
+  credential    GitHubCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  /// "VALIDATE" | "READ" | "ROTATE" | "REVOKE" | "API_CALL" | "EXPIRE_ALERT" | "CREATE"
+  action        String
+  /// Endpoint chamado: "POST /repos/MarcioCau14/SmartHotel_Zehla/pulls"
+  apiEndpoint   String?
+  /// Método HTTP: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"
+  apiMethod     String?
+  /// Repo afetado: "MarcioCau14/SmartHotel_Zehla"
+  repository    String?
+  /// Status code retornado pela API GitHub
+  statusCode    Int?
+  /// Sucesso ou falha da operação
+  success       Boolean
+  /// Mensagem de erro (se falhou)
+  errorMessage  String?  @db.Text
+  /// IP de origem da chamada (para forense)
+  ipAddress     String?
+  /// User-Agent da chamada
+  userAgent     String?
+  /// Duração da chamada em ms (para análise de performance)
+  durationMs    Int?
+  createdAt     DateTime @default(now())
+
+  @@index([credentialId, createdAt])
+  @@index([action, createdAt])
+  @@index([success, createdAt])
+  @@index([repository, createdAt])
+  @@map("pat_audit_logs")
+}
+
+// ============================================================================
 // CÉREBRO ZÉLLA — AUDIT LOG PERSISTENTE (Passo 10 Hardening)
 // ============================================================================
 // Antes: audit log em Map em memória (perdia em cold start Vercel)
