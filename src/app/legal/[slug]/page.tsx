@@ -73,8 +73,8 @@ const LEGAL_PAGES: Record<string, LegalDoc> = {
         content: 'É responsabilidade exclusiva do CONTRATANTE manter a confidencialidade de suas credenciais de acesso (e-mail e senha). O CONTRATANTE responde civil e criminalmente por todas as atividades realizadas em sua conta e compromete-se a não utilizar a Plataforma para envio de SPAM ou conteúdo ilícito.',
       },
       {
-        heading: '4. Agentes de IA e Disponibilidade de APIs',
-        content: 'A IA atua como assistente virtual treinada com informações fornecidas pelo CONTRATANTE. O CONTRATANTE pode supervisionar as conversas e intervir a qualquer momento. A integração com o WhatsApp depende da infraestrutura mantida pela Meta Platforms Inc., não se responsabilizando a Plataforma por indisponibilidades globais dos servidores da Meta.',
+        heading: '4. Agentes de IA, Intervenção Humana e Disponibilidade',
+        content: 'A IA atua como assistente virtual treinada com informações fornecidas pelo CONTRATANTE. O CONTRATANTE pode supervisionar as conversas e acionar o recurso "Assumir Chat" a qualquer momento para assumir o diálogo pelo WhatsApp. A intervenção humana direta não gera abatimento, desconto ou devolução do valor da mensalidade e taxas contratadas. O retorno do atendimento automatizado é restabelecido pelo comando "Zélla assume". A integração com o WhatsApp depende da infraestrutura mantida pela Meta Platforms Inc., não se responsabilizando a Plataforma por indisponibilidades globais dos servidores da Meta.',
       },
       {
         heading: '5. Nível de Serviço (SLA) e Foro',

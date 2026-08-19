@@ -240,17 +240,18 @@ export function MobileAirbnbSuperApp() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Toggle Cérebro Zélla */}
+          {/* Botão de Status Motor Zélla (Limpo e Espaçado) */}
           <button
             onClick={handleToggleAI}
-            className={`px-2.5 py-1 rounded-full border text-[10px] font-mono font-bold flex items-center gap-1.5 transition-all min-h-[36px] active:scale-95 ${
+            className={`p-2 rounded-full border flex items-center justify-center transition-all min-h-[38px] min-w-[38px] active:scale-95 ${
               aiActive
                 ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
                 : 'bg-zinc-800 border-zinc-700 text-zinc-400'
             }`}
+            title={aiActive ? 'Motor Zélla: Ativo (Toque para pausar)' : 'Motor Zélla: Pausado (Toque para ativar)'}
+            aria-label={aiActive ? 'Motor Zélla Ativo' : 'Motor Zélla Pausado'}
           >
-            <span className={`w-2 h-2 rounded-full ${aiActive ? 'bg-cyan-400 animate-pulse' : 'bg-zinc-500'}`} />
-            <span>{aiActive ? 'HOST 24H' : 'PAUSADO'}</span>
+            <span className={`w-2.5 h-2.5 rounded-full ${aiActive ? 'bg-cyan-400 animate-pulse' : 'bg-zinc-500'}`} />
           </button>
 
           {/* Notificações Bell */}

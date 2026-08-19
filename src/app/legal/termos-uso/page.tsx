@@ -61,9 +61,17 @@ export default function TermosUsoPage() {
               <li>Aprende com cada interação para melhorar o atendimento (Delirium Zero)</li>
             </ul>
             <p className="mt-2">
-              A IA NUNCA substitui inteiramente o atendimento humano. Em casos de conflito,
-              cancelamento, ou quando o hóspede solicita expressamente, a conversa é escalada
-              para o dono da pousada.
+              A IA trabalha em cooperação com o atendimento humano. O contratante pode, a qualquer
+              momento, utilizar a função <strong>"Assumir Chat"</strong> para responder diretamente
+              ao hóspede pelo seu aplicativo do WhatsApp.
+            </p>
+            <p className="mt-2 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl text-xs text-emerald-200">
+              <strong>Cláusula de Intervenção Humana:</strong> A opção do contratante de assumir
+              temporária ou permanentemente qualquer conversa não retira, atenua ou modifica o direito
+              de recebimento integral da mensalidade contratada e eventuais taxas de serviço ou UPSELL do
+              Seu Zélla, visto que a infraestrutura, sincronização de calendários, fechaduras, registros
+              e histórico contextual permanecem integralmente operantes. O retorno ao atendimento automatizado
+              ocorre imediatamente ao clicar em <em>"Zélla assume"</em>.
             </p>
           </section>
 
