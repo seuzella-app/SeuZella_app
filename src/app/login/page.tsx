@@ -211,6 +211,11 @@ function LoginContent() {
       }
     } catch {
       toast.error('Erro de conexão.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [credentialData, callbackUrl, router]);
+
   // ── Quick Demo 1-Click Login
   const handleQuickDemoLogin = useCallback(async (email: string, pass: string, targetPath: string) => {
     setIsLoading(true);
