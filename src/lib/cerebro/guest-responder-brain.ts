@@ -423,21 +423,21 @@ ${PONYTAIL_HUMAN_DIRECTIVE}
       // Dono perguntando o que é UPSELL
       if (msg.includes('o que é') || msg.includes('o que e') || msg.includes('como funciona') || msg.includes('o que significa')) {
         return nome
-          ? `Oi, ${nome}. UPSELL é qualquer serviço extra que o hóspede aceita além da diária: late checkout, café da manhã premium, massagem, passeio de barco, etc. A IA Zélla sugere automaticamente durante a conversa. Você paga 7% sobre o EXTRA — diárias normais são 0%. Veja exemplos e calculadora no DDC > aba UPSELL.`
-          : `UPSELL é qualquer serviço extra que o hóspede aceita além da diária: late checkout, café premium, massagem, passeio de barco, etc. A IA Zélla sugere automaticamente na conversa. Você paga 7% sobre o EXTRA — diárias normais são 0%. Veja exemplos e calculadora no DDC > aba UPSELL.`;
+          ? `Oi, ${nome}. UPSELL é o valor extra por quarto que a sua pousada fatura acima da diária normal em feriados prolongados e datas de alta demanda (Réveillon, Carnaval, Férias, etc.). Em dias e fins de semana normais, a taxa é 0% (zero comissão). Em feriados de alta procura, o Seu Zélla atende 24h o grande fluxo de mensagens e cobra 7% de taxa de sucesso EXCLUSIVAMENTE sobre o valor cobrado a mais por quarto. Veja a simulação no DDC > aba UPSELL.`
+          : `UPSELL é o valor extra por quarto que a sua pousada fatura acima da diária normal em feriados prolongados e datas de alta demanda (Réveillon, Carnaval, Férias, etc.). Em dias e fins de semana normais, a taxa é 0% (zero comissão). Em feriados de alta procura, o Seu Zélla atende 24h o grande fluxo de mensagens e cobra 7% de taxa de sucesso EXCLUSIVAMENTE sobre o valor cobrado a mais por quarto. Veja a simulação no DDC > aba UPSELL.`;
       }
 
-      // Dono perguntando sobre tipos específicos
-      if (msg.includes('late checkout') || msg.includes('café premium') || msg.includes('cafe premium') || msg.includes('massagem') || msg.includes('passeio')) {
+      // Dono perguntando sobre datas de feriados e pacotes
+      if (msg.includes('réveillon') || msg.includes('reveillon') || msg.includes('carnaval') || msg.includes('feriado') || msg.includes('alta temporada')) {
         return nome
-          ? `Oi, ${nome}. A Zélla sugere 15 tipos de UPSELL: late checkout (R$ 50/hora), café premium (R$ 35/diária), massagem (R$ 150), passeio de barco (R$ 120/pessoa), jantar romântico (R$ 200), decoração aniversário (R$ 90), garrafa de vinho (R$ 70), spa day (R$ 250), entre outros. Em todos, a comissão Zélla é 7%. Catálogo completo no DDC > aba UPSELL.`
-          : `A Zélla sugere 15 tipos de UPSELL: late checkout (R$ 50/hora), café premium (R$ 35/diária), massagem (R$ 150), passeio de barco (R$ 120/pessoa), jantar romântico (R$ 200), decoração aniversário (R$ 90), garrafa de vinho (R$ 70), spa day (R$ 250), entre outros. Em todos, a comissão Zélla é 7%. Catálogo completo no DDC > aba UPSELL.`;
+          ? `Oi, ${nome}. No DDC > aba UPSELL, você tem o Radar de Feriados com estimativas de UPSELL sugeridas para Réveillon (+R$ 350/diária), Carnaval (+R$ 280), Férias (+R$ 180), Páscoa, 7 de Setembro, 12 de Outubro, 15/20 de Novembro e Corpus Christi. A comissão de 7% incide só sobre esse valor a mais por quarto.`
+          : `No DDC > aba UPSELL, você tem o Radar de Feriados com estimativas de UPSELL sugeridas para Réveillon (+R$ 350/diária), Carnaval (+R$ 280), Férias (+R$ 180), Páscoa, 7 de Setembro, 12 de Outubro, 15/20 de Novembro e Corpus Christi. A comissão de 7% incide só sobre esse valor a mais por quarto.`;
       }
 
       // Default para perguntas genéricas sobre UPSELL
       return nome
-        ? `Oi, ${nome}. UPSELL: você paga 0% sobre diárias normais e 7% sobre serviços extras sugeridos pela IA (late checkout, massagem, café premium, etc.). Cobrança automática via cartão no fim do mês. Mais detalhes no DDC > aba UPSELL.`
-        : `UPSELL: você paga 0% sobre diárias normais e 7% sobre serviços extras sugeridos pela IA (late checkout, massagem, café premium, etc.). Cobrança automática via cartão no fim do mês. Mais detalhes no DDC > aba UPSELL.`;
+        ? `Oi, ${nome}. UPSELL: você tem 0% de taxa em diárias normais e 7% de taxa de sucesso somente sobre o valor a mais por quarto cobrado em feriados e alta demanda. Cobrança transparente no fim do mês. Mais detalhes no DDC > aba UPSELL.`
+        : `UPSELL: você tem 0% de taxa em diárias normais e 7% de taxa de sucesso somente sobre o valor a mais por quarto cobrado em feriados e alta demanda. Cobrança transparente no fim do mês. Mais detalhes no DDC > aba UPSELL.`;
     }
 
     // Resposta padrão — usa motor humanizado para saudação variada

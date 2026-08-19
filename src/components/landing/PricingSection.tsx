@@ -745,12 +745,12 @@ export function PricingSection() {
                         <h5 className="text-white font-bold text-sm">Regra dos 7% de Sucesso</h5>
                       </div>
                       <p className="text-neutral-300 text-xs leading-relaxed">
-                        Nas diárias normais da sua pousada, a taxa é <strong className="text-white">ZERO (0%)</strong>. A comissão de 7% só é cobrada sobre o valor <strong className="text-blue-300 font-semibold">EXTRA</strong> que o Zélla vendeu em Upsell. Se não vender, é R$ 0,00.
+                        Nas diárias normais da sua pousada, a taxa é <strong className="text-white">ZERO (0%)</strong>. A comissão de 7% só incide sobre o valor do <strong className="text-blue-300 font-semibold">UPSELL por quarto</strong> (o valor cobrado a mais da diária normal em feriados e alta demanda). Se não houver aumento, é R$ 0,00.
                       </p>
                     </div>
                     <div className="mt-3 pt-2.5 border-t border-white/[0.04]">
                       <span className="text-[11px] font-semibold text-blue-400">
-                        🛡️ Cobrança 100% atrelada ao seu lucro
+                        🛡️ Cobrança 100% atrelada ao seu lucro extra
                       </span>
                     </div>
                   </div>
@@ -771,9 +771,9 @@ export function PricingSection() {
                       <p className="text-neutral-500 text-[10px]">mensalidade fixa</p>
                     </div>
                     <div className="rounded-lg bg-black/40 border border-white/5 p-3">
-                      <p className="text-neutral-400 text-[10px] uppercase">Upsells Vendidos</p>
+                      <p className="text-neutral-400 text-[10px] uppercase">UPSELL em Feriados</p>
                       <p className="text-lg sm:text-xl font-extrabold text-emerald-400 mt-0.5">R$ 1.000</p>
-                      <p className="text-neutral-500 text-[10px]">receita extra no feriado</p>
+                      <p className="text-neutral-500 text-[10px]">ganho extra por quarto</p>
                     </div>
                     <div className="rounded-lg bg-black/40 border border-white/5 p-3">
                       <p className="text-neutral-400 text-[10px] uppercase">Taxa Zélla (7%)</p>
@@ -787,7 +787,7 @@ export function PricingSection() {
                     </div>
                   </div>
                   <p className="text-neutral-300 text-xs leading-relaxed">
-                    <strong className="text-white">Resumo da Fatura:</strong> Você pagará <span className="text-white font-semibold">R$ 467</span> (R$ 397 do plano + R$ 70 de comissão de upsell) e sua pousada colocou <span className="text-emerald-400 font-semibold">R$ 930 de receita limpa</span> a mais no caixa. Tudo acompanhado em tempo real no seu Dashboard DDC.
+                    <strong className="text-white">Resumo da Fatura:</strong> Você pagará <span className="text-white font-semibold">R$ 467</span> (R$ 397 do plano + R$ 70 de comissão sobre o UPSELL) e sua pousada colocou <span className="text-emerald-400 font-semibold">R$ 930 de receita limpa</span> a mais no caixa. Tudo acompanhado em tempo real no seu Dashboard DDC.
                   </p>
                 </div>
               </div>

@@ -166,7 +166,7 @@ function PousadaCalculator() {
                     </span>
                   </h4>
                   <p className="text-neutral-400 text-xs mt-0.5">
-                    Em 90% do ano (dia a dia), a taxa é <strong className="text-emerald-400">ZERO (0%)</strong>. Em feriados com avalanche de mensagens, o Zélla vende extras com 7% de sucesso.
+                    Em 90% do ano (dia a dia), a taxa é <strong className="text-emerald-400">ZERO (0%)</strong>. Em feriados com grande fluxo de mensagens, o Zélla fecha reservas no valor de alta demanda com 7% de sucesso só sobre o ganho a mais.
                   </p>
                 </div>
               </div>
@@ -221,7 +221,7 @@ function PousadaCalculator() {
 
                     <div>
                       <label className="block text-neutral-400 text-[11px] font-medium mb-1.5">
-                        Estimativa de serviços extras vendidos por feriado (R$)
+                        Estimativa de UPSELL faturado a mais por feriado (R$)
                       </label>
                       <div className="flex items-center gap-2">
                         <button

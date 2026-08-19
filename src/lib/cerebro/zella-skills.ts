@@ -214,23 +214,25 @@ VERCEL SERVERLESS:
     name: 'Conhecimento UPSELL (Zélla 7%)',
     description: 'Responde perguntas do dono da pousada sobre como funciona o UPSELL, comissão 7%, e cobrança via cartão',
     category: 'whatsapp',
-    instructions: `UPSELL KNOWLEDGE: Quando o dono da pousada (NÃO o hóspede) perguntar sobre UPSELL, comissão Zélla ou como funciona a cobrança, responda com clareza absoluta:
+    instructions: `UPSELL KNOWLEDGE: Quando o dono da pousada perguntar sobre UPSELL, comissão Zélla ou como funciona a cobrança, responda com clareza absoluta:
 
 REGRAS DO UPSELL:
-- UPSELL é qualquer serviço extra que o hóspede aceita além da diária normal: late checkout, café da manhã premium, massagem, passeio de barco, transfer, jantar romântico, decoração de aniversário, garrafa de vinho, aula de surf, passeio de bugue, spa day, kit praia, etc.
-- A IA Zélla sugere esses serviços automaticamente durante a conversa com o hóspede — o dono não precisa fazer nada.
-- Quando o hóspede aceita, o sistema registra e aparece no DDC > aba UPSELL.
+- UPSELL é o valor extra por quarto que a pousada fatura acima da diária normal durante períodos de alta procura (Feriados Prolongados, Réveillon, Carnaval, Férias de Janeiro/Julho e Festas Locais).
+- Nessas datas de pico, o fluxo de mensagens de hóspedes no WhatsApp multiplica (mais que o dobro da média) e o Seu Zélla atende 24h instantaneamente para fechar todas as reservas no valor valorizado.
+- Quando o dono da pousada sobe o valor dos quartos nas datas de alta procura, o sistema calcula o excedente como UPSELL.
 
-MODELO DE COMISSÃO:
-- Valores NORMAIS das diárias (dia a dia, alta temporada, feriados comuns): ZERO taxa (0%). O dono fica com 100% da reserva. Nada. Zero. Nadinha.
-- Valores de UPSELL (serviços extras sugeridos pela IA Zélla): 7% de comissão por quarto, creditada à seuzella.com.
+MODELO DE COMISSÃO (PARCERIA GANHA-GANHA):
+- Dias e Fins de Semana Normais (90% do ano): ZERO TAXA (0%). O dono fica com 100% da receita das diárias.
+- Feriados Prolongados e Datas Festivas (UPSELL): Taxa de sucesso de 7% cobrada EXCLUSIVAMENTE sobre o valor do UPSELL por quarto (o ganho extra faturado acima da diária normal).
+- Se a pousada mantiver a diária normal sem aumento, a comissão é R$ 0,00.
 
 EXEMPLO PRÁTICO (use quando o dono pedir exemplo):
-"Hóspede reserva 3 diárias × R$ 350 = R$ 1.050 (zero taxa). Aceita late checkout +4h: R$ 200 (UPSELL, 7% = R$ 14). Aceita café premium 3×: R$ 105 (UPSELL, 7% = R$ 7,35). Total: R$ 1.355 para sua pousada, R$ 21,35 de comissão Zélla."
+"Diária normal: R$ 300 (zero taxa). No Réveillon/Carnaval, diária fechada a R$ 500 (+R$ 200 de UPSELL por quarto). Sobre os R$ 300 normais: 0% taxa. Sobre os R$ 200 de UPSELL: 7% de taxa de sucesso = R$ 14,00. Sua pousada lucra R$ 186,00 a mais por quarto LIMPOS!"
 
 COBRANÇA:
-- A comissão é acumulada mensalmente.
-- No fim de cada mês, a seuzella.com cobra automaticamente via CARTÃO DE CRÉDITO (processado pelo Mercado Pago).
+- A taxa de 7% de sucesso é acumulada mensalmente apenas sobre os UPSELLs confirmados.
+- No fim de cada mês, a seuzella.com processa automaticamente a cobrança via cartão de crédito cadastrado (processado pelo Mercado Pago).
+- O DDC mostra em tempo real o total acumulado no mês com total transparência e extrato auditável.
 - O dono cadastra o cartão uma única vez no DDC > aba UPSELL.
 - Não há PIX manual — tudo é automático e seguro.
 - O DDC mostra em tempo real o total acumulado no mês.

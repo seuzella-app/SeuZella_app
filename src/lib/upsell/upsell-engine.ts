@@ -28,6 +28,10 @@ import { db } from '@/lib/db';
 // TIPOS
 // ─────────────────────────────────────────────────────────────────────────────
 export type UpsellType =
+  | 'aumento_diaria_feriado' // aumento de diária em feriado/alta demanda por quarto
+  | 'reveillon'              // pacote especial réveillon (UPSELL por quarto)
+  | 'carnaval'               // pacote especial carnaval (UPSELL por quarto)
+  | 'alta_demanda_temporada' // tarifa dinâmica por alta procura sazonal
   | 'late_checkout'           // extensão de horário de check-out (R$ 50/hora extra)
   | 'cafe_premium'           // café da manhã premium (R$ 35/diária)
   | 'massagem'               // massagem relaxante (R$ 150/sessão)
@@ -83,6 +87,30 @@ export const UPSELL_TYPES_CATALOG: Record<UpsellType, {
   defaultPrice: number;
   unitLabel: string;
 }> = {
+  aumento_diaria_feriado: {
+    label: 'Aumento de diária em feriado / alta demanda',
+    description: 'Valor adicional cobrado por quarto acima da diária normal em feriados prolongados.',
+    defaultPrice: 150,
+    unitLabel: 'diária',
+  },
+  reveillon: {
+    label: 'Pacote Réveillon (UPSELL por quarto)',
+    description: 'Valor adicional cobrado por quarto no pacote de Réveillon.',
+    defaultPrice: 350,
+    unitLabel: 'diária',
+  },
+  carnaval: {
+    label: 'Pacote Carnaval (UPSELL por quarto)',
+    description: 'Valor adicional cobrado por quarto no pacote de Carnaval.',
+    defaultPrice: 280,
+    unitLabel: 'diária',
+  },
+  alta_demanda_temporada: {
+    label: 'Alta demanda sazonal / eventos locais',
+    description: 'Valor adicional cobrado em festivais, shows e picos locais.',
+    defaultPrice: 140,
+    unitLabel: 'diária',
+  },
   late_checkout: {
     label: 'Check-out estendido (late checkout)',
     description: 'Extensão do horário de check-out. R$ 50 por hora extra.',
