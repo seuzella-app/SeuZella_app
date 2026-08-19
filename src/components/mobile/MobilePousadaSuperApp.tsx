@@ -365,10 +365,10 @@ export function MobilePousadaSuperApp() {
             <img
               src="/SeuZella_Logo_site.png"
               alt="Seu Zélla"
-              className="h-6 w-auto object-contain"
+              className="h-7 w-auto object-contain max-w-[110px]"
             />
-            <div className="h-3.5 w-[1px] bg-white/20" />
-            <span className="font-mono text-[11px] font-extrabold tracking-widest text-emerald-400 uppercase">
+            <div className="h-4 w-[1px] bg-white/20" />
+            <span className="font-mono text-[10px] font-black tracking-widest text-emerald-400 uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
               POUSADA
             </span>
           </div>
