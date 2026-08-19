@@ -109,7 +109,7 @@ export function MobileYieldProfitWidget({ niche }: MobileYieldProfitWidgetProps)
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-xs font-bold text-zinc-100 leading-tight">
-            Ganhos com Precificação IA
+            Ganhos com Precificação Dinâmica
           </h3>
           <p className="text-[10px] text-zinc-500">Seu Zélla Yield Booster</p>
         </div>

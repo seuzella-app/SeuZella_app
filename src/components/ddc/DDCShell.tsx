@@ -56,7 +56,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MobileBottomNav } from './MobileBottomNav';
 import { DDCCommandPalette } from './DDCCommandPalette';
-import { YieldProfitWidget } from './YieldProfitWidget';
 import { PWAInstallWidget } from './PWAInstallWidget';
 import { useDesktopDevicePing } from '@/components/mobile/useMobileDevicePing';
 import type { NicheType } from '@/contexts/NicheContext';
@@ -751,8 +750,6 @@ export function DDCShell({
 
           {/* Page Content */}
           <main className="p-3 pb-24 md:p-6 md:pb-6 max-w-[1920px] mx-auto">
-            {/* Yield Booster — Lucro Extra Gerado pela IA (sempre visível no topo) */}
-            <YieldProfitWidget compact />
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
