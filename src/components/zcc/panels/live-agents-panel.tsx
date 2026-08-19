@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { PanelHeader } from "../shared/panel-header";
 import { SOPTimelineVisualizer } from "../SOPTimelineVisualizer";
+import { AutoGenWarRoomVisualizer } from "../AutoGenWarRoomVisualizer";
 import { agents, relativeTime } from "@/lib/zcc/mock-data";
 import type { Agent, AgentStatus } from "@/lib/zcc/types";
 import { cn } from "@/lib/utils";
@@ -281,6 +282,9 @@ export function LiveAgentsPanel() {
 
         {/* ── MetaGPT SOP Orchestration Engine ── */}
         <SOPTimelineVisualizer />
+
+        {/* ── AutoGen GroupChat & War Room Engine ── */}
+        <AutoGenWarRoomVisualizer />
 
         {/* ── Agent Grid ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

@@ -1,0 +1,60 @@
+name: 🤖 CI/CD — Multi-Agent System (MetaGPT & AutoGen)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/lib/metagpt/**'
+      - 'src/lib/autogen/**'
+      - 'src/components/zcc/**'
+      - 'tests/unit-metagpt-engine.test.ts'
+      - 'tests/unit-autogen-engine.test.ts'
+      - '.github/workflows/ci-multi-agent-system.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/lib/metagpt/**'
+      - 'src/lib/autogen/**'
+      - 'src/components/zcc/**'
+      - 'tests/unit-metagpt-engine.test.ts'
+      - 'tests/unit-autogen-engine.test.ts'
+
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: test
+  CI: 'true'
+  NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+  UPSTASH_REDIS_REST_URL: http://localhost:8079
+  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
+
+jobs:
+  metagpt-and-autogen-ci:
+    name: 🧠 Testes Automatizados Multi-Agente (MetaGPT SOPs & AutoGen War Room)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🧪 Executar Suíte MetaGPT (Roles, Actions, BudgetGuard & SOPs)
+        run: npx vitest run tests/unit-metagpt-engine.test.ts
+
+      - name: 💬 Executar Suíte AutoGen (GroupChat, NestedChat & War Room)
+        run: npx vitest run tests/unit-autogen-engine.test.ts
+
+      - name: 🛡️ Validar Business Logic & Regras de UPSELL 7%
+        run: npx vitest run tests/unit-business-logic.test.ts
