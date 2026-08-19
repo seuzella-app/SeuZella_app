@@ -7,7 +7,7 @@ on:
       - 'src/app/zcc/**'
       - 'src/components/zcc/**'
       - 'src/app/api/zcc/**'
-      - 'src/lib/zcc/**'
+      - 'src/lib/**'
       - 'deploy/**'
       - 'tests/**'
       - '.github/workflows/ci-zcc-vps-preflight.yml'
@@ -17,7 +17,7 @@ on:
       - 'src/app/zcc/**'
       - 'src/components/zcc/**'
       - 'src/app/api/zcc/**'
-      - 'src/lib/zcc/**'
+      - 'src/lib/**'
       - 'deploy/**'
       - 'tests/**'
   workflow_dispatch:
