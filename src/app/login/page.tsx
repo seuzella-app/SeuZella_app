@@ -211,10 +211,30 @@ function LoginContent() {
       }
     } catch {
       toast.error('Erro de conexão.');
+  // ── Quick Demo 1-Click Login
+  const handleQuickDemoLogin = useCallback(async (email: string, pass: string, targetPath: string) => {
+    setIsLoading(true);
+    try {
+      const { signIn } = await import('next-auth/react');
+      const result = await signIn('credentials', {
+        email,
+        password: pass,
+        redirect: false,
+      });
+      if (result?.ok) {
+        toast.success('Acesso autorizado! Carregando painel...');
+        await new Promise(r => setTimeout(r, 400));
+        router.push(targetPath);
+        router.refresh();
+      } else {
+        toast.error(result?.error === 'CredentialsSignin' ? 'Credenciais demo inválidas.' : `Erro: ${result?.error}`);
+      }
+    } catch {
+      toast.error('Erro de conexão.');
     } finally {
       setIsLoading(false);
     }
-  }, [credentialData, callbackUrl, router]);
+  }, [router]);
 
   // ── Google OAuth 
   const handleGoogleLogin = useCallback(async () => {
@@ -496,35 +516,41 @@ function LoginContent() {
                 </motion.div>
               )}
 
-              {/* ── Demo Quick Login for DDC  */}
+              {/* ── Demo Quick 1-Click Login for DDC & ZCC  */}
               {!isZCC && (
-                <motion.div variants={fadeUp} className="w-full">
-                  <button
+                <motion.div variants={fadeUp} className="w-full space-y-2">
+                  <Button
                     type="button"
-                    className="w-full text-zinc-500 text-[10px] font-mono tracking-wider uppercase hover:text-zinc-400 cursor-pointer flex items-center justify-center gap-1 transition-colors py-1"
-                    onClick={() => {
-                      setCredentialData({ email: 'demo@pousada.com.br', password: 'Demo@123' });
-                      setShowCredentials(true);
-                    }}
+                    variant="outline"
+                    className="w-full h-11 bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold rounded-xl cursor-pointer transition-all active:scale-[0.98]"
+                    disabled={isLoading}
+                    onClick={() => handleQuickDemoLogin('demo@pousada.com.br', 'Demo@123', callbackUrl.startsWith('/ddc/airbnb') ? '/ddc/airbnb' : '/ddc/pousada')}
                   >
-                    acesso demo (demo@pousada.com.br / Demo@123)
-                  </button>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LayoutDashboard className="mr-2 h-4 w-4" />}
+                    ⚡ Acessar DDC Pousada (Demo 1-Clique)
+                  </Button>
+
+                  <div className="flex items-center justify-between gap-2 px-1">
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      className="text-zinc-500 text-[10px] font-mono tracking-wider uppercase hover:text-zinc-300 cursor-pointer transition-colors"
+                      onClick={() => handleQuickDemoLogin('demo@airbnb.com.br', 'Demo@123', '/ddc/airbnb')}
+                    >
+                      demo airbnb
+                    </button>
+                    <span className="text-zinc-700 text-xs">•</span>
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      className="text-amber-500/70 text-[10px] font-mono tracking-wider uppercase hover:text-amber-400 cursor-pointer transition-colors"
+                      onClick={() => handleQuickDemoLogin('123', '123', '/zcc')}
+                    >
+                      zcc admin (123 / 123)
+                    </button>
+                  </div>
                 </motion.div>
               )}
-
-              {/* ── ZCC Admin Quick Login (123/123)  */}
-              <motion.div variants={fadeUp} className="w-full">
-                <button
-                  type="button"
-                  className="w-full text-amber-500/60 text-[10px] font-mono tracking-wider uppercase hover:text-amber-400 cursor-pointer flex items-center justify-center gap-1 transition-colors py-1"
-                  onClick={() => {
-                    setCredentialData({ email: '123', password: '123' });
-                    setShowCredentials(true);
-                  }}
-                >
-                  acesso ZCC admin (123 / 123)
-                </button>
-              </motion.div>
 
               {/* Sign up link */}
               <motion.div variants={fadeUp} className="text-center pt-2">

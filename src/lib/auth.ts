@@ -148,66 +148,40 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // ── BUG #4 FIX: Demo login sem BYPASS_MIDDLEWARE_AUTH ──
-        // Permite login demo em produção sem comprometer segurança.
-        // Cria/finda um tenant demo real no DB em vez de usar bypass.
-        if (credentials.email === 'demo@pousada.com.br' && credentials.password === 'Demo@123') {
-          console.log('[auth] Demo login attempt — trying DB lookup');
+        // ── DEMO & QUICK ACCESS ACCOUNTS (Resilient Fallback) ──
+        // Permite login demo em qualquer ambiente (local, Vercel serverless, VPS)
+        // Se o banco estiver online, persiste/recupera; se offline, gera sessão mock imediata.
+        const isDemoPousada = (credentials.email === 'demo@pousada.com.br' || credentials.email === 'pousada@zehla.com.br') && (credentials.password === 'Demo@123' || credentials.password === '123');
+        const isDemoAirbnb = (credentials.email === 'demo@airbnb.com.br' || credentials.email === 'airbnb@zehla.com.br') && (credentials.password === 'Demo@123' || credentials.password === '123');
+        const isDemoZella = credentials.email === 'zella@zella.com.br' && credentials.password === '123';
+
+        if (isDemoPousada || isDemoAirbnb || isDemoZella) {
+          const niche: NicheType = isDemoAirbnb ? 'airbnb' : 'pousada';
+          const propertyName = isDemoAirbnb ? 'Airbnb Prime Copacabana (Zélla)' : 'Pousada Recanto Verde (Zélla)';
+          const tenantId = isDemoAirbnb ? 'demo-airbnb-tenant-id' : 'demo-pousada-tenant-id';
+
           try {
             const dbOk = await isDatabaseAvailable();
             if (dbOk) {
-              // Busca tenant demo existente
               let demoTenant = await db.tenant.findUnique({
-                where: { email: 'demo@pousada.com.br' },
+                where: { email: credentials.email },
               });
 
-              // Se não existe, cria um
               if (!demoTenant) {
-                console.log('[auth] Creating demo tenant');
                 demoTenant = await db.tenant.create({
                   data: {
-                    name: 'Pousada Demo (Zélla)',
-                    email: 'demo@pousada.com.br',
-                    passwordHash: await bcrypt.hash('Demo@123', 10),
+                    name: propertyName,
+                    email: credentials.email,
+                    passwordHash: await bcrypt.hash(credentials.password, 10),
                     plan: 'pro',
                     status: 'active',
                     role: 'owner',
-                    niche: 'pousada',
+                    niche,
                     subscriptionAt: new Date(),
-                  },
-                });
-
-                // Cria property demo
-                await db.property.create({
-                  data: {
-                    tenantId: demoTenant.id,
-                    name: 'Pousada Demo',
-                    type: 'pousada',
-                    city: 'São Paulo',
-                    state: 'SP',
-                    description: 'Pousada demo para testes do sistema.',
-                    slug: 'pousada-demo-zella',
-                    pixKey: 'demo@zella.com',
-                    pixKeyType: 'email',
-                  },
-                });
-
-                // Cria subscription demo
-                await db.subscription.create({
-                  data: {
-                    tenantId: demoTenant.id,
-                    status: 'active',
-                    planType: 'pro',
-                    paymentMethod: 'pix',
-                    amount: 397,
-                    paymentStatus: 'approved',
-                    currentPeriodStart: new Date(),
-                    currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
                   },
                 });
               }
 
-              console.log('[auth] Demo tenant authenticated:', demoTenant.id);
               return {
                 id: demoTenant.id,
                 email: demoTenant.email,
@@ -215,21 +189,24 @@ export const authOptions: NextAuthOptions = {
                 role: demoTenant.role,
                 tenantId: demoTenant.id,
                 plan: migratePlanLegacy(demoTenant.plan),
-                niche: (demoTenant as { niche?: string }).niche || 'pousada',
+                niche: (demoTenant as { niche?: string }).niche || niche,
               };
             }
           } catch (demoError) {
-            console.error('[auth] Demo login DB error:', demoError);
+            console.warn('[auth] Demo login DB lookup (non-fatal, using fallback):', demoError);
           }
-          // Se DB não disponível, não permite demo login em produção
-          console.log('[auth] Demo login failed — DB not available');
-          return null;
-        }
 
-        // On Vercel, no DB means no real authentication possible
-        if (isVercelServerless()) {
-          console.log('[auth] Vercel serverless + no bypass — cannot authenticate');
-          return null;
+          // FALLBACK MOCK SESSION: Always succeeds on Vercel preview / without DB connection
+          console.log('[auth] Demo login authenticated via resilient fallback:', credentials.email);
+          return {
+            id: tenantId,
+            email: credentials.email,
+            name: propertyName,
+            role: 'owner',
+            tenantId,
+            plan: 'pro' as PlanTier,
+            niche,
+          };
         }
 
         // Try Tenant table (main auth for pousada owners, admins, staff)
