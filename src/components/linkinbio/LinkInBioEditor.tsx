@@ -520,63 +520,126 @@ export function LinkInBioEditor({ initialPropertyName, niche = 'pousada', initia
                     </div>
                   </div>
 
-                  {/* Avaliações Vivas & Ativação */}
-                  <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
-                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                          Exibir Módulo de Avaliações no Perfil
-                        </label>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">
-                          Permite que hóspedes, amigos e clientes cliquem e deixem depoimentos ao vivo.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => updateField('showReviews', profile.showReviews === false)}
-                        className={`w-11 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out shrink-0 ${
-                          profile.showReviews !== false ? 'bg-emerald-500' : 'bg-zinc-700'
-                        }`}
-                      >
-                        <div
-                          className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ease-in-out ${
-                            profile.showReviews !== false ? 'translate-x-5' : 'translate-x-0'
+                    {/* Avaliações Vivas & Integração com Google/Airbnb */}
+                    <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                            Exibir Módulo de Avaliações no Perfil
+                          </label>
+                          <p className="text-[11px] text-zinc-500 mt-0.5">
+                            Exibe estrelas, depoimentos e botão para hóspedes avaliarem no Google/Airbnb.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => updateField('showReviews', profile.showReviews === false)}
+                          className={`w-11 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out shrink-0 ${
+                            profile.showReviews !== false ? 'bg-emerald-500' : 'bg-zinc-700'
                           }`}
-                        />
-                      </button>
-                    </div>
-
-                    {profile.showReviews !== false && (
-                      <div className="pt-2 border-t border-white/[0.06] flex items-center gap-3">
-                        <div>
-                          <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">Nota Inicial</label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            max="5"
-                            value={profile.rating ?? 5.0}
-                            onChange={(e) => updateField('rating', parseFloat(e.target.value) || 0)}
-                            placeholder="5.0"
-                            className="w-20 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white font-bold placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ease-in-out ${
+                              profile.showReviews !== false ? 'translate-x-5' : 'translate-x-0'
+                            }`}
                           />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">Total de Avaliações</label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={profile.reviewCount ?? 0}
-                            onChange={(e) => updateField('reviewCount', parseInt(e.target.value) || 0)}
-                            placeholder="0"
-                            className="w-24 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white font-bold placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                          />
-                        </div>
-                        <span className="text-[11px] text-emerald-400/80 font-medium self-end pb-2">⭐ Habilitado</span>
+                        </button>
                       </div>
-                    )}
-                  </div>
+
+                      {profile.showReviews !== false && (
+                        <div className="pt-3 border-t border-white/[0.06] space-y-3.5">
+                          {/* Origem da Nota */}
+                          <div>
+                            <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1.5">
+                              Origem Principal das Avaliações
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {[
+                                { id: 'google', label: '🌐 Google', desc: 'Google Meu Negócio' },
+                                { id: 'airbnb', label: '🏡 Airbnb', desc: 'Superhost / Airbnb' },
+                                { id: 'booking', label: '🏨 Booking', desc: 'Booking.com' },
+                                { id: 'direct', label: '💬 Zélla Direto', desc: 'Avaliações no Perfil' },
+                              ].map((src) => (
+                                <button
+                                  key={src.id}
+                                  type="button"
+                                  onClick={() => updateField('reviewSource', src.id as any)}
+                                  className={`p-2 rounded-xl text-left border transition-all ${
+                                    (profile.reviewSource || 'google') === src.id
+                                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+                                      : 'bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:border-white/20'
+                                  }`}
+                                >
+                                  <div className="text-xs font-bold">{src.label}</div>
+                                  <div className="text-[9px] text-zinc-500 truncate">{src.desc}</div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Nota e Total */}
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">Nota (ex: 4.9)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                max="5"
+                                value={profile.rating ?? 4.9}
+                                onChange={(e) => updateField('rating', parseFloat(e.target.value) || 0)}
+                                placeholder="4.9"
+                                className="w-20 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white font-bold placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">Qtd. Avaliações</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={profile.reviewCount ?? 148}
+                                onChange={(e) => updateField('reviewCount', parseInt(e.target.value) || 0)}
+                                placeholder="148"
+                                className="w-24 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white font-bold placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                              />
+                            </div>
+                            <span className="text-[11px] text-amber-400/90 font-bold self-end pb-2">★ {profile.rating ?? 4.9} de 5</span>
+                          </div>
+
+                          {/* Link para o Google Meu Negócio */}
+                          <div>
+                            <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">
+                              Link para Avaliar no Google Meu Negócio (Opcional)
+                            </label>
+                            <input
+                              type="url"
+                              value={profile.googleReviewsUrl || ''}
+                              onChange={(e) => updateField('googleReviewsUrl', e.target.value)}
+                              placeholder="https://g.page/r/.../review ou link de avaliação"
+                              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-mono"
+                            />
+                            <p className="text-[10px] text-zinc-500 mt-1">
+                              Quando o hóspede clicar em "Avaliar no Google", abrirá este link direto para gerar avaliações 5 estrelas no seu negócio.
+                            </p>
+                          </div>
+
+                          {/* Link do Airbnb */}
+                          <div>
+                            <label className="block text-[10px] text-zinc-400 uppercase font-bold mb-1">
+                              Link do Anúncio no Airbnb (Opcional)
+                            </label>
+                            <input
+                              type="url"
+                              value={profile.airbnbListingUrl || ''}
+                              onChange={(e) => updateField('airbnbListingUrl', e.target.value)}
+                              placeholder="https://airbnb.com.br/rooms/..."
+                              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-mono"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                 </div>
               </section>
 

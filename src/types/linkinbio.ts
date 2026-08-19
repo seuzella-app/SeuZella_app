@@ -34,6 +34,9 @@ export interface LinkInBioProfile {
   rating?: number;                // e.g. 4.9
   reviewCount?: number;
   showReviews?: boolean;          // Habilitar/desabilitar exibição de avaliações
+  reviewSource?: 'google' | 'airbnb' | 'booking' | 'direct'; // Plataforma de origem da nota
+  googleReviewsUrl?: string;       // Link para avaliar direto no Google Meu Negócio
+  airbnbListingUrl?: string;       // Link do anúncio ou avaliações no Airbnb
   reviews?: LinkInBioReview[];     // Comentários e notas reais deixados por hóspedes/amigos
   links: LinkInBioLink[];
   whatsappNumber?: string;

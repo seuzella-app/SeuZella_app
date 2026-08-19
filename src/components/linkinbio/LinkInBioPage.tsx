@@ -151,7 +151,9 @@ export function LinkInBioPage({ profile, isPreview = false }: { profile: LinkInB
             >
               <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 group-hover:scale-110 transition-transform" />
               <span className="text-amber-400 text-xs font-bold">{calculatedRating > 0 ? calculatedRating.toFixed(1) : '5.0'}</span>
-              <span className="text-zinc-400 text-xs">| {reviewCount} {reviewCount === 1 ? 'avaliação' : 'avaliações'}</span>
+              <span className="text-zinc-400 text-xs">
+                | {profile.reviewSource === 'airbnb' ? 'Airbnb' : profile.reviewSource === 'booking' ? 'Booking' : 'Google'} ({reviewCount} {reviewCount === 1 ? 'avaliação' : 'avaliações'})
+              </span>
               <ChevronRight className="w-3 h-3 text-zinc-500 group-hover:text-amber-400 transition-colors ml-0.5" />
             </button>
           )}
@@ -306,7 +308,48 @@ export function LinkInBioPage({ profile, isPreview = false }: { profile: LinkInB
               </div>
 
               {/* Scrollable Body: Form + List */}
-              <div className="flex-1 overflow-y-auto space-y-6 pr-1">
+              <div className="flex-1 overflow-y-auto space-y-5 pr-1">
+
+                {/* Direct Google / Airbnb Review Action Buttons */}
+                {(profile.googleReviewsUrl || profile.airbnbListingUrl) && (
+                  <div className="space-y-2">
+                    {profile.googleReviewsUrl && (
+                      <a
+                        href={profile.googleReviewsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 border border-amber-500/30 hover:border-amber-400 text-amber-300 text-xs font-bold flex items-center justify-between transition-all duration-200 group active:scale-[0.99]"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-base">🌐</span>
+                          <div className="text-left">
+                            <div>Avaliar no Google Meu Negócio</div>
+                            <div className="text-[10px] font-normal text-amber-400/70">Ajude nossa pousada deixando 5 estrelas no Google</div>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+                      </a>
+                    )}
+
+                    {profile.airbnbListingUrl && (
+                      <a
+                        href={profile.airbnbListingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full p-3 rounded-2xl bg-white/[0.04] border border-white/[0.08] hover:border-rose-500/40 text-rose-300 text-xs font-bold flex items-center justify-between transition-all duration-200 group active:scale-[0.99]"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-base">🏡</span>
+                          <div className="text-left">
+                            <div>Ver Anúncio & Avaliações no Airbnb</div>
+                            <div className="text-[10px] font-normal text-zinc-400">Consulte o histórico de avaliações no Airbnb</div>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-rose-400 group-hover:translate-x-0.5 transition-transform" />
+                      </a>
+                    )}
+                  </div>
+                )}
 
                 {/* Success Alert */}
                 {submittedSuccess && (
