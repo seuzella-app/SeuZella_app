@@ -3,23 +3,8 @@ name: 🛡️ CI/CD — ZCC Central Control & Hostinger VPS Pre-Flight
 on:
   push:
     branches: [main, develop]
-    paths:
-      - 'src/app/zcc/**'
-      - 'src/components/zcc/**'
-      - 'src/app/api/zcc/**'
-      - 'src/lib/**'
-      - 'deploy/**'
-      - 'tests/**'
-      - '.github/workflows/ci-zcc-vps-preflight.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'src/app/zcc/**'
-      - 'src/components/zcc/**'
-      - 'src/app/api/zcc/**'
-      - 'src/lib/**'
-      - 'deploy/**'
-      - 'tests/**'
   workflow_dispatch:
 
 permissions:
