@@ -203,7 +203,7 @@ export function LinkInBioEditor({ initialPropertyName, niche = 'pousada', initia
       <header className="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo-zella-b01.png" alt="Zélla" className="h-5 opacity-80" />
+            <img src="/SeuZella_Logo_site.png" alt="Seu Zélla" className="h-6 w-auto object-contain opacity-90" />
             <span className="text-sm font-bold text-zinc-300 hidden sm:inline">Link-in-Bio Profissional</span>
           </div>
 

@@ -240,30 +240,31 @@ export function LinkInBioPage({ profile, isPreview = false }: { profile: LinkInB
           )}
         </motion.div>
 
-        {/* FOOTER — Logo + "O zelador da sua pousada" */}
+        {/* FOOTER — Logo Oficial + Convite Viral seuzella.com */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
           className="mt-auto pt-8 pb-4 text-center flex flex-col items-center gap-2"
         >
-          <Image
-            src="/logo-zella-b01.png"
-            alt="Zélla"
-            width={80}
-            height={11}
-            className="opacity-60 hover:opacity-90 transition-opacity"
-            priority={false}
-          />
-          <p className="text-zinc-600 text-[11px]">
-            O zelador da sua pousada{' '}
-            <Link
-              href="/"
-              className="text-emerald-500/70 hover:text-emerald-400 transition-colors font-semibold underline underline-offset-2"
-            >
-              seuzella.com
-            </Link>
-          </p>
+          <a
+            href="https://seuzella.com"
+            target={!isPreview ? '_blank' : undefined}
+            rel={!isPreview ? 'noopener noreferrer' : undefined}
+            className="group flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-emerald-500/30 transition-all duration-300 backdrop-blur-sm"
+          >
+            <div className="flex items-center gap-2">
+              <img
+                src="/SeuZella_Logo_site.png"
+                alt="Seu Zélla"
+                className="h-5 w-auto object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+              />
+            </div>
+            <p className="text-zinc-500 group-hover:text-zinc-300 text-[11px] transition-colors flex items-center gap-1">
+              <span>Tecnologia & Reservas Diretas por</span>
+              <span className="text-emerald-400 font-bold underline underline-offset-2">seuzella.com</span>
+            </p>
+          </a>
         </motion.div>
       </div>
 
