@@ -84,12 +84,21 @@ export function normalizeText(text: string): string {
 }
 
 /**
- * Generate a cache key from provider, prompt, and optional parameters.
+ * Generate a cache key from provider, prompt, optional parameters, tenantId, and systemPrompt.
+ * Incorporates tenantId to prevent any Cross-Tenant Cache Leakage between different pousadas.
  */
-export function buildCacheKey(provider: string, prompt: string, params?: Record<string, unknown>): string {
+export function buildCacheKey(
+  provider: string,
+  prompt: string,
+  params?: Record<string, unknown>,
+  tenantId?: string,
+  systemPrompt?: string
+): string {
   const normalizedPrompt = normalizeText(prompt);
   const paramStr = params ? JSON.stringify(params) : '';
-  const raw = `${provider}::${normalizedPrompt}::${paramStr}`;
+  const tenantStr = tenantId || 'global';
+  const sysStr = systemPrompt ? normalizeText(systemPrompt) : '';
+  const raw = `${tenantStr}::${provider}::${normalizedPrompt}::${sysStr}::${paramStr}`;
   return fnv1aHash(raw);
 }
 

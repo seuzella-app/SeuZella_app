@@ -1168,7 +1168,13 @@ export class ZaosNeuroRouter {
 
     // --- Semantic Cache Check ---
     if (!request.noCache) {
-      const cacheKey = buildCacheKey(providerId, request.message, request.params);
+      const cacheKey = buildCacheKey(
+        providerId,
+        request.message,
+        request.params,
+        request.tenantId,
+        request.systemPrompt
+      );
       const cached = this.semanticCache.get(cacheKey);
       if (cached) {
         const latencyMs = Date.now() - startTime;
@@ -1262,7 +1268,13 @@ export class ZaosNeuroRouter {
 
     // --- Record in cache ---
     if (!request.noCache && isSuccess) {
-      const cacheKey = buildCacheKey(providerId, request.message, request.params);
+      const cacheKey = buildCacheKey(
+        providerId,
+        request.message,
+        request.params,
+        request.tenantId,
+        request.systemPrompt
+      );
       this.semanticCache.set(
         cacheKey,
         responseText,
