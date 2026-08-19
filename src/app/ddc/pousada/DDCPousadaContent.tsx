@@ -7,6 +7,9 @@ import { Key, MessageCircle } from 'lucide-react';
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
+  ResponsiveContainer,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -15,6 +18,7 @@ import {
   Cell,
   BarChart,
   Bar,
+  Tooltip,
 } from 'recharts';
 import { DDCShell, type NavItem } from '@/components/ddc/DDCShell';
 import { NotificationFAB } from '@/components/ddc/notifications/NotificationFAB';
@@ -136,97 +140,48 @@ interface TrainingItem {
 // ── Mock Data 
 
 const revenueTrendData = [
-  { day: '01/02', receita: 2800 },
-  { day: '02/02', receita: 3200 },
-  { day: '03/02', receita: 1900 },
-  { day: '04/02', receita: 4100 },
-  { day: '05/02', receita: 3600 },
-  { day: '06/02', receita: 5200 },
-  { day: '07/02', receita: 4800 },
-  { day: '08/02', receita: 3900 },
-  { day: '09/02', receita: 4600 },
-  { day: '10/02', receita: 5800 },
-  { day: '11/02', receita: 4300 },
-  { day: '12/02', receita: 6100 },
-  { day: '13/02', receita: 5500 },
-  { day: '14/02', receita: 7200 },
-  { day: '15/02', receita: 6800 },
-  { day: '16/02', receita: 5900 },
-  { day: '17/02', receita: 6400 },
-  { day: '18/02', receita: 7800 },
-  { day: '19/02', receita: 7100 },
-  { day: '20/02', receita: 8200 },
-  { day: '21/02', receita: 7500 },
-  { day: '22/02', receita: 8900 },
-  { day: '23/02', receita: 8100 },
-  { day: '24/02', receita: 9400 },
-  { day: '25/02', receita: 8600 },
-  { day: '26/02', receita: 9800 },
-  { day: '27/02', receita: 9200 },
-  { day: '28/02', receita: 10500 },
+  { day: '01/02', base: 2400, upsell: 400, receita: 2800 },
+  { day: '02/02', base: 2800, upsell: 400, receita: 3200 },
+  { day: '03/02', base: 1900, upsell: 0, receita: 1900 },
+  { day: '04/02', base: 3600, upsell: 500, receita: 4100 },
+  { day: '05/02', base: 3200, upsell: 400, receita: 3600 },
+  { day: '06/02', base: 4400, upsell: 800, receita: 5200 },
+  { day: '07/02', base: 4200, upsell: 600, receita: 4800 },
+  { day: '08/02', base: 3500, upsell: 400, receita: 3900 },
+  { day: '09/02', base: 4100, upsell: 500, receita: 4600 },
+  { day: '10/02', base: 4800, upsell: 1000, receita: 5800 },
+  { day: '11/02', base: 3900, upsell: 400, receita: 4300 },
+  { day: '12/02', base: 5100, upsell: 1000, receita: 6100 },
+  { day: '13/02', base: 4600, upsell: 900, receita: 5500 },
+  { day: '14/02', base: 5200, upsell: 2000, receita: 7200, isPeak: true, peakName: 'Pacote Feriado Carnaval' },
+  { day: '15/02', base: 4800, upsell: 2000, receita: 6800, isPeak: true, peakName: 'Carnaval' },
+  { day: '16/02', base: 4400, upsell: 1500, receita: 5900, isPeak: true, peakName: 'Carnaval' },
+  { day: '17/02', base: 4900, upsell: 1500, receita: 6400, isPeak: true, peakName: 'Carnaval' },
+  { day: '18/02', base: 5800, upsell: 2000, receita: 7800, isPeak: true, peakName: 'Quarta de Cinzas' },
+  { day: '19/02', base: 6100, upsell: 1000, receita: 7100 },
+  { day: '20/02', base: 6800, upsell: 1400, receita: 8200 },
+  { day: '21/02', base: 6200, upsell: 1300, receita: 7500 },
+  { day: '22/02', base: 7100, upsell: 1800, receita: 8900 },
+  { day: '23/02', base: 6600, upsell: 1500, receita: 8100 },
+  { day: '24/02', base: 7400, upsell: 2000, receita: 9400 },
+  { day: '25/02', base: 6900, upsell: 1700, receita: 8600 },
+  { day: '26/02', base: 7800, upsell: 2000, receita: 9800 },
+  { day: '27/02', base: 7400, upsell: 1800, receita: 9200 },
+  { day: '28/02', base: 8200, upsell: 2300, receita: 10500, isPeak: true, peakName: 'Pico de Fim de Mês' },
 ];
-
-const paymentMethodData = [
-  { method: 'PIX', value: 18700, fill: '#10b981' },
-  { method: 'Cartão', value: 12300, fill: '#f59e0b' },
-  { method: 'Dinheiro', value: 3400, fill: '#6366f1' },
-];
-
-const weeklyOccupancyData = [
-  { week: 'Sem 1', taxa: 62 },
-  { week: 'Sem 2', taxa: 71 },
-  { week: 'Sem 3', taxa: 85 },
-  { week: 'Sem 4', taxa: 78 },
-];
-
-const kanbanGuests: Record<string, GuestCardData[]> = {
-  'atendimento-ia': [
-    { id: '1', name: 'Maria Silva', roomType: 'Suíte Master', checkIn: '15/03', checkOut: '18/03', value: 1350, source: 'WhatsApp' },
-    { id: '2', name: 'João Pereira', roomType: 'Chalé', checkIn: '20/03', checkOut: '23/03', value: 2100, source: 'Booking' },
-    { id: '3', name: 'Ana Costa', roomType: 'Quarto Standard', checkIn: '22/03', checkOut: '24/03', value: 680, source: 'WhatsApp' },
-  ],
-  'aguardando-pagamento': [
-    { id: '4', name: 'Roberto Lima', roomType: 'Suíte Master', checkIn: '18/03', checkOut: '21/03', value: 1350, source: 'Airbnb' },
-    { id: '5', name: 'Carla Mendes', roomType: 'Chalé', checkIn: '25/03', checkOut: '28/03', value: 2100, source: 'WhatsApp' },
-  ],
-  'confirmado': [
-    { id: '6', name: 'Fernando Oliveira', roomType: 'Suíte Master', checkIn: '12/03', checkOut: '15/03', value: 1350, source: 'Booking' },
-    { id: '7', name: 'Patrícia Santos', roomType: 'Quarto Standard', checkIn: '14/03', checkOut: '16/03', value: 680, source: 'WhatsApp' },
-    { id: '8', name: 'Lucas Almeida', roomType: 'Chalé', checkIn: '16/03', checkOut: '19/03', value: 2100, source: 'Airbnb' },
-  ],
-  'checkin-hoje': [
-    { id: '9', name: 'Camila Rodrigues', roomType: 'Suíte Master', checkIn: '10/03', checkOut: '13/03', value: 1350, source: 'WhatsApp' },
-    { id: '10', name: 'Diego Ferreira', roomType: 'Quarto Standard', checkIn: '10/03', checkOut: '12/03', value: 680, source: 'Booking' },
-  ],
-};
-
-const recentTransactions: Transaction[] = [
-  { id: 't1', guest: 'Camila Rodrigues', description: 'Reserva Suíte Master (3 noites)', method: 'PIX', amount: 1350, date: '10/03/2025', status: 'confirmado' },
-  { id: 't2', guest: 'Diego Ferreira', description: 'Reserva Standard (2 noites)', method: 'Cartão', amount: 680, date: '10/03/2025', status: 'pendente' },
-  { id: 't3', guest: 'Fernando Oliveira', description: 'Reserva Suíte Master (3 noites)', method: 'PIX', amount: 1350, date: '09/03/2025', status: 'confirmado' },
-  { id: 't4', guest: 'Patrícia Santos', description: 'Reserva Standard (2 noites)', method: 'Dinheiro', amount: 680, date: '08/03/2025', status: 'confirmado' },
-  { id: 't5', guest: 'Lucas Almeida', description: 'Reserva Chalé (3 noites)', method: 'PIX', amount: 2100, date: '08/03/2025', status: 'confirmado' },
-  { id: 't6', guest: 'Carlos Nogueira', description: 'Reembolso Cancelamento', method: 'PIX', amount: -450, date: '07/03/2025', status: 'reembolso' },
-  { id: 't7', guest: 'Mariana Torres', description: 'Reserva Suíte Master (2 noites)', method: 'Cartão', amount: 900, date: '07/03/2025', status: 'confirmado' },
-  { id: 't8', guest: 'André Barbosa', description: 'Reserva Chalé (4 noites)', method: 'PIX', amount: 2800, date: '06/03/2025', status: 'confirmado' },
-];
-
-const trainingItems: TrainingItem[] = [
-  { id: 'tr1', title: 'Cardápio do Café da Manhã', status: 'completo', icon: <FileText className="size-4" /> },
-  { id: 'tr2', title: 'Regras da Piscina', status: 'completo', icon: <ShieldCheck className="size-4" /> },
-  { id: 'tr3', title: 'Horários de Check-in/Check-out', status: 'completo', icon: <Clock className="size-4" /> },
-  { id: 'tr4', title: 'Preços e Temporadas', status: 'completo', icon: <DollarSign className="size-4" /> },
-  { id: 'tr5', title: 'Políticas de Cancelamento', status: 'em progresso', icon: <FileText className="size-4" /> },
-  { id: 'tr6', title: 'Atrações Turísticas Próximas', status: 'pendente', icon: <Globe className="size-4" /> },
-  { id: 'tr7', title: 'Cardápio do Restaurante', status: 'pendente', icon: <FileText className="size-4" /> },
-];
-
-// ── Chart Configs 
 
 const revenueChartConfig: ChartConfig = {
   receita: {
-    label: 'Receita (R$)',
+    label: 'Faturamento Total (R$)',
     color: '#10b981',
+  },
+  base: {
+    label: 'Diárias Normais (R$)',
+    color: '#059669',
+  },
+  upsell: {
+    label: 'UPSELL Feriados (R$)',
+    color: '#38bdf8',
   },
 };
 
@@ -403,6 +358,8 @@ export default function DDCPousadaContent() {
   });
   const [newPlatformUrl, setNewPlatformUrl] = useState('');
   const [newPlatformName, setNewPlatformName] = useState<PlatformLink['platform']>('Booking');
+  const [faturaStatus, setFaturaStatus] = useState<'em_dia' | 'a_vencer' | 'atraso_leve' | 'atraso_critico'>('em_dia');
+  const [chartViewMode, setChartViewMode] = useState<'area' | 'bar'>('area');
 
   // Computed metrics (declared before any early return — Rules of Hooks)
   const totalMRR = useMemo(() => {
@@ -602,7 +559,7 @@ export default function DDCPousadaContent() {
         {/* MRR Card */}
         <Card className="bg-[#0d0d14] border border-emerald-500/30 hover:border-emerald-500/60 transition-all rounded-2xl shadow-none">
           <CardHeader className="pb-1 p-3 sm:p-4">
-            <CardDescription className="text-emerald-400 text-[10px] sm:text-xs font-mono uppercase tracking-wider">Faturamento do Mês</CardDescription>
+            <CardDescription className="text-emerald-400 text-[10px] sm:text-xs font-mono uppercase tracking-wider">Faturamento Total (Mês)</CardDescription>
             <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">
               {formatCurrency(totalMRR)}
             </CardTitle>
@@ -610,7 +567,23 @@ export default function DDCPousadaContent() {
           <CardContent className="p-3 sm:p-4 pt-0">
             <div className="flex items-center gap-1 text-emerald-400 text-[10px] sm:text-xs font-medium">
               <TrendingUp className="size-3 sm:size-3.5" />
-              <span>+12.5% vs mês anterior</span>
+              <span>+14.2% vs mês anterior</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* UPSELL Faturado Extra */}
+        <Card className="bg-[#0d0d14] border border-blue-500/30 hover:border-blue-500/60 transition-all rounded-2xl shadow-none">
+          <CardHeader className="pb-1 p-3 sm:p-4">
+            <CardDescription className="text-blue-400 text-[10px] sm:text-xs font-mono uppercase tracking-wider">UPSELL em Feriados</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-400 tracking-tight">
+              +R$ 5.200,00
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="flex items-center gap-1 text-zinc-300 text-[10px] sm:text-xs">
+              <Sparkles className="size-3 sm:size-3.5 text-blue-400" />
+              <span>Ganho extra acima da diária normal</span>
             </div>
           </CardContent>
         </Card>
@@ -644,50 +617,367 @@ export default function DDCPousadaContent() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Active Guests Card */}
-        <Card className="bg-[#0d0d14] border border-white/10 hover:border-emerald-500/30 transition-all rounded-2xl shadow-none">
-          <CardHeader className="pb-2 p-3 sm:p-4">
-            <CardDescription className="text-zinc-400 text-[10px] sm:text-xs font-mono uppercase tracking-wider">Hóspedes Ativos</CardDescription>
-            <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">{totalGuests}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4 pt-0">
-            <div className="flex items-center gap-1.5 text-emerald-400 text-[10px] sm:text-xs font-mono">
-              <Users className="size-3 sm:size-3.5" />
-              <span>{confirmedCount} confirmados</span>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Charts Row — Clean Solid Lines, Rounded-2xl */}
+      {/* ── PAINEL DE FATURAMENTO UPSELL & STATUS DA FATURA DA PARCERIA ── */}
+      <Card className="bg-gradient-to-br from-[#0e0e18] via-[#09090e] to-black border-2 border-emerald-500/30 rounded-2xl overflow-hidden shadow-lg">
+        <CardHeader className="p-5 pb-3 border-b border-white/[0.06] flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-5 text-emerald-400" />
+              <CardTitle className="text-base font-bold text-white tracking-tight">
+                Parceria Seu Zélla & {scannedData.propertyName} — Faturamento & UPSELL
+              </CardTitle>
+            </div>
+            <CardDescription className="text-xs text-zinc-400 mt-0.5">
+              Diárias normais livres de comissão (0%) • 7% sobre o ganho adicional em feriados • Fatura consolidada mensal
+            </CardDescription>
+          </div>
+
+          {/* Simulação de Status da Fatura (Controle Interativo) */}
+          <div className="flex items-center gap-1.5 bg-black/60 border border-white/10 rounded-xl p-1 text-[11px] self-start md:self-auto">
+            <span className="text-zinc-500 px-2 font-mono">Status Fatura:</span>
+            <button
+              type="button"
+              onClick={() => setFaturaStatus('em_dia')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                faturaStatus === 'em_dia'
+                  ? 'bg-emerald-500 text-black shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Em Dia
+            </button>
+            <button
+              type="button"
+              onClick={() => setFaturaStatus('a_vencer')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                faturaStatus === 'a_vencer'
+                  ? 'bg-amber-500 text-black shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              A Vencer (3d)
+            </button>
+            <button
+              type="button"
+              onClick={() => setFaturaStatus('atraso_leve')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                faturaStatus === 'atraso_leve'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Atraso Leve (5d)
+            </button>
+            <button
+              type="button"
+              onClick={() => setFaturaStatus('atraso_critico')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                faturaStatus === 'atraso_critico'
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Atraso Crítico (18d)
+            </button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-5 space-y-4">
+          {/* Métricas de Cobrança Transparente */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">Diárias Normais</span>
+              <p className="text-lg font-bold text-white mt-0.5">R$ 34.400,00</p>
+              <span className="text-[10px] text-emerald-400 font-semibold">Taxa Zélla: R$ 0,00 (0%)</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-blue-950/40 border border-blue-500/30">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300 block">UPSELL em Feriados</span>
+              <p className="text-lg font-bold text-blue-400 mt-0.5">+R$ 5.200,00</p>
+              <span className="text-[10px] text-blue-300 font-semibold">Faturamento extra no pico</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">Taxa Sucesso (7% UPSELL)</span>
+              <p className="text-lg font-bold text-amber-400 mt-0.5">R$ 364,00</p>
+              <span className="text-[10px] text-zinc-400">Por triplicar o atendimento</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 block">Total da Fatura Zélla</span>
+              <p className="text-lg font-black text-emerald-400 mt-0.5">R$ 761,00</p>
+              <span className="text-[10px] text-zinc-300">R$ 397 (Plano) + R$ 364 (UPSELL)</span>
+            </div>
+          </div>
+
+          {/* BANNER DINÂMICO DE NOTIFICAÇÃO & STATUS DA PARCERIA */}
+          {faturaStatus === 'em_dia' && (
+            <div className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/40 flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0">
+                  <CheckCircle2 className="size-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-emerald-300">
+                    Parceria 100% em Dia! Seu Zélla ativo 24h nas reservas de {scannedData.propertyName}
+                  </h4>
+                  <p className="text-xs text-zinc-300 mt-0.5 leading-relaxed">
+                    Tudo certo com sua conta. O próximo fechamento mensal será processado de forma 100% automática no seu cartão cadastrado em <strong>30/09/2026</strong>.
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-emerald-500 text-black font-bold text-[10px] shrink-0">EM DIA</Badge>
+            </div>
+          )}
+
+          {faturaStatus === 'a_vencer' && (
+            <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-950/30 flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/20 text-amber-300 shrink-0">
+                  <Clock className="size-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-amber-300">
+                    Lembrete Amigável: Fatura mensal fecha em 3 dias (30/09)
+                  </h4>
+                  <p className="text-xs text-zinc-300 mt-0.5 leading-relaxed">
+                    O valor consolidado de <strong>R$ 761,00</strong> (R$ 397,00 do plano mensal + R$ 364,00 dos 7% de UPSELL) será cobrado no cartão final <strong>•• 8492</strong>. Nenhuma ação é necessária.
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold text-[10px] shrink-0">A VENCER</Badge>
+            </div>
+          )}
+
+          {faturaStatus === 'atraso_leve' && (
+            <div className="p-4 rounded-xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-950/60 via-zinc-900 to-black flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 shrink-0">
+                  <Sparkles className="size-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">
+                    🤝 Olá parceiro da {scannedData.propertyName}! Uma mensagem de parceria do Seu Zélla
+                  </h4>
+                  <p className="text-xs text-zinc-300 mt-1 leading-relaxed max-w-2xl">
+                    Identificamos uma pequena pendência no processamento da fatura no seu cartão de crédito. Sabemos muito bem que a rotina de gerenciar pousada é corrida e o pior já passou! Daqui para frente só vai ser evolução e crescimento juntos. Atualize seu cartão de crédito com 1 clique para mantermos o Seu Zélla voando no WhatsApp e fechaduras sem interrupções!
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs shrink-0 rounded-xl px-4 py-2"
+                onClick={() => toast.success('Link seguro de atualização enviado para seu WhatsApp e e-mail cadastrado!')}
+              >
+                Atualizar Cartão Agora
+              </Button>
+            </div>
+          )}
+
+          {faturaStatus === 'atraso_critico' && (
+            <div className="p-4 rounded-xl border-2 border-red-500/70 bg-gradient-to-r from-red-950/70 via-zinc-900 to-black flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 rounded-xl bg-red-500/20 border border-red-500/50 text-red-400 shrink-0">
+                  <ShieldCheck className="size-5 text-red-400" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-red-300">
+                    ⚠️ Aviso Importante para a {scannedData.propertyName}
+                  </h4>
+                  <p className="text-xs text-zinc-300 mt-1 leading-relaxed max-w-2xl">
+                    Para evitar o desligamento momentâneo do atendimento do Seu Zélla no WhatsApp e do envio de senhas das fechaduras eletrônicas, por favor regularize o débito pendente de R$ 761,00. Estamos 100% prontos para continuar essa jornada de sucesso e faturamento com você!
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs shrink-0 rounded-xl px-4 py-2"
+                onClick={() => toast.success('Chave PIX e fatura urgente geradas com sucesso!')}
+              >
+                Regularizar via PIX Imediato
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── CHARTS ROW — GRÁFICO MODERNO DE FATURAMENTO (FINTECH STYLE) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Revenue Trend Chart - 2 cols */}
-        <Card className="lg:col-span-2 bg-[#0d0d14] border border-white/10 rounded-2xl shadow-none">
-          <CardHeader>
-            <CardTitle className="text-base font-bold text-white tracking-tight">Receita dos Últimos 30 Dias</CardTitle>
-            <CardDescription className="text-white/50 text-xs">Evolução diária de faturamento em tempo real</CardDescription>
+        <Card className="lg:col-span-2 bg-[#0a0a12] border border-white/10 rounded-2xl overflow-hidden shadow-none">
+          <CardHeader className="p-5 pb-3 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="size-4 text-emerald-400" />
+                <CardTitle className="text-base font-bold text-white tracking-tight">
+                  Evolução do Faturamento — Últimos 30 Dias
+                </CardTitle>
+              </div>
+              <CardDescription className="text-xs text-zinc-400 mt-0.5">
+                Valores reais consolidados: Diárias Normais (Base) + UPSELL em Alta Temporada
+              </CardDescription>
+            </div>
+
+            {/* Alternância de Modo de Gráfico */}
+            <div className="flex items-center rounded-xl bg-zinc-900 border border-zinc-800 p-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setChartViewMode('area')}
+                className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+                  chartViewMode === 'area'
+                    ? 'bg-emerald-500 text-black shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Área Suave
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartViewMode('bar')}
+                className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+                  chartViewMode === 'bar'
+                    ? 'bg-emerald-500 text-black shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Barras (Base + UPSELL)
+              </button>
+            </div>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={revenueChartConfig} className="h-[260px] w-full">
-              <LineChart data={revenueTrendData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                <XAxis dataKey="day" stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  formatter={(value: number) => [formatCurrency(value), 'Receita']}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="receita"
-                  stroke="#10b981"
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#10b981', stroke: '#0a0a0f', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ChartContainer>
+
+          <CardContent className="p-5">
+            {/* Header de KPIs do Gráfico */}
+            <div className="grid grid-cols-3 gap-3 mb-4 p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+              <div>
+                <span className="text-[10px] text-zinc-400 uppercase font-mono block">Total 30 Dias</span>
+                <span className="text-lg font-extrabold text-white">R$ 178.600,00</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-400 uppercase font-mono block">Média Diária</span>
+                <span className="text-lg font-extrabold text-emerald-400">R$ 5.953,00</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-400 uppercase font-mono block">Pico de Feriado</span>
+                <span className="text-lg font-extrabold text-blue-400">R$ 10.500,00</span>
+              </div>
+            </div>
+
+            {chartViewMode === 'area' ? (
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={revenueTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                      </linearGradient>
+                      <linearGradient id="colorUpsell" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f1f2e" vertical={false} />
+                    <XAxis dataKey="day" stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis
+                      stroke="#71717a"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="rounded-xl border border-zinc-700 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur-md text-xs">
+                              <p className="font-bold text-white mb-1.5 flex items-center justify-between gap-3">
+                                <span>Dia {label}</span>
+                                {data.isPeak ? (
+                                  <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded">
+                                    {data.peakName}
+                                  </span>
+                                ) : null}
+                              </p>
+                              <div className="space-y-1">
+                                <div className="flex justify-between gap-4 text-zinc-300">
+                                  <span>Diárias Normais:</span>
+                                  <span className="font-mono text-emerald-400 font-semibold">{formatCurrency(data.base)}</span>
+                                </div>
+                                <div className="flex justify-between gap-4 text-zinc-300">
+                                  <span>UPSELL Feriado:</span>
+                                  <span className="font-mono text-blue-400 font-semibold">+{formatCurrency(data.upsell)}</span>
+                                </div>
+                                <div className="flex justify-between gap-4 pt-1 border-t border-zinc-800 text-white font-bold">
+                                  <span>Faturamento Total:</span>
+                                  <span className="font-mono text-emerald-300">{formatCurrency(data.receita)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="receita"
+                      stroke="#10b981"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#colorReceita)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenueTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f1f2e" vertical={false} />
+                    <XAxis dataKey="day" stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis
+                      stroke="#71717a"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="rounded-xl border border-zinc-700 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur-md text-xs">
+                              <p className="font-bold text-white mb-1.5">Dia {label}</p>
+                              <div className="space-y-1">
+                                <div className="flex justify-between gap-4 text-zinc-300">
+                                  <span>Base Diária (0% Taxa):</span>
+                                  <span className="font-mono text-emerald-400">{formatCurrency(data.base)}</span>
+                                </div>
+                                <div className="flex justify-between gap-4 text-zinc-300">
+                                  <span>UPSELL Extra (7% Taxa):</span>
+                                  <span className="font-mono text-blue-400">+{formatCurrency(data.upsell)}</span>
+                                </div>
+                                <div className="flex justify-between gap-4 pt-1 border-t border-zinc-800 text-white font-bold">
+                                  <span>Total do Dia:</span>
+                                  <span className="font-mono text-emerald-300">{formatCurrency(data.receita)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="base" stackId="a" fill="#059669" radius={[0, 0, 0, 0]} name="Diárias Normais" />
+                    <Bar dataKey="upsell" stackId="a" fill="#38bdf8" radius={[4, 4, 0, 0]} name="UPSELL Feriados" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
 
