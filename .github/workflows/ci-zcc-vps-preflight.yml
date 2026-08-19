@@ -70,14 +70,15 @@ jobs:
             tests/marketing-google-ads-simulation.test.ts \
             tests/sustainability-growth-churn.test.ts
 
-      - name: Run ZCC Security, Night Audit & SAST Tests
+      - name: Run ZCC Security, SAST & LGPD Tests
         run: |
           npx vitest run \
             tests/zcc-security.test.ts \
-            tests/night-audit-system.test.ts \
             tests/security/api-routes-sast.test.ts \
-            tests/semantica-lgpd.test.ts \
-            --testTimeout=60000
+            tests/semantica-lgpd.test.ts
+
+      - name: Run Night Audit System Tests
+        run: npx vitest run tests/night-audit-system.test.ts
 
   # ───────────────────────────────────────────────────────────────────────────
   # JOB 2: Hostinger VPS Deployment Pre-Flight Validation
