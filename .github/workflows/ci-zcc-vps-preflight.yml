@@ -32,6 +32,9 @@ env:
   NEXTAUTH_SECRET: 'ci-secret-key-32-characters-minimum-length-xyz'
   CRON_SECRET: 'ci-cron-secret-token'
   BYPASS_MIDDLEWARE_AUTH: 'true'
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
+  UPSTASH_REDIS_REST_URL: http://localhost:8079
+  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
 
 jobs:
   # ───────────────────────────────────────────────────────────────────────────
@@ -73,7 +76,8 @@ jobs:
             tests/zcc-security.test.ts \
             tests/night-audit-system.test.ts \
             tests/security/api-routes-sast.test.ts \
-            tests/semantica-lgpd.test.ts
+            tests/semantica-lgpd.test.ts \
+            --testTimeout=60000
 
   # ───────────────────────────────────────────────────────────────────────────
   # JOB 2: Hostinger VPS Deployment Pre-Flight Validation

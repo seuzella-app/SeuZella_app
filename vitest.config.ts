@@ -8,7 +8,12 @@ export default defineConfig({
     env: {
       NEXTAUTH_SECRET: 'test-secret-for-vitest-12345678901234567890',
     },
-    include: ['tests/**/*.test.{ts,tsx}', 'src/__tests__/**/*.test.{ts,tsx}'],
+    include: [
+      'tests/**/*.test.ts',
+      'tests/**/*.test.tsx',
+      'src/__tests__/**/*.test.ts',
+      'src/__tests__/**/*.test.tsx',
+    ],
     coverage: {
       provider: 'v8',
       include: ['src/lib/zcc-security.ts', 'src/lib/message-bundler.ts'],
