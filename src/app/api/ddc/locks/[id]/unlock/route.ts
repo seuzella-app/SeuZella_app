@@ -12,7 +12,7 @@ import { resolveTenantId } from '@/lib/ddc/auth-utils';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const tenantId = await resolveTenantId();
@@ -20,7 +20,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const deviceId = params.id;
+    const { id: deviceId } = await params;
     const result = await remoteUnlock(deviceId);
 
     if (!result.success) {

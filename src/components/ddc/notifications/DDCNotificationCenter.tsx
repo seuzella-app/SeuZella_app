@@ -146,6 +146,7 @@ export function DDCNotificationCenter({
     notifications.filter((n) => n.status === 'read').forEach((n) => archive(n.id));
   }, [notifications, archive]);
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<NotificationCategory | 'all'>('all');
   const [activePriority, setActivePriority] = useState<DDCNotification['priority'] | 'all'>('all');
   const [activeStatus, setActiveStatus] = useState<'all' | 'unread' | 'read'>('all');

@@ -95,7 +95,7 @@ export function MobileAirbnbSuperApp() {
   };
 
   // Live Synced Notifications Engine
-  const { unreadCount } = useDDCMobileNotifications({
+  const { unreadCount, simulateNotification } = useDDCMobileNotifications({
     niche: 'airbnb',
     pollInterval: 15000,
     enableSound: false,
@@ -145,16 +145,7 @@ export function MobileAirbnbSuperApp() {
     const newPin = (arr[0] % 1000000).toString().padStart(6, '0');
     setPinCode(newPin);
     toast.success(`🔑 Novo PIN Temporário Gerado: ${newPin}`);
-    setNotifications((prev) => [
-      {
-        id: Date.now(),
-        title: 'Novo PIN Digital Gerado',
-        desc: `Código de acesso temporário: ${newPin}`,
-        time: 'Agora mesmo',
-        unread: true,
-      },
-      ...prev,
-    ]);
+    simulateNotification();
   };
 
   const handleRemoteUnlock = (propName: string) => {

@@ -81,6 +81,7 @@ import {
   BarChart2,
   Building2,
   Coins,
+  LayoutDashboard,
 } from 'lucide-react';
 import { CreditsTab } from '@/components/ddc/credits/CreditsTab';
 import { BITab } from '@/components/ddc/BITab';

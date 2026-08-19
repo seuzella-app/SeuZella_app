@@ -36,9 +36,11 @@ interface YieldData {
 
 interface MobileYieldProfitWidgetProps {
   niche: 'pousada' | 'airbnb';
+  propertyName?: string;
+  onNavigate?: (tab: any) => void;
 }
 
-export function MobileYieldProfitWidget({ niche }: MobileYieldProfitWidgetProps) {
+export function MobileYieldProfitWidget({ niche, propertyName, onNavigate }: MobileYieldProfitWidgetProps) {
   const [data, setData] = useState<YieldData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

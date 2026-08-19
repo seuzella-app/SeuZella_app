@@ -1862,7 +1862,7 @@ export default function DDCDashboardContent() {
     if (activeTab === 'billing' || activeTab === 'payment') {
       return (
         <motion.div variants={fadeIn} initial="hidden" animate="visible" className="space-y-4">
-          <DDCBillingTab tenantId={propertyId || 'demo-pousada'} />
+          <DDCBillingTab tenantId="demo-pousada" />
         </motion.div>
       );
     }

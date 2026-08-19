@@ -159,7 +159,7 @@ export function MobilePousadaSuperApp() {
   };
 
   // Live Synced Notifications Engine
-  const { unreadCount, notifications, setNotifications } = useDDCMobileNotifications({
+  const { unreadCount, notifications, simulateNotification } = useDDCMobileNotifications({
     niche: 'pousada',
     pollInterval: 15000,
     enableSound: false,

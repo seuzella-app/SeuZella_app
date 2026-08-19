@@ -39,7 +39,7 @@ env:
   NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
   UPSTASH_REDIS_REST_URL: http://localhost:8079
   UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
-  DATABASE_URL: file:./test-ci.db
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
   CRON_SECRET: test-cron-secret-for-ci
   BOOKING_COM_WEBHOOK_SECRET: test-booking-secret-12345678901234567890
 

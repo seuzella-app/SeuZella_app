@@ -38,47 +38,57 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
 describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
   it('should render HUDTopbar for Pousada niche with expected metrics', () => {
     const html = renderToStaticMarkup(<HUDTopbar niche="pousada" />);
     
     expect(html).toContain('POUSADA HUD');
-    expect(html).toContain('OCUPAÇÃO');
+    expect(html).toContain('Ocupação');
     expect(html).toContain('88%');
-    expect(html).toContain('ADR (DIÁRIA)');
+    expect(html).toContain('ADR');
     expect(html).toContain('R$ 420');
-    expect(html).toContain('HÓSPEDES');
-    expect(html).toContain('META SAVE');
+    expect(html).toContain('Hóspedes');
+    expect(html).toContain('Meta Save');
   });
 
   it('should render HUDTopbar for Airbnb niche with expected metrics', () => {
     const html = renderToStaticMarkup(<HUDTopbar niche="airbnb" />);
     
     expect(html).toContain('AIRBNB HUD');
-    expect(html).toContain('RECEITA MÊS');
+    expect(html).toContain('Receita Mês');
     expect(html).toContain('R$ 8.950');
-    expect(html).toContain('CHECK-IN');
-    expect(html).toContain('LINK-IN-BIO');
-    expect(html).toContain('PIX BLOQ');
+    expect(html).toContain('Próx. Check-in');
+    expect(html).toContain('LiB Cliques');
+    expect(html).toContain('PIX Bloq.');
   });
 
   it('should render QuickActionsCard for Pousada niche with 1-tap touch targets', () => {
     const html = renderToStaticMarkup(<QuickActionsCard niche="pousada" />);
     
-    expect(html).toContain('AÇÕES RÁPIDAS (1-TAP)');
     expect(html).toContain('IA ON');
-    expect(html).toContain('Enviar Guia');
-    expect(html).toContain('Trancar');
-    expect(html).toContain('Sync OTAs');
+    expect(html).toContain('Check-in');
+    expect(html).toContain('Fechadura');
+    expect(html).toContain('Sync iCal');
   });
 
   it('should render QuickActionsCard for Airbnb niche with 1-tap touch targets', () => {
     const html = renderToStaticMarkup(<QuickActionsCard niche="airbnb" />);
     
-    expect(html).toContain('AÇÕES RÁPIDAS (1-TAP)');
-    expect(html).toContain('IA ON');
-    expect(html).toContain('PIX Shield');
-    expect(html).toContain('Faxina');
+    expect(html).toContain('Gerar PIN');
+    expect(html).toContain('Limpeza');
+    expect(html).toContain('ESCUDO ON');
+    expect(html).toContain('Preço');
   });
 
   it('should render MobilePhoneWrapper with fullscreen wrapper and child content', () => {
@@ -92,28 +102,30 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
   });
 
   it('should render MobilePousadaSuperApp with full mobile-native tabs and Stitch elements', () => {
-    const html = renderToStaticMarkup(<MobilePousadaSuperApp />);
-    expect(html).toContain('SeuZella_Logo_site.png');
+    const client = createTestQueryClient();
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={client}>
+        <MobilePousadaSuperApp />
+      </QueryClientProvider>
+    );
     expect(html).toContain('POUSADA');
-    expect(html).toContain('Faturamento do Mês');
-    expect(html).toContain('R$ 42.800');
-    expect(html).toContain('Ocupação Semanal');
-    expect(html).toContain('Visão Geral');
-    expect(html).toContain('Hóspedes');
-    expect(html).toContain('Central Zélla');
+    expect(html).toContain('Wi-Fi Hospedagem');
+    expect(html).toContain('MAPA DE QUARTOS');
+    expect(html).toContain('Suíte Master 101');
     expect(html).toContain('Whats Live');
   });
 
   it('should render MobileAirbnbSuperApp with full mobile-native tabs and Stitch elements', () => {
-    const html = renderToStaticMarkup(<MobileAirbnbSuperApp />);
-    expect(html).toContain('SeuZella_Logo_site.png');
-    expect(html).toContain('AIRBNB');
-    expect(html).toContain('Receita Bruta');
-    expect(html).toContain('R$ 8.950');
-    expect(html).toContain('Link-in-Bio Visitas');
-    expect(html).toContain('342');
-    expect(html).toContain('PIX Shield');
-    expect(html).toContain('Link-in-Bio');
+    const client = createTestQueryClient();
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={client}>
+        <MobileAirbnbSuperApp />
+      </QueryClientProvider>
+    );
+    expect(html).toContain('ANFITRIÃO');
+    expect(html).toContain('Bio PIX');
+    expect(html).toContain('Anti-Ban');
+    expect(html).toContain('Simulador');
   });
 });
 

@@ -23,7 +23,7 @@ env:
   NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
   UPSTASH_REDIS_REST_URL: http://localhost:8079
   UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
-  DATABASE_URL: file:./test-ci.db
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ jobs:
         run: npm run build
         env:
           CI: 'true'
-          DATABASE_URL: file:./dev.db
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
           NODE_ENV: production
 
       - name: Verify Standalone Server Exists

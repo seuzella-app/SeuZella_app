@@ -16,7 +16,7 @@ env:
   NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
   UPSTASH_REDIS_REST_URL: http://localhost:8079
   UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
-  DATABASE_URL: file:./test-integration.db
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
   CI: 'true'
 
 jobs:
@@ -38,8 +38,8 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Push Prisma Schema to SQLite DB
-        run: npx prisma db push --accept-data-loss
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
       - name: Execute Smart Locks Test Suite
         run: |

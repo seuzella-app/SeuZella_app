@@ -33,7 +33,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const configs = await db.codeReviewConfig.findMany();
     return NextResponse.json({
       ok: true,
-      data: configs.map((c) => ({
+      data: configs.map((c: any) => ({
         key: c.key,
         value: JSON.parse(c.value),
         updatedBy: c.updatedBy,
