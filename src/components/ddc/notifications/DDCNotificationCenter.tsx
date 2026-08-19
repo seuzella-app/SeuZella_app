@@ -73,7 +73,7 @@ const CATEGORY_LABEL: Record<NotificationCategory, string> = {
   reservations: 'Reservas',
   financial: 'Financeiro',
   guests: 'Hóspedes',
-  ai: 'Cérebro Zélla',
+  ai: 'Automações',
   operations: 'Operações',
   marketing: 'Marketing',
   system: 'Sistema',

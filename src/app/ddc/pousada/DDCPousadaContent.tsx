@@ -541,7 +541,7 @@ export default function DDCPousadaContent() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white tracking-tight">Dashboard da Pousada — Cérebro Zélla 24h</span>
+              <span className="text-sm font-bold text-white tracking-tight">Dashboard da Pousada — Terminal Seu Zélla 24h</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px] uppercase font-mono rounded-full px-2.5 py-0.5">CONECTADO</Badge>
             </div>
@@ -549,7 +549,7 @@ export default function DDCPousadaContent() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400 font-bold">🧠 DSPY STANFORD: OPTIMIZED</span>
+          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400 font-bold">🛡️ MOTOR ZÉLLA: ATIVO</span>
           <span className="px-3 py-1 bg-white/[0.02] border border-white/10 rounded-full text-emerald-400">⚡ LATÊNCIA: 380ms</span>
           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-300">💬 ZÉLLA DISPATCH: 100%</span>
         </div>

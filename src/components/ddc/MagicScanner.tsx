@@ -40,7 +40,7 @@ const SCAN_STEPS = [
   { id: 'analyze', label: 'Analisando URL...', icon: Globe, duration: 1500 },
   { id: 'amenities', label: 'Mapeando comodidades e quartos...', icon: Search, duration: 1500 },
   { id: 'policies', label: 'Lendo políticas de cancelamento...', icon: ShieldCheck, duration: 1500 },
-  { id: 'calibrate', label: 'Calibrando Cérebro da IA...', icon: Brain, duration: 1500 },
+  { id: 'calibrate', label: 'Calibrando Motor de Atendimento...', icon: Brain, duration: 1500 },
 ];
 
 export function MagicScanner({ niche, onComplete }: MagicScannerProps) {

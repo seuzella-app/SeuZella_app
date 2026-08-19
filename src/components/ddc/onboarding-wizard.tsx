@@ -444,7 +444,7 @@ export function OnboardingWizard({ tenantId, onClose, onComplete }: OnboardingWi
                           Avisar-me com antecedência antes de aplicar valores de pico
                         </span>
                         <p className="text-[10px] text-muted-foreground mt-0.5">
-                          O Cérebro Zélla monitora o calendário da sua cidade. Ao detectar aumento de mensagens, calcula e sugere os valores de diária e upsell no DDC e DDC Mobile para você aprovar ou ajustar.
+                          O sistema Seu Zélla monitora o calendário da sua cidade. Ao detectar aumento de mensagens, calcula e sugere os valores de diária e upsell no DDC e DDC Mobile para você aprovar ou ajustar.
                         </p>
                       </div>
                     </label>

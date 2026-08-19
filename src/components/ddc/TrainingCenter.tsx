@@ -255,7 +255,7 @@ export function TrainingCenter() {
                           <Badge variant="outline" className="text-[8px] h-4 bg-white/[0.04] text-white/60 border-white/[0.08]">{getCategoryLabel(selectedTraining.category || selectedTraining.type || '')}</Badge>
                           <Badge variant="outline" className="text-[8px] h-4 bg-white/[0.04] text-white/60 border-white/[0.08]">v{selectedTraining.version || 1}</Badge>
                           {selectedTraining.isActive ? (
-                            <Badge className="text-[8px] h-4 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Ativo no Cerebro</Badge>
+                            <Badge className="text-[8px] h-4 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Ativo no Atendimento</Badge>
                           ) : (
                             <Badge className="text-[8px] h-4 bg-slate-500/20 text-slate-400 border-slate-500/30">Desativado</Badge>
                           )}
@@ -352,7 +352,7 @@ export function TrainingCenter() {
                     <Brain className="w-12 h-12 text-white/5 mx-auto mb-3" />
                     <p className="text-xs text-white/30">Nenhum padrao aprendido ainda</p>
                     <p className="text-[10px] text-white/20 mt-1 max-w-xs mx-auto">
-                      O cerebro aprende automaticamente com conversas resolvidas. Quanto mais conversas, mais padroes surgem.
+                      O sistema aprende automaticamente com conversas resolvidas. Quanto mais conversas, mais padrões surgem.
                     </p>
                   </div>
                 ) : (

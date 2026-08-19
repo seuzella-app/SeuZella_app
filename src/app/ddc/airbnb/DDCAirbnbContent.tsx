@@ -418,7 +418,7 @@ export default function DDCAirbnbContent() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white tracking-tight">Cockpit Anfitrião ProHost — Cérebro Zélla 24h</span>
+              <span className="text-sm font-bold text-white tracking-tight">Cockpit Anfitrião ProHost — Terminal Seu Zélla 24h</span>
               <span className="w-2 h-2 rounded-full bg-blue-400" />
               <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[10px] uppercase font-mono rounded-full px-2.5 py-0.5">SUPERHOST ATIVO</Badge>
             </div>
@@ -426,7 +426,7 @@ export default function DDCAirbnbContent() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 font-bold">🧠 DSPY STANFORD: OPTIMIZED</span>
+          <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 font-bold">🛡️ MOTOR ZÉLLA: ATIVO</span>
           <span className="px-3 py-1 bg-white/[0.02] border border-white/10 rounded-full text-blue-400">⚡ iCAL: 100% SYNC</span>
           <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-300">🔑 AUTO-PIN: ON</span>
         </div>
