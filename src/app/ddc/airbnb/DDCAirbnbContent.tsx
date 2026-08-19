@@ -87,11 +87,12 @@ import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
 import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
+import { DDCUpsellTab } from '@/components/ddc/DDCUpsellTab';
 import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
 // ── Types 
 
-type AirbnbTab = 'financeiro' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
+type AirbnbTab = 'financeiro' | 'upsell' | 'propriedades' | 'sincronizacao' | 'automacao' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
 
 interface PropertyData {
   id: string;
@@ -265,8 +266,9 @@ const staggerItem = {
 // ── Sidebar Navigation Items 
 
 const airbnbNavItems: NavItem[] = [
-  { id: 'financeiro', label: 'Painel Financeiro', icon: <TrendingUp className="size-4" /> },
-  { id: 'propriedades', label: 'Painel de Propriedades', icon: <Home className="size-4" /> },
+  { id: 'financeiro', label: 'Painel Financeiro', icon: <LayoutDashboard className="size-4" /> },
+  { id: 'upsell', label: 'UPSELL & Feriados (7%)', icon: <TrendingUp className="size-4 text-emerald-400" /> },
+  { id: 'propriedades', label: 'Imóveis & Ocupação', icon: <Building2 className="size-4" /> },
   { id: 'sincronizacao', label: 'Sincronização', icon: <CalendarDays className="size-4" /> },
   { id: 'automacao', label: 'Automação', icon: <Bot className="size-4" /> },
   { id: 'simulador', label: 'Simulador Zélla', icon: <MessageSquare className="size-4" /> },
@@ -336,7 +338,7 @@ export default function DDCAirbnbContent() {
 
   // Tab navigation handler (declared before early return — Rules of Hooks)
   const handleTabChange = useCallback((id: string) => {
-    const validTabs: AirbnbTab[] = ['financeiro', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties', 'fechaduras', 'conquistas'];
+    const validTabs: AirbnbTab[] = ['financeiro', 'upsell', 'propriedades', 'sincronizacao', 'automacao', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'config', 'creditos', 'bi', 'properties', 'fechaduras', 'conquistas'];
     if (validTabs.includes(id as AirbnbTab)) {
       setActiveTab(id as AirbnbTab);
     } else {
@@ -1438,6 +1440,8 @@ export default function DDCAirbnbContent() {
     switch (activeTab) {
       case 'financeiro':
         return <TabFinanceiro />;
+      case 'upsell':
+        return <DDCUpsellTab />;
       case 'propriedades':
         return <TabPropriedades />;
       case 'sincronizacao':

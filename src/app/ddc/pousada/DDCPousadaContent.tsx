@@ -99,11 +99,12 @@ import { BITab } from '@/components/ddc/BITab';
 import { MultiPropertiesTab } from '@/components/ddc/MultiPropertiesTab';
 import { LocksTab } from '@/components/ddc/LocksTab';
 import { ConquistasTab } from '@/components/ddc/conquistas/ConquistasTab';
+import { DDCUpsellTab } from '@/components/ddc/DDCUpsellTab';
 import { useCurrentPlan } from '@/lib/hooks/use-current-plan';
 
 // ── Types 
 
-type PousadaTab = 'financeiro' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
+type PousadaTab = 'financeiro' | 'upsell' | 'hospedes' | 'cerebro' | 'simulador' | 'whatsapp' | 'linkinbio' | 'guia' | 'integracoes' | 'config' | 'creditos' | 'bi' | 'properties' | 'fechaduras' | 'conquistas';
 
 interface GuestCardData {
   id: string;
@@ -336,6 +337,7 @@ function getTrainingStatusIcon(status: string) {
 
 const pousadaNavItems: NavItem[] = [
   { id: 'financeiro', label: 'Visão Financeira', icon: <LayoutDashboard className="size-4" /> },
+  { id: 'upsell', label: 'UPSELL & Feriados (7%)', icon: <TrendingUp className="size-4 text-emerald-400" /> },
   { id: 'hospedes', label: 'Hóspedes e Reservas', icon: <Users className="size-4" /> },
   { id: 'cerebro', label: 'Central da Pousada', icon: <Building2 className="size-4" /> },
   { id: 'simulador', label: 'Simulador Zélla', icon: <MessageSquare className="size-4" /> },
@@ -414,7 +416,7 @@ export default function DDCPousadaContent() {
 
   // Tab navigation handler (declared before early return — Rules of Hooks)
   const handleTabChange = useCallback((id: string) => {
-    const validTabs: PousadaTab[] = ['financeiro', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties', 'fechaduras', 'conquistas'];
+    const validTabs: PousadaTab[] = ['financeiro', 'upsell', 'hospedes', 'cerebro', 'simulador', 'whatsapp', 'linkinbio', 'guia', 'integracoes', 'config', 'creditos', 'bi', 'properties', 'fechaduras', 'conquistas'];
     if (validTabs.includes(id as PousadaTab)) {
       setActiveTab(id as PousadaTab);
     } else {
@@ -1509,6 +1511,11 @@ export default function DDCPousadaContent() {
     >
       <AnimatePresence mode="wait">
         {activeTab === 'financeiro' && <div key="financeiro">{renderFinanceiro()}</div>}
+        {activeTab === 'upsell' && (
+          <div key="upsell">
+            <DDCUpsellTab />
+          </div>
+        )}
         {activeTab === 'hospedes' && <div key="hospedes">{renderHospedes()}</div>}
         {activeTab === 'cerebro' && <div key="cerebro">{renderCerebro()}</div>}
         {activeTab === 'simulador' && (
