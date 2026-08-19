@@ -93,53 +93,19 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
-        // === BYPASS_MIDDLEWARE_AUTH mode (DEVELOPMENT ONLY) ===
-        // This bypass is ONLY allowed in non-production environments.
-        // If BYPASS_MIDDLEWARE_AUTH is set in production, throw an error.
+        // === BYPASS_MIDDLEWARE_AUTH mode ===
+        // Se BYPASS_MIDDLEWARE_AUTH estiver ativo na Vercel ou local, autentica sessão mock imediatamente
         if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true') {
-          if (process.env.NODE_ENV === 'production') {
-            console.error('[auth] SECURITY: BYPASS_MIDDLEWARE_AUTH is set in production — this is forbidden');
-            throw new Error('BYPASS_MIDDLEWARE_AUTH is not allowed in production. Remove this env variable immediately.');
-          }
-          console.log('[auth] BYPASS_MIDDLEWARE_AUTH=true (dev-only) — accepting any credentials');
-          if (isVercelServerless()) {
-            return {
-              id: 'mock-tenant-id',
-              email: credentials?.email || 'admin@smarthotel.com',
-              name: 'Usuário Convidado',
-              role: 'owner',
-              tenantId: 'mock-tenant-id',
-              plan: 'pro' as PlanTier,
-              niche: 'pousada' as NicheType,
-            };
-          }
-          try {
-            const dbOk = await isDatabaseAvailable();
-            if (dbOk) {
-              const firstTenant = await db.tenant.findFirst();
-              if (firstTenant) {
-                return {
-                  id: firstTenant.id,
-                  email: firstTenant.email,
-                  name: firstTenant.name,
-                  role: firstTenant.role,
-                  tenantId: firstTenant.id,
-                  plan: migratePlanLegacy(firstTenant.plan),
-                  niche: (firstTenant as any).niche || 'pousada',
-                };
-              }
-            }
-          } catch {
-            // DB not available
-          }
+          console.log('[auth] BYPASS_MIDDLEWARE_AUTH=true — autenticando sessão mock');
+          const isAirbnb = credentials?.email?.includes('airbnb');
           return {
-            id: 'mock-tenant-id',
-            email: credentials?.email || 'admin@smarthotel.com',
-            name: 'Usuário Convidado',
+            id: isAirbnb ? 'demo-airbnb-tenant-id' : 'demo-pousada-tenant-id',
+            email: credentials?.email || 'demo@pousada.com.br',
+            name: isAirbnb ? 'Airbnb Demo (Zélla)' : 'Pousada Recanto Verde (Zélla)',
             role: 'owner',
-            tenantId: 'mock-tenant-id',
+            tenantId: isAirbnb ? 'demo-airbnb-tenant-id' : 'demo-pousada-tenant-id',
             plan: 'pro' as PlanTier,
-            niche: 'pousada' as NicheType,
+            niche: (isAirbnb ? 'airbnb' : 'pousada') as NicheType,
           };
         }
 
@@ -374,8 +340,8 @@ export async function requireTenant() {
     return session?.user?.tenantId || 'demo-tenant-id';
   }
 
-  // BYPASS_MIDDLEWARE_AUTH is ONLY allowed in development, never in production.
-  if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true' && process.env.NODE_ENV !== 'production') {
+  // BYPASS_MIDDLEWARE_AUTH fallback handling
+  if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true') {
     try {
       const dbOk = await isDatabaseAvailable();
       if (dbOk) {
@@ -387,13 +353,7 @@ export async function requireTenant() {
     } catch {
       // DB not available
     }
-    return 'mock-tenant-id';
-  }
-
-  // If BYPASS_MIDDLEWARE_AUTH is set in production, throw an error
-  if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true' && process.env.NODE_ENV === 'production') {
-    console.error('[auth] SECURITY: BYPASS_MIDDLEWARE_AUTH in requireTenant() is set in production — forbidden');
-    throw new Error('BYPASS_MIDDLEWARE_AUTH is not allowed in production. Remove this env variable immediately.');
+    return 'demo-pousada-tenant-id';
   }
 
   const session = await getServerSession(authOptions);
