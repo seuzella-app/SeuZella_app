@@ -73,7 +73,7 @@ const CATEGORY_LABEL: Record<NotificationCategory, string> = {
   reservations: 'Reservas',
   financial: 'Financeiro',
   guests: 'Hóspedes',
-  ai: 'IA Zélla',
+  ai: 'Cérebro Zélla',
   operations: 'Operações',
   marketing: 'Marketing',
   system: 'Sistema',
@@ -235,7 +235,10 @@ export function DDCNotificationCenter({
             </div>
 
             {/* Categorias Principais em 1 Linha com Scroll Suave */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            <div
+              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               <button
                 type="button"
                 onClick={() => setActiveCategory('all')}
