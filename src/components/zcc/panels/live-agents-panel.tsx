@@ -9,6 +9,7 @@ import {
   Play, Clock, Cpu, Activity,
 } from "lucide-react";
 import { PanelHeader } from "../shared/panel-header";
+import { SOPTimelineVisualizer } from "../SOPTimelineVisualizer";
 import { agents, relativeTime } from "@/lib/zcc/mock-data";
 import type { Agent, AgentStatus } from "@/lib/zcc/types";
 import { cn } from "@/lib/utils";
@@ -277,6 +278,9 @@ export function LiveAgentsPanel() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ── MetaGPT SOP Orchestration Engine ── */}
+        <SOPTimelineVisualizer />
 
         {/* ── Agent Grid ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

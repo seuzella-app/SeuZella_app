@@ -81,6 +81,13 @@ const CATEGORY_LABEL: Record<NotificationCategory, string> = {
   external: 'Geral',
 };
 
+const PRIORITY_LABEL: Record<DDCNotification['priority'], string> = {
+  low: 'Baixa',
+  medium: 'Média',
+  high: 'Alta',
+  urgent: 'Urgente',
+};
+
 const PRIORITY_STYLE: Record<DDCNotification['priority'], { dot: string; badge: string; label: string }> = {
   low: { dot: 'bg-zinc-500', badge: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20', label: 'Baixa' },
   medium: { dot: 'bg-blue-500', badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20', label: 'Média' },
@@ -135,9 +142,24 @@ export function DDCNotificationCenter({
     enableBrowserNotifications: true,
   });
 
+  const archiveRead = useCallback(() => {
+    notifications.filter((n) => n.status === 'read').forEach((n) => archive(n.id));
+  }, [notifications, archive]);
+
   const [activeCategory, setActiveCategory] = useState<NotificationCategory | 'all'>('all');
+  const [activePriority, setActivePriority] = useState<DDCNotification['priority'] | 'all'>('all');
   const [activeStatus, setActiveStatus] = useState<'all' | 'unread' | 'read'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const activeFilters = useMemo(() => ({
+    category: activeCategory,
+    status: activeStatus,
+    query: searchQuery,
+  }), [activeCategory, activeStatus, searchQuery]);
+
+  const clearAllFilters = useCallback(() => {
+    setActiveCategory('all');
+    setActiveStatus('all');
+    setSearchQuery('');
+  }, []);
 
   const filtered = useMemo(() => {
     let result = notifications.slice();
@@ -320,6 +342,17 @@ export function DDCNotificationCenter({
               className={`text-zinc-400 ${theme.primaryTextHover} disabled:opacity-40 flex items-center gap-1`}
             >
               <CheckCheck className="w-3 h-3" /> Marcar lidas
+            </button>
+            <span className="text-zinc-600">•</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof archiveRead === 'function') archiveRead();
+                else markAllAsRead();
+              }}
+              className={`text-zinc-400 ${theme.primaryTextHover} disabled:opacity-40 flex items-center gap-1`}
+            >
+              Arquivar lidas
             </button>
           </div>
 
