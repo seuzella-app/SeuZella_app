@@ -22,6 +22,10 @@ Sua Persona e Filosofia de Conversa:
 - Fale com calma e clareza em português natural. Envie respostas CURTAS e DIRETAS (no máximo 2 ou 3 frases simples por bolha).
 - Escute o cliente primeiro. Descubra se ele tem uma pousada ou imóveis de aluguel por temporada (Airbnb, Booking).
 - Responda dúvidas sobre a plataforma, planos de assinatura (LITE R$ 197/mês, PRO R$ 397/mês recomendados), reservas no PIX com 0% de comissão e entrega automática de senhas de fechaduras eletrônicas.
+- Explicação de UPSELL e Taxa de Sucesso (7% nos feriados):
+  * Em dias e fins de semana normais (90% do ano), a taxa do Seu Zélla é ZERO (0% de comissão) — 100% da diária fica com a pousada.
+  * Em feriados prolongados e datas festivas (Réveillon, Carnaval, Férias de Janeiro/Julho), o fluxo de mensagens de interessados no WhatsApp praticamente TRIPLICA. O Seu Zélla trabalha intensamente 24h sem pausas atendendo centenas de contatos para fechar reservas no valor valorizado bem acima da média da pousada.
+  * Parceria Ganha-Ganha Justa: A taxa de sucesso de 7% incide EXCLUSIVAMENTE sobre o valor do UPSELL por quarto (o excedente cobrado a mais da diária normal). A pousada lucra 93% do valor extra limpo no bolso sem sobrecarregar a recepção, e o Seu Zélla é recompensado por ter trabalhado o triplo para fechar essas reservas com alto valor agregado. Se a pousada mantiver a diária normal sem aumento, a comissão é R$ 0,00.
 - Quando o lead disser a quantidade de quartos ou a cidade onde fica a pousada/imóvel, elogie o lugar e recomende com gentileza o plano mais adequado.
 
 Regras de Segurança Inegociáveis (Arquitetura ZEHLA FORTRESS & Guardrails Anti-Vazamento):
@@ -146,6 +150,8 @@ export class ZellaSalesBrain {
       fallbackReply = 'Ah, sem problemas meu amigo! Anfitrião é quem aluga uma casa de praia, um chalé por temporada ou é dono de pousada. Se você tá curioso pra entender como funciona, fica à vontade pra perguntar o que quiser!';
     } else if (lowerMsg.includes('como funciona') || lowerMsg.includes('do que se trata') || lowerMsg.includes('curioso') || lowerMsg.includes('o que é')) {
       fallbackReply = 'O SeuZélla é a ferramenta que cuida de toda a recepção da sua hospedagem! Eu respondo seus hóspedes 24h no WhatsApp com seu tom de voz, envio senhas de fechadura eletrônica, confirmo PIX e evito overbooking. Quer saber como funciona alguma dessas partes? 😊';
+    } else if (lowerMsg.includes('upsell') || lowerMsg.includes('7%') || lowerMsg.includes('comissão') || lowerMsg.includes('comissao') || lowerMsg.includes('taxa')) {
+      fallbackReply = 'Funciona assim, meu amigo: em dias normais e finais de semana (90% do ano), a taxa do Seu Zélla é ZERO (0% de comissão). Em feriados e datas de alta demanda (Réveillon, Carnaval, Férias), o volume de mensagens no WhatsApp quase TRIPLICA! O Zélla trabalha o triplo 24h para fechar reservas com o valor valorizado bem acima da média, cobrando apenas 7% de taxa de sucesso sobre o ganho EXTRA por quarto. Sua pousada fica com 93% do lucro extra no bolso e você não se sobrecarrega!';
     } else if (lowerMsg.includes('quanto custa') || lowerMsg.includes('valor') || lowerMsg.includes('preço') || lowerMsg.includes('plano')) {
       fallbackReply = 'Nossos planos oficiais são: o LITE sai por R$ 197/mês (1 a 4 quartos), o PRO por R$ 397/mês (6 a 12 quartos — nosso carro chefe) e o MAX por R$ 797/mês (13 a 20 quartos). E pros 100 primeiros anfitriões temos a oferta Zélla Parceiro PRO por R$ 247/mês garantido por 24 meses! Quantos quartos você administra hoje?';
     } else {

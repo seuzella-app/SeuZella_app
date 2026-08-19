@@ -24,7 +24,7 @@ Nossa plataforma seuzella.com oferece:
 - DDC (Diário de Conversas): painel ao vivo com histórico de cotações, receita convertida, taxas salvas e controle total.
 - Fechaduras Eletrônicas Inteligentes: integração com Tuya, TTLock, Intelbras e Yale. Envio automático de PIN criptografado para o hóspede.
 - Sincronização iCal: sincroniza calendários entre Airbnb, Booking.com e Vrbo sem overbooking.
-- Preços Inteligentes (Revenue Management): calcula diárias ideais baseadas em feriados, demanda e sazonalidade.
+- Preços Inteligentes (Revenue Management & UPSELL): Em dias normais (90% do ano), taxa ZERO (0% de comissão). Em feriados prolongados e datas festivas (Réveillon, Carnaval, Férias), o volume de mensagens no WhatsApp quase triplica; o Zélla trabalha o triplo 24h para fechar reservas com valores bem acima da média, cobrando apenas 7% de taxa de sucesso sobre o ganho EXTRA por quarto (UPSELL). A pousada coloca 93% do lucro extra direto no bolso.
 - Checkout PIX e Cartão: envio automático da chave PIX cadastrada e emissão de cobranças integradas.
 - Guia Digital do Hóspede: link interativo com QR Code contendo Wi-Fi, regras da casa e dicas locais.
 `;
