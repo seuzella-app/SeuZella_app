@@ -191,6 +191,28 @@ const paymentChartConfig: ChartConfig = {
   Dinheiro: { label: 'Dinheiro', color: '#6366f1' },
 };
 
+const paymentMethodData = [
+  { method: 'PIX', value: 28400, fill: '#10b981' },
+  { method: 'Cartão', value: 14200, fill: '#f59e0b' },
+  { method: 'Dinheiro', value: 2600, fill: '#6366f1' },
+];
+
+const recentTransactions: Transaction[] = [
+  { id: 'tx-1', guest: 'Carlos Eduardo Santos', description: 'Reserva 3 noites - Suíte Master', method: 'PIX', amount: 1770, date: '19/02/2026', status: 'confirmado' },
+  { id: 'tx-2', guest: 'Juliana Fernandes', description: 'Reserva 2 noites - Chalé Lua Cheia', method: 'Cartão', amount: 1440, date: '18/02/2026', status: 'confirmado' },
+  { id: 'tx-3', guest: 'Marcos Vinícius', description: 'Reserva 4 noites - Suíte Luxo', method: 'PIX', amount: 1800, date: '18/02/2026', status: 'confirmado' },
+  { id: 'tx-4', guest: 'Fernanda Lima', description: 'Reserva 1 noite - Standard', method: 'Dinheiro', amount: 280, date: '17/02/2026', status: 'confirmado' },
+  { id: 'tx-5', guest: 'Roberto Silveira', description: 'Reserva 2 noites - Suíte Master', method: 'Cartão', amount: 1180, date: '17/02/2026', status: 'pendente' },
+];
+
+const trainingItems: TrainingItem[] = [
+  { id: 't1', title: 'Regras de Check-in e Check-out', status: 'completo', icon: <Clock className="size-4" /> },
+  { id: 't2', title: 'Políticas de Cancelamento e No-Show', status: 'completo', icon: <CheckCircle2 className="size-4" /> },
+  { id: 't3', title: 'Cardápio e Horários do Café da Manhã', status: 'completo', icon: <Building2 className="size-4" /> },
+  { id: 't4', title: 'Perguntas Frequentes & Estacionamento', status: 'em progresso', icon: <Loader2 className="size-4 animate-spin" /> },
+  { id: 't5', title: 'Tabela de Preços e Pacotes de Feriados', status: 'completo', icon: <TrendingUp className="size-4" /> },
+];
+
 const occupancyChartConfig: ChartConfig = {
   taxa: { label: 'Taxa (%)', color: '#10b981' },
 };
