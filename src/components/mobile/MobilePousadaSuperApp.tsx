@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useMobileDevicePing } from './useMobileDevicePing';
 import { MobileYieldProfitWidget } from './MobileYieldProfitWidget';
+import { DDCNotificationCenter } from '@/components/ddc/notifications/DDCNotificationCenter';
+import { useDDCMobileNotifications } from '@/lib/notifications/use-mobile-notifications';
 import {
   LayoutGrid,
   Users,
@@ -153,14 +155,13 @@ export function MobilePousadaSuperApp() {
     Novembro15: { name: '15 de Novembro (República)', dates: '13 NOV - 16 NOV', nights: 3, demand: 'Alta (91%)' },
   };
 
-  // Synced Notifications List
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Nova Reserva Confirmada', desc: 'Suíte 101 - R$ 1.700 via Direct PIX (0% comissão)', time: 'Há 5 min', unread: true },
-    { id: 2, title: 'Cérebro Zélla Respondeu', desc: 'Dúvida de Wi-Fi e estacionamento para Carlos', time: 'Há 12 min', unread: true },
-    { id: 3, title: 'Aumento UPSELL Ativo', desc: 'Feriado Réveillon: +R$ 200/diária aplicado em 6 quartos', time: 'Há 20 min', unread: true },
-    { id: 4, title: 'Sync OTAs Concluído', desc: 'Calendários Booking.com e Airbnb 100% atualizados', time: 'Há 25 min', unread: false },
-    { id: 5, title: 'Alerta de Bateria Fechadura', desc: 'Suíte Luxo 103 com 19% de bateria (trocar pilhas)', time: 'Há 1h', unread: false },
-  ]);
+  // Live Synced Notifications Engine
+  const { unreadCount } = useDDCMobileNotifications({
+    niche: 'pousada',
+    pollInterval: 15000,
+    enableSound: false,
+    enableBrowserNotifications: false,
+  });
 
   const [guestsList, setGuestsList] = useState([
     { id: '1', name: 'Maria Silva', room: 'Suíte Master 101', status: 'CONFIRMADO', origin: 'Direct PIX', phone: '(11) 98822-1100' },
@@ -334,7 +335,7 @@ export function MobilePousadaSuperApp() {
     }, 800);
   };
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+
 
   // UPSELL Math calculation
   const totalOccupiedRooms = rooms.filter((r) => r.status === 'ocupado').length || 4;
@@ -1288,60 +1289,13 @@ export function MobilePousadaSuperApp() {
       </AnimatePresence>
 
       {/* ──
-          7. SHEET CENTRAL DE NOTIFICAÇÕES
+          7. SHEET CENTRAL DE NOTIFICAÇÕES (Canônica & Alinhada com DDC)
       ── */}
-      <AnimatePresence>
-        {isNotificationsOpen && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-end justify-center">
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="w-full max-w-md bg-[#13131a] border-t border-white/[0.1] rounded-t-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                <div className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-emerald-400" />
-                  <h3 className="font-bold text-sm text-white font-mono">NOTIFICAÇÕES POUSADA</h3>
-                </div>
-                <button onClick={() => setIsNotificationsOpen(false)} className="text-zinc-400 hover:text-white">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-2.5">
-                {notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className={`p-3 rounded-2xl border transition-all ${
-                      notif.unread
-                        ? 'bg-emerald-500/10 border-emerald-500/30'
-                        : 'bg-white/[0.02] border-white/[0.06]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="font-bold text-xs text-white">{notif.title}</div>
-                      <span className="text-[9px] font-mono text-zinc-400">{notif.time}</span>
-                    </div>
-                    <p className="text-xs text-zinc-300 font-sans">{notif.desc}</p>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={() => {
-                  setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-                  toast.success('Todas as notificações foram marcadas como lidas');
-                }}
-                className="w-full p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs font-mono font-bold text-zinc-300 hover:text-white"
-              >
-                Marcar todas como lidas
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <DDCNotificationCenter
+        open={isNotificationsOpen}
+        onOpenChange={setIsNotificationsOpen}
+        niche="pousada"
+      />
 
       {/* ──
           8. MODAL ADICIONAR QUARTO

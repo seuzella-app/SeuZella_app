@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useMobileDevicePing } from './useMobileDevicePing';
 import { MobileYieldProfitWidget } from './MobileYieldProfitWidget';
+import { DDCNotificationCenter } from '@/components/ddc/notifications/DDCNotificationCenter';
+import { useDDCMobileNotifications } from '@/lib/notifications/use-mobile-notifications';
 import {
   CreditCard,
   Users,
@@ -92,13 +94,13 @@ export function MobileAirbnbSuperApp() {
     Setembro7: { name: '7 de Setembro', dates: '05 SET - 08 SET', nights: 3, multiplier: 'Feriado' },
   };
 
-  // Synced Notifications List
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Reserva Direct PIX Confirmada', desc: 'Flat Studio Jardins - R$ 1.850 (Economia de R$ 277 vs taxas Airbnb)', time: 'Há 10 min', unread: true },
-    { id: 2, title: 'Escudo Anti-Ban Ativo', desc: 'Tentativa de troca de número no chat filtrada com sucesso', time: 'Há 30 min', unread: true },
-    { id: 3, title: 'PIN Digital Gerado', desc: 'PIN 849201 válido até check-out do hóspede Lucas', time: 'Há 1h', unread: false },
-    { id: 4, title: 'Alerta de Bateria', desc: 'Loft Copacabana com 18% de bateria na fechadura', time: 'Há 2h', unread: false },
-  ]);
+  // Live Synced Notifications Engine
+  const { unreadCount } = useDDCMobileNotifications({
+    niche: 'airbnb',
+    pollInterval: 15000,
+    enableSound: false,
+    enableBrowserNotifications: false,
+  });
 
   const [chatLog, setChatLog] = useState<Array<{ sender: 'guest' | 'zella'; text: string; time: string }>>([
     { sender: 'guest', text: 'Boa tarde! Qual o código da fechadura e como entro no prédio?', time: '14:20' },
@@ -202,7 +204,7 @@ export function MobileAirbnbSuperApp() {
     }, 800);
   };
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+
   const currentHoliday = holidaysConfig[selectedHoliday];
   const upsellExcedent = properties.length * currentHoliday.nights * dailyIncrease;
   const hostProfit = upsellExcedent * 0.93;
@@ -879,60 +881,13 @@ export function MobileAirbnbSuperApp() {
       </AnimatePresence>
 
       {/* ──
-          6. SHEET CENTRAL DE NOTIFICAÇÕES
+          6. SHEET CENTRAL DE NOTIFICAÇÕES (Canônica & Alinhada com DDC)
       ── */}
-      <AnimatePresence>
-        {isNotificationsOpen && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-end justify-center">
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="w-full max-w-md bg-[#13131a] border-t border-white/[0.1] rounded-t-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                <div className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-cyan-400" />
-                  <h3 className="font-bold text-sm text-white font-mono">NOTIFICAÇÕES ANFITRIÃO</h3>
-                </div>
-                <button onClick={() => setIsNotificationsOpen(false)} className="text-zinc-400 hover:text-white">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-2.5">
-                {notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className={`p-3 rounded-2xl border transition-all ${
-                      notif.unread
-                        ? 'bg-cyan-500/10 border-cyan-500/30'
-                        : 'bg-white/[0.02] border-white/[0.06]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="font-bold text-xs text-white">{notif.title}</div>
-                      <span className="text-[9px] font-mono text-zinc-400">{notif.time}</span>
-                    </div>
-                    <p className="text-xs text-zinc-300 font-sans">{notif.desc}</p>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={() => {
-                  setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-                  toast.success('Todas as notificações foram marcadas como lidas');
-                }}
-                className="w-full p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs font-mono font-bold text-zinc-300 hover:text-white"
-              >
-                Marcar todas como lidas
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <DDCNotificationCenter
+        open={isNotificationsOpen}
+        onOpenChange={setIsNotificationsOpen}
+        niche="airbnb"
+      />
 
     </div>
   );
