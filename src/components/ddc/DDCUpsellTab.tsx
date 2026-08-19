@@ -14,7 +14,10 @@ import {
   CreditCard,
   Flame,
   ShieldCheck,
+  CheckCircle,
+  ArrowRight,
 } from "lucide-react";
+import { getUpcomingHolidays, type DynamicHoliday } from "@/lib/upsell/dynamic-holidays";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TIPOS
@@ -72,19 +75,6 @@ const STATUS_CONFIG = {
   cancelled: { label: "Cancelado", icon: XCircle, color: "bg-red-500/15 text-red-300 border-red-500/30" },
 } as const;
 
-const FERIADOS_CATALOG = [
-  { id: "reveillon", label: "🎆 Pacote Réveillon", periodo: "28/Dez a 02/Jan", upsellSugerido: 350, desc: "Pico máximo de procura no WhatsApp. Valorização de 80% a 120% da diária." },
-  { id: "carnaval", label: "🎭 Pacote Carnaval", periodo: "Fevereiro / Março (5 dias)", upsellSugerido: 280, desc: "Altíssimo fluxo de cotações. Tarifa de pacote fechado por quarto." },
-  { id: "ferias_janeiro", label: "☀️ Férias de Verão (Janeiro)", periodo: "Mês de Janeiro", upsellSugerido: 180, desc: "Alta ocupação diária. Reservas antecipadas pelo Cérebro Zélla." },
-  { id: "ferias_julho", label: "❄️ Férias de Julho (Inverno)", periodo: "Mês de Julho", upsellSugerido: 150, desc: "Férias escolares e turismo regional de inverno." },
-  { id: "semana_santa", label: "🕊️ Semana Santa & Páscoa", periodo: "Quinta a Domingo", upsellSugerido: 160, desc: "Feriado prolongado tradicional para casais e famílias." },
-  { id: "corpus_christi", label: "✝️ Corpus Christi", periodo: "Quinta a Domingo (4 dias)", upsellSugerido: 140, desc: "Feriado prolongado de alto fluxo e diárias de pacote." },
-  { id: "independencia", label: "🇧🇷 7 de Setembro (Independência)", periodo: "Feriado Prolongado", upsellSugerido: 140, desc: "Pico de viagens rápidas e turismo local." },
-  { id: "nossa_senhora", label: "👑 12 de Outubro (Aparecida)", periodo: "Feriado Prolongado", upsellSugerido: 140, desc: "Viagens familiares e feriado de primavera." },
-  { id: "proclamacao", label: "🏛️ 15 de Novembro (República)", periodo: "Feriado Prolongado", upsellSugerido: 140, desc: "Prévia de verão e alta taxa de conversão direta." },
-  { id: "consciencia_negra", label: "✊ 20 de Novembro (Consciência Negra)", periodo: "Feriado Nacional", upsellSugerido: 140, desc: "Feriado nacional consolidado de alta procura." },
-];
-
 const TYPE_LABELS: Record<string, string> = {
   reveillon: "Pacote Réveillon (Alta Demanda)",
   carnaval: "Pacote Carnaval (Alta Demanda)",
@@ -92,6 +82,7 @@ const TYPE_LABELS: Record<string, string> = {
   ferias_janeiro: "Férias de Janeiro (Verão)",
   semana_santa: "Semana Santa & Páscoa",
   tiradentes: "Feriado Tiradentes (21/Abril)",
+  dia_trabalho: "Feriado 1º de Maio",
   corpus_christi: "Feriado Corpus Christi",
   independencia: "Feriado 7 de Setembro",
   nossa_senhora: "Feriado 12 de Outubro (Aparecida)",
@@ -100,6 +91,7 @@ const TYPE_LABELS: Record<string, string> = {
   consciencia_negra: "Feriado 20 de Novembro (Consciência Negra)",
   fim_de_ano: "Dezembro Pré-Réveillon",
   alta_demanda_local: "Evento / Show / Alta Demanda Local",
+  aumento_diaria_feriado: "Aumento de Diária em Feriado",
   outros: "Aumento de Diária por Demanda",
 };
 
@@ -115,6 +107,9 @@ export function DDCUpsellTab() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
+
+  // Lista dinâmica e perpétua de feriados atualizada em tempo real
+  const [dynamicHolidays] = React.useState<DynamicHoliday[]>(() => getUpcomingHolidays());
 
   const carregarDados = React.useCallback(async () => {
     setLoading(true);
@@ -196,14 +191,14 @@ export function DDCUpsellTab() {
             <TrendingUp className="size-6 text-emerald-400" />
             UPSELL & Feriados Prolongados — Taxa de Sucesso (7%)
           </h2>
-          <p className="text-xs text-muted-foreground">
-            0% de comissão nas diárias normais • 7% exclusivamente sobre o ganho EXTRA por quarto em datas de alta demanda.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            0% de comissão nas diárias normais • 7% exclusivamente sobre o valor adicional por quarto em datas de alta demanda.
           </p>
         </div>
 
         {/* SELETOR DE MÊS */}
         <div className="flex items-center gap-2">
-          <label htmlFor="mes-select" className="text-xs text-muted-foreground">
+          <label htmlFor="mes-select" className="text-xs font-semibold text-muted-foreground">
             Mês de referência:
           </label>
           <input
@@ -211,8 +206,34 @@ export function DDCUpsellTab() {
             type="month"
             value={mesSelecionado}
             onChange={(e) => setMesSelecionado(e.target.value)}
-            className="h-9 rounded-md border border-border bg-background px-3 text-xs text-foreground focus:border-primary/50 focus:outline-none"
+            className="h-9 rounded-md border border-border bg-background px-3 text-xs text-foreground font-semibold focus:border-primary/50 focus:outline-none"
           />
+        </div>
+      </div>
+
+      {/* DESTAQUE MÁXIMO DA REGRA DE OURO */}
+      <div className="rounded-xl border-2 border-emerald-500/50 bg-gradient-to-r from-emerald-950/80 via-emerald-900/40 to-black p-4 sm:p-5 shadow-[0_0_25px_rgba(16,185,129,0.15)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 shrink-0">
+            <ShieldCheck className="size-6 text-emerald-400" />
+          </div>
+          <div>
+            <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400 block">
+              Regra de Ouro da Parceria
+            </span>
+            <p className="text-base sm:text-lg font-black text-white leading-tight mt-0.5">
+              Se a pousada mantiver a diária normal sem aumento, a taxa Zélla é exatamente{" "}
+              <span className="text-emerald-400 underline decoration-emerald-400 underline-offset-4">
+                R$ 0,00
+              </span>
+              .
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 self-end sm:self-center">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+            <CheckCircle className="size-4 text-emerald-400" /> 100% Livre de Taxas no Dia a Dia
+          </span>
         </div>
       </div>
 
@@ -229,15 +250,15 @@ export function DDCUpsellTab() {
             <button
               type="button"
               onClick={() => setShowExplicacao(false)}
-              className="text-[11px] text-muted-foreground hover:text-foreground"
+              className="text-[11px] text-muted-foreground hover:text-foreground font-semibold"
             >
               ocultar ▲
             </button>
           </div>
 
           <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
-            <p>
-              <strong className="text-foreground">UPSELL</strong> é o valor adicional por quarto que a sua pousada fatura acima da diária normal durante períodos de alta procura (Feriados Prolongados, Réveillon, Carnaval, Férias de Janeiro/Julho e Festas Locais). Nessas datas, o fluxo de mensagens de hóspedes no WhatsApp multiplica e o Seu Zélla atende 24 horas por dia para fechar todas as reservas com o valor valorizado.
+            <p className="text-zinc-200">
+              <strong className="text-white">UPSELL</strong> é o valor adicional por quarto que a sua pousada fatura acima da diária normal durante períodos de alta procura (Feriados Prolongados, Réveillon, Carnaval, Férias de Janeiro/Julho e Festas Locais). Nessas datas, o fluxo de mensagens de interessados no WhatsApp praticamente triplica e o Seu Zélla atende 24 horas por dia para fechar todas as reservas com o valor valorizado.
             </p>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -267,25 +288,28 @@ export function DDCUpsellTab() {
                 <Flame className="size-4 text-amber-400" />
                 Exemplo Prático — Simulação Real de um Quarto
               </p>
-              <div className="mt-2 space-y-1 text-xs">
-                <p>• Diária normal da sua pousada: <strong className="text-foreground">R$ 300,00</strong>.</p>
-                <p>• Diária no Pacote Réveillon ou Carnaval: <strong className="text-foreground">R$ 500,00</strong> (<strong className="text-emerald-400 font-bold">+R$ 200,00 de UPSELL por quarto</strong>).</p>
-                <p className="pt-1.5 border-t border-border/60 text-zinc-300">
-                  ➔ Sobre os R$ 300 da diária normal: <strong className="text-emerald-400">0% taxa (R$ 0,00)</strong>.<br />
-                  ➔ Sobre os R$ 200 do UPSELL por quarto: <strong className="text-blue-400">7% taxa de sucesso = R$ 14,00</strong>.<br />
-                  ➔ <strong className="text-white">Sua Pousada Lucra Líquido:</strong> <strong className="text-emerald-400 font-bold text-sm">R$ 186,00 A MAIS POR QUARTO LIMPOS</strong>!
-                </p>
+              <div className="mt-2 space-y-1.5 text-xs text-zinc-300">
+                <p>• Diária normal da sua pousada: <strong className="text-white">R$ 300,00</strong>.</p>
+                <p>• Diária no Pacote Réveillon ou Carnaval: <strong className="text-white">R$ 500,00</strong> (<strong className="text-emerald-400 font-bold">+R$ 200,00 de UPSELL por quarto</strong>).</p>
+                <div className="pt-2 border-t border-border/60 text-zinc-200 space-y-1">
+                  <p>➔ Sobre os R$ 300 da diária normal: <strong className="text-emerald-400 font-bold">0% de taxa (R$ 0,00)</strong>.</p>
+                  <p>➔ Sobre os R$ 200 do UPSELL por quarto: <strong className="text-blue-400 font-bold">7% taxa de sucesso = R$ 14,00</strong>.</p>
+                  <p className="pt-1">
+                    ➔ <strong className="text-white">Lucro Líquido Adicional para a Pousada:</strong>{" "}
+                    <strong className="text-emerald-400 font-extrabold text-sm">
+                      + R$ 186,00 a mais por quarto (livre de taxas de comissão)
+                    </strong>
+                    !
+                  </p>
+                </div>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                Se a pousada mantiver a diária normal sem aumento, a taxa Zélla é exatamente <strong>R$ 0,00</strong>.
-              </p>
             </div>
 
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3">
               <CreditCard className="size-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs">
                 <p className="font-bold text-amber-300">Como é cobrada a taxa de sucesso?</p>
-                <p className="mt-1 text-zinc-400 leading-relaxed">
+                <p className="mt-1 text-zinc-300 leading-relaxed">
                   A taxa de 7% é acumulada mensalmente apenas sobre os UPSELLs confirmados. No encerramento do mês, o sistema gera a cobrança automática via cartão de crédito cadastrado com total transparência e extrato auditável no painel.
                 </p>
               </div>
@@ -409,53 +433,120 @@ export function DDCUpsellTab() {
         )}
       </div>
 
-      {/* CALENDÁRIO DE FERIADOS E OPORTUNIDADES DE UPSELL */}
+      {/* RADAR DE FERIADOS DINÂMICO E AUTOMÁTICO */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-3">
-          <Calendar className="size-4 text-emerald-400" />
-          <h3 className="text-sm font-bold text-foreground">
-            Radar de Feriados & Oportunidades de UPSELL para sua Pousada
-          </h3>
+        <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="size-4 text-emerald-400" />
+            <h3 className="text-sm font-bold text-foreground">
+              Radar de Feriados & Oportunidades de UPSELL para sua Pousada
+            </h3>
+          </div>
+          <span className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+            ● Calendário Atualizado Automaticamente
+          </span>
         </div>
         <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-2">
-          {FERIADOS_CATALOG.map((item) => (
-            <div key={item.id} className="rounded-xl border border-border bg-background/60 p-3.5 hover:border-emerald-500/40 transition-colors">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-bold text-foreground">{item.label}</p>
-                <span className="rounded-md bg-emerald-500/15 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                  UPSELL sugerido: +{fmtBRL(item.upsellSugerido)}/diária
+          {dynamicHolidays.map((item) => (
+            <div
+              key={item.id}
+              className={`rounded-xl border p-4 transition-all ${
+                item.status === 'em_andamento'
+                  ? 'border-amber-500/50 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                  : item.status === 'proximo'
+                  ? 'border-emerald-500/40 bg-emerald-500/5'
+                  : 'border-border bg-background/60 hover:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-bold text-white">{item.label}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-amber-300">📅 {item.periodoFormatado}</p>
+                </div>
+                <span
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-black tracking-wide border shrink-0 ${
+                    item.status === 'em_andamento'
+                      ? 'bg-amber-500 text-black border-amber-400 animate-pulse'
+                      : item.status === 'proximo'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : 'bg-zinc-800/80 text-zinc-300 border-zinc-700'
+                  }`}
+                >
+                  {item.statusBadge}
                 </span>
               </div>
-              <p className="mt-1 text-[11px] font-medium text-amber-400/90">📅 {item.periodo}</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">{item.desc}</p>
-              <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between text-[10px] text-zinc-400">
-                <span>Taxa de Sucesso Zélla: {fmtBRL(item.upsellSugerido * 0.07)} (7%)</span>
-                <span className="text-emerald-400 font-bold">Lucro Extra Pousada: +{fmtBRL(item.upsellSugerido * 0.93)}</span>
+              <p className="mt-2 text-xs text-zinc-300 leading-relaxed">{item.desc}</p>
+              <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between text-xs">
+                <span className="text-zinc-400">
+                  UPSELL sugerido: <strong className="text-white">+{fmtBRL(item.upsellSugerido)}/diária</strong>
+                </span>
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  Lucro Extra: +{fmtBRL(item.upsellSugerido * 0.93)}
+                </span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* RODAPÉ — REGRAS CONSOLIDADAS */}
-      <div className="rounded-xl border border-border bg-secondary/20 p-4 text-[11px] text-muted-foreground">
-        <p className="font-bold text-foreground flex items-center gap-1.5">
-          <ShieldCheck className="size-4 text-emerald-400" />
-          Resumo das Regras Oficiais de Faturamento
-        </p>
-        <ul className="mt-2 space-y-1.5">
-          <li>
-            <strong className="text-foreground">Diárias Normais (90% do ano):</strong>{" "}
-            <span className="text-emerald-300 font-bold">0% de taxa</span> — 100% da receita fica com a sua pousada.
-          </li>
-          <li>
-            <strong className="text-foreground">Feriados e Picos de Demanda (UPSELL):</strong>{" "}
-            <span className="text-blue-300 font-bold">7% de taxa de sucesso</span> exclusivamente sobre o valor cobrado a mais por quarto.
-          </li>
-          <li>
-            <strong className="text-foreground">Faturamento Limpo e Auditável:</strong> Todos os registros mostram data, hóspede e cálculo nominal no DDC.
-          </li>
-        </ul>
+      {/* RESUMO DAS REGRAS OFICIAIS — ULTRA LEGÍVEL E DE ALTO CONTRASTE */}
+      <div className="rounded-xl border border-border bg-zinc-950 p-5 sm:p-6 shadow-md">
+        <div className="flex items-center gap-2 mb-4">
+          <ShieldCheck className="size-5 text-emerald-400" />
+          <h3 className="text-base sm:text-lg font-bold text-white">
+            Resumo das Regras Oficiais de Faturamento
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Card 1 */}
+          <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Dia a Dia</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+                  0% Taxa
+                </span>
+              </div>
+              <h4 className="text-sm font-bold text-white mb-1">Diárias Normais (90% do ano)</h4>
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                Todas as reservas de rotina são processadas sem nenhuma comissão. 100% da receita fica diretamente na conta da sua pousada.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 2 */}
+          <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Feriados</span>
+                <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-500/40 text-blue-300 text-xs font-bold">
+                  7% sobre o UPSELL
+                </span>
+              </div>
+              <h4 className="text-sm font-bold text-white mb-1">Picos de Demanda & Pacotes</h4>
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                A comissão incide <strong className="text-white">exclusivamente sobre o valor cobrado a mais por quarto</strong> acima da sua diária padrão.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Segurança</span>
+                <span className="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
+                  Extrato 100% Auditável
+                </span>
+              </div>
+              <h4 className="text-sm font-bold text-white mb-1">Transparência Total no DDC</h4>
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                Cada cobrança detalha data, hóspede, quarto e cálculo nominal exato no seu extrato mensal.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -560,7 +651,7 @@ function UpsellCalculator() {
           </p>
         ) : (
           <p>
-            <strong className="text-emerald-300 font-bold">🎉 Cenário de Feriado Prolongado / Alta Demanda:</strong> O volume de mensagens no WhatsApp explode. O Seu Zélla atende 24h sem pausas e fecha os pacotes valorizados. A taxa de <strong className="text-white">7% incide EXCLUSIVAMENTE sobre o valor cobrado A MAIS por quarto</strong>.
+            <strong className="text-emerald-300 font-bold">🎉 Cenário de Feriado Prolongado / Alta Demanda:</strong> O volume de mensagens no WhatsApp quase triplica. O Seu Zélla atende 24h sem pausas e fecha os pacotes valorizados. A taxa de <strong className="text-white">7% incide EXCLUSIVAMENTE sobre o valor cobrado A MAIS por quarto</strong>.
           </p>
         )}
       </div>

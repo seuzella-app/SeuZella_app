@@ -29,6 +29,7 @@ const criarUpsellSchema = z.object({
   reservationId: z.string().optional(),
   guestId: z.string().optional(),
   type: z.enum([
+    'aumento_diaria_feriado', 'reveillon', 'carnaval', 'alta_demanda_temporada',
     'late_checkout', 'cafe_premium', 'massagem', 'passeio_barco',
     'transfer_aeroporto', 'jantar_romantico', 'decoracao_aniversario',
     'garrafa_vinho', 'aula_surf', 'passeio_bugue', 'spa_day',
