@@ -462,7 +462,7 @@ export function ZeCodePanel() {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="zcc-scroll flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6 space-y-5">
       {/* ===== TOP: ZéCode Header + Master Actions ===== */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
