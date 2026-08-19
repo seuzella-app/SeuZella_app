@@ -308,6 +308,23 @@ const pousadaNavItems: NavItem[] = [
   { id: 'config', label: 'Configurações', icon: <Settings className="size-4" /> },
 ];
 
+const INITIAL_KANBAN_GUESTS: Record<string, GuestCardData[]> = {
+  'atendimento-ia': [
+    { id: 'g1', name: 'Lucas Silveira', roomType: 'Chalé Master', checkIn: '22/03', checkOut: '25/03', value: 1650, source: 'WhatsApp' },
+    { id: 'g2', name: 'Mariana Duarte', roomType: 'Suíte Vista Mar', checkIn: '28/03', checkOut: '31/03', value: 2100, source: 'WhatsApp' },
+  ],
+  'aguardando-pagamento': [
+    { id: 'g3', name: 'Rodrigo Lima', roomType: 'Bangalô Família', checkIn: '18/03', checkOut: '20/03', value: 1400, source: 'Booking' },
+  ],
+  'confirmado': [
+    { id: 'g4', name: 'Beatriz Costa', roomType: 'Suíte Luxo', checkIn: '15/03', checkOut: '17/03', value: 980, source: 'Airbnb' },
+    { id: 'g5', name: 'Fernando Henrique', roomType: 'Chalé Master', checkIn: '16/03', checkOut: '19/03', value: 1850, source: 'WhatsApp' },
+  ],
+  'checkin-hoje': [
+    { id: 'g6', name: 'Camila Alencar', roomType: 'Suíte Vista Mar', checkIn: 'Hoje', checkOut: '18/03', value: 1350, source: 'WhatsApp' },
+  ],
+};
+
 // ── Main Component 
 
 export default function DDCPousadaContent() {
@@ -317,7 +334,7 @@ export default function DDCPousadaContent() {
   const [isTraining, setIsTraining] = useState(false);
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const [guestsState, setGuestsState] = useState<Record<string, GuestCardData[]>>(kanbanGuests);
+  const [guestsState, setGuestsState] = useState<Record<string, GuestCardData[]>>(INITIAL_KANBAN_GUESTS);
   const [newGuestForm, setNewGuestForm] = useState({
     name: '',
     roomType: 'Suíte Master',
