@@ -462,8 +462,9 @@ export function ZeCodePanel() {
   ];
 
   return (
-    <div className="zcc-scroll flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6 space-y-5">
-      {/* ===== TOP: ZéCode Header + Master Actions ===== */}
+    <div className="flex h-full w-full flex-col bg-background overflow-hidden">
+      <div className="zcc-scroll flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 pb-40">
+        {/* ===== TOP: ZéCode Header + Master Actions ===== */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -935,8 +936,9 @@ export function ZeCodePanel() {
       )}
 
       {/* ===== FOOTER ===== */}
-      <div className="text-center text-[9px] font-mono py-2" style={{ color: 'var(--zcc-text-muted)' }}>
+      <div className="text-center text-[9px] font-mono py-4" style={{ color: 'var(--zcc-text-muted)' }}>
         ZéCode trabalha em paralelo ao Cérebro Zélla · ambos usam GLM 5.2 embarcado · safety locks sempre ativos · auto-apply SEMPRE off · GODMODE requerido para forceLive
+      </div>
       </div>
     </div>
   );

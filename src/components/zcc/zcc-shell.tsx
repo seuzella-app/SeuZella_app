@@ -347,8 +347,8 @@ export function ZccShell() {
         ) : null}
 
         {/* Área de painel ativo */}
-        <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden h-full">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden h-full">
             {/* NÚCLEO / TIER 1 — Executive */}
             {tab === "overview" ? <OperatorConsolePanel /> : null}
             {tab === "live-leads" ? <LiveLeadsPanel /> : null}
