@@ -137,24 +137,24 @@ function computeSafetyLocks(monthlySpendUsd: number): SafetyLockStatus {
 // ── Stats: Unified Counts ──────────────────────────────────────────────────
 
 async function computeCounts() {
-  // Tenta ler do DB (se disponível). Em fallback, retorna zeros.
   let reviewsTotal = 0;
   let reviewsPending = 0;
   let refactorsTotal = 0;
   let refactorsPending = 0;
-  const gapsTotal = 0;
-  const gapsPending = 0;
-  const bottlenecksTotal = 0;
-  const bottlenecksPending = 0;
+  let gapsTotal = 0;
+  let gapsPending = 0;
+  let bottlenecksTotal = 0;
+  let bottlenecksPending = 0;
   let appliedTotal = 0;
-  const lastActivityAt: string | null = null;
+  let lastActivityAt: string | null = null;
 
   try {
-    // CodeReview (existing model from code-reviewer)
     if (db.codeReview) {
       reviewsTotal = await db.codeReview.count();
       reviewsPending = await db.codeReview.count({ where: { status: 'pending' } });
       appliedTotal += await db.codeReview.count({ where: { status: 'applied' } });
+      const latestReview = await db.codeReview.findFirst({ orderBy: { createdAt: 'desc' }, select: { createdAt: true } });
+      if (latestReview?.createdAt) lastActivityAt = latestReview.createdAt.toISOString();
     }
   } catch { /* mock mode sem DB */ }
 
@@ -163,12 +163,36 @@ async function computeCounts() {
       refactorsTotal = await db.refactorSuggestion.count();
       refactorsPending = await db.refactorSuggestion.count({ where: { status: 'pending_review' } });
       appliedTotal += await db.refactorSuggestion.count({ where: { status: 'applied' } });
+      const latest = await db.refactorSuggestion.findFirst({ orderBy: { createdAt: 'desc' }, select: { createdAt: true } });
+      if (latest?.createdAt && (!lastActivityAt || latest.createdAt > new Date(lastActivityAt))) {
+        lastActivityAt = latest.createdAt.toISOString();
+      }
     }
   } catch { /* ignore */ }
 
-  // Gaps and Bottlenecks: atualmente em memória (não persistidos por enquanto).
-  // Quando o usuário roda "Evolve" no mock mode, ficam em ring buffer no logSink.
-  // TODO: se quisermos persistir, adicionar modelos Prisma GapFinding + BottleneckFinding.
+  try {
+    if (db.gapFinding) {
+      gapsTotal = await db.gapFinding.count();
+      gapsPending = await db.gapFinding.count({ where: { status: 'pending' } });
+      appliedTotal += await db.gapFinding.count({ where: { status: 'applied' } });
+      const latest = await db.gapFinding.findFirst({ orderBy: { createdAt: 'desc' }, select: { createdAt: true } });
+      if (latest?.createdAt && (!lastActivityAt || latest.createdAt > new Date(lastActivityAt))) {
+        lastActivityAt = latest.createdAt.toISOString();
+      }
+    }
+  } catch { /* ignore */ }
+
+  try {
+    if (db.bottleneckFinding) {
+      bottlenecksTotal = await db.bottleneckFinding.count();
+      bottlenecksPending = await db.bottleneckFinding.count({ where: { status: 'pending' } });
+      appliedTotal += await db.bottleneckFinding.count({ where: { status: 'applied' } });
+      const latest = await db.bottleneckFinding.findFirst({ orderBy: { createdAt: 'desc' }, select: { createdAt: true } });
+      if (latest?.createdAt && (!lastActivityAt || latest.createdAt > new Date(lastActivityAt))) {
+        lastActivityAt = latest.createdAt.toISOString();
+      }
+    }
+  } catch { /* ignore */ }
 
   return {
     reviewsTotal,
@@ -242,14 +266,14 @@ export async function evolveCode(req: EvolveRequest): Promise<EvolveResult> {
   let gapsCreated = 0;
   let bottlenecksCreated = 0;
   try {
-    const gapsResult = await detectGaps({ target, maxFiles });
+    const gapsResult = await detectGaps({ target, maxFiles, jobId });
     gapsCreated = gapsResult.gaps.length;
   } catch (e) {
     warnings.push(`gap-detector falhou: ${(e as Error).message}`);
   }
 
   try {
-    const bnsResult = await detectBottlenecks({ target, maxFiles });
+    const bnsResult = await detectBottlenecks({ target, maxFiles, jobId });
     bottlenecksCreated = bnsResult.bottlenecks.length;
   } catch (e) {
     warnings.push(`bottleneck-detector falhou: ${(e as Error).message}`);
@@ -394,8 +418,27 @@ export async function applySuggestion(req: ApplySuggestionRequest): Promise<Appl
           reviewNotes: req.notes || 'Applied via ZéCode UI',
         },
       });
+    } else if (req.category === 'gap' && db.gapFinding) {
+      await db.gapFinding.update({
+        where: { id: req.suggestionId },
+        data: {
+          status: 'applied',
+          appliedBy: req.appliedBy,
+          appliedAt: new Date(),
+          reviewNotes: req.notes || 'Applied via ZéCode UI',
+        },
+      });
+    } else if (req.category === 'bottleneck' && db.bottleneckFinding) {
+      await db.bottleneckFinding.update({
+        where: { id: req.suggestionId },
+        data: {
+          status: 'applied',
+          appliedBy: req.appliedBy,
+          appliedAt: new Date(),
+          reviewNotes: req.notes || 'Applied via ZéCode UI',
+        },
+      });
     }
-    // gap/bottleneck não persistidos por enquanto (são detectados on-demand)
   } catch (e) {
     safetyLocksTriggered.push('db_update_failed');
     return {

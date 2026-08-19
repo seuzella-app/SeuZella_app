@@ -1938,6 +1938,96 @@ model CodeReviewComment {
   @@map("code_review_comments")
 }
 
+/// Gap (lacuna de código) detectado pelo ZéCode: missing test, missing type,
+/// missing error handling, missing input validation, missing auth check,
+/// missing rate limit, missing logger, missing doc.
+/// Persistido para permitir workflow approve/reject/apply + histórico.
+model GapFinding {
+  id              String   @id @default(cuid())
+  /// Identificador do job Evolve que gerou este finding
+  jobId           String?
+  /// Path relativo do arquivo (ex: "src/lib/auth.ts")
+  filePath        String
+  /// Range de linhas "10-15" ou "1" (file-level)
+  lineRange       String
+  /// Tipo do gap: "missing_test" | "missing_type" | "missing_error_handling" |
+  /// "missing_input_validation" | "missing_auth_check" | "missing_rate_limit" |
+  /// "missing_logger" | "missing_doc"
+  gapType         String
+  /// Severity: "info" | "warning" | "critical" | "emergency"
+  severity        String   @default("info")
+  title           String
+  description     String
+  /// Trecho de código atual (com secrets redacted)
+  currentCode     String?
+  /// Sugestão de código para preencher o gap
+  suggestedCode   String?
+  rationale       String?
+  /// 0..1 — confiança da detecção
+  confidence      Float    @default(0.6)
+  /// "heuristic" (regex/AST) | "llm" (GLM 5.2) | "hybrid"
+  detectedBy      String   @default("heuristic")
+  /// "pending" | "approved" | "rejected" | "applied" | "dismissed"
+  status          String   @default("pending")
+  /// Quem aplicou (ZCC admin email)
+  appliedBy       String?
+  appliedAt       DateTime?
+  /// Quem revisou (reject/approve)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNotes     String?
+  /// Path do PR criado (se autoCreatePR=true)
+  prUrl           String?
+  prBranch        String?
+  createdAt       DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([filePath])
+  @@index([gapType])
+  @@index([jobId])
+  @@map("gap_findings")
+}
+
+/// Bottleneck (gargalo de performance) detectado pelo ZéCode: n+1 query,
+/// sync blocking IO, missing DB index, large payload, memory leak risk,
+/// unnecessary re-render, expensive loop, missing pagination.
+model BottleneckFinding {
+  id               String   @id @default(cuid())
+  /// Identificador do job Evolve que gerou este finding
+  jobId            String?
+  filePath         String
+  lineRange        String
+  /// "n_plus_one_query" | "sync_blocking_io" | "missing_db_index" |
+  /// "large_payload" | "memory_leak_risk" | "unnecessary_re_render" |
+  /// "expensive_loop" | "missing_pagination"
+  bottleneckType   String
+  severity         String   @default("warning")
+  title            String
+  description      String
+  currentCode      String?
+  suggestedCode    String?
+  rationale        String?
+  confidence       Float    @default(0.7)
+  detectedBy       String   @default("heuristic")
+  /// "low" | "medium" | "high" | "critical"
+  estimatedImpact  String   @default("medium")
+  status           String   @default("pending")
+  appliedBy        String?
+  appliedAt        DateTime?
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  reviewNotes      String?
+  prUrl            String?
+  prBranch         String?
+  createdAt        DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([filePath])
+  @@index([bottleneckType])
+  @@index([jobId])
+  @@map("bottleneck_findings")
+}
+
 /// Audit de envio de alertas pelo AlertBus. Cada alerta enviado (email, Slack,
 /// SMS, dashboard) gera uma entrada aqui para rastreabilidade.
 model AlertDelivery {
@@ -1989,6 +2079,99 @@ model KnowledgeChunk {
   @@index([source, createdAt])
   @@index([filePath])
   @@map("knowledge_chunks")
+}
+
+// ============================================================================
+// ZÉCODE — GITHUB GITOPS LAYER (PAT Vault + Audit Log)
+// ============================================================================
+// Camada de integração GitHub × ZCC: armazena credenciais (PAT Fine-Grained,
+// GitHub App, Deploy Keys) criptografadas com AES-256-GCM. Toda leitura, uso,
+// rotação e revogação é registrada em PatAuditLog para auditoria completa.
+// Doc: "Bíblia do ZéCode — GitHub GitOps" (Cap. 4)
+// ============================================================================
+
+/// Credencial GitHub criptografada (PAT Fine-Grained ou GitHub App private key).
+/// Master key vem de env var GITHUB_PAT_MASTER_KEY (32 bytes base64).
+/// NUNCA armazenar PAT em texto plano — sempre via encryptPat() de pat-vault.ts.
+model GitHubCredential {
+  id               String   @id @default(cuid())
+  /// Label amigável: "prod-corporate" | "staging" | "github-app-bot"
+  label            String   @unique
+  /// Tipo de credencial: "fine_grained_pat" | "github_app" | "deploy_key"
+  authType         String
+  /// Payload JSON criptografado (AES-256-GCM): { iv, ciphertext, tag }
+  encryptedPat     String   @db.Text
+  /// SHA-256 hash do PAT (para dedup rápida sem descriptografar)
+  patFingerprint   String
+  /// Permissões declaradas: ["contents:write", "pull_requests:write", "issues:write", "workflows:read", "metadata:read"]
+  scopes           String[]
+  /// Repos permitidos: ["MarcioCau14/SmartHotel_Zehla", ...]
+  repositoryAccess String[]
+  /// Para GitHub App: App ID (numérico)
+  githubAppId      String?
+  /// Para GitHub App: Client ID (string)
+  githubClientId   String?
+  /// Para GitHub App: Installation ID (encontrado em /user/installations)
+  installationId   String?
+  /// Para GitHub App: webhook secret (criptografado separadamente)
+  webhookSecret    String?  @db.Text
+  /// Data de expiração do PAT (máx 90 dias recomendado)
+  expiresAt        DateTime
+  /// ID da credencial anterior na cadeia de rotação (null se nunca rotacionado)
+  rotatedFromId    String?
+  rotatedFrom      GitHubCredential? @relation("RotationChain", fields: [rotatedFromId], references: [id])
+  rotatedTo        GitHubCredential[]
+  /// Quem criou (admin user id do NextAuth)
+  createdBy        String
+  isActive         Boolean  @default(true)
+  lastUsedAt       DateTime?
+  lastValidatedAt  DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  auditLogs        PatAuditLog[]
+
+  @@index([patFingerprint])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@index([authType])
+  @@map("github_credentials")
+}
+
+/// Audit log de TODA operação envolvendo credenciais GitHub.
+/// Cada chamada de API, validação, rotação e revogação é registrada.
+/// Permite forense em caso de incidente e compliance.
+model PatAuditLog {
+  id            String   @id @default(cuid())
+  credentialId  String
+  credential    GitHubCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  /// "VALIDATE" | "READ" | "ROTATE" | "REVOKE" | "API_CALL" | "EXPIRE_ALERT" | "CREATE"
+  action        String
+  /// Endpoint chamado: "POST /repos/MarcioCau14/SmartHotel_Zehla/pulls"
+  apiEndpoint   String?
+  /// Método HTTP: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"
+  apiMethod     String?
+  /// Repo afetado: "MarcioCau14/SmartHotel_Zehla"
+  repository    String?
+  /// Status code retornado pela API GitHub
+  statusCode    Int?
+  /// Sucesso ou falha da operação
+  success       Boolean
+  /// Mensagem de erro (se falhou)
+  errorMessage  String?  @db.Text
+  /// IP de origem da chamada (para forense)
+  ipAddress     String?
+  /// User-Agent da chamada
+  userAgent     String?
+  /// Duração da chamada em ms (para análise de performance)
+  durationMs    Int?
+  createdAt     DateTime @default(now())
+
+  @@index([credentialId, createdAt])
+  @@index([action, createdAt])
+  @@index([success, createdAt])
+  @@index([repository, createdAt])
+  @@map("pat_audit_logs")
 }
 
 // ============================================================================

@@ -1,0 +1,22 @@
+# .mailmap — Mapeamento de emails antigos para corporativos
+# ============================================================================
+# Formato: <Novo Nome> <novo@email.com> <Nome Antigo> <velho@email.com>
+#
+# Cada linha mapeia um email antigo (right) para o novo (left).
+# Pode mapear múltiplos emails antigos para o mesmo novo.
+# Linhas começando com # são comentários.
+#
+# Doc: "Bíblia do ZéCode — GitHub GitOps" (Cap. 9.3)
+# ============================================================================
+
+# === PRINCIPAL DESENVOLVEDOR ===
+Marcio Cau <marcio.cau@empresa.com.br> Marcio Cau <marcio@personal-gmail.com>
+Marcio Cau <marcio.cau@empresa.com.br> Marcio <marcio.cau@old-account.com>
+Marcio Cau <marcio.cau@empresa.com.br> M Cau <mcau@hotmail.com>
+
+# === OUTROS COLABORADORES (adicionar conforme necessário) ===
+# João Silva <joao.silva@empresa.com.br> João Silva <joao@gmail.com>
+# Maria Santos <maria.santos@empresa.com.br> Maria <maria.santos@outlook.com>
+
+# === BOTS (normalmente não precisam de migração, mas aqui para referência) ===
+# ZéCode Bot <ze-code@zehla.local> ZéCode Bot <ze-code@zehla.local>

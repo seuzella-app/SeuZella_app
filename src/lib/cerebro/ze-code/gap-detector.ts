@@ -25,6 +25,7 @@
 import { readCodeFile, listCodeFiles, type SafeReadResult } from '../code-reviewer/code-reader';
 import { logSink } from '../log-sink';
 import { getCerebroMode } from '../types';
+import { db } from '@/lib/db';
 import type {
   GapFinding,
   GapType,
@@ -164,6 +165,10 @@ export interface GapDetectorOptions {
   maxFiles?: number;
   /** Apenas tipos específicos (default: todos) */
   onlyTypes?: GapType[];
+  /** Job ID do Evolve (para vincular findings persistidos) */
+  jobId?: string;
+  /** Se true, persiste findings no DB (default: true se jobId fornecido) */
+  persist?: boolean;
 }
 
 export interface GapDetectorResult {
@@ -171,6 +176,8 @@ export interface GapDetectorResult {
   filesScanned: number;
   mode: 'mock' | 'live';
   durationMs: number;
+  /** IDs dos findings persistidos no DB (vazio se não persistiu) */
+  persistedIds: string[];
 }
 
 export async function detectGaps(opts: GapDetectorOptions = {}): Promise<GapDetectorResult> {
@@ -178,6 +185,8 @@ export async function detectGaps(opts: GapDetectorOptions = {}): Promise<GapDete
   const target = opts.target ?? 'src/';
   const maxFiles = opts.maxFiles ?? 10;
   const onlyTypes = opts.onlyTypes;
+  const jobId = opts.jobId;
+  const shouldPersist = opts.persist ?? !!jobId;
   const mode = getCerebroMode();
 
   // Lista arquivos via sandbox
@@ -352,14 +361,52 @@ export async function detectGaps(opts: GapDetectorOptions = {}): Promise<GapDete
     module: 'ze-code',
     event: 'gap-detector',
     message: `Gap detection completed: ${gaps.length} gaps in ${filesScanned} files`,
-    context: { target, filesScanned, gapsFound: gaps.length, mode, durationMs: Date.now() - start },
+    context: { target, filesScanned, gapsFound: gaps.length, mode, durationMs: Date.now() - start, jobId },
   });
+
+  // Persistência no DB (com fallback gracioso)
+  const persistedIds: string[] = [];
+  if (shouldPersist && gaps.length > 0) {
+    try {
+      const created = await db.gapFinding.createMany({
+        data: gaps.map((g) => ({
+          jobId: jobId ?? null,
+          filePath: g.filePath,
+          lineRange: g.lineRange,
+          gapType: g.gapType,
+          severity: g.severity,
+          title: g.title.slice(0, 500),
+          description: g.description.slice(0, 8000),
+          currentCode: g.currentCode ?? null,
+          suggestedCode: g.suggestedCode ?? null,
+          rationale: g.rationale ?? null,
+          confidence: g.confidence,
+          detectedBy: g.detectedBy,
+          status: 'pending',
+        })),
+      });
+      logSink.info({
+        module: 'ze-code',
+        event: 'gaps-persisted',
+        message: `Persisted ${created.count} gap findings to DB`,
+        context: { jobId, persistedCount: created.count },
+      });
+    } catch (e) {
+      logSink.warn({
+        module: 'ze-code',
+        event: 'gaps-persist-failed',
+        message: `Falha ao persistir gaps no DB (mantendo em memória): ${(e as Error).message}`,
+        context: { jobId, gapsCount: gaps.length },
+      });
+    }
+  }
 
   return {
     gaps,
     filesScanned,
     mode,
     durationMs: Date.now() - start,
+    persistedIds,
   };
 }
 

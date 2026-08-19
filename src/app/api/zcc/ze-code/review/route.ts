@@ -96,6 +96,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     let reviews: any[] = [];
     let total = 0;
 
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+
     try {
       if ((db as any)?.codeReview?.findMany) {
         const [dbReviews, dbTotal] = await Promise.all([

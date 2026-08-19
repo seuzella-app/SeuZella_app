@@ -22,6 +22,7 @@
 import { readCodeFile, listCodeFiles, type SafeReadResult } from '../code-reviewer/code-reader';
 import { logSink } from '../log-sink';
 import { getCerebroMode } from '../types';
+import { db } from '@/lib/db';
 import type {
   BottleneckFinding,
   BottleneckType,
@@ -222,6 +223,10 @@ export interface BottleneckDetectorOptions {
   target?: string;
   maxFiles?: number;
   onlyTypes?: BottleneckType[];
+  /** Job ID do Evolve (para vincular findings persistidos) */
+  jobId?: string;
+  /** Se true, persiste findings no DB (default: true se jobId fornecido) */
+  persist?: boolean;
 }
 
 export interface BottleneckDetectorResult {
@@ -229,6 +234,8 @@ export interface BottleneckDetectorResult {
   filesScanned: number;
   mode: 'mock' | 'live';
   durationMs: number;
+  /** IDs dos findings persistidos no DB (vazio se não persistiu) */
+  persistedIds: string[];
 }
 
 export async function detectBottlenecks(opts: BottleneckDetectorOptions = {}): Promise<BottleneckDetectorResult> {
@@ -236,6 +243,8 @@ export async function detectBottlenecks(opts: BottleneckDetectorOptions = {}): P
   const target = opts.target ?? 'src/';
   const maxFiles = opts.maxFiles ?? 10;
   const onlyTypes = opts.onlyTypes;
+  const jobId = opts.jobId;
+  const shouldPersist = opts.persist ?? !!jobId;
   const mode = getCerebroMode();
 
   const files = listCodeFiles(target, { maxFiles });
@@ -427,14 +436,53 @@ export async function detectBottlenecks(opts: BottleneckDetectorOptions = {}): P
     module: 'ze-code',
     event: 'bottleneck-detector',
     message: `Bottleneck detection completed: ${bottlenecks.length} findings in ${filesScanned} files`,
-    context: { target, filesScanned, bottlenecksFound: bottlenecks.length, mode, durationMs: Date.now() - start },
+    context: { target, filesScanned, bottlenecksFound: bottlenecks.length, mode, durationMs: Date.now() - start, jobId },
   });
+
+  // Persistência no DB (com fallback gracioso)
+  const persistedIds: string[] = [];
+  if (shouldPersist && bottlenecks.length > 0) {
+    try {
+      const created = await db.bottleneckFinding.createMany({
+        data: bottlenecks.map((b) => ({
+          jobId: jobId ?? null,
+          filePath: b.filePath,
+          lineRange: b.lineRange,
+          bottleneckType: b.bottleneckType,
+          severity: b.severity,
+          title: b.title.slice(0, 500),
+          description: b.description.slice(0, 8000),
+          currentCode: b.currentCode ?? null,
+          suggestedCode: b.suggestedCode ?? null,
+          rationale: b.rationale ?? null,
+          confidence: b.confidence,
+          detectedBy: b.detectedBy,
+          estimatedImpact: b.estimatedImpact,
+          status: 'pending',
+        })),
+      });
+      logSink.info({
+        module: 'ze-code',
+        event: 'bottlenecks-persisted',
+        message: `Persisted ${created.count} bottleneck findings to DB`,
+        context: { jobId, persistedCount: created.count },
+      });
+    } catch (e) {
+      logSink.warn({
+        module: 'ze-code',
+        event: 'bottlenecks-persist-failed',
+        message: `Falha ao persistir bottlenecks no DB (mantendo em memória): ${(e as Error).message}`,
+        context: { jobId, bottlenecksCount: bottlenecks.length },
+      });
+    }
+  }
 
   return {
     bottlenecks,
     filesScanned,
     mode,
     durationMs: Date.now() - start,
+    persistedIds,
   };
 }
 
