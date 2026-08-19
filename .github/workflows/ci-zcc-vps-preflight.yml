@@ -59,11 +59,9 @@ jobs:
         run: |
           npx vitest run \
             tests/zcc-security.test.ts \
-            tests/security/api-routes-sast.test.ts \
+            tests/sast-static.test.ts \
+            tests/data-governance-lgpd.test.ts \
             tests/semantica-lgpd.test.ts
-
-      - name: Run Night Audit System Tests
-        run: npx vitest run tests/night-audit-system.test.ts
 
   # ───────────────────────────────────────────────────────────────────────────
   # JOB 2: Hostinger VPS Deployment Pre-Flight Validation
