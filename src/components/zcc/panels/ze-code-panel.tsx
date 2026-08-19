@@ -26,8 +26,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Code2, Brain, Shield, Zap, GitBranch, Check, X,
   FileCode, TrendingUp, Database, RefreshCw, Lock, Activity,
-  Wrench, Target, Gauge,
+  Wrench, Target, Gauge, Server, AlertTriangle, Cpu,
 } from 'lucide-react';
+import { evaluateVpsScaling } from '@/lib/infrastructure/vps-scaling-ruler';
 import type {
   ZeCodeStats,
   ZeCodeView,
@@ -677,6 +678,71 @@ export function ZeCodePanel() {
               Ambos usam GLM 5.2 embarcado (lib/cerebro/glm-service) · ambos têm budget guard · trabalham em paralelo, sem overlap de responsabilidade
             </div>
           </motion.div>
+
+          {/* VPS Scaling & Latency Ruler (Hostinger Advisor) */}
+          {(() => {
+            const activePousadasCount = 18; // base atual inicial
+            const infraEval = evaluateVpsScaling(activePousadasCount, 'KVM_4');
+            return (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="zcc-panel p-5"
+                style={{ borderColor: infraEval.status === 'OPTIMAL' ? 'rgba(16,185,129,0.3)' : infraEval.status === 'WARNING' ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)', borderWidth: 1 }}>
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-4 h-4" style={{ color: 'var(--zcc-kinpaku)' }} />
+                    <h4 className="text-sm font-bold" style={{ color: 'var(--zcc-champagne)' }}>
+                      Régua de Infraestrutura & Latência · Hostinger VPS
+                    </h4>
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded font-bold uppercase"
+                      style={{
+                        background: infraEval.status === 'OPTIMAL' ? 'rgba(16,185,129,0.15)' : infraEval.status === 'WARNING' ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)',
+                        color: infraEval.status === 'OPTIMAL' ? '#10b981' : infraEval.status === 'WARNING' ? '#f59e0b' : '#ef4444',
+                      }}>
+                      {infraEval.currentTier.name} · {infraEval.status}
+                    </span>
+                  </div>
+                  <div className="text-[10px] font-mono" style={{ color: 'var(--zcc-text-muted)' }}>
+                    Latência Atual: <strong style={{ color: '#10b981' }}>{infraEval.currentEstimatedLatencyMs}ms</strong> · Folga: <strong style={{ color: 'var(--zcc-champagne)' }}>+{infraEval.recommendation.headroomPousadasRemaining} pousadas</strong>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                  <StatCard label="TIER ATUAL" value="KVM 4" sub="4 vCPU / 16GB RAM" icon={<Server className="w-3 h-3" />} color="#10b981" />
+                  <StatCard label="CAPACIDADE SEGURA" value="até 280" sub="pousadas ativas" icon={<Gauge className="w-3 h-3" />} color="var(--zcc-kinpaku)" />
+                  <StatCard label="ALERTA LATÊNCIA" value="> 300 pousadas" sub="sobe p/ > 90ms" icon={<AlertTriangle className="w-3 h-3" />} color="#f59e0b" />
+                  <StatCard label="MIGRAÇÃO KVM 8" value="em 340+" sub="8 vCPU / 32GB (+R$60/mês)" icon={<Cpu className="w-3 h-3" />} color="#3b82f6" />
+                </div>
+
+                {/* Régua visual de projeção */}
+                <div className="p-3 rounded mb-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="text-[9px] font-mono uppercase tracking-wider mb-2 flex justify-between" style={{ color: 'var(--zcc-text-muted)' }}>
+                    <span>Curva de Latência vs Crescimento de Pousadas (Hostinger KVM 4)</span>
+                    <span>Zona Verde: &lt;55ms · Amarela: 75-140ms · Vermelha: &gt;180ms</span>
+                  </div>
+                  <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5 text-center font-mono">
+                    {infraEval.latencyRulerCurve.map((step) => (
+                      <div key={step.pousadas} className="p-1.5 rounded"
+                        style={{
+                          background: step.zone === 'green' ? 'rgba(16,185,129,0.08)' : step.zone === 'yellow' ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)',
+                          border: `1px solid ${step.zone === 'green' ? 'rgba(16,185,129,0.2)' : step.zone === 'yellow' ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                        }}>
+                        <div className="text-[8px] text-zinc-400">{step.pousadas} pous.</div>
+                        <div className="text-[10px] font-bold"
+                          style={{ color: step.zone === 'green' ? '#10b981' : step.zone === 'yellow' ? '#f59e0b' : '#ef4444' }}>
+                          {step.projectedLatencyMs}ms
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="text-[10px] font-mono p-2.5 rounded flex items-center justify-between"
+                  style={{ background: 'rgba(74,154,154,0.08)', color: 'var(--zcc-champagne)' }}>
+                  <span>🎯 <strong>Diagnóstico ZéCode:</strong> {infraEval.recommendation.reason}</span>
+                  <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold">AÇÃO: {infraEval.recommendation.action}</span>
+                </div>
+              </motion.div>
+            );
+          })()}
         </div>
       )}
 
