@@ -147,24 +147,26 @@ async function persistAuditEntry(entry: ZCCAuditEntry): Promise<void> {
   try {
     // Lazy import para evitar circular dependency no boot
     const { db } = await import('@/lib/db');
-    await db.zccAuditLog.create({
-      data: {
-        ip: entry.ip,
-        userAgent: entry.userAgent || '',
-        method: entry.method,
-        success: entry.success,
-        path: entry.path,
-        deploymentId: process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 8) || null,
-        notes: null,
-        // timestamp é default(now()) no schema
-      },
-    });
+    if (typeof db?.zccAuditLog?.create === 'function') {
+      await db.zccAuditLog.create({
+        data: {
+          ip: entry.ip,
+          userAgent: entry.userAgent || '',
+          method: entry.method,
+          success: entry.success,
+          path: entry.path,
+          deploymentId: process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 8) || null,
+          notes: null,
+          // timestamp é default(now()) no schema
+        },
+      });
+    }
   } catch (err) {
-    // Em dev sem DB disponível, apenas loga
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[ZCC-AUDIT] DB write failed (dev mode, ignoring):', err);
+    // Em dev/test/CI sem DB real disponível, apenas loga
+    if (process.env.NODE_ENV !== 'production' || process.env.CI === 'true') {
+      console.warn('[ZCC-AUDIT] DB write failed (non-blocking in dev/test/CI):', err);
     } else {
-      throw err;
+      console.error('[ZCC-AUDIT] DB write failed:', err);
     }
   }
 }

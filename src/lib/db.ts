@@ -10,12 +10,23 @@ type SafePrismaClient = PrismaClientType & Record<string, any>;
 let _db: SafePrismaClient | null = null;
 let _dbAvailable: boolean | null = null;
 
-/** No-op proxy that returns null for any method call */
-const noopProxy: SafePrismaClient = new Proxy({} as SafePrismaClient, {
-  get() {
-    return (..._args: any[]) => Promise.resolve(null);
-  },
-}) as unknown as SafePrismaClient;
+/** No-op proxy that safely returns resolving promises for any model method call */
+const createDeepNoop = (): any => {
+  const fn = (..._args: any[]) => Promise.resolve(null);
+  return new Proxy(fn, {
+    get(_target, prop) {
+      if (prop === 'then' || prop === 'catch' || prop === 'finally') {
+        return undefined; // Not a thenable itself unless called
+      }
+      return createDeepNoop();
+    },
+    apply(_target, _thisArg, _argArray) {
+      return Promise.resolve(null);
+    },
+  });
+};
+
+const noopProxy: SafePrismaClient = createDeepNoop() as SafePrismaClient;
 
 /** Check if we're running on Vercel (serverless — no persistent SQLite) */
 function isVercelServerless(): boolean {
