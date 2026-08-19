@@ -217,6 +217,13 @@ const occupancyChartConfig: ChartConfig = {
   taxa: { label: 'Taxa (%)', color: '#10b981' },
 };
 
+const weeklyOccupancyData = [
+  { week: 'Sem 1', taxa: 78 },
+  { week: 'Sem 2', taxa: 85 },
+  { week: 'Sem 3', taxa: 92 },
+  { week: 'Sem 4', taxa: 88 },
+];
+
 // ── Room & Platform Data 
 
 interface RoomData {
