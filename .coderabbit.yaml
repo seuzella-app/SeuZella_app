@@ -45,10 +45,3 @@ reviews:
 
 chat:
   auto_reply: true
-
-tools:
-  github-checks:
-    enabled: true
-  ast-grep:
-    rule_dirs:
-      - ".coderabbit/rules"

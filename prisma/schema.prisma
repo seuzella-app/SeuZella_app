@@ -2119,8 +2119,6 @@ model GitHubCredential {
   expiresAt        DateTime
   /// ID da credencial anterior na cadeia de rotação (null se nunca rotacionado)
   rotatedFromId    String?
-  rotatedFrom      GitHubCredential? @relation("RotationChain", fields: [rotatedFromId], references: [id])
-  rotatedTo        GitHubCredential[]
   /// Quem criou (admin user id do NextAuth)
   createdBy        String
   isActive         Boolean  @default(true)
