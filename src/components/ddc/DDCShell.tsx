@@ -57,6 +57,7 @@ import {
 import { MobileBottomNav } from './MobileBottomNav';
 import { DDCCommandPalette } from './DDCCommandPalette';
 import { YieldProfitWidget } from './YieldProfitWidget';
+import { PWAInstallWidget } from './PWAInstallWidget';
 import { useDesktopDevicePing } from '@/components/mobile/useMobileDevicePing';
 import type { NicheType } from '@/contexts/NicheContext';
 import type { PlanTier } from '@/lib/plan-features';
@@ -791,6 +792,9 @@ export function DDCShell({
           window.location.href = '/login';
         }}
       />
+
+      {/* PWA Install Prompt Widget */}
+      <PWAInstallWidget />
     </div>
   );
 }
