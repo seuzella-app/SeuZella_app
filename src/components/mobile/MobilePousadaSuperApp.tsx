@@ -385,7 +385,7 @@ export function MobilePousadaSuperApp() {
             }`}
           >
             <span className={`w-2 h-2 rounded-full ${aiActive ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
-            <span>{aiActive ? 'IA 24H' : 'PAUSADA'}</span>
+            <span>{aiActive ? 'ZÉLLA 24H' : 'PAUSADO'}</span>
           </button>
 
           {/* Notificações Bell */}

@@ -890,29 +890,30 @@ export default function DDCPousadaContent() {
                     <Tooltip
                       content={({ active, payload, label }) => {
                         if (active && payload && payload.length) {
-                          const data = payload[0].payload;
+                          const item = payload[0]?.payload;
+                          if (!item) return null;
                           return (
                             <div className="rounded-xl border border-zinc-700 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur-md text-xs">
                               <p className="font-bold text-white mb-1.5 flex items-center justify-between gap-3">
-                                <span>Dia {label}</span>
-                                {data.isPeak ? (
+                                <span>Dia {label || ''}</span>
+                                {item?.isPeak ? (
                                   <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded">
-                                    {data.peakName}
+                                    {item.peakName}
                                   </span>
                                 ) : null}
                               </p>
                               <div className="space-y-1">
                                 <div className="flex justify-between gap-4 text-zinc-300">
                                   <span>Diárias Normais:</span>
-                                  <span className="font-mono text-emerald-400 font-semibold">{formatCurrency(data.base)}</span>
+                                  <span className="font-mono text-emerald-400 font-semibold">{formatCurrency(item?.base || 0)}</span>
                                 </div>
                                 <div className="flex justify-between gap-4 text-zinc-300">
                                   <span>UPSELL Feriado:</span>
-                                  <span className="font-mono text-blue-400 font-semibold">+{formatCurrency(data.upsell)}</span>
+                                  <span className="font-mono text-blue-400 font-semibold">+{formatCurrency(item?.upsell || 0)}</span>
                                 </div>
                                 <div className="flex justify-between gap-4 pt-1 border-t border-zinc-800 text-white font-bold">
                                   <span>Faturamento Total:</span>
-                                  <span className="font-mono text-emerald-300">{formatCurrency(data.receita)}</span>
+                                  <span className="font-mono text-emerald-300">{formatCurrency(item?.receita || 0)}</span>
                                 </div>
                               </div>
                             </div>
@@ -948,22 +949,23 @@ export default function DDCPousadaContent() {
                     <Tooltip
                       content={({ active, payload, label }) => {
                         if (active && payload && payload.length) {
-                          const data = payload[0].payload;
+                          const item = payload[0]?.payload;
+                          if (!item) return null;
                           return (
                             <div className="rounded-xl border border-zinc-700 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur-md text-xs">
-                              <p className="font-bold text-white mb-1.5">Dia {label}</p>
+                              <p className="font-bold text-white mb-1.5">Dia {label || ''}</p>
                               <div className="space-y-1">
                                 <div className="flex justify-between gap-4 text-zinc-300">
                                   <span>Base Diária (0% Taxa):</span>
-                                  <span className="font-mono text-emerald-400">{formatCurrency(data.base)}</span>
+                                  <span className="font-mono text-emerald-400">{formatCurrency(item?.base || 0)}</span>
                                 </div>
                                 <div className="flex justify-between gap-4 text-zinc-300">
                                   <span>UPSELL Extra (7% Taxa):</span>
-                                  <span className="font-mono text-blue-400">+{formatCurrency(data.upsell)}</span>
+                                  <span className="font-mono text-blue-400">+{formatCurrency(item?.upsell || 0)}</span>
                                 </div>
                                 <div className="flex justify-between gap-4 pt-1 border-t border-zinc-800 text-white font-bold">
                                   <span>Total do Dia:</span>
-                                  <span className="font-mono text-emerald-300">{formatCurrency(data.receita)}</span>
+                                  <span className="font-mono text-emerald-300">{formatCurrency(item?.receita || 0)}</span>
                                 </div>
                               </div>
                             </div>
