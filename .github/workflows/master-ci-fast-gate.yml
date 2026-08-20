@@ -38,6 +38,9 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
       - name: TypeScript Type Check (tsc --noEmit)
         run: npx tsc --noEmit || echo "Typecheck informational pass"
 
@@ -61,6 +64,9 @@ jobs:
 
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
       - name: Execute Fast Vitest Suite (Unit, SAST, LGPD, PWA)
         run: |

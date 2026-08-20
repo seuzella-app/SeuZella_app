@@ -38,6 +38,9 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
       - name: TypeScript Type Check (tsc --noEmit)
         run: npx tsc --noEmit
 
@@ -58,6 +61,9 @@ jobs:
 
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
       - name: Run DDC Mobile Suite Tests
         run: npx vitest run tests/mobile-ddc-suite.test.tsx

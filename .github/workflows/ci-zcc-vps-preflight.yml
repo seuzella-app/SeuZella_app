@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   NODE_ENV: test
   CI: 'true'
   NEXTAUTH_SECRET: 'ci-secret-key-32-characters-minimum-length-xyz'
