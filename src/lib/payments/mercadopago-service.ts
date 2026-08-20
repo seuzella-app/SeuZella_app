@@ -24,16 +24,16 @@ async function mpRequest(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'DEL
 }
 
 export async function criarCustomer(tenantId: string, email: string, firstName?: string, lastName?: string): Promise<MercadoPagoCustomer> {
-  const existingCustomerId = await getExistingCustomerId(tenantId);
+  const existingCustomerId = await getExistingCustomerId(tenantId, email);
   if (existingCustomerId) {
-    const existing = await mpRequest(`/v1/customers/${existingCustomerId}`, 'GET');
-    return { id: existing.id, email: existing.email, first_name: existing.first_name, last_name: existing.last_name };
+    const existing = await mpRequest(`/v1/customers/${encodeURIComponent(existingCustomerId)}`, 'GET');
+    return { id: String(existing.id), email: existing.email, first_name: existing.first_name, last_name: existing.last_name };
   }
   const body: any = { email, metadata: { tenant_id: tenantId, purpose: 'upsell_comission_auto' } };
   if (firstName) body.first_name = firstName;
   if (lastName) body.last_name = lastName;
   const result = await mpRequest('/v1/customers', 'POST', body, `customer:${tenantId}`);
-  return { id: result.id, email: result.email, first_name: result.first_name, last_name: result.last_name };
+  return { id: String(result.id), email: result.email, first_name: result.first_name, last_name: result.last_name };
 }
 
 export async function attachCard(tenantId: string, cardToken: string): Promise<{ success: boolean; card?: MercadoPagoCard; error?: string }> {
@@ -41,10 +41,11 @@ export async function attachCard(tenantId: string, cardToken: string): Promise<{
     if (!cardToken || cardToken.length < 8) return { success: false, error: 'INVALID_CARD_TOKEN' };
     const tenant = await (db as any).tenant.findUnique({ where: { id: tenantId }, select: { name: true, email: true } });
     if (!tenant) return { success: false, error: 'TENANT_NOT_FOUND' };
+    const email = tenant.email || `tenant-${tenantId}@zella.com`;
     const parts = String(tenant.name || '').trim().split(/\s+/);
-    const customer = await criarCustomer(tenantId, tenant.email || `tenant-${tenantId}@zella.com`, parts[0], parts.slice(1).join(' '));
-    const cardResult = await mpRequest(`/v1/customers/${customer.id}/cards`, 'POST', { token: cardToken, customer_id: customer.id }, `card:${tenantId}:${cardToken}`);
-    return { success: true, card: { id: cardResult.id, brand: cardResult.payment_method?.id || 'unknown', last4: cardResult.last_four_digits || '****', exp_month: cardResult.exp_month || 0, exp_year: cardResult.exp_year || 0, is_default: true, cardholder_name: cardResult.cardholder?.name || '' } };
+    const customer = await criarCustomer(tenantId, email, parts[0], parts.slice(1).join(' '));
+    const cardResult = await mpRequest(`/v1/customers/${encodeURIComponent(customer.id)}/cards`, 'POST', { token: cardToken, customer_id: customer.id }, `card:${tenantId}:${cardToken}`);
+    return { success: true, card: { id: String(cardResult.id), brand: cardResult.payment_method?.id || 'unknown', last4: cardResult.last_four_digits || '****', exp_month: cardResult.exp_month || 0, exp_year: cardResult.exp_year || 0, is_default: true, cardholder_name: cardResult.cardholder?.name || '' } };
   } catch (err: any) { console.error('[MERCADO_PAGO] attachCard falhou:', err); return { success: false, error: err.message }; }
 }
 
@@ -52,8 +53,8 @@ export async function listarCartoes(tenantId: string): Promise<MercadoPagoCard[]
   try {
     const customerId = await getExistingCustomerId(tenantId);
     if (!customerId) return [];
-    const result = await mpRequest(`/v1/customers/${customerId}/cards`, 'GET');
-    return (result || []).map((card: any) => ({ id: card.id, brand: card.payment_method?.id || 'unknown', last4: card.last_four_digits || '****', exp_month: card.exp_month || 0, exp_year: card.exp_year || 0, is_default: false, cardholder_name: card.cardholder?.name || '' }));
+    const result = await mpRequest(`/v1/customers/${encodeURIComponent(customerId)}/cards`, 'GET');
+    return (result || []).map((card: any) => ({ id: String(card.id), brand: card.payment_method?.id || 'unknown', last4: card.last_four_digits || '****', exp_month: card.exp_month || 0, exp_year: card.exp_year || 0, is_default: false, cardholder_name: card.cardholder?.name || '' }));
   } catch (err) { console.error('[MERCADO_PAGO] listarCartoes falhou:', err); return []; }
 }
 
@@ -76,17 +77,24 @@ export async function processarWebhookMercadoPago(body: any): Promise<{ received
   const type = String(body?.type || body?.action || 'unknown');
   const paymentId = body?.data?.id || body?.id;
   if (!paymentId) return { received: false, type };
-  // Business state transitions must be performed by the payment state-machine layer.
-  // This adapter deliberately does not mutate reservation/access state directly.
   if (type === 'payment' || type.startsWith('payment.')) {
     const payment = await mpRequest(`/v1/payments/${encodeURIComponent(String(paymentId))}`, 'GET');
-    const status = String(payment?.status || 'unknown');
-    console.info('[MP_WEBHOOK] verified provider payment', { paymentId: String(paymentId), status });
+    console.info('[MP_WEBHOOK] verified provider payment', { paymentId: String(paymentId), status: String(payment?.status || 'unknown') });
   }
   return { received: true, type };
 }
 
-async function getExistingCustomerId(tenantId: string): Promise<string | null> {
-  const tenant = await (db as any).tenant.findUnique({ where: { id: tenantId }, select: { mpCustomerId: true } }).catch(() => null);
-  return tenant?.mpCustomerId ? String(tenant.mpCustomerId) : null;
+async function getExistingCustomerId(tenantId: string, emailHint?: string): Promise<string | null> {
+  const tenant = await (db as any).tenant.findUnique({ where: { id: tenantId }, select: { email: true } });
+  const email = tenant?.email || emailHint;
+  if (!email) return null;
+  try {
+    const result = await mpRequest(`/v1/customers/search?email=${encodeURIComponent(email)}`, 'GET');
+    const customers = Array.isArray(result?.results) ? result.results : [];
+    const exact = customers.find((c: any) => String(c.email || '').toLowerCase() === String(email).toLowerCase());
+    return exact?.id ? String(exact.id) : null;
+  } catch (error) {
+    console.error('[MERCADO_PAGO] customer lookup failed:', error);
+    return null;
+  }
 }
