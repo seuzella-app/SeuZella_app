@@ -15,8 +15,10 @@ import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   try {
     const security = await verifyZCCAccessOrReject(req);
     if (!security.allowed) return security.response!;
@@ -33,8 +35,8 @@ export async function POST(
       );
     }
 
-    await emergencyRevoke(params.id, body.reason, 'admin');
-    invalidateClientCache(params.id);
+    await emergencyRevoke(id, body.reason, 'admin');
+    invalidateClientCache(id);
 
     return NextResponse.json({
       success: true,

@@ -1,21 +1,21 @@
 # ==============================================================================
 # SEU ZELLA — Dockerfile de Produção (Multi-Stage Build Otimizado)
 # ==============================================================================
-# Imagem final: ~120MB | Node 24 Alpine | Next.js Standalone
+# Imagem final: ~120MB | Node 22 Alpine | Next.js Standalone
 # ==============================================================================
 
 # ── STAGE 1: Dependências ─────────────────────────────────────────────────────
-FROM node:24-alpine AS deps
+FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-COPY package.json package-lock.json* bun.lock* ./
+COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 RUN if [ -f package-lock.json ]; then npm ci --omit=dev --ignore-scripts; else npm install --omit=dev --ignore-scripts; fi && \
     npx prisma generate
 
 # ── STAGE 2: Build ────────────────────────────────────────────────────────────
-FROM node:24-alpine AS builder
+FROM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
@@ -23,7 +23,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # DATABASE_URL temporário apenas para o prisma generate no build
-ENV DATABASE_URL="file:/tmp/build.db"
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/seuzella_build"
 ENV NEXTAUTH_SECRET="build-only-dummy-secret"
 ENV NEXTAUTH_URL="http://localhost:3000"
 ENV NODE_ENV="production"
@@ -32,7 +32,7 @@ RUN npx prisma generate && \
     npx next build
 
 # ── STAGE 3: Runner (Produção) ───────────────────────────────────────────────
-FROM node:24-alpine AS runner
+FROM node:22-alpine AS runner
 RUN apk add --no-cache libc6-compat openssl curl tini
 WORKDIR /app
 
@@ -49,12 +49,7 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 
-# Criar diretório do banco e dar permissão
-RUN mkdir -p /app/db && chown -R zella:zella /app/db && \
-    mkdir -p /app/.next && chown -R zella:zella /app/.next
-
-# Volume para persistência do SQLite
-VOLUME ["/app/db"]
+RUN mkdir -p /app/.next && chown -R zella:zella /app/.next
 
 USER zella
 

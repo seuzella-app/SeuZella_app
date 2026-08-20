@@ -36,10 +36,14 @@ export const authOptions: NextAuthOptions = {
         console.log('[auth] authorize() called — email:', credentials?.email, '| vercel:', isVercelServerless());
 
         // ── ZCC ADMIN QUICK ACCESS: login "123" / senha "123" ──
-        // VERIFICADO PRIMEIRO — antes de qualquer outro check (incluindo BYPASS_MIDDLEWARE_AUTH)
-        // Isto garante que 123/123 funciona mesmo se BYPASS_MIDDLEWARE_AUTH=true estiver setado na Vercel
+        // Permitido EXCLUSIVAMENTE fora de produção (dev / testes / demo explícito)
         if (credentials?.email === '123' && credentials?.password === '123') {
-          console.log('[auth] ZCC Admin quick login (123/123) — granting access');
+          if (process.env.NODE_ENV === 'production') {
+            console.warn('[auth] Quick access 123/123 is strictly forbidden in production');
+            return null;
+          }
+
+          console.log('[auth] ZCC Admin quick login (123/123) in development mode');
 
           // Tenta criar no DB se disponível (best-effort, não bloqueia se falhar)
           try {
@@ -80,8 +84,7 @@ export const authOptions: NextAuthOptions = {
             console.warn('[auth] ZCC admin DB error (non-fatal, using mock):', zccError);
           }
 
-          // FALLBACK: retorna sessão mock sem DB (funciona em Vercel sem DB)
-          console.log('[auth] ZCC admin using mock session (no DB needed)');
+          // FALLBACK DEV: retorna sessão mock sem DB
           return {
             id: 'zcc-admin-mock',
             email: '123',
@@ -94,9 +97,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         // === BYPASS_MIDDLEWARE_AUTH mode ===
-        // Se BYPASS_MIDDLEWARE_AUTH estiver ativo na Vercel ou local, autentica sessão mock imediatamente
+        // Permitido EXCLUSIVAMENTE em ambiente de teste/dev local
         if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true') {
-          console.log('[auth] BYPASS_MIDDLEWARE_AUTH=true — autenticando sessão mock');
+          if (process.env.NODE_ENV === 'production') {
+            console.error('[auth] CRITICAL: BYPASS_MIDDLEWARE_AUTH is strictly forbidden in production');
+            return null;
+          }
+          console.log('[auth] BYPASS_MIDDLEWARE_AUTH=true (dev/test only) — autenticando sessão mock');
           const isAirbnb = credentials?.email?.includes('airbnb');
           return {
             id: isAirbnb ? 'demo-airbnb-tenant-id' : 'demo-pousada-tenant-id',
@@ -114,14 +121,17 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // ── DEMO & QUICK ACCESS ACCOUNTS (Resilient Fallback) ──
-        // Permite login demo em qualquer ambiente (local, Vercel serverless, VPS)
-        // Se o banco estiver online, persiste/recupera; se offline, gera sessão mock imediata.
+        // ── DEMO & QUICK ACCESS ACCOUNTS (Permitidas apenas fora de produção) ──
         const isDemoPousada = (credentials.email === 'demo@pousada.com.br' || credentials.email === 'pousada@zehla.com.br') && (credentials.password === 'Demo@123' || credentials.password === '123');
         const isDemoAirbnb = (credentials.email === 'demo@airbnb.com.br' || credentials.email === 'airbnb@zehla.com.br') && (credentials.password === 'Demo@123' || credentials.password === '123');
         const isDemoZella = credentials.email === 'zella@zella.com.br' && credentials.password === '123';
 
         if (isDemoPousada || isDemoAirbnb || isDemoZella) {
+          if (process.env.NODE_ENV === 'production') {
+            console.warn('[auth] Demo accounts are strictly forbidden in production');
+            return null;
+          }
+
           const niche: NicheType = isDemoAirbnb ? 'airbnb' : 'pousada';
           const propertyName = isDemoAirbnb ? 'Airbnb Prime Copacabana (Zélla)' : 'Pousada Recanto Verde (Zélla)';
           const tenantId = isDemoAirbnb ? 'demo-airbnb-tenant-id' : 'demo-pousada-tenant-id';
@@ -162,8 +172,7 @@ export const authOptions: NextAuthOptions = {
             console.warn('[auth] Demo login DB lookup (non-fatal, using fallback):', demoError);
           }
 
-          // FALLBACK MOCK SESSION: Always succeeds on Vercel preview / without DB connection
-          console.log('[auth] Demo login authenticated via resilient fallback:', credentials.email);
+          // FALLBACK MOCK SESSION FOR DEV
           return {
             id: tenantId,
             email: credentials.email,
@@ -334,13 +343,25 @@ export const authOptions: NextAuthOptions = {
  * Retrieves the tenant ID of the authenticated user or redirects if unauthorized.
  */
 export async function requireTenant() {
-  // On Vercel serverless, return the demo/mock tenant
-  if (isVercelServerless()) {
-    const session = await getServerSession(authOptions);
-    return session?.user?.tenantId || 'demo-tenant-id';
+  const session = await getServerSession(authOptions);
+
+  // Em produção: isolamento estrito Fail-Closed
+  if (process.env.NODE_ENV === 'production') {
+    if (!session || !session.user) {
+      redirect('/login');
+    }
+    const tenantId = (session.user as any).tenantId;
+    if (!tenantId) {
+      redirect('/login');
+    }
+    return tenantId;
   }
 
-  // BYPASS_MIDDLEWARE_AUTH fallback handling
+  // Ambiente de Dev/Preview
+  if (session?.user && (session.user as any).tenantId) {
+    return (session.user as any).tenantId;
+  }
+
   if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true') {
     try {
       const dbOk = await isDatabaseAvailable();
@@ -356,18 +377,11 @@ export async function requireTenant() {
     return 'demo-pousada-tenant-id';
   }
 
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user) {
-    redirect('/login');
+  if (isVercelServerless()) {
+    return 'demo-tenant-id';
   }
 
-  const tenantId = (session.user as any).tenantId;
-  if (!tenantId) {
-    redirect('/login');
-  }
-
-  return tenantId;
+  redirect('/login');
 }
 
 /**

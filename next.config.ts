@@ -9,9 +9,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  allowedDevOrigins: ['localhost', '127.0.0.1', '21.0.13.26'],
+  allowedDevOrigins: process.env.NODE_ENV === 'development' ? ['localhost', '127.0.0.1'] : undefined,
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   reactStrictMode: true,
   productionBrowserSourceMaps: false,

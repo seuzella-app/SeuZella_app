@@ -1,9 +1,11 @@
-// Browser-safe Prisma client wrapper
-// On the server: creates a real PrismaClient with encryption extension
-// On the client: exports a dummy object that won't crash
-// On Vercel/serverless: falls back to no-op (SQLite file doesn't exist there)
-
 import type { PrismaClient as PrismaClientType } from '@prisma/client';
+
+export class DatabaseUnavailableError extends Error {
+  constructor(message = 'Database is currently unavailable') {
+    super(message);
+    this.name = 'DatabaseUnavailableError';
+  }
+}
 
 type SafePrismaClient = PrismaClientType & Record<string, any>;
 
@@ -28,27 +30,16 @@ const createDeepNoop = (): any => {
 
 const noopProxy: SafePrismaClient = createDeepNoop() as SafePrismaClient;
 
-/** Check if we're running on Vercel (serverless — no persistent SQLite) */
-function isVercelServerless(): boolean {
-  return !!(process.env.VERCEL || process.env.VERCEL_ENV);
-}
-
 /**
  * Check if the database is available by testing the connection.
  * Returns false if DATABASE_URL is invalid or connection fails.
  */
 export async function isDatabaseAvailable(): Promise<boolean> {
-  // On Vercel serverless, SQLite is never available
-  if (isVercelServerless()) {
-    _dbAvailable = false;
-    return false;
-  }
-
   if (_dbAvailable !== null) return _dbAvailable;
   
   try {
     const url = process.env.DATABASE_URL;
-    if (!url || (!url.startsWith('file:') && !url.startsWith('postgresql:') && !url.startsWith('mysql:'))) {
+    if (!url || (!url.startsWith('file:') && !url.startsWith('postgresql:') && !url.startsWith('postgres:') && !url.startsWith('mysql:'))) {
       _dbAvailable = false;
       return false;
     }
@@ -72,11 +63,6 @@ export async function isDatabaseAvailable(): Promise<boolean> {
 function getDbClient(): SafePrismaClient | null {
   // Only create Prisma on the server
   if (typeof window !== 'undefined') {
-    return null;
-  }
-
-  // On Vercel, don't create Prisma client — SQLite file doesn't exist there
-  if (isVercelServerless()) {
     return null;
   }
 
@@ -110,19 +96,13 @@ function createDb(): SafePrismaClient {
     return noopProxy;
   }
 
-  // On Vercel, return no-op proxy — SQLite file doesn't exist there
-  if (isVercelServerless()) {
-    console.warn('[db] Vercel serverless detected — using no-op DB proxy');
-    return noopProxy;
-  }
-
   // Server-side: try to create real Prisma client
   const client = getDbClient();
   if (client) {
     return client;
   }
 
-  // Fallback: return a no-op proxy that won't crash
+  // Fallback: return a no-op proxy that won't crash in dev/test
   console.warn('[db] Prisma client unavailable — using no-op fallback');
   return noopProxy;
 }

@@ -36,12 +36,41 @@ function shouldLog(level: LogLevel): boolean {
   return (LOG_LEVEL_VALUES[level] ?? 0) >= (LOG_LEVEL_VALUES[minLevel] ?? 1);
 }
 
+const SENSITIVE_KEYS = [
+  'password', 'secret', 'token', 'authorization', 'bearer', 'apikey', 'api_key',
+  'creditcard', 'cvv', 'cvc', 'cpf', 'cardnumber', 'privatekey', 'cert'
+];
+
+function sanitizeValue(key: string, value: any): any {
+  if (typeof value === 'string') {
+    const lowerKey = key.toLowerCase();
+    if (SENSITIVE_KEYS.some((s) => lowerKey.includes(s))) {
+      return '[REDACTED]';
+    }
+  } else if (typeof value === 'object' && value !== null) {
+    if (Array.isArray(value)) {
+      return value.map((item, idx) => sanitizeValue(String(idx), item));
+    }
+    const sanitizedObj: Record<string, any> = {};
+    for (const [k, v] of Object.entries(value)) {
+      sanitizedObj[k] = sanitizeValue(k, v);
+    }
+    return sanitizedObj;
+  }
+  return value;
+}
+
+function sanitizeContext(context?: LogContext): LogContext | undefined {
+  if (!context) return undefined;
+  return sanitizeValue('root', context);
+}
+
 function createEntry(level: LogLevel, message: string, context?: LogContext, requestId?: string, durationMs?: number): LogEntry {
   return {
     timestamp: new Date().toISOString(),
     level,
     message,
-    context,
+    context: sanitizeContext(context),
     requestId,
     durationMs
   };

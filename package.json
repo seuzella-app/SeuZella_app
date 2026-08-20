@@ -6,7 +6,7 @@
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
     "postinstall": "prisma generate",
     "build": "DATABASE_URL=\"${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/seuzella_test}\" prisma generate && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
+    "start": "NODE_ENV=production node .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -35,9 +35,9 @@
     "test:sustainability-growth": "vitest run tests/sustainability-growth-churn.test.ts",
     "test:pwa-mobile": "vitest run tests/pwa-mobile-manifest.test.ts",
     "test:browser": "echo 'No Playwright tests configured yet'",
-    "test:e2e-zella": "bun run scripts/simulate-zella-e2e.ts",
+    "test:e2e-zella": "npx tsx scripts/simulate-zella-e2e.ts",
     "test:locks-unit": "vitest run tests/locks-*.test.ts tests/smart-locks.test.ts",
-    "test:locks-db": "DATABASE_URL=\"file:./test-integration.db\" prisma db push --accept-data-loss && DATABASE_URL=\"file:./test-integration.db\" vitest run tests/locks-db-integration.test.ts",
+    "test:locks-db": "vitest run tests/locks-db-integration.test.ts",
     "test:locks-all": "npm run test:locks-unit && npm run test:locks-db",
     "test:v11-security": "vitest run tests/security/cron-auth.test.ts --reporter=verbose",
     "test:v11-canaries": "vitest run tests/security/rls-canaries.test.ts --reporter=verbose",
@@ -60,8 +60,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
-    "seed:beta": "bun run prisma/seed-beta.ts",
-    "vercel-build": "prisma generate && prisma db push --accept-data-loss && next build"
+    "seed:beta": "npx tsx prisma/seed-beta.ts",
+    "vercel-build": "prisma generate && next build"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

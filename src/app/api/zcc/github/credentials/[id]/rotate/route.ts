@@ -14,8 +14,10 @@ import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   try {
     const security = await verifyZCCAccessOrReject(req);
     if (!security.allowed) return security.response!;
@@ -40,10 +42,10 @@ export async function POST(
       );
     }
 
-    const newId = await rotateCredential(params.id, body.newPat, newExpiresAt, 'admin');
+    const newId = await rotateCredential(id, body.newPat, newExpiresAt, 'admin');
 
     // Invalida cache do GitHubClient para forçar reload
-    invalidateClientCache(params.id);
+    invalidateClientCache(id);
 
     return NextResponse.json({
       success: true,

@@ -19,7 +19,12 @@ export async function POST(request: NextRequest) {
     const webhookToken = request.headers.get('asaas-access-token') || request.headers.get('x-asaas-access-token');
     const expectedSecret = process.env.ASAAS_WEBHOOK_SECRET || process.env.ASAAS_ACCESS_TOKEN;
 
-    if (expectedSecret && webhookToken && webhookToken !== expectedSecret) {
+    if (process.env.NODE_ENV === 'production') {
+      if (!expectedSecret || !webhookToken || webhookToken !== expectedSecret) {
+        console.warn('[AsaasWebhook] Unauthorized or missing webhook token in production');
+        return NextResponse.json({ error: 'UNAUTHORIZED_WEBHOOK_TOKEN' }, { status: 401 });
+      }
+    } else if (expectedSecret && webhookToken && webhookToken !== expectedSecret) {
       console.warn('[AsaasWebhook] Token de webhook inválido recebido.');
       return NextResponse.json({ error: 'UNAUTHORIZED_WEBHOOK_TOKEN' }, { status: 401 });
     }

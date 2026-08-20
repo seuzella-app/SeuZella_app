@@ -190,6 +190,8 @@ const eslintConfig = [
   ignores: [
     "node_modules/**",
     ".next/**",
+    ".vercel/**",
+    "coverage/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
@@ -207,6 +209,7 @@ const eslintConfig = [
     "start-dev.sh",
     "deploy.sh",
     "quick-start.sh",
+    "scripts/**",
   ],
 }];
 

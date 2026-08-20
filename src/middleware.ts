@@ -398,6 +398,9 @@ export async function middleware(request: NextRequest) {
       if (token?.email) {
         // ZCC Admin quick access: email "123" sempre tem acesso ao /zcc
         if (token.email === '123') {
+          if (process.env.NODE_ENV === 'production') {
+            return silentReject(request, ip, userAgent, 'denied');
+          }
           auditZCCAccess({ ip, userAgent, method: 'session', success: true, path: pathname });
           return NextResponse.next();
         }
@@ -406,7 +409,7 @@ export async function middleware(request: NextRequest) {
           .split(',')
           .map(e => e.trim().toLowerCase())
           .filter(Boolean);
-        if (adminEmails.length === 0 || adminEmails.includes((token.email as string).toLowerCase())) {
+        if (adminEmails.length > 0 && adminEmails.includes((token.email as string).toLowerCase())) {
           auditZCCAccess({ ip, userAgent, method: 'session', success: true, path: pathname });
           return NextResponse.next();
         }
@@ -415,9 +418,8 @@ export async function middleware(request: NextRequest) {
       // Ignora falha ao decodificar token
     }
 
-    // ── 6. Acesso Demo / Investidores ZCC ──
-    // Permite visualização do ZCC Command Center diretamente via web
-    if (process.env.ZCC_STRICT_LOCK !== 'true') {
+    // ── 6. Acesso Demo ZCC (Somente permitido fora de produção) ──
+    if (process.env.NODE_ENV !== 'production' && process.env.ZCC_STRICT_LOCK !== 'true') {
       auditZCCAccess({ ip, userAgent, method: 'session', success: true, path: pathname });
       return NextResponse.next();
     }
