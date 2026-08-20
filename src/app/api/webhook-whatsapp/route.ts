@@ -45,35 +45,47 @@ export async function POST(request: NextRequest) {
     const contactName = value.contacts?.[0]?.profile?.name || '';
     if (!fromPhone || !displayPhoneNumber || !message.id) return NextResponse.json({ error: 'INVALID_WEBHOOK_EVENT' }, { status: 400 });
 
-    let messageText = '';
-    if (message.type === 'text') messageText = message.text?.body || '';
-    else if (message.type === 'audio' || message.type === 'voice') {
-      const { transcribeWhatsAppAudio } = await import('@/lib/audio-transcriber');
-      const audioResult = await transcribeWhatsAppAudio({ mediaId: message.audio?.id || message.voice?.id, provider: 'meta' });
-      messageText = `[ÁUDIO TRANSCRITO]: "${audioResult.transcript}"`;
-    } else return NextResponse.json({ status: 'ok', processed: 0, reason: 'unsupported_message_type' });
+    // Keep the webhook fast: media transcription belongs to the durable worker.
+    // This prevents Meta retries caused by slow external audio providers.
+    let messageContent = '';
+    let messageType: 'text' | 'audio' | 'voice' = 'text';
+    let mediaId: string | undefined;
+    if (message.type === 'text') {
+      messageContent = message.text?.body || '';
+    } else if (message.type === 'audio' || message.type === 'voice') {
+      messageType = message.type;
+      mediaId = message.audio?.id || message.voice?.id;
+      if (!mediaId) return NextResponse.json({ error: 'INVALID_MEDIA_EVENT' }, { status: 400 });
+      messageContent = '[ÁUDIO PENDENTE DE TRANSCRIÇÃO]';
+    } else {
+      return NextResponse.json({ status: 'ok', processed: 0, reason: 'unsupported_message_type' });
+    }
 
     const tenantResult = await resolveTenantByPhone(displayPhoneNumber);
     const tenantValidation = validateWebhookTenant(displayPhoneNumber, tenantResult.tenantId);
     if (!tenantValidation.valid) return NextResponse.json({ status: 'rejected', reason: tenantValidation.reason }, { status: 403 });
 
     const { enqueueJob, QUEUE_NAMES } = await import('@/lib/queue/queue-service');
+    const jobId = `whatsapp:${message.id}`;
     try {
-      await enqueueJob(QUEUE_NAMES.WHATSAPP_WEBHOOK, {
-        idempotencyKey: `whatsapp:${message.id}`,
-        providerMessageId: message.id,
-        tenantId: tenantResult.tenantId!,
-        guestPhone: fromPhone,
-        guestName: contactName,
-        messageContent: messageText,
-        messageFrom: 'whatsapp',
-        displayPhoneNumber,
-        messageTimestamp: message.timestamp,
-      });
+      await enqueueJob(
+        QUEUE_NAMES.WHATSAPP_WEBHOOK,
+        {
+          idempotencyKey: jobId,
+          providerMessageId: message.id,
+          tenantId: tenantResult.tenantId!,
+          guestPhone: fromPhone,
+          guestName: contactName,
+          messageContent,
+          messageType,
+          mediaId,
+          messageFrom: 'whatsapp',
+          displayPhoneNumber,
+          messageTimestamp: message.timestamp,
+        },
+        { jobId, tenantId: tenantResult.tenantId! },
+      );
     } catch (queueError) {
-      // Never process synchronously after a queue failure: that would create
-      // duplicate processing and defeats the durability contract. Returning
-      // non-2xx lets Meta retry the event.
       console.error('[whatsapp-webhook] Queue unavailable; requesting provider retry:', queueError);
       return NextResponse.json({ error: 'QUEUE_UNAVAILABLE' }, { status: 503, headers: { 'Retry-After': '5' } });
     }
