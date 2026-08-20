@@ -1,0 +1,10 @@
+{
+  "github-actions.remoteValidation": false,
+  "github-actions.workflows.pinnedVersionWarning": false,
+  "yaml.customTags": [
+    "!reference sequence"
+  ],
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml"
+  }
+}
