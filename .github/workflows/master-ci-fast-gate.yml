@@ -4,12 +4,17 @@ on:
   push:
     branches:
       - main
+      - security-hardening-2026-08-20
   pull_request:
     branches:
       - main
 
 permissions:
   contents: read
+
+concurrency:
+  group: master-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   NODE_ENV: test
@@ -36,21 +41,21 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci
 
       - name: Generate Prisma Client
         run: npx prisma generate
 
       - name: TypeScript Type Check (tsc --noEmit)
-        run: npx tsc --noEmit || echo "Typecheck informational pass"
+        run: npx tsc --noEmit
 
       - name: ESLint Audit
-        run: npx eslint src/lib/zcc/ src/domain/ --quiet || echo "ESLint clean"
+        run: npx eslint . --max-warnings=0
 
   unit-and-security-tests:
     name: 🧪 Unit Tests, SAST & LGPD Compliance
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout Code
@@ -63,12 +68,12 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci
 
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Execute Fast Vitest Suite (Unit, SAST, LGPD, PWA)
+      - name: Execute Fast Vitest Suite (Unit, SAST, LGPD, PWA, Security Regression)
         run: |
           npx vitest run \
             tests/unit-business-logic.test.ts \
@@ -76,4 +81,11 @@ jobs:
             tests/data-governance-lgpd.test.ts \
             tests/ai-prompt-eval-lgpd.test.ts \
             tests/pwa-mobile-manifest.test.ts \
-            tests/zcc-security.test.ts
+            tests/zcc-security.test.ts \
+            tests/security-hardening-12-fronts.test.ts
+
+      - name: Dependency Audit
+        run: npm audit --audit-level=high
+
+      - name: Prisma Schema Validation
+        run: npx prisma validate
