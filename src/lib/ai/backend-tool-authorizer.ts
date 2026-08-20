@@ -28,10 +28,9 @@ export class ToolAuthorizationError extends Error {
   constructor(message: string, public code: string) { super(message); this.name = 'ToolAuthorizationError'; }
 }
 
-// robot is intentionally NOT an admin/owner equivalent. Automated execution must be
-// granted explicitly by the tool's required role and confirmation policy.
 const ROLE_HIERARCHY: Record<string, number> = { guest: 1, robot: 1, staff: 2, admin: 3, owner: 4 };
 export const AGENT_BUDGET = { MAX_TOOL_CALLS_PER_TURN: 10, MAX_EXECUTION_TIME_MS: 30000, CIRCUIT_BREAKER_THRESHOLD: 3 };
+// Circuit-breaker state is tenant-scoped so one tenant cannot disable a tool for every tenant.
 const toolFailureCounts = new Map<string, number>();
 
 export const TOOL_REGISTRY: Map<string, ToolDefinition> = new Map([
@@ -47,9 +46,15 @@ export const TOOL_REGISTRY: Map<string, ToolDefinition> = new Map([
   ['exportTenantData', { name: 'exportTenantData', description: 'Exportar dados cadastrais', risk: 'high', requiredRole: 'owner', isStateChanging: false, requiresExplicitConfirmation: true }],
 ]);
 
-export function recordToolExecutionResult(toolName: string, success: boolean): void {
-  if (success) toolFailureCounts.delete(toolName);
-  else toolFailureCounts.set(toolName, (toolFailureCounts.get(toolName) || 0) + 1);
+function failureKey(tenantId: string, toolName: string): string {
+  return `${tenantId}:${toolName}`;
+}
+
+export function recordToolExecutionResult(toolName: string, success: boolean, tenantId?: string): void {
+  if (!tenantId) return;
+  const key = failureKey(tenantId, toolName);
+  if (success) toolFailureCounts.delete(key);
+  else toolFailureCounts.set(key, (toolFailureCounts.get(key) || 0) + 1);
 }
 
 export function authorizeToolExecution(toolName: string, params: Record<string, unknown>, context: ToolInvocationContext): { authorized: boolean; reason?: string } {
@@ -66,7 +71,7 @@ export function authorizeToolExecution(toolName: string, params: Record<string, 
   const tool = TOOL_REGISTRY.get(toolName);
   if (!tool) throw new ToolAuthorizationError(`Unregistered tool: ${toolName}`, 'UNKNOWN_TOOL');
 
-  const failures = toolFailureCounts.get(toolName) || 0;
+  const failures = toolFailureCounts.get(failureKey(context.tenantId, toolName)) || 0;
   if (failures >= AGENT_BUDGET.CIRCUIT_BREAKER_THRESHOLD) {
     throw new ToolAuthorizationError('Tool temporarily disabled by circuit breaker', 'CIRCUIT_BREAKER_ACTIVE');
   }
@@ -75,17 +80,14 @@ export function authorizeToolExecution(toolName: string, params: Record<string, 
   const requiredLevel = ROLE_HIERARCHY[tool.requiredRole] || 99;
   if (userLevel < requiredLevel) throw new ToolAuthorizationError('Insufficient role for tool', 'INSUFFICIENT_PERMISSIONS');
 
-  // Tenant identifiers are server-owned. Any model-supplied mismatch is an immediate deny.
   if (params.tenantId !== undefined && params.tenantId !== context.tenantId) {
     throw new ToolAuthorizationError('Cross-tenant parameter injection detected', 'CROSS_TENANT_ATTEMPT');
   }
 
-  // High/critical state changes and sensitive exports require an explicit backend-approved confirmation.
   if (tool.requiresExplicitConfirmation && context.explicitConfirmation !== true) {
     throw new ToolAuthorizationError('Explicit confirmation required', 'EXPLICIT_CONFIRMATION_REQUIRED');
   }
 
-  // Prevent the model from smuggling a different identity/resource owner into tool params.
   for (const key of ['userId', 'actorId', 'ownerId']) {
     if (params[key] !== undefined && params[key] !== context.userId) {
       throw new ToolAuthorizationError(`Identity parameter '${key}' does not match authenticated user`, 'IDENTITY_SCOPE_VIOLATION');
