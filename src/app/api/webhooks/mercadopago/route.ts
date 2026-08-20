@@ -1,60 +1,34 @@
-/**
- * POST /api/webhooks/mercadopago
- *
- * Recebe webhooks do Mercado Pago (payment.approved, payment.rejected, etc.)
- * e atualiza status dos UpsellRecords correspondentes.
- *
- * Headers:
- *   - x-signature (validação opcional via MERCADOPAGO_WEBHOOK_SECRET)
- *
- * Body: JSON enviado pelo Mercado Pago
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { processarWebhookMercadoPago } from '@/lib/payments/mercadopago-service';
+import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
 
-async function postHandler(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+    if (!secret) return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 503 });
 
-    // Validação opcional via secret (se MERCADOPAGO_WEBHOOK_SECRET configurado)
-    const signature = req.headers.get('x-signature') || '';
-    if (process.env.MERCADOPAGO_WEBHOOK_SECRET && !signature) {
-      return NextResponse.json(
-        { error: 'MISSING_SIGNATURE' },
-        { status: 401 },
-      );
-    }
+    const signature = req.headers.get('x-signature');
+    const verification = verifyMercadoPagoWebhook(rawBody, signature, secret);
+    if (!verification.valid) return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401 });
+
+    let body: any;
+    try { body = JSON.parse(rawBody); } catch { return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 }); }
+
+    // The provider event ID is the durable idempotency boundary. Reject malformed events before business logic.
+    const eventId = body?.id ?? body?.data?.id;
+    if (!eventId) return NextResponse.json({ error: 'MISSING_EVENT_ID' }, { status: 400 });
 
     const result = await processarWebhookMercadoPago(body);
+    if (!result.received) return NextResponse.json({ error: 'WEBHOOK_PROCESSING_FAILED' }, { status: 500 });
 
-    if (!result.received) {
-      return NextResponse.json(
-        { error: 'WEBHOOK_PROCESSING_FAILED' },
-        { status: 400 },
-      );
-    }
-
-    // Mercado Pago espera status 200 + JSON { received: true }
-    return NextResponse.json({ received: true, type: result.type });
-  } catch (err: any) {
+    return NextResponse.json({ received: true, type: result.type, eventId }, { status: 200 });
+  } catch (err) {
     console.error('[MP_WEBHOOK] erro:', err);
-    return NextResponse.json(
-      { error: 'WEBHOOK_ERROR', message: err.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'WEBHOOK_ERROR' }, { status: 500 });
   }
 }
 
-// Mercado Pago também envia GET para validação inicial
-async function getHandler(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const challenge = searchParams.get('hub.challenge');
-  if (challenge) {
-    return NextResponse.json({ hub_challenge: challenge });
-  }
+export async function GET() {
   return NextResponse.json({ ok: true });
 }
-
-export const POST = postHandler;
-export const GET = getHandler;
