@@ -14,6 +14,7 @@ import { GlmCerebroService } from './glm-service';
 import { PONYTAIL_HUMAN_DIRECTIVE } from './zella-skills';
 import { filterPixFromResponse } from '@/lib/airb/gatekeeper';
 import { db } from '@/lib/db';
+import { GuestMemoryService } from '@/lib/memory/guest-memory';
 import {
   computeYieldCitationForStay,
   summarizeCitationForWhatsApp,
@@ -74,9 +75,27 @@ export class GuestResponderBrain {
     const startTime = Date.now();
     const { tenantId, niche, channel, guestName, messageContent, history = [], propertyContext } = params;
 
-    // 1. Classificação rápida de intenção
+    // 1. Classificação rápida de intenção e detecção emocional ativa
     const intent = this.detectIntent(messageContent);
     const skillsTriggered: string[] = [];
+
+    // Detecção emocional ativa conectada ao GuestMemory
+    const emocaoResult = detectarEmocao(messageContent);
+    const emocaoNome = typeof emocaoResult === 'string' ? emocaoResult : (emocaoResult?.emocao || 'neutro');
+    const isEmocionalNegativo = ['irritado', 'ansioso', 'frustrado', 'desconfianca', 'preocupacao_fin'].includes(emocaoNome);
+
+    if (params.guestPhone) {
+      try {
+        await GuestMemoryService.recordEmotionalState(
+          tenantId,
+          params.guestPhone,
+          emocaoNome as any,
+          messageContent
+        );
+      } catch (err) {
+        // Best effort
+      }
+    }
 
     // 2. Construção do System Prompt com a Ponytail Directive e Zélla Skills
     const propertyName = propertyContext?.name || (niche === 'pousada' ? 'Pousada' : 'Imóvel Airbnb');
@@ -87,7 +106,8 @@ export class GuestResponderBrain {
     // de montar o prompt para que o LLM tenha valores reais (yield) para citar.
     // Resultado aparece no prompt como contexto estruturado e em skillsTriggered.
     let yieldCitationContext = '';
-    if (intent === 'pricing_inquiry' && propertyContext?.basePrice && propertyContext?.basePrice > 0) {
+    // Suprime proativamente cálculo de yield/upsell agressivo se o hóspede estiver irritado
+    if (!isEmocionalNegativo && intent === 'pricing_inquiry' && propertyContext?.basePrice && propertyContext?.basePrice > 0) {
       try {
         const extractedDates = this.extractDatesFromMessage(messageContent);
         const dates = extractedDates.length > 0
@@ -131,6 +151,13 @@ Você é o assistente inteligente da "${propertyName}"${nameStr} em ${city}.
 Seu objetivo é responder o hóspede com agilidade, extrema hospitalidade e clareza.
 
 ${PONYTAIL_HUMAN_DIRECTIVE}
+
+=== ESTADO EMOCIONAL DO HÓSPEDE ===
+Estado detectado: ${String(emocaoNome).toUpperCase()}
+${isEmocionalNegativo ? '⚠ ATENÇÃO: Hóspede com desconforto/irritação detectada. NÃO envie ofertas, upsell ou frases prontas frias. Seja 100% empático, acolhedor e foque estritamente em resolver o problema com urgência.' : 'Hóspede receptivo.'}
+
+=== DIRETIVA DE SEGURANÇA FÍSICA E FECHADURAS ===
+- NUNCA afirme ou alucine que a porta/fechadura foi destrancada ou liberada sem ter a confirmação real do sistema. Se houver falha de acesso, oriente suporte da recepção imediatamente.
 
 === REGRAS DO SETOR ${niche.toUpperCase()} ===\n`;
 

@@ -163,14 +163,14 @@ Co-authored-by: ZéCode <${BOT_EMAIL}>`;
     // 6b. Commit atômico
     const commitResult = await client.commitFiles(repo, branchName, files, commitMessage);
 
-    // 6c. Abre PR
+    // 6c. Abre PR estritamente como DRAFT (Governança Central ZéCode: Review Humano Obrigatório)
     const pr = await client.createPR({
       repo,
       title: prTitle,
       head: branchName,
       base: baseBranch,
       body: prBody,
-      draft: false,
+      draft: true, // SEMPRE DRAFT — auto-merge proibido para agentes de IA
     });
 
     // 6d. Cria issue linked (opcional)

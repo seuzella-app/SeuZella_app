@@ -70,17 +70,58 @@ async function postHandler(request: NextRequest, _ctx: any) {
       }
     }
 
-    const reservation = await prisma.reservation.create({
-      data: {
-        tenantId,
-        guestId,
-        roomId,
-        checkIn: new Date(checkIn),
-        checkOut: new Date(checkOut),
-        totalPrice,
-        source: source || 'DIRECT',
+    const targetCheckIn = new Date(checkIn);
+    const targetCheckOut = new Date(checkOut);
+
+    if (isNaN(targetCheckIn.getTime()) || isNaN(targetCheckOut.getTime()) || targetCheckIn >= targetCheckOut) {
+      return NextResponse.json({ error: 'Datas de check-in e check-out inválidas' }, { status: 400 });
+    }
+
+    // ── Execução Atômica via $transaction (Proteção Anti-Double-Booking) ──
+    let reservation: any;
+    try {
+      reservation = await (prisma as any).$transaction(async (tx: any) => {
+        if (roomId) {
+          const overlapping = await tx.reservation.findFirst({
+            where: {
+              roomId,
+              status: { notIn: ['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'] },
+              AND: [
+                { checkIn: { lt: targetCheckOut } },
+                { checkOut: { gt: targetCheckIn } },
+              ],
+            },
+          });
+
+          if (overlapping) {
+            throw new Error('ROOM_UNAVAILABLE_OVERLAPPING_DATES');
+          }
+        }
+
+        return await tx.reservation.create({
+          data: {
+            tenantId,
+            guestId,
+            roomId,
+            checkIn: targetCheckIn,
+            checkOut: targetCheckOut,
+            totalPrice,
+            source: source || 'DIRECT',
+          },
+        });
+      });
+    } catch (txErr: any) {
+      if (txErr.message === 'ROOM_UNAVAILABLE_OVERLAPPING_DATES') {
+        return NextResponse.json(
+          {
+            error: 'Quarto indisponível para o período solicitado (conflito de reserva concorrente)',
+            code: 'ROOM_UNAVAILABLE',
+          },
+          { status: 409 }
+        );
       }
-    });
+      throw txErr;
+    }
 
     // ── Persiste o lucro extra gerado pelo yield (best-effort, async não bloqueante) ──
     // Para cada noite entre checkIn e checkOut, calcula o yield e registra.

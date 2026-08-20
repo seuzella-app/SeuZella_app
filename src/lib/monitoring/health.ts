@@ -174,7 +174,11 @@ export async function checkSystemHealth(): Promise<SystemHealth> {
   const checks = [database, redis, llm, mercadopago];
 
   // Status agregado
-  const hasDown = checks.some(c => c.status === 'down');
+  const isProd = process.env.NODE_ENV === 'production';
+  const isEssentialDown = database.status === 'down' || (isProd && database.status === 'degraded');
+  const isRedisDownInProd = isProd && (redis.status === 'down' || redis.status === 'degraded');
+
+  const hasDown = checks.some(c => c.status === 'down') || isEssentialDown || isRedisDownInProd;
   const hasDegraded = checks.some(c => c.status === 'degraded');
 
   const status: 'healthy' | 'degraded' | 'down' =

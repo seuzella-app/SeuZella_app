@@ -802,6 +802,39 @@ export async function panicRevokeAllPins(deviceId: string, reason: string = 'Pâ
   };
 }
 
+/**
+ * Revoga todos os PINs associados a uma reserva cancelada/estornada (Segurança Física).
+ */
+export async function revokeReservationPins(
+  tenantId: string,
+  reservationId: string,
+  reason: string = 'Reserva cancelada ou estornada'
+): Promise<{ revokedCount: number }> {
+  const dbAvailable = await isDatabaseAvailable();
+  if (!dbAvailable) return { revokedCount: 0 };
+
+  try {
+    const codes = await (db as any).lockCode.findMany({
+      where: {
+        tenantId,
+        reservationId,
+        revokedAt: null,
+      },
+    });
+
+    let count = 0;
+    for (const code of codes) {
+      await revokePin(code.id, reason);
+      count++;
+    }
+
+    return { revokedCount: count };
+  } catch (err: any) {
+    console.warn('[ORCHESTRATOR] Falha ao revogar PINs da reserva:', err);
+    return { revokedCount: 0 };
+  }
+}
+
 /** Lista eventos de auditoria (LGPD). */
 export async function listLockEvents(
   deviceId?: string,

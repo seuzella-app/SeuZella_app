@@ -776,3 +776,125 @@ export async function extractSemanticPatternWithGLM(
     mode,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🏛️ CICLO DE APRENDIZADO GRADUADO EM 4 ESTÁGIOS
+// Princípio: "Aprender não significa acreditar."
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface GraduatedLearningInput {
+  tenantId: string;
+  category: string;
+  question: string;
+  proposedAnswer: string;
+  sourceContext: string;
+  sentimentTone?: string;
+  confidenceScore?: number;
+}
+
+export interface GraduatedLearningResult {
+  stage: 'experience' | 'interpretation' | 'provisional_quarantine' | 'trusted_promoted';
+  status: 'quarantined' | 'promoted' | 'rejected';
+  occurrences: number;
+  confidence: number;
+  reason: string;
+}
+
+// Cache de quarentena provisória in-memory para padrões observados antes de promover
+const provisionalKnowledgeStore = new Map<string, {
+  occurrences: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  confidence: number;
+  question: string;
+  proposedAnswer: string;
+  category: string;
+}>();
+
+/**
+ * Processa uma nova experiência através dos 4 estágios de validação:
+ * 1. Experiência bruta recebida
+ * 2. Interpretação semântica da IA
+ * 3. Quarentena Provisória (nunca promovida no primeiro turno)
+ * 4. Promoção a Conhecimento Confiável após 3 ocorrências consistentes
+ */
+export async function processExperienceToGraduatedLearning(
+  input: GraduatedLearningInput
+): Promise<GraduatedLearningResult> {
+  const { tenantId, category, question, proposedAnswer, sentimentTone, confidenceScore = 0.5 } = input;
+
+  // Se o sentimento for puramente negativo (hóspede irritado isolado), quarentena estrita
+  const isNegativeOutlier = ['irritado', 'frustrado'].includes(sentimentTone || '');
+  const key = `${tenantId}:${category}:${question.toLowerCase().trim().slice(0, 80)}`;
+
+  const existing = provisionalKnowledgeStore.get(key);
+
+  if (existing) {
+    existing.occurrences += 1;
+    existing.lastSeenAt = new Date().toISOString();
+    existing.confidence = Math.min(1.0, existing.confidence + (isNegativeOutlier ? 0.1 : 0.25));
+
+    // Estágio 4: Promoção a Conhecimento Confiável após 3 ocorrências validadas
+    if (existing.occurrences >= 3 && existing.confidence >= 0.75) {
+      try {
+        if (db) {
+          await db.knowledgeEntry.create({
+            data: {
+              tenantId,
+              category: existing.category,
+              question: existing.question,
+              answer: existing.proposedAnswer,
+              priority: 'high',
+              usage: 1,
+              effectiveness: 80,
+              embeddingJson: '[]',
+              metadata: JSON.stringify({
+                source: 'graduated_learning_loop',
+                occurrences: existing.occurrences,
+                confidence: existing.confidence,
+                promotedAt: new Date().toISOString(),
+              }),
+            },
+          });
+        }
+        provisionalKnowledgeStore.delete(key);
+        return {
+          stage: 'trusted_promoted',
+          status: 'promoted',
+          occurrences: existing.occurrences,
+          confidence: existing.confidence,
+          reason: 'Padrão validado em múltiplos turnos e promovido a Conhecimento Confiável.',
+        };
+      } catch (err) {
+        console.warn('[LearningEngine] Falha ao persistir KnowledgeEntry promovido:', err);
+      }
+    }
+
+    return {
+      stage: 'provisional_quarantine',
+      status: 'quarantined',
+      occurrences: existing.occurrences,
+      confidence: existing.confidence,
+      reason: `Padrão mantido em quarentena (${existing.occurrences}/3 ocorrências necessárias para promoção).`,
+    };
+  }
+
+  // Estágio 3: Primeiro registro -> entra estritamente em quarentena provisória
+  provisionalKnowledgeStore.set(key, {
+    occurrences: 1,
+    firstSeenAt: new Date().toISOString(),
+    lastSeenAt: new Date().toISOString(),
+    confidence: isNegativeOutlier ? 0.3 : confidenceScore,
+    question,
+    proposedAnswer,
+    category,
+  });
+
+  return {
+    stage: 'provisional_quarantine',
+    status: 'quarantined',
+    occurrences: 1,
+    confidence: isNegativeOutlier ? 0.3 : confidenceScore,
+    reason: 'Nova experiência interpretada. Entrando em Quarentena Provisória (regra de turno único bloqueada).',
+  };
+}
