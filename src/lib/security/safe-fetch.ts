@@ -1,21 +1,6 @@
 /**
- * ============================================================================
- * 🛡️ SAFE FETCH — Prevenção Definitiva de SSRF & DNS Rebinding
- * ============================================================================
- *
- * Características:
- * 1. Protocolo restrito exclusivamente a `https://`.
- * 2. Bloqueio pré-fetch via resolução DNS de todos os IPs privados/reservados:
- *    - 127.0.0.0/8 (Loopback)
- *    - 10.0.0.0/8 (RFC 1918)
- *    - 172.16.0.0/12 (RFC 1918)
- *    - 192.168.0.0/16 (RFC 1918)
- *    - 169.254.0.0/16 (Link-local / Cloud Metadata)
- *    - ::1, fc00::/7, fe80::/10 (IPv6)
- *    - localhost, *.internal, metadata.google.internal
- * 3. Resolução manual de redirecionamentos (redirect: 'manual') validando cada hop.
- * 4. Limite estrito de tamanho de resposta e timeout com AbortSignal.
- * ============================================================================
+ * SAFE FETCH — SSRF and resource-exhaustion protection.
+ * External URLs are HTTPS-only, DNS-validated, redirect-validated and size/time bounded.
  */
 
 import dns from 'dns';
@@ -50,13 +35,10 @@ export interface SafeFetchResult {
   finalUrl: string;
 }
 
-const DEFAULT_MAX_BYTES = 2 * 1024 * 1024; // 2MB
-const DEFAULT_TIMEOUT_MS = 10000;          // 10s
+const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
+const DEFAULT_TIMEOUT_MS = 10000;
 const DEFAULT_MAX_REDIRECTS = 3;
 
-/**
- * Valida se uma URL e seu host resolvido por DNS são seguros contra SSRF.
- */
 export async function assertUrlIsSafeForFetch(targetUrl: string): Promise<URL> {
   let parsed: URL;
   try {
@@ -65,14 +47,11 @@ export async function assertUrlIsSafeForFetch(targetUrl: string): Promise<URL> {
     throw new SafeFetchSSRFError('URL com formato inválido', 'INVALID_URL_FORMAT');
   }
 
-  // 1. Estrita checagem de protocolo HTTPS
   if (parsed.protocol !== 'https:') {
-    throw new SafeFetchSSRFError(`Protocolo proibido: ${parsed.protocol}. Apenas https:// é permitido.`, 'FORBIDDEN_PROTOCOL');
+    throw new SafeFetchSSRFError('Apenas HTTPS é permitido', 'FORBIDDEN_PROTOCOL');
   }
 
-  const hostname = parsed.hostname.toLowerCase();
-
-  // 2. Bloqueio de domínios conhecidos de metadata e locais
+  const hostname = parsed.hostname.toLowerCase().replace(/\.$/, '');
   if (
     hostname === 'localhost' ||
     hostname.endsWith('.localhost') ||
@@ -81,58 +60,70 @@ export async function assertUrlIsSafeForFetch(targetUrl: string): Promise<URL> {
     hostname === 'metadata.google.internal' ||
     hostname === '169.254.169.254'
   ) {
-    throw new SafeFetchSSRFError(`Hostname proibido por política SSRF: ${hostname}`, 'FORBIDDEN_HOSTNAME');
+    throw new SafeFetchSSRFError(`Hostname proibido: ${hostname}`, 'FORBIDDEN_HOSTNAME');
   }
 
-  // 3. Validação de IP se for literal
   if (net.isIP(hostname)) {
     if (isPrivateOrReservedIP(hostname)) {
-      throw new SafeFetchSSRFError(`IP direto proibido (privado/reservado): ${hostname}`, 'FORBIDDEN_IP');
+      throw new SafeFetchSSRFError(`IP proibido: ${hostname}`, 'FORBIDDEN_IP');
     }
     return parsed;
   }
 
-  // 4. Resolução DNS e checagem de todos os IPs retornados
   try {
     const lookupResult = await lookupAsync(hostname, { all: true });
     const records = Array.isArray(lookupResult) ? lookupResult : [lookupResult];
-
-    if (!records.length) {
-      throw new SafeFetchSSRFError(`Nenhum registro DNS encontrado para o host: ${hostname}`, 'DNS_RESOLUTION_FAILED');
-    }
-
+    if (!records.length) throw new SafeFetchSSRFError('Nenhum registro DNS encontrado', 'DNS_RESOLUTION_FAILED');
     for (const record of records) {
       if (isPrivateOrReservedIP(record.address)) {
-        throw new SafeFetchSSRFError(
-          `Host ${hostname} resolve para IP privado/reservado proibido: ${record.address}`,
-          'FORBIDDEN_RESOLVED_IP'
-        );
+        throw new SafeFetchSSRFError(`Host resolve para IP proibido: ${record.address}`, 'FORBIDDEN_RESOLVED_IP');
       }
     }
-  } catch (err: any) {
+  } catch (err) {
     if (err instanceof SafeFetchSSRFError) throw err;
-    throw new SafeFetchSSRFError(`Falha na resolução DNS para ${hostname}: ${err.message}`, 'DNS_LOOKUP_ERROR');
+    throw new SafeFetchSSRFError('Falha na resolução DNS', 'DNS_LOOKUP_ERROR');
   }
 
   return parsed;
 }
 
-/**
- * Executa requisição HTTP externa com proteção anti-SSRF de ponta a ponta.
- */
+async function readLimitedBody(response: Response, maxBytes: number): Promise<Buffer> {
+  if (!response.body) return Buffer.alloc(0);
+  const reader = response.body.getReader();
+  const chunks: Buffer[] = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new SafeFetchSSRFError(`Payload excede ${maxBytes} bytes`, 'PAYLOAD_TOO_LARGE');
+      }
+      chunks.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return Buffer.concat(chunks, total);
+}
+
 export async function safeFetchExternalUrl(
   url: string,
-  options: SafeFetchOptions = {}
+  options: SafeFetchOptions = {},
 ): Promise<SafeFetchResult> {
-  const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
-  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const maxRedirects = options.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
+  const maxBytes = Math.max(1024, Math.min(options.maxBytes ?? DEFAULT_MAX_BYTES, 10 * 1024 * 1024));
+  const timeoutMs = Math.max(1000, Math.min(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, 30000));
+  const maxRedirects = Math.max(0, Math.min(options.maxRedirects ?? DEFAULT_MAX_REDIRECTS, 5));
 
   let currentUrl = url;
   let redirectsCount = 0;
 
   while (redirectsCount <= maxRedirects) {
-    // Valida cada URL (incluindo destinos de redirect)
     await assertUrlIsSafeForFetch(currentUrl);
 
     const controller = new AbortController();
@@ -144,73 +135,45 @@ export async function safeFetchExternalUrl(
         headers: options.headers,
         body: options.body,
         signal: controller.signal,
-        redirect: 'manual', // NUNCA seguir redirects cegamente
+        redirect: 'manual',
       });
 
-      clearTimeout(timeoutId);
-
-      // Tratamento de Redirecionamentos (301, 302, 307, 308)
       if ([301, 302, 303, 307, 308].includes(res.status)) {
         const locationHeader = res.headers.get('location');
-        if (!locationHeader) {
-          throw new SafeFetchSSRFError('Redirecionamento sem header Location', 'MISSING_REDIRECT_LOCATION');
-        }
-
-        const nextUrl = new URL(locationHeader, currentUrl).toString();
-        redirectsCount++;
-        if (redirectsCount > maxRedirects) {
-          throw new SafeFetchSSRFError(`Excedido limite de ${maxRedirects} redirecionamentos`, 'TOO_MANY_REDIRECTS');
-        }
-
-        currentUrl = nextUrl;
+        if (!locationHeader) throw new SafeFetchSSRFError('Redirect sem Location', 'MISSING_REDIRECT_LOCATION');
+        redirectsCount += 1;
+        if (redirectsCount > maxRedirects) throw new SafeFetchSSRFError('Limite de redirects excedido', 'TOO_MANY_REDIRECTS');
+        currentUrl = new URL(locationHeader, currentUrl).toString();
         continue;
       }
 
-      // Verificação defensiva de Content-Length
-      const contentLengthHeader = res.headers.get('content-length');
-      if (contentLengthHeader && parseInt(contentLengthHeader, 10) > maxBytes) {
-        throw new SafeFetchSSRFError(
-          `Resposta excede tamanho máximo permitido de ${maxBytes} bytes (Content-Length: ${contentLengthHeader})`,
-          'PAYLOAD_TOO_LARGE'
-        );
+      const contentLength = Number(res.headers.get('content-length') || 0);
+      if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+        throw new SafeFetchSSRFError(`Content-Length excede ${maxBytes} bytes`, 'PAYLOAD_TOO_LARGE');
       }
+
+      // Consume the body once and enforce the limit while streaming. This prevents
+      // a large response without Content-Length from exhausting server memory.
+      const body = await readLimitedBody(res, maxBytes);
+      clearTimeout(timeoutId);
 
       return {
         status: res.status,
         statusText: res.statusText,
         headers: res.headers,
         finalUrl: currentUrl,
-        text: async () => {
-          const rawText = await res.text();
-          if (Buffer.byteLength(rawText, 'utf8') > maxBytes) {
-            throw new SafeFetchSSRFError(
-              `Payload recebido excede o limite máximo permitido de ${maxBytes} bytes`,
-              'PAYLOAD_TOO_LARGE'
-            );
-          }
-          return rawText;
-        },
-        buffer: async () => {
-          const arrayBuffer = await res.arrayBuffer();
-          const buf = Buffer.from(arrayBuffer);
-          if (buf.byteLength > maxBytes) {
-            throw new SafeFetchSSRFError(
-              `Payload recebido excede o limite máximo permitido de ${maxBytes} bytes`,
-              'PAYLOAD_TOO_LARGE'
-            );
-          }
-          return buf;
-        },
+        text: async () => body.toString('utf8'),
+        buffer: async () => Buffer.from(body),
       };
-    } catch (err: any) {
+    } catch (err) {
       clearTimeout(timeoutId);
       if (err instanceof SafeFetchSSRFError) throw err;
-      if (err.name === 'AbortError') {
-        throw new SafeFetchSSRFError(`Timeout na requisição após ${timeoutMs}ms`, 'FETCH_TIMEOUT');
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new SafeFetchSSRFError(`Timeout após ${timeoutMs}ms`, 'FETCH_TIMEOUT');
       }
-      throw new SafeFetchSSRFError(`Erro na requisição segura: ${err.message}`, 'FETCH_FAILED');
+      throw new SafeFetchSSRFError('Falha na requisição externa', 'FETCH_FAILED');
     }
   }
 
-  throw new SafeFetchSSRFError('Número máximo de redirecionamentos excedido', 'TOO_MANY_REDIRECTS');
+  throw new SafeFetchSSRFError('Número máximo de redirects excedido', 'TOO_MANY_REDIRECTS');
 }
