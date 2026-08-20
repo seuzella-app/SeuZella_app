@@ -9,17 +9,11 @@ import { detectBrazilianHighSeasonHoliday } from '@/lib/ai/tools/dynamic-yield-e
 async function getHandler(_request: NextRequest, _ctx: any) {
   try {
     const tenantId = await requireTenant();
-
-    // Fetch all reservations for this specific Tenant (Pousada)
     const reservations = await prisma.reservation.findMany({
       where: { tenantId },
-      include: {
-        guest: true,
-        room: true,
-      },
+      include: { guest: true, room: true },
       orderBy: { checkIn: 'asc' },
     });
-
     return NextResponse.json(reservations);
   } catch (error) {
     return NextResponse.json({ error: 'Unauthorized or invalid tenant' }, { status: 401 });
@@ -30,60 +24,57 @@ async function postHandler(request: NextRequest, _ctx: any) {
   try {
     const tenantId = await requireTenant();
     const body = await request.json();
-
     const { guestId, roomId, checkIn, checkOut, totalPrice, source } = body;
 
-    // ── Carrega contexto do quarto para cálculo de yield ──
-    // Busca o quarto + propriedade para ter baseDailyRate e totalRooms
+    const targetCheckIn = new Date(checkIn);
+    const targetCheckOut = new Date(checkOut);
+    if (isNaN(targetCheckIn.getTime()) || isNaN(targetCheckOut.getTime()) || targetCheckIn >= targetCheckOut) {
+      return NextResponse.json({ error: 'Datas de check-in e check-out inválidas' }, { status: 400 });
+    }
+
     let baseDailyRate = 0;
     let totalRooms = 0;
     let propertyId: string | null = null;
     let occupiedRooms = 0;
 
+    // Read-only pricing context is tenant-scoped. Never use a room selected only by ID.
     if (roomId) {
       try {
         const room = await prisma.room.findFirst({
-          where: { id: roomId },
+          where: { id: roomId, tenantId },
           include: { property: true },
         });
         if (room) {
           baseDailyRate = Number(room.price ?? 0);
           propertyId = room.propertyId ?? null;
-          if (room.property) {
-            // Conta quartos ocupados hoje para calcular ocupação atual
-            const total = await prisma.room.count({
-              where: { propertyId: room.propertyId },
-            });
-            totalRooms = total;
-            occupiedRooms = await prisma.reservation.count({
-              where: {
-                checkIn: { lte: new Date() },
-                checkOut: { gte: new Date() },
-                status: { notIn: ['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'] },
-              },
-            });
-          }
+          const total = await prisma.room.count({ where: { propertyId: room.propertyId, tenantId } });
+          totalRooms = total;
+          occupiedRooms = await prisma.reservation.count({
+            where: {
+              tenantId,
+              roomId,
+              checkIn: { lte: new Date() },
+              checkOut: { gte: new Date() },
+              status: { notIn: ['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'] },
+            },
+          });
         }
       } catch (err) {
-        // Falha ao carregar quarto NÃO bloqueia a reserva — yield é best-effort
-        console.warn('[RESERVATION_CREATE] Não foi possível carregar quarto para yield:', err);
+        console.warn('[RESERVATION_CREATE] Não foi possível carregar contexto de yield:', err);
       }
     }
 
-    const targetCheckIn = new Date(checkIn);
-    const targetCheckOut = new Date(checkOut);
-
-    if (isNaN(targetCheckIn.getTime()) || isNaN(targetCheckOut.getTime()) || targetCheckIn >= targetCheckOut) {
-      return NextResponse.json({ error: 'Datas de check-in e check-out inválidas' }, { status: 400 });
-    }
-
-    // ── Execução Atômica via $transaction (Proteção Anti-Double-Booking) ──
+    // DB transaction is the final authority for tenant ownership and overlap.
     let reservation: any;
     try {
       reservation = await (prisma as any).$transaction(async (tx: any) => {
         if (roomId) {
+          const ownedRoom = await tx.room.findFirst({ where: { id: roomId, tenantId } });
+          if (!ownedRoom) throw new Error('ROOM_NOT_FOUND_OR_NOT_OWNED');
+
           const overlapping = await tx.reservation.findFirst({
             where: {
+              tenantId,
               roomId,
               status: { notIn: ['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'] },
               AND: [
@@ -92,43 +83,31 @@ async function postHandler(request: NextRequest, _ctx: any) {
               ],
             },
           });
-
-          if (overlapping) {
-            throw new Error('ROOM_UNAVAILABLE_OVERLAPPING_DATES');
-          }
+          if (overlapping) throw new Error('ROOM_UNAVAILABLE_OVERLAPPING_DATES');
         }
 
-        return await tx.reservation.create({
-          data: {
-            tenantId,
-            guestId,
-            roomId,
-            checkIn: targetCheckIn,
-            checkOut: targetCheckOut,
-            totalPrice,
-            source: source || 'DIRECT',
-          },
+        if (guestId) {
+          const ownedGuest = await tx.guest.findFirst({ where: { id: guestId, tenantId } });
+          if (!ownedGuest) throw new Error('GUEST_NOT_FOUND_OR_NOT_OWNED');
+        }
+
+        return tx.reservation.create({
+          data: { tenantId, guestId, roomId, checkIn: targetCheckIn, checkOut: targetCheckOut, totalPrice, source: source || 'DIRECT' },
         });
       });
     } catch (txErr: any) {
       if (txErr.message === 'ROOM_UNAVAILABLE_OVERLAPPING_DATES') {
-        return NextResponse.json(
-          {
-            error: 'Quarto indisponível para o período solicitado (conflito de reserva concorrente)',
-            code: 'ROOM_UNAVAILABLE',
-          },
-          { status: 409 }
-        );
+        return NextResponse.json({ error: 'Quarto indisponível para o período solicitado (conflito de reserva concorrente)', code: 'ROOM_UNAVAILABLE' }, { status: 409 });
+      }
+      if (txErr.message === 'ROOM_NOT_FOUND_OR_NOT_OWNED' || txErr.message === 'GUEST_NOT_FOUND_OR_NOT_OWNED') {
+        return NextResponse.json({ error: 'Recurso não encontrado ou não pertence ao tenant autenticado', code: 'RESOURCE_NOT_FOUND' }, { status: 404 });
       }
       throw txErr;
     }
 
-    // ── Persiste o lucro extra gerado pelo yield (best-effort, async não bloqueante) ──
-    // Para cada noite entre checkIn e checkOut, calcula o yield e registra.
-    // Falhas aqui NÃO propagam para a resposta da API — reserva já está criada.
     if (baseDailyRate > 0 && totalRooms > 0) {
       try {
-        const nights = computeNights(new Date(checkIn), new Date(checkOut));
+        const nights = computeNights(targetCheckIn, targetCheckOut);
         for (const night of nights) {
           const holiday = detectBrazilianHighSeasonHoliday(night);
           const yieldResult = ZaosYieldEngine.calculateYieldPrice({
@@ -139,8 +118,6 @@ async function postHandler(request: NextRequest, _ctx: any) {
             isSpecialHoliday: holiday !== null,
             holidayName: holiday ?? undefined,
           });
-
-          // Só persiste se houve lucro extra (NOMINAL não gera registro)
           if (yieldResult.extraProfitGenerated > 0) {
             await YieldProfitTracker.recordYield({
               tenantId,
@@ -166,18 +143,12 @@ async function postHandler(request: NextRequest, _ctx: any) {
   }
 }
 
-/**
- * Computa as noites entre checkIn (inclusive) e checkOut (exclusive).
- * Ex: checkIn=30/12 14h, checkOut=02/01 11h → [30/12, 31/12, 01/01]
- */
 function computeNights(checkIn: Date, checkOut: Date): Date[] {
   const nights: Date[] = [];
   const cursor = new Date(checkIn);
   cursor.setHours(0, 0, 0, 0);
-
   const end = new Date(checkOut);
   end.setHours(0, 0, 0, 0);
-
   while (cursor < end) {
     nights.push(new Date(cursor));
     cursor.setDate(cursor.getDate() + 1);
