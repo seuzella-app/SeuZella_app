@@ -62,7 +62,7 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
       - name: Run tests
-        run: npx vitest run tests/unit-business-logic.test.ts tests/unit-metagpt-engine.test.ts tests/unit-autogen-engine.test.ts tests/zecode-git-applier.test.ts tests/smart-locks.test.ts tests/pwa-mobile-manifest.test.ts
+        run: npx vitest run tests/unit-business-logic.test.ts tests/unit-metagpt-engine.test.ts tests/unit-autogen-engine.test.ts tests/zecode-git-applier.test.ts tests/smart-locks.test.ts tests/pwa-mobile-manifest.test.ts tests/security-hardening-12-fronts.test.ts
         env:
           DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
           NODE_ENV: 'test'
@@ -109,5 +109,7 @@ jobs:
         run: npm audit --audit-level=high --omit=dev
       - name: Run SAST Security Test
         run: npx vitest run tests/sast-static.test.ts
+      - name: Run security hardening regression gates
+        run: npx vitest run tests/security-hardening-12-fronts.test.ts
       - name: Validate Prisma schema
         run: npx prisma validate
