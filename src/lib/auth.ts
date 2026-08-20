@@ -11,8 +11,6 @@ import type { NicheType } from '@/contexts/NicheContext';
 import { migratePlanLegacy } from '@/lib/plan-features';
 import crypto from 'crypto';
 
-function isVercelServerless(): boolean { return !!(process.env.VERCEL || process.env.VERCEL_ENV); }
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db as any),
   providers: [
@@ -22,42 +20,16 @@ export const authOptions: NextAuthOptions = {
       credentials: { email: { label: 'Login', type: 'text' }, password: { label: 'Senha', type: 'password' } },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        const isDev = process.env.NODE_ENV !== 'production';
-
-        if (isDev && credentials.email === '123' && credentials.password === '123') {
-          try {
-            if (await isDatabaseAvailable()) {
-              let tenant = await db.tenant.findUnique({ where: { email: '123' } });
-              if (!tenant) tenant = await db.tenant.create({ data: { name: 'ZCC Admin (Zélla)', email: '123', passwordHash: await bcrypt.hash('123', 10), plan: 'max', status: 'active', role: 'owner', niche: 'pousada', subscriptionAt: new Date() } });
-              return { id: tenant.id, email: tenant.email, name: tenant.name, role: tenant.role, tenantId: tenant.id, plan: migratePlanLegacy(tenant.plan), niche: (tenant as any).niche || 'pousada' };
-            }
-          } catch (error) { console.warn('[auth] dev quick-login DB unavailable', error); }
-          return { id: 'zcc-admin-mock', email: '123', name: 'ZCC Admin', role: 'owner', tenantId: 'zcc-admin-mock', plan: 'max' as PlanTier, niche: 'pousada' as NicheType };
-        }
-
-        if (isDev && process.env.BYPASS_MIDDLEWARE_AUTH === 'true') {
-          const isAirbnb = credentials.email.includes('airbnb');
-          return { id: isAirbnb ? 'demo-airbnb-tenant-id' : 'demo-pousada-tenant-id', email: credentials.email, name: isAirbnb ? 'Airbnb Demo (Zélla)' : 'Pousada Demo (Zélla)', role: 'owner', tenantId: isAirbnb ? 'demo-airbnb-tenant-id' : 'demo-pousada-tenant-id', plan: 'pro' as PlanTier, niche: (isAirbnb ? 'airbnb' : 'pousada') as NicheType };
-        }
-
-        if (isDev) {
-          const demoPousada = ['demo@pousada.com.br', 'pousada@zehla.com.br'].includes(credentials.email);
-          const demoAirbnb = ['demo@airbnb.com.br', 'airbnb@zehla.com.br'].includes(credentials.email);
-          const demoZella = credentials.email === 'zella@zella.com.br';
-          const validDemoPassword = ['Demo@123', '123'].includes(credentials.password);
-          if ((demoPousada || demoAirbnb || demoZella) && validDemoPassword) {
-            const niche: NicheType = demoAirbnb ? 'airbnb' : 'pousada';
-            const tenantId = demoAirbnb ? 'demo-airbnb-tenant-id' : 'demo-pousada-tenant-id';
-            return { id: tenantId, email: credentials.email, name: demoAirbnb ? 'Airbnb Demo' : 'Pousada Demo', role: 'owner', tenantId, plan: 'pro' as PlanTier, niche };
-          }
-        }
-
         try {
           if (!(await isDatabaseAvailable())) return null;
           const tenant = await db.tenant.findUnique({ where: { email: credentials.email } });
           if (!tenant?.passwordHash || !(await bcrypt.compare(credentials.password, tenant.passwordHash))) return null;
+          if (tenant.status !== 'active') return null;
           return { id: tenant.id, email: tenant.email, name: tenant.name, role: tenant.role, tenantId: tenant.id, plan: migratePlanLegacy(tenant.plan), niche: (tenant as any).niche || 'pousada' };
-        } catch (error) { console.error('[auth] authentication database failure', error); return null; }
+        } catch (error) {
+          console.error('[auth] authentication database failure', error);
+          return null;
+        }
       },
     }),
   ],
@@ -71,9 +43,12 @@ export const authOptions: NextAuthOptions = {
           if (!existingTenant) {
             const newTenant = await db.tenant.create({ data: { name: user.name || user.email.split('@')[0], email: user.email, plan: 'lite', status: 'active', niche: 'pousada' } });
             if (user.id) await db.user.update({ where: { id: user.id }, data: { tenant: { connect: { id: newTenant.id } } } });
-          } else if (user.id) {
-            const existingUser = await db.user.findUnique({ where: { id: user.id } });
-            if (existingUser && !existingUser.tenantId) await db.user.update({ where: { id: user.id }, data: { tenant: { connect: { id: existingTenant.id } } } });
+          } else {
+            if (existingTenant.status !== 'active') return false;
+            if (user.id) {
+              const existingUser = await db.user.findUnique({ where: { id: user.id } });
+              if (existingUser && !existingUser.tenantId) await db.user.update({ where: { id: user.id }, data: { tenant: { connect: { id: existingTenant.id } } } });
+            }
           }
           return true;
         } catch (error) { console.error('[auth] Google tenant provisioning failed', error); return false; }
@@ -85,7 +60,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'google' && user?.email) {
         try {
           const tenant = await db.tenant.findUnique({ where: { email: user.email } });
-          if (tenant) { token.tenantId = tenant.id; token.role = tenant.role; token.plan = migratePlanLegacy(tenant.plan); token.niche = (tenant as any).niche || 'pousada'; }
+          if (tenant && tenant.status === 'active') { token.tenantId = tenant.id; token.role = tenant.role; token.plan = migratePlanLegacy(tenant.plan); token.niche = (tenant as any).niche || 'pousada'; }
         } catch (error) { console.error('[auth] Google JWT tenant lookup failed', error); }
       }
       return token;
@@ -111,14 +86,9 @@ export const authOptions: NextAuthOptions = {
 
 export async function requireTenant() {
   const session = await getServerSession(authOptions);
-  if (process.env.NODE_ENV === 'production') {
-    if (!session?.user || !(session.user as any).tenantId) redirect('/login');
-    return (session.user as any).tenantId;
-  }
-  if (session?.user && (session.user as any).tenantId) return (session.user as any).tenantId;
-  if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true') return 'demo-pousada-tenant-id';
-  if (isVercelServerless()) return 'demo-tenant-id';
-  redirect('/login');
+  const tenantId = (session?.user as any)?.tenantId;
+  if (!session?.user || !tenantId) redirect('/login');
+  return tenantId as string;
 }
 
 export function verifyRobotToken(req: Request) {
