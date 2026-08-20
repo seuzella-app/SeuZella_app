@@ -4,180 +4,163 @@ import { AsaasBillingService } from '@/lib/billing/asaas';
 
 /**
  * POST /api/webhooks/asaas
- *
- * Webhook oficial do Asaas para conciliação automática multimeios:
- * - PAYMENT_CONFIRMED / PAYMENT_RECEIVED: Baixa imediata, ativação/renovação de assinatura
- * - PAYMENT_OVERDUE: Alerta suave no DDC (Grace Period)
- * - PAYMENT_REFUNDED: Registro de estorno
- * - INVOICE_CREATED / INVOICE_SYNCHRONIZED: Vinculação do PDF da NFS-e
- *
- * BLINDAGEM: Idempotência estrita por payment.id
+ * Security invariants:
+ * - production requires the configured webhook secret
+ * - payment events require an explicit tenant externalReference
+ * - idempotency lookup failure is fail-closed
+ * - transaction persistence failure is never reported as successful processing
  */
 export async function POST(request: NextRequest) {
   try {
-    // 1. Validação de Token de Segurança (Webhook Secret)
     const webhookToken = request.headers.get('asaas-access-token') || request.headers.get('x-asaas-access-token');
-    const expectedSecret = process.env.ASAAS_WEBHOOK_SECRET || process.env.ASAAS_ACCESS_TOKEN;
+    const expectedSecret = process.env.ASAAS_WEBHOOK_SECRET;
 
     if (process.env.NODE_ENV === 'production') {
       if (!expectedSecret || !webhookToken || webhookToken !== expectedSecret) {
-        console.warn('[AsaasWebhook] Unauthorized or missing webhook token in production');
         return NextResponse.json({ error: 'UNAUTHORIZED_WEBHOOK_TOKEN' }, { status: 401 });
       }
-    } else if (expectedSecret && webhookToken && webhookToken !== expectedSecret) {
-      console.warn('[AsaasWebhook] Token de webhook inválido recebido.');
+    } else if (expectedSecret && webhookToken !== expectedSecret) {
       return NextResponse.json({ error: 'UNAUTHORIZED_WEBHOOK_TOKEN' }, { status: 401 });
     }
 
-    let payload: any;
+    const contentLength = Number(request.headers.get('content-length') || 0);
+    if (Number.isFinite(contentLength) && contentLength > 1024 * 1024) {
+      return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+    }
+
+    let payload: unknown;
     try {
       payload = await request.json();
     } catch {
       return NextResponse.json({ error: 'INVALID_JSON_BODY' }, { status: 400 });
     }
 
-    const { event, payment, invoice } = payload || {};
+    if (!payload || typeof payload !== 'object') {
+      return NextResponse.json({ error: 'INVALID_PAYLOAD' }, { status: 400 });
+    }
+
+    const body = payload as Record<string, unknown>;
+    const event = typeof body.event === 'string' ? body.event : '';
+    const payment = body.payment && typeof body.payment === 'object'
+      ? body.payment as Record<string, unknown>
+      : null;
+    const invoice = body.invoice && typeof body.invoice === 'object'
+      ? body.invoice as Record<string, unknown>
+      : null;
 
     if (!event) {
       return NextResponse.json({ error: 'MISSING_EVENT_TYPE' }, { status: 400 });
     }
 
-    console.log(`[AsaasWebhook] Evento recebido: ${event} | Payment ID: ${payment?.id || 'N/A'}`);
-
     if (!db) {
-      return NextResponse.json({
-        success: true,
-        received: true,
-        source: 'fallback',
-        message: 'Evento processado em modo fallback DB.',
-      });
+      return NextResponse.json({ error: 'WEBHOOK_DATABASE_UNAVAILABLE' }, { status: 503 });
     }
 
-    // ── 2. TRATAMENTO DE PAGAMENTO CONFIRMADO / RECEBIDO ──────────────────────
     if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') {
-      if (!payment?.id) {
-        return NextResponse.json({ error: 'MISSING_PAYMENT_DATA' }, { status: 400 });
+      const paymentId = typeof payment?.id === 'string' ? payment.id : '';
+      const externalReference = typeof payment?.externalReference === 'string'
+        ? payment.externalReference.trim()
+        : '';
+
+      // A payment webhook without an explicit tenant binding is ambiguous and must not mutate billing.
+      if (!paymentId || !externalReference) {
+        return NextResponse.json({ error: 'MISSING_PAYMENT_TENANT_REFERENCE' }, { status: 400 });
       }
 
-      // ── BLINDAGEM DE IDEMPOTÊNCIA: Valida se já foi processado anteriormente
+      let existingTx: any;
       try {
-        const existingTx = await (db as any).transaction.findFirst({
-          where: {
-            OR: [
-              { externalId: payment.id },
-              { metadata: { contains: payment.id } },
-            ],
-            status: 'CONFIRMED',
-          },
+        existingTx = await (db as any).transaction.findFirst({
+          where: { externalId: paymentId },
+          select: { id: true, status: true, tenantId: true },
         });
-
-        if (existingTx) {
-          return NextResponse.json(
-            { success: true, message: 'Evento já processado anteriormente (Idempotência).' },
-            { status: 200 }
-          );
-        }
       } catch (err) {
-        console.warn('[AsaasWebhook] Verificação de idempotência no DB falhou, prosseguindo:', err);
+        console.error('[AsaasWebhook] Idempotency lookup failed:', err);
+        return NextResponse.json({ error: 'IDEMPOTENCY_CHECK_UNAVAILABLE' }, { status: 503 });
       }
 
-      // Localiza o Tenant por asaasCustomerId ou externalReference
-      const tenant = await (db as any).tenant.findFirst({
-        where: {
-          OR: [
-            { id: payment.externalReference || undefined },
-            { metadata: { contains: payment.customer } },
-          ],
-        },
+      if (existingTx) {
+        if (existingTx.tenantId !== externalReference) {
+          console.error('[AsaasWebhook] Payment ID attempted cross-tenant reuse:', paymentId);
+          return NextResponse.json({ error: 'PAYMENT_TENANT_MISMATCH' }, { status: 409 });
+        }
+        return NextResponse.json({ success: true, received: true, duplicate: true, event }, { status: 200 });
+      }
+
+      const tenant = await (db as any).tenant.findUnique({
+        where: { id: externalReference },
+        select: { id: true, name: true },
       });
 
-      if (tenant) {
-        // Atualiza status da assinatura para ACTIVE
-        try {
-          await (db as any).subscription.updateMany({
-            where: { tenantId: tenant.id },
-            data: {
-              status: 'ACTIVE',
-              updatedAt: new Date(),
-            },
-          });
-        } catch (e) {
-          console.warn('[AsaasWebhook] Falha ao atualizar subscription:', e);
-        }
-
-        // Registra a transação quitada no banco
-        try {
-          await (db as any).transaction.create({
-            data: {
-              tenantId: tenant.id,
-              type: 'SUBSCRIPTION_PAYMENT',
-              amount: payment.value || 0,
-              status: 'CONFIRMED',
-              externalId: payment.id,
-              metadata: JSON.stringify({
-                gateway: 'asaas',
-                billingType: payment.billingType,
-                invoiceUrl: payment.invoiceUrl,
-                dueDate: payment.dueDate,
-                confirmedAt: new Date().toISOString(),
-              }),
-            },
-          });
-        } catch (e) {
-          console.warn('[AsaasWebhook] Falha ao criar transaction record:', e);
-        }
-
-        // 3. Disparo automático de Nota Fiscal Municipal (NFS-e) via Asaas
-        try {
-          await AsaasBillingService.scheduleFiscalInvoice({
-            paymentId: payment.id,
-            description: payment.description,
-          });
-          console.log(`[AsaasWebhook] 📄 Solicitação de NFS-e enviada ao Asaas para payment: ${payment.id}`);
-        } catch (nfseErr) {
-          console.warn('[AsaasWebhook] Aviso: agendamento de NFS-e não concluiu:', nfseErr);
-        }
-
-        console.log(`[AsaasWebhook] ✅ Pagamento quitado com sucesso para Tenant: ${tenant.name} (${tenant.id})`);
+      if (!tenant) {
+        return NextResponse.json({ error: 'TENANT_NOT_FOUND' }, { status: 404 });
       }
 
-      return NextResponse.json({ success: true, received: true, event });
-    }
-
-    // ── 3. TRATAMENTO DE PAGAMENTO EM ATRASO (GRACE PERIOD) ───────────────────
-    if (event === 'PAYMENT_OVERDUE') {
-      if (payment?.externalReference || payment?.customer) {
-        const tenant = await (db as any).tenant.findFirst({
-          where: {
-            OR: [
-              { id: payment.externalReference || undefined },
-              { metadata: { contains: payment.customer } },
-            ],
+      try {
+        await (db as any).transaction.create({
+          data: {
+            tenantId: tenant.id,
+            type: 'SUBSCRIPTION_PAYMENT',
+            amount: typeof payment?.value === 'number' ? payment.value : Number(payment?.value || 0),
+            status: 'CONFIRMED',
+            externalId: paymentId,
+            metadata: JSON.stringify({
+              gateway: 'asaas',
+              billingType: payment?.billingType,
+              invoiceUrl: payment?.invoiceUrl,
+              dueDate: payment?.dueDate,
+              confirmedAt: new Date().toISOString(),
+            }),
           },
         });
-
-        if (tenant) {
-          // Atualiza status para GRACE_PERIOD suave sem desativar WhatsApp
-          console.log(`[AsaasWebhook] ⚠️ Fatura em atraso (Grace Period) para Tenant: ${tenant.name}`);
-        }
+      } catch (err) {
+        console.error('[AsaasWebhook] Transaction persistence failed:', err);
+        return NextResponse.json({ error: 'PAYMENT_PERSISTENCE_FAILED' }, { status: 503 });
       }
 
+      try {
+        await (db as any).subscription.updateMany({
+          where: { tenantId: tenant.id },
+          data: { status: 'ACTIVE', updatedAt: new Date() },
+        });
+      } catch (err) {
+        // Payment is durably recorded; provisioning can be retried asynchronously.
+        console.error('[AsaasWebhook] Subscription activation failed after durable payment record:', err);
+        return NextResponse.json({ success: true, received: true, event, reconciliationRequired: true }, { status: 202 });
+      }
+
+      try {
+        await AsaasBillingService.scheduleFiscalInvoice({
+          paymentId,
+          description: typeof payment?.description === 'string' ? payment.description : undefined,
+        });
+      } catch (err) {
+        console.warn('[AsaasWebhook] NFS-e scheduling deferred:', err);
+      }
+
+      return NextResponse.json({ success: true, received: true, event }, { status: 200 });
+    }
+
+    if (event === 'PAYMENT_OVERDUE') {
+      const externalReference = typeof payment?.externalReference === 'string'
+        ? payment.externalReference.trim()
+        : '';
+      if (externalReference) {
+        const tenant = await (db as any).tenant.findUnique({ where: { id: externalReference }, select: { id: true } });
+        if (tenant) {
+          console.log('[AsaasWebhook] Payment overdue received for tenant:', tenant.id);
+        }
+      }
       return NextResponse.json({ success: true, received: true, event });
     }
 
-    // ── 4. TRATAMENTO DE NOTA FISCAL (NFS-e) EMITIDA ─────────────────────────
     if (event === 'INVOICE_CREATED' || event === 'INVOICE_SYNCHRONIZED' || event === 'INVOICE_AUTHORIZED') {
-      console.log(`[AsaasWebhook] 📄 Nota Fiscal emitida com sucesso: ${invoice?.number || invoice?.id || 'N/A'}`);
+      console.log('[AsaasWebhook] Invoice event received:', typeof invoice?.id === 'string' ? invoice.id : 'N/A');
       return NextResponse.json({ success: true, received: true, event });
     }
 
-    // Outros eventos recebidos
     return NextResponse.json({ success: true, received: true, event });
-  } catch (error: any) {
-    console.error('[AsaasWebhook] Erro inesperado:', error);
-    return NextResponse.json(
-      { success: false, error: 'INTERNAL_ERROR', message: error?.message || 'Falha no webhook' },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error('[AsaasWebhook] Unexpected error:', error);
+    return NextResponse.json({ success: false, error: 'INTERNAL_ERROR' }, { status: 500 });
   }
 }
