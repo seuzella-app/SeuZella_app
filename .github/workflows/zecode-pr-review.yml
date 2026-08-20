@@ -51,7 +51,7 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
         env:
-          DATABASE_URL: 'file:./ci-review.db'
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
 
       - name: Run ZéCode PR Review
         env:
@@ -67,7 +67,7 @@ jobs:
           # Budget guard (reusa config do Cérebro)
           CEREBRO_MONTHLY_BUDGET_USD: ${{ vars.CEREBRO_MONTHLY_BUDGET_USD || '20' }}
           # DATABASE_URL opcional — se vazio, pula persistência
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:./ci-review.db' }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/seuzella_test' }}
         run: npx tsx scripts/zecode-pr-review.ts
 
       - name: Upload review artifact

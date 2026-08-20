@@ -55,3 +55,8 @@ jobs:
 
       - name: Production Build Smoke Test
         run: npx next build
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
+          NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+          NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: production

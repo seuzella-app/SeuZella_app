@@ -75,7 +75,7 @@ import {
 } from 'lucide-react';
 
 export function MobilePousadaSuperApp() {
-  const [activeTab, setActiveTab] = useState<'visao_geral' | 'hospedes' | 'upsell' | 'fechaduras' | 'central_zella' | 'whats_live' | 'mais'>('visao_geral');
+  const [activeTab, setActiveTab] = useState<'visao_geral' | 'financeiro' | 'hospedes' | 'upsell' | 'fechaduras' | 'central_zella' | 'whats_live' | 'mais'>('visao_geral');
 
   // ZCC Analytics — registra pings de uso Mobile (compara com Desktop)
   useMobileDevicePing({
@@ -85,6 +85,34 @@ export function MobilePousadaSuperApp() {
     tenantName: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_NAME : undefined,
     tabName: activeTab,
   });
+
+  // Visibilidade de Valores Financeiros ("Olhinho")
+  const [showFinancialValues, setShowFinancialValues] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('zella_show_financial_values');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+
+  const handleToggleFinancialValues = () => {
+    setShowFinancialValues((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('zella_show_financial_values', String(next));
+      }
+      toast.info(next ? '👁️ Valores financeiros visíveis' : '🙈 Valores financeiros ocultos');
+      return next;
+    });
+  };
+
+  const formatMoney = (val: number | string) => {
+    if (!showFinancialValues) return 'R$ ••••••';
+    if (typeof val === 'number') {
+      return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    return val.startsWith('R$') ? val : `R$ ${val}`;
+  };
 
   // Font Scale (Accessibility)
   const [fontScale, setFontScale] = useState<number>(() => {
@@ -446,7 +474,7 @@ export function MobilePousadaSuperApp() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Botão de Status Motor Zélla (Limpo e Espaçado) */}
+          {/* Botão de Status Motor Zélla */}
           <button
             onClick={handleToggleAI}
             className={`p-2 rounded-full border flex items-center justify-center transition-all min-h-[38px] min-w-[38px] active:scale-95 ${
@@ -458,6 +486,16 @@ export function MobilePousadaSuperApp() {
             aria-label={aiActive ? 'Motor Zélla Ativo' : 'Motor Zélla Pausado'}
           >
             <span className={`w-2.5 h-2.5 rounded-full ${aiActive ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
+          </button>
+
+          {/* Botão Olhinho (Show / Hide Financial Values) */}
+          <button
+            onClick={handleToggleFinancialValues}
+            className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-white transition-all active:scale-95 relative"
+            title={showFinancialValues ? 'Ocultar valores financeiros' : 'Mostrar valores financeiros'}
+            aria-label={showFinancialValues ? 'Ocultar valores financeiros' : 'Mostrar valores financeiros'}
+          >
+            {showFinancialValues ? <Eye className="w-4 h-4 text-emerald-400" /> : <EyeOff className="w-4 h-4 text-zinc-400" />}
           </button>
 
           {/* Notificações Bell */}
@@ -481,11 +519,19 @@ export function MobilePousadaSuperApp() {
       ── */}
       <div className="px-3.5 pt-3 pb-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
         <button
+          onClick={() => setActiveTab('financeiro')}
+          className="shrink-0 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold font-mono flex items-center gap-1.5 active:scale-95 transition-all shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+        >
+          <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+          <span>💰 Financeiro ({formatMoney(48920)})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('upsell')}
           className="shrink-0 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold font-mono flex items-center gap-1.5 active:scale-95 transition-all shadow-[0_0_12px_rgba(245,158,11,0.15)]"
         >
           <Flame className="w-3.5 h-3.5 text-amber-400" />
-          <span>⚡ UPSELL Feriado (+R$ {dailyIncrease})</span>
+          <span>⚡ UPSELL Feriado (+{formatMoney(dailyIncrease)})</span>
         </button>
 
         <button
@@ -528,6 +574,7 @@ export function MobilePousadaSuperApp() {
               niche="pousada"
               propertyName={propertyName}
               onNavigate={(tab) => setActiveTab(tab as any)}
+              showValues={showFinancialValues}
             />
 
             {/* Acesso Rápido ao Wi-Fi com Copy */}
@@ -593,7 +640,7 @@ export function MobilePousadaSuperApp() {
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-                      <span>R$ {r.price}/dia</span>
+                      <span>{formatMoney(r.price)}/dia</span>
                       <span className="flex items-center gap-1 text-zinc-300">
                         <Battery className={`w-3 h-3 ${r.lockBattery < 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
                         {r.lockBattery}%
@@ -613,6 +660,204 @@ export function MobilePousadaSuperApp() {
                   </div>
                 ))}
               </div>
+            </div>
+
+          </motion.div>
+        )}
+
+        {/* ABA FINANCEIRO: RADAR & FATURAMENTO CYBER-LUXE POUSADA */}
+        {activeTab === 'financeiro' && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            
+            {/* Header & Hero de Faturamento */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-emerald-950/20 to-black/60 border border-emerald-500/30 backdrop-blur-xl relative overflow-hidden space-y-3 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold">FATURAMENTO TOTAL DO MÊS</span>
+                    <div className="text-[11px] text-zinc-400 font-mono">Pousada Solar das Marés</div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleToggleFinancialValues}
+                  className="p-2 rounded-lg bg-white/[0.05] hover:bg-white/10 text-zinc-300 active:scale-95 transition-all"
+                  aria-label="Alternar exibição de valores"
+                >
+                  {showFinancialValues ? <Eye className="w-4 h-4 text-emerald-400" /> : <EyeOff className="w-4 h-4 text-zinc-400" />}
+                </button>
+              </div>
+
+              <div>
+                <div className="text-3xl font-black text-white font-mono tracking-tight">
+                  {formatMoney(48920)}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1 font-bold">
+                    <TrendingUp className="w-3 h-3" /> +18.4% vs mês anterior
+                  </span>
+                  <span className="text-[11px] font-mono text-zinc-400">Tempo real</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono">
+                <span className="text-zinc-400">Automação PIX + OTAs</span>
+                <span className="text-emerald-400 flex items-center gap-1 font-bold">
+                  <CheckCircle2 className="w-3 h-3" /> 100% Conciliado
+                </span>
+              </div>
+            </div>
+
+            {/* Widget Financeiro Yield Profit */}
+            <MobileYieldProfitWidget
+              niche="pousada"
+              propertyName={propertyName}
+              onNavigate={(tab) => setActiveTab(tab as any)}
+              showValues={showFinancialValues}
+            />
+
+            {/* Grid de 4 Indicadores Estratégicos */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-1">
+                <span className="text-[10px] font-mono text-zinc-400 uppercase">Diária Média (ADR)</span>
+                <div className="text-base font-bold text-white font-mono">{formatMoney(580)}</div>
+                <span className="text-[10px] font-mono text-emerald-400">+12% com Yield IA</span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-1">
+                <span className="text-[10px] font-mono text-zinc-400 uppercase">Taxa de Ocupação</span>
+                <div className="text-base font-bold text-white font-mono">84.5%</div>
+                <span className="text-[10px] font-mono text-cyan-400">Meta: 80% superada</span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-1">
+                <span className="text-[10px] font-mono text-zinc-400 uppercase">Lucro Extra Yield</span>
+                <div className="text-base font-bold text-emerald-400 font-mono">{formatMoney(21450)}</div>
+                <span className="text-[10px] font-mono text-zinc-400">Temporada 2026/27</span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-1">
+                <span className="text-[10px] font-mono text-zinc-400 uppercase">Economia de Taxas</span>
+                <div className="text-base font-bold text-cyan-400 font-mono">{formatMoney(4549.50)}</div>
+                <span className="text-[10px] font-mono text-zinc-400">PIX direto vs OTAs</span>
+              </div>
+            </div>
+
+            {/* Distribuição por Canal (Share de Canais) */}
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-emerald-400" />
+                  <span>CANAIS DE DISTRIBUIÇÃO & SHARE</span>
+                </h3>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  62% Direto PIX
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <div>
+                  <div className="flex justify-between text-xs font-mono mb-1">
+                    <span className="text-white font-semibold">⚡ Direto no WhatsApp / PIX (0% Taxa)</span>
+                    <span className="text-emerald-400 font-bold">{formatMoney(30330.40)} (62%)</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '62%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-mono mb-1">
+                    <span className="text-zinc-300">🏨 Booking.com (15% Comissão)</span>
+                    <span className="text-zinc-200">{formatMoney(10762.40)} (22%)</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: '22%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-mono mb-1">
+                    <span className="text-zinc-300">🏡 Airbnb (15% Comissão)</span>
+                    <span className="text-zinc-200">{formatMoney(5381.20)} (11%)</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-full bg-rose-500 rounded-full" style={{ width: '11%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-mono mb-1">
+                    <span className="text-zinc-400">🚶 Balcão / Walk-in</span>
+                    <span className="text-zinc-400">{formatMoney(2446.00)} (5%)</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-full bg-zinc-500 rounded-full" style={{ width: '5%' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Extrato Recente de Transações */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-emerald-400" />
+                  <span>ÚLTIMAS TRANSAÇÕES CONCILIADAS</span>
+                </h3>
+                <span className="text-[10px] font-mono text-zinc-400">Ao vivo</span>
+              </div>
+
+              <div className="space-y-2">
+                {[
+                  { id: 'tx-1', desc: 'Reserva Suíte Master 101 — 2 diárias', guest: 'Roberto Oliveira', method: 'PIX Direto', value: 1700, status: 'Confirmado', time: 'Há 12 min' },
+                  { id: 'tx-2', desc: 'UPSELL Réveillon — Chalé Família 204', guest: 'Carlos Andrade', method: 'Link Cartão', value: 600, status: 'Confirmado', time: 'Há 45 min' },
+                  { id: 'tx-3', desc: 'Reserva Quarto Standard 105', guest: 'Lucas Prado', method: 'PIX Direto', value: 900, status: 'Confirmado', time: 'Há 2h' },
+                  { id: 'tx-4', desc: 'Devolução de Caução — Suíte Luxo 103', guest: 'Fernanda Lima', method: 'Estorno PIX', value: 400, status: 'Vistoria OK', time: 'Hoje 11:30' },
+                ].map((tx) => (
+                  <div key={tx.id} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-white truncate max-w-[200px]">{tx.desc}</div>
+                      <div className="text-[10px] font-mono text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                        <span>{tx.guest}</span>
+                        <span>•</span>
+                        <span className="text-emerald-400">{tx.method}</span>
+                        <span>•</span>
+                        <span>{tx.time}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-mono font-bold text-white">
+                        {tx.method.includes('Estorno') ? `- ${formatMoney(tx.value)}` : `+ ${formatMoney(tx.value)}`}
+                      </div>
+                      <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                        {tx.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ações Rápidas Financeiras */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                onClick={() => toast.success('Link de Cobrança PIX 1-clique gerado e copiado!')}
+                className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 text-xs font-bold font-mono flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+              >
+                <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                <span>+ Cobrança PIX</span>
+              </button>
+
+              <button
+                onClick={() => toast.info('Exportando relatório financeiro DRE da pousada...')}
+                className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.1] text-zinc-200 hover:bg-white/[0.08] text-xs font-bold font-mono flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+              >
+                <FileText className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Exportar DRE</span>
+              </button>
             </div>
 
           </motion.div>
@@ -1165,7 +1410,18 @@ export function MobilePousadaSuperApp() {
           <span className="text-[9px] font-mono">Geral</span>
         </button>
 
-        {/* Tab 2: Hóspedes */}
+        {/* Tab 2: Financeiro */}
+        <button
+          onClick={() => setActiveTab('financeiro')}
+          className={`flex flex-col items-center gap-1 transition-all active:scale-95 ${
+            activeTab === 'financeiro' ? 'text-emerald-400 font-bold' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <DollarSign className="w-5 h-5" />
+          <span className="text-[9px] font-mono">Financeiro</span>
+        </button>
+
+        {/* Tab 3: Hóspedes */}
         <button
           onClick={() => setActiveTab('hospedes')}
           className={`flex flex-col items-center gap-1 transition-all active:scale-95 ${
@@ -1176,7 +1432,7 @@ export function MobilePousadaSuperApp() {
           <span className="text-[9px] font-mono">Hóspedes</span>
         </button>
 
-        {/* Tab 3: UPSELL */}
+        {/* Tab 4: UPSELL */}
         <button
           onClick={() => setActiveTab('upsell')}
           className={`flex flex-col items-center gap-1 transition-all active:scale-95 relative ${
@@ -1188,7 +1444,7 @@ export function MobilePousadaSuperApp() {
           <span className="absolute -top-1 right-0 w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
         </button>
 
-        {/* Tab 4: Fechaduras */}
+        {/* Tab 5: Fechaduras */}
         <button
           onClick={() => setActiveTab('fechaduras')}
           className={`flex flex-col items-center gap-1 transition-all active:scale-95 ${
@@ -1197,17 +1453,6 @@ export function MobilePousadaSuperApp() {
         >
           <KeyRound className="w-5 h-5" />
           <span className="text-[9px] font-mono">Fechaduras</span>
-        </button>
-
-        {/* Tab 5: Whats Live */}
-        <button
-          onClick={() => setActiveTab('whats_live')}
-          className={`flex flex-col items-center gap-1 transition-all active:scale-95 ${
-            activeTab === 'whats_live' ? 'text-emerald-400 font-bold' : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          <MessageSquare className="w-5 h-5" />
-          <span className="text-[9px] font-mono">Whats Live</span>
         </button>
 
         {/* Tab 6: Mais */}
@@ -1269,6 +1514,14 @@ export function MobilePousadaSuperApp() {
                   >
                     <LayoutGrid className="w-4 h-4 text-emerald-400" />
                     <span>Visão Geral</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveTab('financeiro'); setIsMenuOpen(false); }}
+                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all text-left border border-emerald-500/20"
+                  >
+                    <DollarSign className="w-4 h-4 text-emerald-400" />
+                    <span>💰 Visão Financeira & Faturamento</span>
                   </button>
 
                   <button
