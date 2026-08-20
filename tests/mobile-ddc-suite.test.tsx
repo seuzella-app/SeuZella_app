@@ -112,7 +112,8 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
     expect(html).toContain('Wi-Fi Hospedagem');
     expect(html).toContain('MAPA DE QUARTOS');
     expect(html).toContain('Suíte Master 101');
-    expect(html).toContain('Whats Live');
+    expect(html).toContain('Financeiro');
+    expect(html).toContain('Hóspedes');
   });
 
   it('should render MobileAirbnbSuperApp with full mobile-native tabs and Stitch elements', () => {
@@ -123,6 +124,7 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
       </QueryClientProvider>
     );
     expect(html).toContain('ANFITRIÃO');
+    expect(html).toContain('Financeiro');
     expect(html).toContain('Bio PIX');
     expect(html).toContain('Anti-Ban');
     expect(html).toContain('Simulador');
