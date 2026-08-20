@@ -4,16 +4,26 @@
 // GET /api/dashboard — Retorna estatísticas do dashboard
 // =============================================================================
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { PLAN_CONFIG, formatPrice, type PlanSlug } from '@/lib/features';
+import { resolveTenantId } from '@/lib/ddc/auth-utils';
 
 export async function GET() {
   try {
-    // Get the first active tenant (demo mode)
-    const tenant = await db.tenant.findFirst({
-      where: { status: 'active' },
-    });
+    const tenantId = await resolveTenantId();
+
+    let tenant = tenantId
+      ? await db.tenant.findUnique({
+          where: { id: tenantId },
+        })
+      : null;
+
+    if (!tenant) {
+      tenant = await db.tenant.findFirst({
+        where: { status: 'active' },
+      });
+    }
 
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });

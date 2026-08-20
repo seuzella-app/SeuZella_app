@@ -1,7 +1,7 @@
 /**
  * ZEHLA — Tenant Context Resolution (ISO 19650 aligned)
  * 
- * Resolves the current tenant ID from the NextAuth session.
+ * Resolves the current tenant ID from AsyncLocalStorage or NextAuth session.
  * Used by server-side code (API routes, server components) to enforce
  * strict multi-tenant data isolation.
  * 
@@ -9,11 +9,27 @@
  * In development with BYPASS_MIDDLEWARE_AUTH=true, uses the first tenant.
  */
 
+import { AsyncLocalStorage } from 'async_hooks';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 
+const tenantStorage = new AsyncLocalStorage<string>();
+
+/**
+ * Executa uma função dentro do escopo de um tenant específico (AsyncLocalStorage).
+ */
+export async function runWithTenant<T>(tenantId: string, fn: () => Promise<T>): Promise<T> {
+  return tenantStorage.run(tenantId, fn);
+}
+
 export async function getTenantId(): Promise<string | null> {
+  // 1. Checa se há um tenant no AsyncLocalStorage (background worker / runWithTenant)
+  const scopedTenant = tenantStorage.getStore();
+  if (scopedTenant) {
+    return scopedTenant;
+  }
+
   try {
     // In dev/CI bypass mode ONLY (never in production), use the first tenant
     if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true' && process.env.NODE_ENV !== 'production') {

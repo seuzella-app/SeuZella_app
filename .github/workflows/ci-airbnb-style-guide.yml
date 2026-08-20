@@ -34,6 +34,9 @@ on:
       - 'src/lib/airb/**'
       - 'src/lib/airb-pro/**'
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: 🏠 Airbnb ESLint

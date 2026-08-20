@@ -32,6 +32,9 @@ on:
     paths:
       - 'src/lib/locks/**'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: 🔐 Locks Tests

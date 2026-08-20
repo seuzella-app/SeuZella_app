@@ -40,7 +40,10 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: 🔧 Generate Prisma Client
-        env:
+        permissions:
+  contents: read
+
+env:
           DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
         run: npx prisma generate
 

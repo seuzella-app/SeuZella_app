@@ -29,6 +29,9 @@ on:
     paths:
       - 'src/lib/cerebro/workflow-engine.ts'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: 🧠 Dify Tests

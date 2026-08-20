@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { validateUrlSafeForSsrf } from '@/lib/security/ssrf-protection';
+import { safeFetchExternalUrl, SafeFetchSSRFError } from '@/lib/security/safe-fetch';
 
 /**
  * ============================================================================
@@ -7,9 +7,9 @@ import { validateUrlSafeForSsrf } from '@/lib/security/ssrf-protection';
  * ============================================================================
  */
 
-const MAX_ICAL_BYTES = 5 * 1024 * 1024; // 5MB máximo
-const MAX_ICAL_EVENTS = 2000;           // Limite de 2000 eventos por sync
-const ICAL_FETCH_TIMEOUT_MS = 15000;    // 15 segundos timeout
+export const MAX_ICAL_BYTES = 2 * 1024 * 1024; // 2MB máximo
+export const MAX_ICAL_EVENTS = 10000;           // Limite de 10000 eventos por sync
+export const ICAL_FETCH_TIMEOUT_MS = 10000;    // 10 segundos timeout
 
 interface ICalEvent {
   uid: string;
@@ -40,39 +40,28 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
   };
 
   try {
-    // 1. SSRF Gate: Validação estrita de DNS e IPs privados/loopback
-    const ssrfCheck = await validateUrlSafeForSsrf(icalUrl);
-    if (!ssrfCheck.safe) {
-      result.errors++;
-      result.details.push({
-        uid: 'ssrf_blocked',
-        action: 'blocked',
-        reason: `URL rejeitada por política de segurança SSRF: ${ssrfCheck.reason}`,
+    // 1. Safe Fetch com pre-resolution DNS, bloqueio de IP privado, redirect manual e limite de 2MB
+    let icalText = '';
+    try {
+      const response = await safeFetchExternalUrl(icalUrl, {
+        headers: { 'Accept': 'text/calendar' },
+        maxBytes: MAX_ICAL_BYTES,
+        timeoutMs: ICAL_FETCH_TIMEOUT_MS,
       });
-      return result;
-    }
 
-    // 2. Fetch com timeout rígido e redirect manual
-    const response = await fetch(icalUrl, {
-      headers: { 'Accept': 'text/calendar' },
-      signal: AbortSignal.timeout(ICAL_FETCH_TIMEOUT_MS),
-      redirect: 'manual',
-    });
+      if (response.status < 200 || response.status >= 300) {
+        result.errors++;
+        result.details.push({ uid: 'fetch', action: 'error', reason: `HTTP ${response.status}` });
+        return result;
+      }
 
-    if (!response.ok) {
-      result.errors++;
-      result.details.push({ uid: 'fetch', action: 'error', reason: `HTTP ${response.status}` });
-      return result;
-    }
-
-    // 3. Validação de tamanho de payload (DoS protection)
-    const icalText = await response.text();
-    if (Buffer.byteLength(icalText, 'utf8') > MAX_ICAL_BYTES) {
+      icalText = await response.text();
+    } catch (err: any) {
       result.errors++;
       result.details.push({
-        uid: 'payload_too_large',
-        action: 'error',
-        reason: `Feed iCal excede o limite máximo de ${MAX_ICAL_BYTES / (1024 * 1024)}MB`,
+        uid: 'ssrf_or_fetch_blocked',
+        action: 'blocked',
+        reason: err.message || 'Falha ao buscar feed iCal com proteção SSRF',
       });
       return result;
     }
@@ -88,7 +77,7 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
       return result;
     }
 
-    // 4. Processa cada evento de forma transacional e segura
+    // 2. Processa cada evento de forma transacional e segura
     for (const event of events) {
       try {
         const checkIn = new Date(event.startDate + 'T14:00:00');
@@ -100,55 +89,51 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
           continue;
         }
 
-        // Sanitiza o resumo (removendo prefixos de bloqueio)
-        const guestName = event.summary?.replace(/^(Reserved|Blocked|Not available)\s*:?\s*/i, '').trim() || 'Booking.com Guest';
-
-        // Check for existing booking with same external UID
-        const existing = await db.booking.findFirst({
-          where: {
-            tenantId,
-            externalUid: event.uid,
-            source: 'booking',
-          },
-        });
-
-        if (existing) {
-          // Update if dates changed
-          if (existing.checkIn.getTime() !== checkIn.getTime() || existing.checkOut.getTime() !== checkOut.getTime()) {
-            await db.booking.update({
-              where: { id: existing.id },
-              data: { checkIn, checkOut, status: event.status === 'CANCELLED' ? 'cancelled' : 'confirmed' },
-            });
-            result.details.push({ uid: event.uid, action: 'updated' });
-          } else {
-            result.skipped++;
-            result.details.push({ uid: event.uid, action: 'skipped', reason: 'Already exists' });
-          }
+        if (checkOut <= checkIn) {
+          result.skipped++;
+          result.details.push({ uid: event.uid, action: 'skipped', reason: 'Check-out before check-in' });
           continue;
         }
 
-        // Calculate nights and price (sem fallback arbitrário de R$150)
-        const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-        const property = await db.property.findFirst({ where: { tenantId } });
-        const room = property ? await db.room.findFirst({ where: { propertyId: property.id } }) : null;
-        const pricePerNight = room?.price ?? 0;
+        // Não importa eventos no passado (>30 dias atrás)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        if (checkOut < thirtyDaysAgo) {
+          result.skipped++;
+          result.details.push({ uid: event.uid, action: 'skipped', reason: 'Event in the past' });
+          continue;
+        }
 
-        // Create booking
-        await db.booking.create({
-          data: {
+        const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
+
+        // Upsert do booking com proteção de tenantId
+        await db.booking.upsert({
+          where: {
+            tenantId_externalUid: {
+              tenantId,
+              externalUid: event.uid,
+            },
+          },
+          create: {
             tenantId,
-            roomId: room?.id || null,
-            roomName: room?.name || 'Standard Room',
-            guestName,
+            externalUid: event.uid,
+            guestName: 'Hóspede iCal', // Anonimizado
+            roomName: event.location || 'Quarto iCal',
             checkIn,
             checkOut,
-            nights: Math.max(1, nights),
+            nights,
             guests: 1,
-            totalValue: pricePerNight * Math.max(1, nights),
-            status: event.status === 'CANCELLED' ? 'cancelled' : 'confirmed',
-            source: 'booking',
-            externalUid: event.uid,
-            externalSource: 'booking',
+            status: event.status?.toLowerCase() === 'cancelled' ? 'cancelled' : 'confirmed',
+            totalValue: 0,
+            source: 'ical_import',
+            metadata: JSON.stringify({ summary: event.summary }),
+          },
+          update: {
+            checkIn,
+            checkOut,
+            nights,
+            status: event.status?.toLowerCase() === 'cancelled' ? 'cancelled' : 'confirmed',
+            metadata: JSON.stringify({ summary: event.summary }),
           },
         });
 
@@ -156,85 +141,113 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
         result.details.push({ uid: event.uid, action: 'imported' });
       } catch (eventError: any) {
         result.errors++;
-        result.details.push({ uid: event.uid, action: 'error', reason: eventError?.message || 'DB error' });
+        result.details.push({
+          uid: event.uid,
+          action: 'error',
+          reason: eventError.message || 'Database error',
+        });
       }
     }
-  } catch (fetchError: any) {
-    result.errors++;
-    result.details.push({ uid: 'fetch', action: 'error', reason: fetchError?.message || 'Network error' });
-  }
 
-  return result;
+    // 3. Atualiza timestamp do sync
+    await db.bookingSyncConfig.updateMany({
+      where: { tenantId },
+      data: {
+        lastSync: new Date(),
+        status: result.errors === 0 ? 'active' : 'error',
+      },
+    });
+
+    return result;
+  } catch (error: any) {
+    result.errors++;
+    result.details.push({
+      uid: 'general_error',
+      action: 'error',
+      reason: error.message || 'Unknown import error',
+    });
+
+    await db.bookingSyncConfig.updateMany({
+      where: { tenantId },
+      data: {
+        lastSync: new Date(),
+        status: 'error',
+      },
+    }).catch(() => {});
+
+    return result;
+  }
 }
 
 /**
- * Parse raw iCal text into structured event objects
+ * Basic iCal (RFC 5545) text parser
  */
-function parseICal(icalText: string): ICalEvent[] {
+export function parseICal(icalContent: string): ICalEvent[] {
   const events: ICalEvent[] = [];
-  const lines = icalText.split(/\r?\n/);
+  const lines = icalContent
+    .replace(/\r\n\s+/g, '') // Unfold multi-line entries
+    .split(/\r\n|\n|\r/);
 
-  let currentEvent: Partial<ICalEvent> | null = null;
-  let currentKey = '';
+  let inEvent = false;
+  let currentEvent: Partial<ICalEvent> = {};
 
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
+  for (const line of lines) {
+    const trimmed = line.trim();
 
-    // Handle line unfolding (continuation lines start with space or tab)
-    while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
-      line += lines[i + 1].slice(1);
-      i++;
-    }
-
-    line = line.trim();
-
-    if (line === 'BEGIN:VEVENT') {
+    if (trimmed === 'BEGIN:VEVENT') {
+      inEvent = true;
       currentEvent = {};
       continue;
     }
 
-    if (line === 'END:VEVENT') {
-      if (currentEvent && currentEvent.uid && currentEvent.startDate && currentEvent.endDate) {
-        events.push(currentEvent as ICalEvent);
+    if (trimmed === 'END:VEVENT') {
+      if (inEvent && currentEvent.uid && currentEvent.startDate && currentEvent.endDate) {
+        events.push({
+          uid: currentEvent.uid,
+          summary: currentEvent.summary || 'Reserva iCal',
+          startDate: currentEvent.startDate,
+          endDate: currentEvent.endDate,
+          description: currentEvent.description,
+          location: currentEvent.location,
+          status: currentEvent.status || 'CONFIRMED',
+        });
       }
-      currentEvent = null;
+      inEvent = false;
       continue;
     }
 
-    if (!currentEvent) continue;
+    if (!inEvent) continue;
 
-    // Parse KEY;PARAMS:VALUE or KEY:VALUE
-    const colonIdx = line.indexOf(':');
+    const colonIdx = trimmed.indexOf(':');
     if (colonIdx === -1) continue;
 
-    const keyPart = line.slice(0, colonIdx);
-    const value = line.slice(colonIdx + 1);
+    const rawKey = trimmed.slice(0, colonIdx);
+    const value = trimmed.slice(colonIdx + 1);
 
-    // Extract property name (ignore parameters like ;VALUE=DATE)
-    const semicolonIdx = keyPart.indexOf(';');
-    const propName = (semicolonIdx !== -1 ? keyPart.slice(0, semicolonIdx) : keyPart).toUpperCase();
+    // Extract base property name (strip parameters like ;VALUE=DATE)
+    const propName = rawKey.split(';')[0].toUpperCase();
 
     switch (propName) {
       case 'UID':
-        currentEvent.uid = value.slice(0, 256); // Proteção de tamanho de UID
+        currentEvent.uid = value.trim();
         break;
       case 'SUMMARY':
-        currentEvent.summary = value;
+        currentEvent.summary = value.trim();
         break;
       case 'DTSTART':
-        currentEvent.startDate = parseICalDate(value);
+        currentEvent.startDate = parseICalDate(value.trim());
         break;
       case 'DTEND':
-        currentEvent.endDate = parseICalDate(value);
+        currentEvent.endDate = parseICalDate(value.trim());
         break;
       case 'DESCRIPTION':
-        currentEvent.description = value.slice(0, 1024);
+        currentEvent.description = value.trim();
         break;
       case 'LOCATION':
-        currentEvent.location = value.slice(0, 256);
+        currentEvent.location = value.trim();
         break;
       case 'STATUS':
-        currentEvent.status = value.toUpperCase();
+        currentEvent.status = value.trim();
         break;
     }
   }
@@ -243,10 +256,10 @@ function parseICal(icalText: string): ICalEvent[] {
 }
 
 /**
- * Parse iCal date string (YYYYMMDD or YYYYMMDDTHHMMSSZ) into YYYY-MM-DD
+ * Parse iCal date format (YYYYMMDD or YYYYMMDDTHHMMSSZ) into YYYY-MM-DD
  */
 function parseICalDate(value: string): string {
-  const cleaned = value.replace(/^VALUE=DATE:/, '');
+  const cleaned = value.replace(/[^0-9T]/g, '');
 
   // YYYYMMDD format
   if (/^\d{8}$/.test(cleaned)) {
