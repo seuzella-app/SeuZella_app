@@ -8,6 +8,2451 @@ datasource db {
   relationMode = "prisma"
 }
 
-// NOTE: schema intentionally preserved. Payment customer persistence is implemented
-// in the application layer only after the existing Tenant field is verified/migrated.
-// Full schema is maintained by the repository and must not be replaced blindly.
+// ===== ENUMS (from backup) =====
+enum LeadStatus {
+  PROSPECT
+  QUALIFIED
+  TRIAL_STARTED
+  CONVERTED
+  BLACKLISTED
+}
+
+enum Plan {
+  LITE
+  PRO
+  MAX
+  PARCEIRO
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  posts         Post[]
+  tenantId      String?
+  tenant        Tenant?   @relation("UserToTenant", fields: [tenantId], references: [id])
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Tenant {
+  id             String    @id @default(cuid())
+  name           String
+  email          String?   @unique
+  passwordHash   String?
+  phone          String?
+  phoneAlt       String?
+  whatsappPhoneNumber String? @unique
+  whatsappBusinessId  String? @unique
+  role           String    @default("owner")
+  plan           String    @default("lite")
+  status         String    @default("active")
+  subscriptionAt DateTime?
+  domain         String? @unique
+  clerkOrgId     String? @unique
+  property      Property?
+  apiConfigs    ApiConfig[]
+  agentConfigs  AgentConfig[]
+  auditLogs     AuditLog[]
+  calendarSyncs CalendarSync[]
+  consentLogs   ConsentLog[]
+  rooms        Room[]
+  guests       Guest[]
+  reservations Reservation[]
+  transactions Transaction[]
+  leads          Lead[]
+  campaigns      Campaign[]
+  targets        Target[]
+  swipeTemplates SwipeTemplate[]
+  agentLogs      AgentLog[]
+  subscriptionId String?
+  subscriptions  Subscription[]
+  airbProperties  AirBProperty[]
+  airbSubscriptions AirBSubscription[]
+  bookingSyncConfigs BookingSyncConfig[]
+  niche      String    @default("pousada")
+  users      User[]    @relation("UserToTenant")
+  isTestTenant Boolean @default(false)
+  pricingRules      DynamicPricingRule[]
+  pricingCalculations PricingCalculation[]
+  yieldProfitRecords YieldProfitRecord[]
+  mobileDevicePings DevicePing[]
+  guestGuides       GuestGuide[]
+  referralCodes     ReferralCode[]
+  amortizationCredits AmortizationCredit[]
+  liteMilestone     LiteMilestone?
+  lockDevices       LockDevice[]
+  lockCodes         LockCode[]
+  lockEvents        LockEvent[]
+  lockOAuthAccounts LockOAuthAccount[]
+  upsellRecords     UpsellRecord[]
+  airbExpenses      AirbExpense[]
+  airbOperationTasks AirbOperationTask[]
+  airbGoals         AirbGoal[]
+  airbCommissions   AirbCommission[]
+  airbReports       AirbReport[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("tenants")
+}
+
+model Property {
+  id              String  @id @default(cuid())
+  tenantId        String  @unique
+  name            String
+  document        String?
+  street          String  @default("")
+  number          String  @default("")
+  neighborhood    String  @default("")
+  city            String  @default("")
+  state           String  @default("")
+  zipCode         String  @default("")
+  latitude        Float?
+  longitude       Float?
+  type            String  @default("pousada")
+  website         String?
+  description     String  @default("")
+  services        String  @default("[]")
+  paymentMethods  String  @default("[]")
+  pixKey          String?
+  pixKeyType      String  @default("cpf")
+  bankName        String?
+  bankAgency      String?
+  bankAccount     String?
+  bankAccountType String?
+  bankCpf         String?
+  slug                    String  @unique
+  linkinbioSubtitle       String  @default("")
+  linkinbioAvatarUrl      String?
+  linkinbioBackgroundUrl  String?
+  linkinbioAccentColor    String  @default("#10b981")
+  linkinbioInstagram      String?
+  linkinbioRating         Float   @default(0)
+  linkinbioReviewCount    Int     @default(0)
+  linkinbioIsActive       Boolean @default(true)
+  linkinbioPlanStart      DateTime?
+  linkinbioPlanExpires    DateTime?
+  linkinbioBetaEnd        DateTime?
+  linkinbioIsBetaPartner  Boolean @default(false)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rooms  Room[]
+  linkinbioLinks LinkInBioLink[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("properties")
+}
+
+model Room {
+  id         String @id @default(cuid())
+  propertyId String
+  name       String
+  type       String @default("standard")
+  capacity   Int    @default(2)
+  price      Float  @default(150)
+  status     String @default("disponivel")
+  property      Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  bookings      Booking[]
+  calendarSyncs CalendarSync[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  tenant       Tenant?       @relation(fields: [tenantId], references: [id])
+  tenantId     String?
+  reservations Reservation[]
+  @@map("rooms")
+}
+
+model ApiConfig {
+  id           String  @id @default(cuid())
+  tenantId     String
+  provider     String
+  apiKey       String  @default("")
+  apiSecret    String  @default("")
+  model        String  @default("")
+  baseUrl      String  @default("")
+  isActive     Boolean @default(false)
+  usageLimit   Int     @default(0)
+  usageCurrent Int     @default(0)
+  notes        String  @default("")
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([tenantId, provider])
+  @@map("api_configs")
+}
+
+model AgentConfig {
+  id              String  @id @default(cuid())
+  tenantId        String
+  agentId         String
+  agentName       String
+  systemPrompt    String  @default("")
+  isActive        Boolean @default(true)
+  temperature     Float   @default(0.7)
+  maxTokens       Int     @default(2048)
+  customKnowledge String  @default("[]")
+  learnedPatterns Int     @default(0)
+  confidenceScore Float   @default(0)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([tenantId, agentId])
+  @@map("agent_configs")
+}
+
+model AuditLog {
+  id        String  @id @default(cuid())
+  tenantId  String
+  action    String
+  details   String  @default("{}")
+  ipAddress String?
+  userAgent String?
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@map("audit_logs")
+}
+
+model Lead {
+  id              String  @id @default(cuid())
+  tenantId        String
+  empresa         String
+  decisor         String  @default("")
+  cargo           String  @default("")
+  email           String  @unique
+  whatsapp        String?
+  setor           String  @default("hospitalidade")
+  porte           String  @default("pequeno")
+  status          String  @default("pending")
+  hook            String  @default("")
+  socialFootprint String  @default("{}")
+  targetId        String?
+  name         String  @default("")
+  phone        String?
+  property     String?
+  category     String? @default("pousada")
+  city         String?
+  state        String? @default("SC")
+  region       String?
+  googleRating Float?
+  score        Int?    @default(0)
+  painPoints   String?
+  source       String  @default("SECRETARIA_AI")
+  latitude     Float?
+  longitude    Float?
+  scoreValid   Int     @default(0)
+  localPraia   String?
+  observacoes  String?
+  isCanary              Boolean   @default(false)
+  estimatedValues       String?
+  intentSignals         String?
+  location              String?
+  phoneSecondary        String?
+  qualification        String?
+  socialMedia           String    @default("{}")
+  site                  String?
+  validationScore       Float     @default(0)
+  validationStatus      String    @default("pendente")
+  conversionScore       Int       @default(0)
+  funnelStage           String    @default("NEUTRAL")
+  lastInteractionAt     DateTime?
+  behavioralProfile     String?
+  cluster               String    @default("COLD")
+  previousCluster       String?
+  lastSwipeAction       String?
+  lastSwipeUsedId       String?
+  tierConfidence        Float?
+  tierSugerido          String?
+  tierSugeridoEm        DateTime?
+  roomsCount            Int       @default(0)
+  instagramFollowers    Int       @default(0)
+  googleReviewsCount    Int       @default(0)
+  otaCommissionLost     Float     @default(0.0)
+  hasWebsite            Boolean   @default(false)
+  otaDependenceLevel    String    @default("MEDIUM")
+  buyingBehavior        String?
+  conversionProbability Float     @default(0.0)
+  objectKeywords        String?
+  recommendedPitch      String?
+  leadTier              String    @default("COLD")
+  metadata              String    @default("{}")
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  emailTrackings EmailTracking[]
+  swipeUsages    SwipeUsage[]
+  funnelEvents   FunnelEvent[]
+  funnelScore    FunnelScore?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([tenantId])
+  @@map("leads")
+}
+
+model EmailTracking {
+  id         String   @id @default(cuid())
+  leadId     String
+  campaignId String?
+  openedAt   DateTime @default(now())
+  ip         String?
+  userAgent  String?
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  @@index([leadId])
+  @@index([campaignId])
+  @@map("email_tracking")
+}
+
+model Target {
+  id       String  @id @default(cuid())
+  tenantId String
+  name     String
+  domain   String
+  website  String?
+  city     String  @default("")
+  state    String  @default("")
+  status   String  @default("active")
+  priority Int     @default(5)
+  tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([tenantId, domain])
+  @@index([tenantId])
+  @@map("targets")
+}
+
+model AgentLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  action    String
+  status    String   @default("success")
+  createdAt DateTime @default(now())
+  agentId      String @default("lessie")
+  inputTokens  Int    @default(0)
+  outputTokens Int    @default(0)
+  latencyMs    Int    @default(0)
+  costUsd      Float  @default(0)
+  errorMsg     String @default("")
+  metadata     String @default("{}")
+  agentName  String?
+  intent     String?
+  confidence Float?
+  input      String?
+  output     String?
+  tokensUsed Int     @default(0)
+  cost       Float   @default(0)
+  duration   Int     @default(0)
+  @@index([agentName, createdAt])
+  @@index([tenantId])
+  @@map("agent_logs")
+}
+
+model SecurityAlert {
+  id        String   @id @default(cuid())
+  severity  String   @default("medium")
+  createdAt DateTime @default(now())
+  type        String?
+  description String    @default("")
+  source      String    @default("")
+  resolved    Boolean   @default(false)
+  resolvedAt  DateTime?
+  tenantId  String?
+  alertType String?
+  metadata  String?
+  @@index([tenantId, createdAt])
+  @@index([severity, createdAt])
+  @@map("security_alerts")
+}
+
+model SwipeTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String   @default("")
+  title     String   @default("")
+  content   String
+  variables String   @default("[]")
+  category  String   @default("prospecção")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  successRate Float @default(0)
+  usageCount  Int   @default(0)
+  channel            String    @default("whatsapp")
+  tone               String    @default("casual")
+  tier               String    @default("universal")
+  painType           String?
+  tags               String    @default("[]")
+  timesUsed          Int       @default(0)
+  conversions        Int       @default(0)
+  convRate           Float     @default(0)
+  lastUsedAt         DateTime?
+  isAiGenerated      Boolean   @default(false)
+  provenByConversion Boolean   @default(false)
+  createdBy          String?
+  usages SwipeUsage[]
+  @@index([tenantId])
+  @@map("swipe_templates")
+}
+
+model SwipeUsage {
+  id             String        @id @default(cuid())
+  swipeId        String
+  leadId         String
+  wasUsed        Boolean
+  converted      Boolean?
+  agentId        String?
+  responseTimeMs Int?
+  feedback       String?
+  createdAt      DateTime      @default(now())
+  swipe          SwipeTemplate @relation(fields: [swipeId], references: [id], onDelete: Cascade)
+  lead           Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  @@unique([swipeId, leadId])
+  @@index([swipeId])
+  @@index([leadId])
+  @@index([converted])
+  @@index([createdAt])
+  @@map("swipe_usages")
+}
+
+model Campaign {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  type      String   @default("whatsapp")
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  targetAudience  String    @default("all")
+  messageTemplate String    @default("")
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  totalDelivered  Int       @default(0)
+  totalRead       Int       @default(0)
+  totalReplied    Int       @default(0)
+  metadata        String    @default("{}")
+  variant        String?
+  totalSent      Int     @default(0)
+  totalOpened    Int     @default(0)
+  totalClicked   Int     @default(0)
+  totalConverted Int     @default(0)
+  openRate       Float   @default(0)
+  clickRate      Float   @default(0)
+  conversionRate Float   @default(0)
+  events      FunnelEvent[]
+  webhookLogs WebhookLog[]
+  @@index([tenantId])
+  @@map("campaigns")
+}
+
+model TrendKeyword {
+  id                  String    @id @default(cuid())
+  keyword             String    @unique
+  category            String    @default("hotelaria")
+  geo                 String?
+  isActive            Boolean   @default(true)
+  tier                String    @default("pro")
+  checkFrequencyHours Int       @default(6)
+  lastCheckedAt       DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  source String @default("google_trends")
+  score  Float  @default(0)
+  trend  String @default("stable")
+  dataPoints TrendDataPoint[]
+  @@map("trend_keywords")
+}
+
+model TrendDataPoint {
+  id        String   @id @default(cuid())
+  keywordId String
+  date      DateTime
+  source    String   @default("")
+  createdAt DateTime @default(now())
+  value Float @default(0)
+  interestScore Int     @default(0)
+  interestDelta Float?
+  volume        Int?
+  geo           String?
+  keyword TrendKeyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  @@unique([keywordId, date, source])
+  @@index([date])
+  @@index([keywordId])
+  @@map("trend_data_points")
+}
+
+model TrendSignal {
+  id             String    @id @default(cuid())
+  type           String
+  keyword        String
+  category       String
+  interestScore  Int
+  deltaPercent   Float
+  severity       String    @default("media")
+  geo            String?
+  dateDetected   DateTime
+  previousScore  Int?
+  agentsNotified String    @default("[]")
+  actionTaken    Boolean   @default(false)
+  actionDetails  String?
+  createdAt       DateTime  @default(now())
+  resolvedAt     DateTime?
+  @@index([type])
+  @@index([severity])
+  @@index([dateDetected])
+  @@index([category])
+  @@map("trend_signals")
+}
+
+model FunnelEvent {
+  id          String    @id @default(cuid())
+  leadId      String
+  campaignId  String?
+  type        String
+  painCluster String?
+  score       Int       @default(0)
+  metadata    String?
+  createdAt   DateTime  @default(now())
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaign    Campaign? @relation(fields: [campaignId], references: [id])
+  @@index([leadId])
+  @@index([campaignId])
+  @@index([type])
+  @@index([painCluster])
+  @@index([createdAt])
+  @@map("funnel_events")
+}
+
+model FunnelScore {
+  id                String    @id @default(cuid())
+  leadId            String    @unique
+  totalScore        Int       @default(0)
+  engagementScore   Int       @default(0)
+  intentScore       Int       @default(0)
+  fitScore          Int       @default(0)
+  cluster           String    @default("COLD")
+  painCluster       String?
+  lastEventAt       DateTime?
+  lastClusterChange DateTime?
+  previousCluster   String?
+  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime  @default(now())
+  lead              Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  @@index([cluster])
+  @@index([painCluster])
+  @@index([totalScore])
+  @@map("funnel_scores")
+}
+
+model WebhookLog {
+  id          String    @id @default(cuid())
+  campaignId  String?
+  source      String
+  eventType   String
+  payload     String
+  processed   Boolean   @default(false)
+  processedAt DateTime?
+  error       String?
+  retries     Int       @default(0)
+  createdAt   DateTime  @default(now())
+  campaign    Campaign? @relation(fields: [campaignId], references: [id])
+  @@index([source])
+  @@index([eventType])
+  @@index([processed])
+  @@index([createdAt])
+  @@map("webhook_logs")
+}
+
+model Guest {
+  id                String    @id @default(cuid())
+  tenantId          String
+  name              String
+  phone             String?
+  email             String?
+  document          String?
+  status            String    @default("new")
+  avatar            String?
+  source            String    @default("whatsapp")
+  value             Float     @default(0)
+  lastContact       DateTime  @default(now())
+  checkIn           DateTime?
+  checkOut          DateTime?
+  room              String?
+  aiScore           Int       @default(50)
+  notes             String?
+  conversationCount Int       @default(0)
+  metadata          String    @default("{}")
+  bsuid          String?
+  realPhone      String?
+  realEmail      String?
+  leadCapturedAt DateTime?
+  optInAt        DateTime?
+  optInMethod    String?
+  optOutAt       DateTime?
+  optOutMethod   String?
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reservations  Reservation[]
+  bookings      Booking[]
+  messages      GuestMessage[]
+  bsuidMappings BsuidMapping[]
+  consentLogs   ConsentLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([tenantId, bsuid])
+  @@unique([tenantId, phone])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, source])
+  @@index([bsuid])
+  @@index([realPhone])
+  @@index([realEmail])
+  @@map("guests")
+}
+
+model Reservation {
+  id         String   @id @default(cuid())
+  tenantId   String
+  guestId    String
+  roomId     String
+  checkIn    DateTime
+  checkOut   DateTime
+  status     String   @default("CONFIRMED")
+  totalPrice Float
+  source     String   @default("DIRECT")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  guest  Guest  @relation(fields: [guestId], references: [id])
+  room   Room   @relation(fields: [roomId], references: [id])
+  transactions Transaction[]
+  @@index([tenantId])
+  @@index([guestId])
+  @@index([roomId])
+  @@map("reservations")
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  tenantId      String
+  reservationId String?
+  type          String
+  amount        Float
+  method        String
+  status        String   @default("COMPLETED")
+  createdAt     DateTime @default(now())
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reservation Reservation? @relation(fields: [reservationId], references: [id])
+  @@index([tenantId])
+  @@index([reservationId])
+  @@map("transactions")
+}
+
+model RouterProvider {
+  id               String    @id @default(cuid())
+  provider         String    @unique
+  modelName        String
+  tier             String    @default("3")
+  alpha            Float     @default(1.0)
+  beta             Float     @default(1.0)
+  circuitStatus    String    @default("closed")
+  lastFailureAt    DateTime?
+  failureCount     Int       @default(0)
+  successCount     Int       @default(0)
+  avgLatencyMs     Int       @default(0)
+  costPer1kInput   Float     @default(0)
+  costPer1kOutput  Float     @default(0)
+  isActive         Boolean   @default(true)
+  supportsJson     Boolean   @default(false)
+  supportsTools    Boolean   @default(false)
+  maxContextTokens Int       @default(8192)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("router_providers")
+}
+
+model BudgetGuardState {
+  id               String @id @default(cuid())
+  date             String @unique
+  dailySpendUsd    Float  @default(0)
+  dailyBudgetUsd   Float  @default(50)
+  monthlySpendUsd  Float  @default(0)
+  monthlyBudgetUsd Float  @default(1500)
+  criticalLevel    String @default("nominal")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("budget_guard_state")
+}
+
+model CostLog {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  provider     String
+  model        String
+  inputTokens  Int
+  outputTokens Int
+  costUsd      Float
+  tier         Int      @default(1)
+  bucket       String   @default("general")
+  cacheHit     Boolean  @default(false)
+  latencyMs    Int      @default(0)
+  circuitState String?
+  budgetLevel  String?
+  createdAt    DateTime @default(now())
+  @@index([tenantId])
+  @@index([createdAt])
+  @@index([provider])
+  @@map("cost_logs")
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  propertyId String
+  direction  String
+  content    String
+  createdAt  DateTime @default(now())
+  @@map("messages")
+}
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  planType           String
+  status             String    @default("pending")
+  paymentMethod      String
+  amount             Float
+  paymentId          String?
+  paymentStatus      String?
+  checkoutUrl        String?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  lastProrateAmount  Float?
+  lastProrateDate    DateTime?
+  metadata           String    @default("{}")
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("subscriptions")
+}
+
+model PaymentTransaction {
+  id             String  @id @default(cuid())
+  subscriptionId String
+  amount         Float
+  status         String
+  paymentMethod  String
+  type           String?
+  externalId     String?
+  metadata       String  @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("payment_transactions")
+}
+
+model GuestMessage {
+  id        String   @id @default(cuid())
+  guestId   String
+  from      String
+  content   String
+  timestamp DateTime @default(now())
+  type      String   @default("text")
+  sentiment String?
+  intent    String?
+  metadata  String   @default("{}")
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@index([guestId])
+  @@index([timestamp])
+  @@map("guest_messages")
+}
+
+model Booking {
+  id             String   @id @default(cuid())
+  tenantId       String
+  guestId        String?
+  guestName      String
+  roomName       String
+  roomId         String?
+  checkIn        DateTime
+  checkOut       DateTime
+  nights         Int
+  guests         Int
+  totalValue     Float
+  status         String   @default("pending")
+  paymentMethod  String   @default("none")
+  paymentStatus  String   @default("pending")
+  source         String
+  aiGenerated    Boolean  @default(false)
+  externalUid    String?
+  externalSource String?
+  metadata       String   @default("{}")
+  guest Guest? @relation(fields: [guestId], references: [id])
+  room  Room?  @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([tenantId, externalUid])
+  @@index([tenantId, status])
+  @@index([tenantId, checkIn])
+  @@index([guestId])
+  @@index([roomId])
+  @@map("bookings")
+}
+
+model AIActivityLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  type      String
+  guestName String?
+  roomName  String?
+  message   String
+  timestamp DateTime @default(now())
+  status    String   @default("success")
+  duration  Int?
+  metadata  String   @default("{}")
+  createdAt DateTime @default(now())
+  @@index([tenantId, timestamp])
+  @@index([type])
+  @@map("ai_activity_logs")
+}
+
+model ConversationLog {
+  id           String   @id @default(cuid())
+  tenantId     String
+  guestId      String
+  guestName    String
+  guestPhone   String
+  status       String   @default("active")
+  lastUpdate   DateTime @default(now())
+  aiConfidence Float    @default(0)
+  metadata     String   @default("{}")
+  messages ConversationMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([tenantId, status])
+  @@index([guestId])
+  @@map("conversation_logs")
+}
+
+model ConversationMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  from           String
+  content        String
+  timestamp      DateTime @default(now())
+  read           Boolean  @default(false)
+  metadata       String   @default("{}")
+  conversation ConversationLog @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@index([conversationId])
+  @@index([timestamp])
+  @@map("conversation_messages")
+}
+
+model KnowledgeEntry {
+  id            String    @id @default(cuid())
+  tenantId      String
+  category      String
+  question      String
+  answer        String
+  priority      String    @default("medium")
+  usage         Int       @default(0)
+  effectiveness Float     @default(0)
+  createdFor    String    @default("both")
+  lastUsed      DateTime?
+  embeddingJson String    @default("[]")
+  metadata      String    @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([tenantId, category])
+  @@index([priority])
+  @@map("knowledge_entries")
+}
+
+model TrainingPrompt {
+  id          String    @id @default(cuid())
+  tenantId    String
+  name        String
+  type        String
+  content     String
+  variables   String    @default("[]")
+  isActive    Boolean   @default(true)
+  successRate Float     @default(0)
+  usageCount  Int       @default(0)
+  lastUsed    DateTime?
+  metadata    String    @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([tenantId, type])
+  @@index([isActive])
+  @@map("training_prompts")
+}
+
+model Notification {
+  id          String  @id @default(cuid())
+  tenantId    String
+  type        String
+  priority    String  @default("medium")
+  title       String
+  message     String
+  actionUrl   String?
+  actionLabel String?
+  read        Boolean @default(false)
+  metadata    String  @default("{}")
+  createdAt DateTime @default(now())
+  @@index([tenantId, read])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model PerformanceSnapshot {
+  id                String @id @default(cuid())
+  tenantId          String
+  date              String
+  aiResponseTime    Float
+  conversionRate    Float
+  guestSatisfaction Float
+  occupancyRate     Float
+  revenueGrowth     Float
+  aiAutonomy        Float
+  totalRevenue      Float
+  totalBookings     Int
+  aiConversations   Int
+  metadata          String @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([tenantId, date])
+  @@index([tenantId, date])
+  @@map("performance_snapshots")
+}
+
+model QuickAction {
+  id                   String  @id @default(cuid())
+  tenantId             String
+  category             String
+  label                String
+  icon                 String
+  action               String
+  shortcut             String?
+  requiresConfirmation Boolean @default(false)
+  isActive             Boolean @default(true)
+  order                Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([tenantId, category])
+  @@index([isActive])
+  @@map("quick_actions")
+}
+
+model Feedback {
+  id             String   @id @default(cuid())
+  tenantId       String
+  conversationId String
+  messageId      String
+  rating         Int
+  notes          String?
+  source         String   @default("ddc")
+  metadata       String   @default("{}")
+  createdAt      DateTime @default(now())
+  @@index([tenantId])
+  @@index([conversationId])
+  @@index([messageId])
+  @@index([tenantId, createdAt])
+  @@map("feedbacks")
+}
+
+model ZelladorMessage {
+  id             String  @id @default(cuid())
+  tenantId       String
+  conversationId String
+  role           String
+  content        String
+  blocked        Boolean @default(false)
+  blockReason    String?
+  createdAt DateTime @default(now())
+  @@index([tenantId, conversationId])
+  @@index([conversationId, createdAt])
+  @@map("zellador_messages")
+}
+
+model CalendarSync {
+  id           String    @id @default(cuid())
+  tenantId     String
+  roomId       String
+  otaName      String
+  syncUrl      String
+  syncToken    String    @unique
+  lastSync     DateTime?
+  status       String    @default("active")
+  errorMessage String    @default("")
+  syncCount    Int       @default(0)
+  metadata     String    @default("{}")
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([roomId, otaName])
+  @@index([tenantId, status])
+  @@map("calendar_syncs")
+}
+
+model BsuidMapping {
+  id        String   @id @default(cuid())
+  bsuid     String   @unique
+  guestId   String
+  createdAt DateTime @default(now())
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  @@index([guestId])
+  @@map("bsuid_mappings")
+}
+
+model ConsentLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  guestId   String
+  type      String
+  channel   String
+  ip        String?
+  userAgent String?
+  evidence  String   @default("{}")
+  createdAt DateTime @default(now())
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  guest     Guest     @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  @@index([tenantId, guestId])
+  @@index([type])
+  @@map("consent_logs")
+}
+
+model MetaCostLog {
+  id             String   @id @default(cuid())
+  tenantId       String
+  conversationId String
+  messageId      String?
+  guestId        String?
+  costUsd        Float
+  messageType    String
+  intent         String?
+  metadata       String   @default("{}")
+  createdAt      DateTime @default(now())
+  @@index([tenantId, createdAt])
+  @@index([conversationId])
+  @@map("meta_cost_logs")
+}
+
+model LinkInBioLink {
+  id          String @id @default(cuid())
+  propertyId  String
+  label       String
+  url         String
+  icon        String @default("🔗")
+  isHighlight Boolean @default(false)
+  order       Int    @default(0)
+  isActive    Boolean @default(true)
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([propertyId])
+  @@map("linkinbio_links")
+}
+
+model AirBProperty {
+  id              String   @id @default(cuid())
+  tenantId        String
+  airbnbId        String?
+  airbnbUrl       String?
+  name            String
+  description     String   @default("")
+  propertyType    String   @default("apartment")
+  city            String   @default("")
+  state           String   @default("")
+  neighborhood    String   @default("")
+  address         String   @default("")
+  latitude        Float?
+  longitude       Float?
+  bedrooms        Int      @default(1)
+  bathrooms       Int      @default(1)
+  maxGuests       Int      @default(2)
+  amenities       String   @default("[]")
+  houseRules      String   @default("[]")
+  checkinTime     String   @default("15:00")
+  checkoutTime    String   @default("11:00")
+  wifiName        String?
+  wifiPassword    String?
+  lockProvider    String?
+  lockCode        String?
+  hostKnowledge   String   @default("[]")
+  neighborhoodTips String  @default("[]")
+  emergencyContacts String  @default("[]")
+  imageUrl        String?
+  pricePerNight   Float?
+  currency        String   @default("BRL")
+  status          String   @default("active")
+  scrapedAt       DateTime?
+  scrapingSource  String?
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversations   AirBConversation[]
+  regionalKnowledge AirBRegionalKnowledge[]
+  scrapingJobs    AirBScrapingJob[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([tenantId])
+  @@index([airbnbId])
+  @@map("airb_properties")
+}
+
+model AirBConversation {
+  id              String   @id @default(cuid())
+  tenantId        String
+  propertyId      String
+  guestName       String
+  guestPhone      String?
+  guestBsuid      String?
+  platformContext String   @default("unknown")
+  mode            String   @default("post_booking")
+  status          String   @default("active")
+  lastIntent      String?
+  lastMessageAt   DateTime?
+  messageCount    Int      @default(0)
+  property        AirBProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  messages        AirBMessage[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([status])
+  @@map("airb_conversations")
+}
+
+model AirBMessage {
+  id              String   @id @default(cuid())
+  conversationId  String
+  direction       String
+  content         String
+  intent          String?
+  isAiGenerated   Boolean  @default(true)
+  costUsd         Float?
+  conversation    AirBConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("airb_messages")
+}
+
+model AirBRegionalKnowledge {
+  id            String   @id @default(cuid())
+  tenantId      String
+  propertyId    String
+  category      String
+  name          String
+  distance      Float?
+  walkingTimeMin Int?
+  drivingTimeMin Int?
+  address       String?
+  rating        Float?
+  googlePlaceId String?
+  description   String?
+  embeddingId   String?
+  property      AirBProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([category])
+  @@map("airb_regional_knowledge")
+}
+
+model AirBScrapingJob {
+  id              String   @id @default(cuid())
+  tenantId        String
+  propertyId      String?
+  airbnbUrl       String
+  status          String   @default("queued")
+  result          String?
+  error           String?
+  retryCount      Int      @default(0)
+  maxRetries      Int      @default(3)
+  idempotencyKey  String   @unique
+  scrapingSource  String?
+  property        AirBProperty? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  scheduledAt     DateTime @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([tenantId])
+  @@index([status])
+  @@index([idempotencyKey])
+  @@map("airb_scraping_jobs")
+}
+
+model AirBSubscription {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  planType            String
+  status              String   @default("active")
+  propertyLimit       Int
+  currentPropertyCount Int     @default(0)
+  amount              Float
+  paymentMethod       String?
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  cancelAtPeriodEnd   Boolean  @default(false)
+  tenant              Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transactions        AirBTransaction[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  @@index([tenantId])
+  @@index([status])
+  @@map("airb_subscriptions")
+}
+
+model AirBTransaction {
+  id              String   @id @default(cuid())
+  tenantId        String
+  propertyId      String?
+  subscriptionId  String?
+  type            String
+  amount          Float
+  status          String   @default("pending")
+  externalId      String?
+  description     String?
+  subscription    AirBSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  @@index([tenantId])
+  @@index([subscriptionId])
+  @@map("airb_transactions")
+}
+
+model ZCCAccessLog {
+  id        String   @id @default(cuid())
+  ip        String
+  userAgent String?
+  method    String
+  success   Boolean
+  country   String?
+  requestId String?
+  createdAt DateTime @default(now())
+  @@index([method])
+  @@index([success])
+  @@index([createdAt])
+  @@map("zcc_access_logs")
+}
+
+model WhatsAppMessageCost {
+  id              String   @id @default(cuid())
+  tenantId        String
+  direction       String
+  messageTemplate String?
+  costUsd         Float    @default(0.0068)
+  costBrl         Float?
+  bundled         Boolean  @default(false)
+  bundleId        String?
+  conversationId  String?
+  aiGenerated     Boolean  @default(false)
+  intent          String?
+  oneShot         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  @@index([tenantId])
+  @@index([createdAt])
+  @@index([bundleId])
+  @@map("whatsapp_message_costs")
+}
+
+model MessageBundle {
+  id                   String    @id @default(cuid())
+  tenantId             String
+  originalMessageCount Int
+  finalMessageCount    Int       @default(1)
+  savingsUsd           Float
+  bufferMs             Int       @default(3000)
+  status               String    @default("completed")
+  createdAt            DateTime  @default(now())
+  completedAt          DateTime?
+  @@index([tenantId])
+  @@index([status])
+  @@map("message_bundles")
+}
+
+model ConsentRecord {
+  id          String    @id @default(cuid())
+  tenantId    String
+  guestPhone  String
+  consentType String
+  status      String
+  source      String
+  ipAddress   String?
+  userAgent   String?
+  expiresAt   DateTime?
+  withdrawnAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  @@unique([tenantId, guestPhone, consentType])
+  @@index([tenantId])
+  @@index([guestPhone])
+  @@index([status])
+  @@map("consent_records")
+}
+
+model AirbnbWebhookEvent {
+  id                   String    @id @default(cuid())
+  tenantId             String
+  eventType            String
+  airbnbReservationId  String?
+  airbnbListingId      String?
+  payload              String
+  processed            Boolean   @default(false)
+  processedAt          DateTime?
+  mockTriggered        Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([processed])
+  @@map("airbnb_webhook_events")
+}
+
+model AirbnbOAuthToken {
+  id          String   @id @default(cuid())
+  tenantId    String
+  accessToken String
+  refreshToken String?
+  tokenType   String   @default("Bearer")
+  expiresIn   Int
+  scope       String?
+  isMock      Boolean  @default(true)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@unique([tenantId])
+  @@index([tenantId])
+  @@index([expiresAt])
+  @@map("airbnb_oauth_tokens")
+}
+
+model DynamicPricingRule {
+  id            String    @id @default(cuid())
+  tenantId      String
+  name          String
+  type          String    @default("seasonal")
+  status        String    @default("active")
+  startDate     DateTime?
+  endDate       DateTime?
+  minOccupancy  Float     @default(0)
+  maxOccupancy  Float     @default(100)
+  daysOfWeek    String    @default("[]")
+  minDaysBefore Int       @default(0)
+  modifierType  String    @default("multiplier")
+  modifierValue Float
+  minPrice      Float?
+  maxPrice      Float?
+  priority      Int       @default(0)
+  appliedCount  Int       @default(0)
+  revenueImpact Float     @default(0)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  @@index([tenantId, status])
+  @@index([tenantId, type])
+  @@index([startDate, endDate])
+  @@map("dynamic_pricing_rules")
+}
+
+model PricingCalculation {
+  id                String    @id @default(cuid())
+  tenantId          String
+  roomId            String?
+  airbPropertyId    String?
+  date              DateTime
+  basePrice         Float
+  calculatedPrice   Float
+  modifierBreakdown String    @default("[]")
+  occupancyAtCalc   Float     @default(0)
+  daysBeforeCheckIn Int       @default(0)
+  appliedRulesCount Int       @default(0)
+  createdAt         DateTime  @default(now())
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@unique([tenantId, roomId, date])
+  @@index([tenantId, date])
+  @@index([tenantId, roomId])
+  @@map("pricing_calculations")
+}
+
+model GuestGuide {
+  id            String    @id @default(cuid())
+  tenantId      String
+  airbPropertyId String?
+  propertyId    String?
+  slug          String    @unique
+  title         String
+  welcomeMessage String   @default("")
+  status        String    @default("active")
+  viewCount     Int       @default(0)
+  lastViewedAt  DateTime?
+  qrCodeUrl     String?
+  sections      String    @default("[]")
+  autoGenerated Boolean   @default(false)
+  generatedAt   DateTime?
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  @@index([tenantId, status])
+  @@index([slug])
+  @@map("guest_guides")
+}
+
+model BookingSyncConfig {
+  id              String    @id @default(cuid())
+  tenantId        String
+  propertyId      String?
+  airbPropertyId  String?
+  hotelId         String?
+  icalExportUrl   String?
+  icalImportUrl   String?
+  syncToken       String    @unique
+  status          String    @default("pending")
+  lastSync        DateTime?
+  syncCount       Int       @default(0)
+  bookingsImported Int      @default(0)
+  bookingsExported Int      @default(0)
+  errorMessage    String    @default("")
+  metadata        String    @default("{}")
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  @@unique([tenantId, propertyId])
+  @@unique([tenantId, airbPropertyId])
+  @@index([tenantId, status])
+  @@map("booking_sync_configs")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+model CerebroAnalysis {
+  id            String   @id @default(cuid())
+  analysisType  String
+  scope         String
+  summary       String
+  details       String   @default("{}")
+  severity      String   @default("info")
+  actionTaken   String?
+  costUsd       Float    @default(0)
+  mode          String   @default("mock")
+  createdAt     DateTime @default(now())
+  alerts        AlertDelivery[]
+  @@index([analysisType, createdAt])
+  @@index([severity, createdAt])
+  @@index([scope, createdAt])
+  @@map("cerebro_analyses")
+}
+
+model AnomalyEvent {
+  id              String   @id @default(cuid())
+  anomalyType     String
+  scope           String
+  metric          String
+  observed        Float
+  baseline        Float
+  deviation       Float
+  detectionMethod String   @default("statistical")
+  detectedAt      DateTime @default(now())
+  acknowledged    Boolean  @default(false)
+  acknowledgedBy  String?
+  acknowledgedAt  DateTime?
+  acknowledgeNotes String?
+  @@index([anomalyType, detectedAt])
+  @@index([scope, detectedAt])
+  @@index([acknowledged, detectedAt])
+  @@map("anomaly_events")
+}
+
+model RefactorSuggestion {
+  id              String   @id @default(cuid())
+  sourceErrorHash String
+  filePath        String
+  lineRange       String
+  currentCode     String
+  proposedCode    String
+  rationale       String
+  status          String   @default("pending_review")
+  confidence      Float
+  reviewNotes     String?
+  mode            String   @default("mock")
+  createdAt       DateTime @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  @@index([status, createdAt])
+  @@index([filePath])
+  @@index([sourceErrorHash])
+  @@map("refactor_suggestions")
+}
+
+model CodeReview {
+  id               String              @id @default(cuid())
+  reviewMode       String
+  scope            String
+  highLevelSummary String              @default("")
+  severity         String              @default("info")
+  stats            String              @default("{}")
+  costUsd          Float               @default(0)
+  mode             String              @default("mock")
+  status           String              @default("running")
+  triggeredBy      String?
+  errorMessage     String?
+  createdAt        DateTime            @default(now())
+  completedAt      DateTime?
+  comments         CodeReviewComment[]
+  @@index([status, createdAt])
+  @@index([scope])
+  @@map("code_reviews")
+}
+
+model CodeReviewComment {
+  id            String     @id @default(cuid())
+  reviewId      String
+  review        CodeReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  filePath      String
+  startLine     Int?
+  endLine       Int?
+  category      String     @default("code_quality")
+  severity      String     @default("info")
+  title         String
+  description   String
+  suggestedCode String?
+  currentCode   String?
+  rationale     String?
+  confidence    Float      @default(0.8)
+  status        String     @default("pending")
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  reviewNotes   String?
+  createdAt     DateTime   @default(now())
+  @@index([reviewId])
+  @@index([filePath])
+  @@index([status])
+  @@map("code_review_comments")
+}
+
+model GapFinding {
+  id              String   @id @default(cuid())
+  jobId           String?
+  filePath        String
+  lineRange       String
+  gapType         String
+  severity        String   @default("info")
+  title           String
+  description     String
+  currentCode     String?
+  suggestedCode   String?
+  rationale       String?
+  confidence      Float    @default(0.6)
+  detectedBy      String   @default("heuristic")
+  status          String   @default("pending")
+  appliedBy       String?
+  appliedAt       DateTime?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNotes     String?
+  prUrl           String?
+  prBranch        String?
+  createdAt       DateTime @default(now())
+  @@index([status, createdAt])
+  @@index([filePath])
+  @@index([gapType])
+  @@index([jobId])
+  @@map("gap_findings")
+}
+
+model BottleneckFinding {
+  id               String   @id @default(cuid())
+  jobId            String?
+  filePath         String
+  lineRange        String
+  bottleneckType   String
+  severity         String   @default("warning")
+  title            String
+  description      String
+  currentCode      String?
+  suggestedCode    String?
+  rationale        String?
+  confidence       Float    @default(0.7)
+  detectedBy       String   @default("heuristic")
+  estimatedImpact  String   @default("medium")
+  status           String   @default("pending")
+  appliedBy        String?
+  appliedAt        DateTime?
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  reviewNotes      String?
+  prUrl            String?
+  prBranch        String?
+  createdAt        DateTime @default(now())
+  @@index([status, createdAt])
+  @@index([filePath])
+  @@index([bottleneckType])
+  @@index([jobId])
+  @@map("bottleneck_findings")
+}
+
+model AlertDelivery {
+  id            String   @id @default(cuid())
+  analysisId    String?
+  channel       String
+  recipient     String
+  subject       String
+  body          String
+  status        String   @default("queued")
+  mode          String   @default("mock")
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+  analysis      CerebroAnalysis? @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+  @@index([status, createdAt])
+  @@index([channel, createdAt])
+  @@map("alert_deliveries")
+}
+
+model KnowledgeChunk {
+  id            String   @id @default(cuid())
+  source        String
+  sourceRef     String
+  filePath      String?
+  content       String
+  embedding     String   @default("[]")
+  metadata      String   @default("{}")
+  createdAt     DateTime @default(now())
+  @@index([source, createdAt])
+  @@index([filePath])
+  @@map("knowledge_chunks")
+}
+
+model GitHubCredential {
+  id               String   @id @default(cuid())
+  label            String   @unique
+  authType         String
+  encryptedPat     String   @db.Text
+  patFingerprint   String
+  scopes            String[]
+  repositoryAccess String[]
+  githubAppId      String?
+  githubClientId   String?
+  installationId   String?
+  webhookSecret    String?  @db.Text
+  expiresAt        DateTime
+  rotatedFromId    String?
+  createdBy        String
+  isActive         Boolean  @default(true)
+  lastUsedAt       DateTime?
+  lastValidatedAt  DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  auditLogs        PatAuditLog[]
+  @@index([patFingerprint])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@index([authType])
+  @@map("github_credentials")
+}
+
+model PatAuditLog {
+  id            String   @id @default(cuid())
+  credentialId  String
+  credential    GitHubCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  action        String
+  apiEndpoint   String?
+  apiMethod     String?
+  repository    String?
+  statusCode    Int?
+  success       Boolean
+  errorMessage  String?  @db.Text
+  ipAddress     String?
+  userAgent     String?
+  durationMs    Int?
+  createdAt     DateTime @default(now())
+  @@index([credentialId, createdAt])
+  @@index([action, createdAt])
+  @@index([success, createdAt])
+  @@index([repository, createdAt])
+  @@map("pat_audit_logs")
+}
+
+model ZccAuditLog {
+  id            String   @id @default(cuid())
+  timestamp     DateTime @default(now())
+  ip            String
+  userAgent     String   @default("")
+  method        String
+  success       Boolean
+  path          String
+  notes         String?
+  deploymentId  String?
+  @@index([ip, timestamp])
+  @@index([success, timestamp])
+  @@index([path, timestamp])
+  @@map("zcc_audit_logs")
+}
+
+model CerebroTelemetryEvent {
+  id            String   @id @default(cuid())
+  type          String
+  name          String
+  module        String
+  severity      String   @default("info")
+  message       String
+  context       String   @default("{}")
+  tenantId      String?
+  timestamp     DateTime @default(now())
+  deploymentId  String?
+  @@index([type, timestamp])
+  @@index([module, timestamp])
+  @@index([severity, timestamp])
+  @@index([tenantId, timestamp])
+  @@map("cerebro_telemetry_events")
+}
+
+model DpoPreferencePair {
+  id              String   @id @default(cuid())
+  tenantId        String
+  prompt          String
+  chosen          String
+  rejected        String
+  similarityScore Float
+  createdAt       DateTime @default(now())
+  status          String   @default("pending")
+  @@index([tenantId, status])
+  @@map("dpo_preference_pairs")
+}
+
+model GraphNode {
+  id          String   @id @default(cuid())
+  tenantId    String
+  entityType  String
+  name        String
+  content     String
+  embedding   String?
+  createdAt   DateTime @default(now())
+  sourceEdges GraphEdge[] @relation("SourceEdges")
+  targetEdges GraphEdge[] @relation("TargetEdges")
+  @@index([tenantId, entityType])
+  @@map("graph_nodes")
+}
+
+model GraphEdge {
+  id             String    @id @default(cuid())
+  tenantId       String
+  sourceNodeId   String
+  targetNodeId   String
+  relationType   String
+  priorityWeight Int       @default(1)
+  createdAt      DateTime  @default(now())
+  sourceNode     GraphNode @relation("SourceEdges", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode     GraphNode @relation("TargetEdges", fields: [targetNodeId], references: [id], onDelete: Cascade)
+  @@index([tenantId, sourceNodeId])
+  @@index([tenantId, targetNodeId])
+  @@map("graph_edges")
+}
+
+model BrainHealthLog {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  conversionRate     Float
+  humanTakeoverRate  Float
+  createdAt          DateTime @default(now())
+  @@index([tenantId, createdAt])
+  @@map("brain_health_logs")
+}
+
+model CompiledPrompt {
+  id               String   @id @default(cuid())
+  tenantId         String
+  niche            String?  @map("niche")
+  version          String
+  compiledJson     String   @map("compiledJson")
+  promptText       String?  @map("promptText")
+  accuracyScore    Float?   @map("accuracyScore")
+  successRate      Float    @default(0.0) @map("successRate")
+  active           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  @@index([tenantId, version])
+  @@index([niche, active, successRate])
+  @@map("compiled_prompts")
+}
+
+model ReferralCode {
+  id              String   @id @default(cuid())
+  tenantId        String
+  code            String   @unique
+  channel         String   @default("linkinbio")
+  label           String?
+  clicksCount     Int      @default(0)
+  conversionsCount Int     @default(0)
+  isActive        Boolean  @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clicks          ReferralClick[]
+  conversions     ReferralConversion[]
+  @@index([tenantId])
+  @@index([code])
+  @@map("referral_codes")
+}
+
+model ReferralClick {
+  id              String   @id @default(cuid())
+  referralCodeId  String
+  fingerprint     String
+  ip              String?
+  userAgent       String?
+  referrer        String?
+  utmSource       String?
+  utmCampaign     String?
+  deviceType      String?
+  country         String?
+  status          String   @default("pending")
+  convertedAt     DateTime?
+  createdAt       DateTime @default(now())
+  referralCode    ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  conversion      ReferralConversion?
+  @@index([referralCodeId])
+  @@index([fingerprint])
+  @@index([status])
+  @@index([createdAt])
+  @@map("referral_clicks")
+}
+
+model ReferralConversion {
+  id                 String   @id @default(cuid())
+  referralCodeId     String
+  clickId            String   @unique
+  newTenantId        String?
+  newTenantEmail     String
+  newTenantPlan      String
+  paymentAmount      Float
+  creditAmountCents  Int
+  status             String   @default("pending")
+  confirmedAt        DateTime?
+  reversedAt         DateTime?
+  reversalReason     String?
+  createdAt          DateTime @default(now())
+  referralCode       ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  click              ReferralClick @relation(fields: [clickId], references: [id], onDelete: Cascade)
+  @@index([referralCodeId])
+  @@index([newTenantEmail])
+  @@index([status])
+  @@map("referral_conversions")
+}
+
+model AmortizationCredit {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  amountCents        Int
+  source             String
+  sourceReferralId   String?
+  description        String
+  status             String   @default("available")
+  appliedToSubscriptionId String?
+  expiresAt          DateTime
+  appliedAt          DateTime?
+  createdAt          DateTime @default(now())
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId])
+  @@index([status])
+  @@map("amortization_credits")
+}
+
+model LiteMilestone {
+  id                 String   @id @default(cuid())
+  tenantId           String   @unique
+  paidReferralsCount Int      @default(0)
+  achievedAt         DateTime?
+  linkinbioExtendedUntil DateTime?
+  convertedEmailsJson String  @default("[]")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@map("lite_milestones")
+}
+
+model LockDevice {
+  id              String   @id @default(cuid())
+  tenantId        String
+  propertyId      String
+  propertyType    String   @default("pousada")
+  nickname        String
+  location        String?
+  brand           String
+  model           String?
+  providerType    String   @default("manual")
+  externalDeviceId String?
+  oauthAccountId  String?
+  serialNumber    String?
+  status          String   @default("active")
+  batteryLevel    Int?
+  online          Boolean  @default(false)
+  lastSeenAt      DateTime?
+  metadata        String   @default("{}")
+  notes           String?
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  codes           LockCode[]
+  events          LockEvent[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([propertyType])
+  @@index([brand])
+  @@map("lock_devices")
+}
+
+model LockCode {
+  id              String   @id @default(cuid())
+  deviceId        String
+  tenantId        String?
+  guestName       String?
+  guestPhone      String?
+  bookingId       String?
+  code            String
+  codeType        String   @default("online_pin")
+  source          String   @default("manual")
+  validFrom       DateTime
+  validTo         DateTime
+  usedAt          DateTime?
+  revokedAt       DateTime?
+  revokedReason   String?
+  deliveredVia    String?
+  deliveredAt     DateTime?
+  status          String   @default("scheduled")
+  note            String?
+  externalCodeId  String?
+  device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  events          LockEvent[]
+  createdAt       DateTime @default(now())
+  @@index([deviceId])
+  @@index([tenantId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([validFrom])
+  @@index([validTo])
+  @@unique([deviceId, code, validFrom])
+  @@map("lock_codes")
+}
+
+model LockEvent {
+  id              String   @id @default(cuid())
+  deviceId        String
+  codeId          String?
+  tenantId        String?
+  eventType       String
+  metadata        String   @default("{}")
+  message         String?
+  device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  code            LockCode?  @relation(fields: [codeId], references: [id], onDelete: SetNull)
+  tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  @@index([deviceId])
+  @@index([codeId])
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("lock_events")
+}
+
+model LockOAuthAccount {
+  id              String   @id @default(cuid())
+  tenantId        String
+  provider        String
+  externalAccountId String
+  displayName     String?
+  accessToken     String
+  refreshToken    String?
+  expiresAt       DateTime?
+  status          String   @default("active")
+  lastSyncAt      DateTime?
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@unique([tenantId, provider, externalAccountId])
+  @@index([tenantId])
+  @@index([provider])
+  @@map("lock_oauth_accounts")
+}
+
+model UpsellRecord {
+  id                String   @id @default(cuid())
+  tenantId          String
+  roomId            String?
+  reservationId     String?
+  guestId           String?
+  type              String
+  description       String   @default("")
+  quantity          Int      @default(1)
+  unitPrice         Float
+  totalPrice        Float
+  comissionRate     Float    @default(0.07)
+  comissionAmount   Float
+  status            String   @default("pending")
+  paidAt            DateTime?
+  confirmedAt       DateTime?
+  suggestedByZehla  Boolean  @default(true)
+  feriado           String?
+  temporada         String?
+  yieldMultiplier   Float?   @default(1.0)
+  notes             String   @default("")
+  viewCount         Int      @default(0)
+  acceptCount       Int      @default(0)
+  removeCount       Int      @default(0)
+  successCount      Int      @default(0)
+  totalSalesAmount  Float    @default(0)
+  triggerCartMin    Float?
+  triggerCartMax    Float?
+  triggerCategories String?
+  triggerProducts   String?
+  triggerSeasons    String?
+  triggerFeriados   String?
+  triggerWeekdays   String?
+  triggerHourStart  Int?
+  triggerHourEnd    Int?
+  triggerOncePerGuest Boolean @default(true)
+  offerActive       Boolean  @default(true)
+  offerStartAt      DateTime?
+  offerEndAt        DateTime?
+  isSandbox         Boolean  @default(false)
+  offerTitle        String?
+  offerDescription  String?
+  offerImage        String?
+  offerUrgencyText  String?
+  offerBackgroundColor String? @default("#10b981")
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, type])
+  @@index([roomId])
+  @@index([reservationId])
+  @@index([status, paidAt])
+  @@index([offerActive])
+  @@index([isSandbox])
+  @@map("upsell_records")
+}
+
+model AirbExpense {
+  id          String   @id @default(cuid())
+  tenantId    String
+  category    String
+  description String
+  amount      Float
+  dueDate     DateTime?
+  paidAt      DateTime?
+  status      String   @default("pending")
+  recurrence  String   @default("one_time")
+  document    String?
+  metadata    String   @default("{}")
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([tenantId, status])
+  @@index([tenantId, category])
+  @@index([tenantId, dueDate])
+  @@map("airb_expenses")
+}
+
+model AirbOperationTask {
+  id            String   @id @default(cuid())
+  tenantId      String
+  propertyId    String?
+  type          String
+  status        String   @default("pending")
+  priority      String   @default("normal")
+  title         String
+  description   String   @default("")
+  assignedTo    String?
+  scheduledFor  DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  estimatedMin  Int      @default(60)
+  actualMin     Int?
+  checklist     String   @default("[]")
+  cost          Float    @default(0)
+  metadata      String   @default("{}")
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([tenantId, status])
+  @@index([tenantId, type])
+  @@index([tenantId, scheduledFor])
+  @@map("airb_operation_tasks")
+}
+
+model AirbGoal {
+  id           String   @id @default(cuid())
+  tenantId     String
+  type         String
+  period       String
+  targetValue  Float
+  currentValue Float    @default(0)
+  unit         String   @default("BRL")
+  startDate    DateTime
+  endDate      DateTime
+  status       String   @default("active")
+  notes        String   @default("")
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([tenantId, status])
+  @@index([tenantId, type, period])
+  @@index([tenantId, endDate])
+  @@map("airb_goals")
+}
+
+model AirbCommission {
+  id           String   @id @default(cuid())
+  tenantId     String
+  partnerName  String
+  partnerEmail String?
+  partnerPhone String?
+  partnerCode  String?
+  referralType String   @default("affiliate")
+  rule         String   @default("percentage")
+  rate         Float
+  basisAmount  Float    @default(0)
+  status       String   @default("pending")
+  dueDate      DateTime?
+  paidAt       DateTime?
+  notes        String   @default("")
+  metadata     String   @default("{}")
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([tenantId, status])
+  @@index([tenantId, partnerCode])
+  @@map("airb_commissions")
+}
+
+model AirbTrialSignup {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  phone         String?
+  name          String?
+  companyName   String?
+  niche         String   @default("pousada")
+  source        String   @default("organic")
+  utmSource     String?
+  utmCampaign   String?
+  utmMedium     String?
+  status        String   @default("started")
+  magicToken    String?  @unique
+  verifiedAt    DateTime?
+  convertedAt   DateTime?
+  tenantId      String?
+  abandonReason String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@map("airb_trial_signups")
+}
+
+model AirbReport {
+  id           String   @id @default(cuid())
+  tenantId     String
+  type         String
+  format       String   @default("pdf")
+  period       String
+  status       String   @default("generated")
+  fileName     String
+  fileSizeKb   Int      @default(0)
+  generatedBy  String   @default("system")
+  metadata     String   @default("{}")
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  @@index([tenantId, type, createdAt])
+  @@index([tenantId, period])
+  @@map("airb_reports")
+}
+
+model PolicyAudit {
+  id              String   @id @default(cuid())
+  tenantId        String
+  policyId        String
+  policyVersion   String
+  severity        String
+  action          String
+  source          String
+  entryPoint      String   @map("entry_point")
+  inputHash       String?  @map("input_hash")
+  matchedRule     String?  @map("matched_rule")
+  matchedPattern  String?  @map("matched_pattern")
+  redactedOutput  String?  @map("redacted_output")
+  latencyMs       Int?     @map("latency_ms")
+  createdAt       DateTime @default(now()) @map("created_at")
+  @@index([tenantId, createdAt])
+  @@index([policyId, severity])
+  @@index([entryPoint, createdAt])
+  @@map("policy_audit")
+}
+
+model YieldProfitRecord {
+  id              String   @id @default(cuid())
+  tenantId        String
+  propertyId      String?
+  airbPropertyId  String?
+  reservationId   String?
+  roomId          String?
+  targetDate      DateTime
+  baseRate        Float
+  yieldRate       Float
+  extraProfit     Float
+  surgeMultiplier  Float
+  tierName        String   @default("NOMINAL")
+  bonusShareBrl   Float    @default(0)
+  bonusShareRate  Float    @default(0)
+  status          String   @default("confirmed")
+  triggerReason   String   @default("occupancy")
+  isSpecialHoliday Boolean @default(false)
+  holidayName     String?
+  yieldHash       String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId, targetDate])
+  @@index([tenantId, status])
+  @@index([tenantId, isSpecialHoliday])
+  @@index([tenantId, createdAt])
+  @@map("yield_profit_records")
+}
+
+model DevicePing {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenantName  String?
+  niche       String
+  route       String
+  isMobile    Boolean  @default(false)
+  deviceId    String   @unique
+  userAgent   String?  @db.Text
+  viewport    String?
+  tabName     String?
+  firstSeen   DateTime @default(now())
+  lastSeen    DateTime @default(now())
+  pingCount   Int      @default(1)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId, lastSeen])
+  @@index([niche, isMobile, lastSeen])
+  @@index([isMobile, lastSeen])
+  @@index([route, lastSeen])
+  @@index([lastSeen])
+  @@map("device_pings")
+}
+
+model NightAuditReport {
+  id              String   @id @default(cuid())
+  auditDate       String
+  startedAt       DateTime
+  completedAt    DateTime?
+  durationMs     Int      @default(0)
+  status          String   @default("running")
+  summary         String   @default("")
+  severity        String   @default("info")
+  confidence      Float    @default(0)
+  vulnFindings    String   @default("[]")
+  vulnCountCritical Int    @default(0)
+  vulnCountHigh     Int    @default(0)
+  vulnCountMedium   Int    @default(0)
+  vulnCountLow       Int    @default(0)
+  vulnCountInfo      Int    @default(0)
+  metricsJson     String   @default("{}")
+  llmAnalysis     String   @default("{}")
+  llmTokensInput  Int      @default(0)
+  llmTokensOutput Int      @default(0)
+  llmCostUsd      Float    @default(0)
+  mode            String   @default("mock")
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  @@unique([auditDate])
+  @@index([status, createdAt])
+  @@index([severity, createdAt])
+  @@index([auditDate])
+  @@map("night_audit_reports")
+}
+
+model CodeVulnerability {
+  id              String   @id @default(cuid())
+  auditReportId   String?
+  fingerprint     String   @unique
+  severity        String
+  type            String
+  file            String
+  line            Int      @default(0)
+  description     String
+  recommendation  String
+  cwe             String?
+  httpRequest     String?
+  httpStatus      Int?
+  httpResponseBody String? @db.Text
+  exploitProof    String?  @db.Text
+  status          String   @default("open")
+  detectedAt      DateTime @default(now())
+  firstDetectedAt DateTime @default(now())
+  lastDetectedAt  DateTime @default(now())
+  timesDetected   Int      @default(1)
+  fixedAt         DateTime?
+  fixedBy         String?
+  detectionSource String   @default("sast")
+  @@index([status, severity])
+  @@index([fingerprint])
+  @@index([file])
+  @@index([severity, lastDetectedAt])
+  @@index([detectionSource, lastDetectedAt])
+  @@map("code_vulnerabilities")
+}
+
+model NightPulseLog {
+  id              String   @id @default(cuid())
+  pulseType       String
+  startedAt       DateTime @default(now())
+  durationMs      Int      @default(0)
+  status          String   @default("ok")
+  resultJson      String   @default("{}")
+  triggeredAlert  Boolean  @default(false)
+  alertMessage    String?
+  llmTokensInput  Int      @default(0)
+  llmTokensOutput Int      @default(0)
+  llmCostUsd      Float    @default(0)
+  mode            String   @default("mock")
+  @@index([pulseType, startedAt])
+  @@index([status, startedAt])
+  @@index([triggeredAlert, startedAt])
+  @@map("night_pulse_logs")
+}
+
+model NightActivityEvent {
+  id              String   @id @default(cuid())
+  surface         String
+  eventType       String
+  severity        String   @default("info")
+  detailsJson     String   @default("{}")
+  detectedAt      DateTime @default(now())
+  windowStart     DateTime
+  windowEnd       DateTime
+  affectedCount   Int      @default(0)
+  thresholdValue  Float    @default(0)
+  observedValue   Float    @default(0)
+  auditReportId   String?
+  investigatedAt DateTime?
+  investigatedBy  String?
+  resolutionNotes String?
+  @@index([surface, detectedAt])
+  @@index([severity, detectedAt])
+  @@index([eventType, detectedAt])
+  @@map("night_activity_events")
+}
+
+model CerebroKnowledgeFact {
+  id          String   @id @default(cuid())
+  factType    String
+  statement   String   @db.Text
+  source      String
+  confidence  Float    @default(0.5)
+  context     String   @default("{}") @db.Text
+  tags        String   @default("")
+  version     Int      @default(1)
+  mode        String   @default("mock")
+  auditDate   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([factType, confidence])
+  @@index([source])
+  @@index([auditDate])
+  @@index([confidence])
+  @@map("cerebro_knowledge_facts")
+}
+
+model CerebroWorkflow {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  nodesJson   String   @db.Text
+  status      String   @default("draft")
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([tenantId, status])
+  @@index([status, updatedAt])
+  @@map("cerebro_workflows")
+}
+
+model LLMCallLog {
+  id              String   @id @default(cuid())
+  tenantId        String?
+  model           String
+  provider        String
+  promptTokens    Int      @default(0)
+  completionTokens Int     @default(0)
+  totalTokens     Int      @default(0)
+  latencyMs       Int      @default(0)
+  costUsd         Float    @default(0)
+  success         Boolean  @default(true)
+  errorMessage    String?  @db.Text
+  feedback        String?
+  promptHash      String?
+  source          String   @default("unknown")
+  agentId         String?
+  createdAt       DateTime @default(now())
+  @@index([tenantId, createdAt])
+  @@index([model, createdAt])
+  @@index([success, createdAt])
+  @@index([source, createdAt])
+  @@map("llm_call_logs")
+}
