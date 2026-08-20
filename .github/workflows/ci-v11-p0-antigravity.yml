@@ -79,6 +79,11 @@ jobs:
       - run: npx prisma generate
       - run: npx vitest run tests/dspy-optimizer.test.ts tests/dpo-collector.test.ts
       - run: npx next build
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
+          NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+          NEXTAUTH_URL: http://localhost:3000
+          NODE_ENV: production
 
   stage-4-digital-twin:
     name: '🌐 Estágio 4: ZCC Digital Twin & ML Suite'
@@ -91,6 +96,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm install --legacy-peer-deps
+      - run: npx prisma generate
       - run: npx vitest run tests/zcc-digital-twin/adapter-swap.test.ts tests/zcc-digital-twin/digital-twin.test.ts tests/zcc-digital-twin-financial-growth.test.ts
 
   stage-5-concurrency:
@@ -104,6 +110,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm install --legacy-peer-deps
+      - run: npx prisma generate
       - run: npx vitest run tests/stress-avalanche-k6.test.ts tests/high-stress-concurrency.test.ts
 
   verdict:

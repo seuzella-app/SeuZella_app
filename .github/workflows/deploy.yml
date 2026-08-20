@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Instalar Dependências
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Prisma Generate
         run: npx prisma generate
@@ -46,7 +46,7 @@ jobs:
   deploy:
     name: Deploy via SSH na VPS
     needs: validate
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.VPS_HOST != ''
     runs-on: ubuntu-latest
     steps:
       - name: Disparo de Deploy Remoto na VPS
