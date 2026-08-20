@@ -2,12 +2,8 @@
  * ============================================================================
  * 🔐 SECRET VAULT — Criptografia Simétrica AES-256-GCM Versionada
  * ============================================================================
- *
- * Utilizado para criptografar ApiConfig.apiKey, ApiConfig.apiSecret, OAuth tokens
- * e credenciais de fechaduras/pagamento em repouso no banco de dados.
- *
- * Formato de armazenamento:
- *   v1:<iv_hex>:<authTag_hex>:<ciphertext_hex>
+ * Segredos sensíveis são criptografados em repouso. Em produção a chave mestra
+ * é obrigatória: nunca existe fallback embutido no código.
  * ============================================================================
  */
 
@@ -20,13 +16,19 @@ const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
 
 function getEncryptionKey(): Buffer {
-  const secret = process.env.ZELLA_ENCRYPTION_KEY || process.env.NEXTAUTH_SECRET || 'zella_default_secure_vault_master_key_32b!';
+  const secret = process.env.ZELLA_ENCRYPTION_KEY || process.env.NEXTAUTH_SECRET;
+
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('SECRET_VAULT_NOT_CONFIGURED: ZELLA_ENCRYPTION_KEY (or NEXTAUTH_SECRET) is required in production.');
+    }
+    // Development-only deterministic fallback. This must never be usable in production.
+    return crypto.createHash('sha256').update('dev-only-zella-vault-key').digest();
+  }
+
   return crypto.createHash('sha256').update(secret).digest();
 }
 
-/**
- * Criptografa um segredo com AES-256-GCM
- */
 export function encryptSecret(plainText: string): string {
   if (!plainText) return '';
 
@@ -38,38 +40,30 @@ export function encryptSecret(plainText: string): string {
   encrypted += cipher.final('hex');
 
   const authTag = cipher.getAuthTag();
-
   return `${CURRENT_VERSION}:${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
 }
 
-/**
- * Decriptografa um segredo AES-256-GCM versionado
- */
 export function decryptSecret(cipherText: string): string {
   if (!cipherText) return '';
 
-  // Se o texto não estiver criptografado no padrão v1 (ex: legado), retorna como está
-  if (!cipherText.startsWith('v1:')) {
-    return cipherText;
-  }
+  // Legacy plaintext is retained for controlled migration; callers should
+  // re-encrypt it before persisting it again. Production never creates new plaintext.
+  if (!cipherText.startsWith('v1:')) return cipherText;
 
   try {
     const parts = cipherText.split(':');
-    if (parts.length !== 4) {
-      throw new Error('Formato de ciphertext inválido.');
-    }
+    if (parts.length !== 4) throw new Error('Formato de ciphertext inválido.');
 
     const [, ivHex, authTagHex, encryptedHex] = parts;
-    const iv = Buffer.from(ivHex, 'hex');
-    const authTag = Buffer.from(authTagHex, 'hex');
-    const key = getEncryptionKey();
+    if (!/^[0-9a-f]+$/i.test(ivHex) || ivHex.length !== IV_LENGTH * 2) throw new Error('IV inválido.');
+    if (!/^[0-9a-f]+$/i.test(authTagHex) || authTagHex.length !== AUTH_TAG_LENGTH * 2) throw new Error('Auth tag inválido.');
+    if (!/^[0-9a-f]*$/i.test(encryptedHex)) throw new Error('Ciphertext inválido.');
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-    decipher.setAuthTag(authTag);
+    const decipher = crypto.createDecipheriv(ALGORITHM, getEncryptionKey(), Buffer.from(ivHex, 'hex'));
+    decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
 
     let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-
     return decrypted;
   } catch (err: any) {
     logger.error('[SECRET_VAULT] Falha ao decriptografar segredo:', { error: err?.message });
@@ -77,27 +71,14 @@ export function decryptSecret(cipherText: string): string {
   }
 }
 
-/**
- * Retorna uma representação mascarada segura para exibição em interfaces/APIs
- * Ex: '••••••••8F3A'
- */
 export function maskSecret(secret: string): string {
   if (!secret) return '••••••••••••';
 
-  // Se estiver criptografado, decriptografa antes de mascarar
   let plain = secret;
   if (secret.startsWith('v1:')) {
-    try {
-      plain = decryptSecret(secret);
-    } catch {
-      plain = 'configured';
-    }
+    try { plain = decryptSecret(secret); } catch { plain = 'configured'; }
   }
 
-  if (plain.length <= 4) {
-    return '••••••••';
-  }
-
-  const suffix = plain.slice(-4);
-  return `••••••••${suffix}`;
+  if (plain.length <= 4) return '••••••••';
+  return `••••••••${plain.slice(-4)}`;
 }
