@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Código
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@60edb5dd545a775178f5252478332d7967a14ecf
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
@@ -46,11 +46,14 @@ jobs:
   deploy:
     name: Deploy via SSH na VPS
     needs: validate
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.VPS_HOST != ''
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Disparo de Deploy Remoto na VPS
-        uses: appleboy/ssh-action@7eaf766715f9001ab31f9242a781298492023a16
+        if: ${{ env.VPS_HOST != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: zehla
@@ -62,3 +65,4 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             docker compose -f docker-compose.prod.yml exec -T app npx prisma migrate deploy
             docker system prune -f
+
