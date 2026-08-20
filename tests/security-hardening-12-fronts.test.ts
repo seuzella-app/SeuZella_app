@@ -5,7 +5,7 @@ import path from 'node:path';
 const root = process.cwd();
 const read = (file: string) => fs.readFileSync(path.join(root, file), 'utf8');
 
-describe('security hardening regression gates — 12 critical fronts', () => {
+describe('security hardening regression gates — critical fronts', () => {
   it('1-4: auth, ZCC, agents and rate limiting have no legacy bypasses', () => {
     const auth = read('src/lib/auth.ts');
     const zcc = read('src/lib/zcc-security.ts');
@@ -39,26 +39,43 @@ describe('security hardening regression gates — 12 critical fronts', () => {
     expect(webhook).toContain('MIN_SECRET_LENGTH');
   });
 
-  it('new checkout gate: guest email cannot bind to an existing tenant', () => {
+  it('checkout, M2M and observability gates remain fail-closed', () => {
     const checkout = read('src/app/api/checkout/create/route.ts');
+    const cron = read('src/lib/security/cron-auth.ts');
+    const tracking = read('src/lib/monitoring/error-tracking.ts');
     expect(checkout).not.toContain('ZEHLA_TEST_TOKEN');
     expect(checkout).not.toContain('local_flow_test_token_2026');
     expect(checkout).toContain('ACCOUNT_EXISTS');
     expect(checkout).toContain("status: 'pending'");
     expect(checkout).toContain('RATE_LIMITED');
-  });
-
-  it('new M2M gate: plaintext client fallback and JWT error leakage are absent', () => {
-    const cron = read('src/lib/security/cron-auth.ts');
     expect(cron).not.toContain('ZELLA_M2M_CLIENTS');
     expect(cron).not.toContain('JWT inválido:');
     expect(cron).toContain('missing_jti');
-  });
-
-  it('new observability gate: error tracker does not forward user PII', () => {
-    const tracking = read('src/lib/monitoring/error-tracking.ts');
     expect(tracking).toContain('Do not send email');
     expect(tracking).toContain('safeExtra');
     expect(tracking).not.toContain('Sentry.setUser(options.user)');
+  });
+
+  it('13-16: reverse proxy, production build, CI and JSON-LD are hardened', () => {
+    const nginx = read('deploy/nginx.conf');
+    const pkg = read('package.json');
+    const ci = read('.github/workflows/master-ci-fast-gate.yml');
+    const layout = read('src/app/layout.tsx');
+
+    expect(nginx).toContain('server_tokens off');
+    expect(nginx).not.toContain('add_header Access-Control-Allow-Origin "https://seuzella.com.br" always;');
+    expect(nginx).toContain('proxy_hide_header X-Powered-By');
+
+    expect(pkg).not.toContain('DATABASE_URL="${DATABASE_URL:-');
+    expect(pkg).toContain('prisma generate && next build');
+
+    expect(ci).toContain('npm ci');
+    expect(ci).toContain('npx tsc --noEmit');
+    expect(ci).toContain('npx eslint . --max-warnings=0');
+    expect(ci).toContain('security-hardening-12-fronts.test.ts');
+    expect(ci).not.toContain('continue-on-error');
+    expect(ci).not.toContain('|| echo');
+
+    expect(layout).toContain("replace(/</g, '\\u003c')");
   });
 });
