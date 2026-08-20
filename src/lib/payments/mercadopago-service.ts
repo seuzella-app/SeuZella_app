@@ -59,7 +59,7 @@ export async function listarCartoes(tenantId: string): Promise<MercadoPagoCard[]
 }
 
 export async function cobrarComissaoMensal(tenantId: string, mes: number, ano: number): Promise<CobrancaResult> {
-  const upsells = await listarUpsells(tenantId, 'CONFIRMED');
+  const upsells = await listarUpsells({ tenantId, status: 'CONFIRMED' as any });
   const target = upsells.filter((u: any) => { const d = new Date(u.createdAt || u.created_at || Date.now()); return d.getMonth() + 1 === mes && d.getFullYear() === ano; });
   const total = target.reduce((sum: number, u: any) => sum + Number(u.price || u.amount || 0), 0);
   const amount = Number((total * TAXA_ZELLA).toFixed(2));
@@ -68,7 +68,7 @@ export async function cobrarComissaoMensal(tenantId: string, mes: number, ano: n
   if (!customerId) return { success: false, error: 'MP_CUSTOMER_NOT_FOUND', amount_charged: amount, upsell_ids: target.map((u: any) => u.id) };
   try {
     const result = await mpRequest('/v1/payments', 'POST', { transaction_amount: amount, description: `Comissão Zélla ${mes}/${ano}`, payer: { id: customerId }, metadata: { tenant_id: tenantId, period: `${ano}-${String(mes).padStart(2, '0')}` } }, `commission:${tenantId}:${ano}-${String(mes).padStart(2, '0')}`);
-    if (result.status === 'approved') await Promise.all(target.map((u: any) => marcarComoPago(u.id)));
+    if (result.status === 'approved') await marcarComoPago(target.map((u: any) => u.id), tenantId);
     return { success: true, payment_id: String(result.id), status: result.status, amount_charged: amount, upsell_ids: target.map((u: any) => u.id) };
   } catch (err: any) { return { success: false, error: err.message, amount_charged: amount, upsell_ids: target.map((u: any) => u.id) }; }
 }

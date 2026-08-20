@@ -24,7 +24,7 @@ function response(error: string, status: number, requestId: string, message?: st
   return NextResponse.json({ error, ...(message ? { message } : {}), requestId }, { status, headers: { 'X-Request-ID': requestId } });
 }
 
-export function withApiGuard<T = unknown>(options: GuardOptions<T>, handler: GuardedHandler<T>): (req: NextRequest) => Promise<NextResponse> {
+export function withApiGuard<T = unknown>(options: GuardOptions<T>, handler: GuardedHandler<T>): (req: NextRequest) => Promise<NextResponse | Response> {
   return async (req) => {
     const requestId = req.headers.get('x-request-id')?.match(/^[A-Za-z0-9_-]{1,64}$/)?.[0]
       || req.headers.get('x-vercel-id')?.match(/^[A-Za-z0-9_-]{1,64}$/)?.[0]
@@ -71,7 +71,7 @@ export function withTenantGuard<T = unknown>(options: Omit<GuardOptions<T>, 'rol
   return withApiGuard({ ...options, role: 'TENANT_USER' }, handler);
 }
 
-export function withCronGuard(handler: (context: { requestId: string }) => Promise<NextResponse | Response>): (req: NextRequest) => Promise<NextResponse> {
+export function withCronGuard(handler: (context: { requestId: string }) => Promise<NextResponse | Response>): (req: NextRequest) => Promise<NextResponse | Response> {
   return async (req) => {
     const requestId = req.headers.get('x-request-id') || `cron-${crypto.randomUUID()}`;
     const secret = process.env.CRON_SECRET;
@@ -91,7 +91,7 @@ export function withCronGuard(handler: (context: { requestId: string }) => Promi
 export function withWebhookGuard(
   options: { secretEnv: string; headerName?: string; format?: 'sha256=' | 'v1=' | 'raw' },
   handler: (context: { req: NextRequest; requestId: string }) => Promise<NextResponse | Response>,
-): (req: NextRequest) => Promise<NextResponse> {
+): (req: NextRequest) => Promise<NextResponse | Response> {
   return async (req) => {
     const requestId = req.headers.get('x-request-id') || `webhook-${crypto.randomUUID()}`;
     const secret = process.env[options.secretEnv];

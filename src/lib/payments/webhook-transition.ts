@@ -1,9 +1,22 @@
 import type { PaymentStatus } from './types';
 import {
-  assertPaymentTransition,
-  normalizePaymentState,
-  type PaymentLifecycleState,
-} from './state-machine';
+  validatePaymentTransition,
+  type PaymentState,
+} from '@/lib/finance/payment-state-machine';
+
+export type PaymentLifecycleState = PaymentState;
+
+export function normalizePaymentState(status: PaymentStatus | string | null | undefined): PaymentState {
+  if (!status) return 'CREATED';
+  const normalized = String(status).toUpperCase();
+  if (normalized === 'APPROVED' || normalized === 'PAID') return 'PAID';
+  if (normalized === 'PENDING' || normalized === 'IN_PROGRESS') return 'PENDING';
+  if (normalized === 'REJECTED' || normalized === 'FAILED') return 'FAILED';
+  if (normalized === 'CANCELLED' || normalized === 'EXPIRED') return 'CANCELLED';
+  if (normalized === 'REFUNDED') return 'REFUNDED';
+  if (normalized === 'CONFIRMED' || normalized === 'ACTIVE') return 'CONFIRMED';
+  return 'CREATED';
+}
 
 /**
  * Validates a gateway event against the domain state before persistence.
@@ -17,13 +30,17 @@ export function validatePaymentWebhookTransition(
   const current = normalizePaymentState(currentStatus);
   const incoming = normalizePaymentState(incomingStatus);
 
-  try {
-    assertPaymentTransition(current, incoming);
+  const result = validatePaymentTransition({
+    currentState: current,
+    targetState: incoming,
+  });
+
+  if (result.allowed) {
     return { accepted: true, nextState: incoming };
-  } catch {
+  } else {
     return {
       accepted: false,
-      reason: `OUT_OF_ORDER_OR_INVALID_TRANSITION:${current}->${incoming}`,
+      reason: result.reason || `OUT_OF_ORDER_OR_INVALID_TRANSITION:${current}->${incoming}`,
       nextState: current,
     };
   }
