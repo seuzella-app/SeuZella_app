@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { db } from '@/lib/db';
+import { authOptions } from '@/lib/auth';
 import { withSecurity } from '@/lib/security/api-shield';
 
 const DEFAULT_AGENTS = [
@@ -13,8 +15,9 @@ const DEFAULT_AGENTS = [
   { id: 'ag-guardian', icon: '🛡️', status: 'active', name: 'Guardian', role: 'LGPD e segurança', tasksCompleted: 5671, tasksFailed: 0, successRate: 100, avgLatencyMs: 8, modelUsed: 'ZAI Default', uptimeHours: 2160 },
 ];
 
-function getTenantId(request: NextRequest): string | null {
-  const tenantId = (request as NextRequest & { auth?: { user?: { tenantId?: string } } }).auth?.user?.tenantId;
+async function getTenantId(): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  const tenantId = (session?.user as any)?.tenantId;
   return typeof tenantId === 'string' && tenantId.length > 0 ? tenantId : null;
 }
 
@@ -27,7 +30,6 @@ function sanitizeAgentInput(body: unknown, tenantId: string) {
   if (input.customKnowledge !== undefined && typeof input.customKnowledge !== 'string') return null;
   if (input.temperature !== undefined && (typeof input.temperature !== 'number' || input.temperature < 0 || input.temperature > 2)) return null;
   if (input.maxTokens !== undefined && (typeof input.maxTokens !== 'number' || !Number.isInteger(input.maxTokens) || input.maxTokens < 1 || input.maxTokens > 32768)) return null;
-
   return {
     tenantId,
     agentId: input.agentId,
@@ -40,30 +42,16 @@ function sanitizeAgentInput(body: unknown, tenantId: string) {
   };
 }
 
-async function getHandler(request: NextRequest, _ctx: any) {
+async function getHandler(_request: NextRequest, _ctx: any) {
   try {
-    const tenantId = getTenantId(request);
+    const tenantId = await getTenantId();
     if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
     const result = await db.agentConfig.findMany({ where: { tenantId }, orderBy: { createdAt: 'asc' } });
     if (result.length > 0) {
-      const mapped = result.map((dbAgent, i) => {
+      return NextResponse.json(result.map((dbAgent, i) => {
         const fallback = DEFAULT_AGENTS[i] || DEFAULT_AGENTS[0];
-        return {
-          id: dbAgent.agentId || fallback.id,
-          icon: fallback.icon,
-          status: dbAgent.isActive ? 'active' : 'sleeping',
-          name: dbAgent.agentName || fallback.name,
-          role: fallback.role,
-          tasksCompleted: dbAgent.learnedPatterns || fallback.tasksCompleted,
-          tasksFailed: fallback.tasksFailed,
-          successRate: dbAgent.confidenceScore ? Math.round(dbAgent.confidenceScore * 100) : fallback.successRate,
-          avgLatencyMs: fallback.avgLatencyMs,
-          modelUsed: fallback.modelUsed,
-          uptimeHours: fallback.uptimeHours,
-        };
-      });
-      return NextResponse.json(mapped);
+        return { id: dbAgent.agentId || fallback.id, icon: fallback.icon, status: dbAgent.isActive ? 'active' : 'sleeping', name: dbAgent.agentName || fallback.name, role: fallback.role, tasksCompleted: dbAgent.learnedPatterns || fallback.tasksCompleted, tasksFailed: fallback.tasksFailed, successRate: dbAgent.confidenceScore ? Math.round(dbAgent.confidenceScore * 100) : fallback.successRate, avgLatencyMs: fallback.avgLatencyMs, modelUsed: fallback.modelUsed, uptimeHours: fallback.uptimeHours };
+      }));
     }
     return NextResponse.json(DEFAULT_AGENTS);
   } catch {
@@ -73,21 +61,16 @@ async function getHandler(request: NextRequest, _ctx: any) {
 
 async function postHandler(request: NextRequest, _ctx: any) {
   try {
-    const tenantId = getTenantId(request);
+    const tenantId = await getTenantId();
     if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const body = await request.json();
-    const data = sanitizeAgentInput(body, tenantId);
+    const data = sanitizeAgentInput(await request.json(), tenantId);
     if (!data) return NextResponse.json({ error: 'Invalid agent payload' }, { status: 400 });
-
     const agent = await db.agentConfig.create({ data });
-    return NextResponse.json({
-      success: true,
-      agent: { id: agent.id, tenantId: agent.tenantId, agentId: agent.agentId, agentName: agent.agentName, isActive: agent.isActive },
-    }, { status: 201 });
+    return NextResponse.json({ success: true, agent: { id: agent.id, tenantId: agent.tenantId, agentId: agent.agentId, agentName: agent.agentName, isActive: agent.isActive } }, { status: 201 });
   } catch {
     return NextResponse.json({ success: false, error: 'Failed to create agent' }, { status: 500 });
   }
 }
 
-export const GET = withSecurity(getHandler, { routeLabel: 'agents' });
-export const POST = withSecurity(postHandler, { routeLabel: 'agents' });
+export const GET = withSecurity(getHandler, { routeLabel: 'agents', requireAuth: true });
+export const POST = withSecurity(postHandler, { routeLabel: 'agents', requireAuth: true });
