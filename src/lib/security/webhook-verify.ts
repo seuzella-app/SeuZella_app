@@ -23,14 +23,16 @@ export interface WebhookVerificationResult {
 export function verifyWhatsAppWebhook(
   rawBody: string,
   signatureHeader: string | null,
-  appSecret: string
+  appSecret?: string
 ): WebhookVerificationResult {
+  const secret = appSecret || process.env.META_APP_SECRET || process.env.WHATSAPP_APP_SECRET;
+
   if (!signatureHeader) {
     return { valid: false, reason: 'MISSING_SIGNATURE: No hub.signature header' };
   }
 
-  if (!appSecret) {
-    return { valid: false, reason: 'MISSING_APP_SECRET: WHATSAPP_APP_SECRET not configured' };
+  if (!secret) {
+    return { valid: false, reason: 'MISSING_APP_SECRET: META_APP_SECRET / WHATSAPP_APP_SECRET not configured' };
   }
 
   const expectedPrefix = 'sha256=';
@@ -40,7 +42,7 @@ export function verifyWhatsAppWebhook(
 
   const receivedHash = signatureHeader.slice(expectedPrefix.length);
   const expectedHash = crypto
-    .createHmac('sha256', appSecret)
+    .createHmac('sha256', secret)
     .update(rawBody)
     .digest('hex');
 

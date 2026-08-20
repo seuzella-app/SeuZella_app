@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withSecurity } from '@/lib/security/api-shield';
+import { requireTenantAccess } from '@/lib/security/tenant-authorization';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
-// Notification bridge — Phase 2: pushes iCal sync events into DDC
 import { bridgeIcalSync } from '@/lib/notifications/bridges';
 
 // GET /api/ddc/booking-sync — Get Booking.com sync status
 async function getHandler(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
-    if (!tenantId) {
-      return NextResponse.json({ success: false, error: 'tenantId required' }, { status: 400 });
+    const auth = await requireTenantAccess(request);
+    if (!auth.allowed) {
+      return auth.response!;
     }
+
+    const tenantId = auth.context.tenantId!;
 
     const configs = await db.bookingSyncConfig.findMany({
       where: { tenantId },
@@ -38,12 +39,24 @@ async function getHandler(request: NextRequest) {
 // POST /api/ddc/booking-sync — Configure Booking.com sync
 async function postHandler(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { tenantId, propertyId, airbPropertyId, icalImportUrl, hotelId, action } = body;
-
-    if (!tenantId) {
-      return NextResponse.json({ success: false, error: 'tenantId required' }, { status: 400 });
+    const auth = await requireTenantAccess(request);
+    if (!auth.allowed) {
+      return auth.response!;
     }
+
+    const authenticatedTenantId = auth.context.tenantId!;
+    const body = await request.json();
+    const { tenantId: requestedTenantId, propertyId, airbPropertyId, icalImportUrl, hotelId, action } = body;
+
+    // IDOR Protection: Se o cliente forneceu tenantId e for diferente do autenticado, rejeita com 403
+    if (requestedTenantId && requestedTenantId !== authenticatedTenantId) {
+      return NextResponse.json(
+        { success: false, error: 'Acesso negado: tenantId incompatível com a sessão.', code: 'FORBIDDEN_CROSS_TENANT' },
+        { status: 403 }
+      );
+    }
+
+    const tenantId = authenticatedTenantId;
 
     if (action === 'sync') {
       // Trigger iCal import sync
@@ -55,7 +68,7 @@ async function postHandler(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'No Booking.com iCal URL configured' }, { status: 400 });
       }
 
-      // Import iCal data
+      // Import iCal data com proteção SSRF
       const { importICal } = await import('@/lib/ical-import-engine');
       const result = await importICal(tenantId, config.icalImportUrl);
 
@@ -96,7 +109,7 @@ async function postHandler(request: NextRequest) {
     }
 
     // Configure new sync
-    const syncToken = crypto.randomBytes(16).toString('hex');
+    const syncToken = crypto.randomBytes(24).toString('hex');
     const icalExportUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://seuzella.com'}/api/ical/${syncToken}`;
 
     const existing = await db.bookingSyncConfig.findFirst({
@@ -142,20 +155,24 @@ async function postHandler(request: NextRequest) {
 // DELETE /api/ddc/booking-sync — Disconnect Booking.com
 async function deleteHandler(request: NextRequest) {
   try {
+    const auth = await requireTenantAccess(request);
+    if (!auth.allowed) {
+      return auth.response!;
+    }
+
     const { searchParams } = new URL(request.url);
     const configId = searchParams.get('configId');
-    const tenantId = searchParams.get('tenantId');
 
-    if (!configId || !tenantId) {
-      return NextResponse.json({ success: false, error: 'configId and tenantId required' }, { status: 400 });
+    if (!configId) {
+      return NextResponse.json({ success: false, error: 'configId required' }, { status: 400 });
     }
 
     const config = await db.bookingSyncConfig.findFirst({
-      where: { id: configId, tenantId },
+      where: { id: configId, tenantId: auth.context.tenantId! },
     });
 
     if (!config) {
-      return NextResponse.json({ success: false, error: 'Config not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Config not found or access denied' }, { status: 404 });
     }
 
     await db.bookingSyncConfig.delete({ where: { id: configId } });

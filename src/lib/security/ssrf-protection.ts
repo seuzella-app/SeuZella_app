@@ -159,3 +159,16 @@ export async function safeExternalFetch(
 
   throw new SSRFValidationError('MAX_REDIRECTS_EXCEEDED');
 }
+
+/**
+ * Helper unificado para checagem rápida de SSRF retornando objeto { safe, reason }
+ */
+export async function validateUrlSafeForSsrf(targetUrl: string): Promise<{ safe: boolean; reason?: string }> {
+  try {
+    await validateSafeExternalUrl(targetUrl);
+    return { safe: true };
+  } catch (err: any) {
+    return { safe: false, reason: err?.message || 'URL bloqueada por segurança SSRF' };
+  }
+}
+

@@ -113,9 +113,13 @@ export function withSecurity(
 ): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest) => {
     const pathname = new URL(request.url).pathname;
-    const requestId = request.headers.get('x-request-id')
-      || request.headers.get('x-vercel-id')
-      || `sec-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    // Sanitiza e valida o x-request-id do cliente para evitar log injection
+    const rawReqId = request.headers.get('x-request-id') || request.headers.get('x-vercel-id');
+    const isValidReqId = rawReqId && rawReqId.length <= 64 && /^[a-zA-Z0-9_-]+$/.test(rawReqId);
+    const requestId = isValidReqId
+      ? rawReqId
+      : `sec-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || request.headers.get('x-real-ip')
       || 'unknown';
@@ -138,7 +142,13 @@ export function withSecurity(
       }
     }
 
-    // ── 2. RATE LIMITING ──
+    // ── 2. RATE LIMITING (Fail-Closed para rotas críticas em produção) ──
+    const isCriticalRoute = pathname.startsWith('/api/checkout') ||
+      pathname.startsWith('/api/webhooks') ||
+      pathname.startsWith('/api/v1/reservations') ||
+      pathname.startsWith('/api/zcc') ||
+      pathname.startsWith('/api/bulk-whatsapp');
+
     const limiter = options.rateLimiter
       || (options.isAuthRoute ? authRatelimit : apiRatelimit);
     const rateLimitKey = `${options.isAuthRoute ? 'auth' : 'api'}:${clientIp}:${pathname}`;
@@ -170,8 +180,18 @@ export function withSecurity(
         );
       }
     } catch (rlError) {
-      // If rate limiter fails, allow request through (fail-open for availability)
       console.error(`[API_SHIELD] Rate limit error for ${pathname}:`, rlError);
+      // Em produção, rotas críticas operam FAIL-CLOSED para evitar abuso durante falha de infraestrutura
+      if (process.env.NODE_ENV === 'production' && isCriticalRoute) {
+        return NextResponse.json(
+          {
+            error: 'SERVICE_UNAVAILABLE',
+            message: 'Serviço temporariamente indisponível para esta operação sensível. Tente em instantes.',
+            requestId,
+          },
+          { status: 503, headers: securityHeaders(requestId) }
+        );
+      }
     }
 
     // ── 3. PAYLOAD SIZE LIMIT ──
@@ -297,6 +317,10 @@ function securityHeaders(requestId: string): Record<string, string> {
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Permissions-Policy': 'camera=(), microphone=(self), geolocation=(), payment=()',
+    'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+    'Cross-Origin-Opener-Policy': 'same-origin',
+    'Cross-Origin-Resource-Policy': 'same-origin',
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https: blob:; font-src 'self' https: data:; connect-src 'self' https: wss:; frame-ancestors 'none';",
     'X-Security-Shield': 'zero-trust-v1',
   };
 }

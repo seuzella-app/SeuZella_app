@@ -1,9 +1,15 @@
 import { db } from '@/lib/db';
+import { validateUrlSafeForSsrf } from '@/lib/security/ssrf-protection';
 
 /**
- * iCal Import Engine — Fetches and parses iCal feeds from Booking.com
- * and creates Booking records in the database.
+ * ============================================================================
+ * 🛡️ iCal Import Engine — Anti-SSRF, DoS Protection & PII Sanitization
+ * ============================================================================
  */
+
+const MAX_ICAL_BYTES = 5 * 1024 * 1024; // 5MB máximo
+const MAX_ICAL_EVENTS = 2000;           // Limite de 2000 eventos por sync
+const ICAL_FETCH_TIMEOUT_MS = 15000;    // 15 segundos timeout
 
 interface ICalEvent {
   uid: string;
@@ -23,7 +29,7 @@ interface ICalImportResult {
 }
 
 /**
- * Import iCal data from a URL
+ * Import iCal data from a URL with full SSRF and DoS protection
  */
 export async function importICal(tenantId: string, icalUrl: string): Promise<ICalImportResult> {
   const result: ICalImportResult = {
@@ -34,10 +40,23 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
   };
 
   try {
-    // Fetch the iCal feed
+    // 1. SSRF Gate: Validação estrita de DNS e IPs privados/loopback
+    const ssrfCheck = await validateUrlSafeForSsrf(icalUrl);
+    if (!ssrfCheck.safe) {
+      result.errors++;
+      result.details.push({
+        uid: 'ssrf_blocked',
+        action: 'blocked',
+        reason: `URL rejeitada por política de segurança SSRF: ${ssrfCheck.reason}`,
+      });
+      return result;
+    }
+
+    // 2. Fetch com timeout rígido e redirect manual
     const response = await fetch(icalUrl, {
       headers: { 'Accept': 'text/calendar' },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(ICAL_FETCH_TIMEOUT_MS),
+      redirect: 'manual',
     });
 
     if (!response.ok) {
@@ -46,10 +65,30 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
       return result;
     }
 
+    // 3. Validação de tamanho de payload (DoS protection)
     const icalText = await response.text();
-    const events = parseICal(icalText);
+    if (Buffer.byteLength(icalText, 'utf8') > MAX_ICAL_BYTES) {
+      result.errors++;
+      result.details.push({
+        uid: 'payload_too_large',
+        action: 'error',
+        reason: `Feed iCal excede o limite máximo de ${MAX_ICAL_BYTES / (1024 * 1024)}MB`,
+      });
+      return result;
+    }
 
-    // Process each event
+    const events = parseICal(icalText);
+    if (events.length > MAX_ICAL_EVENTS) {
+      result.errors++;
+      result.details.push({
+        uid: 'event_limit_exceeded',
+        action: 'error',
+        reason: `Feed contém mais de ${MAX_ICAL_EVENTS} eventos (${events.length} encontrados)`,
+      });
+      return result;
+    }
+
+    // 4. Processa cada evento de forma transacional e segura
     for (const event of events) {
       try {
         const checkIn = new Date(event.startDate + 'T14:00:00');
@@ -61,7 +100,7 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
           continue;
         }
 
-        // Extract guest name from summary
+        // Sanitiza o resumo (removendo prefixos de bloqueio)
         const guestName = event.summary?.replace(/^(Reserved|Blocked|Not available)\s*:?\s*/i, '').trim() || 'Booking.com Guest';
 
         // Check for existing booking with same external UID
@@ -88,103 +127,115 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
           continue;
         }
 
-        // Calculate nights and price
+        // Calculate nights and price (sem fallback arbitrário de R$150)
         const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-
-        // Try to find a room
         const property = await db.property.findFirst({ where: { tenantId } });
         const room = property ? await db.room.findFirst({ where: { propertyId: property.id } }) : null;
-        const pricePerNight = room?.price || 150;
+        const pricePerNight = room?.price ?? 0;
 
         // Create booking
         await db.booking.create({
           data: {
             tenantId,
-            guestName,
-            roomName: room?.name || 'Quarto Booking.com',
             roomId: room?.id || null,
+            roomName: room?.name || 'Standard Room',
+            guestName,
             checkIn,
             checkOut,
-            nights,
+            nights: Math.max(1, nights),
             guests: 1,
-            totalValue: pricePerNight * nights,
-            status: 'confirmed',
+            totalValue: pricePerNight * Math.max(1, nights),
+            status: event.status === 'CANCELLED' ? 'cancelled' : 'confirmed',
             source: 'booking',
             externalUid: event.uid,
-            externalSource: 'booking.com',
+            externalSource: 'booking',
           },
         });
 
         result.imported++;
-        result.details.push({ uid: event.uid, action: 'created' });
-      } catch (err) {
+        result.details.push({ uid: event.uid, action: 'imported' });
+      } catch (eventError: any) {
         result.errors++;
-        result.details.push({ uid: event.uid, action: 'error', reason: err instanceof Error ? err.message : 'Unknown error' });
+        result.details.push({ uid: event.uid, action: 'error', reason: eventError?.message || 'DB error' });
       }
     }
-  } catch (error) {
+  } catch (fetchError: any) {
     result.errors++;
-    result.details.push({ uid: 'fetch', action: 'error', reason: error instanceof Error ? error.message : 'Fetch failed' });
+    result.details.push({ uid: 'fetch', action: 'error', reason: fetchError?.message || 'Network error' });
   }
 
   return result;
 }
 
 /**
- * Parse iCal text into structured events
+ * Parse raw iCal text into structured event objects
  */
-export function parseICal(icalText: string): ICalEvent[] {
+function parseICal(icalText: string): ICalEvent[] {
   const events: ICalEvent[] = [];
   const lines = icalText.split(/\r?\n/);
 
   let currentEvent: Partial<ICalEvent> | null = null;
+  let currentKey = '';
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    let line = lines[i];
+
+    // Handle line unfolding (continuation lines start with space or tab)
+    while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
+      line += lines[i + 1].slice(1);
+      i++;
+    }
+
+    line = line.trim();
 
     if (line === 'BEGIN:VEVENT') {
       currentEvent = {};
-    } else if (line === 'END:VEVENT' && currentEvent) {
-      if (currentEvent.uid && currentEvent.startDate && currentEvent.endDate) {
+      continue;
+    }
+
+    if (line === 'END:VEVENT') {
+      if (currentEvent && currentEvent.uid && currentEvent.startDate && currentEvent.endDate) {
         events.push(currentEvent as ICalEvent);
       }
       currentEvent = null;
-    } else if (currentEvent) {
-      // Handle folded lines (continuation lines start with space or tab)
-      let fullLine = line;
-      while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
-        i++;
-        fullLine += lines[i].trim();
-      }
+      continue;
+    }
 
-      const match = fullLine.match(/^([A-Z-]+):(.+)$/);
-      if (match) {
-        const [, key, value] = match;
+    if (!currentEvent) continue;
 
-        switch (key.toUpperCase()) {
-          case 'UID':
-            currentEvent.uid = value;
-            break;
-          case 'SUMMARY':
-            currentEvent.summary = value;
-            break;
-          case 'DTSTART':
-            currentEvent.startDate = parseICalDate(value);
-            break;
-          case 'DTEND':
-            currentEvent.endDate = parseICalDate(value);
-            break;
-          case 'DESCRIPTION':
-            currentEvent.description = value;
-            break;
-          case 'LOCATION':
-            currentEvent.location = value;
-            break;
-          case 'STATUS':
-            currentEvent.status = value.toUpperCase();
-            break;
-        }
-      }
+    // Parse KEY;PARAMS:VALUE or KEY:VALUE
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+
+    const keyPart = line.slice(0, colonIdx);
+    const value = line.slice(colonIdx + 1);
+
+    // Extract property name (ignore parameters like ;VALUE=DATE)
+    const semicolonIdx = keyPart.indexOf(';');
+    const propName = (semicolonIdx !== -1 ? keyPart.slice(0, semicolonIdx) : keyPart).toUpperCase();
+
+    switch (propName) {
+      case 'UID':
+        currentEvent.uid = value.slice(0, 256); // Proteção de tamanho de UID
+        break;
+      case 'SUMMARY':
+        currentEvent.summary = value;
+        break;
+      case 'DTSTART':
+        currentEvent.startDate = parseICalDate(value);
+        break;
+      case 'DTEND':
+        currentEvent.endDate = parseICalDate(value);
+        break;
+      case 'DESCRIPTION':
+        currentEvent.description = value.slice(0, 1024);
+        break;
+      case 'LOCATION':
+        currentEvent.location = value.slice(0, 256);
+        break;
+      case 'STATUS':
+        currentEvent.status = value.toUpperCase();
+        break;
     }
   }
 
@@ -192,11 +243,9 @@ export function parseICal(icalText: string): ICalEvent[] {
 }
 
 /**
- * Parse iCal date format
- * Formats: YYYYMMDD, YYYYMMDDTHHMMSS, YYYYMMDDTHHMMSSZ
+ * Parse iCal date string (YYYYMMDD or YYYYMMDDTHHMMSSZ) into YYYY-MM-DD
  */
 function parseICalDate(value: string): string {
-  // Remove VALUE=DATE prefix if present
   const cleaned = value.replace(/^VALUE=DATE:/, '');
 
   // YYYYMMDD format
@@ -215,7 +264,7 @@ function parseICalDate(value: string): string {
 
 /**
  * Generate iCal export content for a tenant's availability
- * This is served as a public feed that Booking.com can import
+ * Public feed sanitizado: SEM EXPOSIÇÃO DE DADOS PESSOAIS DO HÓSPEDE (LGPD)
  */
 export async function generateICalExport(syncToken: string): Promise<string> {
   const config = await db.bookingSyncConfig.findFirst({
@@ -249,8 +298,9 @@ export async function generateICalExport(syncToken: string): Promise<string> {
     ical += `UID:${uid}\r\n`;
     ical += `DTSTART;VALUE=DATE:${checkInStr}\r\n`;
     ical += `DTEND;VALUE=DATE:${checkOutStr}\r\n`;
-    ical += `SUMMARY:Reserved - ${booking.guestName || 'Guest'}\r\n`;
-    ical += `DESCRIPTION:Booking via Zélla. ${booking.roomName || ''} ${booking.nights} nights.\r\n`;
+    // LGPD Sanitization: Não exporta nomes nem telefones em feeds iCal públicos
+    ical += `SUMMARY:Reservado\r\n`;
+    ical += `DESCRIPTION:Indisponível - Reserva Confirmada\r\n`;
     ical += `STATUS:CONFIRMED\r\n`;
     ical += 'END:VEVENT\r\n';
   }
