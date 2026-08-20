@@ -1,14 +1,17 @@
 // =============================================================================
-// ZÉLLA Central Control — Security Gate V4
+// ZÉLLA Central Control — Security Gate V5
 // =============================================================================
 // Authorization is based exclusively on a valid NextAuth session plus an
 // explicit allow-list of system administrator emails. URL tokens, cookies,
 // static master-key bypasses and development authentication bypasses are not
 // accepted by this security boundary.
+// Rate limiting is delegated to the distributed limiter and is fail-closed
+// in production when Redis/Upstash is unavailable.
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { checkRateLimit } from '@/lib/security/rate-limit';
 
 export interface ZCCAuditEntry {
   timestamp: string;
@@ -26,33 +29,11 @@ export interface ZCCSecurityResult {
   auditEntry?: ZCCAuditEntry;
 }
 
-const RATE_LIMIT_MAX = 5;
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const rateLimiter = new Map<string, { count: number; windowStart: number }>();
 const auditLogCache: ZCCAuditEntry[] = [];
 const AUDIT_CACHE_SIZE = 100;
 
 function getClientIP(request: NextRequest): string {
-  // Do not blindly trust arbitrary client-supplied forwarding headers. Prefer
-  // the platform-provided value when present and keep a bounded fallback.
   return request.headers.get('x-real-ip')?.trim() || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-}
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  if (rateLimiter.size > 1000) {
-    for (const [rateIp, entry] of rateLimiter) {
-      if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) rateLimiter.delete(rateIp);
-    }
-  }
-  const entry = rateLimiter.get(ip);
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimiter.set(ip, { count: 1, windowStart: now });
-    return true;
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return false;
-  entry.count += 1;
-  return true;
 }
 
 function addAuditEntry(entry: Omit<ZCCAuditEntry, 'timestamp'>): void {
@@ -79,7 +60,7 @@ async function persistAuditEntry(entry: ZCCAuditEntry): Promise<void> {
       });
     }
   } catch (err) {
-    console.error('[ZCC-AUDIT] Failed to persist audit event:', err);
+    console.error('[ZCC-AUDIT] Failed to persist audit event:', err instanceof Error ? err.name : 'unknown');
   }
 }
 
@@ -90,7 +71,7 @@ export async function getZCCSecurityAuditLog(limit: number = 100): Promise<ZCCAu
       const entries = await db.zccAuditLog.findMany({ orderBy: { timestamp: 'desc' }, take: Math.min(Math.max(limit, 1), 500) });
       return entries.map(e => ({ timestamp: e.timestamp.toISOString(), ip: e.ip, userAgent: e.userAgent, method: e.method as 'session' | 'denied', success: e.success, path: e.path }));
     } catch (err) {
-      console.error('[ZCC-AUDIT] DB query failed:', err);
+      console.error('[ZCC-AUDIT] DB query failed:', err instanceof Error ? err.name : 'unknown');
       return [...auditLogCache];
     }
   }
@@ -98,7 +79,7 @@ export async function getZCCSecurityAuditLog(limit: number = 100): Promise<ZCCAu
 }
 
 export function getZCCRateLimiterState() {
-  return { activeIPs: rateLimiter.size, auditLogEntries: auditLogCache.length };
+  return { provider: process.env.NODE_ENV === 'production' ? 'redis-or-fail-closed' : 'memory-dev', auditLogEntries: auditLogCache.length };
 }
 
 export async function verifyZCCAccess(request: NextRequest): Promise<ZCCSecurityResult> {
@@ -108,12 +89,14 @@ export async function verifyZCCAccess(request: NextRequest): Promise<ZCCSecurity
   const nextAuthSecret = process.env.NEXTAUTH_SECRET;
   if (!nextAuthSecret) throw new Error('NEXTAUTH_SECRET environment variable is required');
 
-  if (!checkRateLimit(ip)) {
+  const rate = await checkRateLimit('api-write', `zcc:${ip}`);
+  if (!rate.success) {
     addAuditEntry({ ip, userAgent, method: 'denied', success: false, path: pathname });
+    const status = rate.provider === 'fail-closed' ? 503 : 429;
     return {
       allowed: false,
       ip,
-      response: NextResponse.json({ error: 'Too many requests' }, { status: 429 }),
+      response: NextResponse.json({ error: status === 503 ? 'Security control unavailable' : 'Too many requests' }, { status }),
       auditEntry: { timestamp: new Date().toISOString(), ip, userAgent, method: 'denied', success: false, path: pathname },
     };
   }
@@ -122,10 +105,7 @@ export async function verifyZCCAccess(request: NextRequest): Promise<ZCCSecurity
     const token = await getToken({ req: request, secret: nextAuthSecret });
     const email = typeof token?.email === 'string' ? token.email.trim().toLowerCase() : '';
     const role = typeof token?.role === 'string' ? token.role : '';
-    const adminEmails = (process.env.ZCC_ADMIN_EMAILS || '')
-      .split(',')
-      .map(e => e.trim().toLowerCase())
-      .filter(Boolean);
+    const adminEmails = (process.env.ZCC_ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
     if (email && adminEmails.includes(email) && ['owner', 'admin', 'system_admin'].includes(role)) {
       addAuditEntry({ ip, userAgent, method: 'session', success: true, path: pathname });
