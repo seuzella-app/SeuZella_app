@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withSecurity } from '@/lib/security/api-shield';
 
-// Default swarm agents when DB is empty
 const DEFAULT_AGENTS = [
   { id: 'ag-receptionist', icon: '🛎️', status: 'active', name: 'Recepcionista', role: 'Reservas e check-in', tasksCompleted: 2847, tasksFailed: 12, successRate: 99.6, avgLatencyMs: 23, modelUsed: 'ZAI Default', uptimeHours: 2160 },
   { id: 'ag-pricer', icon: '💰', status: 'active', name: 'Revenue Manager', role: 'Dynamic pricing', tasksCompleted: 1893, tasksFailed: 34, successRate: 98.2, avgLatencyMs: 45, modelUsed: 'ZAI Default', uptimeHours: 2160 },
@@ -14,11 +13,40 @@ const DEFAULT_AGENTS = [
   { id: 'ag-guardian', icon: '🛡️', status: 'active', name: 'Guardian', role: 'LGPD e segurança', tasksCompleted: 5671, tasksFailed: 0, successRate: 100, avgLatencyMs: 8, modelUsed: 'ZAI Default', uptimeHours: 2160 },
 ];
 
-async function getHandler(_request: NextRequest, _ctx: any) {
+function getTenantId(request: NextRequest): string | null {
+  const tenantId = (request as NextRequest & { auth?: { user?: { tenantId?: string } } }).auth?.user?.tenantId;
+  return typeof tenantId === 'string' && tenantId.length > 0 ? tenantId : null;
+}
+
+function sanitizeAgentInput(body: unknown, tenantId: string) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
+  const input = body as Record<string, unknown>;
+  if (typeof input.agentId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.agentId)) return null;
+  if (typeof input.agentName !== 'string' || input.agentName.trim().length < 1 || input.agentName.length > 120) return null;
+  if (input.systemPrompt !== undefined && (typeof input.systemPrompt !== 'string' || input.systemPrompt.length > 20000)) return null;
+  if (input.customKnowledge !== undefined && typeof input.customKnowledge !== 'string') return null;
+  if (input.temperature !== undefined && (typeof input.temperature !== 'number' || input.temperature < 0 || input.temperature > 2)) return null;
+  if (input.maxTokens !== undefined && (typeof input.maxTokens !== 'number' || !Number.isInteger(input.maxTokens) || input.maxTokens < 1 || input.maxTokens > 32768)) return null;
+
+  return {
+    tenantId,
+    agentId: input.agentId,
+    agentName: input.agentName.trim(),
+    systemPrompt: typeof input.systemPrompt === 'string' ? input.systemPrompt : '',
+    isActive: input.isActive === undefined ? true : input.isActive === true,
+    temperature: typeof input.temperature === 'number' ? input.temperature : 0.7,
+    maxTokens: typeof input.maxTokens === 'number' ? input.maxTokens : 2048,
+    customKnowledge: typeof input.customKnowledge === 'string' ? input.customKnowledge : '[]',
+  };
+}
+
+async function getHandler(request: NextRequest, _ctx: any) {
   try {
-    const result = await db.agentConfig.findMany();
-    // If DB has agent configs, map them to the expected AIAgent interface; otherwise return defaults
-    if (result && result.length > 0) {
+    const tenantId = getTenantId(request);
+    if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const result = await db.agentConfig.findMany({ where: { tenantId }, orderBy: { createdAt: 'asc' } });
+    if (result.length > 0) {
       const mapped = result.map((dbAgent, i) => {
         const fallback = DEFAULT_AGENTS[i] || DEFAULT_AGENTS[0];
         return {
@@ -38,17 +66,25 @@ async function getHandler(_request: NextRequest, _ctx: any) {
       return NextResponse.json(mapped);
     }
     return NextResponse.json(DEFAULT_AGENTS);
-  } catch (error) {
-    return NextResponse.json(DEFAULT_AGENTS);
+  } catch {
+    return NextResponse.json({ error: 'Failed to load agents' }, { status: 500 });
   }
 }
 
 async function postHandler(request: NextRequest, _ctx: any) {
   try {
+    const tenantId = getTenantId(request);
+    if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await request.json();
-    const agent = await db.agentConfig.create({ data: body });
-    return NextResponse.json({ success: true, agent });
-  } catch (error) {
+    const data = sanitizeAgentInput(body, tenantId);
+    if (!data) return NextResponse.json({ error: 'Invalid agent payload' }, { status: 400 });
+
+    const agent = await db.agentConfig.create({ data });
+    return NextResponse.json({
+      success: true,
+      agent: { id: agent.id, tenantId: agent.tenantId, agentId: agent.agentId, agentName: agent.agentName, isActive: agent.isActive },
+    }, { status: 201 });
+  } catch {
     return NextResponse.json({ success: false, error: 'Failed to create agent' }, { status: 500 });
   }
 }
