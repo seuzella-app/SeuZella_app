@@ -49,6 +49,8 @@ import {
   Calendar,
   AlertCircle,
   ExternalLink,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 export function MobileAirbnbSuperApp() {
@@ -62,6 +64,34 @@ export function MobileAirbnbSuperApp() {
     tenantName: typeof window !== 'undefined' ? (window as any).__ZELLA_TENANT_NAME : undefined,
     tabName: activeTab,
   });
+
+  // Visibilidade de Valores Financeiros ("Olhinho")
+  const [showFinancialValues, setShowFinancialValues] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('zella_show_financial_values');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+
+  const handleToggleFinancialValues = () => {
+    setShowFinancialValues((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('zella_show_financial_values', String(next));
+      }
+      toast.info(next ? '👁️ Valores financeiros visíveis' : '🙈 Valores financeiros ocultos');
+      return next;
+    });
+  };
+
+  const formatMoney = (val: number | string) => {
+    if (!showFinancialValues) return 'R$ ••••••';
+    if (typeof val === 'number') {
+      return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    return val.startsWith('R$') ? val : `R$ ${val}`;
+  };
 
   const [propertyName, setPropertyName] = useState<string>('Flat Studio Jardins');
   const [aiActive, setAiActive] = useState<boolean>(true);
@@ -245,6 +275,16 @@ export function MobileAirbnbSuperApp() {
             <span className={`w-2.5 h-2.5 rounded-full ${aiActive ? 'bg-cyan-400 animate-pulse' : 'bg-zinc-500'}`} />
           </button>
 
+          {/* Botão Olhinho (Show / Hide Financial Values) */}
+          <button
+            onClick={handleToggleFinancialValues}
+            className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-white transition-all active:scale-95 relative"
+            title={showFinancialValues ? 'Ocultar valores financeiros' : 'Mostrar valores financeiros'}
+            aria-label={showFinancialValues ? 'Ocultar valores financeiros' : 'Mostrar valores financeiros'}
+          >
+            {showFinancialValues ? <Eye className="w-4 h-4 text-cyan-400" /> : <EyeOff className="w-4 h-4 text-zinc-400" />}
+          </button>
+
           {/* Notificações Bell */}
           <button
             onClick={() => setIsNotificationsOpen(true)}
@@ -265,6 +305,14 @@ export function MobileAirbnbSuperApp() {
           2. QUICK ACTIONS CHIP BAR (Horizontal Carousel)
       ── */}
       <div className="px-3.5 pt-3 pb-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => setActiveTab('financeiro')}
+          className="shrink-0 px-3 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-bold font-mono flex items-center gap-1.5 active:scale-95 transition-all shadow-[0_0_12px_rgba(6,182,212,0.15)]"
+        >
+          <DollarSign className="w-3.5 h-3.5 text-cyan-400" />
+          <span>💰 Financeiro ({formatMoney(12500)})</span>
+        </button>
+
         <button
           onClick={handleGeneratePIN}
           className="shrink-0 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold font-mono flex items-center gap-1.5 active:scale-95 transition-all shadow-[0_0_12px_rgba(245,158,11,0.15)]"
@@ -312,7 +360,7 @@ export function MobileAirbnbSuperApp() {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             
             {/* Yield Booster (Lucro Extra IA) */}
-            <MobileYieldProfitWidget niche="airbnb" />
+            <MobileYieldProfitWidget niche="airbnb" showValues={showFinancialValues} />
 
             <div className="space-y-1">
               <h1 className="font-mono text-base font-extrabold text-white tracking-tight flex items-center gap-2">
@@ -328,28 +376,37 @@ export function MobileAirbnbSuperApp() {
                   <DollarSign className="w-4 h-4 text-cyan-400" />
                   <span>ECONOMIA REAL EM TAXAS</span>
                 </span>
-                <span className="text-[9px] font-mono font-extrabold bg-cyan-500 text-zinc-950 px-2 py-0.5 rounded-full">
-                  100% SEU
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleToggleFinancialValues}
+                    className="p-1 rounded-md bg-white/[0.05] text-zinc-400 hover:text-cyan-400"
+                    aria-label="Alternar exibição de valores"
+                  >
+                    {showFinancialValues ? <Eye className="w-3.5 h-3.5 text-cyan-400" /> : <EyeOff className="w-3.5 h-3.5 text-zinc-400" />}
+                  </button>
+                  <span className="text-[9px] font-mono font-extrabold bg-cyan-500 text-zinc-950 px-2 py-0.5 rounded-full">
+                    100% SEU
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-2xl bg-black/40 border border-rose-500/20 space-y-1">
                   <span className="text-[10px] text-zinc-400 font-mono">Pelo Airbnb (-15%)</span>
-                  <div className="text-sm font-bold text-rose-400 font-mono">-R$ 1.875</div>
+                  <div className="text-sm font-bold text-rose-400 font-mono">-{formatMoney(1875)}</div>
                   <p className="text-[9px] text-zinc-500">Morderiam em comissões</p>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
                   <span className="text-[10px] text-emerald-300 font-mono">Pelo Seu Zélla (0%)</span>
-                  <div className="text-sm font-bold text-emerald-400 font-mono">+R$ 1.875</div>
+                  <div className="text-sm font-bold text-emerald-400 font-mono">+{formatMoney(1875)}</div>
                   <p className="text-[9px] text-emerald-400/80">No seu bolso via PIX</p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between text-xs pt-1 border-t border-white/[0.06]">
                 <span className="text-zinc-400">Total Faturado no Mês:</span>
-                <span className="font-mono font-extrabold text-white text-sm">R$ 12.500</span>
+                <span className="font-mono font-extrabold text-white text-sm">{formatMoney(12500)}</span>
               </div>
             </div>
 
@@ -386,7 +443,7 @@ export function MobileAirbnbSuperApp() {
                       <div className="text-[10px] font-mono text-zinc-400">Hóspede: {prop.guest} · Check-out: {prop.checkOut}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-cyan-400 font-mono">R$ {prop.price}/dia</div>
+                      <div className="font-bold text-cyan-400 font-mono">{formatMoney(prop.price)}/dia</div>
                       <div className="flex items-center gap-1 text-[10px] font-mono text-zinc-400 justify-end">
                         <Battery className={`w-3 h-3 ${prop.battery < 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
                         <span>{prop.battery}%</span>
@@ -525,7 +582,7 @@ export function MobileAirbnbSuperApp() {
               <div className="space-y-2 bg-black/40 p-3.5 rounded-2xl border border-white/[0.06]">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-zinc-300 font-medium">Aumento por Imóvel / Diária:</span>
-                  <span className="text-base font-extrabold text-amber-400 font-mono">+R$ {dailyIncrease}</span>
+                  <span className="text-base font-extrabold text-amber-400 font-mono">+{formatMoney(dailyIncrease)}</span>
                 </div>
 
                 <input
@@ -543,20 +600,20 @@ export function MobileAirbnbSuperApp() {
               <div className="bg-white/[0.03] p-3 rounded-2xl border border-white/[0.08] space-y-2 text-xs">
                 <div className="flex justify-between text-zinc-300">
                   <span>Excedente Bruto:</span>
-                  <span className="font-mono font-bold text-white">R$ {upsellExcedent.toLocaleString('pt-BR')}</span>
+                  <span className="font-mono font-bold text-white">{formatMoney(upsellExcedent)}</span>
                 </div>
                 <div className="flex justify-between text-cyan-400 font-bold border-t border-white/[0.06] pt-1.5">
                   <span>💰 Seu Lucro Líquido (93%):</span>
-                  <span className="font-mono text-sm">R$ {Math.round(hostProfit).toLocaleString('pt-BR')}</span>
+                  <span className="font-mono text-sm">{formatMoney(Math.round(hostProfit))}</span>
                 </div>
                 <div className="flex justify-between text-zinc-400 text-[11px]">
                   <span>Taxa Seu Zélla (7%):</span>
-                  <span className="font-mono text-amber-400">R$ {Math.round(zellaFee).toLocaleString('pt-BR')}</span>
+                  <span className="font-mono text-amber-400">{formatMoney(Math.round(zellaFee))}</span>
                 </div>
               </div>
 
               <button
-                onClick={() => toast.success(`⚡ UPSELL ATIVADO! +R$ ${dailyIncrease}/diária aplicado para ${currentHoliday.name}`)}
+                onClick={() => toast.success(`⚡ UPSELL ATIVADO! +${formatMoney(dailyIncrease)}/diária aplicado para ${currentHoliday.name}`)}
                 className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold font-mono text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.4)] active:scale-95 transition-all"
               >
                 <Zap className="w-4 h-4 fill-current" />
@@ -618,70 +675,66 @@ export function MobileAirbnbSuperApp() {
                   <h3 className="text-xs font-bold text-white font-mono">LINK NA BIO / CATÁLOGO INSTAGRAM</h3>
                 </div>
                 <span className="text-[9px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded">
-                  0% TAXA
+                  ATIVO
                 </span>
               </div>
 
               <p className="text-xs text-zinc-300">
-                Página própria dos seus flats com checkout PIX instantâneo para colocar no Instagram e TikTok.
+                Página mobile de alta conversão para biografia do Instagram com botão de reserva direta via PIX 1-clique (0% de comissão).
               </p>
 
               <div className="p-3 rounded-2xl bg-black/40 border border-white/[0.06] flex items-center justify-between">
-                <span className="font-mono text-xs text-cyan-300 truncate">seuzella.com/l/studio-jardins</span>
+                <div className="text-xs font-mono text-cyan-300 truncate">
+                  seuzella.com/p/{propertyName.toLowerCase().replace(/\s+/g, '-')}
+                </div>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText('https://smart-hotel-zehla.vercel.app/demo/link-in-bio');
-                    toast.success('Link do Catálogo copiado com sucesso!');
+                    navigator.clipboard.writeText(`https://seuzella.com/p/${propertyName.toLowerCase().replace(/\s+/g, '-')}`);
+                    toast.success('Link copiado!');
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-cyan-500 text-zinc-950 font-bold text-xs font-mono active:scale-95"
+                  className="p-2 rounded-lg bg-cyan-500/20 text-cyan-300 hover:text-white"
                 >
-                  Copiar
+                  <Copy className="w-4 h-4" />
                 </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <span className="text-[10px] text-zinc-400 block">Cliques no Mês</span>
-                  <span className="text-sm font-extrabold text-white font-mono">428 visitas</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <span className="text-[10px] text-zinc-400 block">Reservas Diretas</span>
-                  <span className="text-sm font-extrabold text-emerald-400 font-mono">R$ 7.200</span>
-                </div>
               </div>
             </div>
 
           </motion.div>
         )}
 
-        {/* ABA 6: SIMULADOR */}
+        {/* ABA 6: SIMULADOR DE DIÁRIAS */}
         {activeTab === 'simulador' && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             
-            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 space-y-3 flex flex-col h-[380px]">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 text-[10px] font-mono text-zinc-400">
-                <span className="text-cyan-400 font-bold">ZÉLLA HOST SIMULATOR</span>
-                <span>CONFIDENCE: 99.4%</span>
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 space-y-3">
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-cyan-400" />
+                  <h3 className="text-xs font-bold text-white font-mono">SIMULADOR MOTOR ZÉLLA</h3>
+                </div>
+                <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                  24H ONLINE
+                </span>
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar text-xs">
-                {chatLog.map((msg, idx) => (
+              <div className="h-64 overflow-y-auto space-y-2 pr-1 no-scrollbar text-xs">
+                {chatLog.map((chat, index) => (
                   <div
-                    key={idx}
+                    key={index}
                     className={`flex flex-col max-w-[85%] ${
-                      msg.sender === 'guest' ? 'ml-auto items-end' : 'mr-auto items-start'
+                      chat.sender === 'guest' ? 'ml-auto items-end' : 'mr-auto items-start'
                     }`}
                   >
                     <div
                       className={`p-3 rounded-2xl ${
-                        msg.sender === 'guest'
+                        chat.sender === 'guest'
                           ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/30 rounded-tr-none'
                           : 'bg-white/[0.05] text-zinc-200 border border-white/[0.08] rounded-tl-none'
                       }`}
                     >
-                      {msg.text}
+                      {chat.text}
                     </div>
-                    <span className="text-[9px] font-mono text-zinc-500 mt-1">{msg.time}</span>
+                    <span className="text-[9px] font-mono text-zinc-500 mt-1">{chat.time}</span>
                   </div>
                 ))}
               </div>
@@ -720,8 +773,8 @@ export function MobileAirbnbSuperApp() {
             activeTab === 'financeiro' ? 'text-cyan-400 font-bold' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <CreditCard className="w-5 h-5" />
-          <span className="text-[9px] font-mono">Radar Lucro</span>
+          <DollarSign className="w-5 h-5" />
+          <span className="text-[9px] font-mono">Financeiro</span>
         </button>
 
         {/* Tab 2: Fechaduras */}
@@ -824,10 +877,10 @@ export function MobileAirbnbSuperApp() {
                   
                   <button
                     onClick={() => { setActiveTab('financeiro'); setIsMenuOpen(false); }}
-                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-zinc-200 hover:bg-white/[0.05] hover:text-cyan-400 transition-all text-left"
+                    className="w-full p-2.5 rounded-lg flex items-center gap-3 text-xs font-medium text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 transition-all text-left border border-cyan-500/20"
                   >
-                    <CreditCard className="w-4 h-4 text-cyan-400" />
-                    <span>Radar de Economia</span>
+                    <DollarSign className="w-4 h-4 text-cyan-400" />
+                    <span>💰 Visão Financeira & Radar</span>
                   </button>
 
                   <button

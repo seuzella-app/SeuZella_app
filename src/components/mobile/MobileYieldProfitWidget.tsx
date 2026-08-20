@@ -38,9 +38,10 @@ interface MobileYieldProfitWidgetProps {
   niche: 'pousada' | 'airbnb';
   propertyName?: string;
   onNavigate?: (tab: any) => void;
+  showValues?: boolean;
 }
 
-export function MobileYieldProfitWidget({ niche, propertyName, onNavigate }: MobileYieldProfitWidgetProps) {
+export function MobileYieldProfitWidget({ niche, propertyName, onNavigate, showValues = true }: MobileYieldProfitWidgetProps) {
   const [data, setData] = useState<YieldData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,12 +96,13 @@ export function MobileYieldProfitWidget({ niche, propertyName, onNavigate }: Mob
     .sort((a, b) => b[1].extraProfitBrl - a[1].extraProfitBrl)
     .slice(0, 2);
 
-  const formattedExtra =
-    data.formatted?.totalExtra ??
-    data.totalExtraProfitBrl.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
+  const formattedExtra = !showValues
+    ? 'R$ ••••••'
+    : (data.formatted?.totalExtra ??
+      data.totalExtraProfitBrl.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }));
 
   return (
     <div className={`mx-3 mb-3 mt-3 rounded-xl border border-${accentColor}-500/30 bg-gradient-to-br from-${accentColor}-500/10 to-transparent p-3`}>
