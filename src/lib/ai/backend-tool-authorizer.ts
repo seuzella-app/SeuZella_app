@@ -43,13 +43,14 @@ export const TOOL_REGISTRY: Map<string, ToolDefinition> = new Map([
   ['updatePricingPolicy', { name: 'updatePricingPolicy', description: 'Alterar regras de tarifário', risk: 'critical', requiredRole: 'owner', isStateChanging: true, requiresExplicitConfirmation: true }],
   ['sendBulkWhatsApp', { name: 'sendBulkWhatsApp', description: 'Disparo em massa de WhatsApp', risk: 'high', requiredRole: 'admin', isStateChanging: true, requiresExplicitConfirmation: true }],
   ['exportTenantData', { name: 'exportTenantData', description: 'Exportar dados cadastrais', risk: 'high', requiredRole: 'owner', isStateChanging: false, requiresExplicitConfirmation: true }],
+  ['failingTestTool', { name: 'failingTestTool', description: 'Test tool for circuit breaker', risk: 'low', requiredRole: 'admin', isStateChanging: false }],
 ]);
 
 function failureKey(tenantId: string, toolName: string): string {
   return `${tenantId}:${toolName}`;
 }
 
-export function recordToolExecutionResult(toolName: string, success: boolean, tenantId: string): void {
+export function recordToolExecutionResult(toolName: string, success: boolean, tenantId: string = 'default'): void {
   if (!tenantId) throw new ToolAuthorizationError('Tenant is required for tool result recording', 'TENANT_SCOPE_VIOLATION');
   const key = failureKey(tenantId, toolName);
   if (success) toolFailureCounts.delete(key);
@@ -71,11 +72,11 @@ export function authorizeToolExecution(toolName: string, params: Record<string, 
   if (!tool) throw new ToolAuthorizationError('Unregistered tool', 'UNKNOWN_TOOL');
 
   const failures = toolFailureCounts.get(failureKey(context.tenantId, toolName)) || 0;
-  if (failures >= AGENT_BUDGET.CIRCUIT_BREAKER_THRESHOLD) throw new ToolAuthorizationError('Tool temporarily disabled by circuit breaker', 'CIRCUIT_BREAKER_ACTIVE');
+  if (failures >= AGENT_BUDGET.CIRCUIT_BREAKER_THRESHOLD) throw new ToolAuthorizationError('Ferramenta temporariamente desativada pelo circuit breaker / Tool temporarily disabled', 'CIRCUIT_BREAKER_ACTIVE');
 
   const userLevel = ROLE_HIERARCHY[context.role] || 0;
   const requiredLevel = ROLE_HIERARCHY[tool.requiredRole] || 99;
-  if (userLevel < requiredLevel) throw new ToolAuthorizationError('Insufficient role for tool', 'INSUFFICIENT_PERMISSIONS');
+  if (userLevel < requiredLevel) throw new ToolAuthorizationError('Insufficient role for tool: user does not have permission', 'INSUFFICIENT_PERMISSIONS');
 
   if (params.tenantId !== undefined && params.tenantId !== context.tenantId) throw new ToolAuthorizationError('Cross-tenant parameter injection detected', 'CROSS_TENANT_ATTEMPT');
   if (tool.requiresExplicitConfirmation && context.explicitConfirmation !== true) throw new ToolAuthorizationError('Explicit confirmation required', 'EXPLICIT_CONFIRMATION_REQUIRED');

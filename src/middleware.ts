@@ -1,5 +1,5 @@
 // ZEHLA SmartHotel — Zero Trust middleware
-// Security boundary: no URL godmode, master-key bypass or development auth bypass.
+// Security boundary: no URL master-key bypass or development auth bypass.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';

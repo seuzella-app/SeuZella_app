@@ -173,9 +173,9 @@ describe('🛡️ Zero Trust Security Hardening Test Suite', () => {
     it('deve ativar o Circuit Breaker após 3 falhas consecutivas de uma ferramenta', () => {
       const tool = 'failingTestTool';
       // Registra 3 falhas consecutivas
-      recordToolExecutionResult(tool, false);
-      recordToolExecutionResult(tool, false);
-      recordToolExecutionResult(tool, false);
+      recordToolExecutionResult(tool, false, 'tenant_alpha');
+      recordToolExecutionResult(tool, false, 'tenant_alpha');
+      recordToolExecutionResult(tool, false, 'tenant_alpha');
 
       expect(() => {
         authorizeToolExecution(tool, {}, {
@@ -186,7 +186,7 @@ describe('🛡️ Zero Trust Security Hardening Test Suite', () => {
       }).toThrow(/temporariamente desativada/i);
 
       // Limpa após sucesso
-      recordToolExecutionResult(tool, true);
+      recordToolExecutionResult(tool, true, 'tenant_alpha');
     });
   });
 

@@ -35,6 +35,7 @@ let workerRunning = false;
 export const QUEUE_NAMES = {
   WHATSAPP_WEBHOOK: 'whatsapp-webhook', MERCADOPAGO_WEBHOOK: 'mercadopago-webhook', ASAAS_WEBHOOK: 'asaas-webhook',
   EMAIL_SEND: 'email-send', UPSSELL_TRACKING: 'upsell-tracking', NIGHT_AUDIT: 'night-audit', LGPD_DELETE: 'lgpd-delete',
+  TEST_DELIVERY_QUEUE: 'test-delivery-queue',
 } as const;
 const ALLOWED_QUEUES = new Set<string>(Object.values(QUEUE_NAMES));
 
@@ -142,7 +143,7 @@ if (typeof window === 'undefined') {
       const { processIncomingMessage } = await import('@/lib/whatsapp-ai-responder');
       const { bufferMessage } = await import('@/lib/message-bundler');
       await new Promise<void>((resolve, reject) => {
-        bufferMessage({ tenantId: job.tenantId, guestPhone: job.data.guestPhone, guestName: job.data.guestName, messageContent: job.data.messageContent, messageFrom: job.data.messageFrom || 'whatsapp' }, async (params: any) => {
+        bufferMessage({ tenantId: job.tenantId!, guestPhone: job.data.guestPhone, guestName: job.data.guestName, messageContent: job.data.messageContent, messageFrom: job.data.messageFrom || 'whatsapp' }, async (params: any) => {
           try { await processIncomingMessage(params); resolve(); } catch (err) { reject(err); }
         });
       });

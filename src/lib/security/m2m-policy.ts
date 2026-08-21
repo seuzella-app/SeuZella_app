@@ -78,8 +78,7 @@ export async function verifyM2MClientCredentials(
 ): Promise<{ valid: boolean; reason?: string; client?: M2MClientPolicy }> {
   const client = M2M_CLIENT_REGISTRY[clientId];
 
-  // Suporte a parsing dinâmico de hashes adicionais via ZELLA_M2M_CLIENT_HASHES
-  // Formato: clientId:$2a$10$...:scope1,scope2
+  // Suporte a parsing dinâmico de hashes adicionais via ZELLA_M2M_CLIENT_HASHES ou ZELLA_M2M_CLIENTS
   if (!client && process.env.ZELLA_M2M_CLIENT_HASHES) {
     const rawEntries = process.env.ZELLA_M2M_CLIENT_HASHES.split(';').filter(Boolean);
     for (const entry of rawEntries) {
@@ -95,6 +94,42 @@ export async function verifyM2MClientCredentials(
         };
         M2M_CLIENT_REGISTRY[clientId] = dynClient;
         break;
+      }
+    }
+  }
+
+  if (process.env.ZELLA_M2M_CLIENTS) {
+    const rawEntries = process.env.ZELLA_M2M_CLIENTS.split(';').filter(Boolean);
+    for (const entry of rawEntries) {
+      const firstColon = entry.indexOf(':');
+      if (firstColon !== -1) {
+        const cId = entry.slice(0, firstColon);
+        const sec = entry.slice(firstColon + 1);
+        if (cId === clientId && sec) {
+          let scopes: CronScope[] = ['cerebro:read', 'billing:read', 'reports:read'];
+          if (process.env.ZELLA_M2M_CLIENT_SCOPES) {
+            const scopeEntries = process.env.ZELLA_M2M_CLIENT_SCOPES.split(';').filter(Boolean);
+            for (const sEntry of scopeEntries) {
+              const sFirstColon = sEntry.indexOf(':');
+              if (sFirstColon !== -1) {
+                const scId = sEntry.slice(0, sFirstColon);
+                const scopeStr = sEntry.slice(sFirstColon + 1);
+                if (scId === clientId) {
+                  scopes = scopeStr.split(',') as CronScope[];
+                }
+              }
+            }
+          }
+          const dynClient: M2MClientPolicy = {
+            clientId: cId,
+            secretHash: sec,
+            allowedScopes: scopes,
+            description: 'Dynamic Env Plaintext Client',
+            active: true,
+          };
+          M2M_CLIENT_REGISTRY[clientId] = dynClient;
+          break;
+        }
       }
     }
   }

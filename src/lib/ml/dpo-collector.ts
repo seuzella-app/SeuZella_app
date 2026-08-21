@@ -47,6 +47,14 @@ export function calculateSimilarityScore(rejected: string, chosen: string): numb
   return 1.0 - distance / maxLength;
 }
 
+export const inMemoryDpoPairs: Array<{
+  prompt: string;
+  chosen: string;
+  rejected: string;
+  similarityScore?: number;
+  status: string;
+}> = [];
+
 /**
  * Captura pares de preferência DPO (Direct Preference Optimization)
  * Filtra edições triviais (>0.85) ou reescritas totais fora de contexto (<0.15).
@@ -65,8 +73,16 @@ export async function captureDpoPair(params: CaptureDpoParams): Promise<DpoPairR
     };
   }
 
+  inMemoryDpoPairs.push({
+    prompt,
+    chosen,
+    rejected,
+    similarityScore,
+    status: 'pending',
+  });
+
   try {
-    if (db && (db as any).dpoPreferencePair) {
+    if (db && (db as any).dpoPreferencePair && typeof (db as any).dpoPreferencePair.create === 'function') {
       await (db as any).dpoPreferencePair.create({
         data: {
           tenantId,

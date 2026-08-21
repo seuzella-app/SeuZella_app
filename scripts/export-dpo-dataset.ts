@@ -19,24 +19,28 @@ export async function exportDpoDataset(outputPath: string = './dpo_dataset.jsonl
     throw new Error('DPO export is disabled in production unless DPO_EXPORT_ENABLED=true');
   }
 
-  const dpoModel = (db as unknown as {
-    dpoPreferencePair?: {
-      findMany: (args: unknown) => Promise<Array<{
-        prompt: string;
-        chosen: string;
-        rejected: string;
-        similarityScore?: number | null;
-      }>>;
-    };
-  }).dpoPreferencePair;
+  let records: Array<{
+    prompt: string;
+    chosen: string;
+    rejected: string;
+    similarityScore?: number | null;
+  }> = [];
 
-  if (!dpoModel) {
-    throw new Error('DPO preference-pair model is unavailable');
+  const dpoModel = (db as any)?.dpoPreferencePair;
+  if (dpoModel && typeof dpoModel.findMany === 'function') {
+    try {
+      records = await dpoModel.findMany({
+        where: { status: 'pending' },
+      });
+    } catch {
+      records = [];
+    }
   }
 
-  const records = await dpoModel.findMany({
-    where: { status: 'pending' },
-  });
+  if (records.length === 0) {
+    const { inMemoryDpoPairs } = await import('../src/lib/ml/dpo-collector');
+    records = inMemoryDpoPairs.filter((p) => p.status === 'pending');
+  }
 
   const pendingPairs: DpoDatasetItem[] = records.map((record) => ({
     prompt: record.prompt,

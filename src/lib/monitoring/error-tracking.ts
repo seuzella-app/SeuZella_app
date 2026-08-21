@@ -9,7 +9,7 @@ interface CaptureOptions {
 
 const SENTRY_DSN = process.env.SENTRY_DSN || '';
 const SENTRY_ENABLED = !!SENTRY_DSN && process.env.NODE_ENV === 'production';
-let sentryClient: typeof import('@sentry/node') | null = null;
+let sentryClient: any = null;
 
 const SECRET_KEY = /(password|passwd|secret|token|authorization|cookie|api[_-]?key|private[_-]?key|refresh[_-]?token|access[_-]?token|otp|lock(code)?|wifi(password)?|client[_-]?secret)/i;
 const PII_KEY = /(email|phone|whatsapp|cpf|cnpj|address|street|zip|document)/i;
@@ -33,11 +33,11 @@ function safeExtra(extra?: Record<string, unknown>): Record<string, unknown> {
   return (sanitize(extra || {}) as Record<string, unknown>) || {};
 }
 
-async function getSentry() {
+async function getSentry(): Promise<any> {
   if (!SENTRY_ENABLED) return null;
   if (sentryClient) return sentryClient;
   try {
-    const Sentry = await import('@sentry/node');
+    const Sentry = await (Function('return import("@sentry/node")')() as Promise<any>);
     Sentry.init({ dsn: SENTRY_DSN, environment: process.env.NODE_ENV, tracesSampleRate: 0.1, profilesSampleRate: 0.1, integrations: [] });
     sentryClient = Sentry;
     return Sentry;

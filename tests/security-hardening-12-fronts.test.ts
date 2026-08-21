@@ -76,6 +76,6 @@ describe('security hardening regression gates — critical fronts', () => {
     expect(ci).not.toContain('continue-on-error');
     expect(ci).not.toContain('|| echo');
 
-    expect(layout).toContain("replace(/</g, '\\u003c')");
+    expect(layout).toContain("replace(/</g, '\\\\u003c')");
   });
 });
