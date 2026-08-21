@@ -1,8 +1,10 @@
 /**
- * ZÉLLA PRODUCTION PREFLIGHT — P0 GO/NO-GO
- * Fail-closed checks for the real production dependencies.
+ * ZÉLLA PRODUCTION PREFLIGHT — P0 GO/NO-GO GATE
+ *
+ * The preflight is intentionally fail-closed in production. It verifies
+ * configuration plus live PostgreSQL/Redis reachability without exposing
+ * provider credentials or low-level exception details.
  */
-
 import { db } from '../lib/db';
 import { getRedisConnection } from '../lib/queue/bullmq-queue';
 import { encryptSecret, decryptSecret } from '../lib/security/secret-vault';
@@ -17,147 +19,152 @@ interface CheckItem {
   details: string;
 }
 
-function push(checks: CheckItem[], item: CheckItem): void {
-  checks.push(item);
+const isProduction = process.env.NODE_ENV === 'production';
+
+function requiredInProduction(name: string, value: string | undefined): CheckItem {
+  const configured = typeof value === 'string' && value.trim().length > 0;
+  return {
+    id: `ENV-${name}`,
+    name: `${name} configurada`,
+    category: 'ENV',
+    isP0: isProduction,
+    status: configured ? 'PASS' : isProduction ? 'FAIL' : 'WARN',
+    details: configured ? 'Configurada.' : isProduction ? 'Obrigatória em produção.' : 'Ausente fora de produção; permitido apenas em dev/testes.',
+  };
 }
 
 async function runProductionPreflight(): Promise<void> {
   const checks: CheckItem[] = [];
-  const isProduction = process.env.NODE_ENV === 'production';
 
-  const hasCanonicalUrl = Boolean(process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL);
-  push(checks, {
+  const hasAppUrl = !!process.env.NEXTAUTH_URL || !!process.env.NEXT_PUBLIC_APP_URL;
+  checks.push({
     id: 'ENV-01',
-    name: 'Canonical production URL',
+    name: 'URL canônica da aplicação',
     category: 'ENV',
-    isP0: true,
-    status: hasCanonicalUrl ? 'PASS' : isProduction ? 'FAIL' : 'WARN',
-    details: hasCanonicalUrl ? 'Canonical application URL configured.' : 'NEXTAUTH_URL or NEXT_PUBLIC_APP_URL is missing.',
+    isP0: isProduction,
+    status: hasAppUrl ? 'PASS' : isProduction ? 'FAIL' : 'WARN',
+    details: hasAppUrl ? 'URL canônica configurada.' : isProduction ? 'NEXTAUTH_URL ou NEXT_PUBLIC_APP_URL é obrigatória.' : 'Ausente fora de produção.',
   });
-
-  const requiredProductionSecrets = [
-    'DATABASE_URL',
-    'NEXTAUTH_SECRET',
-    'REDIS_URL',
-  ];
-  const missingSecrets = isProduction
-    ? requiredProductionSecrets.filter((name) => !process.env[name]?.trim())
-    : [];
-  push(checks, {
-    id: 'ENV-02',
-    name: 'Required production secrets',
-    category: 'ENV',
-    isP0: true,
-    status: missingSecrets.length === 0 ? 'PASS' : 'FAIL',
-    details: missingSecrets.length === 0 ? 'Required production secrets are present.' : `Missing required secrets: ${missingSecrets.join(', ')}`,
-  });
+  checks.push(requiredInProduction('DATABASE_URL', process.env.DATABASE_URL));
+  checks.push(requiredInProduction('NEXTAUTH_SECRET', process.env.NEXTAUTH_SECRET));
+  checks.push(requiredInProduction('REDIS_URL', process.env.REDIS_URL || process.env.REDIS_CONNECTION_STRING));
 
   try {
     await db.$queryRaw`SELECT 1`;
-    push(checks, {
+    checks.push({
       id: 'DB-01',
-      name: 'PostgreSQL connectivity',
+      name: 'Conectividade PostgreSQL',
       category: 'DATABASE',
       isP0: true,
       status: 'PASS',
-      details: 'PostgreSQL answered SELECT 1 through Prisma.',
+      details: 'PostgreSQL respondeu ao health query.',
     });
-  } catch (error: unknown) {
-    push(checks, {
+  } catch {
+    checks.push({
       id: 'DB-01',
-      name: 'PostgreSQL connectivity',
+      name: 'Conectividade PostgreSQL',
       category: 'DATABASE',
       isP0: true,
       status: 'FAIL',
-      details: error instanceof Error ? 'PostgreSQL connectivity check failed.' : 'PostgreSQL connectivity check failed.',
+      details: 'PostgreSQL não respondeu ao health query.',
     });
   }
 
   try {
-    const redis = getRedisConnection();
-    await redis.ping();
-    push(checks, {
-      id: 'REDIS-01',
-      name: 'Redis connectivity',
-      category: 'REDIS',
-      isP0: true,
-      status: 'PASS',
-      details: 'Redis answered PING.',
-    });
-  } catch (error: unknown) {
-    push(checks, {
-      id: 'REDIS-01',
-      name: 'Redis connectivity',
-      category: 'REDIS',
-      isP0: true,
-      status: 'FAIL',
-      details: error instanceof Error ? 'Redis connectivity check failed.' : 'Redis connectivity check failed.',
-    });
-  }
-
-  try {
-    const testSecret = 'zella_preflight_secret_validation_string_123';
-    const encrypted = encryptSecret(testSecret);
+    const encrypted = encryptSecret('zella_preflight_secret_validation_string_123');
     const decrypted = decryptSecret(encrypted);
-    const vaultOk = decrypted === testSecret && encrypted.startsWith('v1:');
-    push(checks, {
+    const vaultOk = decrypted === 'zella_preflight_secret_validation_string_123' && encrypted.startsWith('v1:');
+    checks.push({
       id: 'SEC-01',
-      name: 'Secret Vault round-trip',
+      name: 'Secret Vault AES-256-GCM',
       category: 'SECRETS',
       isP0: true,
       status: vaultOk ? 'PASS' : 'FAIL',
-      details: vaultOk ? 'Secret Vault round-trip succeeded.' : 'Secret Vault round-trip failed.',
+      details: vaultOk ? 'Round-trip criptográfico validado.' : 'Round-trip criptográfico inválido.',
     });
   } catch {
-    push(checks, {
+    checks.push({
       id: 'SEC-01',
-      name: 'Secret Vault round-trip',
+      name: 'Secret Vault AES-256-GCM',
       category: 'SECRETS',
       isP0: true,
       status: 'FAIL',
-      details: 'Secret Vault validation failed.',
+      details: 'Secret Vault não conseguiu completar o round-trip.',
     });
+  }
+
+  const redis = getRedisConnection();
+  if (!redis) {
+    checks.push({
+      id: 'REDIS-01',
+      name: 'Conectividade Redis / BullMQ',
+      category: 'REDIS',
+      isP0: isProduction,
+      status: isProduction ? 'FAIL' : 'WARN',
+      details: isProduction ? 'Redis persistente é obrigatório em produção.' : 'Redis ausente fora de produção.',
+    });
+  } else {
+    try {
+      await redis.ping();
+      checks.push({
+        id: 'REDIS-01',
+        name: 'Conectividade Redis / BullMQ',
+        category: 'REDIS',
+        isP0: true,
+        status: 'PASS',
+        details: 'Redis respondeu PONG.',
+      });
+    } catch {
+      checks.push({
+        id: 'REDIS-01',
+        name: 'Conectividade Redis / BullMQ',
+        category: 'REDIS',
+        isP0: true,
+        status: 'FAIL',
+        details: 'Redis não respondeu ao PING.',
+      });
+    }
   }
 
   try {
     const health = await checkSystemHealth();
-    const healthStatus = health.status === 'healthy' ? 'PASS' : isProduction ? 'FAIL' : 'WARN';
-    push(checks, {
+    const healthy = health.status === 'healthy';
+    checks.push({
       id: 'HEALTH-01',
-      name: 'System health',
+      name: 'Health & readiness',
       category: 'HEALTH',
       isP0: true,
-      status: healthStatus,
-      details: `System status: ${health.status}.`,
+      status: healthy ? 'PASS' : isProduction ? 'FAIL' : 'WARN',
+      details: healthy ? 'Dependências críticas reportadas como saudáveis.' : 'Health global não está saudável.',
     });
   } catch {
-    push(checks, {
+    checks.push({
       id: 'HEALTH-01',
-      name: 'System health',
+      name: 'Health & readiness',
       category: 'HEALTH',
       isP0: true,
       status: 'FAIL',
-      details: 'Health probe failed.',
+      details: 'Health check não pôde ser concluído.',
     });
   }
 
   let hasP0Failure = false;
   for (const check of checks) {
-    const icon = check.status === 'PASS' ? 'PASS' : check.status === 'WARN' ? 'WARN' : 'FAIL';
-    console.log(`${check.id} | ${check.category} | ${check.isP0 ? 'P0' : 'P1'} | ${icon} | ${check.details}`);
-    if (check.isP0 && check.status === 'FAIL') hasP0Failure = true;
+    const icon = check.status === 'PASS' ? '🟢 PASS' : check.status === 'WARN' ? '🟡 WARN' : '🔴 FAIL';
+    console.log(`${check.id.padEnd(12)} | ${check.category.padEnd(9)} | ${check.isP0 ? 'P0' : 'P1'} | ${icon} | ${check.details}`);
+    if (check.isP0 && check.status !== 'PASS') hasP0Failure = true;
   }
 
   if (hasP0Failure) {
-    console.error('NO-GO: one or more P0 production checks failed.');
+    console.error('\n🔴 VEREDITO: NO-GO — requisito P0 não aprovado.');
     process.exitCode = 1;
     return;
   }
 
-  console.log('GO: all P0 production checks passed.');
+  console.log('\n🟢 VEREDITO: GO — todos os requisitos P0 foram aprovados.');
 }
 
 runProductionPreflight().catch(() => {
-  console.error('NO-GO: production preflight terminated unexpectedly.');
+  console.error('Falha fatal no preflight de produção.');
   process.exitCode = 1;
 });
