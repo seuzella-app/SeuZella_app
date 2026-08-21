@@ -68,4 +68,15 @@ describe('lock subsystem hardening contracts', () => {
     expect(source).not.toContain('(error as Error).message');
     expect(source).toContain('OAUTH_TOKEN_EXCHANGE_FAILED');
   });
+  it('fails closed when TTLock opaque lock data is absent', () => {
+    const source = fs.readFileSync('src/lib/locks/providers/ttlock.ts', 'utf8');
+    expect(source).toContain('TTLOCK_LOCK_DATA_REQUIRED');
+    expect(source).not.toContain('lockData: input.lockData ?? \'\'');
+  });
+  it('validates OAuth token material before persistence', () => {
+    const source = fs.readFileSync('src/lib/locks/oauth-store.ts', 'utf8');
+    expect(source).toContain('validateTokenMaterial');
+    expect(source).toContain('INVALID_OAUTH_ACCESS_TOKEN');
+    expect(source).toContain('INVALID_OAUTH_REFRESH_TOKEN');
+  });
 });
