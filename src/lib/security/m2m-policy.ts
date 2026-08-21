@@ -60,8 +60,6 @@ export async function hashClientSecret(plainSecret: string): Promise<string> {
   return bcrypt.hash(plainSecret, 12);
 }
 
-import crypto from 'crypto';
-
 function loadDynamicHashedClient(clientId: string): M2MClientPolicy | undefined {
   const raw = process.env.ZELLA_M2M_CLIENT_HASHES;
   if (raw) {

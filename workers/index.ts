@@ -14,6 +14,7 @@
 import { startDeliveryWorker } from './delivery-worker';
 import { startPaymentWorker } from './payment-worker';
 import { startSchedulerWorker } from './scheduler-worker';
+import { startAlexaLockWorker } from './alexa-lock-worker';
 import { closeAllQueuesAndWorkers } from '@/lib/queue/bullmq-queue';
 import { logger } from '@/lib/logger';
 
@@ -25,6 +26,7 @@ export async function bootstrapWorkers() {
   const deliveryWorker = startDeliveryWorker();
   const paymentWorker = startPaymentWorker();
   const schedulerWorker = startSchedulerWorker();
+  const alexaLockWorker = startAlexaLockWorker();
 
   const shutdown = async (signal: string) => {
     logger.info(`[WORKERS_SUPERVISOR] Sinal ${signal} recebido. Iniciando graceful shutdown...`);
@@ -45,6 +47,7 @@ export async function bootstrapWorkers() {
     deliveryWorker,
     paymentWorker,
     schedulerWorker,
+    alexaLockWorker,
   };
 }
 

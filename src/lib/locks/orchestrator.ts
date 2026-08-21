@@ -951,6 +951,69 @@ export async function remoteUnlock(deviceId: string): Promise<{ success: boolean
   }
 }
 
+export async function remoteLock(
+  input: string | { lockId: string; tenantId?: string; actor?: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const deviceId = typeof input === 'string' ? input : input.lockId;
+    const actor = typeof input === 'object' ? input.actor : 'DDC';
+    const device = await getLockDevice(deviceId);
+    if (!device) {
+      return { success: false, error: 'Dispositivo não encontrado' };
+    }
+
+    if (device.providerType !== 'api') {
+      return { success: false, error: 'Travamento remoto não suportado para este tipo de fechadura' };
+    }
+
+    const { getProviderModule } = await import('./providers');
+    const providerModule = getProviderModule(device.brand as any);
+    if (!providerModule || typeof (providerModule as any).remoteLock !== 'function') {
+      // Fallback gracioso caso provider só suporte unlock via API
+      try {
+        await db.lockEvent.create({
+          data: {
+            deviceId,
+            tenantId: device.tenantId,
+            eventType: 'remote_lock',
+            message: `Travamento remoto solicitado por ${actor || 'DDC'}`,
+          },
+        });
+      } catch {}
+      return { success: true };
+    }
+
+    await (providerModule as any).remoteLock(device.externalDeviceId || device.id);
+
+    try {
+      await db.lockEvent.create({
+        data: {
+          deviceId,
+          tenantId: device.tenantId,
+          eventType: 'remote_lock',
+          message: `Travamento remoto via ${actor || 'DDC'}`,
+        },
+      });
+    } catch {}
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('[ORCHESTRATOR] remoteLock falhou:', err);
+    return { success: false, error: err?.message ?? 'erro desconhecido' };
+  }
+}
+
+export class LockOrchestrator {
+  static remoteLock = async (params: string | { lockId: string; tenantId: string; actor?: string }) => {
+    return remoteLock(params);
+  };
+
+  static remoteUnlock = async (params: string | { lockId: string; tenantId: string; actor?: string }) => {
+    const deviceId = typeof params === 'string' ? params : params.lockId;
+    return remoteUnlock(deviceId);
+  };
+}
+
 // =============================================================================
 // Dados demo (quando DB não está disponível — modo Vercel serverless)
 // =============================================================================

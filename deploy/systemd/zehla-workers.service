@@ -1,0 +1,19 @@
+[Unit]
+Description=Seu Zélla Background Processing Workers (BullMQ + Redis)
+After=network.target redis-server.service
+Requires=redis-server.service
+
+[Service]
+Type=simple
+User=zehla
+WorkingDirectory=/opt/zehla
+ExecStart=/usr/bin/npm run workers:start
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/zehla/.env.production
+StandardOutput=append:/var/log/zehla/workers.log
+StandardError=append:/var/log/zehla/workers-error.log
+
+[Install]
+WantedBy=multi-user.target
