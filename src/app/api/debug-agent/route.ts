@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { createError, apiSuccess } from '@/lib/error-handler';
 import { withSecurity } from '@/lib/security/api-shield';
@@ -6,28 +6,50 @@ import { withAuth, AuthSession } from '@/lib/auth-guard';
 
 /**
  * POST /api/debug-agent
- * 
- * SECURITY (Zero Trust V2):
- * - Blocked entirely in production via api-shield.
- * - Requires authentication even in dev.
+ * SECURITY: authenticated and tenant-scoped; api-shield blocks production debug routes.
  */
-async function handler(request: NextRequest, _ctx: { requestId: string }) {
+async function handler(request: NextRequest, session: AuthSession) {
   try {
     const body = await request.json();
     const { agentId, startDate, endDate, limit = 50 } = body;
 
-    const where: Record<string, unknown> = {};
-    if (agentId) where.agentId = agentId;
+    if (typeof limit !== 'number' || !Number.isFinite(limit) || limit < 1 || limit > 200) {
+      return createError(400, 'INVALID_LIMIT', 'limit deve estar entre 1 e 200');
+    }
+
+    const where: Record<string, unknown> = { tenantId: session.tenantId };
+    if (typeof agentId === 'string' && agentId.length <= 100) where.agentId = agentId;
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) (where.createdAt as Record<string, unknown>).gte = new Date(startDate);
-      if (endDate) (where.createdAt as Record<string, unknown>).lte = new Date(endDate);
+      const createdAt: Record<string, Date> = {};
+      if (startDate) {
+        const value = new Date(startDate);
+        if (Number.isNaN(value.getTime())) return createError(400, 'INVALID_START_DATE', 'startDate inválida');
+        createdAt.gte = value;
+      }
+      if (endDate) {
+        const value = new Date(endDate);
+        if (Number.isNaN(value.getTime())) return createError(400, 'INVALID_END_DATE', 'endDate inválida');
+        createdAt.lte = value;
+      }
+      where.createdAt = createdAt;
     }
 
     const logs = await db.agentLog.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: Math.min(limit, 200),
+      select: {
+        id: true,
+        tenantId: true,
+        agentId: true,
+        agentName: true,
+        action: true,
+        status: true,
+        createdAt: true,
+        latencyMs: true,
+        costUsd: true,
+        errorMsg: true,
+      },
     });
 
     const total = logs.length;
@@ -45,13 +67,8 @@ async function handler(request: NextRequest, _ctx: { requestId: string }) {
       },
     });
   } catch (error) {
-    return createError(
-      500,
-      'DEBUG_AGENT_FAILED',
-      'Falha ao depurar agente',
-      error instanceof Error ? error.message : undefined
-    );
+    return createError(500, 'DEBUG_AGENT_FAILED', 'Falha ao depurar agente');
   }
 }
 
-export const POST = withSecurity(handler, { routeLabel: 'debug-agent' });
+export const POST = withSecurity(withAuth(handler), { routeLabel: 'debug-agent' });

@@ -1,18 +1,10 @@
 /**
- * ============================================================================
- * 🐂 BULLMQ & REDIS RESILIENT QUEUE ENGINE
- * ============================================================================
+ * BULLMQ & REDIS RESILIENT QUEUE ENGINE
  *
- * Implementa a arquitetura canônica de mensageria assíncrona do Zélla:
- * - Conexão resiliente ioredis com reconexão automática e backoff exponencial.
- * - Idempotência determinística por jobId (wa_msg_{messageId}, pay_{eventId}).
- * - Dead Letter Queue (DLQ) com capacidade de replay.
- * - Suporte a fallback seguro em memória/Upstash quando REDIS_URL não estiver configurado.
- * - Graceful shutdown para evitar perda de jobs em reboots da VPS.
- * ============================================================================
+ * Production never reports a job as enqueued when durable Redis persistence is
+ * unavailable. The in-memory fallback is restricted to non-production use.
  */
-
-import { Queue, Worker, Job, QueueEvents } from 'bullmq';
+import { Queue, Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
 import { logger } from '@/lib/logger';
 
@@ -40,14 +32,13 @@ let redisConnection: IORedis | null = null;
 const queues = new Map<string, Queue>();
 const workers = new Map<string, Worker>();
 
-/**
- * Cria ou recupera a conexão ioredis única
- */
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
 export function getRedisConnection(): IORedis | null {
   const redisUrl = process.env.REDIS_URL || process.env.REDIS_CONNECTION_STRING;
-  if (!redisUrl) {
-    return null;
-  }
+  if (!redisUrl) return null;
 
   if (!redisConnection) {
     try {
@@ -56,16 +47,14 @@ export function getRedisConnection(): IORedis | null {
         enableReadyCheck: false,
         retryStrategy: (times) => Math.min(times * 100, 3000),
       });
-
       redisConnection.on('error', (err) => {
-        logger.error('[BULLMQ_REDIS] Erro na conexão Redis:', { error: err.message });
+        logger.error('[BULLMQ_REDIS] Redis error:', { error: err.message });
       });
-
       redisConnection.on('connect', () => {
-        logger.info('[BULLMQ_REDIS] Conectado com sucesso ao Redis persistente.');
+        logger.info('[BULLMQ_REDIS] Redis connected.');
       });
     } catch (err: any) {
-      logger.error('[BULLMQ_REDIS] Falha ao instanciar IORedis:', { error: err.message });
+      logger.error('[BULLMQ_REDIS] Failed to initialize Redis:', { error: err.message });
       redisConnection = null;
     }
   }
@@ -73,24 +62,16 @@ export function getRedisConnection(): IORedis | null {
   return redisConnection;
 }
 
-/**
- * Obtém ou cria uma instância de BullMQ Queue
- */
 export function getBullQueue(name: QueueName): Queue | null {
   const connection = getRedisConnection();
-  if (!connection) {
-    return null;
-  }
+  if (!connection) return null;
 
   if (!queues.has(name)) {
     const queue = new Queue(name, {
       connection,
       defaultJobOptions: {
         attempts: 5,
-        backoff: {
-          type: 'exponential',
-          delay: 2000,
-        },
+        backoff: { type: 'exponential', delay: 2000 },
         removeOnComplete: { count: 1000 },
         removeOnFail: { count: 5000 },
       },
@@ -98,77 +79,54 @@ export function getBullQueue(name: QueueName): Queue | null {
     queues.set(name, queue);
   }
 
-  return queues.get(name)!;
+  return queues.get(name) ?? null;
 }
 
-/**
- * Enfileira um job com jobId determinístico e deduplicação
- */
 export async function enqueueBullJob(
   queueName: QueueName,
   data: DeliveryJobData,
-  customJobId?: string
+  customJobId?: string,
 ): Promise<{ enqueued: boolean; jobId: string; mode: 'bullmq' | 'fallback' }> {
   const deterministicJobId = customJobId || data.jobId || `job_${data.type}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   const queue = getBullQueue(queueName);
 
-  if (queue) {
-    try {
-      const job = await queue.add(data.type, data, {
-        jobId: deterministicJobId,
-      });
-
-      return {
-        enqueued: true,
-        jobId: job.id || deterministicJobId,
-        mode: 'bullmq',
-      };
-    } catch (err: any) {
-      logger.warn(`[BULLMQ] Erro ao enfileirar job ${deterministicJobId} no Redis, usando fallback:`, { error: err.message });
+  if (!queue) {
+    if (isProduction()) {
+      throw new Error('DURABLE_QUEUE_UNAVAILABLE');
     }
+    return { enqueued: true, jobId: deterministicJobId, mode: 'fallback' };
   }
 
-  // Fallback seguro em memória quando Redis não estiver disponível (Dev/CI)
-  return {
-    enqueued: true,
-    jobId: deterministicJobId,
-    mode: 'fallback',
-  };
+  try {
+    const job = await queue.add(data.type, data, { jobId: deterministicJobId });
+    return { enqueued: true, jobId: job.id || deterministicJobId, mode: 'bullmq' };
+  } catch (err: any) {
+    logger.error('[BULLMQ] Failed to persist job:', { error: err.message });
+    if (isProduction()) {
+      throw new Error('DURABLE_QUEUE_WRITE_FAILED');
+    }
+    return { enqueued: true, jobId: deterministicJobId, mode: 'fallback' };
+  }
 }
 
-/**
- * Registra um Worker para uma fila
- */
 export function registerBullWorker(
   queueName: QueueName,
   processor: (job: Job<DeliveryJobData>) => Promise<any>,
-  concurrency = 5
+  concurrency = 5,
 ): Worker | null {
   const connection = getRedisConnection();
-  if (!connection) {
-    return null;
-  }
+  if (!connection) return null;
+  if (workers.has(queueName)) return workers.get(queueName)!;
 
-  if (workers.has(queueName)) {
-    return workers.get(queueName)!;
-  }
-
-  const worker = new Worker(queueName, processor, {
-    connection,
-    concurrency,
-  });
-
+  const worker = new Worker(queueName, processor, { connection, concurrency });
   worker.on('completed', (job) => {
-    logger.info(`[BULLMQ_WORKER] Job ${job.id} concluído na fila ${queueName}`);
+    logger.info(`[BULLMQ_WORKER] Job ${job.id} completed in ${queueName}`);
   });
-
   worker.on('failed', async (job, err) => {
-    logger.error(`[BULLMQ_WORKER] Job ${job?.id} falhou na fila ${queueName}:`, {
+    logger.error(`[BULLMQ_WORKER] Job ${job?.id} failed in ${queueName}:`, {
       attempts: job?.attemptsMade,
       error: err.message,
     });
-
-    // Se esgotou todas as tentativas, move para a Dead Letter Queue (DLQ)
     if (job && job.attemptsMade >= (job.opts.attempts || 5)) {
       const dlq = getBullQueue(QUEUE_NAMES.DEAD_LETTER);
       if (dlq) {
@@ -186,16 +144,13 @@ export function registerBullWorker(
   return worker;
 }
 
-/**
- * Graceful Shutdown de todas as filas e workers
- */
 export async function closeAllQueuesAndWorkers(): Promise<void> {
   for (const [name, worker] of workers.entries()) {
     try {
       await worker.close();
-      logger.info(`[BULLMQ] Worker ${name} finalizado com sucesso.`);
+      logger.info(`[BULLMQ] Worker ${name} closed.`);
     } catch (e: any) {
-      logger.error(`[BULLMQ] Erro ao fechar worker ${name}:`, { error: e.message });
+      logger.error(`[BULLMQ] Worker close failed:`, { error: e.message });
     }
   }
   workers.clear();
@@ -203,9 +158,9 @@ export async function closeAllQueuesAndWorkers(): Promise<void> {
   for (const [name, queue] of queues.entries()) {
     try {
       await queue.close();
-      logger.info(`[BULLMQ] Queue ${name} fechada com sucesso.`);
+      logger.info(`[BULLMQ] Queue ${name} closed.`);
     } catch (e: any) {
-      logger.error(`[BULLMQ] Erro ao fechar queue ${name}:`, { error: e.message });
+      logger.error(`[BULLMQ] Queue close failed:`, { error: e.message });
     }
   }
   queues.clear();
@@ -214,9 +169,9 @@ export async function closeAllQueuesAndWorkers(): Promise<void> {
     try {
       await redisConnection.quit();
       redisConnection = null;
-      logger.info('[BULLMQ_REDIS] Conexão Redis encerrada com segurança.');
+      logger.info('[BULLMQ_REDIS] Redis connection closed.');
     } catch (e: any) {
-      logger.error('[BULLMQ_REDIS] Erro ao encerrar conexão Redis:', { error: e.message });
+      logger.error('[BULLMQ_REDIS] Redis close failed:', { error: e.message });
     }
   }
 }

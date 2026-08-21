@@ -1,11 +1,13 @@
 [Unit]
 Description=Seu Zélla Background Processing Workers (BullMQ + Redis)
-After=network.target redis-server.service
+After=network-online.target redis-server.service
+Wants=network-online.target
 Requires=redis-server.service
 
 [Service]
 Type=simple
 User=zehla
+Group=zehla
 WorkingDirectory=/opt/zehla
 ExecStart=/usr/bin/npm run workers:start
 Restart=always
@@ -14,6 +16,29 @@ Environment=NODE_ENV=production
 EnvironmentFile=/opt/zehla/.env.production
 StandardOutput=append:/var/log/zehla/workers.log
 StandardError=append:/var/log/zehla/workers-error.log
+
+# Process isolation / least privilege
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictRealtime=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+ReadWritePaths=/var/log/zehla
+
+# Resource ceilings prevent runaway worker exhaustion
+TasksMax=256
+MemoryMax=768M
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target
