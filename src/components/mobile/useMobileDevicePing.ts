@@ -15,6 +15,7 @@ interface UseDevicePingParams {
 
 const PING_INTERVAL_MS = 5 * 60 * 1000;
 const DEVICE_ID_STORAGE_KEY = 'zella_device_id';
+const TRACKING_ENDPOINT = '/api/mobile/devices-tracking-v2';
 
 function getOrCreateDeviceId(): string {
   if (typeof window === 'undefined') return 'ssr';
@@ -45,7 +46,7 @@ export function useDevicePing({ niche, route, isMobile, tenantName, tabName }: U
     deviceIdRef.current = getOrCreateDeviceId();
 
     const sendPing = () => {
-      void fetch('/api/mobile/devices-tracking', {
+      void fetch(TRACKING_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
