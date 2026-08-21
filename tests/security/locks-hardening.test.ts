@@ -40,9 +40,7 @@ describe('lock access policy', () => {
 describe('lock provider registry', () => {
   it('has one canonical capability definition per supported brand', () => {
     const brands = ['ttlock', 'tuya', 'igloohome', 'nuki', 'august', 'intelbras', 'yale', 'papaiz', 'philco', 'samsung'] as const;
-    for (const brand of brands) {
-      expect(getProviderCapabilities(brand).brand).toBe(brand);
-    }
+    for (const brand of brands) expect(getProviderCapabilities(brand).brand).toBe(brand);
   });
 
   it('only advertises remote unlock for explicitly supported providers', () => {
@@ -67,11 +65,23 @@ describe('lock OAuth state', () => {
   });
 });
 
-describe('physical lock endpoint hardening contracts', () => {
+describe('lock subsystem hardening contracts', () => {
   it('does not expose provider exception messages from remote unlock', () => {
     const source = fs.readFileSync('src/app/api/ddc/locks/[id]/unlock/route.ts', 'utf8');
     expect(source).not.toContain('error: error?.message');
     expect(source).toContain('REMOTE_UNLOCK_FAILED');
     expect(source).toContain('Cache-Control');
+  });
+
+  it('does not allow API provider failure to masquerade as local PIN generation', () => {
+    const source = fs.readFileSync('src/lib/locks/providers/manual.ts', 'utf8');
+    expect(source).toContain('API_PROVIDER_MANUAL_FALLBACK_NOT_ALLOWED');
+    expect(source).toContain('API_PROVIDER_REQUIRES_REAL_PROVIDER');
+  });
+
+  it('keeps OAuth callback errors provider-neutral', () => {
+    const source = fs.readFileSync('src/app/api/ddc/locks/oauth/[provider]/callback/route.ts', 'utf8');
+    expect(source).not.toContain('(error as Error).message');
+    expect(source).toContain('OAUTH_TOKEN_EXCHANGE_FAILED');
   });
 });
