@@ -1,14 +1,8 @@
 'use client';
 
-// ==============================================================================
-// DDC POUSADA CLIENT CONTENT — Seamless Responsive Viewport Engine
-// ==============================================================================
-// - Mobile Viewport (< 768px): Renders MobilePousadaSuperApp (Fullscreen Cyber-Luxe)
-// - Desktop Viewport (>= 768px): Renders DDCPousadaContent (Desktop Web DDC Dashboard)
-// ==============================================================================
-
 import dynamic from 'next/dynamic';
 import { MobilePousadaSuperApp } from '@/components/mobile/MobilePousadaSuperApp';
+import { MobileDDCLiveBootstrap } from '@/components/mobile/MobileDDCLiveBootstrap';
 
 const DDCPousadaContent = dynamic(
   () => import('./DDCPousadaContent'),
@@ -28,12 +22,12 @@ const DDCPousadaContent = dynamic(
 export function DDCPousadaClientContent() {
   return (
     <>
-      {/* Mobile Super App view (< 1024px) — iPad/celular */}
       <div className="block lg:hidden w-full min-h-screen bg-[#0a0a0f]">
-        <MobilePousadaSuperApp />
+        <MobileDDCLiveBootstrap niche="pousada">
+          <MobilePousadaSuperApp />
+        </MobileDDCLiveBootstrap>
       </div>
 
-      {/* Web Desktop DDC view (>= 1024px) */}
       <div className="hidden lg:block w-full min-h-screen bg-[#0a0a0f]">
         <DDCPousadaContent />
       </div>
