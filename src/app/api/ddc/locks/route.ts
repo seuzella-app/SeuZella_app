@@ -1,77 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  listLockDevices,
-  createLockDevice,
-} from '@/lib/locks/orchestrator';
+import { listLockDevices, createLockDevice } from '@/lib/locks/orchestrator';
 import { BRAND_CATALOG, type LockBrand } from '@/lib/locks/types';
-import { withApiGuard } from '@/lib/security/api-guard';
+import { getProviderCapabilities } from '@/lib/locks/provider-capabilities';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 
-// GET /api/ddc/locks — Lista dispositivos do tenant (opcionalmente por propertyId)
+const MAX_BODY_BYTES = 16 * 1024;
+
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = await resolveTenantId();
-    if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const { searchParams } = new URL(request.url);
-    const propertyId = searchParams.get('propertyId') ?? undefined;
+    if (!(await resolveTenantId())) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
+    const propertyId = new URL(request.url).searchParams.get('propertyId') ?? undefined;
+    if (propertyId && propertyId.length > 128) return NextResponse.json({ success: false, error: 'INVALID_PROPERTY_ID' }, { status: 400 });
+
     const devices = await listLockDevices(propertyId);
-    return NextResponse.json({ success: true, data: devices });
+    return NextResponse.json({ success: true, data: devices }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     console.error('[LOCKS] Error listing devices:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to list lock devices' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'LOCK_DEVICE_LIST_FAILED' }, { status: 503 });
   }
 }
 
-// POST /api/ddc/locks — Cria novo dispositivo
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { propertyId, propertyType, nickname, location, brand, model, providerType, serialNumber, externalDeviceId, oauthAccountId, notes } = body;
+    if (!(await resolveTenantId())) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
 
-    if (!nickname || !nickname.trim()) {
-      return NextResponse.json(
-        { success: false, error: 'Apelido do dispositivo é obrigatório' },
-        { status: 400 },
-      );
+    const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > MAX_BODY_BYTES) return NextResponse.json({ success: false, error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+    let body: unknown;
+    try { body = JSON.parse(rawBody); } catch { return NextResponse.json({ success: false, error: 'INVALID_JSON_BODY' }, { status: 400 }); }
+    if (!body || typeof body !== 'object') return NextResponse.json({ success: false, error: 'INVALID_PAYLOAD' }, { status: 400 });
+
+    const source = body as Record<string, unknown>;
+    const propertyId = typeof source.propertyId === 'string' ? source.propertyId.trim() : '';
+    const nickname = typeof source.nickname === 'string' ? source.nickname.trim() : '';
+    const brand = typeof source.brand === 'string' ? source.brand.trim().toLowerCase() : '';
+    const propertyType = source.propertyType === 'airbnb' ? 'airbnb' : 'pousada';
+
+    if (!propertyId || propertyId.length > 128) return NextResponse.json({ success: false, error: 'INVALID_PROPERTY_ID' }, { status: 400 });
+    if (!nickname || nickname.length > 120) return NextResponse.json({ success: false, error: 'INVALID_DEVICE_NICKNAME' }, { status: 400 });
+    if (!(brand in BRAND_CATALOG)) return NextResponse.json({ success: false, error: 'UNSUPPORTED_LOCK_BRAND' }, { status: 400 });
+
+    const lockBrand = brand as LockBrand;
+    const capabilities = getProviderCapabilities(lockBrand);
+    const requestedProviderType = source.providerType === 'manual' || source.providerType === 'api' ? source.providerType : capabilities.providerType;
+    if (requestedProviderType !== capabilities.providerType) {
+      return NextResponse.json({ success: false, error: 'LOCK_PROVIDER_TYPE_MISMATCH' }, { status: 400 });
     }
-    if (!propertyId) {
-      return NextResponse.json(
-        { success: false, error: 'propertyId é obrigatório' },
-        { status: 400 },
-      );
+    if (capabilities.requiresExternalDeviceId && requestedProviderType === 'api') {
+      const externalDeviceId = typeof source.externalDeviceId === 'string' ? source.externalDeviceId.trim() : '';
+      if (!externalDeviceId || externalDeviceId.length > 256) return NextResponse.json({ success: false, error: 'EXTERNAL_DEVICE_ID_REQUIRED' }, { status: 400 });
     }
-    if (!brand || !BRAND_CATALOG[brand as LockBrand]) {
-      return NextResponse.json(
-        { success: false, error: `Marca inválida. Marcas suportadas: ${Object.keys(BRAND_CATALOG).join(', ')}` },
-        { status: 400 },
-      );
-    }
+
+    const cleanOptional = (key: string, max: number) => {
+      const value = source[key];
+      if (value === undefined || value === null) return undefined;
+      if (typeof value !== 'string' || value.trim().length > max) throw new Error(`INVALID_${key.toUpperCase()}`);
+      return value.trim() || undefined;
+    };
 
     const device = await createLockDevice({
       propertyId,
-      propertyType: propertyType ?? 'pousada',
-      nickname: nickname.trim(),
-      location: location?.trim() || undefined,
-      brand: brand as LockBrand,
-      model: model?.trim() || undefined,
-      providerType: providerType ?? (BRAND_CATALOG[brand as LockBrand].apiAvailable ? 'api' : 'manual'),
-      serialNumber: serialNumber?.trim() || undefined,
-      externalDeviceId: externalDeviceId?.trim() || undefined,
-      oauthAccountId: oauthAccountId?.trim() || undefined,
-      notes: notes?.trim() || undefined,
+      propertyType,
+      nickname,
+      location: cleanOptional('location', 200),
+      brand: lockBrand,
+      model: cleanOptional('model', 120),
+      providerType: requestedProviderType,
+      serialNumber: cleanOptional('serialNumber', 120),
+      externalDeviceId: cleanOptional('externalDeviceId', 256),
+      oauthAccountId: cleanOptional('oauthAccountId', 256),
+      notes: cleanOptional('notes', 500),
     });
 
-    return NextResponse.json({ success: true, data: device }, { status: 201 });
+    return NextResponse.json({ success: true, data: device }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('[LOCKS] Error creating device:', error);
-    return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Failed to create lock device' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'LOCK_DEVICE_CREATE_FAILED' }, { status: 503 });
   }
 }
