@@ -7,6 +7,8 @@ interface UseDevicePingParams {
   niche: 'pousada' | 'airbnb';
   route: string;
   isMobile: boolean;
+  /** Deprecated compatibility field. Never transmitted; server resolves tenant from auth context. */
+  tenantId?: string;
   tenantName?: string;
   tabName?: string;
 }
