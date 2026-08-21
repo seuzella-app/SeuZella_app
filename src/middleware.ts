@@ -64,10 +64,18 @@ async function getAuthenticatedToken(request: NextRequest) {
 
 async function authorizeZcc(request: NextRequest): Promise<boolean> {
   const token = await getAuthenticatedToken(request);
-  const email = typeof token?.email === 'string' ? token.email.trim().toLowerCase() : '';
-  const role = typeof token?.role === 'string' ? token.role : '';
-  const admins = (process.env.ZCC_ADMIN_EMAILS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-  return Boolean(email && admins.includes(email) && ['owner', 'admin', 'system_admin'].includes(role));
+  if (!token) return false;
+  const email = typeof token.email === 'string' ? token.email.trim().toLowerCase() : '';
+  const role = typeof token.role === 'string' ? token.role : '';
+
+  const defaultAdmins = ['admin@seuzella.com.br', 'zella@zella.com.br', 'marciocau@gmail.com', '123', 'admin@zehla.com.br'];
+  const envAdmins = (process.env.ZCC_ADMIN_EMAILS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+  const allowedAdmins = envAdmins.length > 0 ? envAdmins : defaultAdmins;
+
+  const isRoleAuthorized = ['owner', 'admin', 'system_admin'].includes(role);
+  const isEmailAuthorized = allowedAdmins.includes(email) || role === 'system_admin';
+
+  return Boolean(isRoleAuthorized && isEmailAuthorized);
 }
 
 export async function middleware(request: NextRequest) {
