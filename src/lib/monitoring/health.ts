@@ -26,9 +26,7 @@ const START_TIME = Date.now();
 async function checkDatabase(): Promise<HealthCheckResult> {
   const start = Date.now();
   try {
-    if (!db) {
-      return { service: 'database', status: 'degraded', message: 'DB unavailable', latencyMs: 0, timestamp: new Date().toISOString() };
-    }
+    if (!db) return { service: 'database', status: 'degraded', message: 'DB unavailable', latencyMs: 0, timestamp: new Date().toISOString() };
     await (db as any).$queryRaw`SELECT 1`;
     return { service: 'database', status: 'healthy', latencyMs: Date.now() - start, timestamp: new Date().toISOString() };
   } catch (err) {
@@ -40,16 +38,13 @@ async function checkDatabase(): Promise<HealthCheckResult> {
 async function checkRedis(): Promise<HealthCheckResult> {
   const start = Date.now();
   try {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-      return { service: 'redis', status: 'degraded', message: 'Redis not configured', latencyMs: 0, timestamp: new Date().toISOString() };
-    }
-    const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/ping`, {
-      headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` },
-      signal: AbortSignal.timeout(2000),
-    });
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!url || !token) return { service: 'redis', status: 'degraded', message: 'Redis not configured', latencyMs: 0, timestamp: new Date().toISOString() };
+    const res = await fetch(`${url}/ping`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(2000) });
     return res.ok
       ? { service: 'redis', status: 'healthy', latencyMs: Date.now() - start, timestamp: new Date().toISOString() }
-      : { service: 'redis', status: 'down', message: `HTTP ${res.status}`, latencyMs: Date.now() - start, timestamp: new Date().toISOString() };
+      : { service: 'redis', status: 'down', message: 'Redis health check failed', latencyMs: Date.now() - start, timestamp: new Date().toISOString() };
   } catch (err) {
     console.error('[Health] Redis check failed:', err instanceof Error ? err.name : 'unknown');
     return { service: 'redis', status: 'down', message: 'Redis check failed', latencyMs: Date.now() - start, timestamp: new Date().toISOString() };
@@ -58,29 +53,19 @@ async function checkRedis(): Promise<HealthCheckResult> {
 
 async function checkLLM(): Promise<HealthCheckResult> {
   const start = Date.now();
-  if (!process.env.ZAI_API_KEY) {
-    return { service: 'llm', status: 'degraded', message: 'LLM provider not configured', latencyMs: 0, timestamp: new Date().toISOString() };
-  }
-  return { service: 'llm', status: 'healthy', message: 'Provider configured', latencyMs: Date.now() - start, timestamp: new Date().toISOString() };
+  const configured = Boolean(process.env.ZAI_API_KEY || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.DEEPSEEK_API_KEY || process.env.OPENROUTER_API_KEY);
+  return configured
+    ? { service: 'llm', status: 'healthy', message: 'Provider configured', latencyMs: Date.now() - start, timestamp: new Date().toISOString() }
+    : { service: 'llm', status: 'degraded', message: 'LLM provider not configured', latencyMs: 0, timestamp: new Date().toISOString() };
 }
 
 async function checkMercadoPago(): Promise<HealthCheckResult> {
   const start = Date.now();
   try {
-    if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
-      return { service: 'mercadopago', status: 'degraded', message: 'Mercado Pago not configured', latencyMs: 0, timestamp: new Date().toISOString() };
-    }
-    const res = await fetch('https://api.mercadopago.com/v1/account', {
-      headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
-      signal: AbortSignal.timeout(3000),
-    });
-    return {
-      service: 'mercadopago',
-      status: res.ok ? 'healthy' : 'down',
-      message: res.ok ? undefined : `HTTP ${res.status}`,
-      latencyMs: Date.now() - start,
-      timestamp: new Date().toISOString(),
-    };
+    const token = process.env.MP_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN;
+    if (!token) return { service: 'mercadopago', status: 'degraded', message: 'Mercado Pago not configured', latencyMs: 0, timestamp: new Date().toISOString() };
+    const res = await fetch('https://api.mercadopago.com/v1/account', { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(3000) });
+    return { service: 'mercadopago', status: res.ok ? 'healthy' : 'down', message: res.ok ? undefined : 'Mercado Pago health check failed', latencyMs: Date.now() - start, timestamp: new Date().toISOString() };
   } catch (err) {
     console.error('[Health] Mercado Pago check failed:', err instanceof Error ? err.name : 'unknown');
     return { service: 'mercadopago', status: 'down', message: 'Mercado Pago check failed', latencyMs: Date.now() - start, timestamp: new Date().toISOString() };
@@ -88,10 +73,7 @@ async function checkMercadoPago(): Promise<HealthCheckResult> {
 }
 
 export async function checkSystemHealth(): Promise<SystemHealth> {
-  const [database, redis, llm, mercadopago] = await Promise.all([
-    checkDatabase(), checkRedis(), checkLLM(), checkMercadoPago(),
-  ]);
-
+  const [database, redis, llm, mercadopago] = await Promise.all([checkDatabase(), checkRedis(), checkLLM(), checkMercadoPago()]);
   const checks = [database, redis, llm, mercadopago];
   const isProd = process.env.NODE_ENV === 'production';
   const isEssentialDown = database.status === 'down' || (isProd && database.status === 'degraded');
@@ -99,14 +81,7 @@ export async function checkSystemHealth(): Promise<SystemHealth> {
   const hasDown = checks.some(c => c.status === 'down') || isEssentialDown || isRedisDownInProd;
   const hasDegraded = checks.some(c => c.status === 'degraded');
   const status: 'healthy' | 'degraded' | 'down' = hasDown ? 'down' : hasDegraded ? 'degraded' : 'healthy';
-
-  return {
-    status,
-    checks,
-    timestamp: new Date().toISOString(),
-    version: APP_VERSION,
-    uptime: formatUptime(Date.now() - START_TIME),
-  };
+  return { status, checks, timestamp: new Date().toISOString(), version: APP_VERSION, uptime: formatUptime(Date.now() - START_TIME) };
 }
 
 function formatUptime(ms: number): string {
@@ -118,16 +93,6 @@ function formatUptime(ms: number): string {
   return `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
-export async function getMetrics(): Promise<{
-  timestamp: string;
-  counters: Record<string, number>;
-  gauges: Record<string, number>;
-  histograms: Record<string, number[]>;
-}> {
-  return {
-    timestamp: new Date().toISOString(),
-    counters: { requests_total: 0, errors_total: 0, webhooks_received: 0 },
-    gauges: { active_connections: 0, db_pool_size: 0, redis_memory_mb: 0 },
-    histograms: { response_time_ms: [], llm_latency_ms: [] },
-  };
+export async function getMetrics(): Promise<{ timestamp: string; counters: Record<string, number>; gauges: Record<string, number>; histograms: Record<string, number[]> }> {
+  return { timestamp: new Date().toISOString(), counters: { requests_total: 0, errors_total: 0, webhooks_received: 0 }, gauges: { active_connections: 0, db_pool_size: 0, redis_memory_mb: 0 }, histograms: { response_time_ms: [], llm_latency_ms: [] } };
 }
