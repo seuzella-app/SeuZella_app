@@ -1,150 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveTenantId } from '@/lib/ddc/auth-utils';
+import { validateLockOAuthState } from '@/lib/locks/oauth-state';
 import { exchangeCodeForTokens as ttlockExchange } from '@/lib/locks/providers/ttlock';
 import { exchangeCodeForTokens as tuyaExchange } from '@/lib/locks/providers/tuya';
 import { exchangeCodeForTokens as igloohomeExchange } from '@/lib/locks/providers/igloohome';
 import { exchangeCodeForTokens as nukiExchange } from '@/lib/locks/providers/nuki';
 
-// GET /api/ddc/locks/oauth/[provider]/callback — Callback OAuth2 do provedor
-//
-// Recebe o `code` do provedor após consentimento do host, troca por tokens
-// (access_token + refresh_token) e persiste em LockOAuthAccount com
-// criptografia AES-256-GCM (via encryption.ts → oauth-store.ts).
-//
-// Valida o state anti-CSRF contra o cookie httpOnly setado no /start.
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ provider: string }> },
 ) {
+  const { provider } = await params;
+  const redirectWithStatus = (status: 'success' | 'error', message: string) => {
+    const url = new URL('/ddc', request.url);
+    url.searchParams.set('oauth_status', status);
+    url.searchParams.set('oauth_provider', provider);
+    url.searchParams.set('oauth_message', message);
+    url.hash = 'locks';
+    const response = NextResponse.redirect(url);
+    response.cookies.delete('zella_oauth_state');
+    return response;
+  };
+
   try {
-    const { provider } = await params;
+    const tenantId = await resolveTenantId();
+    if (!tenantId) return redirectWithStatus('error', 'UNAUTHORIZED');
+
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
+    if (searchParams.get('error')) return redirectWithStatus('error', 'OAUTH_DENIED');
+    if (!code) return redirectWithStatus('error', 'OAUTH_CODE_MISSING');
 
-    // Helper: redireciona de volta para o DDC com status
-    const redirectWithStatus = (status: 'success' | 'error', message: string) => {
-      const url = new URL('/ddc', request.url);
-      url.searchParams.set('oauth_status', status);
-      url.searchParams.set('oauth_provider', provider);
-      url.searchParams.set('oauth_message', message);
-      url.hash = 'locks';
-      const res = NextResponse.redirect(url);
-      res.cookies.delete('zella_oauth_state');
-      return res;
-    };
-
-    // 1. Provedor retornou erro (user negou consentimento, etc.)
-    if (error) {
-      const msg = errorDescription ?? error;
-      return redirectWithStatus('error', `${provider}: ${msg}`);
-    }
-
-    if (!code) {
-      return redirectWithStatus('error', 'Código de autorização ausente');
-    }
-
-    // 2. Valida state anti-CSRF
     const cookieState = request.cookies.get('zella_oauth_state')?.value;
-    if (!state || !cookieState || state !== cookieState) {
-      console.warn('[locks] OAuth state mismatch — possível CSRF');
-      return redirectWithStatus('error', 'State inválido — possível CSRF attack');
+    if (!validateLockOAuthState(state ?? '', cookieState, tenantId, provider)) {
+      console.warn('[locks] OAuth state validation failed');
+      return redirectWithStatus('error', 'OAUTH_STATE_INVALID');
     }
 
-    // 3. Decodifica state para extrair tenantId (validação extra)
-    try {
-      const decoded = Buffer.from(state, 'base64url').toString('utf8');
-      const [stateTenantId] = decoded.split(':');
-      if (!stateTenantId) {
-        return redirectWithStatus('error', 'State sem tenantId');
-      }
-    } catch {
-      return redirectWithStatus('error', 'State malformado');
-    }
-
-    // 4. Troca code por tokens no provedor específico
     try {
       switch (provider) {
-        case 'ttlock':
-          await ttlockExchange({ code });
-          break;
-        case 'tuya':
-          await tuyaExchange({ code });
-          break;
-        case 'igloohome':
-          await igloohomeExchange({ code });
-          break;
-        case 'nuki':
-          await nukiExchange({ code });
-          break;
-        case 'august':
-          // August não usa este callback — fluxo via PIN SMS
-          return redirectWithStatus('error', 'August usa fluxo diferente — POST /oauth/august/start');
-        default:
-          return redirectWithStatus('error', `Provider ${provider} não suportado`);
+        case 'ttlock': await ttlockExchange({ code }); break;
+        case 'tuya': await tuyaExchange({ code }); break;
+        case 'igloohome': await igloohomeExchange({ code }); break;
+        case 'nuki': await nukiExchange({ code }); break;
+        default: return redirectWithStatus('error', 'OAUTH_PROVIDER_UNSUPPORTED');
       }
-    } catch (err) {
-      console.error(`[locks] OAuth token exchange failed for ${provider}:`, err);
-      return redirectWithStatus(
-        'error',
-        `Falha ao trocar código por tokens: ${(err as Error).message.slice(0, 150)}`,
-      );
+    } catch (error) {
+      console.error(`[locks] OAuth token exchange failed for ${provider}:`, error);
+      return redirectWithStatus('error', 'OAUTH_TOKEN_EXCHANGE_FAILED');
     }
 
-    // 5. Sucesso — redireciona de volta para o DDC com hash #locks
-    return redirectWithStatus('success', `${provider} conectado com sucesso`);
+    return redirectWithStatus('success', 'LOCK_PROVIDER_CONNECTED');
   } catch (error) {
     console.error('[LOCKS] OAuth callback error:', error);
-    return NextResponse.json(
-      { success: false, error: 'OAuth callback failed' },
-      { status: 500 },
-    );
+    return redirectWithStatus('error', 'OAUTH_CALLBACK_FAILED');
   }
 }
 
-/**
- * POST /api/ddc/locks/oauth/august/verify — Verifica PIN August enviado por SMS.
- *
- * August tem fluxo diferente dos outros: o host inicia sessão com email/senha,
- * recebe um PIN de 6 dígitos por SMS, e precisa digitar esse PIN para validar.
- *
- * Esta rota também é usada pelo callback de OAuth quando o provider é 'august'.
- */
+/** August usa verificação de código enviada pelo próprio provider. */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ provider: string }> },
 ) {
   try {
+    const tenantId = await resolveTenantId();
+    if (!tenantId) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
+
     const { provider } = await params;
-    if (provider !== 'august') {
-      return NextResponse.json(
-        { success: false, error: 'POST só suportado para August' },
-        { status: 400 },
-      );
+    if (provider !== 'august') return NextResponse.json({ success: false, error: 'PROVIDER_NOT_SUPPORTED' }, { status: 400 });
+
+    const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > 16 * 1024) {
+      return NextResponse.json({ success: false, error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
     }
 
-    const body = await request.json();
-    const { code } = body;
-    if (!code || !/^\d{6}$/.test(code)) {
-      return NextResponse.json(
-        { success: false, error: 'PIN deve ter 6 dígitos' },
-        { status: 400 },
-      );
-    }
+    let body: unknown;
+    try { body = JSON.parse(rawBody); } catch { return NextResponse.json({ success: false, error: 'INVALID_JSON_BODY' }, { status: 400 }); }
+    const code = body && typeof body === 'object' && 'code' in body ? String((body as { code?: unknown }).code ?? '') : '';
+    if (!/^\d{6}$/.test(code)) return NextResponse.json({ success: false, error: 'INVALID_VERIFICATION_CODE' }, { status: 400 });
 
     const { verifySession } = await import('@/lib/locks/providers/august');
     await verifySession({ code });
-
-    return NextResponse.json({
-      success: true,
-      message: 'August conectado com sucesso',
-    });
+    return NextResponse.json({ success: true, message: 'LOCK_PROVIDER_CONNECTED' }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('[LOCKS] August verify error:', error);
-    return NextResponse.json(
-      { success: false, error: (error as Error).message },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'OAUTH_VERIFICATION_FAILED' }, { status: 503 });
   }
 }
