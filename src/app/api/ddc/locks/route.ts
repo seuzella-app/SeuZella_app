@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
     if (!(await resolveTenantId())) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
     const propertyId = new URL(request.url).searchParams.get('propertyId') ?? undefined;
     if (propertyId && propertyId.length > 128) return NextResponse.json({ success: false, error: 'INVALID_PROPERTY_ID' }, { status: 400 });
-
     const devices = await listLockDevices(propertyId);
     return NextResponse.json({ success: true, data: devices }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
@@ -43,13 +42,7 @@ export async function POST(request: NextRequest) {
     const lockBrand = brand as LockBrand;
     const capabilities = getProviderCapabilities(lockBrand);
     const requestedProviderType = source.providerType === 'manual' || source.providerType === 'api' ? source.providerType : capabilities.providerType;
-    if (requestedProviderType !== capabilities.providerType) {
-      return NextResponse.json({ success: false, error: 'LOCK_PROVIDER_TYPE_MISMATCH' }, { status: 400 });
-    }
-    if (capabilities.requiresExternalDeviceId && requestedProviderType === 'api') {
-      const externalDeviceId = typeof source.externalDeviceId === 'string' ? source.externalDeviceId.trim() : '';
-      if (!externalDeviceId || externalDeviceId.length > 256) return NextResponse.json({ success: false, error: 'EXTERNAL_DEVICE_ID_REQUIRED' }, { status: 400 });
-    }
+    if (requestedProviderType !== capabilities.providerType) return NextResponse.json({ success: false, error: 'LOCK_PROVIDER_TYPE_MISMATCH' }, { status: 400 });
 
     const cleanOptional = (key: string, max: number) => {
       const value = source[key];
@@ -57,6 +50,13 @@ export async function POST(request: NextRequest) {
       if (typeof value !== 'string' || value.trim().length > max) throw new Error(`INVALID_${key.toUpperCase()}`);
       return value.trim() || undefined;
     };
+
+    const externalDeviceId = cleanOptional('externalDeviceId', 256);
+    // API devices may be created before OAuth pairing. They become eligible for
+    // provider commands only after the external device identifier is attached.
+    if (externalDeviceId && !capabilities.requiresExternalDeviceId) {
+      return NextResponse.json({ success: false, error: 'EXTERNAL_DEVICE_ID_NOT_SUPPORTED' }, { status: 400 });
+    }
 
     const device = await createLockDevice({
       propertyId,
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       model: cleanOptional('model', 120),
       providerType: requestedProviderType,
       serialNumber: cleanOptional('serialNumber', 120),
-      externalDeviceId: cleanOptional('externalDeviceId', 256),
+      externalDeviceId,
       oauthAccountId: cleanOptional('oauthAccountId', 256),
       notes: cleanOptional('notes', 500),
     });
