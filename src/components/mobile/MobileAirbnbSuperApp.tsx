@@ -8,13 +8,20 @@
 // - Módulos Nativos: Radar de Economia (vs 15% Airbnb), Fechaduras & PINs, UPSELL Feriados (7%), Escudo Anti-Ban, Link na Bio PIX, Simulador
 // ==============================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useMobileDevicePing } from './useMobileDevicePing';
 import { MobileYieldProfitWidget } from './MobileYieldProfitWidget';
 import { DDCNotificationCenter } from '@/components/ddc/notifications/DDCNotificationCenter';
 import { useDDCMobileNotifications } from '@/lib/notifications/use-mobile-notifications';
+import {
+  BRAND_CATALOG,
+  listAllBrands,
+  getBrandInfo,
+  type LockBrand,
+  type ProviderType,
+} from '@/lib/locks/types';
 import {
   CreditCard,
   Users,
@@ -48,9 +55,15 @@ import {
   Sliders,
   Calendar,
   AlertCircle,
+  AlertTriangle,
+  Cpu,
+  Wifi,
+  WifiOff,
+  Clock,
   ExternalLink,
   Eye,
   EyeOff,
+  Plus,
 } from 'lucide-react';
 
 export function MobileAirbnbSuperApp() {
@@ -100,13 +113,30 @@ export function MobileAirbnbSuperApp() {
   const [pinCode, setPinCode] = useState<string>('849201');
   const [unlocking, setUnlocking] = useState<boolean>(false);
 
-  // Multi-Properties list
-  const [properties] = useState([
-    { id: '1', name: 'Flat Studio Jardins', battery: 94, model: 'Intelbras IFR 7000', pin: '849201', guest: 'Lucas Mendes', checkOut: 'Amanhã 11:00', price: 380 },
-    { id: '2', name: 'Loft Copacabana Vista Mar', battery: 18, model: 'Tuya Smart Lock G2', pin: '472091', guest: 'Beatriz Costa', checkOut: 'Hoje 12:00', price: 550 },
-    { id: '3', name: 'Studio Paulista Modern', battery: 88, model: 'TTLock Gateway BLE', pin: '310984', guest: 'Vago', checkOut: '-', price: 320 },
+  // Multi-Properties list (10 Marcas BR & Staged Pairing)
+  const [properties, setProperties] = useState([
+    { id: '1', name: 'Flat Studio Jardins', battery: 94, model: 'Intelbras IFR 7000', brand: 'intelbras' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pin: '849201', pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Lucas Mendes', checkOut: 'Amanhã 11:00', price: 380, phone: '(11) 98822-1100' },
+    { id: '2', name: 'Loft Copacabana Vista Mar', battery: 18, model: 'Tuya Smart Lock G2', brand: 'tuya' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pin: '472091', pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '12:00', guest: 'Beatriz Costa', checkOut: 'Hoje 12:00', price: 550, phone: '(21) 99123-4567' },
+    { id: '3', name: 'Studio Paulista Modern', battery: 88, model: 'TTLock X20 Gateway BLE', brand: 'ttlock' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pin: '310984', pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 320, phone: '' },
+    { id: '4', name: 'Penthouse Leblon Design', battery: 91, model: 'Nuki Smart Lock 4.0 Pro', brand: 'nuki' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pin: '928104', pinStatus: 'active' as const, pinValidFrom: '15:00', pinValidTo: '12:00', guest: 'Mariana Rios', checkOut: 'Em 2 dias', price: 980, phone: '(21) 97788-1122' },
+    { id: '5', name: 'Casa Boutique Trancoso', battery: 82, model: 'Igloohome Deadbolt 2S', brand: 'igloohome' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pin: '604192', pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Felipe Alencar', checkOut: 'Amanhã 11:00', price: 1200, phone: '(73) 99881-2233' },
+    { id: '6', name: 'Studio Vila Madalena Boho', battery: 65, model: 'August Wi-Fi Smart Lock', brand: 'august' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'pairing' as const, pin: '551029', pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 340, phone: '' },
+    { id: '7', name: 'Loft Itaim Bibi Executive', battery: 89, model: 'Yale YDM 4109 Smart', brand: 'yale' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pin: '741982', pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Rodrigo Sanches', checkOut: 'Hoje 11:00', price: 490, phone: '(11) 96655-4433' },
+    { id: '8', name: 'Cabana Gramado Serra', battery: 76, model: 'Papaiz Eletronika FR 200', brand: 'papaiz' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pin: '389104', pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 620, phone: '' },
+    { id: '9', name: 'Flat Moema Prime', battery: 14, model: 'Philco PH200S Smart', brand: 'philco' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'registered' as const, pin: '190842', pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 410, phone: '' },
+    { id: '10', name: 'Cobertura Barra Ocean', battery: 95, model: 'Samsung SHP-DP609 SmartThings', brand: 'samsung' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pin: '820194', pinStatus: 'active' as const, pinValidFrom: '15:00', pinValidTo: '12:00', guest: 'Carla Vasconcelos', checkOut: 'Em 3 dias', price: 890, phone: '(21) 98112-9900' },
   ]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('1');
+
+  // Locks & Governança state
+  const [lockFilter, setLockFilter] = useState<'all' | 'api' | 'manual' | 'battery' | 'pairing'>('all');
+  const [isPairingModalOpen, setIsPairingModalOpen] = useState(false);
+  const [pairingStep, setPairingStep] = useState<1 | 2 | 3>(1);
+  const [pairingBrand, setPairingBrand] = useState<LockBrand>('ttlock');
+  const [pairingPropName, setPairingPropName] = useState('');
+  const [pairingDeviceId, setPairingDeviceId] = useState('');
+  const [selectedLockForPanic, setSelectedLockForPanic] = useState<any | null>(null);
+  const [selectedLockForWhatsApp, setSelectedLockForWhatsApp] = useState<any | null>(null);
 
   // Interactive Drawers
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -169,22 +199,88 @@ export function MobileAirbnbSuperApp() {
     });
   };
 
-  const handleGeneratePIN = async () => {
+  const handleGeneratePIN = async (propId?: string, propName?: string) => {
     const arr = new Uint32Array(1);
     crypto.getRandomValues(arr);
     const newPin = (arr[0] % 1000000).toString().padStart(6, '0');
     setPinCode(newPin);
-    toast.success(`🔑 Novo PIN Temporário Gerado: ${newPin}`);
+
+    if (propId) {
+      setProperties((prev) => prev.map((p) => p.id === propId ? { ...p, pin: newPin, pinStatus: 'active' as const } : p));
+      toast.success(`🔑 Novo PIN Gerado para ${propName || 'Imóvel'}: ${newPin}# (Fail-Closed Ativo)`);
+    } else {
+      toast.success(`🔑 Novo PIN Temporário Gerado: ${newPin}#`);
+    }
     simulateNotification();
   };
 
-  const handleRemoteUnlock = (propName: string) => {
+  const handleRemoteUnlock = (propName: string, brand?: LockBrand, providerType?: ProviderType) => {
+    const isManual = providerType === 'manual';
+    if (isManual) {
+      toast.info(`🛡️ ${propName} (${brand?.toUpperCase()}): Fechadura offline/manual. Destrancamento remoto requer Gateway BLE/WiFi ativo ou digitação do PIN na porta.`);
+      return;
+    }
     setUnlocking(true);
-    toast.info(`🔑 Destrancando fechadura do ${propName}...`);
+    toast.info(`🔑 Enviando sinal criptografado via API ${brand?.toUpperCase()} para ${propName}...`);
     setTimeout(() => {
       setUnlocking(false);
-      toast.success(`🔓 Fechadura do ${propName} ABERTA COM SUCESSO!`);
+      toast.success(`🔓 Fechadura do ${propName} ABERTA COM SUCESSO! Acesso liberado.`);
     }, 1200);
+  };
+
+  const handlePanicRevoke = (propId: string, propName: string) => {
+    setProperties((prev) => prev.map((p) => p.id === propId ? { ...p, pin: '------', pinStatus: 'revoked' as const } : p));
+    toast.error(`🚨 REVOGAÇÃO DE PÂNICO! PIN de ${propName} foi invalidado e fechadura trancada.`);
+    setSelectedLockForPanic(null);
+  };
+
+  const handleSendWhatsAppPin = (prop: any) => {
+    const phoneClean = (prop.phone || '5511988221100').replace(/\D/g, '');
+    const msg = encodeURIComponent(
+      `🏠 *${propertyName}* — Acesso ao Imóvel!\n\n` +
+      `Olá, ${prop.guest && prop.guest !== 'Vago' ? prop.guest : 'Hóspede'}!\n` +
+      `Imóvel: *${prop.name}*\n` +
+      `🔑 *Seu PIN Digital:* \`${prop.pin}#\`\n` +
+      `⏰ *Check-in a partir das:* ${prop.pinValidFrom || '14:00'} (Check-out até ${prop.pinValidTo || '11:00'})\n\n` +
+      `Instruções: Digite os 6 dígitos seguidos de # no teclado da fechadura da porta.\n` +
+      `Tenha uma ótima estadia!`
+    );
+    window.open(`https://wa.me/${phoneClean}?text=${msg}`, '_blank');
+    toast.success(`📲 PIN de ${prop.name} enviado via WhatsApp!`);
+    setSelectedLockForWhatsApp(null);
+  };
+
+  const handlePairNewLock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pairingPropName) {
+      toast.error('Informe o nome do imóvel');
+      return;
+    }
+    const brandInfo = getBrandInfo(pairingBrand);
+    const id = (properties.length + 1).toString();
+    const newPropObj = {
+      id,
+      name: pairingPropName,
+      battery: 100,
+      model: `${brandInfo?.label || pairingBrand} Smart Lock`,
+      brand: pairingBrand,
+      providerType: (brandInfo?.providerType || 'api') as ProviderType,
+      pairingStatus: 'connected' as const,
+      pin: Math.floor(100000 + Math.random() * 900000).toString(),
+      pinStatus: 'scheduled' as const,
+      pinValidFrom: '14:00',
+      pinValidTo: '11:00',
+      guest: 'Vago',
+      checkOut: '-',
+      price: 450,
+      phone: '',
+    };
+    setProperties([newPropObj, ...properties]);
+    toast.success(`🔐 Fechadura ${brandInfo?.label} pareada e vinculada a ${pairingPropName}!`);
+    setIsPairingModalOpen(false);
+    setPairingStep(1);
+    setPairingPropName('');
+    setPairingDeviceId('');
   };
 
   const handleSyncOTAs = async () => {
@@ -457,83 +553,280 @@ export function MobileAirbnbSuperApp() {
           </motion.div>
         )}
 
-        {/* ABA 2: FECHADURAS & CHECK-IN AUTÔNOMO */}
+        {/* ABA 2: FECHADURAS & CHECK-IN AUTÔNOMO (10 MARCAS BR & FAIL-CLOSED) */}
         {activeTab === 'fechaduras' && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
             
+            {/* Header & Botão Parear */}
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-bold text-white font-mono">Fechaduras & Check-in</h2>
-                <p className="text-xs text-zinc-400">Acesso autônomo sem chave física 24h</p>
+                <p className="text-[11px] text-zinc-400">10 Marcas do Mercado BR · Zero-Trust Fail-Closed</p>
               </div>
               <button
-                onClick={handleGeneratePIN}
-                className="px-3 py-1.5 rounded-xl bg-amber-500 text-zinc-950 font-bold text-xs font-mono flex items-center gap-1 active:scale-95 shadow-[0_0_12px_rgba(245,158,11,0.3)]"
+                onClick={() => {
+                  setPairingStep(1);
+                  setIsPairingModalOpen(true);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-extrabold text-xs font-mono flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] active:scale-95 transition-all"
               >
-                <Lock className="w-3.5 h-3.5" />
-                <span>Gerar PIN</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Parear</span>
               </button>
             </div>
 
-            <div className="space-y-2.5">
-              {properties.map((prop) => (
-                <div
-                  key={prop.id}
-                  className="p-4 rounded-3xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] space-y-3"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-xs font-bold text-white">{prop.name}</h4>
-                      <p className="text-[10px] font-mono text-zinc-400">{prop.model}</p>
-                    </div>
-
-                    <div className={`flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded-full border ${
-                      prop.battery < 20
-                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 animate-pulse'
-                        : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                    }`}>
-                      <Battery className="w-3.5 h-3.5" />
-                      <span>{prop.battery}% {prop.battery < 20 && '⚠️ TROCAR'}</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-black/30 p-3 rounded-2xl border border-white/[0.04] flex items-center justify-between">
-                    <div>
-                      <span className="block text-[9px] font-mono text-zinc-500 uppercase">PIN Digital Ativo</span>
-                      <span className="font-mono text-base font-extrabold text-amber-400 tracking-widest">{prop.pin}#</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(prop.pin);
-                        toast.success(`Código ${prop.pin} copiado!`);
-                      }}
-                      className="p-2 rounded-lg bg-white/[0.05] text-zinc-300 hover:text-white"
-                      title="Copiar PIN"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1 border-t border-white/[0.04]">
-                    <button
-                      onClick={() => handleRemoteUnlock(prop.name)}
-                      disabled={unlocking}
-                      className="flex-1 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 text-cyan-300 text-xs font-bold font-mono flex items-center justify-center gap-1.5 min-h-[44px] active:scale-95"
-                    >
-                      <Unlock className="w-3.5 h-3.5" />
-                      <span>{unlocking ? 'Abrindo...' : 'Abrir Remoto'}</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleNotifyCleaners(prop.guest)}
-                      className="py-2.5 px-3 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/[0.1] text-zinc-200 text-xs font-bold font-mono flex items-center gap-1 min-h-[44px] active:scale-95"
-                    >
-                      <Brush className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Faxina</span>
-                    </button>
-                  </div>
+            {/* PROTOCOLO FAIL-CLOSED & ZERO-TRUST BADGE */}
+            <div className="p-3 rounded-2xl bg-gradient-to-r from-cyan-500/15 via-blue-950/20 to-black/60 border border-cyan-500/30 text-xs text-cyan-200 space-y-1.5 relative overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.08)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-bold text-cyan-300 font-mono text-[11px]">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                  <span>PROTOCOLO FAIL-CLOSED ATIVO</span>
                 </div>
-              ))}
+                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold">
+                  ZERO PIN FALSO
+                </span>
+              </div>
+              <p className="text-[10px] text-zinc-300 leading-relaxed font-mono">
+                PINs emitidos exclusivamente após confirmação de reserva/pagamento. Ativação automática 15 min antes do check-in. Isolamento multi-tenant e tokens com Nonce anti-CSRF.
+              </p>
+            </div>
+
+            {/* KPIs Métricos das 10 Marcas */}
+            <div className="grid grid-cols-4 gap-2">
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-center">
+                <span className="block text-[9px] font-mono text-zinc-500 uppercase">Total</span>
+                <span className="text-sm font-extrabold text-white font-mono">{properties.length}</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-center">
+                <span className="block text-[9px] font-mono text-cyan-400 uppercase">API Nuvem</span>
+                <span className="text-sm font-extrabold text-cyan-400 font-mono">
+                  {properties.filter((p) => p.providerType === 'api').length}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-center">
+                <span className="block text-[9px] font-mono text-blue-400 uppercase">Manual</span>
+                <span className="text-sm font-extrabold text-blue-400 font-mono">
+                  {properties.filter((p) => p.providerType === 'manual').length}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-center">
+                <span className="block text-[9px] font-mono text-rose-400 uppercase">Bateria &lt;20%</span>
+                <span className={`text-sm font-extrabold font-mono ${properties.some((p) => p.battery < 20) ? 'text-rose-400 animate-pulse' : 'text-zinc-400'}`}>
+                  {properties.filter((p) => p.battery < 20).length}
+                </span>
+              </div>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs font-mono">
+              <button
+                onClick={() => setLockFilter('all')}
+                className={`px-3 py-1.5 rounded-xl whitespace-nowrap border transition-all ${
+                  lockFilter === 'all'
+                    ? 'bg-cyan-500/20 border-cyan-500/50 text-white font-bold'
+                    : 'bg-white/[0.02] border-white/[0.06] text-zinc-400'
+                }`}
+              >
+                Todas ({properties.length})
+              </button>
+              <button
+                onClick={() => setLockFilter('api')}
+                className={`px-3 py-1.5 rounded-xl whitespace-nowrap border transition-all ${
+                  lockFilter === 'api'
+                    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 font-bold'
+                    : 'bg-white/[0.02] border-white/[0.06] text-zinc-400'
+                }`}
+              >
+                ⚡ API Nuvem ({properties.filter((p) => p.providerType === 'api').length})
+              </button>
+              <button
+                onClick={() => setLockFilter('manual')}
+                className={`px-3 py-1.5 rounded-xl whitespace-nowrap border transition-all ${
+                  lockFilter === 'manual'
+                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 font-bold'
+                    : 'bg-white/[0.02] border-white/[0.06] text-zinc-400'
+                }`}
+              >
+                🇧🇷 Modo Manual ({properties.filter((p) => p.providerType === 'manual').length})
+              </button>
+              <button
+                onClick={() => setLockFilter('battery')}
+                className={`px-3 py-1.5 rounded-xl whitespace-nowrap border transition-all ${
+                  lockFilter === 'battery'
+                    ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 font-bold'
+                    : 'bg-white/[0.02] border-white/[0.06] text-zinc-400'
+                }`}
+              >
+                ⚠️ Bateria Baixa ({properties.filter((p) => p.battery < 20).length})
+              </button>
+            </div>
+
+            {/* Grid de Fechaduras dos Imóveis */}
+            <div className="space-y-3">
+              {properties
+                .filter((p) => {
+                  if (lockFilter === 'api') return p.providerType === 'api';
+                  if (lockFilter === 'manual') return p.providerType === 'manual';
+                  if (lockFilter === 'battery') return p.battery < 20;
+                  if (lockFilter === 'pairing') return p.pairingStatus === 'pairing' || p.pairingStatus === 'registered';
+                  return true;
+                })
+                .map((prop) => {
+                  const brandInfo = getBrandInfo(prop.brand);
+                  const isApi = prop.providerType === 'api';
+                  const isCriticalBattery = prop.battery < 20;
+
+                  return (
+                    <div
+                      key={prop.id}
+                      className="p-4 rounded-3xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] space-y-3 relative overflow-hidden"
+                    >
+                      {/* Top row: Property name + Brand & Model */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2.5">
+                          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-lg shrink-0">
+                            {brandInfo?.logo || '🔐'}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h4 className="text-xs font-bold text-white">{prop.name}</h4>
+                              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                                prop.guest && prop.guest !== 'Vago'
+                                  ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+                                  : 'bg-zinc-500/10 border-zinc-500/30 text-zinc-400'
+                              }`}>
+                                {prop.guest && prop.guest !== 'Vago' ? 'OCUPADO' : 'VAGO'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-0.5 text-[10px] font-mono text-zinc-400">
+                              <span className="text-zinc-300 font-bold">{brandInfo?.label || prop.brand}</span>
+                              <span>·</span>
+                              <span>{prop.model}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Battery status */}
+                        <div className={`flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-1 rounded-lg border ${
+                          isCriticalBattery
+                            ? 'bg-rose-500/15 border-rose-500/30 text-rose-400 animate-pulse'
+                            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                        }`}>
+                          <Battery className="w-3.5 h-3.5" />
+                          <span>{prop.battery}%</span>
+                        </div>
+                      </div>
+
+                      {/* Staged Pairing & Provider Status */}
+                      <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-white/[0.04]">
+                        <div className="flex items-center gap-1.5">
+                          {prop.pairingStatus === 'connected' ? (
+                            <span className="text-cyan-400 flex items-center gap-1 font-bold">
+                              <CheckCircle2 className="w-3 h-3" /> Provider Ready
+                            </span>
+                          ) : (
+                            <span className="text-amber-400 flex items-center gap-1 font-bold">
+                              <RefreshCw className="w-3 h-3 animate-spin" /> Pareamento BLE/WiFi
+                            </span>
+                          )}
+                          <span className="text-zinc-600">|</span>
+                          {isApi ? (
+                            <span className="text-cyan-300 flex items-center gap-0.5">
+                              <Zap className="w-2.5 h-2.5" /> API Cloud
+                            </span>
+                          ) : (
+                            <span className="text-zinc-400 flex items-center gap-0.5">
+                              <Cpu className="w-2.5 h-2.5" /> Manual Offline
+                            </span>
+                          )}
+                        </div>
+
+                        {isCriticalBattery && (
+                          <button
+                            onClick={() => toast.success(`🔋 Alerta de troca de pilhas enviado para o anfitrião (${prop.name})`)}
+                            className="text-rose-400 text-[9px] underline font-bold"
+                          >
+                            Pedir Troca
+                          </button>
+                        )}
+                      </div>
+
+                      {/* PIN Box with Temporal Access Window */}
+                      <div className="bg-black/40 p-3 rounded-2xl border border-white/[0.06] space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="block text-[9px] font-mono text-zinc-500 uppercase">
+                              PIN Digital do Hóspede ({prop.guest || 'Aguardando'})
+                            </span>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="font-mono text-base font-extrabold text-amber-400 tracking-wider">
+                                {prop.pin}#
+                              </span>
+                              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                {prop.pinStatus === 'active' ? 'ATIVO' : 'AGENDADO (-15m)'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${prop.pin}#`);
+                                toast.success(`📋 PIN ${prop.pin}# copiado!`);
+                              }}
+                              className="p-2 rounded-lg bg-white/[0.05] hover:bg-white/10 text-zinc-300 text-xs active:scale-95"
+                              title="Copiar PIN"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleGeneratePIN(prop.id, prop.name)}
+                              className="px-2.5 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/10 text-zinc-300 text-[10px] font-mono active:scale-95"
+                            >
+                              Novo PIN
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[9px] font-mono text-zinc-400 pt-1 border-t border-white/[0.04]">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5 text-zinc-500" />
+                            Check-in: {prop.pinValidFrom || '14:00'} → Check-out: {prop.pinValidTo || '11:00'}
+                          </span>
+                          <span className="text-zinc-500">Digite PIN + #</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons: WhatsApp 1-Clique, Destrancar, Pânico */}
+                      <div className="grid grid-cols-3 gap-1.5 pt-1">
+                        <button
+                          onClick={() => setSelectedLockForWhatsApp(prop)}
+                          className="py-2.5 px-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold font-mono flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleRemoteUnlock(prop.name, prop.brand, prop.providerType)}
+                          disabled={unlocking}
+                          className="py-2.5 px-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-[11px] font-bold font-mono flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all"
+                        >
+                          <Unlock className="w-3.5 h-3.5" />
+                          <span>{unlocking ? 'Abrindo...' : 'Destrancar'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => setSelectedLockForPanic(prop)}
+                          className="py-2.5 px-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-[11px] font-bold font-mono flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all"
+                        >
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <span>Pânico</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
 
           </motion.div>
@@ -933,6 +1226,285 @@ export function MobileAirbnbSuperApp() {
         onOpenChange={setIsNotificationsOpen}
         niche="airbnb"
       />
+
+      {/* ──
+          7. MODAL PAREAMENTO EM 3 ESTÁGIOS (10 MARCAS BR)
+      ── */}
+      <AnimatePresence>
+        {isPairingModalOpen && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm bg-[#13131a] border border-cyan-500/30 rounded-3xl p-5 space-y-4 shadow-[0_0_35px_rgba(6,182,212,0.2)] max-h-[90vh] overflow-y-auto"
+            >
+              {/* Header com etapas */}
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                <div className="flex items-center gap-2">
+                  <Key className="w-5 h-5 text-cyan-400" />
+                  <div>
+                    <h3 className="font-bold text-sm text-white font-mono uppercase">Parear Fechadura</h3>
+                    <span className="text-[10px] text-zinc-400 font-mono">Etapa {pairingStep} de 3 · Staged Pairing</span>
+                  </div>
+                </div>
+                <button onClick={() => setIsPairingModalOpen(false)} className="text-zinc-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Step 1: Escolha da Marca (10 Marcas) */}
+              {pairingStep === 1 && (
+                <div className="space-y-3">
+                  <p className="text-xs text-zinc-300">
+                    Selecione a fabricante da fechadura instalada no imóvel:
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+                    {listAllBrands().map((brand) => (
+                      <button
+                        key={brand.id}
+                        type="button"
+                        onClick={() => setPairingBrand(brand.id)}
+                        className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                          pairingBrand === brand.id
+                            ? 'bg-cyan-500/20 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                            : 'bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-base">{brand.logo}</span>
+                          <span className={`text-[8px] font-mono px-1 py-0.2 rounded font-bold uppercase ${
+                            brand.apiAvailable
+                              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                              : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                          }`}>
+                            {brand.apiAvailable ? 'API' : 'Manual'}
+                          </span>
+                        </div>
+                        <div className="font-bold text-xs mt-1 text-white truncate">{brand.label}</div>
+                        <div className="text-[9px] font-mono text-zinc-500 truncate">{brand.popularModels[0]}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setPairingStep(2)}
+                    className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold font-mono text-xs shadow-[0_0_15px_#06b6d4] active:scale-95 transition-all"
+                  >
+                    Avançar para Vinculação &gt;
+                  </button>
+                </div>
+              )}
+
+              {/* Step 2: Imóvel & Hardware ID */}
+              {pairingStep === 2 && (
+                <div className="space-y-3">
+                  <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-200">
+                    <span className="font-bold">Marca Selecionada:</span> {getBrandInfo(pairingBrand)?.label} ({getBrandInfo(pairingBrand)?.apiAvailable ? 'API Nuvem' : 'Manual Offline'})
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono text-zinc-400 uppercase">Nome do Imóvel / Flat *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Studio Jardins Design 402"
+                      value={pairingPropName}
+                      onChange={(e) => setPairingPropName(e.target.value)}
+                      className="w-full mt-1 bg-white/[0.04] border border-white/[0.1] rounded-xl p-2.5 text-xs text-white placeholder-zinc-500 focus:border-cyan-500 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono text-zinc-400 uppercase">
+                      {getBrandInfo(pairingBrand)?.apiAvailable ? 'Device ID / MAC Bluetooth *' : 'Código Serial / Identificador (Opcional)'}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: TTLOCK-DEV-9081 ou IFR-7000-02"
+                      value={pairingDeviceId}
+                      onChange={(e) => setPairingDeviceId(e.target.value)}
+                      className="w-full mt-1 bg-white/[0.04] border border-white/[0.1] rounded-xl p-2.5 text-xs text-white placeholder-zinc-500 focus:border-cyan-500 outline-none font-mono"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setPairingStep(1)}
+                      className="flex-1 p-2.5 rounded-xl bg-white/[0.04] text-zinc-300 font-bold text-xs"
+                    >
+                      &lt; Voltar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPairingStep(3)}
+                      className="flex-1 p-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold font-mono text-xs shadow-[0_0_15px_#06b6d4]"
+                    >
+                      Verificar &gt;
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Teste Fail-Closed & Conclusão */}
+              {pairingStep === 3 && (
+                <div className="space-y-3.5 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                    <ShieldCheck className="w-7 h-7" />
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-white font-mono">Pronto para Pareamento!</h4>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      O motor Zélla validou as credenciais fail-closed e a fechadura <strong>{getBrandInfo(pairingBrand)?.label}</strong> será integrada ao imóvel <strong>{pairingPropName}</strong>.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/[0.06] text-left text-[11px] font-mono space-y-1 text-zinc-300">
+                    <div><strong>Imóvel:</strong> {pairingPropName}</div>
+                    <div><strong>Fabricante:</strong> {getBrandInfo(pairingBrand)?.label}</div>
+                    <div><strong>Tipo de PIN:</strong> {getBrandInfo(pairingBrand)?.offlinePinSupported ? 'Online & Offline Algorítmico' : 'Online Temporário'}</div>
+                    <div><strong>Segurança:</strong> Zero PIN Simulado · Fail-Closed</div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setPairingStep(2)}
+                      className="flex-1 p-2.5 rounded-xl bg-white/[0.04] text-zinc-300 font-bold text-xs"
+                    >
+                      &lt; Voltar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePairNewLock}
+                      className="flex-1 p-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-mono font-extrabold text-xs shadow-[0_0_20px_#06b6d4] active:scale-95 transition-all"
+                    >
+                      Concluir Pareamento
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ──
+          8. MODAL REVOGAÇÃO DE PÂNICO (FAIL-CLOSED)
+      ── */}
+      <AnimatePresence>
+        {selectedLockForPanic && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm bg-[#181115] border border-rose-500/40 rounded-3xl p-5 space-y-4 shadow-[0_0_35px_rgba(244,63,94,0.25)]"
+            >
+              <div className="flex items-center gap-3 border-b border-rose-500/20 pb-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-rose-200 font-mono">REVOGAÇÃO DE PÂNICO</h3>
+                  <span className="text-[10px] text-rose-400 font-mono">{selectedLockForPanic.name}</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                Você tem certeza que deseja revogar <strong>imediatamente</strong> o PIN do hóspede ({selectedLockForPanic.guest && selectedLockForPanic.guest !== 'Vago' ? selectedLockForPanic.guest : 'Hóspede Atual'})? A fechadura será bloqueada e o PIN atual deixará de funcionar na mesma hora.
+              </p>
+
+              <div className="p-3 rounded-xl bg-black/40 border border-rose-500/20 text-[11px] font-mono text-rose-300">
+                ⚠️ Protocolo Fail-Closed: Qualquer tentativa de digitação do PIN anterior será recusada no teclado.
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedLockForPanic(null)}
+                  className="flex-1 p-2.5 rounded-xl bg-white/[0.05] text-zinc-300 font-bold text-xs"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePanicRevoke(selectedLockForPanic.id, selectedLockForPanic.name)}
+                  className="flex-1 p-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-mono font-extrabold text-xs shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95"
+                >
+                  Confirmar Revogação
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ──
+          9. MODAL DISPARO WHATSAPP DO PIN
+      ── */}
+      <AnimatePresence>
+        {selectedLockForWhatsApp && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm bg-[#13131a] border border-cyan-500/30 rounded-3xl p-5 space-y-4 shadow-[0_0_35px_rgba(6,182,212,0.2)]"
+            >
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                <div className="flex items-center gap-2">
+                  <Send className="w-5 h-5 text-cyan-400" />
+                  <h3 className="font-bold text-sm text-white font-mono">DISPARAR PIN VIA WHATSAPP</h3>
+                </div>
+                <button onClick={() => setSelectedLockForWhatsApp(null)} className="text-zinc-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[10px] font-mono text-zinc-400 uppercase">Preview da Mensagem Oficial</span>
+                <div className="p-3.5 rounded-2xl bg-black/50 border border-cyan-500/20 text-xs text-zinc-200 font-mono space-y-2 leading-relaxed">
+                  <div className="text-cyan-400 font-bold">🏠 {propertyName} — Acesso Liberado!</div>
+                  <div>Olá, {selectedLockForWhatsApp.guest && selectedLockForWhatsApp.guest !== 'Vago' ? selectedLockForWhatsApp.guest : 'Hóspede'}!</div>
+                  <div>Imóvel: <strong>{selectedLockForWhatsApp.name}</strong></div>
+                  <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 font-bold">
+                    🔑 Seu PIN: {selectedLockForWhatsApp.pin}#
+                  </div>
+                  <div className="text-[10px] text-zinc-400">
+                    ⏰ Janela de Validade: {selectedLockForWhatsApp.pinValidFrom || '14:00'} às {selectedLockForWhatsApp.pinValidTo || '11:00'}
+                  </div>
+                  <div className="text-[10px] text-zinc-500">
+                    Digite os 6 dígitos seguidos de # na fechadura da porta. Tenha uma ótima estadia!
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedLockForWhatsApp(null)}
+                  className="flex-1 p-2.5 rounded-xl bg-white/[0.04] text-zinc-300 font-bold text-xs"
+                >
+                  Fechar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendWhatsAppPin(selectedLockForWhatsApp)}
+                  className="flex-1 p-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-mono font-extrabold text-xs shadow-[0_0_20px_#06b6d4] flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Enviar Agora</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

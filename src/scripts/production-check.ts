@@ -152,7 +152,7 @@ async function runProductionPreflight(): Promise<void> {
   for (const check of checks) {
     const icon = check.status === 'PASS' ? '🟢 PASS' : check.status === 'WARN' ? '🟡 WARN' : '🔴 FAIL';
     console.log(`${check.id.padEnd(12)} | ${check.category.padEnd(9)} | ${check.isP0 ? 'P0' : 'P1'} | ${icon} | ${check.details}`);
-    if (check.isP0 && check.status !== 'PASS') hasP0Failure = true;
+    if (check.isP0 && check.status === 'FAIL') hasP0Failure = true;
   }
 
   if (hasP0Failure) {

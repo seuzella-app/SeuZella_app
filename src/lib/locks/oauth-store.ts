@@ -1,3 +1,7 @@
+// =============================================================================
+// 🔐 SEU ZÉLLA — OAuth Token Store para Fechaduras Eletrônicas
+// Armazenamento seguro de tokens OAuth2 com criptografia autenticada AES-256-GCM
+// =============================================================================
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { encryptText, decryptText } from '@/lib/encryption';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';

@@ -209,6 +209,34 @@ export function LocksTab({ niche, propertyId = 'demo-prop-1' }: LocksTabProps) {
             warn={lowBatteryDevices > 0}
           />
         </div>
+
+        {/* ─── PROTOCOLO FAIL-CLOSED & ZERO-TRUST ─── */}
+        <div className="mt-4 p-3.5 rounded-xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-purple-500/10 border border-emerald-500/30 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono font-bold text-white uppercase tracking-wider text-[11px]">
+                  Protocolo de Segurança Fail-Closed & Zero Trust
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono text-[9px] font-bold border border-emerald-500/30">
+                  PROTEÇÃO ATIVA
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-300 mt-0.5 leading-relaxed">
+                Zero PIN simulado sem provider validado. Janela temporal estrita (-15 min do check-in após PIX confirmado). Staged Pairing com Nonce anti-CSRF e isolamento multi-tenant.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400 shrink-0">
+            <span className="px-2 py-1 rounded bg-black/40 border border-white/10 text-emerald-400">10 Marcas BR</span>
+            <span className="px-2 py-1 rounded bg-black/40 border border-white/10 text-blue-400">Staged Pairing</span>
+            <span className="px-2 py-1 rounded bg-black/40 border border-white/10 text-purple-400">Anti-BOLA</span>
+          </div>
+        </div>
       </motion.div>
 
       {/* ─── LOADING ─── */}
