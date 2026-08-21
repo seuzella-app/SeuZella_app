@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSpreadsheet, generateCSV } from '@/lib/export-spreadsheet';
 import { apiRatelimit } from '@/lib/rate-limit';
-import { withApiGuard } from '@/lib/security/api-guard';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthSession } from '@/lib/auth-guard';
 
 export async function POST(request: NextRequest) {
+  const { session, errorResponse } = await getAuthSession(request);
+  if (errorResponse) return errorResponse;
+
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  const rl = await apiRatelimit.limit(`api:${clientIp}:${new URL(request.url).pathname}`);
+  const rl = await apiRatelimit.limit(`api:${session!.tenantId}:${clientIp}:${new URL(request.url).pathname}`);
   if (!rl.success) {
     return NextResponse.json(
       { error: 'RATE_LIMITED', message: 'Muitas requisições.', retryAfter: Math.ceil((rl.reset - Date.now()) / 1000) },
@@ -19,47 +20,47 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const leads = body.leads;
 
-    if (!leads || !Array.isArray(leads) || leads.length === 0) {
-      return NextResponse.json(
-        { error: 'Nenhum lead fornecido para exportação' },
-        { status: 400, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
-      );
+    if (!Array.isArray(leads) || leads.length === 0 || leads.length > 5000) {
+      return NextResponse.json({ error: 'Quantidade de leads inválida' }, { status: 400 });
+    }
+
+    const foreignTenant = leads.some((lead: unknown) => {
+      if (!lead || typeof lead !== 'object') return false;
+      const candidate = lead as { tenantId?: unknown };
+      return candidate.tenantId !== undefined && candidate.tenantId !== session!.tenantId;
+    });
+    if (foreignTenant) {
+      return NextResponse.json({ error: 'TENANT_SCOPE_VIOLATION' }, { status: 403 });
     }
 
     const format = body.format || 'xlsx';
+    const headers = { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'X-Security-Shield': 'zero-trust-v3' };
 
     if (format === 'csv') {
       const csv = generateCSV(leads);
       return new NextResponse(csv, {
         headers: {
+          ...headers,
           'Content-Type': 'text/tab-separated-values; charset=utf-8',
-          'Content-Disposition':
-            'attachment; filename="secretaria_leads_' +
-            new Date().toISOString().slice(0, 10) +
-            '.csv"',
-          'X-Security-Shield': 'zero-trust-v2',
+          'Content-Disposition': `attachment; filename="secretaria_leads_${new Date().toISOString().slice(0, 10)}.csv"`,
         },
       });
     }
 
-    /* Default: xlsx */
-    const buffer = generateSpreadsheet(leads);
-    const filename =
-      'secretaria_leads_' + new Date().toISOString().slice(0, 10) + '.xlsx';
+    if (format !== 'xlsx') {
+      return NextResponse.json({ error: 'FORMATO_NAO_PERMITIDO' }, { status: 400, headers });
+    }
 
+    const buffer = generateSpreadsheet(leads);
     return new NextResponse(buffer, {
       headers: {
-        'Content-Type':
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        ...headers,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="secretaria_leads_${new Date().toISOString().slice(0, 10)}.xlsx"`,
         'Content-Length': String(buffer.byteLength),
-        'X-Security-Shield': 'zero-trust-v2',
       },
     });
   } catch {
-    return NextResponse.json(
-      { error: 'Erro ao gerar planilha' },
-      { status: 500, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
-    );
+    return NextResponse.json({ error: 'Erro ao gerar planilha' }, { status: 500 });
   }
 }
