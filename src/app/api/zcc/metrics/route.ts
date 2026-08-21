@@ -4,263 +4,94 @@ import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 import { getAggregates, getActiveTenantIds, getBurnRate, getRevenue } from '@/lib/telemetry-store';
 
 export async function GET(request: NextRequest) {
-  // ── Security Gate V3 — 6-Layer Protection ──
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response!;
 
   try {
-    // ── Core counts ──────────────────────────────────────────────
     const [totalClients, totalRooms, totalReservations, totalTransactions] = await Promise.all([
       db.tenant.count(),
       db.room.count(),
       db.reservation.count(),
-      db.transaction.findMany({
-        where: { type: 'PAYMENT', status: 'COMPLETED' },
-        select: { amount: true },
-      }),
+      db.transaction.findMany({ where: { type: 'PAYMENT', status: 'COMPLETED' }, select: { amount: true } }),
     ]);
-
     const totalRevenue = totalTransactions.reduce((sum, t) => sum + t.amount, 0);
 
-    // ── AI messages processed ────────────────────────────────────
-    let totalMessagesProcessed = 0;
-    try {
-      totalMessagesProcessed = await db.guestMessage.count({
-        where: { from: 'ai' },
-      });
-    } catch {
-      totalMessagesProcessed = 0;
-    }
+    const totalMessagesProcessed = await db.guestMessage.count({ where: { from: 'ai' } });
+    const occupiedRooms = await db.room.count({ where: { status: 'ocupado' } });
+    const avgOccupancy = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+    const newTenantsThisMonth = await db.tenant.count({ where: { createdAt: { gte: thirtyDaysAgo } } });
+    const monthlyGrowth = totalClients > 0 ? Math.round((newTenantsThisMonth / totalClients) * 100) : 0;
 
-    // ── Average occupancy ────────────────────────────────────────
-    let avgOccupancy = 0;
-    try {
-      const occupiedRooms = await db.room.count({
-        where: { status: 'ocupado' },
-      });
-      avgOccupancy = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
-    } catch {
-      avgOccupancy = 0;
-    }
-
-    // ── Monthly growth (placeholder — based on tenant count delta) ─
-    let monthlyGrowth = 0;
-    try {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
-      const newTenantsThisMonth = await db.tenant.count({
-        where: { createdAt: { gte: thirtyDaysAgo } },
-      });
-      monthlyGrowth = totalClients > 0 ? Math.round((newTenantsThisMonth / totalClients) * 100) : 0;
-    } catch {
-      monthlyGrowth = 0;
-    }
-
-    // ── MRR by niche ─────────────────────────────────────────────
     const allTenants = await db.tenant.findMany({
       select: {
-        id: true,
-        plan: true,
-        status: true,
-        property: { select: { type: true } },
-        airbSubscriptions: {
-          where: { status: 'active' },
-          select: { amount: true, planType: true, status: true },
-        },
-        subscriptions: {
-          where: { status: 'active' },
-          select: { amount: true, planType: true, status: true },
-        },
+        id: true, plan: true, property: { select: { type: true } },
+        airbSubscriptions: { where: { status: 'active' }, select: { amount: true, status: true } },
+        subscriptions: { where: { status: 'active' }, select: { amount: true, status: true } },
       },
     });
 
-    let mrrPousadas = 0;
-    let mrrAirbnb = 0;
-    let mrrParceiro = 0;
-
-    const planPricing: Record<string, number> = {
-      trial: 0,
-      starter: 147,
-      pro: 297,
-      business: 597,
-    };
-
+    const planPricing: Record<string, number> = { trial: 0, starter: 147, pro: 297, business: 597 };
+    let mrrPousadas = 0, mrrAirbnb = 0, mrrParceiro = 0;
     for (const tenant of allTenants) {
       const propertyType = tenant.property?.type || 'pousada';
-      const isAirbnb = propertyType === 'airbnb' || (tenant.airbSubscriptions?.length ?? 0) > 0;
-      const isParceiro = tenant.plan === 'parceiro';
-
-      if (isParceiro) {
-        const sub = tenant.subscriptions.find(s => s.status === 'active');
-        mrrParceiro += sub?.amount ?? 97;
-      } else if (isAirbnb) {
-        const airbSub = tenant.airbSubscriptions.find(s => s.status === 'active');
-        mrrAirbnb += airbSub?.amount ?? 397;
-      } else {
-        const sub = tenant.subscriptions.find(s => s.status === 'active');
-        mrrPousadas += sub?.amount ?? planPricing[tenant.plan] ?? 0;
-      }
+      const isAirbnb = propertyType === 'airbnb' || tenant.airbSubscriptions.length > 0;
+      const sub = tenant.subscriptions.find(s => s.status === 'active');
+      if (tenant.plan === 'parceiro') mrrParceiro += sub?.amount ?? 97;
+      else if (isAirbnb) mrrAirbnb += tenant.airbSubscriptions[0]?.amount ?? 397;
+      else mrrPousadas += sub?.amount ?? planPricing[tenant.plan] ?? 0;
     }
 
-    // ── Niche breakdown ──────────────────────────────────────────
-    let pousadaClients = 0;
-    let pousadaRevenue = 0;
-    let pousadaReservations = 0;
+    const pousadaTenants = allTenants.filter(t => ['pousada', 'hotel', 'hostel', 'chalé', 'resort'].includes(t.property?.type ?? ''));
+    const airbnbTenants = allTenants.filter(t => t.airbSubscriptions.length > 0);
+    const parceiroTenants = allTenants.filter(t => t.plan === 'parceiro');
 
-    let anfitrioesClients = 0;
-    let anfitrioesRevenue = 0;
-    let anfitrioesProperties = 0;
-    let anfitrioesSuperhosts = 0;
+    const [pousadaReservationCounts, airbnbPropertyCounts] = await Promise.all([
+      Promise.all(pousadaTenants.map(t => db.reservation.count({ where: { tenantId: t.id } }))),
+      Promise.all(airbnbTenants.map(t => db.airBProperty.count({ where: { tenantId: t.id } }))),
+    ]);
 
-    let parceiroClients = 0;
-    let parceiroMrr = 0;
-    let parceiroReferrals = 0;
+    const pousadaRevenue = pousadaTenants.reduce((sum, t) => sum + (t.subscriptions.find(s => s.status === 'active')?.amount ?? planPricing[t.plan] ?? 0), 0);
+    const anfitrioesRevenue = airbnbTenants.reduce((sum, t) => sum + (t.airbSubscriptions[0]?.amount ?? 397), 0);
+    const parceiroMrr = parceiroTenants.reduce((sum, t) => sum + (t.subscriptions.find(s => s.status === 'active')?.amount ?? 97), 0);
+    const pousadaReservations = pousadaReservationCounts.reduce((sum, count) => sum + count, 0);
+    const anfitrioesProperties = airbnbPropertyCounts.reduce((sum, count) => sum + count, 0);
 
-    try {
-      // Pousadas
-      const pousadaTenants = allTenants.filter(t => {
-        const pt = t.property?.type;
-        return pt && ['pousada', 'hotel', 'hostel', 'chalé', 'resort'].includes(pt);
-      });
-      pousadaClients = pousadaTenants.length;
+    const telemetryAggregates = getAggregates();
+    const telemetryTenantIds = getActiveTenantIds();
+    const telemetryBurnRates = telemetryTenantIds.map(id => getBurnRate(id));
+    const telemetryRevenues = telemetryTenantIds.map(id => getRevenue(id));
 
-      for (const t of pousadaTenants) {
-        const sub = t.subscriptions.find(s => s.status === 'active');
-        pousadaRevenue += sub?.amount ?? planPricing[t.plan] ?? 0;
-        const resCount = await db.reservation.count({ where: { tenantId: t.id } });
-        pousadaReservations += resCount;
-      }
-
-      // Anfitriões (Airbnb)
-      const airbnbTenants = allTenants.filter(t => (t.airbSubscriptions?.length ?? 0) > 0);
-      anfitrioesClients = airbnbTenants.length;
-      for (const t of airbnbTenants) {
-        const airbSub = t.airbSubscriptions.find(s => s.status === 'active');
-        anfitrioesRevenue += airbSub?.amount ?? 397;
-        const propCount = await db.airBProperty.count({ where: { tenantId: t.id } });
-        anfitrioesProperties += propCount;
-      }
-      // Superhosts = mock — assume 0 for now
-      anfitrioesSuperhosts = 0;
-
-      // Parceiro
-      const parceiroTenants = allTenants.filter(t => t.plan === 'parceiro');
-      parceiroClients = parceiroTenants.length;
-      for (const t of parceiroTenants) {
-        const sub = t.subscriptions.find(s => s.status === 'active');
-        parceiroMrr += sub?.amount ?? 97;
-      }
-      parceiroReferrals = 0; // placeholder
-    } catch {
-      // Graceful fallback — keep zeros
-    }
-
-    // ── System status (always healthy for SQLite) ────────────────
-    const systemStatus = {
-      app: 'operational' as const,
-      postgresql: 'operational' as const,
-      redis: 'not_used' as const,
-      evolutionApi: 'operational' as const,
-      nginx: 'operational' as const,
-      bullmq: 'not_used' as const,
+    const telemetryData = {
+      totalMessagesWithTelemetry: totalMessagesProcessed + telemetryAggregates.burnRate.totalMessagesSent,
+      telemetryMessagesSent: telemetryAggregates.burnRate.totalMessagesSent,
+      telemetryMessagesBundled: telemetryAggregates.burnRate.totalMessagesBundled,
+      telemetryRevenue: telemetryAggregates.revenue.totalAmount,
+      burnRate: { ...telemetryAggregates.burnRate, perTenant: telemetryBurnRates },
+      revenueTelemetry: { totalAmount: telemetryAggregates.revenue.totalAmount, byCurrency: telemetryAggregates.revenue.byCurrency, bySource: telemetryAggregates.revenue.bySource, perTenant: telemetryRevenues },
+      eventCounts: telemetryAggregates.eventCounts,
+      categoryCounts: telemetryAggregates.categoryCounts,
+      activeTelemetryTenants: telemetryTenantIds.length,
     };
 
-    // ── Telemetry enrichment from in-memory store ───────────────
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let telemetryData: Record<string, any> = {};
-    try {
-      const telemetryAggregates = getAggregates();
-      const telemetryTenantIds = getActiveTenantIds();
-      const telemetryBurnRates = telemetryTenantIds.map(id => getBurnRate(id));
-      const telemetryRevenues = telemetryTenantIds.map(id => getRevenue(id));
-
-      // Enrich messages processed with telemetry data
-      const telemetryMessagesSent = telemetryAggregates.burnRate.totalMessagesSent;
-      const telemetryMessagesBundled = telemetryAggregates.burnRate.totalMessagesBundled;
-      const totalMessagesWithTelemetry = totalMessagesProcessed + telemetryMessagesSent;
-
-      // Enrich revenue with telemetry payment events
-      const telemetryRevenue = telemetryAggregates.revenue.totalAmount;
-
-      telemetryData = {
-        totalMessagesWithTelemetry,
-        telemetryMessagesSent,
-        telemetryMessagesBundled,
-        telemetryRevenue,
-        burnRate: {
-          totalCostUsd: telemetryAggregates.burnRate.totalCostUsd,
-          totalSavingsUsd: telemetryAggregates.burnRate.totalSavingsUsd,
-          savingsRate: telemetryAggregates.burnRate.savingsRate,
-          perTenant: telemetryBurnRates,
-        },
-        revenueTelemetry: {
-          totalAmount: telemetryRevenue,
-          byCurrency: telemetryAggregates.revenue.byCurrency,
-          bySource: telemetryAggregates.revenue.bySource,
-          perTenant: telemetryRevenues,
-        },
-        eventCounts: telemetryAggregates.eventCounts,
-        categoryCounts: telemetryAggregates.categoryCounts,
-        activeTelemetryTenants: telemetryTenantIds.length,
-      };
-
-      // Override totalMessagesProcessed with enriched value
-      totalMessagesProcessed = totalMessagesWithTelemetry;
-    } catch {
-      // Telemetry enrichment failed — continue with DB-only data
-    }
-
     return NextResponse.json({
       success: true,
       data: {
-        totalClients,
-        totalRooms,
-        totalReservations,
-        totalRevenue,
-        totalMessagesProcessed,
-        avgOccupancy,
-        monthlyGrowth,
-        mrr: {
-          total: mrrPousadas + mrrAirbnb + mrrParceiro,
-          pousadas: mrrPousadas,
-          airbnb: mrrAirbnb,
-          parceiro: mrrParceiro,
-        },
+        totalClients, totalRooms, totalReservations, totalRevenue,
+        totalMessagesProcessed: telemetryData.totalMessagesWithTelemetry,
+        avgOccupancy, monthlyGrowth,
+        mrr: { total: mrrPousadas + mrrAirbnb + mrrParceiro, pousadas: mrrPousadas, airbnb: mrrAirbnb, parceiro: mrrParceiro },
         nicheBreakdown: {
-          pousadas: { clients: pousadaClients, revenue: pousadaRevenue, reservations: pousadaReservations },
-          anfitrioes: { clients: anfitrioesClients, revenue: anfitrioesRevenue, properties: anfitrioesProperties, superhosts: anfitrioesSuperhosts },
-          parceiro: { clients: parceiroClients, mrr: parceiroMrr, referrals: parceiroReferrals },
+          pousadas: { clients: pousadaTenants.length, revenue: pousadaRevenue, reservations: pousadaReservations },
+          anfitrioes: { clients: airbnbTenants.length, revenue: anfitrioesRevenue, properties: anfitrioesProperties, superhosts: 0 },
+          parceiro: { clients: parceiroTenants.length, mrr: parceiroMrr, referrals: 0 },
         },
-        systemStatus,
+        systemStatus: { app: 'operational', postgresql: 'operational', redis: 'unknown', evolutionApi: 'unknown', nginx: 'unknown', bullmq: 'unknown' },
         telemetry: telemetryData,
       },
-    });
+    }, { headers: { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
   } catch (error) {
     console.error('[ZCC Metrics] Error:', error);
-    return NextResponse.json({
-      success: true,
-      data: {
-        totalClients: 0,
-        totalRooms: 0,
-        totalReservations: 0,
-        totalRevenue: 0,
-        totalMessagesProcessed: 0,
-        avgOccupancy: 0,
-        monthlyGrowth: 0,
-        mrr: { total: 0, pousadas: 0, airbnb: 0, parceiro: 0 },
-        nicheBreakdown: {
-          pousadas: { clients: 0, revenue: 0, reservations: 0 },
-          anfitrioes: { clients: 0, revenue: 0, properties: 0, superhosts: 0 },
-          parceiro: { clients: 0, mrr: 0, referrals: 0 },
-        },
-        systemStatus: {
-          app: 'degraded',
-          postgresql: 'unknown',
-          redis: 'not_used',
-          evolutionApi: 'unknown',
-          nginx: 'unknown',
-          bullmq: 'not_used',
-        },
-      },
-    });
+    return NextResponse.json({ success: false, error: 'ZCC metrics unavailable' }, { status: 503, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
   }
 }

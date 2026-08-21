@@ -1,7 +1,6 @@
 import { db } from '@/lib/db';
 import { listarUpsells, marcarComoPago } from '@/lib/upsell/upsell-engine';
 
-const MP_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || '';
 const MP_API_BASE = 'https://api.mercadopago.com';
 const TAXA_ZELLA = 0.07;
 
@@ -9,17 +8,22 @@ export interface MercadoPagoCustomer { id: string; email: string; first_name?: s
 export interface MercadoPagoCard { id: string; brand: string; last4: string; exp_month: number; exp_year: number; is_default: boolean; cardholder_name: string; }
 export interface CobrancaResult { success: boolean; payment_id?: string; status?: string; error?: string; amount_charged: number; upsell_ids: string[]; }
 
+function getAccessToken(): string {
+  return process.env.MP_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN || '';
+}
+
 async function mpRequest(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'POST', body?: Record<string, unknown>, idempotencyKey?: string) {
-  if (!MP_ACCESS_TOKEN) throw new Error('MERCADOPAGO_ACCESS_TOKEN não configurada');
+  const accessToken = getAccessToken();
+  if (!accessToken) throw new Error('MERCADOPAGO_NOT_CONFIGURED');
   const res = await fetch(`${MP_API_BASE}${endpoint}`, {
     method,
-    headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}`, 'Content-Type': 'application/json', ...(idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : {}) },
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', ...(idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : {}) },
     body: method === 'GET' || method === 'DELETE' ? undefined : JSON.stringify(body),
   });
   const text = await res.text();
   let data: any = {};
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
-  if (!res.ok) throw new Error(data?.message || data?.error || data?.cause?.[0]?.description || `MP API error: ${res.status}`);
+  try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
+  if (!res.ok) throw new Error(`MERCADOPAGO_HTTP_${res.status}`);
   return data;
 }
 
@@ -46,7 +50,7 @@ export async function attachCard(tenantId: string, cardToken: string): Promise<{
     const customer = await criarCustomer(tenantId, email, parts[0], parts.slice(1).join(' '));
     const cardResult = await mpRequest(`/v1/customers/${encodeURIComponent(customer.id)}/cards`, 'POST', { token: cardToken, customer_id: customer.id }, `card:${tenantId}:${cardToken}`);
     return { success: true, card: { id: String(cardResult.id), brand: cardResult.payment_method?.id || 'unknown', last4: cardResult.last_four_digits || '****', exp_month: cardResult.exp_month || 0, exp_year: cardResult.exp_year || 0, is_default: true, cardholder_name: cardResult.cardholder?.name || '' } };
-  } catch (err: any) { console.error('[MERCADO_PAGO] attachCard falhou:', err); return { success: false, error: err.message }; }
+  } catch (err) { console.error('[MERCADO_PAGO] attachCard failed:', err instanceof Error ? err.name : 'UnknownError'); return { success: false, error: 'MERCADOPAGO_REQUEST_FAILED' }; }
 }
 
 export async function listarCartoes(tenantId: string): Promise<MercadoPagoCard[]> {
@@ -55,7 +59,7 @@ export async function listarCartoes(tenantId: string): Promise<MercadoPagoCard[]
     if (!customerId) return [];
     const result = await mpRequest(`/v1/customers/${encodeURIComponent(customerId)}/cards`, 'GET');
     return (result || []).map((card: any) => ({ id: String(card.id), brand: card.payment_method?.id || 'unknown', last4: card.last_four_digits || '****', exp_month: card.exp_month || 0, exp_year: card.exp_year || 0, is_default: false, cardholder_name: card.cardholder?.name || '' }));
-  } catch (err) { console.error('[MERCADO_PAGO] listarCartoes falhou:', err); return []; }
+  } catch (err) { console.error('[MERCADO_PAGO] listarCartoes failed:', err instanceof Error ? err.name : 'UnknownError'); return []; }
 }
 
 export async function cobrarComissaoMensal(tenantId: string, mes: number, ano: number): Promise<CobrancaResult> {
@@ -70,7 +74,7 @@ export async function cobrarComissaoMensal(tenantId: string, mes: number, ano: n
     const result = await mpRequest('/v1/payments', 'POST', { transaction_amount: amount, description: `Comissão Zélla ${mes}/${ano}`, payer: { id: customerId }, metadata: { tenant_id: tenantId, period: `${ano}-${String(mes).padStart(2, '0')}` } }, `commission:${tenantId}:${ano}-${String(mes).padStart(2, '0')}`);
     if (result.status === 'approved') await marcarComoPago(target.map((u: any) => u.id), tenantId);
     return { success: true, payment_id: String(result.id), status: result.status, amount_charged: amount, upsell_ids: target.map((u: any) => u.id) };
-  } catch (err: any) { return { success: false, error: err.message, amount_charged: amount, upsell_ids: target.map((u: any) => u.id) }; }
+  } catch (err) { return { success: false, error: 'MERCADOPAGO_REQUEST_FAILED', amount_charged: amount, upsell_ids: target.map((u: any) => u.id) }; }
 }
 
 export async function processarWebhookMercadoPago(body: any): Promise<{ received: boolean; type: string }> {
@@ -94,7 +98,7 @@ async function getExistingCustomerId(tenantId: string, emailHint?: string): Prom
     const exact = customers.find((c: any) => String(c.email || '').toLowerCase() === String(email).toLowerCase());
     return exact?.id ? String(exact.id) : null;
   } catch (error) {
-    console.error('[MERCADO_PAGO] customer lookup failed:', error);
+    console.error('[MERCADO_PAGO] customer lookup failed:', error instanceof Error ? error.name : 'UnknownError');
     return null;
   }
 }

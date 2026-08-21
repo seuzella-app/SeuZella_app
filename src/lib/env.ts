@@ -21,27 +21,20 @@ function requireProductionSecret(key: string, minimumLength = 32): string {
   return value;
 }
 
-// Critical infrastructure — no filesystem DB or localhost fallback in production.
 export const DATABASE_URL = getEnv('DATABASE_URL', 'file:./db/custom.db');
 export const NEXTAUTH_URL = getEnv('NEXTAUTH_URL', 'http://localhost:3000');
 
 export const NEXTAUTH_SECRET = (() => {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) {
-    if (process.env.NEXT_PHASE?.includes('build') && process.env.NODE_ENV !== 'production') {
-      return crypto.randomUUID();
-    }
+    if (process.env.NEXT_PHASE?.includes('build') && process.env.NODE_ENV !== 'production') return crypto.randomUUID();
     throw new Error('NEXTAUTH_SECRET environment variable is required — set a cryptographically random value (≥32 chars)');
   }
-  if (process.env.NODE_ENV === 'production' && secret.length < 32) {
-    throw new Error('NEXTAUTH_SECRET must contain at least 32 characters in production');
-  }
+  if (process.env.NODE_ENV === 'production' && secret.length < 32) throw new Error('NEXTAUTH_SECRET must contain at least 32 characters in production');
   return secret;
 })();
 
-export function getNextAuthSecret(): string {
-  return requireProductionSecret('NEXTAUTH_SECRET');
-}
+export function getNextAuthSecret(): string { return requireProductionSecret('NEXTAUTH_SECRET'); }
 
 // Mercado Pago
 export const MP_ACCESS_TOKEN = getOptionalEnv('MP_ACCESS_TOKEN');
@@ -60,7 +53,6 @@ export const ASAAS_MUNICIPAL_SERVICE_CODE = process.env.ASAAS_MUNICIPAL_SERVICE_
 export const ASAAS_MUNICIPAL_SERVICE_NAME = process.env.ASAAS_MUNICIPAL_SERVICE_NAME ?? 'Licenciamento ou cessão de direito de uso de programas de computação';
 export const DEFAULT_PAYMENT_GATEWAY = process.env.DEFAULT_PAYMENT_GATEWAY as 'asaas' | 'mercadopago' | 'stripe' | undefined;
 
-// Public contact numbers — placeholders are forbidden in production.
 export const WHATSAPP_COMMERCIAL = process.env.NEXT_PUBLIC_WHATSAPP_COMMERCIAL ?? (process.env.NODE_ENV === 'production' ? '' : '5548999990000');
 export const WHATSAPP_SUPPORT = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT ?? (process.env.NODE_ENV === 'production' ? '' : '5548999990001');
 
@@ -92,16 +84,15 @@ export const UPSTASH_REDIS_REST_TOKEN = getOptionalEnv('UPSTASH_REDIS_REST_TOKEN
 export const ZAI_API_KEY = getOptionalEnv('ZAI_API_KEY');
 export const ZEHLA_LOOP_API_KEY = getOptionalEnv('ZEHLA_LOOP_API_KEY');
 
-// Meta Cost Guard
-export const META_COST_GUARD_ENABLED = process.env.META_COST_GUARD_ENABLED ?? 'false';
-export const META_COST_LIMIT_PER_MESSAGE = Number(process.env.META_COST_LIMIT_PER_MESSAGE ?? '0.10');
-
-// Meta WhatsApp Business API — no fallback credentials.
+// Meta WhatsApp Business API
 export const META_VERIFY_TOKEN = getOptionalEnv('META_VERIFY_TOKEN');
 export const META_APP_SECRET = getOptionalEnv('META_APP_SECRET');
 export const META_ACCESS_TOKEN = getOptionalEnv('META_ACCESS_TOKEN');
 export const META_PHONE_NUMBER_ID = getOptionalEnv('META_PHONE_NUMBER_ID');
 export const META_WABA_ID = getOptionalEnv('META_WABA_ID');
+
+export const META_COST_GUARD_ENABLED = process.env.META_COST_GUARD_ENABLED ?? 'false';
+export const META_COST_LIMIT_PER_MESSAGE = Number(process.env.META_COST_LIMIT_PER_MESSAGE ?? '0.10');
 
 /** Explicit runtime production guard for deployment/startup checks. */
 export function assertProductionSecurityEnv(): void {
@@ -110,7 +101,18 @@ export function assertProductionSecurityEnv(): void {
   requireProductionSecret('DATABASE_URL', 1);
   requireProductionSecret('ENCRYPTION_SECRET');
   requireProductionSecret('CACHE_SIGNING_SECRET');
-  if (!WHATSAPP_COMMERCIAL || !WHATSAPP_SUPPORT) {
-    throw new Error('Production WhatsApp contact numbers must be explicitly configured');
+  if (!WHATSAPP_COMMERCIAL || !WHATSAPP_SUPPORT) throw new Error('Production WhatsApp contact numbers must be explicitly configured');
+
+  if (DEFAULT_PAYMENT_GATEWAY === 'asaas') {
+    requireProductionSecret('ASAAS_ACCESS_TOKEN', 1);
+    requireProductionSecret('ASAAS_WEBHOOK_SECRET', 1);
+  }
+  if (DEFAULT_PAYMENT_GATEWAY === 'mercadopago') {
+    requireProductionSecret('MP_ACCESS_TOKEN', 1);
+    requireProductionSecret('PAYMENT_WEBHOOK_SECRET', 1);
+  }
+  if (DEFAULT_PAYMENT_GATEWAY === 'stripe') {
+    requireProductionSecret('STRIPE_SECRET_KEY', 1);
+    requireProductionSecret('STRIPE_WEBHOOK_SECRET', 1);
   }
 }
