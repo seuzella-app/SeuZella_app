@@ -11,7 +11,7 @@ export type LockProviderCapabilities = {
 };
 
 export const LOCK_PROVIDER_CAPABILITIES: Record<LockBrand, LockProviderCapabilities> = {
-  ttlock: { brand: 'ttlock', providerType: 'api', apiAvailable: true, remoteUnlock: false, oauth: true, requiresExternalDeviceId: true, requiredEnv: ['TTLOCK_CLIENT_ID', 'TTLOCK_CLIENT_SECRET'] },
+  ttlock: { brand: 'ttlock', providerType: 'api', apiAvailable: true, remoteUnlock: false, oauth: true, requiresExternalDeviceId: true, requiredEnv: ['TTLOCK_CLIENT_ID', 'TTLOCK_CLIENT_SECRET', 'TTLOCK_REDIRECT_URI'] },
   tuya: { brand: 'tuya', providerType: 'api', apiAvailable: true, remoteUnlock: false, oauth: true, requiresExternalDeviceId: true, requiredEnv: ['TUYA_CLIENT_ID', 'TUYA_CLIENT_SECRET'] },
   igloohome: { brand: 'igloohome', providerType: 'api', apiAvailable: true, remoteUnlock: false, oauth: true, requiresExternalDeviceId: true, requiredEnv: ['IGLOOHOME_CLIENT_ID', 'IGLOOHOME_CLIENT_SECRET'] },
   nuki: { brand: 'nuki', providerType: 'api', apiAvailable: true, remoteUnlock: true, oauth: true, requiresExternalDeviceId: true, requiredEnv: ['NUKI_CLIENT_ID', 'NUKI_CLIENT_SECRET'] },
@@ -35,9 +35,12 @@ export function isRemoteUnlockSupported(brand: LockBrand): boolean {
   return LOCK_PROVIDER_CAPABILITIES[brand].remoteUnlock;
 }
 
+export function getMissingProviderEnv(brand: LockBrand): string[] {
+  return LOCK_PROVIDER_CAPABILITIES[brand].requiredEnv.filter((key) => !process.env[key]?.trim());
+}
+
 export function hasCredentialsConfigured(brand: LockBrand): boolean {
-  const required = LOCK_PROVIDER_CAPABILITIES[brand].requiredEnv;
-  return required.length === 0 || required.every((key) => Boolean(process.env[key]?.trim()));
+  return getMissingProviderEnv(brand).length === 0;
 }
 
 export function listOperationalApiBrands(): LockBrand[] {
