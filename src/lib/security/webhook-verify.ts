@@ -1,10 +1,6 @@
 import crypto from 'crypto';
 
-export interface WebhookVerificationResult {
-  valid: boolean;
-  reason?: string;
-  timestamp?: string;
-}
+export interface WebhookVerificationResult { valid: boolean; reason?: string; timestamp?: string; }
 
 const MP_MAX_SKEW_MS = 5 * 60 * 1000;
 const MP_MAX_FUTURE_MS = 60 * 1000;
@@ -19,9 +15,7 @@ function safeEqualText(received: string, expected: string): boolean {
   if (a.length !== b.length) return false;
   try { return crypto.timingSafeEqual(a, b); } catch { return false; }
 }
-function strongSecret(secret: string): boolean {
-  return secret.length >= MIN_SECRET_LENGTH && !/^([a-z0-9_-]+)$/.test(secret) || secret.length >= MIN_SECRET_LENGTH;
-}
+function strongSecret(secret: string): boolean { return secret.length >= MIN_SECRET_LENGTH; }
 
 export function verifyWhatsAppWebhook(rawBody: string, signatureHeader: string | null, appSecret?: string): WebhookVerificationResult {
   const secret = appSecret || process.env.META_APP_SECRET || process.env.WHATSAPP_APP_SECRET;
@@ -34,10 +28,10 @@ export function verifyWhatsAppWebhook(rawBody: string, signatureHeader: string |
 }
 
 export function verifyMercadoPagoWebhook(rawBody: string, signatureHeader: string | null, webhookSecret: string, resourceId?: string, requestId?: string): WebhookVerificationResult {
-  void rawBody;
   if (!webhookSecret) return { valid: false, reason: 'MISSING_WEBHOOK_SECRET' };
   if (process.env.NODE_ENV === 'production' && !strongSecret(webhookSecret)) return { valid: false, reason: 'WEAK_WEBHOOK_SECRET' };
   if (!signatureHeader) return { valid: false, reason: 'MISSING_SIGNATURE' };
+  if (process.env.NODE_ENV === 'production' && (!resourceId || !requestId)) return { valid: false, reason: 'MISSING_MANIFEST_IDENTIFIERS' };
   const parts = signatureHeader.split(',').map(part => part.trim());
   const ts = parts.find(p => p.startsWith('ts='))?.slice(3) || '';
   const v1 = parts.find(p => p.startsWith('v1='))?.slice(3) || '';
