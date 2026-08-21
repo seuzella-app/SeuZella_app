@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { useDDCMobileLiveState } from './useDDCMobileLiveState';
 
@@ -8,7 +9,7 @@ export function MobileDDCLiveBootstrap({
   children,
 }: {
   niche: 'pousada' | 'airbnb';
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const { data } = useDDCMobileLiveState(true);
 
