@@ -1,13 +1,20 @@
 // =============================================================================
-// 🔐 SEU ZÉLLA — Barrel exports do módulo de Fechaduras Eletrônicas
-// =============================================================================
-// Tudo que precisa ser importado de fora vem daqui.
+// 🔐 SEU ZÉLLA — API pública do módulo de Fechaduras Eletrônicas
 // =============================================================================
 
-// Tipos e catálogo de marcas (seguro para client-side)
+// Tipos, catálogo e capacidades — seguros para leitura client-side.
 export * from './types';
+export * from './provider-capabilities';
 
-// Gerador de PIN (algumas funções são client-safe)
+// Política de autorização — regras puras, sem acesso a DB.
+export {
+  authorizeLockAccess,
+  nextLockAccessState,
+  canTellGuestAccessConfirmed,
+  LockAuthorizationError,
+} from './authorization';
+
+// Gerador criptográfico e derivação de status.
 export {
   generateRandomPin,
   generateAlphanumericPin,
@@ -18,7 +25,7 @@ export {
   generateEmergencyPin,
 } from './pin-generator';
 
-// Orquestrador (server-only) — NÃO importar em componentes client
+// Orquestrador — server-only.
 export {
   createLockDevice,
   listLockDevices,
@@ -30,7 +37,8 @@ export {
   revokePin,
   panicRevokeAllPins,
   listLockEvents,
+  remoteUnlock,
 } from './orchestrator';
 
-// Entrega via WhatsApp (server-only)
+// Entrega — server-only.
 export { deliverPinViaWhatsApp, buildPinMessagePreview } from './whatsapp-delivery';
