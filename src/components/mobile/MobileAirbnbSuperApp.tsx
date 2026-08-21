@@ -64,6 +64,7 @@ import {
   Eye,
   EyeOff,
   Plus,
+  LogOut,
 } from 'lucide-react';
 
 export function MobileAirbnbSuperApp() {
@@ -124,7 +125,21 @@ export function MobileAirbnbSuperApp() {
     return val.startsWith('R$') ? val : `R$ ${val}`;
   };
 
-  const [propertyName, setPropertyName] = useState<string>('Flat Studio Jardins');
+  // Nome do Imóvel (vinculado ao cadastro do imóvel pelo anfitrião em Configurações)
+  const [propertyName, setPropertyName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('zella_airbnb_imovel_nome');
+      if (saved) return saved;
+    }
+    return 'NOME DO IMÓVEL';
+  });
+
+  // Check-outs de Hoje nos Imóveis/Flats
+  const [checkoutsList, setCheckoutsList] = useState([
+    { id: 'co-1', guestName: 'Beatriz Costa', propName: 'Loft Copacabana Vista Mar', timeLimit: '12:00', status: 'PENDENTE', phone: '(21) 99123-4567' },
+    { id: 'co-2', guestName: 'Rodrigo Sanches', propName: 'Studio Jardins Executivo', timeLimit: '11:00', status: 'CONCLUÍDO', phone: '(11) 96655-4433' },
+  ]);
+
   const [aiActive, setAiActive] = useState<boolean>(true);
   const [pixShieldActive, setPixShieldActive] = useState<boolean>(true);
   const [time, setTime] = useState<string>('');
@@ -267,6 +282,14 @@ interface AirbnbProperty {
     setProperties((prev) => prev.map((p) => p.id === propId ? { ...p, pin: '------', pinStatus: 'revoked' as const } : p));
     toast.error(`🚨 REVOGAÇÃO DE PÂNICO! PIN de ${propName} foi invalidado e fechadura trancada.`);
     setSelectedLockForPanic(null);
+  };
+
+  const handleAirbnbCheckoutAction = (coId: string, guestName: string, propName: string) => {
+    setCheckoutsList((prev) => prev.map((co) => co.id === coId ? { ...co, status: 'CONCLUÍDO' } : co));
+    setProperties((prev) => prev.map((p) => p.name === propName ? { ...p, guest: 'Vago', pinStatus: 'expired' } : p));
+    toast.success(`👋 Check-out de ${guestName} confirmado em ${propName}!`, {
+      description: 'Imóvel liberado para faxina/vistoria. Pesquisa NPS e link de avaliação enviados no WhatsApp.',
+    });
   };
 
   const handleSendWhatsAppPin = (prop: any) => {
@@ -503,7 +526,7 @@ interface AirbnbProperty {
         {activeTab === 'geral' && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
             
-            {/* HERO EXECUTIVO: PULSO DO ANFITRIÃO HOJE */}
+            {/* HERO EXECUTIVO: NOME DO IMÓVEL EM DESTAQUE */}
             <div className="p-4 rounded-3xl bg-gradient-to-br from-cyan-500/20 via-blue-950/20 to-black/70 border border-cyan-500/30 backdrop-blur-xl relative overflow-hidden space-y-3 shadow-[0_0_30px_rgba(6,182,212,0.12)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -511,13 +534,20 @@ interface AirbnbProperty {
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold">PULSO DO ANFITRIÃO HOJE</span>
-                    <div className="text-xs text-white font-bold">{propertyName} + 9 Imóveis</div>
+                    {/* Nome do Imóvel Cadastrado pelo Anfitrião */}
+                    <span className="text-xs font-bold text-white uppercase tracking-wide font-mono block">
+                      {propertyName}
+                    </span>
+                    <span className="text-[10px] font-mono text-zinc-400">Painel Geral · 10 Imóveis Integrados</span>
                   </div>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-bold flex items-center gap-1">
+                <button
+                  onClick={() => toast.info('🛡️ 100% OPERACIONAL: Cérebro Seu Zélla ativo 24h respondendo hóspedes no WhatsApp, fechaduras inteligentes sincronizadas e cobranças PIX diretas (0% taxa Airbnb).')}
+                  className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-bold flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                  title="Clique para ver o status dos serviços"
+                >
                   <CheckCircle2 className="w-3 h-3 text-cyan-400" /> 100% OPERACIONAL
-                </span>
+                </button>
               </div>
 
               {/* Faturamento do Mês */}
@@ -562,12 +592,12 @@ interface AirbnbProperty {
               </div>
             </div>
 
-            {/* HÓSPEDES ATIVOS & CHEGADAS */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+            {/* CARD 1: CHEGADAS & CHECK-INS DE HOJE */}
+            <div className="p-4 rounded-3xl bg-[#12121a]/90 border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-3">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-2">
                   <Users className="w-4 h-4 text-cyan-400" />
-                  <span>HÓSPEDES ATIVOS NOS FLATS</span>
+                  <span>CHEGADAS & CHECK-INS DE HOJE</span>
                 </h3>
                 <button
                   onClick={() => setActiveTab('fechaduras')}
@@ -581,7 +611,7 @@ interface AirbnbProperty {
                 {properties.filter((p) => p.guest && p.guest !== 'Vago').slice(0, 3).map((p) => (
                   <div
                     key={p.id}
-                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between text-xs"
+                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between text-xs hover:border-cyan-500/30 transition-all"
                   >
                     <div>
                       <div className="flex items-center gap-1.5">
@@ -591,7 +621,7 @@ interface AirbnbProperty {
                         </span>
                       </div>
                       <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
-                        {p.name} · Check-out: <span className="text-cyan-300">{p.checkOut}</span>
+                        {p.name} · Check-out: <span className="text-cyan-300 font-bold">{p.checkOut}</span>
                       </div>
                     </div>
 
@@ -609,10 +639,10 @@ interface AirbnbProperty {
               </div>
             </div>
 
-            {/* STATUS RÁPIDO DAS FECHADURAS */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+            {/* CARD 2: STATUS DOS IMÓVEIS & FECHADURAS */}
+            <div className="p-4 rounded-3xl bg-[#12121a]/90 border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-3">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-2">
                   <KeyRound className="w-4 h-4 text-cyan-400" />
                   <span>STATUS DOS IMÓVEIS & FECHADURAS</span>
                 </h3>
@@ -628,7 +658,7 @@ interface AirbnbProperty {
                 {properties.slice(0, 4).map((p) => (
                   <div
                     key={p.id}
-                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-2 relative overflow-hidden"
+                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-2 relative overflow-hidden hover:border-cyan-500/30 transition-all"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white truncate">{p.name}</span>
@@ -660,14 +690,76 @@ interface AirbnbProperty {
               </div>
             </div>
 
-            {/* ACESSO RÁPIDO AO WI-FI DO STUDIO */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] flex items-center justify-between">
+            {/* CARD 3: STATUS DE CHECK-OUT */}
+            <div className="p-4 rounded-3xl bg-[#12121a]/90 border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-3">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-2">
+                  <LogOut className="w-4 h-4 text-amber-400" />
+                  <span>STATUS DE CHECK-OUT</span>
+                </h3>
+                <span className="text-[10px] font-mono text-zinc-400">Hoje até 12:00</span>
+              </div>
+
+              <div className="space-y-2">
+                {checkoutsList.map((co) => (
+                  <div
+                    key={co.id}
+                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between text-xs hover:border-amber-500/30 transition-all"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-white">{co.guestName}</span>
+                        <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold border ${
+                          co.status === 'CONCLUÍDO'
+                            ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                        }`}>
+                          {co.status}
+                        </span>
+                      </div>
+                      <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+                        {co.propName} · Limite: <span className="text-amber-300 font-bold">{co.timeLimit}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {co.status !== 'CONCLUÍDO' && (
+                        <button
+                          onClick={() => handleAirbnbCheckoutAction(co.id, co.guestName, co.propName)}
+                          className="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-[10px] font-bold font-mono active:scale-95"
+                        >
+                          Liberar Limpeza
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          const phoneClean = (co.phone || '5511988221100').replace(/\D/g, '');
+                          window.open(`https://wa.me/${phoneClean}?text=${encodeURIComponent(`Olá ${co.guestName}! Esperamos que sua estadia no ${co.propName} tenha sido maravilhosa. Poderia nos avaliar no link: https://smart-hotel-zehla.vercel.app/nps`)}`, '_blank');
+                        }}
+                        className="p-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold font-mono active:scale-95"
+                        title="Enviar NPS WhatsApp"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* WI-FI DO IMÓVEL (FORA DE CARD — ATENDIDO AUTOMATICAMENTE PELO SEU ZÉLLA NO WHATSAPP) */}
+            <div className="px-1 py-2 flex items-center justify-between border-t border-b border-white/[0.06]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
                   <Wifi className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-white font-mono">Wi-Fi Studio Jardins</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-white font-mono">Wi-Fi Imóvel</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-400 font-bold">
+                      🤖 Seu Zélla Responde
+                    </span>
+                  </div>
                   <div className="text-[11px] font-mono text-zinc-400">
                     Studio_Jardins_5G (superhost2026)
                   </div>
@@ -676,9 +768,9 @@ interface AirbnbProperty {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText('superhost2026');
-                  toast.success('Senha do Wi-Fi copiada!');
+                  toast.success('Senha do Wi-Fi copiada para envio!');
                 }}
-                className="p-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 active:scale-95"
+                className="p-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 active:scale-95 transition-all"
                 aria-label="Copiar Senha"
               >
                 <Copy className="w-4 h-4" />
@@ -916,7 +1008,7 @@ interface AirbnbProperty {
                   return (
                     <div
                       key={prop.id}
-                      className="p-4 rounded-3xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] space-y-3 relative overflow-hidden"
+                      className="p-4 rounded-2xl bg-[#14141e] border-2 border-zinc-700/80 shadow-[0_4px_16px_rgba(0,0,0,0.4)] space-y-3 relative overflow-hidden"
                     >
                       {/* Top row: Property name + Brand & Model */}
                       <div className="flex items-start justify-between gap-2">

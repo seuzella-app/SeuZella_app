@@ -194,8 +194,26 @@ interface PousadaRoom {
   const [planType] = useState<'pro' | 'lite'>('pro');
   const [liteMessagesUsed] = useState(3420);
   const [liteMessagesTotal] = useState(5000);
-  const [whatsViewMode, setWhatsViewMode] = useState<'live' | 'history' | 'stats'>('live');
-  const [propertyName, setPropertyName] = useState<string>('Pousada Solar das Marés');
+  // Nome da Pousada (vinculado ao cadastro do proprietário em Configurações da Pousada)
+  const [propertyName, setPropertyName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('zella_pousada_nome');
+      if (saved) return saved;
+    }
+    return 'NOME DA POUSADA';
+  });
+
+  // Check-outs de Hoje (Painel Geral & Governança)
+  const [checkoutsList, setCheckoutsList] = useState([
+    { id: 'co-1', guestName: 'Dr. Roberto Dias', room: 'Bangalô Vista Mar 301', timeLimit: '12:00', status: 'PENDENTE', phone: '(31) 98765-4321' },
+    { id: 'co-2', guestName: 'Juliana Prado', room: 'Studio Executivo 501', timeLimit: '11:00', status: 'CONCLUÍDO', phone: '(11) 97788-9900' },
+  ]);
+
+  const handleCheckoutAction = (coId: string, guestName: string, roomName: string) => {
+    setCheckoutsList((prev) => prev.map((co) => co.id === coId ? { ...co, status: 'CONCLUÍDO' } : co));
+    handleCheckOut(coId, guestName, roomName);
+  };
+
   const [aiActive, setAiActive] = useState<boolean>(true);
   const [time, setTime] = useState<string>('');
   const [guestFilter, setGuestFilter] = useState<'todos' | 'whatsapp' | 'booking' | 'airbnb' | 'direct'>('todos');
@@ -703,7 +721,7 @@ interface PousadaRoom {
         {activeTab === 'visao_geral' && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
             
-            {/* HERO EXECUTIVO: PULSO DA POUSADA HOJE */}
+            {/* HERO EXECUTIVO: NOME DA POUSADA EM DESTAQUE */}
             <div className="p-4 rounded-3xl bg-gradient-to-br from-emerald-500/20 via-emerald-950/20 to-black/70 border border-emerald-500/30 backdrop-blur-xl relative overflow-hidden space-y-3 shadow-[0_0_30px_rgba(16,185,129,0.12)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -711,13 +729,20 @@ interface PousadaRoom {
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold">PULSO DA POUSADA HOJE</span>
-                    <div className="text-xs text-white font-bold">{propertyName}</div>
+                    {/* Nome da Pousada Cadastrada em Configurações */}
+                    <span className="text-xs font-bold text-white uppercase tracking-wide font-mono block">
+                      {propertyName}
+                    </span>
+                    <span className="text-[10px] font-mono text-zinc-400">Painel Geral · Tempo Real</span>
                   </div>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold flex items-center gap-1">
+                <button
+                  onClick={() => toast.info('🛡️ 100% OPERACIONAL: Motor Seu Zélla ativo 24h no WhatsApp, 10 fechaduras integradas e conciliação PIX em tempo real sem intermediários.')}
+                  className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                  title="Clique para ver o status dos serviços"
+                >
                   <CheckCircle2 className="w-3 h-3 text-emerald-400" /> 100% OPERACIONAL
-                </span>
+                </button>
               </div>
 
               {/* Faturamento do Mês */}
@@ -762,10 +787,10 @@ interface PousadaRoom {
               </div>
             </div>
 
-            {/* CHEGADAS & CHECK-INS DE HOJE */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+            {/* CARD 1: CHEGADAS & CHECK-INS DE HOJE */}
+            <div className="p-4 rounded-3xl bg-[#12121a]/90 border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-3">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-2">
                   <Users className="w-4 h-4 text-emerald-400" />
                   <span>CHEGADAS & CHECK-INS DE HOJE</span>
                 </h3>
@@ -781,7 +806,7 @@ interface PousadaRoom {
                 {guestsList.map((g) => (
                   <div
                     key={g.id}
-                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between text-xs"
+                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between text-xs hover:border-emerald-500/30 transition-all"
                   >
                     <div>
                       <div className="flex items-center gap-1.5">
@@ -791,7 +816,7 @@ interface PousadaRoom {
                         </span>
                       </div>
                       <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
-                        {g.room} · Status: <span className="text-emerald-400">{g.status}</span>
+                        {g.room} · Status: <span className="text-emerald-400 font-bold">{g.status}</span>
                       </div>
                     </div>
 
@@ -799,7 +824,8 @@ interface PousadaRoom {
                       <button
                         onClick={() => {
                           const phoneClean = (g.phone || '5511988221100').replace(/\D/g, '');
-                          window.open(`https://wa.me/${phoneClean}?text=${encodeURIComponent(`Olá ${g.name}! Sua reserva na ${propertyName} está confirmada. Segue seu PIN de acesso e link do Guia Digital.`)}`, '_blank');
+                          window.open(`https://wa.me/${phoneClean}?text=${encodeURIComponent(`Olá ${g.name}! Sua reserva na ${propertyName} está confirmada. Segue seu link do Guia Digital com instruções de acesso e detalhes da sua hospedagem: https://smart-hotel-zehla.vercel.app/guia`)}`, '_blank');
+                          toast.success(`WhatsApp aberto para ${g.name}!`);
                         }}
                         className="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold font-mono flex items-center gap-1 active:scale-95"
                       >
@@ -812,10 +838,10 @@ interface PousadaRoom {
               </div>
             </div>
 
-            {/* MAPA RÁPIDO DOS QUARTOS & FECHADURAS */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+            {/* CARD 2: STATUS DOS QUARTOS & FECHADURAS */}
+            <div className="p-4 rounded-3xl bg-[#12121a]/90 border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-3">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-2">
                   <BedDouble className="w-4 h-4 text-emerald-400" />
                   <span>STATUS DOS QUARTOS & FECHADURAS</span>
                 </h3>
@@ -831,7 +857,7 @@ interface PousadaRoom {
                 {rooms.slice(0, 4).map((r) => (
                   <div
                     key={r.id}
-                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-2 relative overflow-hidden"
+                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-2 relative overflow-hidden hover:border-emerald-500/30 transition-all"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white truncate">{r.name}</span>
@@ -863,14 +889,76 @@ interface PousadaRoom {
               </div>
             </div>
 
-            {/* ACESSO RÁPIDO AO WI-FI DA POUSADA */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] flex items-center justify-between">
+            {/* CARD 3: STATUS DE CHECK-OUT */}
+            <div className="p-4 rounded-3xl bg-[#12121a]/90 border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-3">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-2">
+                  <LogOut className="w-4 h-4 text-amber-400" />
+                  <span>STATUS DE CHECK-OUT</span>
+                </h3>
+                <span className="text-[10px] font-mono text-zinc-400">Hoje até 12:00</span>
+              </div>
+
+              <div className="space-y-2">
+                {checkoutsList.map((co) => (
+                  <div
+                    key={co.id}
+                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between text-xs hover:border-amber-500/30 transition-all"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-white">{co.guestName}</span>
+                        <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold border ${
+                          co.status === 'CONCLUÍDO'
+                            ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                        }`}>
+                          {co.status}
+                        </span>
+                      </div>
+                      <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+                        {co.room} · Limite: <span className="text-amber-300 font-bold">{co.timeLimit}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {co.status !== 'CONCLUÍDO' && (
+                        <button
+                          onClick={() => handleCheckoutAction(co.id, co.guestName, co.room)}
+                          className="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-[10px] font-bold font-mono active:scale-95"
+                        >
+                          Liberar Limpeza
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          const phoneClean = (co.phone || '5511988221100').replace(/\D/g, '');
+                          window.open(`https://wa.me/${phoneClean}?text=${encodeURIComponent(`Olá ${co.guestName}! Agradecemos sua estadia na ${propertyName}. Esperamos que tenha sido incrível! Poderia nos avaliar no link: https://smart-hotel-zehla.vercel.app/nps`)}`, '_blank');
+                        }}
+                        className="p-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold font-mono active:scale-95"
+                        title="Enviar NPS WhatsApp"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* WI-FI DA POUSADA (FORA DE CARD — ATENDIDO AUTOMATICAMENTE PELO SEU ZÉLLA NO WHATSAPP) */}
+            <div className="px-1 py-2 flex items-center justify-between border-t border-b border-white/[0.06]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <Wifi className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-white font-mono">Wi-Fi Pousada</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-white font-mono">Wi-Fi Pousada</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-bold">
+                      🤖 Seu Zélla Responde
+                    </span>
+                  </div>
                   <div className="text-[11px] font-mono text-zinc-400">
                     {showWifiPassword ? 'marés_vip2026' : '••••••••••••'}
                   </div>
@@ -879,7 +967,7 @@ interface PousadaRoom {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setShowWifiPassword(!showWifiPassword)}
-                  className="p-2 rounded-lg bg-white/[0.05] hover:bg-white/10 text-zinc-300 active:scale-95"
+                  className="p-2 rounded-lg bg-white/[0.05] hover:bg-white/10 text-zinc-300 active:scale-95 transition-all"
                   aria-label="Ver Senha"
                 >
                   {showWifiPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -887,9 +975,9 @@ interface PousadaRoom {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText('marés_vip2026');
-                    toast.success('Senha do Wi-Fi copiada!');
+                    toast.success('Senha do Wi-Fi copiada para envio!');
                   }}
-                  className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 active:scale-95"
+                  className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 active:scale-95 transition-all"
                   aria-label="Copiar Senha"
                 >
                   <Copy className="w-4 h-4" />
@@ -1087,11 +1175,11 @@ interface PousadaRoom {
               </button>
 
               <button
-                onClick={() => toast.info('Exportando relatório financeiro DRE da pousada...')}
+                onClick={() => toast.info('Exportando relatório financeiro completo da pousada...')}
                 className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.1] text-zinc-200 hover:bg-white/[0.08] text-xs font-bold font-mono flex items-center justify-center gap-1.5 active:scale-95 transition-all"
               >
                 <FileText className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Exportar DRE</span>
+                <span>Relatório Completo</span>
               </button>
             </div>
 
@@ -1133,8 +1221,8 @@ interface PousadaRoom {
               ))}
             </div>
 
-            {/* Lista Vertical de Cards de Hóspede */}
-            <div className="space-y-2.5">
+            {/* Lista Vertical de Cards de Hóspede (Bordas nítidas de alto contraste) */}
+            <div className="space-y-3">
               {filteredGuests.map((guest) => {
                 const cleanPhone = (guest.phone || '').replace(/\D/g, '');
                 const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
@@ -1142,17 +1230,17 @@ interface PousadaRoom {
                 return (
                   <article
                     key={guest.id}
-                    className="p-3.5 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] space-y-3 relative overflow-hidden"
+                    className="p-4 rounded-2xl bg-[#14141e] border-2 border-zinc-700/80 shadow-[0_4px_16px_rgba(0,0,0,0.4)] space-y-3 relative overflow-hidden"
                   >
-                    <div className="flex items-start justify-between border-b border-white/[0.06] pb-2">
+                    <div className="flex items-start justify-between border-b border-zinc-800 pb-2.5">
                       <div>
-                        <h4 className="text-xs font-bold text-white">{guest.name}</h4>
-                        <p className="text-[11px] font-mono text-emerald-400">{guest.room}</p>
+                        <h4 className="text-xs font-bold text-white font-mono">{guest.name}</h4>
+                        <p className="text-[11px] font-mono text-emerald-400 font-semibold">{guest.room}</p>
                       </div>
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold border ${
+                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold border ${
                         guest.status === 'CHECKED_OUT'
                           ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
-                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                          : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                       }`}>
                         {guest.status}
                       </span>
@@ -1160,7 +1248,7 @@ interface PousadaRoom {
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="block text-[10px] text-zinc-500 font-mono">Contato</span>
+                        <span className="block text-[10px] text-zinc-400 font-mono">Contato WhatsApp</span>
                         <button
                           type="button"
                           onClick={() => {
@@ -1168,19 +1256,19 @@ interface PousadaRoom {
                               window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(`Olá ${guest.name}, tudo bem? Aqui é da ${propertyName}!`)}`, '_blank');
                             }
                           }}
-                          className="text-xs font-mono text-emerald-400 hover:underline flex items-center gap-1"
+                          className="text-xs font-mono text-emerald-400 hover:underline flex items-center gap-1 font-bold mt-0.5"
                         >
                           <Phone className="w-3 h-3" />
                           <span>{guest.phone}</span>
                         </button>
                       </div>
                       <div>
-                        <span className="block text-[10px] text-zinc-500 font-mono">Origem Reserva</span>
-                        <span className="text-xs font-mono font-bold text-emerald-400">{guest.origin}</span>
+                        <span className="block text-[10px] text-zinc-400 font-mono">Origem Reserva</span>
+                        <span className="text-xs font-mono font-bold text-zinc-200 mt-0.5 block">{guest.origin}</span>
                       </div>
                     </div>
 
-                    <div className="pt-2 grid grid-cols-3 gap-2 border-t border-white/[0.04]">
+                    <div className="pt-2.5 grid grid-cols-3 gap-2 border-t border-zinc-800">
                       <button
                         onClick={() => {
                           if (typeof window !== 'undefined') {
@@ -1188,7 +1276,7 @@ interface PousadaRoom {
                           }
                           toast.success(`📱 Guia Digital com PIX enviado para ${guest.name} no WhatsApp!`);
                         }}
-                        className="py-2 px-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all"
+                        className="py-2.5 px-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all cursor-pointer"
                         title="Enviar Guia Digital WhatsApp"
                       >
                         <Send className="w-3.5 h-3.5 shrink-0" />
@@ -1200,7 +1288,7 @@ interface PousadaRoom {
                           const targetRoom = rooms.find((r) => r.name === guest.room) || rooms[0];
                           handleRemoteUnlock(targetRoom.id, targetRoom.name);
                         }}
-                        className="py-2 px-2 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/[0.1] text-zinc-200 text-[11px] font-bold flex items-center justify-center gap-1 min-h-[44px] active:scale-95"
+                        className="py-2.5 px-2 rounded-xl bg-white/[0.06] hover:bg-white/10 border border-white/[0.15] text-zinc-200 text-[11px] font-bold flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all cursor-pointer"
                         title="Destrancar Fechadura"
                       >
                         <Key className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -1210,7 +1298,7 @@ interface PousadaRoom {
                       <button
                         onClick={() => handleCheckOut(guest.id, guest.name, guest.room)}
                         disabled={guest.status === 'CHECKED_OUT'}
-                        className={`py-2 px-2 rounded-xl border text-[11px] font-bold flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all ${
+                        className={`py-2.5 px-2 rounded-xl border text-[11px] font-bold flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all cursor-pointer ${
                           guest.status === 'CHECKED_OUT'
                             ? 'bg-zinc-900 border-zinc-800 text-zinc-500 cursor-not-allowed'
                             : 'bg-rose-500/15 hover:bg-rose-500/25 border-rose-500/30 text-rose-300'

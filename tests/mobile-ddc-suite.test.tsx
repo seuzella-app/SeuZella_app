@@ -109,7 +109,8 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
       </QueryClientProvider>
     );
     expect(html).toContain('POUSADA');
-    expect(html).toContain('PULSO DA POUSADA HOJE');
+    expect(html).toContain('NOME DA POUSADA');
+    expect(html).toContain('100% OPERACIONAL');
     expect(html).toContain('Financeiro');
     expect(html).toContain('Mais');
   });
@@ -122,7 +123,8 @@ describe('📱 DDC Mobile HUD Suite — Visual & Component Health', () => {
       </QueryClientProvider>
     );
     expect(html).toContain('ANFITRIÃO');
-    expect(html).toContain('PULSO DO ANFITRIÃO HOJE');
+    expect(html).toContain('NOME DO IMÓVEL');
+    expect(html).toContain('100% OPERACIONAL');
     expect(html).toContain('Financeiro');
     expect(html).toContain('Bio PIX');
     expect(html).toContain('Anti-Ban');
