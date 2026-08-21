@@ -32,33 +32,33 @@ export default function TermosUsoPage() {
           <section>
             <h2 className="text-lg font-bold text-emerald-400 mb-2">2. Planos e Cobrança</h2>
             <p className="mb-2">
-              Oferecemos 4 planos de assinatura mensal:
+              Oferecemos planos modulares com cobrança em moeda nacional (BRL) processada exclusivamente
+              via PIX e Cartão de Crédito através de instituições autorizadas pelo Banco Central (Asaas v3 e Mercado Pago):
             </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>LITE</strong> — R$ 197/mês: 50 hóspedes/mês, 500 mensagens, IA limitada</li>
-              <li><strong>PRO</strong> — R$ 397/mês: Ilimitado, OAuth Airbnb, precificação dinâmica</li>
+              <li><strong>LITE</strong> — R$ 197/mês: 50 hóspedes/mês, 500 mensagens, IA com suporte essencial</li>
+              <li><strong>PRO</strong> — R$ 397/mês: Ilimitado, OAuth Airbnb, precificação dinâmica e fechaduras inteligentes</li>
               <li><strong>MAX</strong> — R$ 797/mês: Tudo de PRO + monitoramento de concorrentes + multi-propriedades</li>
-              <li><strong>PARCEIRO</strong> — R$ 247/mês: PRO + gamificação de indicações</li>
+              <li><strong>PARCEIRO</strong> — R$ 247/mês: PRO + programa de indicação e amortização</li>
             </ul>
             <p className="mt-2">
-              Os pagamentos são processados via PIX (Mercado Pago) ou cartão de crédito (Stripe).
-              A cobrança é mensal e recorrente. Cancelamento pode ser feito a qualquer momento
-              com efeito no final do ciclo atual.
+              A cobrança é mensal e recorrente com faturamento sob regime do Simples Nacional (Anexo III - 6%).
+              O cancelamento pode ser solicitado a qualquer momento diretamente pelo painel.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-emerald-400 mb-2">3. IA e Atendimento via WhatsApp</h2>
             <p className="mb-2">
-              O Seu Zélla utiliza inteligência artificial (GLM 5.2 via Z.ai API) para atender
+              O Seu Zélla utiliza inteligência artificial e motor cognitivo multimodelo para atender
               hóspedes via WhatsApp de forma automatizada. A IA:
             </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Responde mensagens em português brasileiro 24/7</li>
+              <li>Responde mensagens em português brasileiro 24/7 com concisão e empatia</li>
               <li>Calcula preços dinâmicos baseados em ocupação e demanda (Yield Management)</li>
-              <li>Processa reservas e envia chaves PIX para pagamento</li>
-              <li>Envia códigos de fechadura eletrônica automaticamente após confirmação de pagamento</li>
-              <li>Aprende com cada interação para melhorar o atendimento (Delirium Zero)</li>
+              <li>Processa reservas e gera cobranças instantâneas via PIX 1-clique</li>
+              <li>Despacha códigos de fechadura eletrônica automaticamente após confirmação de pagamento</li>
+              <li>Aprende continuamente com as preferências de cada pousada respeitando o isolamento LGPD</li>
             </ul>
             <p className="mt-2">
               A IA trabalha em cooperação com o atendimento humano. O contratante pode, a qualquer
@@ -76,22 +76,19 @@ export default function TermosUsoPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-emerald-400 mb-2">4. Fechaduras Eletrônicas</h2>
+            <h2 className="text-lg font-bold text-emerald-400 mb-2">4. Governança Física de Fechaduras Eletrônicas (Smart Locks)</h2>
             <p className="mb-2">
-              O Seu Zélla integra com 10 marcas de fechadura eletrônica (5 com API oficial:
-              TTLock, Tuya, Igloohome, Nuki, August; e 5 em modo manual: Intelbras, Yale,
-              Papaiz, Philco, Samsung). Recursos de segurança:
+              O Seu Zélla integra centralizadamente com as 10 principais fabricantes do mercado:
+              <strong> TTLock, Tuya, Igloohome, Nuki, August, Intelbras, Yale, Papaiz, Philco e Samsung</strong>.
+              A governança de acesso físico segue protocolos de segurança estritos (*Zero Trust*):
             </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>PINs gerados com CSPRNG (crypto.randomInt) — nunca Math.random</li>
-              <li>Tokens OAuth criptografados com AES-256-GCM</li>
-              <li>Auditoria completa LGPD: quem abriu, quando, com qual PIN</li>
-              <li>Isolamento multi-tenant: uma pousada não vê PINs de outra</li>
-              <li>Panic Revoke: revogação de todos os PINs em 1 clique</li>
-              <li>Cron de manutenção a cada 15 minutos (revoga PINs expirados)</li>
-              <li>FNRH Digital: PIN gerado automaticamente após cadastro completo do hóspede</li>
-              <li>Depósito PIX: acesso revogado se depósito for retida</li>
-              <li>Serviços extras: check-in antecipado e check-out estendido estendem PIN automaticamente</li>
+              <li><strong>Política Fail-Closed:</strong> Falhas de comunicação com APIs de fabricantes nunca geram PINs locais simulados. Se o hardware não confirmar a gravação do código, o acesso físico é bloqueado e o host notificado imediatamente.</li>
+              <li><strong>Pareamento em Estágios (Staged Pairing):</strong> Dispositivos podem ser pré-cadastrados antes do pareamento físico, mas permanecem estritamente bloqueados para comandos de abertura até a conclusão do vínculo de hardware (`externalDeviceId`).</li>
+              <li><strong>Autorização Condicional:</strong> A emissão de códigos depende cumulativamente de reserva válida, pagamento compensado, janela temporal exata (check-in/check-out) e máquina de estados consistente.</li>
+              <li><strong>OAuth State com Nonce:</strong> O fluxo de autorização de fabricantes é protegido por estado criptográfico com `tenantId + provider + timestamp + nonce` com expiração de 10 minutos contra ataques CSRF e BOLA/IDOR.</li>
+              <li><strong>Comandos por Voz Alexa:</strong> Abertura via Alexa Smart Home Skill API exige autenticação OAuth2 e validação de PIN de voz de 4 dígitos.</li>
+              <li><strong>Auditoria e Revogação:</strong> Rastreamento completo de aberturas, expurgo automático de PINs expirados a cada 15 minutos e botão de <em>Panic Revoke</em> para revogação em 1 clique.</li>
             </ul>
           </section>
 

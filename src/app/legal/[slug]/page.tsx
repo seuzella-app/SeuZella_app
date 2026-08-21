@@ -77,8 +77,12 @@ const LEGAL_PAGES: Record<string, LegalDoc> = {
         content: 'A IA atua como assistente virtual treinada com informações fornecidas pelo CONTRATANTE. O CONTRATANTE pode supervisionar as conversas e acionar o recurso "Assumir Chat" a qualquer momento para assumir o diálogo pelo WhatsApp. A intervenção humana direta não gera abatimento, desconto ou devolução do valor da mensalidade e taxas contratadas. O retorno do atendimento automatizado é restabelecido pelo comando "Zélla assume". A integração com o WhatsApp depende da infraestrutura mantida pela Meta Platforms Inc., não se responsabilizando a Plataforma por indisponibilidades globais dos servidores da Meta.',
       },
       {
-        heading: '5. Nível de Serviço (SLA) e Foro',
-        content: 'A Plataforma busca manter disponibilidade mensal de [SLA DE DISPONIBILIDADE - Ex: 99,5%]. Para dirimir eventuais controvérsias, as partes elegem o Foro da Comarca de [CIDADE DO FORO DA COMARCA - Ex: Florianópolis/SC].',
+        heading: '5. Governança de Fechaduras Eletrônicas e Protocolo Fail-Closed',
+        content: 'A Plataforma integra centralizadamente com fabricantes líderes (TTLock, Tuya, Igloohome, Nuki, August, Intelbras, Yale, Papaiz, Philco, Samsung). Por diretriz de segurança física intransigente, o sistema opera em modo Fail-Closed: caso a API da fabricante falhe, o sistema não gera PINs locais simulados. O pareamento físico ocorre em estágios (Staged Pairing) e a emissão de códigos e abertura depende estritamente de reserva confirmada, pagamento compensado e janela de tempo válida.',
+      },
+      {
+        heading: '6. Nível de Serviço (SLA) e Foro',
+        content: 'A Plataforma busca manter disponibilidade mensal de 99,5%. Para dirimir eventuais controvérsias decorrentes do presente contrato, as partes elegem o Foro da Comarca da Capital do Estado de Santa Catarina (Florianópolis/SC).',
       },
     ],
   },

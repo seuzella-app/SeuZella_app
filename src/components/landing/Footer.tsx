@@ -161,11 +161,15 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2 text-neutral-500 text-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                <span>Dados criptografados (LGPD)</span>
+                <span>Fechaduras Inteligentes Fail-Closed (10 Marcas)</span>
               </div>
               <div className="flex items-center gap-2 text-neutral-500 text-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                <span>SLA 99.9% no plano MAX</span>
+                <span>Dados protegidos por criptografia e LGPD</span>
+              </div>
+              <div className="flex items-center gap-2 text-neutral-500 text-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span>SLA 99.9% de alta disponibilidade</span>
               </div>
               <Link
                 href="/legal/programa-amortizacao"
@@ -189,7 +193,7 @@ export function Footer() {
           <div className="flex items-center gap-4 text-neutral-600 text-[11px]">
             <div className="flex items-center gap-1">
               <span>Pagamentos via</span>
-              <span className="text-neutral-400 font-semibold">Mercado Pago</span>
+              <span className="text-neutral-400 font-semibold">Asaas & Mercado Pago</span>
             </div>
             <span className="text-neutral-800">|</span>
             <span>Feito com orgulho no Brasil</span>
