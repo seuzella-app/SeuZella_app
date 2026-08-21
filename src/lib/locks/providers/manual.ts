@@ -8,7 +8,7 @@
 // =============================================================================
 
 import { generateRandomPin } from '../pin-generator';
-import { getProviderCapabilities, isManualBrand } from './index';
+import { getProviderCapabilities, isManualBrand } from '../provider-capabilities';
 import type { LockBrand } from '../types';
 
 export interface ManualGeneratePinInput {
@@ -34,9 +34,6 @@ export async function generatePin(input: ManualGeneratePinInput): Promise<Manual
   const capabilities = getProviderCapabilities(input.brand);
   const warnings: string[] = [];
 
-  // Uma falha de API não pode ser convertida silenciosamente em um PIN local.
-  // Para um provider API, o modo manual exige ação explícita do host e um PIN
-  // já existente na fechadura; autoGenerate é proibido.
   if (!isManualBrand(input.brand) && input.autoGenerate) {
     throw new Error('API_PROVIDER_MANUAL_FALLBACK_NOT_ALLOWED');
   }
@@ -45,7 +42,7 @@ export async function generatePin(input: ManualGeneratePinInput): Promise<Manual
     throw new Error('API_PROVIDER_REQUIRES_REAL_PROVIDER');
   }
 
-  const usesHashSuffix = ['ttlock'].includes(input.brand);
+  const usesHashSuffix = input.brand === 'ttlock';
   const suffix = usesHashSuffix ? '#' : '';
 
   if (input.manualPin && input.manualPin.trim().length >= 4) {
@@ -70,9 +67,7 @@ export async function generatePin(input: ManualGeneratePinInput): Promise<Manual
 
   if (input.autoGenerate) {
     const pin = generateRandomPin(6, suffix);
-    warnings.push(
-      `PIN gerado automaticamente (${pin}). Cadastre-o fisicamente na fechadura antes da entrega.`,
-    );
+    warnings.push(`PIN gerado automaticamente (${pin}). Cadastre-o fisicamente na fechadura antes da entrega.`);
     return { pin, source: 'manual', codeType: 'manual', warnings };
   }
 
