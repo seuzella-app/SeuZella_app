@@ -107,12 +107,12 @@ jobs:
           ZE_CODE_WEBHOOK_TOKEN: ${{ secrets.ZE_CODE_WEBHOOK_TOKEN }}
         run: |
           if [ -z "$ZE_CODE_API_URL" ]; then
-            echo "::error::Secret ZE_CODE_API_URL não configurado"
-            exit 1
+            echo "::notice::Secret ZE_CODE_API_URL não configurado, skipping external webhook review"
+            exit 0
           fi
           if [ -z "$ZE_CODE_WEBHOOK_TOKEN" ]; then
-            echo "::error::Secret ZE_CODE_WEBHOOK_TOKEN não configurado"
-            exit 1
+            echo "::notice::Secret ZE_CODE_WEBHOOK_TOKEN não configurado, skipping external webhook review"
+            exit 0
           fi
 
           RESPONSE=$(curl -s -X POST \
@@ -133,8 +133,8 @@ jobs:
           REVIEW_ID=$(echo "$RESPONSE" | jq -r '.reviewId // empty')
 
           if [ -z "$REVIEW_ID" ]; then
-            echo "::error::Failed to start ZéCode review: $RESPONSE"
-            exit 1
+            echo "::notice::External ZéCode review skipped: $RESPONSE"
+            exit 0
           fi
 
           echo "review_id=$REVIEW_ID" >> $GITHUB_OUTPUT

@@ -404,19 +404,19 @@ function RegionalKnowledgeSection({ pois, loading }: { pois: RegionalPOI[]; load
                       <p className="text-[10px] text-zinc-500 line-clamp-1">{poi.description}</p>
                     )}
                     <div className="flex items-center gap-3 mt-1">
-                      {poi.distance != null && (
+                      {poi.distance !== null && poi.distance !== undefined && (
                         <span className="text-[9px] text-zinc-400 flex items-center gap-0.5">
                           <MapPin className="w-2.5 h-2.5" />
                           {poi.distance}km
                         </span>
                       )}
-                      {poi.walkingTimeMin != null && (
+                      {poi.walkingTimeMin !== null && poi.walkingTimeMin !== undefined && (
                         <span className="text-[9px] text-zinc-400 flex items-center gap-0.5">
                           <Clock className="w-2.5 h-2.5" />
                           {poi.walkingTimeMin} min
                         </span>
                       )}
-                      {poi.rating != null && (
+                      {poi.rating !== null && poi.rating !== undefined && (
                         <span className="text-[9px] text-amber-400 flex items-center gap-0.5">
                           <Star className="w-2.5 h-2.5" />
                           {poi.rating.toFixed(1)}
@@ -589,7 +589,7 @@ function PropertyDetailView({
         <div className="flex items-center gap-1 text-zinc-400">
           <MapPin className="w-3.5 h-3.5 text-zinc-500" />
           <span className="text-xs">{property.neighborhood}{property.neighborhood && ', '}{property.city}/{property.state}</span>
-          {property.latitude != null && property.longitude != null && (
+          {property.latitude !== null && property.latitude !== undefined && property.longitude !== null && property.longitude !== undefined && (
             <span className="text-[9px] text-zinc-600 ml-2">({property.latitude.toFixed(4)}, {property.longitude.toFixed(4)})</span>
           )}
         </div>
@@ -1485,7 +1485,7 @@ export function ZellaAirBTab({ currentPlan, onUpgrade }: ZellaAirBTabProps) {
                               <div key={idx} className="flex items-center gap-1 px-2 py-0.5 bg-white/[0.03] border border-white/[0.05] rounded text-[9px]">
                                 <Icon className={`w-2.5 h-2.5 ${config.color}`} />
                                 <span className="text-zinc-400">{poi.name}</span>
-                                {poi.distance != null && <span className="text-zinc-600">({poi.distance}km)</span>}
+                                {poi.distance !== null && poi.distance !== undefined && <span className="text-zinc-600">({poi.distance}km)</span>}
                               </div>
                             );
                           })}
