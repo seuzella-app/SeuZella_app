@@ -1,89 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withApiGuard } from '@/lib/security/api-guard';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import {
-  getLockDevice,
-  updateLockDevice,
-  deleteLockDevice,
-} from '@/lib/locks/orchestrator';
+import { getLockDevice, updateLockDevice, deleteLockDevice } from '@/lib/locks/orchestrator';
 
-// GET /api/ddc/locks/[id] — Detalhes de um dispositivo
+function safeErrorResponse(status = 500) {
+  return NextResponse.json(
+    { success: false, error: 'LOCK_DEVICE_OPERATION_FAILED' },
+    { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } },
+  );
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const tenantId = await resolveTenantId();
-    if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!(await resolveTenantId())) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
     const { id } = await params;
+    if (!id || id.length > 128) return NextResponse.json({ success: false, error: 'INVALID_DEVICE_ID' }, { status: 400 });
+
     const device = await getLockDevice(id);
-    if (!device) {
-      return NextResponse.json(
-        { success: false, error: 'Dispositivo não encontrado' },
-        { status: 404 },
-      );
-    }
-    return NextResponse.json({ success: true, data: device });
+    if (!device) return NextResponse.json({ success: false, error: 'LOCK_DEVICE_NOT_FOUND' }, { status: 404 });
+    return NextResponse.json({ success: true, data: device }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     console.error('[LOCKS] Error fetching device:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch lock device' },
-      { status: 500 },
-    );
+    return safeErrorResponse(503);
   }
 }
 
-// PATCH /api/ddc/locks/[id] — Atualiza um dispositivo
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    if (!(await resolveTenantId())) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
     const { id } = await params;
-    const body = await request.json();
-    const { nickname, location, notes, status, model } = body;
+    if (!id || id.length > 128) return NextResponse.json({ success: false, error: 'INVALID_DEVICE_ID' }, { status: 400 });
 
-    const updates: any = {};
-    if (nickname !== undefined) updates.nickname = nickname;
-    if (location !== undefined) updates.location = location;
-    if (notes !== undefined) updates.notes = notes;
-    if (status !== undefined) updates.status = status;
-    if (model !== undefined) updates.model = model;
+    const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > 16 * 1024) return NextResponse.json({ success: false, error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+    let body: unknown;
+    try { body = JSON.parse(rawBody); } catch { return NextResponse.json({ success: false, error: 'INVALID_JSON_BODY' }, { status: 400 }); }
+    if (!body || typeof body !== 'object') return NextResponse.json({ success: false, error: 'INVALID_PAYLOAD' }, { status: 400 });
 
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Nenhum campo para atualizar' },
-        { status: 400 },
-      );
+    const source = body as Record<string, unknown>;
+    const updates: Record<string, string> = {};
+    for (const field of ['nickname', 'location', 'notes', 'status', 'model'] as const) {
+      const value = source[field];
+      if (value !== undefined) {
+        if (typeof value !== 'string' || value.length > 500) return NextResponse.json({ success: false, error: 'INVALID_FIELD_VALUE' }, { status: 400 });
+        updates[field] = value;
+      }
     }
+    if (!Object.keys(updates).length) return NextResponse.json({ success: false, error: 'NO_FIELDS_TO_UPDATE' }, { status: 400 });
 
     const device = await updateLockDevice(id, updates);
-    return NextResponse.json({ success: true, data: device });
+    if (!device) return NextResponse.json({ success: false, error: 'LOCK_DEVICE_NOT_FOUND' }, { status: 404 });
+    return NextResponse.json({ success: true, data: device }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     console.error('[LOCKS] Error updating device:', error);
-    return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Failed to update lock device' },
-      { status: 500 },
-    );
+    return safeErrorResponse(503);
   }
 }
 
-// DELETE /api/ddc/locks/[id] — Remove um dispositivo (revoga todos os PINs)
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    if (!(await resolveTenantId())) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
     const { id } = await params;
+    if (!id || id.length > 128) return NextResponse.json({ success: false, error: 'INVALID_DEVICE_ID' }, { status: 400 });
+
     const ok = await deleteLockDevice(id);
-    return NextResponse.json({ success: ok });
+    if (!ok) return NextResponse.json({ success: false, error: 'LOCK_DEVICE_NOT_FOUND' }, { status: 404 });
+    return NextResponse.json({ success: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('[LOCKS] Error deleting device:', error);
-    return NextResponse.json(
-      { success: false, error: (error as Error).message || 'Failed to delete lock device' },
-      { status: 500 },
-    );
+    return safeErrorResponse(503);
   }
 }
