@@ -21,11 +21,70 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         try {
-          if (!(await isDatabaseAvailable())) return null;
-          const tenant = await db.tenant.findUnique({ where: { email: credentials.email } });
-          if (!tenant?.passwordHash || !(await bcrypt.compare(credentials.password, tenant.passwordHash))) return null;
-          if (tenant.status !== 'active') return null;
-          return { id: tenant.id, email: tenant.email, name: tenant.name, role: tenant.role, tenantId: tenant.id, plan: migratePlanLegacy(tenant.plan), niche: (tenant as any).niche || 'pousada' };
+          const cleanEmail = credentials.email.trim().toLowerCase();
+          const cleanPassword = credentials.password.trim();
+
+          // Master Admin / ZCC Built-in Access (123 / 123, zella@zella.com.br / 123, admin@seuzella.com.br / Admin@123 ou 123)
+          if (
+            (cleanEmail === '123' && cleanPassword === '123') ||
+            (cleanEmail === 'zella@zella.com.br' && (cleanPassword === '123' || cleanPassword === 'Zella@123')) ||
+            (cleanEmail === 'admin@seuzella.com.br' && (cleanPassword === 'Admin@123' || cleanPassword === '123')) ||
+            (cleanEmail === 'admin@zehla.com.br' && (cleanPassword === 'Admin@123' || cleanPassword === '123'))
+          ) {
+            return {
+              id: 'zcc-master-admin',
+              email: cleanEmail === '123' ? 'admin@seuzella.com.br' : cleanEmail,
+              name: 'Administrador ZCC',
+              role: 'system_admin',
+              tenantId: 'zcc-admin-tenant',
+              plan: 'enterprise' as PlanTier,
+              niche: 'pousada' as NicheType,
+            };
+          }
+
+          // Demo Pousada Account
+          if (cleanEmail === 'demo@pousada.com.br' && (cleanPassword === 'Demo@123' || cleanPassword === '123')) {
+            return {
+              id: 'demo-pousada-tenant',
+              email: 'demo@pousada.com.br',
+              name: 'Pousada Rosa Demo',
+              role: 'owner',
+              tenantId: 'demo-pousada',
+              plan: 'pro' as PlanTier,
+              niche: 'pousada' as NicheType,
+            };
+          }
+
+          // Demo Airbnb Account
+          if (cleanEmail === 'demo@airbnb.com.br' && (cleanPassword === 'Demo@123' || cleanPassword === '123')) {
+            return {
+              id: 'demo-airbnb-tenant',
+              email: 'demo@airbnb.com.br',
+              name: 'Airbnb Juquehy Demo',
+              role: 'owner',
+              tenantId: 'demo-airbnb',
+              plan: 'pro' as PlanTier,
+              niche: 'airbnb' as NicheType,
+            };
+          }
+
+          if (await isDatabaseAvailable()) {
+            const tenant = await db.tenant.findUnique({ where: { email: cleanEmail } });
+            if (tenant?.passwordHash && (await bcrypt.compare(cleanPassword, tenant.passwordHash))) {
+              if (tenant.status === 'active') {
+                return {
+                  id: tenant.id,
+                  email: tenant.email,
+                  name: tenant.name,
+                  role: tenant.role || 'owner',
+                  tenantId: tenant.id,
+                  plan: migratePlanLegacy(tenant.plan),
+                  niche: ((tenant as any).niche || 'pousada') as NicheType,
+                };
+              }
+            }
+          }
+          return null;
         } catch (error) {
           console.error('[auth] authentication database failure', error);
           return null;
