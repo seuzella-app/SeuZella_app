@@ -73,22 +73,8 @@ export function MobileYieldProfitWidget({ niche, propertyName, onNavigate, showV
 
   const accentColor = niche === 'pousada' ? 'emerald' : 'cyan';
 
-  if (loading) {
-    return (
-      <div className={`mx-3 mb-3 mt-3 rounded-xl border border-${accentColor}-500/30 bg-${accentColor}-500/5 p-3 flex items-center gap-2`}>
-        <Loader2 className={`h-4 w-4 animate-spin text-${accentColor}-400`} />
-        <span className={`text-xs text-${accentColor}-300`}>Calculando ganhos...</span>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="mx-3 mb-3 mt-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 flex items-center gap-2">
-        <AlertCircle className="h-4 w-4 text-amber-400" />
-        <span className="text-xs text-amber-300">Yield indisponível agora</span>
-      </div>
-    );
+  if (loading || error || !data) {
+    return null;
   }
 
   const hasProfit = data.totalExtraProfitBrl > 0;

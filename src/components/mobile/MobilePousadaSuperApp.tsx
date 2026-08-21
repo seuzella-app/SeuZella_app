@@ -504,31 +504,53 @@ export function MobilePousadaSuperApp() {
     toast.success(`✅ Quarto ${newRoom.name} adicionado com sucesso!`);
   };
 
-  const handleSendSimulatedMsg = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!simulatedMsg.trim()) return;
+  const handleSetFontScale = (scale: number) => {
+    setFontScale(scale);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('zella_font_scale', String(scale));
+      document.documentElement.style.setProperty('--zella-font-scale', String(scale));
+    }
+    toast.success(`🔤 Tamanho da fonte ajustado para ${Math.round(scale * 100)}%!`);
+  };
 
-    const userText = simulatedMsg;
+  const handleSendSimulatedMsg = (e?: React.FormEvent, customQuery?: string) => {
+    if (e) e.preventDefault();
+    const query = customQuery || simulatedMsg;
+    if (!query.trim()) return;
+
     setSimulatedMsg('');
-
-    setChatLog((prev) => [...prev, { sender: 'guest', text: userText, time: time || '14:40' }]);
+    setChatLog((prev) => [...prev, { sender: 'guest', text: query, time: time || 'Agora' }]);
 
     setTimeout(() => {
-      let botResponse = 'Perfeito! Sou a assistente inteligente do Seu Zélla. Como posso ajudar com sua reserva na pousada?';
-      const lower = userText.toLowerCase();
+      let botResponse = '';
+      const lower = query.toLowerCase();
 
-      if (lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('senha')) {
-        botResponse = 'Nossa rede Wi-Fi é "Zella_Guest_5G" e a senha de acesso é "marés_vip2026". O sinal pega em todas as suítes e área da piscina!';
-      } else if (lower.includes('café') || lower.includes('cafe') || lower.includes('almoço')) {
-        botResponse = 'Nosso café da manhã colonial é servido diariamente das 07:30 às 10:30 no salão principal com vista para o mar! ☕🥐';
-      } else if (lower.includes('checkin') || lower.includes('check-in') || lower.includes('horario')) {
-        botResponse = 'O horário de check-in é a partir das 14h e checkout até às 12h. Se precisar de Early Check-in ou Late Checkout, me avise!';
-      } else if (lower.includes('chave') || lower.includes('porta') || lower.includes('senha')) {
-        botResponse = 'Sua fechadura é 100% eletrônica! A senha temporária da sua suíte foi enviada no seu WhatsApp.';
+      if (lower.includes('parear') || lower.includes('fechadura') || lower.includes('adicionar fechadura') || lower.includes('marca')) {
+        botResponse = '🔐 Para parear uma fechadura: Vá na aba "Fechaduras" e toque no botão "+ Parear". Escolha entre as 10 marcas compatíveis (TTLock, Tuya, Intelbras, Yale, Nuki, Igloohome, August, Papaiz, Philco, Samsung), informe o quarto/device ID e conclua a validação Fail-Closed!';
+      } else if (lower.includes('upsell') || lower.includes('feriado') || lower.includes('7%') || lower.includes('alta temporada')) {
+        botResponse = '⚡ O UPSELL de Feriados permite ativar tarifas inteligentes para datas de pico (Réveillon, Carnaval, Férias). O aumento diário configurado é repassado 93% direto para a pousada, com apenas 7% de taxa de performance Zélla!';
+      } else if (lower.includes('pin') || lower.includes('senha') || lower.includes('whatsapp') || lower.includes('enviar pin')) {
+        botResponse = '📲 Envio de PIN via WhatsApp: Na aba "Fechaduras", toque em "WhatsApp" no card do quarto. O Zélla gera um template pronto com o código (ex: 849201#) e a janela temporal (-15 min do check-in até o check-out).';
+      } else if (lower.includes('destrancar') || lower.includes('abrir remoto') || lower.includes('destravar')) {
+        botResponse = '🔓 Destrancamento Remoto: Disponível para marcas com API/Gateway (TTLock, Tuya, Nuki, Igloohome, August). Para marcas manuais/offline (Intelbras, Yale, Papaiz, etc.), o acesso é feito digitando o PIN diretamente no teclado da porta.';
+      } else if (lower.includes('panico') || lower.includes('pânico') || lower.includes('revogar') || lower.includes('bloquear')) {
+        botResponse = '🚨 Revogação de Pânico: Toque no botão "Pânico" em qualquer fechadura para invalidar imediatamente o PIN do hóspede e travar o acesso em tempo real, garantindo segurança total.';
+      } else if (lower.includes('bateria') || lower.includes('pilha') || lower.includes('20%')) {
+        botResponse = '🔋 Telemetria de Bateria: O DDC alerta automaticamente quando o nível cair abaixo de 20%. Toque em "Pedir Troca" para acionar a equipe de governança e trocar as 4 pilhas AA antes do próximo hóspede.';
+      } else if (lower.includes('taxa') || lower.includes('15%') || lower.includes('comissao') || lower.includes('comissão') || lower.includes('economia') || lower.includes('financeiro') || lower.includes('pix')) {
+        botResponse = '💰 Economia de Taxas: Na aba "Financeiro", o Radar Zélla calcula a economia líquida obtida ao converter reservas diretas no PIX (0% de taxa de intermediação) em vez de pagar 15% a 25% nas OTAs como Booking e Airbnb.';
+      } else if (lower.includes('checkin') || lower.includes('check-in') || lower.includes('novo hospede') || lower.includes('hóspede')) {
+        botResponse = '🏨 Check-in Rápido: Toque em "+ Check-in Rápido" na barra superior ou na aba Hóspedes para cadastrar o nome, quarto, canal (PIX/WhatsApp/Booking) e já gerar o PIN de acesso digital.';
+      } else if (lower.includes('fonte') || lower.includes('letra') || lower.includes('tamanho') || lower.includes('140%') || lower.includes('letras')) {
+        botResponse = '🔤 Tamanho de Fonte: Na aba "Mais", selecione entre 85%, 100%, 115% ou 140% para redimensionar instantaneamente todo o texto do DDC Mobile no seu celular.';
+      } else if (lower.includes('escudo') || lower.includes('anti-ban') || lower.includes('banimento')) {
+        botResponse = '🛡️ Escudo Anti-Ban: Protege o número de WhatsApp da pousada distribuindo mensagens e links do Guia Digital de forma humanizada, evitando bloqueios da Meta.';
+      } else {
+        botResponse = '🔒 Travas de Segurança Operacional Ativas: Sou o Guia Operacional exclusivo do DDC Mobile Seu Zélla. Posso te orientar sobre o uso de: Fechaduras (10 marcas), Financeiro & PIX, UPSELL 7%, WhatsApp de Hóspedes e Check-in. Como posso te ajudar na pousada?';
       }
 
-      setChatLog((prev) => [...prev, { sender: 'zella', text: botResponse, time: time || '14:40' }]);
-    }, 800);
+      setChatLog((prev) => [...prev, { sender: 'zella', text: botResponse, time: time || 'Agora' }]);
+    }, 400);
   };
 
 
@@ -546,7 +568,7 @@ export function MobilePousadaSuperApp() {
       style={{ fontSize: `${fontScale * 14}px` }}
     >
       {/* ──
-          1. TOP APP BAR CYBER-LUXE POUSADA (Mobile Header)
+          1. TOP APP BAR CYBER-LUXE POUSADA (Mobile Header - Limpo & Espaçoso)
       ── */}
       <header className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-2xl border-b border-white/[0.08] px-3.5 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -571,21 +593,8 @@ export function MobilePousadaSuperApp() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Botão de Status Motor Zélla */}
-          <button
-            onClick={handleToggleAI}
-            className={`p-2 rounded-full border flex items-center justify-center transition-all min-h-[38px] min-w-[38px] active:scale-95 ${
-              aiActive
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                : 'bg-zinc-800 border-zinc-700 text-zinc-400'
-            }`}
-            title={aiActive ? 'Motor Zélla: Ativo (Toque para pausar)' : 'Motor Zélla: Pausado (Toque para ativar)'}
-            aria-label={aiActive ? 'Motor Zélla Ativo' : 'Motor Zélla Pausado'}
-          >
-            <span className={`w-2.5 h-2.5 rounded-full ${aiActive ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
-          </button>
-
+        {/* Ações Direitas: Olhinho & Notificações (Sem a bolinha de status, com espaço e respiro total) */}
+        <div className="flex items-center gap-2.5 pr-0.5">
           {/* Botão Olhinho (Show / Hide Financial Values) */}
           <button
             onClick={handleToggleFinancialValues}
@@ -596,7 +605,7 @@ export function MobilePousadaSuperApp() {
             {showFinancialValues ? <Eye className="w-4 h-4 text-emerald-400" /> : <EyeOff className="w-4 h-4 text-zinc-400" />}
           </button>
 
-          {/* Notificações Bell */}
+          {/* Notificações Bell com badge */}
           <button
             onClick={() => setIsNotificationsOpen(true)}
             className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300 hover:text-white transition-all active:scale-95 relative"
@@ -604,7 +613,7 @@ export function MobilePousadaSuperApp() {
           >
             <Bell className="w-4 h-4 text-emerald-400" />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 text-[#0a0a0f] text-[9px] font-mono font-bold flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 text-[#0a0a0f] text-[9px] font-mono font-bold flex items-center justify-center shadow-[0_0_8px_#10b981]">
                 {unreadCount}
               </span>
             )}
@@ -663,26 +672,178 @@ export function MobilePousadaSuperApp() {
       ── */}
       <main className="flex-1 px-3.5 pt-3 space-y-4">
         
-        {/* ABA 1: VISÃO GERAL (DASHBOARD MOBILE) */}
+        {/* ABA 1: VISÃO GERAL (PAINEL EXECUTIVO COMPLETO DDC POUSADA) */}
         {activeTab === 'visao_geral' && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3.5">
             
-            {/* Widget Financeiro Yield Profit */}
-            <MobileYieldProfitWidget
-              niche="pousada"
-              propertyName={propertyName}
-              onNavigate={(tab) => setActiveTab(tab as any)}
-              showValues={showFinancialValues}
-            />
+            {/* HERO EXECUTIVO: PULSO DA POUSADA HOJE */}
+            <div className="p-4 rounded-3xl bg-gradient-to-br from-emerald-500/20 via-emerald-950/20 to-black/70 border border-emerald-500/30 backdrop-blur-xl relative overflow-hidden space-y-3 shadow-[0_0_30px_rgba(16,185,129,0.12)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold">PULSO DA POUSADA HOJE</span>
+                    <div className="text-xs text-white font-bold">{propertyName}</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" /> 100% OPERACIONAL
+                </span>
+              </div>
 
-            {/* Acesso Rápido ao Wi-Fi com Copy */}
+              {/* Faturamento do Mês */}
+              <div className="pt-1">
+                <span className="block text-[10px] font-mono text-zinc-400 uppercase">Faturamento Mês em Aberto</span>
+                <div className="text-3xl font-black text-white font-mono tracking-tight mt-0.5">
+                  {formatMoney(48920)}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1 font-bold">
+                    <TrendingUp className="w-3 h-3" /> +18.4% vs mês anterior
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-400">14 reservas diretas PIX</span>
+                </div>
+              </div>
+
+              {/* 4 KPIs Rápidos */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.08]">
+                <div className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-0.5">
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase">Ocupação Hoje</span>
+                  <div className="text-sm font-extrabold text-white font-mono">84.5% (8/10)</div>
+                  <span className="text-[9px] font-mono text-emerald-400">2 quartos livres</span>
+                </div>
+
+                <div className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-0.5">
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase">Economia de Taxas</span>
+                  <div className="text-sm font-extrabold text-cyan-400 font-mono">{formatMoney(4549.50)}</div>
+                  <span className="text-[9px] font-mono text-zinc-400">0% vs 15% OTAs</span>
+                </div>
+
+                <div className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-0.5">
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase">UPSELL Réveillon</span>
+                  <div className="text-sm font-extrabold text-amber-400 font-mono">+{formatMoney(dailyIncrease)}/dia</div>
+                  <span className="text-[9px] font-mono text-zinc-400">93% da pousada (7% taxa)</span>
+                </div>
+
+                <div className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-0.5">
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase">Fechaduras & Pilhas</span>
+                  <div className="text-sm font-extrabold text-white font-mono">9/10 Ok</div>
+                  <span className="text-[9px] font-mono text-rose-400 font-bold">1 com bateria &lt;20%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* CHEGADAS & CHECK-INS DE HOJE */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-emerald-400" />
+                  <span>CHEGADAS & CHECK-INS DE HOJE</span>
+                </h3>
+                <button
+                  onClick={() => setActiveTab('hospedes')}
+                  className="text-[11px] text-emerald-400 hover:underline font-mono"
+                >
+                  Ver Todos ({guestsList.length}) &gt;
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {guestsList.map((g) => (
+                  <div
+                    key={g.id}
+                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between text-xs"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-white">{g.name}</span>
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                          {g.origin}
+                        </span>
+                      </div>
+                      <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+                        {g.room} · Status: <span className="text-emerald-400">{g.status}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => {
+                          const phoneClean = (g.phone || '5511988221100').replace(/\D/g, '');
+                          window.open(`https://wa.me/${phoneClean}?text=${encodeURIComponent(`Olá ${g.name}! Sua reserva na ${propertyName} está confirmada. Segue seu PIN de acesso e link do Guia Digital.`)}`, '_blank');
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold font-mono flex items-center gap-1 active:scale-95"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>WhatsApp</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* MAPA RÁPIDO DOS QUARTOS & FECHADURAS */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                  <BedDouble className="w-4 h-4 text-emerald-400" />
+                  <span>STATUS DOS QUARTOS & FECHADURAS</span>
+                </h3>
+                <button
+                  onClick={() => setActiveTab('fechaduras')}
+                  className="text-[11px] text-emerald-400 hover:underline font-mono"
+                >
+                  10 Marcas BR &gt;
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {rooms.slice(0, 4).map((r) => (
+                  <div
+                    key={r.id}
+                    className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-2 relative overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white truncate">{r.name}</span>
+                      <span className={`w-2 h-2 rounded-full ${
+                        r.status === 'ocupado' ? 'bg-emerald-400' : r.status === 'livre' ? 'bg-zinc-500' : 'bg-amber-400'
+                      }`} />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                      <span>{formatMoney(r.price)}/dia</span>
+                      <span className={`flex items-center gap-1 font-bold ${r.lockBattery < 20 ? 'text-rose-400 animate-pulse' : 'text-zinc-300'}`}>
+                        <Battery className="w-3 h-3" />
+                        {r.lockBattery}%
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
+                      <span className="text-[10px] font-mono text-amber-400 font-bold">{r.pin}#</span>
+                      <button
+                        onClick={() => handleRemoteUnlock(r.id, r.name, r.brand, r.providerType)}
+                        disabled={unlockingRoomId === r.id}
+                        className="px-2 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-bold font-mono active:scale-95"
+                      >
+                        {unlockingRoomId === r.id ? 'Abrindo...' : 'Destravar'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ACESSO RÁPIDO AO WI-FI DA POUSADA */}
             <div className="p-3.5 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <Wifi className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-white font-mono">Wi-Fi Hospedagem</div>
+                  <div className="text-xs font-bold text-white font-mono">Wi-Fi Pousada</div>
                   <div className="text-[11px] font-mono text-zinc-400">
                     {showWifiPassword ? 'marés_vip2026' : '••••••••••••'}
                   </div>
@@ -699,64 +860,13 @@ export function MobilePousadaSuperApp() {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText('marés_vip2026');
-                    toast.success('Senha do Wi-Fi copiada para área de transferência!');
+                    toast.success('Senha do Wi-Fi copiada!');
                   }}
                   className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 active:scale-95"
                   aria-label="Copiar Senha"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
-              </div>
-            </div>
-
-            {/* Mapa Rápido dos Quartos (Room Grid) */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
-                  <BedDouble className="w-4 h-4 text-emerald-400" />
-                  <span>MAPA DE QUARTOS & FECHADURAS</span>
-                </h3>
-                <button
-                  onClick={() => setActiveTab('fechaduras')}
-                  className="text-[11px] text-emerald-400 hover:underline font-mono"
-                >
-                  Ver Todas &gt;
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {rooms.slice(0, 4).map((r) => (
-                  <div
-                    key={r.id}
-                    className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2 relative overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white truncate">{r.name}</span>
-                      <span className={`w-2 h-2 rounded-full ${
-                        r.status === 'ocupado' ? 'bg-emerald-400' : r.status === 'livre' ? 'bg-zinc-500' : 'bg-amber-400'
-                      }`} />
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-                      <span>{formatMoney(r.price)}/dia</span>
-                      <span className="flex items-center gap-1 text-zinc-300">
-                        <Battery className={`w-3 h-3 ${r.lockBattery < 20 ? 'text-rose-400' : 'text-emerald-400'}`} />
-                        {r.lockBattery}%
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
-                      <span className="text-[10px] font-mono text-zinc-400">PIN: {r.pin}</span>
-                      <button
-                        onClick={() => handleRemoteUnlock(r.id, r.name)}
-                        disabled={unlockingRoomId === r.id}
-                        className="px-2 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-bold font-mono active:scale-95"
-                      >
-                        {unlockingRoomId === r.id ? 'Abrindo...' : 'Destravar'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
 
@@ -1589,58 +1699,118 @@ export function MobilePousadaSuperApp() {
               </div>
             </div>
 
-            {/* Acessibilidade de Fontes */}
-            <div className="bg-white/[0.03] backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-4 space-y-3">
+            {/* Acessibilidade de Fontes (85%, 100%, 115%, 140%) */}
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-emerald-500/30 rounded-3xl p-4 space-y-3">
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
                 <div className="flex items-center gap-2">
                   <Type className="w-4 h-4 text-emerald-400" />
                   <h3 className="text-xs font-bold text-white font-mono">TAMANHO DA FONTE</h3>
                 </div>
-                <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-                  {fontScale === 0.85 ? 'PEQUENO' : fontScale === 1.15 ? 'GRANDE' : 'PADRÃO'}
+                <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-bold">
+                  {fontScale === 0.85 ? '85% · PEQUENO' : fontScale === 1.15 ? '115% · GRANDE' : fontScale === 1.4 ? '140% · EXTRA' : '100% · PADRÃO'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 <button
-                  onClick={() => { setFontScale(0.85); toast.success('Tamanho: PEQUENO'); }}
-                  className={`p-2.5 rounded-xl border font-mono text-xs font-bold ${
-                    fontScale === 0.85 ? 'bg-emerald-500 text-zinc-950 border-emerald-400' : 'bg-white/[0.03] text-zinc-300 border-white/[0.08]'
+                  type="button"
+                  onClick={() => handleSetFontScale(0.85)}
+                  className={`py-2.5 rounded-xl border font-mono text-xs font-bold transition-all active:scale-95 ${
+                    fontScale === 0.85 ? 'bg-emerald-500 text-zinc-950 border-emerald-400 shadow-[0_0_10px_#10b981]' : 'bg-white/[0.03] text-zinc-300 border-white/[0.08]'
                   }`}
                 >
                   85%
                 </button>
                 <button
-                  onClick={() => { setFontScale(1); toast.success('Tamanho: PADRÃO'); }}
-                  className={`p-2.5 rounded-xl border font-mono text-xs font-bold ${
-                    fontScale === 1 ? 'bg-emerald-500 text-zinc-950 border-emerald-400' : 'bg-white/[0.03] text-zinc-300 border-white/[0.08]'
+                  type="button"
+                  onClick={() => handleSetFontScale(1)}
+                  className={`py-2.5 rounded-xl border font-mono text-xs font-bold transition-all active:scale-95 ${
+                    fontScale === 1 ? 'bg-emerald-500 text-zinc-950 border-emerald-400 shadow-[0_0_10px_#10b981]' : 'bg-white/[0.03] text-zinc-300 border-white/[0.08]'
                   }`}
                 >
                   100%
                 </button>
                 <button
-                  onClick={() => { setFontScale(1.15); toast.success('Tamanho: GRANDE'); }}
-                  className={`p-2.5 rounded-xl border font-mono text-xs font-bold ${
-                    fontScale === 1.15 ? 'bg-emerald-500 text-zinc-950 border-emerald-400' : 'bg-white/[0.03] text-zinc-300 border-white/[0.08]'
+                  type="button"
+                  onClick={() => handleSetFontScale(1.15)}
+                  className={`py-2.5 rounded-xl border font-mono text-xs font-bold transition-all active:scale-95 ${
+                    fontScale === 1.15 ? 'bg-emerald-500 text-zinc-950 border-emerald-400 shadow-[0_0_10px_#10b981]' : 'bg-white/[0.03] text-zinc-300 border-white/[0.08]'
                   }`}
                 >
                   115%
                 </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetFontScale(1.4)}
+                  className={`py-2.5 rounded-xl border font-mono text-xs font-bold transition-all active:scale-95 ${
+                    fontScale === 1.4 ? 'bg-emerald-500 text-zinc-950 border-emerald-400 shadow-[0_0_10px_#10b981]' : 'bg-white/[0.03] text-zinc-300 border-white/[0.08]'
+                  }`}
+                >
+                  140%
+                </button>
               </div>
+              <p className="text-[10px] text-zinc-400 font-mono">
+                Toque para aumentar as letras instantaneamente e melhorar a visibilidade no celular.
+              </p>
             </div>
 
-            {/* Chat Box Simulador Zélla 24h */}
-            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 space-y-3 flex flex-col h-[340px]">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 text-[10px] font-mono text-zinc-400">
-                <span className="text-emerald-400 font-bold">ZÉLLA SIMULATOR 24H</span>
-                <span>CONFIDENCE: 99.2%</span>
+            {/* Chat Box: GUIA & ESPECIALISTA OPERACIONAL DDC MOBILE SEU ZÉLLA (Com travas) */}
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-emerald-500/20 rounded-3xl p-4 space-y-3 flex flex-col h-[400px]">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 text-[10px] font-mono">
+                <div className="flex items-center gap-1.5 font-bold text-emerald-400">
+                  <Brain className="w-3.5 h-3.5" />
+                  <span>GUIA OPERACIONAL DO DDC MOBILE</span>
+                </div>
+                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">
+                  TRAVAS ATIVAS
+                </span>
               </div>
 
+              {/* Sugestões Rápidas de Operação */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-[10px] font-mono">
+                <button
+                  type="button"
+                  onClick={() => handleSendSimulatedMsg(undefined, 'Como parear fechadura?')}
+                  className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-emerald-500/10 border border-white/[0.08] text-zinc-300 whitespace-nowrap active:scale-95"
+                >
+                  🔑 Parear Fechadura
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendSimulatedMsg(undefined, 'Como funciona o UPSELL 7%?')}
+                  className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-amber-500/10 border border-white/[0.08] text-zinc-300 whitespace-nowrap active:scale-95"
+                >
+                  ⚡ UPSELL 7%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendSimulatedMsg(undefined, 'Como enviar PIN no WhatsApp?')}
+                  className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-emerald-500/10 border border-white/[0.08] text-zinc-300 whitespace-nowrap active:scale-95"
+                >
+                  📲 Enviar PIN WhatsApp
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendSimulatedMsg(undefined, 'Como economizar a taxa de 15%?')}
+                  className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-cyan-500/10 border border-white/[0.08] text-zinc-300 whitespace-nowrap active:scale-95"
+                >
+                  💰 Economia 15% OTAs
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendSimulatedMsg(undefined, 'Como funciona a Revogação de Pânico?')}
+                  className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-rose-500/10 border border-white/[0.08] text-zinc-300 whitespace-nowrap active:scale-95"
+                >
+                  🚨 Pânico
+                </button>
+              </div>
+
+              {/* Área de Mensagens */}
               <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar text-xs">
                 {chatLog.map((msg, idx) => (
                   <div
                     key={idx}
-                    className={`flex flex-col max-w-[85%] ${
+                    className={`flex flex-col max-w-[88%] ${
                       msg.sender === 'guest' ? 'ml-auto items-end' : 'mr-auto items-start'
                     }`}
                   >
@@ -1663,7 +1833,7 @@ export function MobilePousadaSuperApp() {
                   type="text"
                   value={simulatedMsg}
                   onChange={(e) => setSimulatedMsg(e.target.value)}
-                  placeholder="Perguntar sobre café, Wi-Fi, fechadura..."
+                  placeholder="Pergunte sobre fechaduras, financeiro, UPSELL, check-in..."
                   className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
                 />
                 <button
