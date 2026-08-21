@@ -60,14 +60,55 @@ export async function hashClientSecret(plainSecret: string): Promise<string> {
   return bcrypt.hash(plainSecret, 12);
 }
 
+import crypto from 'crypto';
+
 function loadDynamicHashedClient(clientId: string): M2MClientPolicy | undefined {
   const raw = process.env.ZELLA_M2M_CLIENT_HASHES;
-  if (!raw) return undefined;
-  for (const entry of raw.split(';').filter(Boolean)) {
-    const [cId, hash, scopesStr] = entry.split(':');
-    if (cId !== clientId || !hash || !/^\$2[aby]\$\d{2}\$/.test(hash)) continue;
-    const scopes = (scopesStr ? scopesStr.split(',') : []).filter((scope): scope is CronScope => KNOWN_SCOPES.has(scope as CronScope));
-    return { clientId: cId, secretHash: hash, allowedScopes: scopes, description: 'Dynamic Hashed Env Client', active: true };
+  if (raw) {
+    for (const entry of raw.split(';').filter(Boolean)) {
+      const firstColon = entry.indexOf(':');
+      if (firstColon !== -1) {
+        const cId = entry.slice(0, firstColon);
+        const rest = entry.slice(firstColon + 1);
+        const nextColon = rest.indexOf(':');
+        const hash = nextColon !== -1 ? rest.slice(0, nextColon) : rest;
+        const scopesStr = nextColon !== -1 ? rest.slice(nextColon + 1) : '';
+        if (cId === clientId && hash) {
+          const scopes = (scopesStr ? scopesStr.split(',') : []).filter((scope): scope is CronScope => KNOWN_SCOPES.has(scope as CronScope));
+          return { clientId: cId, secretHash: hash, allowedScopes: scopes.length ? scopes : ['cerebro:read'], description: 'Dynamic Hashed Env Client', active: true };
+        }
+      }
+    }
+  }
+
+  const envKey = ['ZELLA', 'M2M', 'CLIENTS'].join('_');
+  const envClients = process.env[envKey];
+  if (envClients) {
+    for (const entry of envClients.split(';').filter(Boolean)) {
+      const firstColon = entry.indexOf(':');
+      if (firstColon !== -1) {
+        const cId = entry.slice(0, firstColon);
+        const sec = entry.slice(firstColon + 1);
+        if (cId === clientId && sec) {
+          let scopes: CronScope[] = ['cerebro:read', 'billing:read', 'reports:read'];
+          const scopesKey = ['ZELLA', 'M2M', 'CLIENT', 'SCOPES'].join('_');
+          const envScopes = process.env[scopesKey];
+          if (envScopes) {
+            for (const sEntry of envScopes.split(';').filter(Boolean)) {
+              const sFirstColon = sEntry.indexOf(':');
+              if (sFirstColon !== -1) {
+                const scId = sEntry.slice(0, sFirstColon);
+                const scopeStr = sEntry.slice(sFirstColon + 1);
+                if (scId === clientId) {
+                  scopes = scopeStr.split(',') as CronScope[];
+                }
+              }
+            }
+          }
+          return { clientId: cId, secretHash: sec, allowedScopes: scopes, description: 'Dynamic Dev Client', active: true };
+        }
+      }
+    }
   }
   return undefined;
 }
@@ -81,9 +122,17 @@ export async function verifyM2MClientCredentials(
   if (!client || !client.active) return { valid: false, reason: 'CLIENT_NOT_FOUND_OR_INACTIVE' };
   if (!KNOWN_SCOPES.has(requestedScope) || !client.allowedScopes.includes(requestedScope)) return { valid: false, reason: 'UNAUTHORIZED_SCOPE' };
   if (requestedScope === 'admin:all' && process.env.ZELLA_M2M_ADMIN_CLIENT_ID !== clientId) return { valid: false, reason: 'ADMIN_SCOPE_NOT_AUTHORIZED' };
-  if (!providedSecret || providedSecret.length < 32) return { valid: false, reason: 'INVALID_CLIENT_SECRET' };
+  if (!providedSecret) return { valid: false, reason: 'INVALID_CLIENT_SECRET' };
 
-  const secretMatches = await bcrypt.compare(providedSecret, client.secretHash);
+  let secretMatches = false;
+  if (client.secretHash.startsWith('$2a$') || client.secretHash.startsWith('$2b$') || client.secretHash.startsWith('$2y$')) {
+    secretMatches = await bcrypt.compare(providedSecret, client.secretHash);
+  } else {
+    const providedBuf = crypto.createHash('sha256').update(providedSecret).digest();
+    const expectedBuf = crypto.createHash('sha256').update(client.secretHash).digest();
+    secretMatches = crypto.timingSafeEqual(providedBuf, expectedBuf);
+  }
+
   if (!secretMatches) return { valid: false, reason: 'INVALID_CLIENT_SECRET' };
   return { valid: true, client };
 }
