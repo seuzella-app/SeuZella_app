@@ -1,14 +1,8 @@
 'use client';
 
-// ==============================================================================
-// DDC AIRBNB CLIENT CONTENT — Seamless Responsive Viewport Engine
-// ==============================================================================
-// - Mobile Viewport (< 768px): Renders MobileAirbnbSuperApp (Fullscreen Cyber-Luxe)
-// - Desktop Viewport (>= 768px): Renders DDCAirbnbContent (Desktop Web DDC Dashboard)
-// ==============================================================================
-
 import dynamic from 'next/dynamic';
 import { MobileAirbnbSuperApp } from '@/components/mobile/MobileAirbnbSuperApp';
+import { MobileDDCLiveBootstrap } from '@/components/mobile/MobileDDCLiveBootstrap';
 
 const DDCAirbnbContent = dynamic(
   () => import('./DDCAirbnbContent'),
@@ -28,12 +22,12 @@ const DDCAirbnbContent = dynamic(
 export function DDCAirbnbClientContent() {
   return (
     <>
-      {/* Mobile Super App view (< 1024px) — iPad/celular */}
       <div className="block lg:hidden w-full min-h-screen bg-[#0a0a0f]">
-        <MobileAirbnbSuperApp />
+        <MobileDDCLiveBootstrap niche="airbnb">
+          <MobileAirbnbSuperApp />
+        </MobileDDCLiveBootstrap>
       </div>
 
-      {/* Web Desktop DDC view (>= 1024px) */}
       <div className="hidden lg:block w-full min-h-screen bg-[#0a0a0f]">
         <DDCAirbnbContent />
       </div>
