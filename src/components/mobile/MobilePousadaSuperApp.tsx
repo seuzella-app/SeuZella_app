@@ -135,18 +135,38 @@ export function MobilePousadaSuperApp() {
     return 1;
   });
 
+interface PousadaRoom {
+  id: string;
+  name: string;
+  type: string;
+  status: 'ocupado' | 'livre' | 'limpeza' | 'manutencao';
+  guest: string;
+  guestCode: string;
+  price: number;
+  lockBattery: number;
+  pin: string;
+  lockModel: string;
+  brand: LockBrand;
+  providerType: ProviderType;
+  pairingStatus: 'connected' | 'pairing' | 'registered' | 'offline';
+  pinStatus: 'active' | 'scheduled' | 'revoked' | 'expired';
+  pinValidFrom: string;
+  pinValidTo: string;
+  phone: string;
+}
+
   // Rooms management (Central Zélla & Fechaduras - 10 Marcas BR)
-  const [rooms, setRooms] = useState([
-    { id: '101', name: 'Suíte Master 101', type: 'Suíte', status: 'ocupado' as const, guest: 'Maria Silva', guestCode: 'HSP-001', price: 850, lockBattery: 92, pin: '849201', lockModel: 'Intelbras IFR 7000', brand: 'intelbras' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(11) 98822-1100' },
-    { id: '103', name: 'Suíte Luxo 103', type: 'Suíte', status: 'ocupado' as const, guest: 'Fernanda Lima', guestCode: 'HSP-003', price: 620, lockBattery: 19, pin: '391044', lockModel: 'Tuya Smart Lock G2', brand: 'tuya' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '12:00', phone: '(48) 99123-5566' },
-    { id: '105', name: 'Quarto Standard 105', type: 'Standard', status: 'livre' as const, guest: '', guestCode: '', price: 450, lockBattery: 85, pin: '772190', lockModel: 'TTLock X20 Gateway BLE', brand: 'ttlock' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '204', name: 'Chalé Família 204', type: 'Chalé', status: 'ocupado' as const, guest: 'Carlos Andrade', guestCode: 'HSP-002', price: 620, lockBattery: 74, pin: '510933', lockModel: 'Yale YDM 4109 Smart', brand: 'yale' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(21) 97110-3344' },
-    { id: '205', name: 'Chalé Família 205', type: 'Chalé', status: 'manutencao' as const, guest: '', guestCode: '', price: 620, lockBattery: 88, pin: '640192', lockModel: 'Nuki Smart Lock 4.0 Pro', brand: 'nuki' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '106', name: 'Quarto Standard 106', type: 'Standard', status: 'livre' as const, guest: '', guestCode: '', price: 450, lockBattery: 95, pin: '190344', lockModel: 'Igloohome Deadbolt 2S', brand: 'igloohome' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '301', name: 'Bangalô Vista Mar 301', type: 'Suíte', status: 'ocupado' as const, guest: 'Dr. Roberto Dias', guestCode: 'HSP-004', price: 920, lockBattery: 68, pin: '418302', lockModel: 'August Wi-Fi Smart Lock', brand: 'august' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'pairing' as const, pinStatus: 'active' as const, pinValidFrom: '15:00', pinValidTo: '12:00', phone: '(31) 98765-4321' },
-    { id: '206', name: 'Chalé Rústico 206', type: 'Chalé', status: 'livre' as const, guest: '', guestCode: '', price: 580, lockBattery: 79, pin: '239841', lockModel: 'Papaiz Eletronika FR 200', brand: 'papaiz' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '108', name: 'Quarto Família 108', type: 'Standard', status: 'livre' as const, guest: '', guestCode: '', price: 490, lockBattery: 15, pin: '582019', lockModel: 'Philco PH200S Smart', brand: 'philco' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'registered' as const, pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '501', name: 'Studio Executivo 501', type: 'Suíte', status: 'ocupado' as const, guest: 'Juliana Prado', guestCode: 'HSP-005', price: 750, lockBattery: 91, pin: '831094', lockModel: 'Samsung SHP-DP609', brand: 'samsung' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(11) 97788-9900' },
+  const [rooms, setRooms] = useState<PousadaRoom[]>([
+    { id: '101', name: 'Suíte Master 101', type: 'Suíte', status: 'ocupado', guest: 'Maria Silva', guestCode: 'HSP-001', price: 850, lockBattery: 92, pin: '849201', lockModel: 'Intelbras IFR 7000', brand: 'intelbras', providerType: 'manual', pairingStatus: 'connected', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(11) 98822-1100' },
+    { id: '103', name: 'Suíte Luxo 103', type: 'Suíte', status: 'ocupado', guest: 'Fernanda Lima', guestCode: 'HSP-003', price: 620, lockBattery: 19, pin: '391044', lockModel: 'Tuya Smart Lock G2', brand: 'tuya', providerType: 'api', pairingStatus: 'connected', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '12:00', phone: '(48) 99123-5566' },
+    { id: '105', name: 'Quarto Standard 105', type: 'Standard', status: 'livre', guest: '', guestCode: '', price: 450, lockBattery: 85, pin: '772190', lockModel: 'TTLock X20 Gateway BLE', brand: 'ttlock', providerType: 'api', pairingStatus: 'connected', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
+    { id: '204', name: 'Chalé Família 204', type: 'Chalé', status: 'ocupado', guest: 'Carlos Andrade', guestCode: 'HSP-002', price: 620, lockBattery: 74, pin: '510933', lockModel: 'Yale YDM 4109 Smart', brand: 'yale', providerType: 'manual', pairingStatus: 'connected', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(21) 97110-3344' },
+    { id: '205', name: 'Chalé Família 205', type: 'Chalé', status: 'manutencao', guest: '', guestCode: '', price: 620, lockBattery: 88, pin: '640192', lockModel: 'Nuki Smart Lock 4.0 Pro', brand: 'nuki', providerType: 'api', pairingStatus: 'connected', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
+    { id: '106', name: 'Quarto Standard 106', type: 'Standard', status: 'livre', guest: '', guestCode: '', price: 450, lockBattery: 95, pin: '190344', lockModel: 'Igloohome Deadbolt 2S', brand: 'igloohome', providerType: 'api', pairingStatus: 'connected', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
+    { id: '301', name: 'Bangalô Vista Mar 301', type: 'Suíte', status: 'ocupado', guest: 'Dr. Roberto Dias', guestCode: 'HSP-004', price: 920, lockBattery: 68, pin: '418302', lockModel: 'August Wi-Fi Smart Lock', brand: 'august', providerType: 'api', pairingStatus: 'pairing', pinStatus: 'active', pinValidFrom: '15:00', pinValidTo: '12:00', phone: '(31) 98765-4321' },
+    { id: '206', name: 'Chalé Rústico 206', type: 'Chalé', status: 'livre', guest: '', guestCode: '', price: 580, lockBattery: 79, pin: '239841', lockModel: 'Papaiz Eletronika FR 200', brand: 'papaiz', providerType: 'manual', pairingStatus: 'connected', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
+    { id: '108', name: 'Quarto Família 108', type: 'Standard', status: 'livre', guest: '', guestCode: '', price: 490, lockBattery: 15, pin: '582019', lockModel: 'Philco PH200S Smart', brand: 'philco', providerType: 'manual', pairingStatus: 'registered', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
+    { id: '501', name: 'Studio Executivo 501', type: 'Suíte', status: 'ocupado', guest: 'Juliana Prado', guestCode: 'HSP-005', price: 750, lockBattery: 91, pin: '831094', lockModel: 'Samsung SHP-DP609', brand: 'samsung', providerType: 'manual', pairingStatus: 'connected', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(11) 97788-9900' },
   ]);
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
@@ -484,17 +504,24 @@ export function MobilePousadaSuperApp() {
     e.preventDefault();
     if (!newRoomName.trim()) return;
 
-    const newRoom = {
+    const newRoom: PousadaRoom = {
       id: (rooms.length + 101).toString(),
       name: newRoomName,
       type: newRoomType,
-      status: 'livre' as const,
+      status: 'livre',
       guest: '',
       guestCode: '',
       price: parseFloat(newRoomPrice) || 450,
       lockBattery: 100,
       pin: '123456',
       lockModel: 'Intelbras IFR 7000',
+      brand: 'intelbras',
+      providerType: 'manual',
+      pairingStatus: 'connected',
+      pinStatus: 'scheduled',
+      pinValidFrom: '14:00',
+      pinValidTo: '11:00',
+      phone: '',
     };
 
     setRooms([...rooms, newRoom]);

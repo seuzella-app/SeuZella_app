@@ -131,18 +131,36 @@ export function MobileAirbnbSuperApp() {
   const [pinCode, setPinCode] = useState<string>('849201');
   const [unlocking, setUnlocking] = useState<boolean>(false);
 
+interface AirbnbProperty {
+  id: string;
+  name: string;
+  battery: number;
+  model: string;
+  brand: LockBrand;
+  providerType: ProviderType;
+  pairingStatus: 'connected' | 'pairing' | 'registered' | 'offline';
+  pin: string;
+  pinStatus: 'active' | 'scheduled' | 'revoked' | 'expired';
+  pinValidFrom: string;
+  pinValidTo: string;
+  guest: string;
+  checkOut: string;
+  price: number;
+  phone: string;
+}
+
   // Multi-Properties list (10 Marcas BR & Staged Pairing)
-  const [properties, setProperties] = useState([
-    { id: '1', name: 'Flat Studio Jardins', battery: 94, model: 'Intelbras IFR 7000', brand: 'intelbras' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pin: '849201', pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Lucas Mendes', checkOut: 'Amanhã 11:00', price: 380, phone: '(11) 98822-1100' },
-    { id: '2', name: 'Loft Copacabana Vista Mar', battery: 18, model: 'Tuya Smart Lock G2', brand: 'tuya' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pin: '472091', pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '12:00', guest: 'Beatriz Costa', checkOut: 'Hoje 12:00', price: 550, phone: '(21) 99123-4567' },
-    { id: '3', name: 'Studio Paulista Modern', battery: 88, model: 'TTLock X20 Gateway BLE', brand: 'ttlock' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pin: '310984', pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 320, phone: '' },
-    { id: '4', name: 'Penthouse Leblon Design', battery: 91, model: 'Nuki Smart Lock 4.0 Pro', brand: 'nuki' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pin: '928104', pinStatus: 'active' as const, pinValidFrom: '15:00', pinValidTo: '12:00', guest: 'Mariana Rios', checkOut: 'Em 2 dias', price: 980, phone: '(21) 97788-1122' },
-    { id: '5', name: 'Casa Boutique Trancoso', battery: 82, model: 'Igloohome Deadbolt 2S', brand: 'igloohome' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'connected' as const, pin: '604192', pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Felipe Alencar', checkOut: 'Amanhã 11:00', price: 1200, phone: '(73) 99881-2233' },
-    { id: '6', name: 'Studio Vila Madalena Boho', battery: 65, model: 'August Wi-Fi Smart Lock', brand: 'august' as LockBrand, providerType: 'api' as ProviderType, pairingStatus: 'pairing' as const, pin: '551029', pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 340, phone: '' },
-    { id: '7', name: 'Loft Itaim Bibi Executive', battery: 89, model: 'Yale YDM 4109 Smart', brand: 'yale' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pin: '741982', pinStatus: 'active' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Rodrigo Sanches', checkOut: 'Hoje 11:00', price: 490, phone: '(11) 96655-4433' },
-    { id: '8', name: 'Cabana Gramado Serra', battery: 76, model: 'Papaiz Eletronika FR 200', brand: 'papaiz' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pin: '389104', pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 620, phone: '' },
-    { id: '9', name: 'Flat Moema Prime', battery: 14, model: 'Philco PH200S Smart', brand: 'philco' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'registered' as const, pin: '190842', pinStatus: 'scheduled' as const, pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 410, phone: '' },
-    { id: '10', name: 'Cobertura Barra Ocean', battery: 95, model: 'Samsung SHP-DP609 SmartThings', brand: 'samsung' as LockBrand, providerType: 'manual' as ProviderType, pairingStatus: 'connected' as const, pin: '820194', pinStatus: 'active' as const, pinValidFrom: '15:00', pinValidTo: '12:00', guest: 'Carla Vasconcelos', checkOut: 'Em 3 dias', price: 890, phone: '(21) 98112-9900' },
+  const [properties, setProperties] = useState<AirbnbProperty[]>([
+    { id: '1', name: 'Flat Studio Jardins', battery: 94, model: 'Intelbras IFR 7000', brand: 'intelbras', providerType: 'manual', pairingStatus: 'connected', pin: '849201', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Lucas Mendes', checkOut: 'Amanhã 11:00', price: 380, phone: '(11) 98822-1100' },
+    { id: '2', name: 'Loft Copacabana Vista Mar', battery: 18, model: 'Tuya Smart Lock G2', brand: 'tuya', providerType: 'api', pairingStatus: 'connected', pin: '472091', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '12:00', guest: 'Beatriz Costa', checkOut: 'Hoje 12:00', price: 550, phone: '(21) 99123-4567' },
+    { id: '3', name: 'Studio Paulista Modern', battery: 88, model: 'TTLock X20 Gateway BLE', brand: 'ttlock', providerType: 'api', pairingStatus: 'connected', pin: '310984', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 320, phone: '' },
+    { id: '4', name: 'Penthouse Leblon Design', battery: 91, model: 'Nuki Smart Lock 4.0 Pro', brand: 'nuki', providerType: 'api', pairingStatus: 'connected', pin: '928104', pinStatus: 'active', pinValidFrom: '15:00', pinValidTo: '12:00', guest: 'Mariana Rios', checkOut: 'Em 2 dias', price: 980, phone: '(21) 97788-1122' },
+    { id: '5', name: 'Casa Boutique Trancoso', battery: 82, model: 'Igloohome Deadbolt 2S', brand: 'igloohome', providerType: 'api', pairingStatus: 'connected', pin: '604192', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Felipe Alencar', checkOut: 'Amanhã 11:00', price: 1200, phone: '(73) 99881-2233' },
+    { id: '6', name: 'Studio Vila Madalena Boho', battery: 65, model: 'August Wi-Fi Smart Lock', brand: 'august', providerType: 'api', pairingStatus: 'pairing', pin: '551029', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 340, phone: '' },
+    { id: '7', name: 'Loft Itaim Bibi Executive', battery: 89, model: 'Yale YDM 4109 Smart', brand: 'yale', providerType: 'manual', pairingStatus: 'connected', pin: '741982', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Rodrigo Sanches', checkOut: 'Hoje 11:00', price: 490, phone: '(11) 96655-4433' },
+    { id: '8', name: 'Cabana Gramado Serra', battery: 76, model: 'Papaiz Eletronika FR 200', brand: 'papaiz', providerType: 'manual', pairingStatus: 'connected', pin: '389104', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 620, phone: '' },
+    { id: '9', name: 'Flat Moema Prime', battery: 14, model: 'Philco PH200S Smart', brand: 'philco', providerType: 'manual', pairingStatus: 'registered', pin: '190842', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 410, phone: '' },
+    { id: '10', name: 'Cobertura Barra Ocean', battery: 95, model: 'Samsung SHP-DP609 SmartThings', brand: 'samsung', providerType: 'manual', pairingStatus: 'connected', pin: '820194', pinStatus: 'active', pinValidFrom: '15:00', pinValidTo: '12:00', guest: 'Carla Vasconcelos', checkOut: 'Em 3 dias', price: 890, phone: '(21) 98112-9900' },
   ]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('1');
 
@@ -440,7 +458,7 @@ export function MobileAirbnbSuperApp() {
         </button>
 
         <button
-          onClick={handleGeneratePIN}
+          onClick={() => handleGeneratePIN()}
           className="shrink-0 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold font-mono flex items-center gap-1.5 active:scale-95 transition-all shadow-[0_0_12px_rgba(245,158,11,0.15)]"
         >
           <Lock className="w-3.5 h-3.5 text-amber-400" />
@@ -1584,7 +1602,7 @@ export function MobileAirbnbSuperApp() {
               {/* Header com etapas */}
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
                 <div className="flex items-center gap-2">
-                  <Key className="w-5 h-5 text-cyan-400" />
+                  <KeyRound className="w-5 h-5 text-cyan-400" />
                   <div>
                     <h3 className="font-bold text-sm text-white font-mono uppercase">Parear Fechadura</h3>
                     <span className="text-[10px] text-zinc-400 font-mono">Etapa {pairingStep} de 3 · Staged Pairing</span>
