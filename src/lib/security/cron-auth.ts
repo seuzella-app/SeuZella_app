@@ -44,7 +44,8 @@ export async function verifyCronM2MToken(
   req: NextRequest,
   requiredScope: CronScope,
 ): Promise<{ ok: true; principal: VerifiedCronPrincipal } | { ok: false; response: NextResponse }> {
-  if (process.env.NODE_ENV === 'development' && !getPublicKeyPem()) {
+  const devBypassAllowed = process.env.NODE_ENV === 'development' && process.env.ZELLA_ALLOW_M2M_DEV_BYPASS === 'true';
+  if (devBypassAllowed && !getPublicKeyPem()) {
     const bypass = req.headers.get('x-zella-m2m-dev-bypass');
     if (bypass === requiredScope) {
       return { ok: true, principal: { clientId: 'dev-bypass', scope: requiredScope, issuedAt: new Date(), expiresAt: new Date(Date.now() + TOKEN_TTL_SECONDS * 1000), jti: 'dev-bypass-jti' } };
@@ -76,26 +77,14 @@ export async function verifyCronM2MToken(
     if (isJtiRevoked(jti)) return unauthorized('token_revoked');
     if (typeof payload.iat !== 'number' || typeof payload.exp !== 'number') return unauthorized('invalid_temporal_claims');
 
-    return {
-      ok: true,
-      principal: {
-        clientId: azp,
-        scope: scope!,
-        issuedAt: new Date(payload.iat * 1000),
-        expiresAt: new Date(payload.exp * 1000),
-        jti,
-      },
-    };
+    return { ok: true, principal: { clientId: azp, scope: scope!, issuedAt: new Date(payload.iat * 1000), expiresAt: new Date(payload.exp * 1000), jti } };
   } catch {
     return unauthorized('verification_failed');
   }
 }
 
 function unauthorized(code: string): { ok: false; response: NextResponse } {
-  return {
-    ok: false,
-    response: NextResponse.json({ error: 'unauthorized', code }, { status: 401, headers: { 'WWW-Authenticate': 'Bearer error="invalid_token"' } }),
-  };
+  return { ok: false, response: NextResponse.json({ error: 'unauthorized', code }, { status: 401, headers: { 'WWW-Authenticate': 'Bearer error="invalid_token"' } }) };
 }
 
 export async function issueM2MToken(params: { clientId: string; clientSecret: string; scope: CronScope }): Promise<{ accessToken: string; expiresIn: number; jti: string } | { error: string }> {
@@ -114,34 +103,10 @@ export async function issueM2MToken(params: { clientId: string; clientSecret: st
   return { accessToken, expiresIn: TOKEN_TTL_SECONDS, jti };
 }
 
-export async function auditCronExecution(params: {
-  prisma: any;
-  tenantId: string;
-  principal: VerifiedCronPrincipal;
-  entryPoint: 'cognitive_pipeline' | 'glm_cerebro';
-  action: 'allow' | 'block' | 'error';
-  matchedRule?: string;
-  latencyMs: number;
-  policyId?: string;
-  severity?: string;
-  errorDetail?: string;
-}): Promise<void> {
+export async function auditCronExecution(params: { prisma: any; tenantId: string; principal: VerifiedCronPrincipal; entryPoint: 'cognitive_pipeline' | 'glm_cerebro'; action: 'allow' | 'block' | 'error'; matchedRule?: string; latencyMs: number; policyId?: string; severity?: string; errorDetail?: string; }): Promise<void> {
   try {
     if (!params.prisma?.policyAudit) return;
-    await params.prisma.policyAudit.create({
-      data: {
-        tenantId: params.tenantId,
-        policyId: params.policyId || 'cron-m2m-auth',
-        policyVersion: 'v1',
-        severity: params.severity || (params.action === 'allow' ? 'info' : 'warning'),
-        action: params.action,
-        source: 'internal',
-        entryPoint: params.entryPoint,
-        matchedRule: params.matchedRule || `m2m:cron:${params.principal.scope}`,
-        latencyMs: Math.round(params.latencyMs),
-        rawPayloadSummary: JSON.stringify({ clientId: params.principal.clientId, scope: params.principal.scope, jti: params.principal.jti }),
-      },
-    });
+    await params.prisma.policyAudit.create({ data: { tenantId: params.tenantId, policyId: params.policyId || 'cron-m2m-auth', policyVersion: 'v1', severity: params.severity || (params.action === 'allow' ? 'info' : 'warning'), action: params.action, source: 'internal', entryPoint: params.entryPoint, matchedRule: params.matchedRule || `m2m:cron:${params.principal.scope}`, latencyMs: Math.round(params.latencyMs), rawPayloadSummary: JSON.stringify({ clientId: params.principal.clientId, scope: params.principal.scope, jti: params.principal.jti }) } });
   } catch {
     // Audit failure must not leak details into application logs.
   }
