@@ -165,7 +165,7 @@ interface PousadaRoom {
   // Fetches /api/ddc/locks on mount. The hook handles refetch on window
   // focus so users returning to the tab see fresh state without manually
   // refreshing.
-  const { data: hydratedRooms, loading: roomsLoading } = useDDCInitialState<PousadaRoom>(
+  const { data: hydratedRooms, hasInitialData, loading: roomsLoading } = useDDCInitialState<PousadaRoom>(
     '/api/ddc/locks',
     {
       transform: (raw: unknown): PousadaRoom => {
@@ -194,10 +194,10 @@ interface PousadaRoom {
   );
 
   useEffect(() => {
-    if (hydratedRooms.length > 0) {
+    if (hasInitialData) {
       setRooms(hydratedRooms);
     }
-  }, [hydratedRooms]);
+  }, [hydratedRooms, hasInitialData]);
   // Rooms now hydrate from /api/ddc/locks and update via realtime events
   // (see useTenantRealtimeState below). The 10 mock entries below were
   // removed (Onda 5A.2).

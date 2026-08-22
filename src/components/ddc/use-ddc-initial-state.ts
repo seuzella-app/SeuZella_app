@@ -44,6 +44,13 @@ export interface HydrationState<T> {
   data: T[];
   loading: boolean;
   error: string | null;
+  /**
+   * True after the first successful fetch completes (even if data is []).
+   * Consumers MUST use this to distinguish "still loading" from
+   * "loaded and legitimately empty" — otherwise stale mock state can
+   * persist when the tenant has zero records.
+   */
+  hasInitialData: boolean;
   /** Re-fetch the data (e.g. after user clicks "retry"). */
   refresh: () => Promise<void>;
   /** Last successful fetch timestamp — useful for telemetry. */
@@ -70,6 +77,7 @@ export function useDDCInitialState<T = unknown>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<number | null>(null);
+  const [hasInitialData, setHasInitialData] = useState(false);
   const lastFocusFetchRef = useRef<number>(0);
 
   const enabled = options?.enabled !== false;
@@ -105,6 +113,7 @@ export function useDDCInitialState<T = unknown>(
         console.warn('[useDDCInitialState] Response data is not an array:', raw);
         setData([]);
         setError('INVALID_RESPONSE_SHAPE');
+        setHasInitialData(true);
         setLoading(false);
         return;
       }
@@ -112,6 +121,7 @@ export function useDDCInitialState<T = unknown>(
       const transformed = options?.transform ? raw.map(options.transform) : raw;
       setData(transformed as T[]);
       setError(null);
+      setHasInitialData(true);
       setLastFetch(Date.now());
     } catch (err) {
       console.error('[useDDCInitialState] fetch failed:', err);
@@ -151,6 +161,7 @@ export function useDDCInitialState<T = unknown>(
     data,
     loading,
     error,
+    hasInitialData,
     refresh: fetchData,
     lastFetch,
   };

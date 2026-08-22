@@ -171,7 +171,7 @@ interface AirbnbProperty {
   const [properties, setProperties] = useState<AirbnbProperty[]>([]);
 
   // ── Initial state hydration from authenticated API ──
-  const { data: hydratedProperties, loading: propertiesLoading } = useDDCInitialState<AirbnbProperty>(
+  const { data: hydratedProperties, hasInitialData, loading: propertiesLoading } = useDDCInitialState<AirbnbProperty>(
     '/api/ddc/locks',
     {
       transform: (raw: unknown): AirbnbProperty => {
@@ -198,10 +198,10 @@ interface AirbnbProperty {
   );
 
   useEffect(() => {
-    if (hydratedProperties.length > 0) {
+    if (hasInitialData) {
       setProperties(hydratedProperties);
     }
-  }, [hydratedProperties]);
+  }, [hydratedProperties, hasInitialData]);
   // Properties now hydrate from /api/ddc/airb/properties and update via
   // realtime events (see useTenantRealtimeState below). The 10 mock
   // entries were removed (Onda 5A.2).

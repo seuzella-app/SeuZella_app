@@ -285,7 +285,7 @@ export default function DDCAirbnbContent() {
   // ── Initial state hydration from authenticated API ──
   // Fetches /api/ddc/airb/properties on mount. Server resolves tenantId
   // from NextAuth session — client cannot inject another tenant's data.
-  const { data: hydratedProperties, loading: propertiesLoading, error: propertiesError } = useDDCInitialState<PropertyData>(
+  const { data: hydratedProperties, hasInitialData, loading: propertiesLoading, error: propertiesError } = useDDCInitialState<PropertyData>(
     '/api/ddc/airb/properties',
     {
       transform: (raw: unknown): PropertyData => {
@@ -306,10 +306,10 @@ export default function DDCAirbnbContent() {
   );
 
   useEffect(() => {
-    if (hydratedProperties.length > 0) {
+    if (hasInitialData) {
       setPropertiesState(hydratedProperties);
     }
-  }, [hydratedProperties]);
+  }, [hydratedProperties, hasInitialData]);
 
   // ── Realtime subscription: sync properties/reservations across devices ──
   const { connectionState, lastEvent } = useTenantRealtimeState();

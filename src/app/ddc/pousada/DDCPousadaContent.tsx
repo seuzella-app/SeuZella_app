@@ -398,7 +398,7 @@ export default function DDCPousadaContent() {
   // Fetches /api/ddc/locks on mount and on window focus. Server resolves
   // tenantId from NextAuth session — client cannot inject another tenant's
   // data. Maps LockDevice[] → RoomData[] so the UI renders real data.
-  const { data: hydratedRooms, loading: roomsLoading, error: roomsError, refresh: refreshRooms } = useDDCInitialState<RoomData>(
+  const { data: hydratedRooms, hasInitialData, loading: roomsLoading, error: roomsError, refresh: refreshRooms } = useDDCInitialState<RoomData>(
     '/api/ddc/locks',
     {
       transform: (raw: unknown): RoomData => {
@@ -419,10 +419,10 @@ export default function DDCPousadaContent() {
   // Sync hydrated data into rooms state. Done in useEffect to avoid
   // setState-during-render warnings.
   useEffect(() => {
-    if (hydratedRooms.length > 0) {
+    if (hasInitialData) {
       setRooms(hydratedRooms);
     }
-  }, [hydratedRooms]);
+  }, [hydratedRooms, hasInitialData]);
 
   // ── Realtime subscription: sync rooms/PINs/reservations across devices ──
   // Replaces the broken localStorage approach (Onda 4) with a real SSE
