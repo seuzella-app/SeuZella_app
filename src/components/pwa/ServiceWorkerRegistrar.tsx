@@ -3,22 +3,14 @@
 import { useEffect, useState } from 'react';
 
 /**
- * ServiceWorkerRegistrar with update flow.
+ * Production PWA update controller.
  *
- * RESPONSIBILITIES:
- *   1. Register /sw.js in production only
- *   2. Detect when a new SW version is available → prompt user to reload
- *   3. Listen for SW controller change → auto-reload once
- *
- * ARCHITECTURE (Onda 5F):
- *   - Browser loads page → SW registers (first visit) or activates (returning)
- *   - SW fetches new assets → triggers 'updatefound' event
- *   - New SW enters 'waiting' state (doesn't activate until all tabs close)
- *   - We skipWaiting() to activate immediately + reload page once
- *
- * USAGE: mount <ServiceWorkerRegistrar /> once in app/layout.tsx.
+ * DDC/Mobile are live applications: after a deployment, an iPad or an
+ * installed PWA must not remain on an old application shell. The registrar
+ * therefore performs an immediate SW update check, purges live-app cache,
+ * and lets the new worker take control without requiring the user to close
+ * Safari or remove the home-screen app.
  */
-
 export function ServiceWorkerRegistrar() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
@@ -28,20 +20,39 @@ export function ServiceWorkerRegistrar() {
     if (process.env.NODE_ENV !== 'production') return;
 
     let registration: ServiceWorkerRegistration | null = null;
+    let reloadDone = false;
+
+    const reloadAfterControllerChange = () => {
+      if (reloadDone) return;
+      reloadDone = true;
+      window.location.reload();
+    };
+
+    navigator.serviceWorker.addEventListener('controllerchange', reloadAfterControllerChange);
 
     void navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then((reg) => {
+      .then(async (reg) => {
         registration = reg;
 
-        // Listen for new SW waiting to activate
+        // Force an update check immediately. This is especially important for
+        // long-lived iPad Safari/PWA sessions where the previous worker may
+        // have been controlling the page for days.
+        await reg.update().catch(() => {});
+
+        // Tell the active worker to discard any cached live-app documents.
+        // The v4 worker handles this message; older workers safely ignore it.
+        reg.active?.postMessage({ type: 'PURGE_LIVE_APP_CACHE' });
+
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           if (!newWorker) return;
 
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New version installed — prompt user to reload
               setUpdateAvailable(true);
+              // v4 calls skipWaiting() during install, so controllerchange will
+              // normally reload automatically. Keep the visible action as a
+              // fallback for browsers that delay activation.
             }
           });
         });
@@ -50,33 +61,30 @@ export function ServiceWorkerRegistrar() {
         console.error('[PWA] service worker registration failed', error);
       });
 
-    // Listen for controller change (new SW took over) → reload once
-    let reloadDone = false;
-    const onControllerChange = () => {
-      if (reloadDone) return;
-      reloadDone = true;
-      window.location.reload();
+    // Re-check when the user returns to Safari/PWA and periodically while open.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        registration?.update().catch(() => {});
+        registration?.active?.postMessage({ type: 'PURGE_LIVE_APP_CACHE' });
+      }
     };
-    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
-    // Check for updates every 60 minutes (catches deploys during long sessions)
     const updateInterval = setInterval(() => {
       registration?.update().catch(() => {});
-    }, 60 * 60 * 1000);
+    }, 15 * 60 * 1000);
 
     return () => {
       clearInterval(updateInterval);
-      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      navigator.serviceWorker.removeEventListener('controllerchange', reloadAfterControllerChange);
     };
   }, []);
 
   const applyUpdate = () => {
     if (!('serviceWorker' in navigator)) return;
-    // Send SKIP_WAITING message to the waiting SW
     navigator.serviceWorker.getRegistration('/').then((reg) => {
-      if (reg?.waiting) {
-        reg.waiting.postMessage('SKIP_WAITING');
-      }
+      reg?.waiting?.postMessage({ type: 'SKIP_WAITING' });
     });
   };
 
