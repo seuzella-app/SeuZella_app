@@ -80,6 +80,4 @@ async function handler(_request: NextRequest, _ctx: SecurityContext) {
   }
 }
 
-export async function GET(request: NextRequest) {
-  return withSecurity(request, handler);
-}
+export const GET = withSecurity(handler);
