@@ -52,6 +52,40 @@ export function verifySyncSecret(receivedSecret: string | null, expectedSecret: 
   return safeEqualText(receivedSecret, expectedSecret) ? { valid: true } : { valid: false, reason: 'SECRET_MISMATCH' };
 }
 
+/**
+ * Verify Asaas webhook signature.
+ *
+ * Asaas sends the signature in the `asaas-signature` header as `sha256=<hex>`.
+ * Some legacy integrations also accept a plain `asaas-access-token` shared
+ * secret. We prefer HMAC verification when present, falling back to
+ * timing-safe token equality only for legacy dev configurations.
+ *
+ * In production, weak shared secrets (length < 32) are rejected.
+ */
+export function verifyAsaasWebhook(
+  rawBody: string,
+  signatureHeader: string | null,
+  webhookSecret: string,
+): WebhookVerificationResult {
+  if (!webhookSecret) return { valid: false, reason: 'MISSING_WEBHOOK_SECRET' };
+  if (process.env.NODE_ENV === 'production' && !strongSecret(webhookSecret)) {
+    return { valid: false, reason: 'WEAK_WEBHOOK_SECRET' };
+  }
+  if (!signatureHeader) return { valid: false, reason: 'MISSING_SIGNATURE' };
+
+  // Format 1 (recommended): `sha256=<hex digest>`
+  if (signatureHeader.startsWith('sha256=')) {
+    const received = signatureHeader.slice(7);
+    const expected = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+    return safeEqualHex(received, expected) ? { valid: true } : { valid: false, reason: 'SIGNATURE_MISMATCH' };
+  }
+
+  // Format 2 (legacy shared-token): timing-safe equality.
+  return safeEqualText(signatureHeader, webhookSecret)
+    ? { valid: true }
+    : { valid: false, reason: 'SIGNATURE_MISMATCH' };
+}
+
 export function validateWebhookTenant(payloadPhoneNumber: string | undefined, resolvedTenantId: string | null): WebhookVerificationResult {
   if (!payloadPhoneNumber) return { valid: false, reason: 'MISSING_PHONE' };
   if (!resolvedTenantId) return { valid: false, reason: 'TENANT_NOT_FOUND' };

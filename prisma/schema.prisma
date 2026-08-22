@@ -1036,6 +1036,54 @@ model ConsentLog {
   @@map("consent_logs")
 }
 
+/// LGPD art. 18 (direitos do titular) — solicitação de exclusão de dados.
+/// Persistida em DB (substitui o stub anterior que apenas retornava o objeto).
+model LgpdDeleteRequest {
+  id             String   @id @default(cuid())
+  tenantId       String
+  guestId        String?
+  guestName      String?
+  guestEmail     String?
+  guestPhone     String?
+  reason         String
+  status         String   @default("pending") // pending | processing | completed | refused
+  deletedTables  String[] @default([])
+  certificateUrl String?
+  dpoNotifiedAt  DateTime?
+  requestedAt    DateTime @default(now())
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId, status])
+  @@index([guestEmail])
+  @@index([status, requestedAt])
+  @@map("lgpd_delete_requests")
+}
+
+/// LGPD art. 48-52 — comunicação de incidentes à ANPD e ao titular.
+/// Substitui o stub reportarIncidenteANPD que retornava um reportId fake.
+model LgpdIncident {
+  id              String   @id @default(cuid())
+  tenantId        String
+  incidentType    String   // data_breach | unauthorized_access | leak | loss
+  severity        String   // low | medium | high | critical
+  description     String
+  affectedGuests Int      @default(0)
+  anpdReportId    String?  // protocolo retornado pela ANPD
+  anpdNotifiedAt  DateTime?
+  guestNotifiedAt DateTime?
+  dpoNotifiedAt   DateTime?
+  status          String   @default("open") // open | reported | resolved
+  resolutionNotes String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId, status])
+  @@index([severity, status])
+  @@map("lgpd_incidents")
+}
+
 model MetaCostLog {
   id             String   @id @default(cuid())
   tenantId       String

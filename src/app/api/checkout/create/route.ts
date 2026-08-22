@@ -5,11 +5,8 @@ import { authOptions } from '@/lib/auth';
 import { createError } from '@/lib/error-handler';
 import { authRatelimit } from '@/lib/rate-limit';
 import { type PlanTier } from '@/lib/plan-features';
+import { PRICING_MATRIX, ALLOWED_METHODS, isMethodAllowed, getPrice } from '@/lib/payments/pricing';
 
-const PRICING: Record<string, Record<string, number>> = {
-  gratuito: { pix: 0, cartao: 0 }, lite: { pix: 197, cartao: 247 },
-  pro: { pix: 397, cartao: 397 }, max: { pix: 797, cartao: 797 }, parceiro: { pix: 247, cartao: 247 },
-};
 const VALID_PLANS: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
 const VALID_METHODS = ['pix', 'cartao'] as const;
 const VALID_NICHES = ['pousada', 'airbnb'] as const;
@@ -40,9 +37,10 @@ export async function POST(request: NextRequest) {
     if (!VALID_PLANS.includes(planType)) return createError(400, 'INVALID_PLAN', 'Plano inválido.');
     if (!VALID_METHODS.includes(paymentMethod)) return createError(400, 'INVALID_PAYMENT_METHOD', 'Método de pagamento inválido.');
     if (!VALID_NICHES.includes(niche)) return createError(400, 'INVALID_NICHE', 'Nicho inválido.');
-    if ((planType === 'pro' || planType === 'max') && paymentMethod === 'pix') return createError(400, 'INVALID_PAYMENT_METHOD', 'Este plano não aceita PIX.');
+    if (!isMethodAllowed(planType, paymentMethod)) return createError(400, 'INVALID_PAYMENT_METHOD', 'Combinação plano/método não permitida.');
 
-    const amount = PRICING[planType]?.[paymentMethod];
+    const quote = getPrice(planType, paymentMethod);
+    const amount = quote.amount;
     if (amount === undefined) return createError(400, 'INVALID_PRICING', 'Combinação plano/método inválida.');
 
     const session = await getServerSession(authOptions);

@@ -1,21 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { AsaasBillingService } from '@/lib/billing/asaas';
+import { verifyAsaasWebhook } from '@/lib/security/webhook-verify';
 
 export async function POST(request: NextRequest) {
   try {
-    const webhookToken = request.headers.get('asaas-access-token') || request.headers.get('x-asaas-access-token');
-    const expectedSecret = process.env.ASAAS_WEBHOOK_SECRET;
-    if (process.env.NODE_ENV === 'production') {
-      if (!expectedSecret || !webhookToken || webhookToken !== expectedSecret) return NextResponse.json({ error: 'UNAUTHORIZED_WEBHOOK_TOKEN' }, { status: 401 });
-    } else if (expectedSecret && webhookToken !== expectedSecret) {
-      return NextResponse.json({ error: 'UNAUTHORIZED_WEBHOOK_TOKEN' }, { status: 401 });
-    }
-
     const contentLength = Number(request.headers.get('content-length') || 0);
     if (Number.isFinite(contentLength) && contentLength > 1024 * 1024) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
     const rawBody = await request.text();
     if (Buffer.byteLength(rawBody, 'utf8') > 1024 * 1024) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+
+    // ── Webhook signature verification ──────────────────────────────
+    // Asaas signs requests in the `asaas-signature` header. Legacy
+    // integrations may still use `asaas-access-token` shared secret; both
+    // forms are accepted via verifyAsaasWebhook, but production rejects
+    // weak shared secrets (< 32 chars) and timing-unsafe comparisons.
+    const signatureHeader =
+      request.headers.get('asaas-signature') ||
+      request.headers.get('x-asaas-signature') ||
+      request.headers.get('asaas-access-token') ||
+      request.headers.get('x-asaas-access-token');
+    const webhookSecret = process.env.ASAAS_WEBHOOK_SECRET;
+    const verification = verifyAsaasWebhook(rawBody, signatureHeader, webhookSecret || '');
+    if (!verification.valid) {
+      const isMissingConfig = verification.reason === 'MISSING_WEBHOOK_SECRET' || verification.reason === 'WEAK_WEBHOOK_SECRET';
+      const status = isMissingConfig ? 503 : 401;
+      return NextResponse.json({ error: 'WEBHOOK_SIGNATURE_INVALID', reason: verification.reason }, { status });
+    }
 
     let payload: unknown;
     try { payload = JSON.parse(rawBody); } catch { return NextResponse.json({ error: 'INVALID_JSON_BODY' }, { status: 400 }); }

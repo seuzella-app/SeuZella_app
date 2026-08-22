@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { createError } from '@/lib/error-handler';
 import { authRatelimit } from '@/lib/rate-limit';
 import { migratePlanLegacy, type PlanTier } from '@/lib/plan-features';
+import { getPrice } from '@/lib/payments/pricing';
 
 const PLAN_ORDER: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
 
@@ -57,16 +58,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Cálculo pró-rata com base no método de pagamento
-    const pricing: Record<PlanTier, number> = {
-      gratuito: 0,
-      lite: 197,
-      pro: 397,
-      max: 797,
-      parceiro: 247,
-    };
-
-    const newPrice = pricing[newPlanType as keyof typeof pricing];
-    const currentPrice = pricing[currentPlan as keyof typeof pricing] || 0;
+    // Pro-rata calculation uses canonical PIX price as the base monthly amount.
+    // Card/boleto premiums are not prorated — they are charged in full at
+    // the next billing cycle via the checkout/create flow.
+    const newPrice = getPrice(newPlanType as PlanTier, 'pix').amount;
+    const currentPrice = getPrice(currentPlan as PlanTier, 'pix').amount;
 
     const now = new Date();
     const periodEnd = subscription.currentPeriodEnd || new Date();

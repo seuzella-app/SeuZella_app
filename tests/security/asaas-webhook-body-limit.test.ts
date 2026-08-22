@@ -11,6 +11,9 @@ describe('Asaas webhook security contracts', () => {
   it('keeps production webhook authentication fail-closed', () => {
     const s = fs.readFileSync('src/app/api/webhooks/asaas/route.ts', 'utf8');
     expect(s).toContain('ASAAS_WEBHOOK_SECRET');
-    expect(s).toContain('UNAUTHORIZED_WEBHOOK_TOKEN');
+    // Auth is enforced via verifyAsaasWebhook (HMAC or timing-safe shared token).
+    // Failure returns WEBHOOK_SIGNATURE_INVALID with a reason field.
+    expect(s).toContain('verifyAsaasWebhook');
+    expect(s).toContain('WEBHOOK_SIGNATURE_INVALID');
   });
 });

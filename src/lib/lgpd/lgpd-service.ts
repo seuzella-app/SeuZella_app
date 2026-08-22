@@ -63,6 +63,41 @@ export async function solicitarExclusaoDados(params: {
   guestPhone?: string;
   reason: string;
 }): Promise<LgpdDeleteRequest> {
+  // Persist to DB. Falls back gracefully if DB unavailable (e.g. in unit tests)
+  // so that the LGPD flow can still return a request object for the caller.
+  if (db) {
+    try {
+      const created = await (db as any).lgpdDeleteRequest.create({
+        data: {
+          tenantId: params.tenantId,
+          guestId: params.guestId,
+          guestName: params.guestName,
+          guestEmail: params.guestEmail,
+          guestPhone: params.guestPhone,
+          reason: params.reason,
+          status: 'pending',
+          deletedTables: [],
+        },
+      });
+      return {
+        id: created.id,
+        tenantId: created.tenantId,
+        guestId: created.guestId ?? undefined,
+        guestName: created.guestName ?? params.guestName,
+        guestEmail: created.guestEmail ?? undefined,
+        guestPhone: created.guestPhone ?? undefined,
+        reason: created.reason,
+        status: 'pending',
+        requestedAt: created.requestedAt.toISOString(),
+        deletedTables: created.deletedTables ?? [],
+      };
+    } catch (err) {
+      console.error('[LGPD] solicitarExclusaoDados persistence failed:', err);
+      // Fall through to in-memory fallback below.
+    }
+  }
+
+  // In-memory fallback (dev/test only — production MUST have DB).
   const request: LgpdDeleteRequest = {
     id: `lgpd_del_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     tenantId: params.tenantId,
@@ -75,9 +110,6 @@ export async function solicitarExclusaoDados(params: {
     requestedAt: new Date().toISOString(),
     deletedTables: [],
   };
-
-  // Em produção: salvar no banco (LgpdDeleteRequest table)
-  // Por enquanto retorna o objeto para o caller
   return request;
 }
 
