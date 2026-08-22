@@ -1,6 +1,7 @@
 'use client';
 
 import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
+import { useDDCInitialState } from '@/components/ddc/use-ddc-initial-state';
 
 // ==============================================================================
 // SEU ZÉLLA SUPER APP MOBILE — AIRBNB HOST (Native Mobile App Experience)
@@ -168,6 +169,39 @@ interface AirbnbProperty {
 
   // Multi-Properties list (10 Marcas BR & Staged Pairing)
   const [properties, setProperties] = useState<AirbnbProperty[]>([]);
+
+  // ── Initial state hydration from authenticated API ──
+  const { data: hydratedProperties, loading: propertiesLoading } = useDDCInitialState<AirbnbProperty>(
+    '/api/ddc/locks',
+    {
+      transform: (raw: unknown): AirbnbProperty => {
+        const d = raw as Record<string, unknown>;
+        return {
+          id: String(d.id ?? ''),
+          name: String(d.nickname ?? d.name ?? 'Imóvel'),
+          battery: Number(d.battery ?? 100),
+          model: String(d.model ?? ''),
+          brand: (d.brand as AirbnbProperty['brand']) || 'intelbras',
+          providerType: (d.providerType as AirbnbProperty['providerType']) || 'manual',
+          pairingStatus: (d.pairingStatus as AirbnbProperty['pairingStatus']) || 'registered',
+          pin: String(d.pin ?? ''),
+          pinStatus: (d.pinStatus as AirbnbProperty['pinStatus']) || 'scheduled',
+          pinValidFrom: String(d.pinValidFrom ?? '14:00'),
+          pinValidTo: String(d.pinValidTo ?? '11:00'),
+          guest: String(d.guestName ?? d.guest ?? 'Vago'),
+          checkOut: String(d.checkOut ?? '-'),
+          price: Number(d.dailyRate ?? 0),
+          phone: String(d.phone ?? ''),
+        };
+      },
+    },
+  );
+
+  useEffect(() => {
+    if (hydratedProperties.length > 0) {
+      setProperties(hydratedProperties);
+    }
+  }, [hydratedProperties]);
   // Properties now hydrate from /api/ddc/airb/properties and update via
   // realtime events (see useTenantRealtimeState below). The 10 mock
   // entries were removed (Onda 5A.2).
@@ -270,37 +304,93 @@ interface AirbnbProperty {
   };
 
   const handleGeneratePIN = async (propId?: string, propName?: string) => {
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    const newPin = (arr[0] % 1000000).toString().padStart(6, '0');
-    setPinCode(newPin);
-
-    if (propId) {
-      setProperties((prev) => prev.map((p) => p.id === propId ? { ...p, pin: newPin, pinStatus: 'active' as const } : p));
-      toast.success(`🔑 Novo PIN Gerado para ${propName || 'Imóvel'}: ${newPin}# (Fail-Closed Ativo)`);
-    } else {
-      toast.success(`🔑 Novo PIN Temporário Gerado: ${newPin}#`);
+    // SECURITY FIX (Onda 5A.3): WAS generating PIN locally with crypto.
+    // NOW: calls POST /api/ddc/locks/[id]/pins which persists to PostgreSQL
+    // and publishes a pin:created event via Redis pub/sub.
+    if (!propId) {
+      toast.error('Selecione um imóvel para gerar o PIN');
+      return;
     }
-    simulateNotification();
+    toast.info('Gerando PIN via API...');
+    try {
+      const now = new Date();
+      const validFrom = now.toISOString();
+      const validTo = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+      const res = await fetch(`/api/ddc/locks/${encodeURIComponent(propId)}/pins`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ validFrom, validTo, autoGenerate: true }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(`Falha ao gerar PIN: ${err.error || res.status}`);
+        return;
+      }
+      const json = await res.json();
+      const pin = json?.data?.code?.pin || '------';
+      setPinCode(pin);
+      toast.success(`🔑 PIN gerado para ${propName || 'Imóvel'}: ${pin}#`);
+      // Realtime event will arrive via SSE and update local state.
+    } catch (err) {
+      toast.error('Erro de rede ao gerar PIN');
+    }
   };
 
-  const handleRemoteUnlock = (propName: string, brand?: LockBrand, providerType?: ProviderType) => {
+  const handleRemoteUnlock = async (propId: string, propName: string, brand?: LockBrand, providerType?: ProviderType) => {
+    // SECURITY FIX (Onda 5A.3): WAS using setTimeout mock. NOW calls
+    // POST /api/ddc/locks/[id]/unlock which:
+    //   1. Resolves tenantId from session
+    //   2. Calls remoteUnlock() in orchestrator (provider-backed)
+    //   3. Publishes lock:status_changed event via Redis pub/sub
     const isManual = providerType === 'manual';
     if (isManual) {
-      toast.info(`🛡️ ${propName} (${brand?.toUpperCase()}): Fechadura offline/manual. Destrancamento remoto requer Gateway BLE/WiFi ativo ou digitação do PIN na porta.`);
+      toast.info(`🛡️ ${propName} (${brand?.toUpperCase()}): Fechadura manual. Destrancamento requer Gateway BLE/WiFi ou PIN na porta.`);
       return;
     }
     setUnlocking(true);
-    toast.info(`🔑 Enviando sinal criptografado via API ${brand?.toUpperCase()} para ${propName}...`);
-    setTimeout(() => {
+    toast.info(`🔑 Enviando sinal via API ${brand?.toUpperCase()} para ${propName}...`);
+    try {
+      const res = await fetch(`/api/ddc/locks/${encodeURIComponent(propId)}/unlock`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
       setUnlocking(false);
-      toast.success(`🔓 Fechadura do ${propName} ABERTA COM SUCESSO! Acesso liberado.`);
-    }, 1200);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(`Falha: ${err.error || res.status}`);
+        return;
+      }
+      toast.success(`🔓 Fechadura do ${propName} destrancada via API!`);
+    } catch (err) {
+      setUnlocking(false);
+      toast.error('Erro de rede ao destrancar');
+    }
   };
 
-  const handlePanicRevoke = (propId: string, propName: string) => {
-    setProperties((prev) => prev.map((p) => p.id === propId ? { ...p, pin: '------', pinStatus: 'revoked' as const } : p));
-    toast.error(`🚨 REVOGAÇÃO DE PÂNICO! PIN de ${propName} foi invalidado e fechadura trancada.`);
+  const handlePanicRevoke = async (propId: string, propName: string) => {
+    // SECURITY FIX (Onda 5A.3): WAS updating local state only. NOW calls
+    // POST /api/ddc/locks/[id]/panic-revoke which persists to PostgreSQL
+    // and publishes a pin:revoked bulk event via Redis pub/sub.
+    toast.info('Revogando PINs via API...');
+    try {
+      const res = await fetch(`/api/ddc/locks/${encodeURIComponent(propId)}/panic-revoke`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Pânico acionado pelo host' }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(`Falha ao revogar: ${err.error || res.status}`);
+        return;
+      }
+      toast.error(`🚨 PÂNICO: PINs de ${propName} revogados via API!`);
+      // Realtime event will arrive via SSE and clear local state.
+    } catch (err) {
+      toast.error('Erro de rede ao revogar PIN');
+    }
     setSelectedLockForPanic(null);
   };
 
@@ -328,33 +418,42 @@ interface AirbnbProperty {
     setSelectedLockForWhatsApp(null);
   };
 
-  const handlePairNewLock = (e: React.FormEvent) => {
+  const handlePairNewLock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pairingPropName) {
       toast.error('Informe o nome do imóvel');
       return;
     }
+    // SECURITY FIX (Onda 5A.3): WAS generating local PIN via Math.random.
+    // NOW: calls POST /api/ddc/locks to create a real device record in
+    // PostgreSQL. The server resolves tenantId from session and persists
+    // the new device. Realtime event will arrive via SSE.
     const brandInfo = getBrandInfo(pairingBrand);
-    const id = (properties.length + 1).toString();
-    const newPropObj = {
-      id,
-      name: pairingPropName,
-      battery: 100,
-      model: `${brandInfo?.label || pairingBrand} Smart Lock`,
-      brand: pairingBrand,
-      providerType: (brandInfo?.providerType || 'api') as ProviderType,
-      pairingStatus: 'connected' as const,
-      pin: Math.floor(100000 + Math.random() * 900000).toString(),
-      pinStatus: 'scheduled' as const,
-      pinValidFrom: '14:00',
-      pinValidTo: '11:00',
-      guest: 'Vago',
-      checkOut: '-',
-      price: 450,
-      phone: '',
-    };
-    setProperties([newPropObj, ...properties]);
-    toast.success(`🔐 Fechadura ${brandInfo?.label} pareada e vinculada a ${pairingPropName}!`);
+    toast.info(`Pareando ${brandInfo?.label} via API...`);
+    try {
+      const res = await fetch('/api/ddc/locks', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propertyId: pairingPropName, // host identifier for the property
+          nickname: pairingPropName,
+          brand: pairingBrand,
+          propertyType: 'airbnb',
+          providerType: brandInfo?.providerType || 'api',
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(`Falha ao parear: ${err.error || res.status}`);
+        return;
+      }
+      toast.success(`🔐 Fechadura ${brandInfo?.label} pareada via API!`);
+      // Hydration hook will pick up the new device on next focus/refetch.
+      // For instant feedback, the realtime event will arrive via SSE.
+    } catch (err) {
+      toast.error('Erro de rede ao parear fechadura');
+    }
     setIsPairingModalOpen(false);
     setPairingStep(1);
     setPairingPropName('');
@@ -698,7 +797,7 @@ interface AirbnbProperty {
                     <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
                       <span className="text-[10px] font-mono text-amber-400 font-bold">{p.pin}#</span>
                       <button
-                        onClick={() => handleRemoteUnlock(p.name, p.brand, p.providerType)}
+                        onClick={() => handleRemoteUnlock(p.id, p.name, p.brand, p.providerType)}
                         disabled={unlocking}
                         className="px-2 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[10px] font-bold font-mono active:scale-95"
                       >
@@ -1157,7 +1256,7 @@ interface AirbnbProperty {
                         </button>
 
                         <button
-                          onClick={() => handleRemoteUnlock(prop.name, prop.brand, prop.providerType)}
+                          onClick={() => handleRemoteUnlock(prop.id, prop.name, prop.brand, prop.providerType)}
                           disabled={unlocking}
                           className="py-2.5 px-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-[11px] font-bold font-mono flex items-center justify-center gap-1 min-h-[44px] active:scale-95 transition-all"
                         >

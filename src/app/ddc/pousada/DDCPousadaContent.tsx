@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
+import { useDDCInitialState } from '@/components/ddc/use-ddc-initial-state';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Key, MessageCircle } from 'lucide-react';
@@ -392,6 +393,36 @@ export default function DDCPousadaContent() {
 
   // ── Room & Platform State (Central da Pousada) 
   const [rooms, setRooms] = useState<RoomData[]>(INITIAL_ROOMS);
+
+  // ── Initial state hydration from authenticated API ──
+  // Fetches /api/ddc/locks on mount and on window focus. Server resolves
+  // tenantId from NextAuth session — client cannot inject another tenant's
+  // data. Maps LockDevice[] → RoomData[] so the UI renders real data.
+  const { data: hydratedRooms, loading: roomsLoading, error: roomsError, refresh: refreshRooms } = useDDCInitialState<RoomData>(
+    '/api/ddc/locks',
+    {
+      transform: (raw: unknown): RoomData => {
+        const d = raw as Record<string, unknown>;
+        return {
+          id: String(d.id ?? ''),
+          name: String(d.nickname ?? d.name ?? 'Quarto'),
+          type: 'Standard',
+          capacity: 2,
+          dailyRate: 0,
+          amenities: [],
+          status: 'disponivel',
+        };
+      },
+    },
+  );
+
+  // Sync hydrated data into rooms state. Done in useEffect to avoid
+  // setState-during-render warnings.
+  useEffect(() => {
+    if (hydratedRooms.length > 0) {
+      setRooms(hydratedRooms);
+    }
+  }, [hydratedRooms]);
 
   // ── Realtime subscription: sync rooms/PINs/reservations across devices ──
   // Replaces the broken localStorage approach (Onda 4) with a real SSE

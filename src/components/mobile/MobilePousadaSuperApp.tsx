@@ -1,6 +1,7 @@
 'use client';
 
 import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
+import { useDDCInitialState } from '@/components/ddc/use-ddc-initial-state';
 
 // ==============================================================================
 // SEU ZÉLLA SUPER APP MOBILE — POUSADA (Native Mobile App Experience)
@@ -159,6 +160,44 @@ interface PousadaRoom {
 
   // Rooms management (Central Zélla & Fechaduras - 10 Marcas BR)
   const [rooms, setRooms] = useState<PousadaRoom[]>([]);
+
+  // ── Initial state hydration from authenticated API ──
+  // Fetches /api/ddc/locks on mount. The hook handles refetch on window
+  // focus so users returning to the tab see fresh state without manually
+  // refreshing.
+  const { data: hydratedRooms, loading: roomsLoading } = useDDCInitialState<PousadaRoom>(
+    '/api/ddc/locks',
+    {
+      transform: (raw: unknown): PousadaRoom => {
+        const d = raw as Record<string, unknown>;
+        return {
+          id: String(d.id ?? ''),
+          name: String(d.nickname ?? d.name ?? 'Quarto'),
+          type: (d.type as PousadaRoom['type']) || 'Standard',
+          status: (d.status as PousadaRoom['status']) || 'livre',
+          guest: String(d.guestName ?? d.guest ?? ''),
+          guestCode: String(d.guestCode ?? ''),
+          price: Number(d.dailyRate ?? 0),
+          lockBattery: Number(d.battery ?? 100),
+          pin: String(d.pin ?? ''),
+          lockModel: String(d.model ?? ''),
+          brand: (d.brand as PousadaRoom['brand']) || 'intelbras',
+          providerType: (d.providerType as PousadaRoom['providerType']) || 'manual',
+          pairingStatus: (d.pairingStatus as PousadaRoom['pairingStatus']) || 'registered',
+          pinStatus: (d.pinStatus as PousadaRoom['pinStatus']) || 'scheduled',
+          pinValidFrom: String(d.pinValidFrom ?? '14:00'),
+          pinValidTo: String(d.pinValidTo ?? '11:00'),
+          phone: String(d.phone ?? ''),
+        };
+      },
+    },
+  );
+
+  useEffect(() => {
+    if (hydratedRooms.length > 0) {
+      setRooms(hydratedRooms);
+    }
+  }, [hydratedRooms]);
   // Rooms now hydrate from /api/ddc/locks and update via realtime events
   // (see useTenantRealtimeState below). The 10 mock entries below were
   // removed (Onda 5A.2).
@@ -355,27 +394,72 @@ interface PousadaRoom {
     }, 1200);
   };
 
-  const handleGenerateNewPin = (roomId: string, roomName: string) => {
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    const newPin = (arr[0] % 1000000).toString().padStart(6, '0');
-    const updated = rooms.map((r) => r.id === roomId ? { ...r, pin: newPin, pinStatus: 'active' as const } : r);
-    setRooms(updated);
+  const handleGenerateNewPin = async (roomId: string, roomName: string) => {
+    // SECURITY FIX (Onda 5A.3): WAS generating PIN locally with crypto.
+    // getRandomValues + persisting to localStorage. That bypassed the
+    // server-side tenant boundary AND stored operational PINs in the
+    // browser (security risk).
+    //
+    // NOW: calls POST /api/ddc/locks/[id]/pins with validFrom/validTo
+    // defaults. The server:
+    //   1. Resolves tenantId from NextAuth session (cannot be spoofed)
+    //   2. Calls generatePin() in the orchestrator (rate-limited)
+    //   3. Persists to PostgreSQL
+    //   4. Publishes pin:created event via Redis pub/sub
+    //   5. Returns the new PIN (which we display to the host)
+    //
+    // The realtime event will arrive via useTenantRealtimeState and
+    // update the local state — no localStorage involved.
+    toast.info('Gerando PIN via API...');
     try {
-      localStorage.setItem('zella_pousada_rooms', JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent('zella_sync_state'));
-    } catch {}
-    toast.success(`🔑 Novo PIN Gerado para ${roomName}: ${newPin}# (Ativação Fail-Closed)`);
+      const now = new Date();
+      const validFrom = now.toISOString();
+      const validTo = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(); // +24h
+      const res = await fetch(`/api/ddc/locks/${encodeURIComponent(roomId)}/pins`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ validFrom, validTo, autoGenerate: true }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(`Falha ao gerar PIN: ${err.error || res.status}`);
+        return;
+      }
+      const json = await res.json();
+      const pin = json?.data?.code?.pin || '------';
+      toast.success(`🔑 PIN gerado para ${roomName}: ${pin}#`);
+      // Realtime event will arrive via SSE and update local state.
+    } catch (err) {
+      toast.error('Erro de rede ao gerar PIN');
+    }
   };
 
-  const handlePanicRevoke = (roomId: string, roomName: string) => {
-    const updated = rooms.map((r) => r.id === roomId ? { ...r, pin: '------', pinStatus: 'revoked' as const } : r);
-    setRooms(updated);
+  const handlePanicRevoke = async (roomId: string, roomName: string) => {
+    // SECURITY FIX (Onda 5A.3): WAS updating local state only. NOW calls
+    // POST /api/ddc/locks/[id]/panic-revoke which:
+    //   1. Resolves tenantId from session
+    //   2. Calls panicRevokeAllPins() in orchestrator
+    //   3. Persists revocation to PostgreSQL
+    //   4. Publishes pin:revoked bulk event via Redis pub/sub
+    toast.info('Revogando PINs via API...');
     try {
-      localStorage.setItem('zella_pousada_rooms', JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent('zella_sync_state'));
-    } catch {}
-    toast.error(`🚨 REVOGAÇÃO DE PÂNICO CONCLUÍDA! PIN de ${roomName} foi invalidado e fechadura trancada.`);
+      const res = await fetch(`/api/ddc/locks/${encodeURIComponent(roomId)}/panic-revoke`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Pânico acionado pelo host' }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(`Falha ao revogar: ${err.error || res.status}`);
+        return;
+      }
+      toast.error(`🚨 PÂNICO: PINs de ${roomName} revogados via API!`);
+      // Realtime bulk revoke event will arrive via SSE and clear local state.
+    } catch (err) {
+      toast.error('Erro de rede ao revogar PIN');
+    }
     setSelectedLockForPanic(null);
   };
 
@@ -425,8 +509,8 @@ interface PousadaRoom {
     const updated = [newRoomObj, ...rooms];
     setRooms(updated);
     try {
-      localStorage.setItem('zella_pousada_rooms', JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent('zella_sync_state'));
+      // localStorage persistence removed (Onda 5A.3) — API is now the
+      // source of truth. Realtime events update local state.
     } catch {}
     toast.success(`🔐 Fechadura ${brandInfo?.label} pareada e vinculada a ${pairingRoomName}!`);
     setIsPairingModalOpen(false);
@@ -439,8 +523,8 @@ interface PousadaRoom {
     const updated = rooms.map((r) => r.id === roomId ? { ...r, status: 'livre' as const } : r);
     setRooms(updated);
     try {
-      localStorage.setItem('zella_pousada_rooms', JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent('zella_sync_state'));
+      // localStorage persistence removed (Onda 5A.3) — API is now the
+      // source of truth. Realtime events update local state.
     } catch {}
     toast.success(`🧹 ${roomName} MARCADO COMO LIMPO! Pronto para próximo check-in.`);
   };
@@ -458,8 +542,7 @@ interface PousadaRoom {
     const updatedRooms = rooms.map((r) => r.name === roomName ? { ...r, status: 'manutencao' as const, guest: '' } : r);
     setRooms(updatedRooms);
     try {
-      localStorage.setItem('zella_pousada_rooms', JSON.stringify(updatedRooms));
-      window.dispatchEvent(new CustomEvent('zella_sync_state'));
+      // localStorage persistence removed (Onda 5A.3).
     } catch {}
     toast.success(`👋 Check-out de ${guestName} realizado com sucesso!`, {
       description: `${roomName} liberado e colocado em governança/faxina. Pesquisa NPS enviada.`,
@@ -507,8 +590,7 @@ interface PousadaRoom {
     const updatedRooms = rooms.map((r) => (r.name === newGuestRoom ? { ...r, status: 'ocupado' as const, guest: newGuestName } : r));
     setRooms(updatedRooms);
     try {
-      localStorage.setItem('zella_pousada_rooms', JSON.stringify(updatedRooms));
-      window.dispatchEvent(new CustomEvent('zella_sync_state'));
+      // localStorage persistence removed (Onda 5A.3).
     } catch {}
 
     setNewGuestName('');

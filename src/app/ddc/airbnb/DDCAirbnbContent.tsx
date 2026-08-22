@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
+import { useDDCInitialState } from '@/components/ddc/use-ddc-initial-state';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -280,6 +281,35 @@ export default function DDCAirbnbContent() {
   const [calendarDays] = useState<CalendarDay[]>(generateCalendarDays);
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
   const [propertiesState, setPropertiesState] = useState<PropertyData[]>(MOCK_PROPERTIES);
+
+  // ── Initial state hydration from authenticated API ──
+  // Fetches /api/ddc/airb/properties on mount. Server resolves tenantId
+  // from NextAuth session — client cannot inject another tenant's data.
+  const { data: hydratedProperties, loading: propertiesLoading, error: propertiesError } = useDDCInitialState<PropertyData>(
+    '/api/ddc/airb/properties',
+    {
+      transform: (raw: unknown): PropertyData => {
+        const d = raw as Record<string, unknown>;
+        return {
+          id: String(d.id ?? ''),
+          name: String(d.name ?? 'Imóvel'),
+          location: String(d.location ?? ''),
+          connected: Boolean(d.connected ?? false),
+          occupancy: Number(d.occupancy ?? 0),
+          rating: Number(d.rating ?? 0),
+          reviews: Number(d.reviews ?? 0),
+          // Other fields default to safe values; UI shows them as loading
+          // placeholders until realtime events arrive.
+        } as PropertyData;
+      },
+    },
+  );
+
+  useEffect(() => {
+    if (hydratedProperties.length > 0) {
+      setPropertiesState(hydratedProperties);
+    }
+  }, [hydratedProperties]);
 
   // ── Realtime subscription: sync properties/reservations across devices ──
   const { connectionState, lastEvent } = useTenantRealtimeState();
