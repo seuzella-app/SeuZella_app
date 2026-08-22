@@ -42,6 +42,7 @@ import {
   AdapterToolDef,
   AdapterToolResponse,
 } from './llm-adapters';
+import { withLlmTimeout } from './llm-timeout';
 import {
   persistBudgetGuard,
   loadBudgetGuard,
@@ -1829,7 +1830,11 @@ export class ZaosNeuroRouter {
 
     if (providerId.includes('gemini')) {
       const apiKey = process.env.GEMINI_API_KEY || '';
-      return callGemini({ apiKey, model: providerId, messages, temperature: temp, maxTokens, jsonMode });
+      return withLlmTimeout(
+        () => callGemini({ apiKey, model: providerId, messages, temperature: temp, maxTokens, jsonMode }),
+        8_000,
+        { provider: providerId },
+      );
     } else if (providerId.includes('anthropic') || providerId.includes('claude')) {
       const apiKey = process.env.ANTHROPIC_API_KEY || '';
       // Map provider ID to actual Anthropic model name (providerId is NOT a valid model)
@@ -1838,7 +1843,11 @@ export class ZaosNeuroRouter {
         : providerId === 'anthropic-claude-3-5-sonnet'
           ? 'claude-3-5-sonnet-20241022'
           : 'claude-3-5-haiku-20241022'; // safe default
-      return callAnthropic({ apiKey, model, messages, temperature: temp, maxTokens });
+      return withLlmTimeout(
+        () => callAnthropic({ apiKey, model, messages, temperature: temp, maxTokens }),
+        8_000,
+        { provider: providerId },
+      );
     } else {
       let apiKey = '';
       let realModel = providerId;

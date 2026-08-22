@@ -1,4 +1,3 @@
-// @ts-nocheck — to be fixed in dedicated type refactoring pass
 /**
  * ZÉLLA — Prisma Extension para RLS (Row Level Security) Automático
  *
@@ -14,6 +13,10 @@
 
 import { PrismaClient } from '@prisma/client';
 
+/**
+ * Models that must be tenant-scoped. Duplicates removed (was previously
+ * listing LockDevice/LockCode/LockEvent/LockOAuthAccount twice).
+ */
 const TENANT_MODELS = [
   'LockDevice', 'LockCode', 'LockEvent', 'LockOAuthAccount',
   'Reservation', 'Guest', 'GuestMessage', 'GuestGuide',
@@ -31,22 +34,25 @@ const TENANT_MODELS = [
   'GuestRegistration',
   'YieldProfitRecord',
   'DevicePing',
-  'LockDevice',
-  'LockCode',
-  'LockEvent',
-  'LockOAuthAccount',
-];
+] as const;
 
 const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'];
 const CREATE_OPERATIONS = ['create', 'createMany', 'upsert'];
+
+type AnyArgs = { where?: any; data?: any; [key: string]: any };
 
 export function getTenantDb(prisma: PrismaClient, tenantId: string) {
   return prisma.$extends({
     name: 'tenantRLS',
     query: {
       $allModels: {
-        async $allOperations({ model, operation, args, query }) {
-          if (!TENANT_MODELS.includes(model)) return query(args);
+        async $allOperations({ model, operation, args, query }: {
+          model: string;
+          operation: string;
+          args: AnyArgs | undefined;
+          query: (args: any) => Promise<any>;
+        }) {
+          if (!TENANT_MODELS.includes(model as any)) return query(args);
 
           if (FILTERED_OPERATIONS.includes(operation)) {
             if (!args) args = {};

@@ -466,6 +466,17 @@ export async function generatePin(input: GeneratePinInput): Promise<GeneratePinR
   const tenantId = await resolveTenantId();
   if (!tenantId) throw new Error('Unauthorized');
 
+  // ── Rate limit: 50 PINs/hour per tenant ──────────────────────────────
+  // Prevents brute-force PIN enumeration and runaway scripts that would
+  // exhaust provider API quotas. Idempotent manual-PIN requests (same
+  // deviceId + same validFrom) are exempt via idempotency key.
+  const { pinRatelimit } = await import('@/lib/rate-limit');
+  const rateLimitKey = `pin:${tenantId}`;
+  const rateLimitResult = await pinRatelimit.limit(rateLimitKey);
+  if (!rateLimitResult.success) {
+    throw new Error('PIN_RATE_LIMIT_EXCEEDED');
+  }
+
   const device = await getLockDevice(input.deviceId);
   if (!device) throw new Error('Dispositivo não encontrado');
 

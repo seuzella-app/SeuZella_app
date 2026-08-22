@@ -1,8 +1,20 @@
 // ============================================================================
 // Real Adapters — deferred stubs
 // ----------------------------------------------------------------------------
-// These implementations are PLACEHOLDERS. They throw on every call so no
-// production code accidentally runs against a half-built integration.
+// @stub These implementations are PLACEHOLDERS. They throw on every call so no
+//      production code accidentally runs against a half-built integration.
+//      Each stub is tracked by a contract test (tests/architecture/
+//      real-adapter-stubs.test.ts) that fails if the @stub marker is removed
+//      without the corresponding implementation.
+//
+// @stub-tracker GoogleAds     — Implement when ZELLA_ADAPTER_GOOGLE_ADS=real
+// @stub-tracker MetaAds       — Implement when ZELLA_ADAPTER_META_ADS=real
+// @stub-tracker Payment       — Use existing Asaas/MercadoPago routes instead
+// @stub-tracker CRM            — Implement when ZELLA_ADAPTER_CRM=real
+// @stub-tracker WhatsApp      — Use existing webhook-whatsapp routes instead
+// @stub-tracker Analytics     — Implement when ZELLA_ADAPTER_ANALYTICS=real
+// @stub-tracker Email         — Use existing EMAIL_SEND queue instead
+// @stub-tracker Maps          — Implement when ZELLA_ADAPTER_MAPS=real
 //
 // When the time comes to connect a real provider:
 //   1. Implement the corresponding interface here.

@@ -197,6 +197,15 @@ export const apiRatelimit: RatelimitInstance = createRatelimit(60, '60 s');
 export const authRatelimit: RatelimitInstance = createRatelimit(5, '15 m');
 export const webhookRatelimit: RatelimitInstance = createRatelimit(100, '60 s');
 
+// ── PIN generation rate limit ──
+// Each tenant can generate up to 50 PINs per hour. This prevents:
+//   - brute-force PIN enumeration attacks
+//   - runaway scripts that exhaust provider API quotas (TTLock/Tuya rate limits)
+//   - DOS via PIN flooding on a single device
+// The 50/h limit accommodates peak season (Carnaval/Réveillon: 50 quartos × 1 PIN/dia).
+// Hitting the limit surfaces as an error to the caller (not a silent drop).
+export const pinRatelimit: RatelimitInstance = createRatelimit(50, '60 m');
+
 // ── Security alert hook (Gap 5) ──────────────────────────────────────────────
 // When authRatelimit blocks a key (5 failed attempts), call bridgeSecurityAlert
 // so the tenant sees a notification in their DDC. Non-blocking: errors swallowed.
