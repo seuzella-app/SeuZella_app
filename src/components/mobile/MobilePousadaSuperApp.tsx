@@ -1,5 +1,7 @@
 'use client';
 
+import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
+
 // ==============================================================================
 // SEU ZÉLLA SUPER APP MOBILE — POUSADA (Native Mobile App Experience)
 // ==============================================================================
@@ -156,18 +158,10 @@ interface PousadaRoom {
 }
 
   // Rooms management (Central Zélla & Fechaduras - 10 Marcas BR)
-  const [rooms, setRooms] = useState<PousadaRoom[]>([
-    { id: '101', name: 'Suíte Master 101', type: 'Suíte', status: 'ocupado', guest: 'Maria Silva', guestCode: 'HSP-001', price: 850, lockBattery: 92, pin: '849201', lockModel: 'Intelbras IFR 7000', brand: 'intelbras', providerType: 'manual', pairingStatus: 'connected', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(11) 98822-1100' },
-    { id: '103', name: 'Suíte Luxo 103', type: 'Suíte', status: 'ocupado', guest: 'Fernanda Lima', guestCode: 'HSP-003', price: 620, lockBattery: 19, pin: '391044', lockModel: 'Tuya Smart Lock G2', brand: 'tuya', providerType: 'api', pairingStatus: 'connected', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '12:00', phone: '(48) 99123-5566' },
-    { id: '105', name: 'Quarto Standard 105', type: 'Standard', status: 'livre', guest: '', guestCode: '', price: 450, lockBattery: 85, pin: '772190', lockModel: 'TTLock X20 Gateway BLE', brand: 'ttlock', providerType: 'api', pairingStatus: 'connected', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '204', name: 'Chalé Família 204', type: 'Chalé', status: 'ocupado', guest: 'Carlos Andrade', guestCode: 'HSP-002', price: 620, lockBattery: 74, pin: '510933', lockModel: 'Yale YDM 4109 Smart', brand: 'yale', providerType: 'manual', pairingStatus: 'connected', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(21) 97110-3344' },
-    { id: '205', name: 'Chalé Família 205', type: 'Chalé', status: 'manutencao', guest: '', guestCode: '', price: 620, lockBattery: 88, pin: '640192', lockModel: 'Nuki Smart Lock 4.0 Pro', brand: 'nuki', providerType: 'api', pairingStatus: 'connected', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '106', name: 'Quarto Standard 106', type: 'Standard', status: 'livre', guest: '', guestCode: '', price: 450, lockBattery: 95, pin: '190344', lockModel: 'Igloohome Deadbolt 2S', brand: 'igloohome', providerType: 'api', pairingStatus: 'connected', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '301', name: 'Bangalô Vista Mar 301', type: 'Suíte', status: 'ocupado', guest: 'Dr. Roberto Dias', guestCode: 'HSP-004', price: 920, lockBattery: 68, pin: '418302', lockModel: 'August Wi-Fi Smart Lock', brand: 'august', providerType: 'api', pairingStatus: 'pairing', pinStatus: 'active', pinValidFrom: '15:00', pinValidTo: '12:00', phone: '(31) 98765-4321' },
-    { id: '206', name: 'Chalé Rústico 206', type: 'Chalé', status: 'livre', guest: '', guestCode: '', price: 580, lockBattery: 79, pin: '239841', lockModel: 'Papaiz Eletronika FR 200', brand: 'papaiz', providerType: 'manual', pairingStatus: 'connected', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '108', name: 'Quarto Família 108', type: 'Standard', status: 'livre', guest: '', guestCode: '', price: 490, lockBattery: 15, pin: '582019', lockModel: 'Philco PH200S Smart', brand: 'philco', providerType: 'manual', pairingStatus: 'registered', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '' },
-    { id: '501', name: 'Studio Executivo 501', type: 'Suíte', status: 'ocupado', guest: 'Juliana Prado', guestCode: 'HSP-005', price: 750, lockBattery: 91, pin: '831094', lockModel: 'Samsung SHP-DP609', brand: 'samsung', providerType: 'manual', pairingStatus: 'connected', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', phone: '(11) 97788-9900' },
-  ]);
+  const [rooms, setRooms] = useState<PousadaRoom[]>([]);
+  // Rooms now hydrate from /api/ddc/locks and update via realtime events
+  // (see useTenantRealtimeState below). The 10 mock entries below were
+  // removed (Onda 5A.2).
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomType, setNewRoomType] = useState<'Suíte' | 'Chalé' | 'Standard'>('Standard');
@@ -269,28 +263,42 @@ interface PousadaRoom {
     { sender: 'zella', text: 'Olá! Nosso check-in é a partir das 14h. O Wi-Fi é "Zella_Guest_5G" e a senha é "marés_vip2026". Precisa de ajuda com o estacionamento?', time: '14:32' },
   ]);
 
-  // Sincronização entre Desktop e Mobile via Storage Events
+  // ── Realtime cross-device sync (replaces broken localStorage) ──
+  // Onda 5A.2: WAS using window.storage event (same-browser only, broken
+  // cross-device). NOW uses SSE via /api/ddc/realtime/tenant-state —
+  // events from Desktop DDC reach this Mobile component even when the
+  // phone is on 4G and the desktop is on fibre.
+  const { connectionState, lastEvent } = useTenantRealtimeState();
+
   useEffect(() => {
-    const syncFromStorage = () => {
-      try {
-        const savedRooms = localStorage.getItem('zella_pousada_rooms');
-        if (savedRooms) setRooms(JSON.parse(savedRooms));
-        const savedUpsell = localStorage.getItem('zella_pousada_upsell');
-        if (savedUpsell) {
-          const parsed = JSON.parse(savedUpsell);
-          if (parsed.dailyIncrease) setDailyIncrease(parsed.dailyIncrease);
-          if (parsed.selectedHoliday) setSelectedHoliday(parsed.selectedHoliday);
-        }
-      } catch {}
-    };
-    syncFromStorage();
-    window.addEventListener('storage', syncFromStorage);
-    window.addEventListener('zella_sync_state', syncFromStorage);
-    return () => {
-      window.removeEventListener('storage', syncFromStorage);
-      window.removeEventListener('zella_sync_state', syncFromStorage);
-    };
-  }, []);
+    if (!lastEvent) return;
+    // Apply realtime events to local state.
+    if (lastEvent.type === 'pin:created') {
+      const p = lastEvent.payload as { deviceId?: string; guestName?: string; validFrom?: string; validTo?: string };
+      // Update the matching room's pin status (if it exists in rooms).
+      setRooms(prev => prev.map(r => r.id === p.deviceId
+        ? { ...r, guest: p.guestName || r.guest, pinStatus: 'active', pinValidFrom: p.validFrom || r.pinValidFrom, pinValidTo: p.validTo || r.pinValidTo }
+        : r
+      ));
+    } else if (lastEvent.type === 'pin:revoked') {
+      const p = lastEvent.payload as { deviceId?: string; bulkRevoke?: boolean };
+      if (p.bulkRevoke) {
+        // Panic revoke — clear all active PINs.
+        setRooms(prev => prev.map(r => ({ ...r, pinStatus: 'revoked', guest: '', guestCode: '' })));
+      } else if (p.deviceId) {
+        setRooms(prev => prev.map(r => r.id === p.deviceId
+          ? { ...r, pinStatus: 'revoked', guest: '', guestCode: '' }
+          : r
+        ));
+      }
+    } else if (lastEvent.type === 'lock:status_changed') {
+      const p = lastEvent.payload as { deviceId?: string; action?: string };
+      // UI hint — could trigger a haptic on mobile.
+    } else if (lastEvent.type === 'reservation:created') {
+      const p = lastEvent.payload as { roomName?: string; guestName?: string };
+      // Reservation events may add a guest to a room.
+    }
+  }, [lastEvent]);
 
   useEffect(() => {
     const updateTime = () => {

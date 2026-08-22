@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId, mapBooking } from '@/lib/ddc/ddc-mapper';
 import { apiRatelimit } from '@/lib/rate-limit';
@@ -140,6 +141,19 @@ export async function POST(request: NextRequest) {
     } catch (notifErr) {
       console.error('[DDC bookings POST] notification bridge error:', notifErr);
     }
+
+    // Publish realtime event AFTER DB write succeeds — Mobile DDC and
+    // Desktop DDC subscribed to this tenant receive the new reservation.
+    publishTenantEvent(tenantId, 'reservation:created', {
+      bookingId: booking.id,
+      guestId: booking.guestId,
+      guestName: booking.guestName,
+      roomName: booking.roomName,
+      checkIn: checkIn.toISOString(),
+      checkOut: checkOut.toISOString(),
+      total: booking.totalValue,
+      status: booking.status,
+    });
 
     return NextResponse.json({ success: true, data: mapBooking(booking) }, { status: 201 });
   } catch (error) {

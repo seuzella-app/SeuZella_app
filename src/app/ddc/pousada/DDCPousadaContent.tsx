@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Key, MessageCircle } from 'lucide-react';
@@ -247,12 +248,11 @@ interface PlatformLink {
 const ROOM_TYPES: RoomData['type'][] = ['Suíte Master', 'Suíte Luxo', 'Standard', 'Chalé', 'Familiar'];
 const ROOM_AMENITY_OPTIONS = ['Wi-Fi', 'Ar-condicionado', 'TV Smart', 'Frigobar', 'Vista mar', 'Varanda', 'Banheira', 'Café da manhã', 'Piscina privativa', 'Lareira'];
 
-const INITIAL_ROOMS: RoomData[] = [
-  { id: 'r1', name: 'Quarto 101 — Onda Verde', type: 'Suíte Master', capacity: 2, dailyRate: 590, amenities: ['Wi-Fi', 'Ar-condicionado', 'TV Smart', 'Vista mar', 'Varanda', 'Banheira'], status: 'disponivel' },
-  { id: 'r2', name: 'Quarto 102 — Brisas do Mar', type: 'Suíte Luxo', capacity: 3, dailyRate: 450, amenities: ['Wi-Fi', 'Ar-condicionado', 'TV Smart', 'Vista mar'], status: 'ocupado' },
-  { id: 'r3', name: 'Quarto 201 — Jardim Secreto', type: 'Standard', capacity: 2, dailyRate: 280, amenities: ['Wi-Fi', 'Ar-condicionado', 'Frigobar'], status: 'disponivel' },
-  { id: 'r4', name: 'Chalé Lua Cheia', type: 'Chalé', capacity: 4, dailyRate: 720, amenities: ['Wi-Fi', 'Ar-condicionado', 'TV Smart', 'Lareira', 'Banheira', 'Café da manhã'], status: 'disponivel' },
-];
+// INITIAL_ROOMS removed (Onda 5A.2) — rooms now start empty and are
+// populated via realtime events from /api/ddc/locks/[id]/pins and other
+// mutations. On mount, the component should fetch /api/ddc/locks to hydrate
+// the initial state. See useTenantRealtimeState.
+const INITIAL_ROOMS: RoomData[] = [];
 
 const INITIAL_PLATFORMS: PlatformLink[] = [
   { id: 'p1', platform: 'Booking', url: 'https://www.booking.com/hotel/br/pousada-serenity-paraty.pt-br.html', connected: true },
@@ -392,6 +392,43 @@ export default function DDCPousadaContent() {
 
   // ── Room & Platform State (Central da Pousada) 
   const [rooms, setRooms] = useState<RoomData[]>(INITIAL_ROOMS);
+
+  // ── Realtime subscription: sync rooms/PINs/reservations across devices ──
+  // Replaces the broken localStorage approach (Onda 4) with a real SSE
+  // connection. Events from /api/ddc/locks/[id]/pins POST, /api/ddc/locks/
+  // [id]/panic-revoke POST, /api/ddc/bookings POST etc. arrive here.
+  const { connectionState, lastEvent } = useTenantRealtimeState();
+
+  useEffect(() => {
+    if (!lastEvent) return;
+    // Apply the event to local state — the UI updates within 1 frame.
+    if (lastEvent.type === 'pin:created') {
+      const p = lastEvent.payload as { deviceId?: string; guestName?: string; validFrom?: string; validTo?: string };
+      // The rooms array is hydrated from /api/ddc/locks. When a PIN is
+      // created, we don't add a new room — we just mark the device as
+      // having an active PIN (visible in the locks panel).
+      // For now, surface a toast so the host sees the event instantly.
+      toast.success('PIN gerado' + (p.guestName ? ` para ${p.guestName}` : ''));
+    } else if (lastEvent.type === 'pin:revoked') {
+      const p = lastEvent.payload as { bulkRevoke?: boolean; revokedCount?: number };
+      if (p.bulkRevoke) {
+        toast.warning(`Pânico: ${p.revokedCount || 0} PIN(s) revogado(s)`);
+      } else {
+        toast.info('PIN revogado');
+      }
+    } else if (lastEvent.type === 'reservation:created') {
+      const p = lastEvent.payload as { guestName?: string; roomName?: string };
+      toast.success(`Reserva criada: ${p.guestName || 'hóspede'} — ${p.roomName || 'quarto'}`);
+    } else if (lastEvent.type === 'guest:updated') {
+      // Silent — guest list refreshes via the /api/ddc/guests hook on next
+      // navigation. Toast would be too noisy for every guest update.
+    } else if (lastEvent.type === 'lock:status_changed') {
+      const p = lastEvent.payload as { action?: string };
+      if (p.action === 'unlock') {
+        toast.info('Fechadura destrancada remotamente');
+      }
+    }
+  }, [lastEvent]);
   const [platformLinks, setPlatformLinks] = useState<PlatformLink[]>(INITIAL_PLATFORMS);
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [newRoomForm, setNewRoomForm] = useState({

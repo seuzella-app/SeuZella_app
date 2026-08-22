@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
 import { db } from '@/lib/db';
 import { resolveTenantId, mapGuest } from '@/lib/ddc/ddc-mapper';
 import { createError, apiSuccess } from '@/lib/error-handler';
@@ -49,6 +50,14 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     if (body.value !== undefined) updateData.value = body.value;
 
     const updated = await db.guest.update({ where: { id }, data: updateData });
+
+    // Publish realtime event AFTER DB write succeeds.
+    publishTenantEvent(g, 'guest:updated', {
+      guestId: id,
+      action: 'updated',
+      updatedFields: Object.keys(updateData),
+    });
+
     return apiSuccess(mapGuest(updated));
   } catch (error) {
     return createError(500, 'UPDATE_FAILED', 'Failed to update guest');
@@ -61,6 +70,13 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     if (g instanceof NextResponse) return g;
     const { id } = await context.params;
     await db.guest.delete({ where: { id } });
+
+    // Publish realtime event AFTER DB delete succeeds.
+    publishTenantEvent(g, 'guest:updated', {
+      guestId: id,
+      action: 'deleted',
+    });
+
     return apiSuccess(null);
   } catch (error) {
     return createError(500, 'DELETE_FAILED', 'Failed to delete guest');

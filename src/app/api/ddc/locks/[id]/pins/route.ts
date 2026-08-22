@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generatePin, listPins } from '@/lib/locks/orchestrator';
 import { calculatePinValidityWindow } from '@/lib/locks/pin-generator';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
+import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
 
 const MAX_BODY_BYTES = 16 * 1024;
 const MAX_ID_LENGTH = 128;
@@ -118,6 +119,20 @@ export async function POST(
       note,
     });
 
+    // Publish realtime event AFTER DB write succeeds — Desktop DDC and
+    // Mobile DDC subscribed to this tenant receive the new PIN instantly.
+    // Payload excludes the raw PIN value for defense-in-depth (clients
+    // already have it via the response; the realtime event is for UI sync).
+    publishTenantEvent(tenantId, 'pin:created', {
+      deviceId: id,
+      pinId: result.code?.id,
+      guestName,
+      guestPhone,
+      validFrom: from.toISOString(),
+      validTo: to.toISOString(),
+      bookingId,
+    });
+
     return NextResponse.json(
       { success: true, data: result },
       { status: 201, headers: { 'Cache-Control': 'private, no-store' } },
@@ -126,6 +141,12 @@ export async function POST(
     const message = error instanceof Error ? error.message : '';
     if (message.startsWith('INVALID_')) {
       return NextResponse.json({ success: false, error: message }, { status: 400 });
+    }
+    if (message === 'PIN_RATE_LIMIT_EXCEEDED') {
+      return NextResponse.json(
+        { success: false, error: 'PIN_RATE_LIMIT_EXCEEDED' },
+        { status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': '3600' } },
+      );
     }
     console.error('[LOCKS] Error generating pin:', error);
     return NextResponse.json(

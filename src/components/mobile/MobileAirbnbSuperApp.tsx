@@ -1,5 +1,7 @@
 'use client';
 
+import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
+
 // ==============================================================================
 // SEU ZÉLLA SUPER APP MOBILE — AIRBNB HOST (Native Mobile App Experience)
 // ==============================================================================
@@ -165,19 +167,37 @@ interface AirbnbProperty {
 }
 
   // Multi-Properties list (10 Marcas BR & Staged Pairing)
-  const [properties, setProperties] = useState<AirbnbProperty[]>([
-    { id: '1', name: 'Flat Studio Jardins', battery: 94, model: 'Intelbras IFR 7000', brand: 'intelbras', providerType: 'manual', pairingStatus: 'connected', pin: '849201', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Lucas Mendes', checkOut: 'Amanhã 11:00', price: 380, phone: '(11) 98822-1100' },
-    { id: '2', name: 'Loft Copacabana Vista Mar', battery: 18, model: 'Tuya Smart Lock G2', brand: 'tuya', providerType: 'api', pairingStatus: 'connected', pin: '472091', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '12:00', guest: 'Beatriz Costa', checkOut: 'Hoje 12:00', price: 550, phone: '(21) 99123-4567' },
-    { id: '3', name: 'Studio Paulista Modern', battery: 88, model: 'TTLock X20 Gateway BLE', brand: 'ttlock', providerType: 'api', pairingStatus: 'connected', pin: '310984', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 320, phone: '' },
-    { id: '4', name: 'Penthouse Leblon Design', battery: 91, model: 'Nuki Smart Lock 4.0 Pro', brand: 'nuki', providerType: 'api', pairingStatus: 'connected', pin: '928104', pinStatus: 'active', pinValidFrom: '15:00', pinValidTo: '12:00', guest: 'Mariana Rios', checkOut: 'Em 2 dias', price: 980, phone: '(21) 97788-1122' },
-    { id: '5', name: 'Casa Boutique Trancoso', battery: 82, model: 'Igloohome Deadbolt 2S', brand: 'igloohome', providerType: 'api', pairingStatus: 'connected', pin: '604192', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Felipe Alencar', checkOut: 'Amanhã 11:00', price: 1200, phone: '(73) 99881-2233' },
-    { id: '6', name: 'Studio Vila Madalena Boho', battery: 65, model: 'August Wi-Fi Smart Lock', brand: 'august', providerType: 'api', pairingStatus: 'pairing', pin: '551029', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 340, phone: '' },
-    { id: '7', name: 'Loft Itaim Bibi Executive', battery: 89, model: 'Yale YDM 4109 Smart', brand: 'yale', providerType: 'manual', pairingStatus: 'connected', pin: '741982', pinStatus: 'active', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Rodrigo Sanches', checkOut: 'Hoje 11:00', price: 490, phone: '(11) 96655-4433' },
-    { id: '8', name: 'Cabana Gramado Serra', battery: 76, model: 'Papaiz Eletronika FR 200', brand: 'papaiz', providerType: 'manual', pairingStatus: 'connected', pin: '389104', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 620, phone: '' },
-    { id: '9', name: 'Flat Moema Prime', battery: 14, model: 'Philco PH200S Smart', brand: 'philco', providerType: 'manual', pairingStatus: 'registered', pin: '190842', pinStatus: 'scheduled', pinValidFrom: '14:00', pinValidTo: '11:00', guest: 'Vago', checkOut: '-', price: 410, phone: '' },
-    { id: '10', name: 'Cobertura Barra Ocean', battery: 95, model: 'Samsung SHP-DP609 SmartThings', brand: 'samsung', providerType: 'manual', pairingStatus: 'connected', pin: '820194', pinStatus: 'active', pinValidFrom: '15:00', pinValidTo: '12:00', guest: 'Carla Vasconcelos', checkOut: 'Em 3 dias', price: 890, phone: '(21) 98112-9900' },
-  ]);
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('1');
+  const [properties, setProperties] = useState<AirbnbProperty[]>([]);
+  // Properties now hydrate from /api/ddc/airb/properties and update via
+  // realtime events (see useTenantRealtimeState below). The 10 mock
+  // entries were removed (Onda 5A.2).
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+
+  // ── Realtime cross-device sync ──
+  const { connectionState, lastEvent } = useTenantRealtimeState();
+
+  useEffect(() => {
+    if (!lastEvent) return;
+    if (lastEvent.type === 'pin:created') {
+      const p = lastEvent.payload as { deviceId?: string; guestName?: string; validFrom?: string; validTo?: string };
+      setProperties(prev => prev.map(prop => prop.id === p.deviceId
+        ? { ...prop, guest: p.guestName || prop.guest, pinStatus: 'active', pinValidFrom: p.validFrom || prop.pinValidFrom, pinValidTo: p.validTo || prop.pinValidTo }
+        : prop
+      ));
+    } else if (lastEvent.type === 'pin:revoked') {
+      const p = lastEvent.payload as { deviceId?: string; bulkRevoke?: boolean };
+      if (p.bulkRevoke) {
+        setProperties(prev => prev.map(prop => ({ ...prop, pinStatus: 'revoked', guest: 'Vago', checkOut: '-' })));
+      } else if (p.deviceId) {
+        setProperties(prev => prev.map(prop => prop.id === p.deviceId
+          ? { ...prop, pinStatus: 'revoked', guest: 'Vago', checkOut: '-' }
+          : prop
+        ));
+      }
+    } else if (lastEvent.type === 'lock:status_changed') {
+      // UI hint for unlock
+    }
+  }, [lastEvent]);
 
   // Locks & Governança state
   const [lockFilter, setLockFilter] = useState<'all' | 'api' | 'manual' | 'battery' | 'pairing'>('all');

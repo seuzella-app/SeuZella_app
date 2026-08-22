@@ -4,6 +4,7 @@ import { withApiGuard } from '@/lib/security/api-guard';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
 
 // POST /api/ddc/locks/[id]/panic-revoke — Revoga TODOS os PINs ativos (EMERGÊNCIA)
 export async function POST(
@@ -18,6 +19,17 @@ export async function POST(
     const reason = body?.reason ?? 'Pânico acionado pelo host';
 
     const result = await panicRevokeAllPins(id, reason);
+
+    // Publish realtime event AFTER DB write succeeds — all DDC clients
+    // for this tenant must instantly remove the revoked PINs from their UI.
+    publishTenantEvent(tenantId, 'pin:revoked', {
+      deviceId: id,
+      pinId: '*',
+      bulkRevoke: true,
+      revokedCount: result.revokedCount,
+      reason,
+    });
+
     return NextResponse.json({
       success: true,
       data: { revokedCount: result.revokedCount, message: `${result.revokedCount} PIN(s) revogado(s)` },

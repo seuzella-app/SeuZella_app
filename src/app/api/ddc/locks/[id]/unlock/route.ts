@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { remoteUnlock } from '@/lib/locks/orchestrator';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
+import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
 
 const ERROR_STATUS: Record<string, number> = {
   UNAUTHORIZED: 401,
@@ -45,6 +46,16 @@ export async function POST(
         { status: ERROR_STATUS[code] ?? 503 },
       );
     }
+
+    // Publish realtime event AFTER remote unlock succeeds — Mobile DDC
+    // (and Desktop) subscribed to this tenant see the lock state change
+    // instantly without polling.
+    publishTenantEvent(tenantId, 'lock:status_changed', {
+      deviceId,
+      action: 'unlock',
+      actor: 'host',
+      timestamp: new Date().toISOString(),
+    });
 
     return NextResponse.json(
       { success: true, message: 'REMOTE_UNLOCK_CONFIRMED' },

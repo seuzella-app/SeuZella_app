@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { resolveTenantId, mapGuest } from '@/lib/ddc/ddc-mapper';
@@ -101,6 +102,14 @@ export async function POST(request: NextRequest) {
         checkOut: body.checkOut ? new Date(body.checkOut) : null,
       }
     });
+    // Publish realtime event AFTER DB write succeeds.
+    publishTenantEvent(tenantId, 'guest:updated', {
+      guestId: guest.id,
+      action: 'created',
+      name: guest.name,
+      phone: guest.phone,
+    });
+
     return NextResponse.json({ success: true, data: mapGuest(guest) }, { status: 201 });
   } catch (error) {
     console.error('[DDC guests POST] Error:', error);

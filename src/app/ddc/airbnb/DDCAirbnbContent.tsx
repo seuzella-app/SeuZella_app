@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LineChart,
@@ -129,38 +131,11 @@ interface AutomationLog {
 
 // ── Mock Data 
 
-const MOCK_PROPERTIES: PropertyData[] = [
-  {
-    id: '1',
-    name: 'Apartamento Vista Mar — Copacabana',
-    location: 'Copacabana, Rio de Janeiro, RJ',
-    connected: true,
-    occupancy: 84,
-    rating: 4.96,
-    reviews: 214,
-    revenue: 8450,
-  },
-  {
-    id: '2',
-    name: 'Chalé Campos do Jordão',
-    location: 'Campos do Jordão, SP',
-    connected: true,
-    occupancy: 72,
-    rating: 4.85,
-    reviews: 156,
-    revenue: 6280,
-  },
-  {
-    id: '3',
-    name: 'Studio Paulista',
-    location: 'São Paulo, SP',
-    connected: false,
-    occupancy: 63,
-    rating: 4.78,
-    reviews: 89,
-    revenue: 3920,
-  },
-];
+// MOCK_PROPERTIES removed (Onda 5A.2) — properties now start empty and
+// are populated via realtime events from /api/ddc/airb/properties mutations.
+// See useTenantRealtimeState. Initial hydration should fetch from
+// /api/ddc/airb/properties on mount.
+const MOCK_PROPERTIES: PropertyData[] = [];
 
 const REVENUE_TREND_DATA = [
   { day: '01', receita: 1200 },
@@ -305,6 +280,27 @@ export default function DDCAirbnbContent() {
   const [calendarDays] = useState<CalendarDay[]>(generateCalendarDays);
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
   const [propertiesState, setPropertiesState] = useState<PropertyData[]>(MOCK_PROPERTIES);
+
+  // ── Realtime subscription: sync properties/reservations across devices ──
+  const { connectionState, lastEvent } = useTenantRealtimeState();
+
+  useEffect(() => {
+    if (!lastEvent) return;
+    if (lastEvent.type === 'reservation:created') {
+      const p = lastEvent.payload as { guestName?: string; roomName?: string };
+      toast.success(`Reserva recebida: ${p.guestName || 'hóspede'} — ${p.roomName || 'imóvel'}`);
+    } else if (lastEvent.type === 'pin:created') {
+      const p = lastEvent.payload as { guestName?: string };
+      toast.success(`PIN gerado${p.guestName ? ` para ${p.guestName}` : ''}`);
+    } else if (lastEvent.type === 'pin:revoked') {
+      const p = lastEvent.payload as { bulkRevoke?: boolean; revokedCount?: number };
+      if (p.bulkRevoke) toast.warning(`Pânico: ${p.revokedCount || 0} PIN(s) revogado(s)`);
+      else toast.info('PIN revogado');
+    } else if (lastEvent.type === 'lock:status_changed') {
+      const p = lastEvent.payload as { action?: string };
+      if (p.action === 'unlock') toast.info('Fechadura destrancada remotamente');
+    }
+  }, [lastEvent]);
   const [newPropertyForm, setNewPropertyForm] = useState({
     name: '',
     location: '',
