@@ -126,10 +126,10 @@ describe('Gap 11 — PWA v2 service worker', () => {
     expect(existsSync(swPath)).toBe(true);
   });
 
-  it('CACHE_NAME is bumped to seuzella-pwa-v2', () => {
+  it('CACHE_NAME is bumped to seuzella-pwa-v3', () => {
     const source = readFileSync(swPath, 'utf-8');
-    expect(source).toContain('seuzella-pwa-v2');
-    expect(source).not.toMatch(/seuzella-pwa-v1'/);
+    expect(source).toContain('seuzella-pwa-v3');
+    expect(source).not.toMatch(/seuzella-pwa-v2'/);
   });
 
   it('has stale-while-revalidate strategy for assets', () => {

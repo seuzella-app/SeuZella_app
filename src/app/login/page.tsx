@@ -59,7 +59,7 @@ type ViewMode = 'signin' | 'signup' | 'magic-sent';
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Se login for 123/123, redireciona para ZCC em vez de DDC
+  // Default redirect target after successful login
   const callbackUrl = searchParams.get('callbackUrl') || '/ddc';
   const magicLoginParam = searchParams.get('magicLogin');
   const magicEmailParam = searchParams.get('email');
@@ -204,8 +204,9 @@ function LoginContent() {
       } else if (result?.ok) {
         toast.success('Acesso autorizado!');
         await new Promise(r => setTimeout(r, 500));
-        // Se login for 123/123, redireciona para ZCC em vez de DDC
-        const redirectPath = credentialData.email === '123' ? '/zcc' : callbackUrl;
+        // ZCC admins are redirected to /zcc after login
+        const isZccAdmin = (process.env.ZCC_ADMIN_EMAILS || '').toLowerCase().includes(credentialData.email.toLowerCase());
+        const redirectPath = isZccAdmin ? '/zcc' : callbackUrl;
         router.push(redirectPath);
         router.refresh();
       }
@@ -215,31 +216,6 @@ function LoginContent() {
       setIsLoading(false);
     }
   }, [credentialData, callbackUrl, router]);
-
-  // ── Quick Demo 1-Click Login
-  const handleQuickDemoLogin = useCallback(async (email: string, pass: string, targetPath: string) => {
-    setIsLoading(true);
-    try {
-      const { signIn } = await import('next-auth/react');
-      const result = await signIn('credentials', {
-        email,
-        password: pass,
-        redirect: false,
-      });
-      if (result?.ok) {
-        toast.success('Acesso autorizado! Carregando painel...');
-        await new Promise(r => setTimeout(r, 400));
-        router.push(targetPath);
-        router.refresh();
-      } else {
-        toast.error(result?.error === 'CredentialsSignin' ? 'Credenciais demo inválidas.' : `Erro: ${result?.error}`);
-      }
-    } catch {
-      toast.error('Erro de conexão.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [router]);
 
   // ── Google OAuth 
   const handleGoogleLogin = useCallback(async () => {
@@ -479,80 +455,30 @@ function LoginContent() {
                 )}
               </AnimatePresence>
 
-              {/* ── Demo Quick Login  */}
+              {/* ── ZCC notice (no source-code credentials in production) */}
               {isZCC && (
                 <motion.div variants={fadeUp} className="w-full">
                   <div className="p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.12] space-y-2">
                     <p className="text-emerald-400 text-xs font-medium text-center">
-                      Acesso rápido ao ZCC — Modo Demonstração
+                      Acesso ao ZCC — use credenciais corporativas configuradas
                     </p>
-                    <Button
-                      type="button"
-                      className="w-full h-10 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg cursor-pointer active:scale-[0.97] transition-all text-sm"
-                      disabled={isLoading}
-                      onClick={async () => {
-                        setIsLoading(true);
-                        try {
-                          const { signIn } = await import('next-auth/react');
-                          const result = await signIn('credentials', {
-                            email: 'zella@zella.com.br',
-                            password: '123',
-                            redirect: false,
-                          });
-                          if (result?.ok) {
-                            toast.success('Acesso ZCC autorizado!');
-                            await new Promise(r => setTimeout(r, 500));
-                            router.push('/zcc');
-                            router.refresh();
-                          } else {
-                            toast.error(result?.error === 'CredentialsSignin' ? 'Credenciais demo não encontradas. Execute o seed primeiro.' : `Erro: ${result?.error}`);
-                          }
-                        } catch {
-                          toast.error('Erro de conexão.');
-                        } finally {
-                          setIsLoading(false);
-                        }
-                      }}
-                    >
-                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LayoutDashboard className="mr-2 h-4 w-4" />}
-                      Entrar no ZCC (login: zella@zella.com.br / senha: 123)
-                    </Button>
+                    <p className="text-zinc-500 text-[10px] text-center font-mono tracking-wider">
+                      Administrador master via ZEHLA_MASTER_ADMIN_EMAIL / ZEHLA_MASTER_ADMIN_PASSWORD
+                    </p>
                   </div>
                 </motion.div>
               )}
 
-              {/* ── Demo Quick 1-Click Login for DDC & ZCC  */}
+              {/* ── DDC notice (no source-code credentials in production) */}
               {!isZCC && (
-                <motion.div variants={fadeUp} className="w-full space-y-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-11 bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold rounded-xl cursor-pointer transition-all active:scale-[0.98]"
-                    disabled={isLoading}
-                    onClick={() => handleQuickDemoLogin('demo@pousada.com.br', 'Demo@123', callbackUrl.startsWith('/ddc/airbnb') ? '/ddc/airbnb' : '/ddc/pousada')}
-                  >
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LayoutDashboard className="mr-2 h-4 w-4" />}
-                    ⚡ Acessar DDC Pousada (Demo 1-Clique)
-                  </Button>
-
-                  <div className="flex items-center justify-between gap-2 px-1">
-                    <button
-                      type="button"
-                      disabled={isLoading}
-                      className="text-zinc-500 text-[10px] font-mono tracking-wider uppercase hover:text-zinc-300 cursor-pointer transition-colors"
-                      onClick={() => handleQuickDemoLogin('demo@airbnb.com.br', 'Demo@123', '/ddc/airbnb')}
-                    >
-                      demo airbnb
-                    </button>
-                    <span className="text-zinc-700 text-xs">•</span>
-                    <button
-                      type="button"
-                      disabled={isLoading}
-                      className="text-amber-500/70 text-[10px] font-mono tracking-wider uppercase hover:text-amber-400 cursor-pointer transition-colors"
-                      onClick={() => handleQuickDemoLogin('123', '123', '/zcc')}
-                    >
-                      zcc admin (123 / 123)
-                    </button>
+                <motion.div variants={fadeUp} className="w-full">
+                  <div className="p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.12] space-y-1">
+                    <p className="text-emerald-400 text-xs font-medium text-center">
+                      Acesso ao DDC — use credenciais corporativas configuradas
+                    </p>
+                    <p className="text-zinc-500 text-[10px] text-center font-mono tracking-wider">
+                      Demonstrações via seed-local em NODE_ENV=development
+                    </p>
                   </div>
                 </motion.div>
               )}

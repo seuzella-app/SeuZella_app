@@ -68,9 +68,19 @@ async function authorizeZcc(request: NextRequest): Promise<boolean> {
   const email = typeof token.email === 'string' ? token.email.trim().toLowerCase() : '';
   const role = typeof token.role === 'string' ? token.role : '';
 
-  const defaultAdmins = ['admin@seuzella.com.br', 'zella@zella.com.br', 'marciocau@gmail.com', '123', 'admin@zehla.com.br'];
-  const envAdmins = (process.env.ZCC_ADMIN_EMAILS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-  const allowedAdmins = envAdmins.length > 0 ? envAdmins : defaultAdmins;
+  // Admin identity is configuration-only. Production MUST set ZCC_ADMIN_EMAILS.
+  // In non-production builds we fall back to a clearly-marked dev list so local
+  // developers can still access /zcc; this fallback is intentionally inert in
+  // production (NODE_ENV === 'production') to prevent source-code admin grants.
+  const devAdminFallback =
+    process.env.NODE_ENV === 'production'
+      ? []
+      : ['admin@seuzella.com', 'marciocau14@seuzella.com'];
+  const envAdmins = (process.env.ZCC_ADMIN_EMAILS || '')
+    .split(',')
+    .map(v => v.trim().toLowerCase())
+    .filter(Boolean);
+  const allowedAdmins = envAdmins.length > 0 ? envAdmins : devAdminFallback;
 
   const isRoleAuthorized = ['owner', 'admin', 'system_admin'].includes(role);
   const isEmailAuthorized = allowedAdmins.includes(email) || role === 'system_admin';

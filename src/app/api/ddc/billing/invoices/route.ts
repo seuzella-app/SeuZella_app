@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       asaasCustomerId = await AsaasBillingService.ensureCustomer({
         tenantId,
         name: tenantName,
-        email: tenantEmail || `financeiro-${tenantId}@seuzella.com.br`,
+        email: tenantEmail || `financeiro-${tenantId}@seuzella.com`,
       });
     }
 

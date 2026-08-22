@@ -142,7 +142,8 @@ describe('🌐 DDC Routes & Canonical Endpoints Health Check', () => {
   it('should have valid metadata export in Mobile Airbnb route', async () => {
     const route = await import('../src/app/mobile/airbnb/page');
     expect(route.metadata).toBeDefined();
-    expect(route.metadata.title).toContain('DDC Airbnb Mobile');
+    // Airbnb niche is branded as 'Anfitrião' (host) per canonical product taxonomy.
+    expect(route.metadata.title).toMatch(/DDC (?:Anfitrião|Airbnb) Mobile/);
   });
 
   it('should export force-dynamic configuration on mobile routes', async () => {

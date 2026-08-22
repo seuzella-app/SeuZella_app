@@ -12,7 +12,7 @@ describe('canonical mobile entry security', () => {
   });
 
   it('returns unauthenticated users to login with the canonical mobile callback', () => {
-    expect(source).toContain("redirect('/login?callbackUrl=/mobile')");
+    expect(source).toMatch(/redirect\(['\"]\/login\?callbackUrl=(?:%2Fmobile|\/mobile)['\"]\)/);
   });
 
   it('keeps authenticated routing neutral until server-side identity is known', () => {

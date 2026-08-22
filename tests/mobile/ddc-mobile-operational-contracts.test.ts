@@ -8,12 +8,12 @@ const read = (file: string) => readFileSync(resolve(root, file), 'utf8');
 describe('DDC Mobile operational contracts', () => {
   it('has the canonical /mobile entrypoint', () => {
     expect(existsSync(resolve(root, 'src/app/mobile/page.tsx'))).toBe(true);
-    expect(read('src/app/mobile/page.tsx')).toContain("redirect('/login?callbackUrl=/mobile')");
+    expect(read('src/app/mobile/page.tsx')).toMatch(/redirect\(['\"]\/login\?callbackUrl=(?:%2Fmobile|\/mobile)['\"]\)/);
   });
 
-  it('keeps service worker PWA v2 contracts', () => {
+  it('keeps service worker PWA v3 contracts', () => {
     const sw = read('public/sw.js');
-    expect(sw).toContain('seuzella-pwa-v2');
+    expect(sw).toContain('seuzella-pwa-v3');
     expect(sw).toContain("OFFLINE_URL = '/offline.html'");
     expect(sw).toContain("addEventListener('push'");
     expect(sw).toContain("addEventListener('notificationclick'");

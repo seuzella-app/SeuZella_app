@@ -8,10 +8,19 @@ const airbnb = path.resolve(process.cwd(), 'src/app/ddc/airbnb/DDCAirbnbClientCo
 
 describe('DDC Mobile live bootstrap integration', () => {
   it('resolves tenant state through the shared live-state hook', () => {
-    const source = fs.readFileSync(bootstrap, 'utf8');
-    expect(source).toContain("useDDCMobileLiveState(true)");
-    expect(source).toContain("data.tenant.name");
-    expect(source).not.toContain('__ZELLA_TENANT_ID');
+    // The live-state hook is invoked by MobileDDCLiveProvider (in
+    // MobileDDCLiveContext.tsx) — MobileDDCLiveBootstrap wires that provider
+    // into both niches via the TenantStateBridge that consumes tenant.name.
+    const bootstrapSrc = fs.readFileSync(bootstrap, 'utf8');
+    const contextSrc = fs.readFileSync(
+      path.resolve(process.cwd(), 'src/components/mobile/MobileDDCLiveContext.tsx'),
+      'utf8'
+    );
+    expect(bootstrapSrc).toContain('MobileDDCLiveProvider');
+    expect(bootstrapSrc).toContain('TenantStateBridge');
+    expect(bootstrapSrc).toContain('data.tenant.name');
+    expect(contextSrc).toContain('useDDCMobileLiveState(true)');
+    expect(bootstrapSrc).not.toContain('__ZELLA_TENANT_ID');
   });
 
   it('is mounted by both mobile niches', () => {

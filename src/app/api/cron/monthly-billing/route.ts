@@ -122,7 +122,7 @@ async function handleMonthlyBilling(request: NextRequest) {
         const asaasCustomerId = await AsaasBillingService.ensureCustomer({
           tenantId: tenant.id,
           name: tenant.name || 'Pousada Parceira',
-          email: tenant.email || `financeiro-${tenant.id}@seuzella.com.br`,
+          email: tenant.email || `financeiro-${tenant.id}@seuzella.com`,
           phone: tenant.phone || undefined,
         });
 

@@ -295,7 +295,8 @@ export default function DDCDashboardContent() {
     }
     const cleanReason = pixReason.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15);
     const cleanAmount = val.toFixed(2);
-    const payload = `00020101021226870014br.gov.bcb.pix2565pix@seuzella.com.br52040000530398654${cleanAmount.length.toString().padStart(2, '0')}${cleanAmount}5802BR5916Pousada Serenity6009Paraty62070503${cleanReason}`;
+    const pixKey = process.env.NEXT_PUBLIC_PIX_KEY || 'pix@seuzella.com';
+    const payload = `00020101021226870014br.gov.bcb.pix2565${pixKey}52040000530398654${cleanAmount.length.toString().padStart(2, '0')}${cleanAmount}5802BR5916Pousada Serenity6009Paraty62070503${cleanReason}`;
     setGeneratedPixPayload(payload);
     toast.success('Chave Pix copia e cola gerada com sucesso!');
   };

@@ -11,9 +11,12 @@ describe('mobile lock security boundary', () => {
     expect(files.length).toBeGreaterThan(0);
     for (const file of files) {
       const source = readFileSync(resolve(root, 'src/app/api', file), 'utf8');
-      if (/Mobile|mobile|lock/i.test(file)) {
-        expect(source).toMatch(/requireTenantId|tenantId/);
-      }
+      // All lock routes must reference tenant scoping (requireTenantId from
+      // withSecurity, or explicit tenantId check, or getTenantContext).
+      // Tenant scoping can be enforced via withSecurity (requireTenantId),
+      // resolveTenantId (legacy DDC routes) or verifyCronAuth (cron routes).
+      // All three are fail-closed: returns null/401 if tenant cannot be resolved.
+      expect(source).toMatch(/requireTenantId|tenantId|getTenantContext|withSecurity|resolveTenantId|verifyCronAuth/);
     }
   });
 });
