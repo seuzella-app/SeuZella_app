@@ -18,5 +18,5 @@
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
-  "exclude": ["node_modules", "temp_openwa", "mini-services", "dist", "staging-*", "landing_extracted", "ddc_extracted", "extract-ddc", "upload", "tool-results", "__tests__", "src/components/diagram", "src/lib/use-socket.ts", "vitest.config.ts", "scripts", "src/lib/brain/whatsapp-persona-learner.ts", "skills"]
+  "exclude": ["node_modules", "temp_openwa", "mini-services", "dist", "staging-*", "landing_extracted", "ddc_extracted", "extract-ddc", "upload", "tool-results", "__tests__", "src/components/diagram", "src/lib/use-socket.ts", "vitest.config.ts", "playwright.config.ts", "tests/e2e", "scripts", "src/lib/brain/whatsapp-persona-learner.ts", "skills"]
 }

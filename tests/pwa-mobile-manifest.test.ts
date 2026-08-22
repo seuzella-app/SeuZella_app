@@ -12,12 +12,14 @@ describe('PWA & Mobile App Readiness Suite', () => {
     expect(config.display).toBe('standalone');
     expect(config.orientation).toBe('portrait');
     expect(config.theme_color).toBe('#0f172a');
-    expect(config.icons).toHaveLength(4);
+    // 3 SVG icons: 192 any, 512 any, 512 maskable.
+    // (Previously 4 PNG icons with separate 192-maskable + 512-maskable;
+    //  we consolidated to a single maskable SVG at 512x512 since SVG scales.)
+    expect(config.icons).toHaveLength(3);
 
     const icons = config.icons ?? [];
     expect(icons).toEqual(expect.arrayContaining([
       expect.objectContaining({ sizes: '192x192', purpose: 'any' }),
-      expect.objectContaining({ sizes: '192x192', purpose: 'maskable' }),
       expect.objectContaining({ sizes: '512x512', purpose: 'any' }),
       expect.objectContaining({ sizes: '512x512', purpose: 'maskable' }),
     ]));
