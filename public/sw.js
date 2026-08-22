@@ -1,6 +1,7 @@
-// SEU ZÉLLA — PWA Service Worker v3
+// SEU ZÉLLA — PWA Service Worker v4
 // Offline fallback + Web Push + safe background sync
-const CACHE_NAME = 'seuzella-pwa-v3';
+// v4: DDC/mobile deployments must never be served from stale navigation cache.
+const CACHE_NAME = 'seuzella-pwa-v4';
 const OFFLINE_URL = '/offline.html';
 
 const ASSET_PATTERNS = [
@@ -65,7 +66,7 @@ async function enqueueAction(action) {
     await waitForTransaction(tx);
     if (self.registration?.sync) await self.registration.sync.register('zella-sync');
   } catch (err) {
-    console.error('[SW v3] enqueueAction failed:', err);
+    console.error('[SW v4] enqueueAction failed:', err);
   } finally {
     db?.close();
   }
@@ -92,12 +93,12 @@ async function flushQueue() {
         deleteTx.objectStore(SYNC_QUEUE_STORE).delete(keys[index]);
         await waitForTransaction(deleteTx);
       } catch (err) {
-        console.error('[SW v3] queued action retained after failed replay:', err);
+        console.error('[SW v4] queued action retained after failed replay:', err);
         break;
       }
     }
   } catch (err) {
-    console.error('[SW v3] flushQueue failed:', err);
+    console.error('[SW v4] flushQueue failed:', err);
   } finally {
     db?.close();
   }
@@ -133,6 +134,14 @@ self.addEventListener('fetch', (event) => {
         }
       })());
     }
+    return;
+  }
+
+  // DDC and Mobile are live applications, not offline documents.
+  // Always obtain the current deployment shell from the network so an iPad,
+  // installed PWA, or long-lived Safari tab cannot resurrect an old DDC UI.
+  if (request.mode === 'navigate' && (/^\/ddc(?:\/|$)/.test(url.pathname) || /^\/mobile(?:\/|$)/.test(url.pathname))) {
+    event.respondWith(fetch(request, { cache: 'no-store' }).catch(() => caches.match(OFFLINE_URL)));
     return;
   }
 
@@ -204,4 +213,13 @@ self.addEventListener('notificationclick', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING' || event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data?.type === 'PURGE_LIVE_APP_CACHE') {
+    event.waitUntil(caches.open(CACHE_NAME).then(async (cache) => {
+      const keys = await cache.keys();
+      await Promise.all(keys.filter((request) => {
+        const pathname = new URL(request.url).pathname;
+        return /^\/ddc(?:\/|$)/.test(pathname) || /^\/mobile(?:\/|$)/.test(pathname);
+      }).map((request) => cache.delete(request)));
+    }));
+  }
 });
