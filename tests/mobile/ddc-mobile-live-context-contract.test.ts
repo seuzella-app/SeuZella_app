@@ -16,7 +16,7 @@ describe('DDC Mobile live-state boundary', () => {
     const source = read('src/app/api/ddc/mobile/state/route.ts');
     expect(source).toContain('requireTenantId()');
     expect(source).not.toContain('body.tenantId');
-    expect(source).toContain("Cache-Control');
+    expect(source).toContain('Cache-Control');
   });
 
   it('derives operational metrics from live reservations rather than fixtures', () => {
