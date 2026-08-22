@@ -108,6 +108,7 @@ model Tenant {
   airbReports       AirbReport[]
   lgpdDeleteRequests LgpdDeleteRequest[]
   lgpdIncidents      LgpdIncident[]
+  pushSubscriptions  PushSubscription[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@map("tenants")
@@ -1084,6 +1085,26 @@ model LgpdIncident {
   @@index([tenantId, status])
   @@index([severity, status])
   @@map("lgpd_incidents")
+}
+
+/// Push notification subscription for web push (RFC 8030 + VAPID).
+/// One tenant can have multiple subscriptions (multiple devices/browsers).
+model PushSubscription {
+  id           String   @id @default(cuid())
+  tenantId     String
+  userId       String?
+  endpoint     String   @unique // browser push endpoint URL
+  p256dhKey    String   // base64url-encoded public key
+  authKey      String   // base64url-encoded auth secret
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastSeenAt   DateTime @default(now())
+  isActive     Boolean  @default(true)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([tenantId, isActive])
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 model MetaCostLog {
