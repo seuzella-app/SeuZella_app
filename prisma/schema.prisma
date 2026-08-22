@@ -106,6 +106,8 @@ model Tenant {
   airbGoals         AirbGoal[]
   airbCommissions   AirbCommission[]
   airbReports       AirbReport[]
+  lgpdDeleteRequests LgpdDeleteRequest[]
+  lgpdIncidents      LgpdIncident[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@map("tenants")

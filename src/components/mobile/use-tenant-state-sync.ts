@@ -1,10 +1,48 @@
 'use client';
 
 /**
- * useTenantStateSync — Cross-device tenant state synchronization
+ * @deprecated Use `useTenantRealtimeState` instead.
+ *
+ * ───────────────────────────────────────────────────────────────────────────
+ * ⚠️  DEPRECATED — This hook does NOT sync across devices.
+ * ───────────────────────────────────────────────────────────────────────────
+ *
+ * ARCHITECTURAL FLAW (kept for backward-compat, will be removed)
+ * --------------------------------------------------------------
+ * This hook uses BroadcastChannel + localStorage + CustomEvent, which only
+ * sync across **tabs of the same browser** (same-origin). It does NOT sync
+ * across devices — a phone and a laptop cannot exchange state through
+ * localStorage.
+ *
+ * The correct replacement is `useTenantRealtimeState` in
+ * `src/components/ddc/use-tenant-realtime-state.ts`, which:
+ *   - Connects to `/api/ddc/realtime/tenant-state` (SSE)
+ *   - Server pushes events to ALL subscribers of the same tenantId
+ *   - Works across devices, networks, and browsers
+ *   - Backed by PostgreSQL (single source of truth)
+ *
+ * Migration path
+ * --------------
+ *   // ❌ OLD (broken cross-device)
+ *   import { useTenantStateSync } from '@/components/mobile/use-tenant-state-sync';
+ *   const state = useTenantStateSync();
+ *
+ *   // ✅ NEW (real cross-device sync)
+ *   import { useTenantRealtimeState } from '@/components/ddc/use-tenant-realtime-state';
+ *   const { snapshot, lastEvent, connectionState } = useTenantRealtimeState();
+ *
+ * Removal scheduled
+ * ----------------
+ * This file will be deleted once all consumers migrate. Tests in
+ * `tests/mobile/use-tenant-state-sync.test.ts` will also be removed.
+ *
+ * Original (now-corrected) docstring below for historical context.
  * ============================================================================
  *
- * PROBLEM
+ * useTenantStateSync — SAME-BROWSER cross-tab tenant state sync
+ * ============================================================================
+ *
+ * PROBLEM (now solved by useTenantRealtimeState)
  * -------
  * The `TenantStateBridge` in `MobileDDCLiveBootstrap.tsx` dispatches a
  * `zella:tenant-state` CustomEvent whenever the tenant's live state updates
@@ -13,16 +51,16 @@
  * inline useState, so changes made on mobile never reach desktop and vice
  * versa.
  *
- * SOLUTION
+ * SOLUTION (limited to same-browser tabs only)
  * --------
- * This hook subscribes to THREE cross-tab/cross-device channels:
+ * This hook subscribes to THREE same-browser channels:
  *   1. BroadcastChannel API (modern browsers, real-time cross-tab)
  *   2. window.storage event (legacy fallback for older browsers/Safari)
  *   3. Custom `zella:tenant-state` event (same-tab only, instant)
  *
  * When any of these fires, the hook updates its internal state and re-renders
  * the consuming component. This means: change a room PIN on mobile → desktop
- * DDC content updates within 1 frame.
+ * DDC content (in the same browser) updates within 1 frame.
  *
  * USAGE
  * -----
