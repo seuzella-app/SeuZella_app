@@ -2,16 +2,14 @@
 
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { useDDCMobileLiveState } from './useDDCMobileLiveState';
+import { MobileDDCLiveProvider, useMobileDDCLive } from './MobileDDCLiveContext';
 
-export function MobileDDCLiveBootstrap({
+function TenantStateBridge({
   niche,
-  children,
 }: {
   niche: 'pousada' | 'airbnb';
-  children: ReactNode;
 }) {
-  const { data } = useDDCMobileLiveState(true);
+  const { data } = useMobileDDCLive();
 
   useEffect(() => {
     if (!data?.tenant) return;
@@ -20,5 +18,21 @@ export function MobileDDCLiveBootstrap({
     window.dispatchEvent(new CustomEvent('zella:tenant-state', { detail: data.tenant }));
   }, [data?.tenant, niche]);
 
-  return children;
+  return null;
+}
+
+/** Shared live-data boundary for both Mobile DDC niches. */
+export function MobileDDCLiveBootstrap({
+  niche,
+  children,
+}: {
+  niche: 'pousada' | 'airbnb';
+  children: ReactNode;
+}) {
+  return (
+    <MobileDDCLiveProvider>
+      <TenantStateBridge niche={niche} />
+      {children}
+    </MobileDDCLiveProvider>
+  );
 }
