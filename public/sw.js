@@ -4,31 +4,23 @@ const CACHE_NAME = 'seuzella-pwa-v3';
 const OFFLINE_URL = '/offline.html';
 
 const ASSET_PATTERNS = [
-  /\/_next\/static\//,
-  /\/fonts\//,
-  /\/sounds\//,
-  /\/icons?\//,
+  /\/_next\/static\//, /\/fonts\//, /\/sounds\//, /\/icons?\//,
   /\.(?:js|css|woff2?|ttf|png|jpg|jpeg|svg|gif|webp|mp3)$/i,
 ];
-
 const API_CACHE_PATTERNS = [
-  /\/api\/ddc\/notifications/,
-  /\/api\/v1\/guest\/ddc\/notifications/,
-  /\/api\/ddc\/bookings/,
+  /\/api\/ddc\/notifications/, /\/api\/v1\/guest\/ddc\/notifications/, /\/api\/ddc\/bookings/,
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL)));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-    )
+    caches.keys().then((keys) => Promise.all(
+      keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+    ))
   );
   self.clients.claim();
 });
@@ -38,11 +30,11 @@ const SYNC_QUEUE_STORE = 'pending-actions';
 
 function openSyncQueue() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(SYNC_QUEUE_DB, 1);
+    const req = indexedDB.open(SYNC_QUEUE_DB, 2);
     req.onupgradeneeded = () => {
-      if (!req.result.objectStoreNames.contains(SYNC_QUEUE_STORE)) {
-        req.result.createObjectStore(SYNC_QUEUE_STORE, { autoIncrement: true });
-      }
+      const db = req.result;
+      if (db.objectStoreNames.contains(SYNC_QUEUE_STORE)) db.deleteObjectStore(SYNC_QUEUE_STORE);
+      db.createObjectStore(SYNC_QUEUE_STORE, { autoIncrement: true });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -56,22 +48,26 @@ function idbRequest(request) {
   });
 }
 
+async function waitForTransaction(tx) {
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error || new Error('IndexedDB transaction failed'));
+    tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted'));
+  });
+}
+
 async function enqueueAction(action) {
+  let db;
   try {
-    const db = await openSyncQueue();
+    db = await openSyncQueue();
     const tx = db.transaction(SYNC_QUEUE_STORE, 'readwrite');
     tx.objectStore(SYNC_QUEUE_STORE).add(action);
-    await new Promise((resolve, reject) => {
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted'));
-    });
-    db.close();
-    if (self.registration?.sync) {
-      await self.registration.sync.register('zella-sync');
-    }
+    await waitForTransaction(tx);
+    if (self.registration?.sync) await self.registration.sync.register('zella-sync');
   } catch (err) {
     console.error('[SW v3] enqueueAction failed:', err);
+  } finally {
+    db?.close();
   }
 }
 
@@ -80,23 +76,23 @@ async function flushQueue() {
   try {
     db = await openSyncQueue();
     const readTx = db.transaction(SYNC_QUEUE_STORE, 'readonly');
-    const actions = await idbRequest(readTx.objectStore(SYNC_QUEUE_STORE).getAll());
+    const store = readTx.objectStore(SYNC_QUEUE_STORE);
+    const [keys, actions] = await Promise.all([
+      idbRequest(store.getAllKeys()),
+      idbRequest(store.getAll()),
+    ]);
 
-    for (const action of actions) {
+    for (let index = 0; index < actions.length; index += 1) {
+      const action = actions[index];
       try {
         const response = await fetch(action.url, action.init);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const deleteTx = db.transaction(SYNC_QUEUE_STORE, 'readwrite');
-        deleteTx.objectStore(SYNC_QUEUE_STORE).delete(action.id);
-        await new Promise((resolve, reject) => {
-          deleteTx.oncomplete = resolve;
-          deleteTx.onerror = () => reject(deleteTx.error);
-          deleteTx.onabort = () => reject(deleteTx.error || new Error('delete transaction aborted'));
-        });
+        deleteTx.objectStore(SYNC_QUEUE_STORE).delete(keys[index]);
+        await waitForTransaction(deleteTx);
       } catch (err) {
         console.error('[SW v3] queued action retained after failed replay:', err);
-        // Keep failed actions in IndexedDB for the next sync attempt.
         break;
       }
     }
@@ -123,20 +119,17 @@ self.addEventListener('fetch', (event) => {
           if (!response.ok && response.status >= 500) throw new Error(`Server error ${response.status}`);
           return response;
         } catch {
-          const body = await request.clone().text();
           await enqueueAction({
-            id: crypto.randomUUID(),
             url: request.url,
             init: {
               method: request.method,
               headers: Object.fromEntries(request.headers.entries()),
-              body,
+              body: await request.clone().text(),
             },
           });
-          return new Response(
-            JSON.stringify({ success: true, queued: true, mode: 'offline' }),
-            { status: 202, headers: { 'Content-Type': 'application/json' } }
-          );
+          return new Response(JSON.stringify({ success: true, queued: true, mode: 'offline' }), {
+            status: 202, headers: { 'Content-Type': 'application/json' },
+          });
         }
       })());
     }
@@ -145,62 +138,41 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const cloned = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
-          }
-          return response;
-        })
-        .catch(() => caches.match(OFFLINE_URL))
+      fetch(request).then((response) => {
+        if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+        return response;
+      }).catch(() => caches.match(OFFLINE_URL))
     );
     return;
   }
 
   if (API_CACHE_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const cloned = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
-          }
-          return response;
-        })
-        .catch(() => caches.match(request).then((cached) => cached || new Response('[]', {
-          status: 503,
-          headers: { 'Content-Type': 'application/json' },
-        })))
+      fetch(request).then((response) => {
+        if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+        return response;
+      }).catch(() => caches.match(request).then((cached) => cached || new Response('[]', {
+        status: 503, headers: { 'Content-Type': 'application/json' },
+      })))
     );
     return;
   }
 
   if (ASSET_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const fetchPromise = fetch(request)
-          .then((response) => {
-            if (response.ok) {
-              const cloned = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
-            }
-            return response;
-          })
-          .catch(() => cached);
-        return cached || fetchPromise;
-      })
-    );
+    event.respondWith(caches.match(request).then((cached) => {
+      const network = fetch(request).then((response) => {
+        if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+        return response;
+      }).catch(() => cached);
+      return cached || network;
+    }));
   }
 });
 
 self.addEventListener('push', (event) => {
   let data = {};
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch {
-    data = { title: event.data?.text() || 'Seu Zélla' };
-  }
+  try { data = event.data ? event.data.json() : {}; }
+  catch { data = { title: event.data?.text() || 'Seu Zélla' }; }
 
   const options = {
     body: data.body || 'Você recebeu um novo alerta no DDC.',
@@ -215,23 +187,19 @@ self.addEventListener('push', (event) => {
       { action: 'dismiss', title: 'Dispensar' },
     ],
   };
-
   event.waitUntil(self.registration.showNotification(data.title || 'Seu Zélla — Novo Alerta', options));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   if (event.action === 'dismiss') return;
-
   const targetUrl = event.notification.data?.url || '/mobile';
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      for (const client of clients) {
-        if (client.url.includes(targetUrl) && 'focus' in client) return client.focus();
-      }
-      return self.clients.openWindow ? self.clients.openWindow(targetUrl) : undefined;
-    })
-  );
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+    for (const client of clients) {
+      if (client.url.includes(targetUrl) && 'focus' in client) return client.focus();
+    }
+    return self.clients.openWindow ? self.clients.openWindow(targetUrl) : undefined;
+  }));
 });
 
 self.addEventListener('message', (event) => {
