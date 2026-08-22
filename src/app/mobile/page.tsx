@@ -1,15 +1,12 @@
 import { redirect } from 'next/navigation';
 
 /**
- * /mobile  →  redireciona para o nicho padrão (pousada).
+ * Canonical entry point for the installed Seu Zélla mobile application.
  *
- * Donos de pousada acessam diretamente /mobile/pousada.
- * Anfitriões Airbnb acessam diretamente /mobile/airbnb.
- *
- * O redirecionamento default para pousada existe apenas para evitar
- * uma página 404 caso o usuário acesse a raiz /mobile sem nicho.
- * Em produção, todo link de marketing aponta para o nicho específico.
+ * The entry point is intentionally niche-neutral: authentication resolves the
+ * same account used by Desktop, and the authenticated tenant determines the
+ * Pousada vs. Anfitrião experience. No tenant id is accepted from the URL.
  */
 export default function MobileIndexPage() {
-  redirect('/mobile/pousada');
+  redirect('/login?callbackUrl=%2Fmobile');
 }
