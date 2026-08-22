@@ -11,6 +11,13 @@ import type { NicheType } from '@/contexts/NicheContext';
 import { migratePlanLegacy } from '@/lib/plan-features';
 import crypto from 'crypto';
 
+function getConfiguredMasterCredentials() {
+  const email = process.env.ZEHLA_MASTER_ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ZEHLA_MASTER_ADMIN_PASSWORD;
+  if (!email || !password) return null;
+  return { email, password };
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db as any),
   providers: [
@@ -24,47 +31,17 @@ export const authOptions: NextAuthOptions = {
           const cleanEmail = credentials.email.trim().toLowerCase();
           const cleanPassword = credentials.password.trim();
 
-          // Master Admin / ZCC Built-in Access (123 / 123, zella@zella.com.br / 123, admin@seuzella.com.br / Admin@123 ou 123)
-          if (
-            (cleanEmail === '123' && cleanPassword === '123') ||
-            (cleanEmail === 'zella@zella.com.br' && (cleanPassword === '123' || cleanPassword === 'Zella@123')) ||
-            (cleanEmail === 'admin@seuzella.com.br' && (cleanPassword === 'Admin@123' || cleanPassword === '123')) ||
-            (cleanEmail === 'admin@zehla.com.br' && (cleanPassword === 'Admin@123' || cleanPassword === '123'))
-          ) {
+          // Master access is configuration-only and never falls back to source-code credentials.
+          const master = getConfiguredMasterCredentials();
+          if (master && cleanEmail === master.email && cleanPassword === master.password) {
             return {
               id: 'zcc-master-admin',
-              email: cleanEmail === '123' ? 'admin@seuzella.com.br' : cleanEmail,
+              email: master.email,
               name: 'Administrador ZCC',
               role: 'system_admin',
               tenantId: 'zcc-admin-tenant',
               plan: 'enterprise' as PlanTier,
               niche: 'pousada' as NicheType,
-            };
-          }
-
-          // Demo Pousada Account
-          if (cleanEmail === 'demo@pousada.com.br' && (cleanPassword === 'Demo@123' || cleanPassword === '123')) {
-            return {
-              id: 'demo-pousada-tenant',
-              email: 'demo@pousada.com.br',
-              name: 'Pousada Rosa Demo',
-              role: 'owner',
-              tenantId: 'demo-pousada',
-              plan: 'pro' as PlanTier,
-              niche: 'pousada' as NicheType,
-            };
-          }
-
-          // Demo Airbnb Account
-          if (cleanEmail === 'demo@airbnb.com.br' && (cleanPassword === 'Demo@123' || cleanPassword === '123')) {
-            return {
-              id: 'demo-airbnb-tenant',
-              email: 'demo@airbnb.com.br',
-              name: 'Airbnb Juquehy Demo',
-              role: 'owner',
-              tenantId: 'demo-airbnb',
-              plan: 'pro' as PlanTier,
-              niche: 'airbnb' as NicheType,
             };
           }
 
