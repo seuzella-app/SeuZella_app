@@ -10,23 +10,24 @@ export interface VerifiedJwtSession {
 export async function verifyJwtToken(token: string): Promise<VerifiedJwtSession | null> {
   if (!token) return null;
 
-  // Mock / Dev fallback for tests
-  if (token.startsWith('mock_') || token.startsWith('test_') || token === 'valid_oauth2_token') {
-    return {
-      userId: 'user_alexa_001',
-      tenantId: 'tenant_pousada_rosa',
-      scope: 'smart_home:locks',
-    };
-  }
-
   try {
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || 'ci-secret-key-32-characters-minimum-length-xyz');
-    const { payload } = await jwtVerify(token, secret);
+    const configuredSecret = process.env.ALEXA_JWT_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!configuredSecret) return null;
+
+    const secret = new TextEncoder().encode(configuredSecret);
+    const { payload } = await jwtVerify(token, secret, {
+      algorithms: ['HS256'],
+    });
+
+    const userId = payload.sub || payload.userId;
+    const tenantId = payload.tenantId;
+    if (typeof userId !== 'string' || typeof tenantId !== 'string' || !tenantId) return null;
+
     return {
-      userId: (payload.sub || payload.userId || 'unknown_user') as string,
-      tenantId: (payload.tenantId || 'default') as string,
-      scope: payload.scope as string | undefined,
-      email: payload.email as string | undefined,
+      userId,
+      tenantId,
+      scope: typeof payload.scope === 'string' ? payload.scope : undefined,
+      email: typeof payload.email === 'string' ? payload.email : undefined,
     };
   } catch {
     return null;
