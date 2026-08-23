@@ -18,47 +18,43 @@ function getConfiguredMasterCredentials() {
   return { email, password };
 }
 
+function isConfiguredZccAdmin(email: string) {
+  return (process.env.ZCC_ADMIN_EMAILS || '')
+    .split(',')
+    .map(value => value.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(email);
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db as any),
   providers: [
     GoogleProvider({ clientId: process.env.GOOGLE_CLIENT_ID || '', clientSecret: process.env.GOOGLE_CLIENT_SECRET || '', allowDangerousEmailAccountLinking: false }),
     CredentialsProvider({
       name: 'credentials',
-      credentials: { email: { label: 'Login', type: 'text' }, password: { label: 'Senha', type: 'password' } },
+      credentials: { email: { label: 'Login', type: 'email' }, password: { label: 'Senha', type: 'password' } },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         try {
           const cleanEmail = credentials.email.trim().toLowerCase();
-          const cleanPassword = credentials.password.trim();
-
-          // Master access is configuration-only and never falls back to source-code credentials.
+          const password = credentials.password;
           const master = getConfiguredMasterCredentials();
-          if (master && cleanEmail === master.email && cleanPassword === master.password) {
+          if (master && cleanEmail === master.email && password === master.password) {
             return {
-              id: 'zcc-master-admin',
-              email: master.email,
-              name: 'Administrador ZCC',
-              role: 'system_admin',
-              tenantId: 'zcc-admin-tenant',
-              plan: 'enterprise' as PlanTier,
+              id: 'zcc-master-admin', email: master.email, name: 'Administrador ZCC',
+              role: 'system_admin', tenantId: 'zcc-admin-tenant', plan: 'enterprise' as PlanTier,
               niche: 'pousada' as NicheType,
             };
           }
-
           if (await isDatabaseAvailable()) {
             const tenant = await db.tenant.findUnique({ where: { email: cleanEmail } });
-            if (tenant?.passwordHash && (await bcrypt.compare(cleanPassword, tenant.passwordHash))) {
-              if (tenant.status === 'active') {
-                return {
-                  id: tenant.id,
-                  email: tenant.email,
-                  name: tenant.name,
-                  role: tenant.role || 'owner',
-                  tenantId: tenant.id,
-                  plan: migratePlanLegacy(tenant.plan),
-                  niche: ((tenant as any).niche || 'pousada') as NicheType,
-                };
-              }
+            if (tenant?.passwordHash && (await bcrypt.compare(password, tenant.passwordHash)) && tenant.status === 'active') {
+              return {
+                id: tenant.id, email: tenant.email, name: tenant.name,
+                role: isConfiguredZccAdmin(cleanEmail) ? 'system_admin' : (tenant.role || 'owner'),
+                tenantId: tenant.id, plan: migratePlanLegacy(tenant.plan),
+                niche: ((tenant as any).niche || 'pousada') as NicheType,
+              };
             }
           }
           return null;
@@ -96,7 +92,11 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'google' && user?.email) {
         try {
           const tenant = await db.tenant.findUnique({ where: { email: user.email } });
-          if (tenant && tenant.status === 'active') { token.tenantId = tenant.id; token.role = tenant.role; token.plan = migratePlanLegacy(tenant.plan); token.niche = (tenant as any).niche || 'pousada'; }
+          if (tenant && tenant.status === 'active') {
+            token.tenantId = tenant.id;
+            token.role = isConfiguredZccAdmin(user.email.toLowerCase()) ? 'system_admin' : tenant.role;
+            token.plan = migratePlanLegacy(tenant.plan); token.niche = (tenant as any).niche || 'pousada';
+          }
         } catch (error) { console.error('[auth] Google JWT tenant lookup failed', error); }
       }
       return token;
