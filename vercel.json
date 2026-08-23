@@ -4,155 +4,58 @@
   "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npx prisma generate && next build",
   "functions": {
-    "src/app/api/webhook-whatsapp/route.ts": {
-      "maxDuration": 60,
-      "memory": 1024
-    },
-    "src/app/api/brain/route.ts": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
+    "src/app/api/webhook-whatsapp/route.ts": { "maxDuration": 60, "memory": 1024 },
+    "src/app/api/brain/route.ts": { "maxDuration": 60, "memory": 1024 }
   },
-  "regions": [
-    "gru1"
-  ],
+  "regions": ["gru1"],
   "headers": [
     {
       "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/ddc/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "private, no-store, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }, { "key": "Service-Worker-Allowed", "value": "/" }]
     },
     {
       "source": "/(.*)\\.(ico|png|jpg|jpeg|svg|webp|woff2)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ],
   "rewrites": [],
   "crons": [
-    {
-      "path": "/api/cron/budget-reset",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/metrics-snapshot",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-analyze",
-      "schedule": "*/15 * * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-budget-forecast",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-refactor-check",
-      "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-cleanup",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-night-audit",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/locks-maintenance",
-      "schedule": "*/15 * * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-night-pulse",
-      "schedule": "*/30 * * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-night-pentest",
-      "schedule": "0 4 * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-learning",
-      "schedule": "30 6 * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-orchestrator",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-churn-predict",
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-distill",
-      "schedule": "0 23 * * *"
-    },
-    {
-      "path": "/api/cron/cerebro-watchdog",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/learning-cycle",
-      "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/cron/linkinbio-expiry-check",
-      "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/cron/ota-token-expiry",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/plan-expiry",
-      "schedule": "0 12 * * *"
-    },
-    {
-      "path": "/api/cron/booking-daily",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/payment-overdue",
-      "schedule": "0 */6 * * *"
-    },
-    {
-      "path": "/api/cron/achievements-check",
-      "schedule": "30 3 * * *"
-    },
-    {
-      "path": "/api/cron/plan-limits-check",
-      "schedule": "0 11 * * *"
-    },
-    {
-      "path": "/api/cron/lembrete-checkin",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/nps-checkout",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/payment-confirmation",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/housekeeping-dispatch",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/ical-sync",
-      "schedule": "*/2 * * * *"
-    },
-    {
-      "path": "/api/cron/caution-auto-return",
-      "schedule": "0 * * * *"
-    }
+    { "path": "/api/cron/budget-reset", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/metrics-snapshot", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/cerebro-analyze", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/cerebro-budget-forecast", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/cerebro-refactor-check", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/cerebro-cleanup", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/cerebro-night-audit", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/locks-maintenance", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/cerebro-night-pulse", "schedule": "*/30 * * * *" },
+    { "path": "/api/cron/cerebro-night-pentest", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/cerebro-learning", "schedule": "30 6 * * *" },
+    { "path": "/api/cron/cerebro-orchestrator", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/cerebro-churn-predict", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/cerebro-distill", "schedule": "0 23 * * *" },
+    { "path": "/api/cron/cerebro-watchdog", "schedule": "* * * * *" },
+    { "path": "/api/cron/learning-cycle", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/linkinbio-expiry-check", "schedule": "0 13 * * *" },
+    { "path": "/api/cron/ota-token-expiry", "schedule": "0 * * * *" },
+    { "path": "/api/cron/plan-expiry", "schedule": "0 12 * * *" },
+    { "path": "/api/cron/booking-daily", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/payment-overdue", "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/achievements-check", "schedule": "30 3 * * *" },
+    { "path": "/api/cron/plan-limits-check", "schedule": "0 11 * * *" },
+    { "path": "/api/cron/lembrete-checkin", "schedule": "0 * * * *" },
+    { "path": "/api/cron/nps-checkout", "schedule": "0 * * * *" },
+    { "path": "/api/cron/payment-confirmation", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/housekeeping-dispatch", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/ical-sync", "schedule": "*/2 * * * *" },
+    { "path": "/api/cron/caution-auto-return", "schedule": "0 * * * *" }
   ]
 }
