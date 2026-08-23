@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { MobileAirbnbSuperApp } from '@/components/mobile/MobileAirbnbSuperApp';
 import { MobileDDCLiveBootstrap } from '@/components/mobile/MobileDDCLiveBootstrap';
+import { DDCStaleShellGuard } from '@/components/ddc/DDCStaleShellGuard';
 
 const DDCAirbnbContent = dynamic(
   () => import('./DDCAirbnbContent'),
@@ -19,9 +20,11 @@ const DDCAirbnbContent = dynamic(
   }
 );
 
-export function DDCAirbnbClientContent() {
+export function DDCAirbnbClientContent({ buildId }: { buildId: string }) {
   return (
     <>
+      <DDCStaleShellGuard expectedBuildId={buildId} />
+
       <div className="block lg:hidden w-full min-h-screen bg-[#0a0a0f]">
         <MobileDDCLiveBootstrap niche="airbnb">
           <MobileAirbnbSuperApp />
