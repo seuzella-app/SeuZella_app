@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { stripeGateway } from '@/lib/payments/providers/stripe';
+import { StripeGateway } from '@/lib/payments/providers/stripe';
+
+const stripeGateway = new StripeGateway();
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -47,11 +49,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'DB_UNAVAILABLE' }, { status: 503 });
     }
 
-    switch (event.type) {
+    switch (event.event) {
       case 'checkout.session.completed':
       case 'checkout.session.async_payment_succeeded': {
-        const externalId = event.paymentId;
-        const tenantId = (event.metadata as Record<string, unknown>)?.tenantId as string | undefined;
+        const externalId = event.gatewayPaymentId;
+        const tenantId = (event.raw as Record<string, unknown>)?.metadata as Record<string, unknown> | undefined as string | undefined;
         if (!tenantId) {
           console.warn('[StripeWebhook] No tenantId in metadata for', externalId);
           break;
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'invoice.paid': {
-        const tenantId = (event.metadata as Record<string, unknown>)?.tenantId as string | undefined;
+        const tenantId = (event.raw as Record<string, unknown>)?.metadata as Record<string, unknown> | undefined as string | undefined;
         if (!tenantId) break;
         try {
           await (db as any).transaction.create({
@@ -78,9 +80,9 @@ export async function POST(request: NextRequest) {
               type: 'SUBSCRIPTION_PAYMENT',
               amount: event.amount || 0,
               status: 'CONFIRMED',
-              externalId: event.paymentId,
+              externalId: event.gatewayPaymentId,
               method: 'cartao',
-              metadata: JSON.stringify({ gateway: 'stripe', eventType: event.type }),
+              metadata: JSON.stringify({ gateway: 'stripe', eventType: event.event }),
             },
           });
         } catch (err) {
@@ -90,7 +92,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'customer.subscription.deleted': {
-        const tenantId = (event.metadata as Record<string, unknown>)?.tenantId as string | undefined;
+        const tenantId = (event.raw as Record<string, unknown>)?.metadata as Record<string, unknown> | undefined as string | undefined;
         if (!tenantId) break;
         try {
           await (db as any).subscription.updateMany({
@@ -105,10 +107,10 @@ export async function POST(request: NextRequest) {
 
       default:
         // Unhandled event type — acknowledge but don't process
-        console.log('[StripeWebhook] unhandled event type:', event.type);
+        console.log('[StripeWebhook] unhandled event type:', event.event);
     }
 
-    return NextResponse.json({ received: true, type: event.type });
+    return NextResponse.json({ received: true, type: event.event });
   } catch (err) {
     console.error('[StripeWebhook] processing failed:', err);
     return NextResponse.json(

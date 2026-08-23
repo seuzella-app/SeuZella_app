@@ -221,7 +221,7 @@ export class AlexaLockService {
   static async handleHealthCheck(tenantId: string, lockId: string) {
     const lock = await db.lockDevice.findFirst({
       where: { id: lockId, tenantId },
-      select: { id: true, status: true, battery: true },
+      select: { id: true, status: true },
     });
 
     if (!lock) {
