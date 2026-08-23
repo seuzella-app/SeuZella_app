@@ -13,7 +13,7 @@ describe('DDC Mobile operational contracts', () => {
 
   it('keeps service worker PWA v3 contracts', () => {
     const sw = read('public/sw.js');
-    expect(sw).toContain('seuzella-pwa-v3');
+    expect(sw).toContain('seuzella-pwa-v4');
     expect(sw).toContain("OFFLINE_URL = '/offline.html'");
     expect(sw).toContain("addEventListener('push'");
     expect(sw).toContain("addEventListener('notificationclick'");

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generatePin, listPins } from '@/lib/locks/orchestrator';
 import { calculatePinValidityWindow } from '@/lib/locks/pin-generator';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
-import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
+import { emitTenantEvent, buildPushForEvent } from '@/lib/realtime/emit-tenant-event';
 
 const MAX_BODY_BYTES = 16 * 1024;
 const MAX_ID_LENGTH = 128;
@@ -121,9 +121,9 @@ export async function POST(
 
     // Publish realtime event AFTER DB write succeeds — Desktop DDC and
     // Mobile DDC subscribed to this tenant receive the new PIN instantly.
-    // Payload excludes the raw PIN value for defense-in-depth (clients
-    // already have it via the response; the realtime event is for UI sync).
-    publishTenantEvent(tenantId, 'pin:created', {
+    // Also triggers a push notification to subscribed devices (offline
+    // users see the alert when they return to the app).
+    const eventPayload = {
       deviceId: id,
       pinId: result.code?.id,
       guestName,
@@ -131,7 +131,13 @@ export async function POST(
       validFrom: from.toISOString(),
       validTo: to.toISOString(),
       bookingId,
-    });
+    };
+    void emitTenantEvent(
+      tenantId,
+      'pin:created',
+      eventPayload,
+      buildPushForEvent('pin:created', eventPayload),
+    );
 
     return NextResponse.json(
       { success: true, data: result },

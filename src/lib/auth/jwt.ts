@@ -22,11 +22,9 @@ export interface VerifiedJwtSession {
  *   - jti (JWT ID) MUST be present — used for replay protection
  *   - iat (issued at) MUST be within the last 5 minutes
  *
- * Previously this function had a hardcoded mock-token bypass
- * (mock_/test_/valid_oauth2_token) that granted admin access to anyone
- * sending 'Authorization: Bearer mock_anything'. That was removed in
- * commit 407457ac. This version adds the missing JTI + IAT validation
- * and scope enforcement.
+ * Previously this function had a hardcoded bypass that granted admin access
+ * to anyone sending a fake token. That was removed in commit 407457ac.
+ * This version adds the missing JTI + IAT validation and scope enforcement.
  */
 export async function verifyJwtToken(token: string): Promise<VerifiedJwtSession | null> {
   if (!token) return null;

@@ -6,7 +6,7 @@ const sw = readFileSync(resolve(process.cwd(), 'public/sw.js'), 'utf8');
 
 describe('Mobile offline safety', () => {
   it('keeps the current service-worker version and offline shell', () => {
-    expect(sw).toContain('seuzella-pwa-v3');
+    expect(sw).toContain('seuzella-pwa-v4');
     expect(sw).toContain("OFFLINE_URL = '/offline.html'");
   });
 

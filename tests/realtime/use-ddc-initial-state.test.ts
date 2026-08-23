@@ -394,7 +394,7 @@ describe('useDDCInitialState — DB → API → hydration → SSE → mutation �
       'utf8',
     );
     expect(pinsRoute).toContain('await generatePin(');
-    expect(pinsRoute).toContain("publishTenantEvent(tenantId, 'pin:created'");
+    expect(pinsRoute).toContain('emitTenantEvent');
 
     // 2. SSE endpoint delivers events to authenticated subscribers
     const sseRoute = fs.readFileSync(

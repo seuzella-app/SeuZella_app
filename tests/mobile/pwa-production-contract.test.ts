@@ -16,6 +16,6 @@ describe('production PWA contracts', () => {
     const sw = read('public/sw.js');
     expect(sw).toContain("OFFLINE_URL = '/offline.html'");
     expect(sw).not.toContain('tx.done');
-    expect(sw).toContain('seuzella-pwa-v3');
+    expect(sw).toContain('seuzella-pwa-v4');
   });
 });

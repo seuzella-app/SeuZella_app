@@ -356,13 +356,17 @@ describe('Behavioral: wire verification — mutation endpoints publish after DB 
       path.resolve(process.cwd(), 'src/app/api/ddc/locks/[id]/pins/route.ts'),
       'utf8'
     );
-    expect(source).toContain("from '@/lib/realtime/tenant-pubsub'");
-    expect(source).toContain("publishTenantEvent(tenantId, 'pin:created'");
+    expect(source).toContain("from '@/lib/realtime/emit-tenant-event'");
+    // Now uses emitTenantEvent (which internally calls publishTenantEvent)
+    expect(source).toContain('emitTenantEvent');
+    expect(source).toContain("'pin:created'");
     // Publish must come AFTER generatePin() (the DB write).
     const generateIdx = source.indexOf('await generatePin(');
-    const publishIdx = source.indexOf("publishTenantEvent(tenantId, 'pin:created'");
+    const publishIdx = source.indexOf('emitTenantEvent(');
     expect(generateIdx).toBeGreaterThan(-1);
+    // emitTenantEvent must be called AFTER generatePin()
     expect(publishIdx).toBeGreaterThan(generateIdx);
+    expect(source).toContain("'pin:created'");
   });
 
   it('/api/ddc/locks/[id]/pins/[pinId] DELETE publishes pin:revoked', () => {
@@ -372,11 +376,14 @@ describe('Behavioral: wire verification — mutation endpoints publish after DB 
       path.resolve(process.cwd(), 'src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts'),
       'utf8'
     );
-    expect(source).toContain("publishTenantEvent(tenantId, 'pin:revoked'");
+    expect(source).toContain('emitTenantEvent');
+    expect(source).toContain("'pin:revoked'");
     const revokeIdx = source.indexOf('await revokePin(');
     const publishIdx = source.indexOf("publishTenantEvent(tenantId, 'pin:revoked'");
     expect(revokeIdx).toBeGreaterThan(-1);
-    expect(publishIdx).toBeGreaterThan(revokeIdx);
+    // emitTenantEvent is async — check the call appears AFTER revokePin
+    const emitIdx = source.indexOf('emitTenantEvent(');
+    expect(emitIdx).toBeGreaterThan(revokeIdx);
   });
 
   it('/api/ddc/locks/[id]/panic-revoke POST publishes pin:revoked with bulkRevoke', () => {
@@ -389,9 +396,9 @@ describe('Behavioral: wire verification — mutation endpoints publish after DB 
     expect(source).toContain('bulkRevoke: true');
     expect(source).toContain('revokedCount');
     const panicIdx = source.indexOf('await panicRevokeAllPins(');
-    const publishIdx = source.indexOf("publishTenantEvent(tenantId, 'pin:revoked'");
+    const emitIdx = source.indexOf('emitTenantEvent(');
     expect(panicIdx).toBeGreaterThan(-1);
-    expect(publishIdx).toBeGreaterThan(panicIdx);
+    expect(emitIdx).toBeGreaterThan(panicIdx);
   });
 
   it('/api/ddc/locks/[id]/unlock POST publishes lock:status_changed', () => {
@@ -416,9 +423,10 @@ describe('Behavioral: wire verification — mutation endpoints publish after DB 
       path.resolve(process.cwd(), 'src/app/api/ddc/bookings/route.ts'),
       'utf8'
     );
-    expect(source).toContain("publishTenantEvent(tenantId, 'reservation:created'");
+    expect(source).toContain('emitTenantEvent');
+    expect(source).toContain("'reservation:created'");
     const createIdx = source.indexOf('db.booking.create(');
-    const publishIdx = source.indexOf("publishTenantEvent(tenantId, 'reservation:created'");
+    const publishIdx = source.indexOf('emitTenantEvent(');
     expect(createIdx).toBeGreaterThan(-1);
     expect(publishIdx).toBeGreaterThan(createIdx);
   });

@@ -4,7 +4,7 @@ import { withApiGuard } from '@/lib/security/api-guard';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
+import { emitTenantEvent, buildPushForEvent } from '@/lib/realtime/emit-tenant-event';
 
 // DELETE /api/ddc/locks/[id]/pins/[pinId] — Revoga um PIN específico
 export async function DELETE(
@@ -26,12 +26,17 @@ export async function DELETE(
       );
     }
 
-    // Publish realtime event AFTER DB write succeeds.
-    publishTenantEvent(tenantId, 'pin:revoked', {
+    const revokePayload = {
       deviceId: id,
       pinId,
       reason,
-    });
+    };
+    void emitTenantEvent(
+      tenantId,
+      'pin:revoked',
+      revokePayload,
+      buildPushForEvent('pin:revoked', revokePayload),
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
