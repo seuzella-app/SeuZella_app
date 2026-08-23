@@ -26,10 +26,18 @@ function isConfiguredZccAdmin(email: string) {
     .includes(email);
 }
 
+const googleAuthConfigured = Boolean(
+  process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim(),
+);
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db as any),
   providers: [
-    GoogleProvider({ clientId: process.env.GOOGLE_CLIENT_ID || '', clientSecret: process.env.GOOGLE_CLIENT_SECRET || '', allowDangerousEmailAccountLinking: false }),
+    ...(googleAuthConfigured ? [GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: false,
+    })] : []),
     CredentialsProvider({
       name: 'credentials',
       credentials: { email: { label: 'Login', type: 'email' }, password: { label: 'Senha', type: 'password' } },
