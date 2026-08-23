@@ -7,26 +7,13 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const GENERIC_RESPONSE = { ok: true, message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.' };
-
-function adminEmails(): Set<string> {
-  return new Set((process.env.ZCC_ADMIN_EMAILS || 'marciocau14@gmail.com').split(',').map(v => v.trim().toLowerCase()).filter(Boolean));
-}
+function adminEmails(): Set<string> { return new Set((process.env.ZCC_ADMIN_EMAILS || 'marciocau14@gmail.com').split(',').map(v => v.trim().toLowerCase()).filter(Boolean)); }
 function baseUrl(request: Request): string { return (process.env.NEXTAUTH_URL || new URL(request.url).origin).replace(/\/$/, ''); }
 
 async function ensureResetTable() {
-  await db.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
-      "id" TEXT NOT NULL PRIMARY KEY,
-      "tenant_id" TEXT NOT NULL,
-      "token_hash" TEXT NOT NULL UNIQUE,
-      "expires_at" TIMESTAMP(3) NOT NULL,
-      "used_at" TIMESTAMP(3),
-      "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      CONSTRAINT "password_reset_tokens_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS "password_reset_tokens_tenant_id_idx" ON "password_reset_tokens"("tenant_id");
-    CREATE INDEX IF NOT EXISTS "password_reset_tokens_expires_at_idx" ON "password_reset_tokens"("expires_at");
-  `);
+  await db.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "password_reset_tokens" ("id" TEXT NOT NULL PRIMARY KEY, "tenant_id" TEXT NOT NULL, "token_hash" TEXT NOT NULL UNIQUE, "expires_at" TIMESTAMP(3) NOT NULL, "used_at" TIMESTAMP(3), "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "password_reset_tokens_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE)`);
+  await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "password_reset_tokens_tenant_id_idx" ON "password_reset_tokens"("tenant_id")`);
+  await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "password_reset_tokens_expires_at_idx" ON "password_reset_tokens"("expires_at")`);
 }
 
 export async function POST(request: Request) {
@@ -38,9 +25,7 @@ export async function POST(request: Request) {
     await ensureResetTable();
 
     let tenant = await db.tenant.findUnique({ where: { email } });
-    if (!tenant && adminEmails().has(email)) {
-      tenant = await db.tenant.create({ data: { email, name: 'Administrador ZCC', role: 'system_admin', plan: 'enterprise', status: 'active' } });
-    }
+    if (!tenant && adminEmails().has(email)) tenant = await db.tenant.create({ data: { email, name: 'Administrador ZCC', role: 'system_admin', plan: 'enterprise', status: 'active' } });
     if (!tenant) return NextResponse.json(GENERIC_RESPONSE);
 
     await db.$executeRaw`UPDATE "password_reset_tokens" SET "used_at" = CURRENT_TIMESTAMP WHERE "tenant_id" = ${tenant.id} AND "used_at" IS NULL`;
