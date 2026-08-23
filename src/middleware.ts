@@ -69,22 +69,13 @@ async function authorizeZcc(request: NextRequest): Promise<boolean> {
   const role = typeof token.role === 'string' ? token.role : '';
 
   // Admin identity is configuration-only. Production MUST set ZCC_ADMIN_EMAILS.
-  // In non-production builds we fall back to a clearly-marked dev list so local
-  // developers can still access /zcc; this fallback is intentionally inert in
-  // production (NODE_ENV === 'production') to prevent source-code admin grants.
-  const devAdminFallback =
-    process.env.NODE_ENV === 'production'
-      ? []
-      : ['admin@seuzella.com', 'marciocau14@seuzella.com'];
+  // system_admin is only granted by the server-side credentials/database path.
   const envAdmins = (process.env.ZCC_ADMIN_EMAILS || '')
     .split(',')
     .map(v => v.trim().toLowerCase())
     .filter(Boolean);
-  const allowedAdmins = envAdmins.length > 0 ? envAdmins : devAdminFallback;
-
   const isRoleAuthorized = ['owner', 'admin', 'system_admin'].includes(role);
-  const isEmailAuthorized = allowedAdmins.includes(email) || role === 'system_admin';
-
+  const isEmailAuthorized = envAdmins.includes(email) || role === 'system_admin';
   return Boolean(isRoleAuthorized && isEmailAuthorized);
 }
 
@@ -95,6 +86,11 @@ export async function middleware(request: NextRequest) {
   const blocked = startsWithAny(pathname, BLOCKED_API_PREFIXES);
   if (blocked && process.env.NODE_ENV === 'production') {
     return securityHeaders(NextResponse.json({ error: 'NOT_FOUND', requestId }, { status: 404 }));
+  }
+
+  // Dedicated ZCC login is intentionally public so the company owner can reach it without a session.
+  if (pathname === '/zcc/login') {
+    return securityHeaders(NextResponse.next());
   }
 
   // DDC remains a public preview surface. Its data APIs remain protected unless explicitly public.
@@ -118,7 +114,7 @@ export async function middleware(request: NextRequest) {
     } catch {
       // Fail closed.
     }
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL('/zcc/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return securityHeaders(NextResponse.redirect(loginUrl));
   }
