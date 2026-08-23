@@ -25,13 +25,6 @@ export function DDCAirbnbClientContent({ buildId }: { buildId: string }) {
     <>
       <DDCStaleShellGuard expectedBuildId={buildId} />
 
-      {/*
-       * Phones (<768px) keep the dedicated mobile SuperApp.
-       * Tablets/iPad (>=768px) MUST use the current desktop DDC. Previously
-       * this boundary was `lg` (1024px), which incorrectly classified an
-       * iPad in portrait (768–1023px) as MobileAirbnbSuperApp. Desktop
-       * behavior at >=1024px is unchanged.
-       */
       <div className="block md:hidden w-full min-h-screen bg-[#0a0a0f]">
         <MobileDDCLiveBootstrap niche="airbnb">
           <MobileAirbnbSuperApp />
