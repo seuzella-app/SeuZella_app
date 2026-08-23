@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { MobilePousadaSuperApp } from '@/components/mobile/MobilePousadaSuperApp';
 import { MobileDDCLiveBootstrap } from '@/components/mobile/MobileDDCLiveBootstrap';
+import { DDCStaleShellGuard } from '@/components/ddc/DDCStaleShellGuard';
 
 const DDCPousadaContent = dynamic(
   () => import('./DDCPousadaContent'),
@@ -19,9 +20,11 @@ const DDCPousadaContent = dynamic(
   }
 );
 
-export function DDCPousadaClientContent() {
+export function DDCPousadaClientContent({ buildId }: { buildId: string }) {
   return (
     <>
+      <DDCStaleShellGuard expectedBuildId={buildId} />
+
       <div className="block lg:hidden w-full min-h-screen bg-[#0a0a0f]">
         <MobileDDCLiveBootstrap niche="pousada">
           <MobilePousadaSuperApp />
