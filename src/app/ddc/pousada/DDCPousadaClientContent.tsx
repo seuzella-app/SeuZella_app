@@ -25,13 +25,21 @@ export function DDCPousadaClientContent({ buildId }: { buildId: string }) {
     <>
       <DDCStaleShellGuard expectedBuildId={buildId} />
 
-      <div className="block lg:hidden w-full min-h-screen bg-[#0a0a0f]">
+      {/*
+       * Phones (<768px) keep the dedicated mobile SuperApp.
+       * Tablets/iPad (>=768px) MUST use the current desktop DDC. Previously
+       * this boundary was `lg` (1024px), which incorrectly classified an
+       * iPad in portrait (768–1023px) as MobilePousadaSuperApp — making the
+       * device appear to be serving an old DDC even though production was
+       * current. Desktop behavior at >=1024px is unchanged.
+       */}
+      <div className="block md:hidden w-full min-h-screen bg-[#0a0a0f]">
         <MobileDDCLiveBootstrap niche="pousada">
           <MobilePousadaSuperApp />
         </MobileDDCLiveBootstrap>
       </div>
 
-      <div className="hidden lg:block w-full min-h-screen bg-[#0a0a0f]">
+      <div className="hidden md:block w-full min-h-screen bg-[#0a0a0f]">
         <DDCPousadaContent />
       </div>
     </>
