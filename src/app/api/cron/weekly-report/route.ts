@@ -9,6 +9,7 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { getBundlerStats } from '@/lib/message-bundler';
 import { getMetaCostSavings, checkMetaBudget } from '@/lib/meta-cost-guard';
@@ -582,6 +583,12 @@ function generateReportHtml(data: WeeklyReportData): string {
 // ── Main Handler 
 
 export async function GET(request: NextRequest) {
+  // ── Auth: verifyCronAuth (Onda 5H) ──
+  const authResult = await verifyCronAuth(request, 'admin:all');
+  if (!authResult.ok) {
+    return authResult.response ?? NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+
   const startTime = Date.now();
   console.log('[Cron:weekly-report] Starting weekly email report batch...');
 

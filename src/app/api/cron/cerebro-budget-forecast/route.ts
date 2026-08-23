@@ -17,6 +17,7 @@
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
 import { getGlmCerebroService } from '@/lib/cerebro/glm-service';

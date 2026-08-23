@@ -162,13 +162,43 @@ export class StripeGateway implements IPaymentGateway {
   }
 
   async verifyWebhook(payload: string | Buffer, signature: string): Promise<boolean> {
-    // Stripe webhooks are signed with the STRIPE_WEBHOOK_SECRET via the
-    // Stripe-Signature header (format: "t=timestamp,v1=hash").
-    // We delegate cryptographic verification to the `stripe` SDK in the
-    // unified webhook route (Sprint 1 Day 7). Here we accept if signature
-    // is present and secret is configured.
-    void payload;
-    return Boolean(signature && process.env.STRIPE_WEBHOOK_SECRET);
+    // Stripe webhooks are signed with the STRIPE_WEBHOOK_SECRET.
+    // The Stripe-Signature header format is: "t=timestamp,v1=hash"
+    // Verification: HMAC-SHA256(secret, "${timestamp}.${payload}") === v1
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!secret || !signature) return false;
+
+    // Parse the Stripe-Signature header
+    const parts = signature.split(',').map(p => p.trim());
+    const tsPart = parts.find(p => p.startsWith('t='));
+    const v1Part = parts.find(p => p.startsWith('v1='));
+    if (!tsPart || !v1Part) return false;
+
+    const timestamp = tsPart.slice(2);
+    const expectedHash = v1Part.slice(3);
+
+    // Prevent replay attacks: reject timestamps older than 5 minutes
+    const ageMs = Date.now() - Number(timestamp) * 1000;
+    if (isNaN(Number(timestamp)) || ageMs > 5 * 60 * 1000) return false;
+
+    // Compute HMAC-SHA256
+    const payloadStr = typeof payload === 'string' ? payload : payload.toString('utf8');
+    const signedPayload = `${timestamp}.${payloadStr}`;
+    const crypto = await import('crypto');
+    const computedHash = crypto
+      .createHmac('sha256', secret)
+      .update(signedPayload, 'utf8')
+      .digest('hex');
+
+    // Timing-safe comparison
+    try {
+      const a = Buffer.from(computedHash, 'hex');
+      const b = Buffer.from(expectedHash, 'hex');
+      if (a.length !== b.length) return false;
+      return crypto.timingSafeEqual(a, b);
+    } catch {
+      return false;
+    }
   }
 
   async parseWebhookEvent(payload: string | Buffer): Promise<WebhookEvent> {

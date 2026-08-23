@@ -21,6 +21,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 import { verifyCronM2MToken } from '@/lib/security/cron-auth';
 import { CerebroLearningService } from '@/lib/cerebro/cerebro-learning-service';
 
@@ -28,6 +29,12 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 120; // 2 min
 
 export async function GET(request: NextRequest) {
+  // ── Auth: verifyCronAuth (Onda 5H) ──
+  const authResult = await verifyCronAuth(request, 'admin:all');
+  if (!authResult.ok) {
+    return authResult.response ?? NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+
   return runLearning(request);
 }
 

@@ -165,4 +165,102 @@ export class AlexaLockService {
       },
     };
   }
+
+  /**
+   * 3. Alexa State Report — Proactively reports lock state to Alexa.
+   *
+   * Called after a lock state change (lock/unlock via PIN or remote).
+   * Alexa requires this to keep the Alexa app UI in sync with the physical
+   * lock state.
+   *
+   * @param tenantId The tenant the lock belongs to
+   * @param lockId The lock device ID
+   * @param lockState 'LOCKED' | 'UNLOCKED'
+   */
+  static async handleStateReport(
+    tenantId: string,
+    lockId: string,
+    lockState: 'LOCKED' | 'UNLOCKED',
+  ) {
+    return {
+      event: {
+        header: {
+          namespace: 'Alexa',
+          name: 'StateReport',
+          payloadVersion: '3',
+          messageId: crypto.randomUUID(),
+        },
+        endpoint: { endpointId: lockId },
+        payload: {},
+        context: {
+          properties: [
+            {
+              namespace: 'Alexa.LockController',
+              name: 'lockState',
+              value: lockState,
+              timeOfSample: new Date().toISOString(),
+              uncertaintyInMilliseconds: 0,
+            },
+            {
+              namespace: 'Alexa.EndpointHealth',
+              name: 'connectivity',
+              value: { value: 'OK' },
+              timeOfSample: new Date().toISOString(),
+              uncertaintyInMilliseconds: 0,
+            },
+          ],
+        },
+      },
+    };
+  }
+
+  /**
+   * 4. Alexa Health Check — Returns the connectivity state of a lock.
+   * Called by Alexa when the user asks "is the lock connected?"
+   */
+  static async handleHealthCheck(tenantId: string, lockId: string) {
+    const lock = await db.lockDevice.findFirst({
+      where: { id: lockId, tenantId },
+      select: { id: true, status: true, battery: true },
+    });
+
+    if (!lock) {
+      return {
+        event: {
+          header: {
+            namespace: 'Alexa',
+            name: 'ErrorResponse',
+            payloadVersion: '3',
+            messageId: crypto.randomUUID(),
+          },
+          payload: { type: 'NO_SUCH_ENDPOINT', message: 'Lock not found' },
+        },
+      };
+    }
+
+    const isOnline = lock.status === 'active';
+    return {
+      event: {
+        header: {
+          namespace: 'Alexa',
+          name: 'StateReport',
+          payloadVersion: '3',
+          messageId: crypto.randomUUID(),
+        },
+        endpoint: { endpointId: lockId },
+        payload: {},
+        context: {
+          properties: [
+            {
+              namespace: 'Alexa.EndpointHealth',
+              name: 'connectivity',
+              value: { value: isOnline ? 'OK' : 'UNREACHABLE' },
+              timeOfSample: new Date().toISOString(),
+              uncertaintyInMilliseconds: 0,
+            },
+          ],
+        },
+      },
+    };
+  }
 }

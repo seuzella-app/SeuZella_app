@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 import { db } from '@/lib/db';
 import { AsaasBillingService } from '@/lib/billing/asaas';
 
@@ -28,6 +29,12 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleMonthlyBilling(request: NextRequest) {
+  // ── Auth: verifyCronAuth (Onda 5H) ──
+  const authResult = await verifyCronAuth(request, 'admin:all');
+  if (!authResult.ok) {
+    return authResult.response ?? NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+
   const authHeader = request.headers.get('authorization');
   const { searchParams } = new URL(request.url);
   const secretParam = searchParams.get('secret');
