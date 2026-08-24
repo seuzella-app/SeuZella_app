@@ -1,8 +1,6 @@
 // ==============================================================================
 // SEUZÉLLA — Unified Payment Gateway Contract
-// ==============================================================================
-// Production payment scope: Asaas + Mercado Pago.
-// Mock remains available for development/testing only.
+// Production payment scope: Asaas + Mercado Pago. Mock is test/development only.
 // ==============================================================================
 
 import type { PlanTier } from '@/lib/plan-features';
@@ -35,28 +33,17 @@ export interface CreatePaymentResult {
   gatewayPaymentId: string;
   status: PaymentStatus;
   checkoutUrl?: string;
-  pix?: {
-    qrCode: string;
-    qrCodeBase64?: string;
-    expiresAt?: string;
-  };
-  boleto?: {
-    url: string;
-    barcode?: string;
-    expiresAt?: string;
-  };
+  pix?: { qrCode: string; qrCodeBase64?: string; expiresAt?: string };
+  boleto?: { url: string; barcode?: string; expiresAt?: string };
   raw?: unknown;
 }
 
-export type PaymentStatus =
-  | 'pending'
-  | 'approved'
-  | 'authorized'
-  | 'in_progress'
-  | 'rejected'
-  | 'cancelled'
-  | 'refunded'
-  | 'unknown';
+export type PaymentStatus = 'pending' | 'approved' | 'authorized' | 'in_progress' | 'rejected' | 'cancelled' | 'refunded' | 'unknown';
+
+export interface WebhookVerificationContext {
+  requestId?: string;
+  dataId?: string;
+}
 
 export interface WebhookEvent {
   gateway: GatewayId;
@@ -74,7 +61,7 @@ export interface IPaymentGateway {
   isConfigured(): boolean;
   createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult>;
   getPaymentStatus(gatewayPaymentId: string): Promise<PaymentStatus>;
-  verifyWebhook(payload: string | Buffer, signature: string): Promise<boolean>;
+  verifyWebhook(payload: string | Buffer, signature: string, context?: WebhookVerificationContext): Promise<boolean>;
   parseWebhookEvent(payload: string | Buffer): Promise<WebhookEvent>;
 }
 
