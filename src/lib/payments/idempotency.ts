@@ -1,6 +1,7 @@
 // ==============================================================================
 // SEUZÉLLA — Payment Idempotency Layer
-// Supports Asaas + Mercado Pago webhook retries.
+// Supports Asaas + Mercado Pago webhook retries for SaaS subscriptions and
+// guest reservations.
 // ==============================================================================
 
 import { db } from '@/lib/db';
@@ -10,13 +11,20 @@ function eventKey(event: WebhookEvent): string {
   return `${event.gateway}:${event.providerEventId || event.gatewayPaymentId}:${event.status}`;
 }
 
+function referenceWhere(event: WebhookEvent) {
+  if (event.referenceType === 'reservation') {
+    return { reservationId: event.referenceId };
+  }
+  return { subscriptionId: event.referenceId };
+}
+
 export async function isAlreadyProcessed(event: WebhookEvent): Promise<boolean> {
   const terminalStatuses: PaymentStatus[] = ['approved', 'rejected', 'cancelled', 'refunded'];
   if (!terminalStatuses.includes(event.status)) return false;
 
   const externalId = event.providerEventId || event.gatewayPaymentId;
   const existing = await db.paymentTransaction.findFirst({
-    where: { subscriptionId: event.subscriptionId, externalId, status: event.status },
+    where: { ...referenceWhere(event), externalId, status: event.status },
     select: { id: true },
   });
   return existing !== null;
@@ -31,12 +39,10 @@ export async function recordWebhookEvent(
   const lockKey = eventKey(event);
 
   return db.$transaction(async (tx) => {
-    // PostgreSQL transaction-scoped advisory lock prevents concurrent webhook
-    // deliveries for the same provider event from racing the existence check.
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
 
     const existing = await tx.paymentTransaction.findFirst({
-      where: { subscriptionId: event.subscriptionId, externalId, status: event.status },
+      where: { ...referenceWhere(event), externalId, status: event.status },
       select: { id: true },
     });
 
@@ -44,7 +50,9 @@ export async function recordWebhookEvent(
 
     const row = await tx.paymentTransaction.create({
       data: {
-        subscriptionId: event.subscriptionId,
+        ...(event.referenceType === 'reservation'
+          ? { reservationId: event.referenceId }
+          : { subscriptionId: event.referenceId }),
         amount,
         status: event.status,
         paymentMethod,
@@ -54,6 +62,8 @@ export async function recordWebhookEvent(
           gateway: event.gateway,
           providerEventId: event.providerEventId,
           gatewayPaymentId: event.gatewayPaymentId,
+          referenceId: event.referenceId,
+          referenceType: event.referenceType,
           event: event.event,
           receivedAt: event.receivedAt,
           raw: event.raw,
