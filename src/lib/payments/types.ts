@@ -47,6 +47,7 @@ export interface WebhookVerificationContext {
 
 export interface WebhookEvent {
   gateway: GatewayId;
+  providerEventId: string;
   event: string;
   gatewayPaymentId: string;
   subscriptionId: string;
