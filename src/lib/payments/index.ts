@@ -1,8 +1,7 @@
 // ==============================================================================
 // SEUZÉLLA — Payments Library Barrel Export
 // ==============================================================================
-// Single import surface for the rest of the app:
-//   import { getDefaultGateway, getPrice, activateSubscriptionIfNotActive } from '@/lib/payments';
+// Production payment scope: Asaas + Mercado Pago.
 // ==============================================================================
 
 export * from './types';
@@ -15,7 +14,5 @@ export {
   getGatewayHealth,
 } from './gateway-factory';
 
-// Re-export provider classes for direct access (rare use cases)
 export { MercadoPagoGateway } from './providers/mercadopago';
 export { AsaasGateway } from './providers/asaas';
-export { StripeGateway } from './providers/stripe';
