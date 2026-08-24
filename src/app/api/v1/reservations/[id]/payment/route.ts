@@ -7,10 +7,19 @@ import type { GatewayId, PaymentMethod } from '@/lib/payments/types';
 const METHODS: PaymentMethod[] = ['pix', 'cartao', 'boleto'];
 const GATEWAYS: GatewayId[] = ['asaas', 'mercadopago', 'mock'];
 
-async function postHandler(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+function reservationIdFromPath(request: NextRequest): string | null {
+  const parts = request.nextUrl.pathname.split('/').filter(Boolean);
+  const reservationsIndex = parts.indexOf('reservations');
+  const id = reservationsIndex >= 0 ? parts[reservationsIndex + 1] : null;
+  return id && id.length <= 128 ? id : null;
+}
+
+async function postHandler(request: NextRequest) {
   try {
     const tenantId = await requireTenant();
-    const { id } = await ctx.params;
+    const id = reservationIdFromPath(request);
+    if (!id) return NextResponse.json({ error: 'INVALID_RESERVATION_ID' }, { status: 400 });
+
     const body = await request.json().catch(() => ({}));
     const paymentMethod = String(body?.paymentMethod || '') as PaymentMethod;
     const gateway = String(body?.gateway || '') as GatewayId;
