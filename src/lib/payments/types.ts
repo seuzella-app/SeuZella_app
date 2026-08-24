@@ -7,6 +7,7 @@ import type { PlanTier } from '@/lib/plan-features';
 
 export type PaymentMethod = 'pix' | 'cartao' | 'boleto';
 export type GatewayId = 'mercadopago' | 'asaas' | 'mock';
+export type PaymentReferenceType = 'subscription' | 'reservation';
 
 export interface PaymentCustomer {
   name: string;
@@ -16,9 +17,14 @@ export interface PaymentCustomer {
 }
 
 export interface CreatePaymentInput {
-  subscriptionId: string;
+  /** Internal source-of-truth identifier. For SaaS billing this is Subscription.id; for guest billing this is Reservation.id. */
+  referenceId: string;
+  /** Business domain that owns the charge. */
+  referenceType: PaymentReferenceType;
+  /** Backward-compatible alias for existing SaaS billing callers. New integrations should use referenceId. */
+  subscriptionId?: string;
   tenantId: string;
-  planTier: PlanTier;
+  planTier?: PlanTier;
   amount: number;
   paymentMethod: PaymentMethod;
   customer: PaymentCustomer;
@@ -50,7 +56,10 @@ export interface WebhookEvent {
   providerEventId: string;
   event: string;
   gatewayPaymentId: string;
-  subscriptionId: string;
+  referenceId: string;
+  referenceType?: PaymentReferenceType;
+  /** Backward-compatible SaaS alias. */
+  subscriptionId?: string;
   status: PaymentStatus;
   amount?: number;
   receivedAt: string;
