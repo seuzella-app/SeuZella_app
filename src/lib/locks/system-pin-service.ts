@@ -32,6 +32,7 @@ export async function generateReservationPin(input: GenerateReservationPinInput)
     source: 'manual' | 'api';
     codeType: 'online_pin' | 'offline_pin' | 'manual' | 'qrcode';
     externalCodeId?: string;
+    warnings?: string[];
   };
 
   if (info.apiAvailable && hasCredentialsConfigured(brand) && device.externalDeviceId) {
@@ -40,18 +41,44 @@ export async function generateReservationPin(input: GenerateReservationPinInput)
     if (!module || typeof module.generatePin !== 'function') {
       throw new Error('LOCK_PROVIDER_GENERATE_PIN_UNAVAILABLE');
     }
-    const result = await module.generatePin({
-      externalDeviceId: device.externalDeviceId,
-      validFrom: input.validFrom,
-      validTo: input.validTo,
-      guestName: input.guestName,
-    });
-    providerResult = {
-      pin: result.pin,
-      source: 'api',
-      codeType: result.codeType,
-      externalCodeId: result.externalCodeId,
-    };
+
+    try {
+      const result = await module.generatePin({
+        deviceId: device.id,
+        brand,
+        providerType: device.providerType as 'api' | 'manual',
+        externalDeviceId: device.externalDeviceId,
+        validFrom: input.validFrom,
+        validTo: input.validTo,
+        guestName: input.guestName,
+      });
+      providerResult = {
+        pin: result.pin,
+        source: 'api',
+        codeType: result.codeType,
+        externalCodeId: result.externalCodeId,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'LOCK_PROVIDER_GENERATE_FAILED';
+      const manual = await manualProvider.generatePin({
+        deviceId: device.id,
+        brand,
+        providerType: 'manual',
+        validFrom: input.validFrom,
+        validTo: input.validTo,
+        autoGenerate: true,
+      });
+      providerResult = {
+        pin: manual.pin,
+        source: manual.source,
+        codeType: manual.codeType,
+        warnings: [
+          `API ${brand} indisponível (${message.slice(0, 120)}).`,
+          'PIN gerado localmente; cadastro manual no app do provedor pode ser necessário.',
+          ...(manual.warnings ?? []),
+        ],
+      };
+    }
   } else {
     const manual = await manualProvider.generatePin({
       deviceId: device.id,
@@ -65,6 +92,7 @@ export async function generateReservationPin(input: GenerateReservationPinInput)
       pin: manual.pin,
       source: manual.source,
       codeType: manual.codeType,
+      warnings: manual.warnings,
     };
   }
 
@@ -100,6 +128,7 @@ export async function generateReservationPin(input: GenerateReservationPinInput)
         codeType: providerResult.codeType,
         validFrom: input.validFrom.toISOString(),
         validTo: input.validTo.toISOString(),
+        warnings: providerResult.warnings ?? [],
       }),
     },
   });
