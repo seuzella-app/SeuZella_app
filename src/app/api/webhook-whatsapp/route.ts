@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { META_APP_SECRET, META_VERIFY_TOKEN } from '@/lib/env';
 import { resolveTenantByPhone } from '@/lib/resolve-tenant-by-phone';
 import { verifyWhatsAppWebhook, validateWebhookTenant } from '@/lib/security/webhook-verify';
+import { normalizeWhatsAppInboundMessage } from '@/lib/whatsapp/inbound-message';
+import { webhookRatelimit } from '@/lib/rate-limit';
 
 export const maxDuration = 30;
 
@@ -10,13 +13,11 @@ export async function GET(request: NextRequest) {
     const mode = searchParams.get('hub.mode');
     const token = searchParams.get('hub.verify_token');
     const challenge = searchParams.get('hub.challenge');
-    const configuredToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
-
-    if (!configuredToken || mode !== 'subscribe' || !token || !challenge) return new Response('Forbidden', { status: 403 });
+    if (!META_VERIFY_TOKEN || mode !== 'subscribe' || !token || !challenge) return new Response('Forbidden', { status: 403 });
     const crypto = await import('crypto');
-    const a = Buffer.from(token); const b = Buffer.from(configuredToken);
+    const a = Buffer.from(token); const b = Buffer.from(META_VERIFY_TOKEN);
     if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return new Response('Forbidden', { status: 403 });
-    return new Response(challenge, { status: 200, headers: { 'Content-Type': 'text/plain', 'X-Security-Shield': 'zero-trust-v1' } });
+    return new Response(challenge, { status: 200, headers: { 'Content-Type': 'text/plain', 'X-Security-Shield': 'zero-trust-v2' } });
   } catch {
     return new Response('Internal Server Error', { status: 500 });
   }
@@ -25,12 +26,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > 1024 * 1024) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+
     if (process.env.NODE_ENV === 'production') {
-      const appSecret = process.env.WHATSAPP_APP_SECRET;
-      if (!appSecret) return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 503 });
-      const verification = verifyWhatsAppWebhook(rawBody, request.headers.get('x-hub-signature-256'), appSecret);
+      if (!META_APP_SECRET) return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 503 });
+      const verification = verifyWhatsAppWebhook(rawBody, request.headers.get('x-hub-signature-256'), META_APP_SECRET);
       if (!verification.valid) return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401 });
     }
+
+    const sourceIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rate = await webhookRatelimit.limit(`webhook:whatsapp:${sourceIp}`);
+    if (!rate.success) return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
 
     let payload: any;
     try { payload = JSON.parse(rawBody); } catch { return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 }); }
@@ -45,8 +51,6 @@ export async function POST(request: NextRequest) {
     const contactName = value.contacts?.[0]?.profile?.name || '';
     if (!fromPhone || !displayPhoneNumber || !message.id) return NextResponse.json({ error: 'INVALID_WEBHOOK_EVENT' }, { status: 400 });
 
-    // Keep the webhook fast: media transcription belongs to the durable worker.
-    // This prevents Meta retries caused by slow external audio providers.
     let messageContent = '';
     let messageType: 'text' | 'audio' | 'voice' = 'text';
     let mediaId: string | undefined;
@@ -65,32 +69,35 @@ export async function POST(request: NextRequest) {
     const tenantValidation = validateWebhookTenant(displayPhoneNumber, tenantResult.tenantId);
     if (!tenantValidation.valid) return NextResponse.json({ status: 'rejected', reason: tenantValidation.reason }, { status: 403 });
 
+    const normalized = normalizeWhatsAppInboundMessage({
+      providerMessageId: message.id,
+      tenantId: tenantResult.tenantId!,
+      guestPhone: fromPhone,
+      guestName: contactName,
+      displayPhoneNumber,
+      messageType,
+      content: messageContent,
+      mediaId,
+      timestamp: message.timestamp,
+    });
+
     const { enqueueJob, QUEUE_NAMES } = await import('@/lib/queue/queue-service');
-    const jobId = `whatsapp:${message.id}`;
     try {
       await enqueueJob(
         QUEUE_NAMES.WHATSAPP_WEBHOOK,
         {
-          idempotencyKey: jobId,
-          providerMessageId: message.id,
-          tenantId: tenantResult.tenantId!,
-          guestPhone: fromPhone,
-          guestName: contactName,
-          messageContent,
-          messageType,
-          mediaId,
+          ...normalized.message,
+          idempotencyKey: normalized.idempotencyKey,
           messageFrom: 'whatsapp',
-          displayPhoneNumber,
-          messageTimestamp: message.timestamp,
         },
-        { jobId, tenantId: tenantResult.tenantId! },
+        { jobId: normalized.idempotencyKey, tenantId: normalized.message.tenantId },
       );
     } catch (queueError) {
       console.error('[whatsapp-webhook] Queue unavailable; requesting provider retry:', queueError);
       return NextResponse.json({ error: 'QUEUE_UNAVAILABLE' }, { status: 503, headers: { 'Retry-After': '5' } });
     }
 
-    return NextResponse.json({ success: true, queued: true }, { headers: { 'X-Security-Shield': 'zero-trust-v1' } });
+    return NextResponse.json({ success: true, queued: true, idempotencyKey: normalized.idempotencyKey }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
   } catch (error) {
     console.error('[whatsapp-webhook-error]', error);
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });

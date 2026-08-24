@@ -4,7 +4,7 @@
 // Mock remains available for development/testing only.
 // ==============================================================================
 
-import type { GatewayId, IPaymentGateway, WebhookEvent } from './types';
+import type { CreatePaymentInput, CreatePaymentResult, GatewayId, IPaymentGateway, PaymentStatus, WebhookEvent } from './types';
 import { PaymentGatewayError } from './types';
 import { MercadoPagoGateway } from './providers/mercadopago';
 import { AsaasGateway } from './providers/asaas';
@@ -45,27 +45,30 @@ class MockGateway implements IPaymentGateway {
   readonly id = 'mock' as const;
   isConfigured(): boolean { return true; }
 
-  async createPayment(input: CreatePaymentInputStub): Promise<CreatePaymentResultStub> {
+  async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
     return {
       gateway: 'mock',
-      gatewayPaymentId: `mock_${input.subscriptionId}_${Date.now()}`,
+      gatewayPaymentId: `mock_${input.referenceType}_${input.referenceId}_${Date.now()}`,
       status: 'approved',
-      checkoutUrl: `${input.successUrl}?mock=1`,
+      checkoutUrl: `${input.successUrl}${input.successUrl.includes('?') ? '&' : '?'}mock=1`,
       raw: { mock: true, input },
     };
   }
 
-  async getPaymentStatus(): Promise<'approved'> { return 'approved'; }
+  async getPaymentStatus(): Promise<PaymentStatus> { return 'approved'; }
   async verifyWebhook(): Promise<boolean> { return true; }
 
   async parseWebhookEvent(payload: string | Buffer): Promise<WebhookEvent> {
     const body = JSON.parse(typeof payload === 'string' ? payload : payload.toString('utf8')) as Record<string, unknown>;
+    const referenceId = String(body?.referenceId ?? body?.subscriptionId ?? '');
     return {
       gateway: 'mock',
       providerEventId: String(body?.eventId ?? body?.id ?? `mock-event-${Date.now()}`),
       event: String(body?.event ?? 'mock.event'),
       gatewayPaymentId: String(body?.paymentId ?? `mock_${Date.now()}`),
-      subscriptionId: String(body?.subscriptionId ?? ''),
+      referenceId,
+      referenceType: body?.referenceType === 'reservation' ? 'reservation' : 'subscription',
+      subscriptionId: body?.subscriptionId ? String(body.subscriptionId) : undefined,
       status: 'approved',
       amount: typeof body?.amount === 'number' ? body.amount : undefined,
       receivedAt: new Date().toISOString(),
@@ -73,14 +76,6 @@ class MockGateway implements IPaymentGateway {
     };
   }
 }
-
-type CreatePaymentInputStub = {
-  subscriptionId: string; tenantId: string; amount: number;
-  paymentMethod: 'pix' | 'cartao' | 'boleto'; successUrl: string;
-  customer: { name: string; email: string; phone?: string; document?: string };
-  description: string; planTier: string; cancelUrl: string; webhookUrl: string;
-};
-type CreatePaymentResultStub = { gateway: 'mock'; gatewayPaymentId: string; status: 'approved'; checkoutUrl: string; raw: unknown };
 
 export function listConfiguredGateways(): GatewayId[] {
   const configured: GatewayId[] = [];

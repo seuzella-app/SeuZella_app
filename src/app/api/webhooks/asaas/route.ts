@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
 
     const event = await gateway.parseWebhookEvent(rawBody);
     const result = await processPaymentWebhookEvent(event);
-    return NextResponse.json({ received: true, provider: 'asaas', eventId: event.providerEventId, deduplicated: result.deduplicated }, { status: 200 });
+    return NextResponse.json({ received: true, provider: 'asaas', referenceType: result.referenceType, eventId: event.providerEventId, deduplicated: result.deduplicated }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'WEBHOOK_ERROR';
-    const status = message.includes('SUBSCRIPTION_NOT_FOUND') || message.includes('SUBSCRIPTION_ID_MISSING') ? 422 : 500;
+    const status = message.includes('REFERENCE_NOT_FOUND') ? 422 : 500;
     console.error('[ASAAS_WEBHOOK] processing failed:', message);
     return NextResponse.json({ error: message }, { status });
   }

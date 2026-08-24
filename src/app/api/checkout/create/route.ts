@@ -5,11 +5,14 @@ import { authOptions } from '@/lib/auth';
 import { createError } from '@/lib/error-handler';
 import { authRatelimit } from '@/lib/rate-limit';
 import { type PlanTier } from '@/lib/plan-features';
-import { PRICING_MATRIX, ALLOWED_METHODS, isMethodAllowed, getPrice } from '@/lib/payments/pricing';
+import { isMethodAllowed, getPrice } from '@/lib/payments/pricing';
+import { getDefaultGateway, getGateway } from '@/lib/payments/gateway-factory';
+import type { GatewayId, PaymentMethod } from '@/lib/payments/types';
 
 const VALID_PLANS: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
-const VALID_METHODS = ['pix', 'cartao'] as const;
+const VALID_METHODS: PaymentMethod[] = ['pix', 'cartao'];
 const VALID_NICHES = ['pousada', 'airbnb'] as const;
+const VALID_GATEWAYS: GatewayId[] = ['asaas', 'mercadopago', 'mock'];
 
 function cleanString(value: unknown, max: number): string {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
@@ -27,10 +30,12 @@ export async function POST(request: NextRequest) {
     const name = cleanString(body?.name, 120);
     const requestedEmail = cleanString(body?.email, 254).toLowerCase();
     const phone = cleanString(body?.phone, 32);
+    const document = cleanString(body?.document, 32);
     const propertyName = cleanString(body?.propertyName, 120);
     const niche = cleanString(body?.niche, 20) as (typeof VALID_NICHES)[number];
     const planType = cleanString(body?.planType, 20) as PlanTier;
-    const paymentMethod = cleanString(body?.paymentMethod, 20) as (typeof VALID_METHODS)[number];
+    const paymentMethod = cleanString(body?.paymentMethod, 20) as PaymentMethod;
+    const requestedGateway = cleanString(body?.gateway, 20) as GatewayId;
 
     if (!name || !requestedEmail || !planType || !paymentMethod || !niche) return createError(400, 'MISSING_FIELDS', 'Campos obrigatórios ausentes.');
     if (!validEmail(requestedEmail)) return createError(400, 'INVALID_EMAIL', 'E-mail inválido.');
@@ -38,6 +43,8 @@ export async function POST(request: NextRequest) {
     if (!VALID_METHODS.includes(paymentMethod)) return createError(400, 'INVALID_PAYMENT_METHOD', 'Método de pagamento inválido.');
     if (!VALID_NICHES.includes(niche)) return createError(400, 'INVALID_NICHE', 'Nicho inválido.');
     if (!isMethodAllowed(planType, paymentMethod)) return createError(400, 'INVALID_PAYMENT_METHOD', 'Combinação plano/método não permitida.');
+    if (requestedGateway && !VALID_GATEWAYS.includes(requestedGateway)) return createError(400, 'INVALID_GATEWAY', 'Gateway de pagamento inválido.');
+    if (requestedGateway === 'mock' && process.env.NODE_ENV === 'production') return createError(400, 'INVALID_GATEWAY', 'Gateway mock não é permitido em produção.');
 
     const quote = getPrice(planType, paymentMethod);
     const amount = quote.amount;
@@ -54,15 +61,13 @@ export async function POST(request: NextRequest) {
       customerEmail = cleanString(session.user.email || tenant.email || requestedEmail, 254).toLowerCase();
       if (!validEmail(customerEmail)) return createError(400, 'INVALID_ACCOUNT_EMAIL', 'Conta sem e-mail válido para cobrança.');
     } else {
-      // Never bind a guest checkout to an existing tenant by email: that would enable account takeover.
       const existingTenant = await db.tenant.findUnique({ where: { email: requestedEmail } });
       if (existingTenant) return createError(409, 'ACCOUNT_EXISTS', 'Este e-mail já possui uma conta. Faça login para continuar.');
       try {
         const newTenant = await db.tenant.create({
           data: {
             name: propertyName || name, email: requestedEmail, phone: phone || null, niche,
-            plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(),
-            status: 'pending', role: 'owner',
+            plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(), status: 'pending', role: 'owner',
           },
         });
         tenantId = newTenant.id;
@@ -79,35 +84,69 @@ export async function POST(request: NextRequest) {
     if (!rateResult.success) return createError(429, 'RATE_LIMITED', 'Muitas tentativas de checkout. Tente novamente mais tarde.');
 
     const subscription = await db.subscription.create({ data: { tenantId, planType, status: 'pending', paymentMethod, amount, paymentStatus: 'pending' } });
-    const responseData: Record<string, unknown> = {
-      subscriptionId: subscription.id, amount, paymentMethod, planType,
-      checkoutUrl: `/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
-    };
 
-    if (paymentMethod === 'pix' && process.env.MP_ACCESS_TOKEN) {
-      try {
-        const { createPixPayment } = await import('@/lib/mercadopago');
-        const parts = name.split(/\s+/).filter(Boolean);
-        const result = await createPixPayment({
-          amount, email: customerEmail, firstName: parts[0] || name, lastName: parts.slice(1).join(' '),
-          description: `ZEHLA SmartHotel - Plano ${planType.toUpperCase()}`, externalRef: subscription.id,
-        });
-        const externalId = String(result.id || '');
-        if (!externalId) throw new Error('Gateway did not return payment id');
-        const pix = result.point_of_interaction?.transaction_data;
-        await db.paymentTransaction.create({
-          data: { subscriptionId: subscription.id, amount, status: 'pending', paymentMethod: 'pix', externalId, metadata: JSON.stringify({ provider: 'mercadopago' }) },
-        });
-        await db.subscription.update({ where: { id: subscription.id }, data: { checkoutUrl: pix?.ticket_url || undefined, paymentId: externalId } });
-        responseData.checkoutUrl = pix?.ticket_url || responseData.checkoutUrl;
-        responseData.pix = pix ? { qrCode: pix.qr_code, qrCodeBase64: pix.qr_code_base64, ticketUrl: pix.ticket_url } : null;
-      } catch {
-        await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
-        return createError(502, 'PAYMENT_GATEWAY_ERROR', 'Não foi possível iniciar o pagamento. Tente novamente.');
-      }
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin;
+    const gateway = requestedGateway ? getGateway(requestedGateway) : getDefaultGateway();
+    if (!gateway.isConfigured()) {
+      await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+      return createError(503, 'PAYMENT_GATEWAY_NOT_CONFIGURED', `Gateway ${gateway.id} não está configurado.`);
+    }
+    if (process.env.NODE_ENV === 'production' && gateway.id === 'mock') {
+      await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+      return createError(503, 'PAYMENT_GATEWAY_UNAVAILABLE', 'Nenhum gateway de pagamento real está configurado.');
     }
 
-    return NextResponse.json({ success: true, data: responseData }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+    try {
+      const result = await gateway.createPayment({
+        referenceId: subscription.id,
+        referenceType: 'subscription',
+        tenantId,
+        planTier: planType,
+        amount,
+        paymentMethod,
+        customer: { name, email: customerEmail, phone: phone || undefined, document: document || undefined },
+        description: `ZEHLA SmartHotel - Plano ${planType.toUpperCase()}`,
+        successUrl: `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
+        cancelUrl: `${baseUrl}/checkout/cancel?subscription_id=${encodeURIComponent(subscription.id)}`,
+        webhookUrl: `${baseUrl}/api/webhooks/payment`,
+      });
+
+      if (!result.gatewayPaymentId) throw new Error('Gateway did not return payment id');
+
+      await db.paymentTransaction.create({
+        data: {
+          subscriptionId: subscription.id,
+          amount,
+          status: result.status,
+          paymentMethod,
+          externalId: result.gatewayPaymentId,
+          metadata: JSON.stringify({ provider: result.gateway, checkout: result.checkoutUrl ?? null }),
+        },
+      });
+
+      await db.subscription.update({
+        where: { id: subscription.id },
+        data: {
+          paymentStatus: result.status === 'approved' ? 'approved' : 'pending',
+          paymentId: result.gatewayPaymentId,
+          checkoutUrl: result.checkoutUrl,
+          metadata: JSON.stringify({ gateway: result.gateway }),
+        },
+      });
+
+      const responseData: Record<string, unknown> = {
+        subscriptionId: subscription.id, amount, paymentMethod, gateway: result.gateway, planType,
+        status: result.status,
+        checkoutUrl: result.checkoutUrl || `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
+      };
+      if (result.pix) responseData.pix = result.pix;
+      if (result.boleto) responseData.boleto = result.boleto;
+
+      return NextResponse.json({ success: true, data: responseData }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+    } catch {
+      await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+      return createError(502, 'PAYMENT_GATEWAY_ERROR', 'Não foi possível iniciar o pagamento. Tente novamente.');
+    }
   } catch {
     return createError(500, 'CHECKOUT_ERROR', 'Não foi possível iniciar o checkout.');
   }

@@ -1,18 +1,63 @@
 import { db } from '@/lib/db';
+import { processReservationPaymentWebhookEvent } from './process-reservation-webhook';
 import type { WebhookEvent } from './types';
 
 /**
- * Canonical payment webhook state machine for Asaas and Mercado Pago.
- * Event deduplication, audit persistence and business state transition occur
- * in one PostgreSQL transaction protected by a transaction-scoped advisory lock.
+ * Canonical payment webhook dispatcher for Asaas and Mercado Pago.
+ * The provider reference is resolved against the internal business domains:
+ * Subscription for SaaS billing or Reservation for guest charges.
+ *
+ * referenceType is authoritative when supplied; the database is still the
+ * source of truth for identity, preventing provider metadata from selecting a
+ * tenant/domain arbitrarily.
  */
-export async function processPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; subscriptionId: string }> {
+export async function processPaymentWebhookEvent(event: WebhookEvent): Promise<{
+  deduplicated: boolean;
+  referenceType: 'subscription' | 'reservation';
+  subscriptionId?: string;
+  reservationId?: string;
+}> {
   if (!event.providerEventId) throw new Error('PAYMENT_WEBHOOK_EVENT_ID_MISSING');
-  if (!event.subscriptionId) throw new Error('PAYMENT_WEBHOOK_SUBSCRIPTION_ID_MISSING');
+  const referenceId = event.referenceId || event.subscriptionId || '';
+  if (!referenceId) throw new Error('PAYMENT_WEBHOOK_REFERENCE_ID_MISSING');
+
+  if (event.referenceType === 'reservation') {
+    const reservation = await db.reservation.findUnique({ where: { id: referenceId }, select: { id: true } });
+    if (!reservation) throw new Error('PAYMENT_WEBHOOK_REFERENCE_NOT_FOUND');
+    const result = await processReservationPaymentWebhookEvent({ ...event, referenceId, referenceType: 'reservation' });
+    return { ...result, referenceType: 'reservation' };
+  }
+
+  if (event.referenceType === 'subscription') {
+    const subscription = await db.subscription.findUnique({ where: { id: referenceId }, select: { id: true } });
+    if (!subscription) throw new Error('PAYMENT_WEBHOOK_REFERENCE_NOT_FOUND');
+    const result = await processSubscriptionWebhookEvent({ ...event, referenceId, subscriptionId: subscription.id, referenceType: 'subscription' });
+    return { ...result, referenceType: 'subscription' };
+  }
+
+  // Legacy/untyped events are resolved conservatively against the internal DB.
+  const subscription = await db.subscription.findUnique({ where: { id: referenceId }, select: { id: true } });
+  if (subscription) {
+    const result = await processSubscriptionWebhookEvent({ ...event, referenceId, subscriptionId: subscription.id, referenceType: 'subscription' });
+    return { ...result, referenceType: 'subscription' };
+  }
+
+  const reservation = await db.reservation.findUnique({ where: { id: referenceId }, select: { id: true } });
+  if (reservation) {
+    const result = await processReservationPaymentWebhookEvent({ ...event, referenceId, referenceType: 'reservation' });
+    return { ...result, referenceType: 'reservation' };
+  }
+
+  throw new Error('PAYMENT_WEBHOOK_REFERENCE_NOT_FOUND');
+}
+
+async function processSubscriptionWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; subscriptionId: string }> {
+  const subscriptionId = event.referenceId || event.subscriptionId || '';
+  if (!subscriptionId) throw new Error('PAYMENT_WEBHOOK_SUBSCRIPTION_ID_MISSING');
 
   return db.$transaction(async (tx) => {
     const subscription = await tx.subscription.findUnique({
-      where: { id: event.subscriptionId },
+      where: { id: subscriptionId },
       select: { id: true, tenantId: true, planType: true, status: true, paymentStatus: true },
     });
     if (!subscription) throw new Error('PAYMENT_WEBHOOK_SUBSCRIPTION_NOT_FOUND');
