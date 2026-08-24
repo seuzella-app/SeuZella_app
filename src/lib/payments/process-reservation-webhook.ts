@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
 import type { WebhookEvent } from './types';
 
@@ -32,7 +33,7 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
 
     const existing = rows[0];
     if (!existing) {
-      const paymentId = crypto.randomUUID();
+      const paymentId = randomUUID();
       await tx.$executeRaw`
         INSERT INTO "reservation_payments"
           ("id", "tenant_id", "reservation_id", "gateway", "gateway_payment_id", "provider_event_id", "reference_type", "amount", "payment_method", "status", "metadata")
