@@ -6,6 +6,10 @@ import type { WebhookEvent } from './types';
  * Canonical payment webhook dispatcher for Asaas and Mercado Pago.
  * The provider reference is resolved against the internal business domains:
  * Subscription for SaaS billing or Reservation for guest charges.
+ *
+ * referenceType is authoritative when supplied; the database is still the
+ * source of truth for identity, preventing provider metadata from selecting a
+ * tenant/domain arbitrarily.
  */
 export async function processPaymentWebhookEvent(event: WebhookEvent): Promise<{
   deduplicated: boolean;
@@ -17,9 +21,24 @@ export async function processPaymentWebhookEvent(event: WebhookEvent): Promise<{
   const referenceId = event.referenceId || event.subscriptionId || '';
   if (!referenceId) throw new Error('PAYMENT_WEBHOOK_REFERENCE_ID_MISSING');
 
+  if (event.referenceType === 'reservation') {
+    const reservation = await db.reservation.findUnique({ where: { id: referenceId }, select: { id: true } });
+    if (!reservation) throw new Error('PAYMENT_WEBHOOK_REFERENCE_NOT_FOUND');
+    const result = await processReservationPaymentWebhookEvent({ ...event, referenceId, referenceType: 'reservation' });
+    return { ...result, referenceType: 'reservation' };
+  }
+
+  if (event.referenceType === 'subscription') {
+    const subscription = await db.subscription.findUnique({ where: { id: referenceId }, select: { id: true } });
+    if (!subscription) throw new Error('PAYMENT_WEBHOOK_REFERENCE_NOT_FOUND');
+    const result = await processSubscriptionWebhookEvent({ ...event, referenceId, subscriptionId: subscription.id, referenceType: 'subscription' });
+    return { ...result, referenceType: 'subscription' };
+  }
+
+  // Legacy/untyped events are resolved conservatively against the internal DB.
   const subscription = await db.subscription.findUnique({ where: { id: referenceId }, select: { id: true } });
   if (subscription) {
-    const result = await processSubscriptionWebhookEvent({ ...event, referenceId, subscriptionId: subscription.id });
+    const result = await processSubscriptionWebhookEvent({ ...event, referenceId, subscriptionId: subscription.id, referenceType: 'subscription' });
     return { ...result, referenceType: 'subscription' };
   }
 
