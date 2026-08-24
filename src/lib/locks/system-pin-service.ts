@@ -15,6 +15,14 @@ interface GenerateReservationPinInput {
   validTo: Date;
 }
 
+interface ReservationPinProviderResult {
+  pin: string;
+  source: 'manual' | 'api';
+  codeType: 'online_pin' | 'offline_pin' | 'manual' | 'qrcode';
+  externalCodeId?: string;
+  warnings?: string[];
+}
+
 export async function generateReservationPin(input: GenerateReservationPinInput): Promise<LockCodeData> {
   if (!(await isDatabaseAvailable())) throw new Error('DATABASE_UNAVAILABLE');
 
@@ -27,13 +35,7 @@ export async function generateReservationPin(input: GenerateReservationPinInput)
   const info = getBrandInfo(brand);
   if (!info) throw new Error('LOCK_BRAND_NOT_SUPPORTED');
 
-  let providerResult: {
-    pin: string;
-    source: 'manual' | 'api';
-    codeType: 'online_pin' | 'offline_pin' | 'manual' | 'qrcode';
-    externalCodeId?: string;
-    warnings?: string[];
-  };
+  let providerResult: ReservationPinProviderResult;
 
   if (info.apiAvailable && hasCredentialsConfigured(brand) && device.externalDeviceId) {
     const provider = getProviderModule(brand);
