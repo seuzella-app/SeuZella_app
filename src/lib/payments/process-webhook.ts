@@ -50,7 +50,7 @@ export async function processPaymentWebhookEvent(event: WebhookEvent): Promise<{
       case 'approved':
         await tx.subscription.update({
           where: { id: subscription.id },
-          data: { status: 'active', paymentStatus: 'approved', paymentId: event.gatewayPaymentId, subscriptionAt: new Date() },
+          data: { status: 'active', paymentStatus: 'approved', paymentId: event.gatewayPaymentId },
         });
         await tx.tenant.update({
           where: { id: subscription.tenantId },
