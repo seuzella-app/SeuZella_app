@@ -1,14 +1,11 @@
 /**
  * POST /api/ddc/locks/[id]/unlock
- *
- * Remote unlock is a privileged physical-world action. The route therefore
- * exposes only sanitized errors and delegates tenant/eligibility enforcement
- * to the lock orchestration policy.
+ * Remote unlock is a privileged physical-world action.
  */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { remoteUnlock } from '@/lib/locks/orchestrator';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
+import { apiRatelimit } from '@/lib/rate-limit';
 import { publishTenantEvent } from '@/lib/realtime/tenant-pubsub';
 
 const ERROR_STATUS: Record<string, number> = {
@@ -27,29 +24,26 @@ export async function POST(
 ) {
   try {
     const tenantId = await resolveTenantId();
-    if (!tenantId) {
-      return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
-    }
+    if (!tenantId) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
 
     const { id: deviceId } = await params;
     if (!deviceId || deviceId.length > 128) {
       return NextResponse.json({ success: false, error: 'INVALID_DEVICE_ID' }, { status: 400 });
     }
 
-    const result = await remoteUnlock(deviceId);
-    if (!result.success) {
-      const code = typeof result.error === 'string' && ERROR_STATUS[result.error]
-        ? result.error
-        : 'REMOTE_UNLOCK_FAILED';
-      return NextResponse.json(
-        { success: false, error: code },
-        { status: ERROR_STATUS[code] ?? 503 },
-      );
+    const limit = await apiRatelimit.limit(`lock:unlock:${tenantId}:${deviceId}`);
+    if (!limit.success) {
+      const response = NextResponse.json({ success: false, error: 'RATE_LIMITED' }, { status: 429 });
+      response.headers.set('Retry-After', String(Math.max(1, Math.ceil((limit.reset - Date.now()) / 1000))));
+      return response;
     }
 
-    // Publish realtime event AFTER remote unlock succeeds — Mobile DDC
-    // (and Desktop) subscribed to this tenant see the lock state change
-    // instantly without polling.
+    const result = await remoteUnlock(deviceId);
+    if (!result.success) {
+      const code = typeof result.error === 'string' && ERROR_STATUS[result.error] ? result.error : 'REMOTE_UNLOCK_FAILED';
+      return NextResponse.json({ success: false, error: code }, { status: ERROR_STATUS[code] ?? 503 });
+    }
+
     publishTenantEvent(tenantId, 'lock:status_changed', {
       deviceId,
       action: 'unlock',
@@ -63,9 +57,6 @@ export async function POST(
     );
   } catch (error) {
     console.error('[LOCKS_UNLOCK] Unexpected error:', error);
-    return NextResponse.json(
-      { success: false, error: 'REMOTE_UNLOCK_FAILED' },
-      { status: 503, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } },
-    );
+    return NextResponse.json({ success: false, error: 'REMOTE_UNLOCK_FAILED' }, { status: 503, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
   }
 }
