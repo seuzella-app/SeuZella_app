@@ -58,7 +58,7 @@ export async function generateReservationPin(input: GenerateReservationPinInput)
         pin: result.pin,
         source: 'api',
         codeType: result.codeType,
-        externalCodeId: result.externalCodeId,
+        externalCodeId: 'externalCodeId' in result ? result.externalCodeId : undefined,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'LOCK_PROVIDER_GENERATE_FAILED';
