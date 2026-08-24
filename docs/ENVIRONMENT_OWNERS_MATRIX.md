@@ -16,21 +16,29 @@
 |---|---|---|---|
 | ALEXA_JWT_SECRET | Security | Alexa auth suite | Secret rotation |
 | ENCRYPTION_SECRET | Security | crypto/secret tests | Secret rotation |
-| STRIPE_WEBHOOK_SECRET | Billing/Security | webhook signature tests | Provider rotation |
+| CACHE_SIGNING_SECRET | Security | production security suite | Secret rotation |
 
 ## Database / Infra
 
 | Variable | Owner | Validation | Rotation |
 |---|---|---|---|
 | DATABASE_URL | Infra | readiness + DB smoke | Provider rotation |
-| REDIS_URL | Infra | Redis/BullMQ/SSE test | Provider rotation |
+| UPSTASH_REDIS_REST_URL | Infra | Redis/rate-limit/BullMQ/SSE test | Provider rotation |
+| UPSTASH_REDIS_REST_TOKEN | Infra | Redis/rate-limit/BullMQ/SSE test | Provider rotation |
 
-## Integrations
+## Integrations — Payments
 
-- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
-- Asaas: `ASAAS_API_KEY`.
-- Mercado Pago: `MERCADOPAGO_ACCESS_TOKEN`.
-- WhatsApp: `WHATSAPP_TOKEN`, `META_APP_SECRET`.
+| Provider | Variables | Validation |
+|---|---|---|
+| Asaas | `ASAAS_ACCESS_TOKEN`, `ASAAS_ENVIRONMENT`, `ASAAS_WEBHOOK_SECRET` | create payment + webhook auth + idempotency |
+| Mercado Pago | `MP_ACCESS_TOKEN`, `PAYMENT_WEBHOOK_SECRET` or `MP_WEBHOOK_SECRET` | create payment + x-signature HMAC + idempotency |
+| Mock | none | dev/test only |
+
+**Stripe is not an approved integration and has no production environment variables.**
+
+## Integrations — Other
+
+- WhatsApp: `META_VERIFY_TOKEN`, `META_APP_SECRET`, `META_ACCESS_TOKEN`, `META_PHONE_NUMBER_ID`, `META_WABA_ID`.
 - LLM: provider API keys, including GLM when enabled.
 - Locks: provider Client ID/Secret pairs only when the brand is in CORE scope.
 - Email delivery: provider-specific key when the corresponding email path is enabled.
