@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
+import { createReservationPaymentConfirmationNotification } from './reservation-payment-effects';
 import type { WebhookEvent } from './types';
 
 export async function processReservationPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; reservationId: string }> {
@@ -7,7 +8,7 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
   if (!event.providerEventId) throw new Error('RESERVATION_PAYMENT_EVENT_ID_MISSING');
   if (!reservationId) throw new Error('RESERVATION_PAYMENT_REFERENCE_ID_MISSING');
 
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const lockKey = `reservation-payment-event:${event.gateway}:${event.providerEventId}`;
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
 
@@ -17,9 +18,12 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
         AND "provider_event_id" = ${event.providerEventId}
       LIMIT 1
     `;
-    if (duplicate[0]) return { deduplicated: true, reservationId };
+    if (duplicate[0]) return { deduplicated: true, reservationId, tenantId: '', guestName: '' };
 
-    const reservation = await tx.reservation.findUnique({ where: { id: reservationId }, select: { id: true, tenantId: true } });
+    const reservation = await tx.reservation.findUnique({
+      where: { id: reservationId },
+      select: { id: true, tenantId: true, guest: { select: { name: true } } },
+    });
     if (!reservation) throw new Error('RESERVATION_NOT_FOUND');
 
     const rows = await tx.$queryRaw<Array<{ id: string; status: string }>>`
@@ -51,7 +55,8 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
       `;
     }
 
-    if (event.status === 'approved' && (!existing || existing.status !== 'approved')) {
+    const newlyApproved = event.status === 'approved' && (!existing || existing.status !== 'approved');
+    if (newlyApproved) {
       await tx.transaction.create({
         data: {
           tenantId: reservation.tenantId,
@@ -64,6 +69,28 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
       });
     }
 
-    return { deduplicated: false, reservationId: reservation.id };
+    return {
+      deduplicated: false,
+      reservationId: reservation.id,
+      tenantId: reservation.tenantId,
+      guestName: reservation.guest.name,
+      newlyApproved,
+    };
   });
+
+  if (!result.deduplicated && result.newlyApproved) {
+    try {
+      await createReservationPaymentConfirmationNotification({
+        tenantId: result.tenantId,
+        reservationId: result.reservationId,
+        guestName: result.guestName,
+        amount: event.amount ?? 0,
+        gateway: event.gateway,
+      });
+    } catch (notificationError) {
+      console.error('[RESERVATION_PAYMENT] confirmation notification failed:', notificationError);
+    }
+  }
+
+  return { deduplicated: result.deduplicated, reservationId: result.reservationId };
 }
