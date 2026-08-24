@@ -61,15 +61,13 @@ export async function POST(request: NextRequest) {
       customerEmail = cleanString(session.user.email || tenant.email || requestedEmail, 254).toLowerCase();
       if (!validEmail(customerEmail)) return createError(400, 'INVALID_ACCOUNT_EMAIL', 'Conta sem e-mail válido para cobrança.');
     } else {
-      // Never bind a guest checkout to an existing tenant by email: that would enable account takeover.
       const existingTenant = await db.tenant.findUnique({ where: { email: requestedEmail } });
       if (existingTenant) return createError(409, 'ACCOUNT_EXISTS', 'Este e-mail já possui uma conta. Faça login para continuar.');
       try {
         const newTenant = await db.tenant.create({
           data: {
             name: propertyName || name, email: requestedEmail, phone: phone || null, niche,
-            plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(),
-            status: 'pending', role: 'owner',
+            plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(), status: 'pending', role: 'owner',
           },
         });
         tenantId = newTenant.id;
@@ -85,9 +83,7 @@ export async function POST(request: NextRequest) {
     const rateResult = await authRatelimit.limit(`checkout:${tenantId}:${customerEmail}`);
     if (!rateResult.success) return createError(429, 'RATE_LIMITED', 'Muitas tentativas de checkout. Tente novamente mais tarde.');
 
-    const subscription = await db.subscription.create({
-      data: { tenantId, planType, status: 'pending', paymentMethod, amount, paymentStatus: 'pending' },
-    });
+    const subscription = await db.subscription.create({ data: { tenantId, planType, status: 'pending', paymentMethod, amount, paymentStatus: 'pending' } });
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin;
     const gateway = requestedGateway ? getGateway(requestedGateway) : getDefaultGateway();
@@ -102,7 +98,8 @@ export async function POST(request: NextRequest) {
 
     try {
       const result = await gateway.createPayment({
-        subscriptionId: subscription.id,
+        referenceId: subscription.id,
+        referenceType: 'subscription',
         tenantId,
         planTier: planType,
         amount,
@@ -138,11 +135,7 @@ export async function POST(request: NextRequest) {
       });
 
       const responseData: Record<string, unknown> = {
-        subscriptionId: subscription.id,
-        amount,
-        paymentMethod,
-        gateway: result.gateway,
-        planType,
+        subscriptionId: subscription.id, amount, paymentMethod, gateway: result.gateway, planType,
         status: result.status,
         checkoutUrl: result.checkoutUrl || `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
       };
