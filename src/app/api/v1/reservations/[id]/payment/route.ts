@@ -15,10 +15,8 @@ async function postHandler(request: NextRequest, ctx: { params: Promise<{ id: st
     const paymentMethod = String(body?.paymentMethod || '') as PaymentMethod;
     const gateway = String(body?.gateway || '') as GatewayId;
 
-    if (!METHODS.includes(paymentMethod)) {
-      return NextResponse.json({ error: 'INVALID_PAYMENT_METHOD' }, { status: 400 });
-    }
-    if (!GATEWAYS.includes(gateway) || gateway === 'mock' && process.env.NODE_ENV === 'production') {
+    if (!METHODS.includes(paymentMethod)) return NextResponse.json({ error: 'INVALID_PAYMENT_METHOD' }, { status: 400 });
+    if (!GATEWAYS.includes(gateway) || (gateway === 'mock' && process.env.NODE_ENV === 'production')) {
       return NextResponse.json({ error: 'INVALID_GATEWAY' }, { status: 400 });
     }
 
@@ -26,8 +24,11 @@ async function postHandler(request: NextRequest, ctx: { params: Promise<{ id: st
       where: { id, tenantId },
       include: { guest: true },
     });
-    if (!reservation?.guest) {
-      return NextResponse.json({ error: 'RESERVATION_OR_GUEST_NOT_FOUND' }, { status: 404 });
+    if (!reservation?.guest) return NextResponse.json({ error: 'RESERVATION_OR_GUEST_NOT_FOUND' }, { status: 404 });
+
+    const guestEmail = reservation.guest.email?.trim().toLowerCase() || '';
+    if (!guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+      return NextResponse.json({ error: 'GUEST_EMAIL_REQUIRED_FOR_PAYMENT' }, { status: 400 });
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin;
@@ -38,7 +39,7 @@ async function postHandler(request: NextRequest, ctx: { params: Promise<{ id: st
       paymentMethod,
       customer: {
         name: reservation.guest.name,
-        email: reservation.guest.email || `guest-${reservation.guest.id}@guest.invalid`,
+        email: guestEmail,
         phone: reservation.guest.phone || undefined,
         document: reservation.guest.document || undefined,
       },
