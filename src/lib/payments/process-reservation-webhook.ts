@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
-import { createReservationPaymentConfirmationNotification } from './reservation-payment-effects';
+import { activateReservationAccess, createReservationPaymentConfirmationNotification } from './reservation-payment-effects';
 import type { WebhookEvent } from './types';
 
 export async function processReservationPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; reservationId: string }> {
@@ -18,11 +18,17 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
         AND "provider_event_id" = ${event.providerEventId}
       LIMIT 1
     `;
-    if (duplicate[0]) return { deduplicated: true, reservationId, tenantId: '', guestName: '' };
+    if (duplicate[0]) return { deduplicated: true, reservationId, tenantId: '', guestName: '', guestPhone: '', checkIn: new Date(0), checkOut: new Date(0), newlyApproved: false };
 
     const reservation = await tx.reservation.findUnique({
       where: { id: reservationId },
-      select: { id: true, tenantId: true, guest: { select: { name: true } } },
+      select: {
+        id: true,
+        tenantId: true,
+        checkIn: true,
+        checkOut: true,
+        guest: { select: { name: true, phone: true } },
+      },
     });
     if (!reservation) throw new Error('RESERVATION_NOT_FOUND');
 
@@ -74,6 +80,9 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
       reservationId: reservation.id,
       tenantId: reservation.tenantId,
       guestName: reservation.guest.name,
+      guestPhone: reservation.guest.phone ?? '',
+      checkIn: reservation.checkIn,
+      checkOut: reservation.checkOut,
       newlyApproved,
     };
   });
@@ -89,6 +98,19 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
       });
     } catch (notificationError) {
       console.error('[RESERVATION_PAYMENT] confirmation notification failed:', notificationError);
+    }
+
+    try {
+      await activateReservationAccess({
+        tenantId: result.tenantId,
+        reservationId: result.reservationId,
+        guestName: result.guestName,
+        guestPhone: result.guestPhone || undefined,
+        checkIn: result.checkIn,
+        checkOut: result.checkOut,
+      });
+    } catch (accessError) {
+      console.error('[RESERVATION_PAYMENT] lock access automation failed:', accessError);
     }
   }
 
