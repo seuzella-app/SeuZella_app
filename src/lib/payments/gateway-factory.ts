@@ -1,23 +1,15 @@
 // ==============================================================================
 // SEUZÉLLA — Payment Gateway Factory
 // ==============================================================================
-// Single entry point for the rest of the app to get a configured gateway.
-// Selection priority:
-//   1. Explicit provider hint from caller (e.g. "use asaas for this subscription")
-//   2. Env var DEFAULT_PAYMENT_GATEWAY (set per-deployment)
-//   3. First configured gateway in order: asaas > mercadopago > stripe
-//   4. Mock gateway (returns success without charging — used in MODO MOCK)
-//
-// Sprint 1, Day 1-2: Factory + gateway selection logic
+// Production payment scope: Asaas + Mercado Pago.
+// Mock remains available for development/testing only.
 // ==============================================================================
 
 import type { GatewayId, IPaymentGateway } from './types';
 import { PaymentGatewayError } from './types';
 import { MercadoPagoGateway } from './providers/mercadopago';
 import { AsaasGateway } from './providers/asaas';
-import { StripeGateway } from './providers/stripe';
 
-// ── Singleton gateway instances (initialized lazily) ──────────────────────────
 const gatewayInstances: Partial<Record<GatewayId, IPaymentGateway>> = {};
 
 function getGatewayInstance(id: GatewayId): IPaymentGateway {
@@ -30,69 +22,41 @@ function getGatewayInstance(id: GatewayId): IPaymentGateway {
     case 'asaas':
       instance = new AsaasGateway();
       break;
-    case 'stripe':
-      instance = new StripeGateway();
-      break;
     case 'mock':
       instance = new MockGateway();
       break;
     default:
-      throw new PaymentGatewayError(
-        `Unknown gateway: ${id}`,
-        id,
-        'UNKNOWN_GATEWAY',
-      );
+      throw new PaymentGatewayError(`Unknown gateway: ${id}`, id, 'UNKNOWN_GATEWAY');
   }
   gatewayInstances[id] = instance;
   return instance;
 }
 
-// ── Public API: get a gateway by explicit ID ──────────────────────────────────
 export function getGateway(id: GatewayId): IPaymentGateway {
   return getGatewayInstance(id);
 }
 
-// ── Public API: get the default configured gateway ────────────────────────────
-//
-// Selection priority:
-//   1. DEFAULT_PAYMENT_GATEWAY env var if it's configured AND that gateway's
-//      isConfigured() returns true
-//   2. Iterate through PREFERENCE_ORDER and return first configured gateway
-//   3. Fall back to MockGateway (always returns success)
-//
-// PREFERENCE_ORDER rationale:
-//   - Asaas first: lowest fees for sub-R$500 transactions, native recurring
-//   - MercadoPago second: most popular in Brazil, broad payment method support
-//   - Stripe third: international fallback
-const PREFERENCE_ORDER: GatewayId[] = ['asaas', 'mercadopago', 'stripe'];
+const PREFERENCE_ORDER: GatewayId[] = ['asaas', 'mercadopago'];
 
 export function getDefaultGateway(): IPaymentGateway {
-  // 1. Explicit env override
   const envGateway = process.env.DEFAULT_PAYMENT_GATEWAY as GatewayId | undefined;
-  if (envGateway && ['asaas', 'mercadopago', 'stripe'].includes(envGateway)) {
+  if (envGateway && ['asaas', 'mercadopago'].includes(envGateway)) {
     const g = getGatewayInstance(envGateway);
     if (g.isConfigured()) return g;
   }
 
-  // 2. First configured in preference order
   for (const id of PREFERENCE_ORDER) {
     const g = getGatewayInstance(id);
     if (g.isConfigured()) return g;
   }
 
-  // 3. Mock fallback (MODO MOCK)
   return getGatewayInstance('mock');
 }
 
-// ── Mock Gateway — used when MODO MOCK is active ───────────────────────────────
-// Always returns success without charging. This is the safe default that keeps
-// the system functional during the internal testing phase.
 class MockGateway implements IPaymentGateway {
   readonly id = 'mock' as const;
 
-  isConfigured(): boolean {
-    return true;
-  }
+  isConfigured(): boolean { return true; }
 
   async createPayment(input: CreatePaymentInputStub): Promise<CreatePaymentResultStub> {
     console.log(`[MockGateway] createPayment — subscriptionId=${input.subscriptionId}, amount=${input.amount}, method=${input.paymentMethod}`);
@@ -105,13 +69,8 @@ class MockGateway implements IPaymentGateway {
     };
   }
 
-  async getPaymentStatus(): Promise<PaymentStatusStub> {
-    return 'approved';
-  }
-
-  async verifyWebhook(): Promise<boolean> {
-    return true;
-  }
+  async getPaymentStatus(): Promise<PaymentStatusStub> { return 'approved'; }
+  async verifyWebhook(): Promise<boolean> { return true; }
 
   async parseWebhookEvent(payload: string | Buffer): Promise<WebhookEventStub> {
     const body = JSON.parse(typeof payload === 'string' ? payload : payload.toString('utf8'));
@@ -128,7 +87,6 @@ class MockGateway implements IPaymentGateway {
   }
 }
 
-// ── Stub types for MockGateway (avoiding circular import) ─────────────────────
 type CreatePaymentInputStub = {
   subscriptionId: string;
   tenantId: string;
@@ -160,7 +118,6 @@ type WebhookEventStub = {
   raw: unknown;
 };
 
-// ── List all configured gateways (for admin UI) ───────────────────────────────
 export function listConfiguredGateways(): GatewayId[] {
   const configured: GatewayId[] = [];
   for (const id of PREFERENCE_ORDER) {
@@ -169,7 +126,6 @@ export function listConfiguredGateways(): GatewayId[] {
   return configured;
 }
 
-// ── Health check: returns the configured status of each gateway ───────────────
 export function getGatewayHealth(): Record<GatewayId, { configured: boolean; isDefault: boolean }> {
   const def = getDefaultGateway();
   const result: Record<string, { configured: boolean; isDefault: boolean }> = {};
@@ -177,6 +133,6 @@ export function getGatewayHealth(): Record<GatewayId, { configured: boolean; isD
     const g = getGatewayInstance(id);
     result[id] = { configured: g.isConfigured(), isDefault: g.id === def.id };
   }
-  result['mock'] = { configured: true, isDefault: def.id === 'mock' };
+  result.mock = { configured: true, isDefault: def.id === 'mock' };
   return result as Record<GatewayId, { configured: boolean; isDefault: boolean }>;
 }
