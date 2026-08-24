@@ -36,22 +36,37 @@ export const NEXTAUTH_SECRET = (() => {
 
 export function getNextAuthSecret(): string { return requireProductionSecret('NEXTAUTH_SECRET'); }
 
-// Mercado Pago
+// Mercado Pago — server-side only
 export const MP_ACCESS_TOKEN = getOptionalEnv('MP_ACCESS_TOKEN');
 export const MP_WEBHOOK_URL = getOptionalEnv('MP_WEBHOOK_URL');
 export const PAYMENT_WEBHOOK_SECRET = getOptionalEnv('PAYMENT_WEBHOOK_SECRET') || getOptionalEnv('MP_WEBHOOK_SECRET');
 
-// Asaas
+// Asaas — payment + NFS-e provider
 export const ASAAS_ACCESS_TOKEN = getOptionalEnv('ASAAS_ACCESS_TOKEN');
 export const ASAAS_ENVIRONMENT = (process.env.ASAAS_ENVIRONMENT ?? (process.env.NODE_ENV === 'production' ? 'production' : 'sandbox')) as 'sandbox' | 'production';
 export const ASAAS_WEBHOOK_SECRET = getOptionalEnv('ASAAS_WEBHOOK_SECRET');
-export const ASAAS_AUTO_NFSE = process.env.ASAAS_AUTO_NFSE ?? 'true';
-export const ASAAS_MUNICIPAL_SERVICE_CODE = process.env.ASAAS_MUNICIPAL_SERVICE_CODE ?? '01.01';
-export const ASAAS_MUNICIPAL_SERVICE_NAME = process.env.ASAAS_MUNICIPAL_SERVICE_NAME ?? 'Licenciamento ou cessão de direito de uso de programas de computação';
+export const ASAAS_AUTO_NFSE = process.env.ASAAS_AUTO_NFSE ?? 'false';
+export const ASAAS_MUNICIPAL_SERVICE_CODE = process.env.ASAAS_MUNICIPAL_SERVICE_CODE ?? '';
+export const ASAAS_MUNICIPAL_SERVICE_NAME = process.env.ASAAS_MUNICIPAL_SERVICE_NAME ?? '';
 export const DEFAULT_PAYMENT_GATEWAY = process.env.DEFAULT_PAYMENT_GATEWAY as 'asaas' | 'mercadopago' | undefined;
 
 export const WHATSAPP_COMMERCIAL = process.env.NEXT_PUBLIC_WHATSAPP_COMMERCIAL ?? (process.env.NODE_ENV === 'production' ? '' : '5548999990000');
 export const WHATSAPP_SUPPORT = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT ?? (process.env.NODE_ENV === 'production' ? '' : '5548999990001');
+
+// Meta WhatsApp Business Cloud API
+export const META_VERIFY_TOKEN = getOptionalEnv('META_VERIFY_TOKEN') || getOptionalEnv('WHATSAPP_WEBHOOK_VERIFY_TOKEN');
+export const META_APP_SECRET = getOptionalEnv('META_APP_SECRET') || getOptionalEnv('WHATSAPP_APP_SECRET');
+export const META_ACCESS_TOKEN = getOptionalEnv('META_ACCESS_TOKEN');
+export const META_PHONE_NUMBER_ID = getOptionalEnv('META_PHONE_NUMBER_ID');
+export const META_WABA_ID = getOptionalEnv('META_WABA_ID');
+export const META_GRAPH_API_VERSION = getOptionalEnv('META_GRAPH_API_VERSION') || 'v23.0';
+
+// Backward-compatible aliases for existing WhatsApp webhook routes.
+export const WHATSAPP_WEBHOOK_VERIFY_TOKEN = META_VERIFY_TOKEN;
+export const WHATSAPP_APP_SECRET = META_APP_SECRET;
+
+export const META_COST_GUARD_ENABLED = process.env.META_COST_GUARD_ENABLED ?? 'false';
+export const META_COST_LIMIT_PER_MESSAGE = Number(process.env.META_COST_LIMIT_PER_MESSAGE ?? '0.10');
 
 // AI providers
 export const OPENAI_API_KEY = getOptionalEnv('OPENAI_API_KEY');
@@ -80,16 +95,6 @@ export const UPSTASH_REDIS_REST_TOKEN = getOptionalEnv('UPSTASH_REDIS_REST_TOKEN
 // ZAOS Router
 export const ZAI_API_KEY = getOptionalEnv('ZAI_API_KEY');
 export const ZEHLA_LOOP_API_KEY = getOptionalEnv('ZEHLA_LOOP_API_KEY');
-
-// Meta WhatsApp Business API
-export const META_VERIFY_TOKEN = getOptionalEnv('META_VERIFY_TOKEN');
-export const META_APP_SECRET = getOptionalEnv('META_APP_SECRET');
-export const META_ACCESS_TOKEN = getOptionalEnv('META_ACCESS_TOKEN');
-export const META_PHONE_NUMBER_ID = getOptionalEnv('META_PHONE_NUMBER_ID');
-export const META_WABA_ID = getOptionalEnv('META_WABA_ID');
-
-export const META_COST_GUARD_ENABLED = process.env.META_COST_GUARD_ENABLED ?? 'false';
-export const META_COST_LIMIT_PER_MESSAGE = Number(process.env.META_COST_LIMIT_PER_MESSAGE ?? '0.10');
 
 export function assertProductionSecurityEnv(): void {
   if (process.env.NODE_ENV !== 'production') return;
