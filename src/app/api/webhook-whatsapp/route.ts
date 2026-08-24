@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { META_APP_SECRET, META_VERIFY_TOKEN } from '@/lib/env';
 import { resolveTenantByPhone } from '@/lib/resolve-tenant-by-phone';
 import { verifyWhatsAppWebhook, validateWebhookTenant } from '@/lib/security/webhook-verify';
+import { normalizeWhatsAppInboundMessage } from '@/lib/whatsapp/inbound-message';
+import { webhookRatelimit } from '@/lib/rate-limit';
 
 export const maxDuration = 30;
 
@@ -24,11 +26,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > 1024 * 1024) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+
     if (process.env.NODE_ENV === 'production') {
       if (!META_APP_SECRET) return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 503 });
       const verification = verifyWhatsAppWebhook(rawBody, request.headers.get('x-hub-signature-256'), META_APP_SECRET);
       if (!verification.valid) return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401 });
     }
+
+    const sourceIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rate = await webhookRatelimit.limit(`webhook:whatsapp:${sourceIp}`);
+    if (!rate.success) return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
 
     let payload: any;
     try { payload = JSON.parse(rawBody); } catch { return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 }); }
@@ -61,32 +69,35 @@ export async function POST(request: NextRequest) {
     const tenantValidation = validateWebhookTenant(displayPhoneNumber, tenantResult.tenantId);
     if (!tenantValidation.valid) return NextResponse.json({ status: 'rejected', reason: tenantValidation.reason }, { status: 403 });
 
+    const normalized = normalizeWhatsAppInboundMessage({
+      providerMessageId: message.id,
+      tenantId: tenantResult.tenantId!,
+      guestPhone: fromPhone,
+      guestName: contactName,
+      displayPhoneNumber,
+      messageType,
+      content: messageContent,
+      mediaId,
+      timestamp: message.timestamp,
+    });
+
     const { enqueueJob, QUEUE_NAMES } = await import('@/lib/queue/queue-service');
-    const jobId = `whatsapp:${message.id}`;
     try {
       await enqueueJob(
         QUEUE_NAMES.WHATSAPP_WEBHOOK,
         {
-          idempotencyKey: jobId,
-          providerMessageId: message.id,
-          tenantId: tenantResult.tenantId!,
-          guestPhone: fromPhone,
-          guestName: contactName,
-          messageContent,
-          messageType,
-          mediaId,
+          ...normalized.message,
+          idempotencyKey: normalized.idempotencyKey,
           messageFrom: 'whatsapp',
-          displayPhoneNumber,
-          messageTimestamp: message.timestamp,
         },
-        { jobId, tenantId: tenantResult.tenantId! },
+        { jobId: normalized.idempotencyKey, tenantId: normalized.message.tenantId },
       );
     } catch (queueError) {
       console.error('[whatsapp-webhook] Queue unavailable; requesting provider retry:', queueError);
       return NextResponse.json({ error: 'QUEUE_UNAVAILABLE' }, { status: 503, headers: { 'Retry-After': '5' } });
     }
 
-    return NextResponse.json({ success: true, queued: true }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+    return NextResponse.json({ success: true, queued: true, idempotencyKey: normalized.idempotencyKey }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
   } catch (error) {
     console.error('[whatsapp-webhook-error]', error);
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
