@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
 import { getGateway } from './gateway-factory';
 import type { GatewayId, PaymentMethod, PaymentStatus } from './types';
@@ -47,9 +48,7 @@ export async function createReservationPayment(input: CreateReservationPaymentIn
     include: { guest: true, room: true },
   });
   if (!reservation) throw new Error('RESERVATION_NOT_FOUND');
-  if (['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'].includes(reservation.status)) {
-    throw new Error('RESERVATION_NOT_PAYABLE');
-  }
+  if (['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'].includes(reservation.status)) throw new Error('RESERVATION_NOT_PAYABLE');
 
   const existing = await db.$queryRaw<ReservationPaymentRow[]>`
     SELECT * FROM "reservation_payments"
@@ -59,7 +58,6 @@ export async function createReservationPayment(input: CreateReservationPaymentIn
     ORDER BY "created_at" DESC
     LIMIT 1
   `;
-
   if (existing[0]) {
     const current = existing[0];
     return {
@@ -77,9 +75,8 @@ export async function createReservationPayment(input: CreateReservationPaymentIn
   if (input.gateway === 'mock' && process.env.NODE_ENV === 'production') throw new Error('MOCK_GATEWAY_FORBIDDEN');
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
-  const referenceId = reservation.id;
   const result = await gateway.createPayment({
-    referenceId,
+    referenceId: reservation.id,
     referenceType: 'reservation',
     tenantId: input.tenantId,
     amount: reservation.totalPrice,
@@ -93,7 +90,7 @@ export async function createReservationPayment(input: CreateReservationPaymentIn
 
   if (!result.gatewayPaymentId) throw new Error('GATEWAY_PAYMENT_ID_MISSING');
 
-  const paymentId = crypto.randomUUID();
+  const paymentId = randomUUID();
   await db.$executeRaw`
     INSERT INTO "reservation_payments"
       ("id", "tenant_id", "reservation_id", "gateway", "gateway_payment_id", "reference_type", "amount", "payment_method", "status", "checkout_url", "metadata")
