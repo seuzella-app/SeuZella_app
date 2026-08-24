@@ -42,15 +42,15 @@ function securityHeaders(response: NextResponse): NextResponse {
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     response.headers.set('Content-Security-Policy', [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://sdk.mercadopago.com",
+      "script-src 'self' 'unsafe-inline' https://sdk.mercadopago.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://*.mercadopago.com https://*.cloudinary.com https://*.asaas.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.mercadopago.com https://api.asaas.com https://sandbox.asaas.com https://api.stripe.com wss://smart-hotel-zehla.vercel.app https://*.railway.app https://*.basemaps.cartocdn.com",
+      "connect-src 'self' https://*.mercadopago.com https://api.asaas.com https://sandbox.asaas.com wss://smart-hotel-zehla.vercel.app https://*.railway.app https://*.basemaps.cartocdn.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
-      "form-action 'self' https://*.mercadopago.com https://checkout.stripe.com https://*.asaas.com",
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+      "form-action 'self' https://*.mercadopago.com https://*.asaas.com",
+      "frame-src 'self' https://*.mercadopago.com https://*.asaas.com",
     ].join('; '));
   }
   return response;
@@ -67,15 +67,12 @@ async function authorizeZcc(request: NextRequest): Promise<boolean> {
   if (!token) return false;
   const email = typeof token.email === 'string' ? token.email.trim().toLowerCase() : '';
   const role = typeof token.role === 'string' ? token.role : '';
-
-  // Admin identity is configuration-only. Production MUST set ZCC_ADMIN_EMAILS.
-  // system_admin is only granted by the server-side credentials/database path.
   const envAdmins = (process.env.ZCC_ADMIN_EMAILS || '')
     .split(',')
     .map(v => v.trim().toLowerCase())
     .filter(Boolean);
   const isRoleAuthorized = ['owner', 'admin', 'system_admin'].includes(role);
-  const isEmailAuthorized = envAdmins.includes(email) || role === 'system_admin';
+  const isEmailAuthorized = envAdmins.includes(email);
   return Boolean(isRoleAuthorized && isEmailAuthorized);
 }
 
@@ -88,12 +85,8 @@ export async function middleware(request: NextRequest) {
     return securityHeaders(NextResponse.json({ error: 'NOT_FOUND', requestId }, { status: 404 }));
   }
 
-  // Dedicated ZCC login is intentionally public so the company owner can reach it without a session.
-  if (pathname === '/zcc/login') {
-    return securityHeaders(NextResponse.next());
-  }
+  if (pathname === '/zcc/login') return securityHeaders(NextResponse.next());
 
-  // DDC remains a public preview surface. Its data APIs remain protected unless explicitly public.
   if (pathname === '/ddc' || pathname.startsWith('/ddc/')) {
     if (pathname === '/ddc' || pathname === '/ddc/') {
       try {
@@ -107,7 +100,6 @@ export async function middleware(request: NextRequest) {
     return securityHeaders(NextResponse.next());
   }
 
-  // ZCC has exactly one authorization path: authenticated NextAuth session + explicit admin allow-list + role.
   if (pathname === '/zcc' || pathname.startsWith('/zcc/')) {
     try {
       if (await authorizeZcc(request)) return securityHeaders(NextResponse.next());
@@ -121,9 +113,6 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/api/')) {
     if (isPublicApi(pathname)) return securityHeaders(NextResponse.next());
-
-    // Middleware is a coarse gate; the endpoint must still perform tenant/RBAC authorization.
-    // Never treat the presence of a bearer/API key as authorization here.
     const hasSession = Boolean(getSessionCookie(request));
     const hasMachineCredential = Boolean(request.headers.get('authorization') || request.headers.get('x-api-key'));
     if (!hasSession && !hasMachineCredential) {
@@ -132,12 +121,10 @@ export async function middleware(request: NextRequest) {
     return securityHeaders(NextResponse.next());
   }
 
-  if (startsWithAny(pathname, PROTECTED_PAGE_PREFIXES)) {
-    if (!getSessionCookie(request)) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return securityHeaders(NextResponse.redirect(loginUrl));
-    }
+  if (startsWithAny(pathname, PROTECTED_PAGE_PREFIXES) && !getSessionCookie(request)) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', pathname);
+    return securityHeaders(NextResponse.redirect(loginUrl));
   }
 
   return securityHeaders(NextResponse.next());
