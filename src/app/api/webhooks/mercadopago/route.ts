@@ -19,12 +19,16 @@ export async function POST(request: NextRequest) {
     const dataId = typeof data.id === 'string' ? data.id : typeof data.id === 'number' ? String(data.id) : '';
     const requestId = request.headers.get('x-request-id') || '';
     const signature = request.headers.get('x-signature') || '';
+    const sourceIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     if (!dataId || !requestId || !signature) return NextResponse.json({ error: 'SIGNATURE_CONTEXT_MISSING' }, { status: 401 });
 
     const gateway = getGateway('mercadopago');
     if (!(await gateway.verifyWebhook(rawBody, signature, { requestId, dataId }))) return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401 });
 
-    const limit = await webhookRatelimit.limit(`webhook:mercadopago:${requestId}`);
+    // Rate-limit by source, not request-id: request-id is controlled by the
+    // provider and is intentionally unique per delivery, so it is not a
+    // useful abuse bucket.
+    const limit = await webhookRatelimit.limit(`webhook:mercadopago:${sourceIp}`);
     if (!limit.success) return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
 
     const event = await gateway.parseWebhookEvent(rawBody);
