@@ -1,62 +1,54 @@
-// src/app/api/alexa/smart-home/route.ts
 import { NextResponse } from 'next/server';
 import { AlexaLockService, AlexaSmartHomeDirective } from '@/lib/locks/alexa-adapter';
 import { verifyJwtToken } from '@/lib/auth/jwt';
+import { checkAlexaRateLimit, isReplay, markJtiUsed, validateAlexaJwtPayload } from '@/lib/locks/alexa-security';
 
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get('authorization') || '';
     const token = authHeader.replace(/Bearer\s+/i, '');
-
     const directiveWrapper = await req.json();
     const directive: AlexaSmartHomeDirective = directiveWrapper.directive || directiveWrapper;
 
-    if (!directive || !directive.header) {
-      return NextResponse.json({ error: 'Diretiva Alexa inválida ou ausente' }, { status: 400 });
-    }
+    if (!directive?.header) return NextResponse.json({ error: 'ALEXA_DIRECTIVE_INVALID' }, { status: 400 });
 
-    // Extrai o token do cabeçalho ou do payload do endpoint
     const bearerToken = token || directive.endpoint?.scope?.token;
+    if (!bearerToken) return NextResponse.json({ error: 'AUTHENTICATION_REQUIRED' }, { status: 401 });
 
-    if (!bearerToken) {
-      return NextResponse.json({ error: 'Token de autenticação ausente' }, { status: 401 });
-    }
-
-    // Valida a sessão OAuth2 e extrai o tenantId e userId autenticados
     const session = await verifyJwtToken(bearerToken);
-    if (!session || !session.tenantId) {
-      return NextResponse.json({ error: 'Sessão inválida ou tenant ausente' }, { status: 403 });
+    if (!session?.tenantId || !session.userId) return NextResponse.json({ error: 'AUTHENTICATION_INVALID' }, { status: 403 });
+
+    const payloadValidation = validateAlexaJwtPayload({
+      sub: session.userId,
+      tenantId: session.tenantId,
+      scope: session.scope,
+      jti: session.jti,
+      iat: session.iat,
+    });
+    if (!payloadValidation.valid) return NextResponse.json({ error: 'ALEXA_TOKEN_INVALID', reason: payloadValidation.reason }, { status: 403 });
+    if (session.jti && isReplay(session.jti)) return NextResponse.json({ error: 'ALEXA_REPLAY_DETECTED' }, { status: 409 });
+
+    const rate = checkAlexaRateLimit(session.tenantId);
+    if (!rate.allowed) {
+      const response = NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
+      response.headers.set('Retry-After', String(Math.ceil((rate.retryAfterMs || 60000) / 1000)));
+      return response;
     }
 
     const { namespace, name } = directive.header;
+    let response: unknown;
 
-    // Roteamento de Diretivas da Alexa
     if (namespace === 'Alexa.Discovery' && name === 'Discover') {
-      const response = await AlexaLockService.handleDiscovery(
-        session.tenantId,
-        directive.header.correlationToken
-      );
-      return NextResponse.json(response);
+      response = await AlexaLockService.handleDiscovery(session.tenantId, directive.header.correlationToken);
+    } else if (namespace === 'Alexa.LockController') {
+      response = await AlexaLockService.handleControl(directive, session.tenantId, session.userId);
+    } else {
+      return NextResponse.json({ error: 'ALEXA_DIRECTIVE_UNSUPPORTED' }, { status: 400 });
     }
 
-    if (namespace === 'Alexa.LockController') {
-      const response = await AlexaLockService.handleControl(
-        directive,
-        session.tenantId,
-        session.userId
-      );
-      return NextResponse.json(response);
-    }
-
-    return NextResponse.json(
-      { error: `Diretiva não suportada: ${namespace}.${name}` },
-      { status: 400 }
-    );
-  } catch (error: any) {
-    console.error('[ALEXA SMART HOME ERROR]:', error);
-    return NextResponse.json(
-      { error: 'Erro interno ao processar comando da Alexa', details: error.message },
-      { status: 500 }
-    );
+    if (session.jti) markJtiUsed(session.jti);
+    return NextResponse.json(response);
+  } catch {
+    return NextResponse.json({ error: 'ALEXA_PROCESSING_FAILED' }, { status: 500 });
   }
 }
