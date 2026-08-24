@@ -6,7 +6,7 @@ The current `src/adapters/real/index.ts` contains eight explicit deferred adapte
 |---|---|---|
 | GoogleAds | Stub / throws | FUTURE unless CORE Product Scope promotes it |
 | MetaAds | Stub / throws | FUTURE unless CORE Product Scope promotes it |
-| Payment | Stub / throws | Do not implement blindly; existing Asaas/MercadoPago/Stripe routes are the current payment core |
+| Payment | Stub / throws | Do not implement blindly; existing Asaas/Mercado Pago payment core is authoritative |
 | CRM | Stub / throws | FUTURE unless commercial CRM becomes CORE |
 | WhatsApp | Stub / throws | Existing Meta Cloud API webhook/send path is current core; stub should not be mistaken for production integration |
 | Analytics | Stub / throws | SUPPORTING/FUTURE; native observability may cover current need |

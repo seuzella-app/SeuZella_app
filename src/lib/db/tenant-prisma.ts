@@ -1,22 +1,11 @@
 /**
- * ZÉLLA — Prisma Extension para RLS (Row Level Security) Automático
- *
- * Força a injeção automática de tenantId em todas as operações Prisma
- * de modelos sensíveis, ELIMINANDO o risco de BOLA/IDOR.
- *
- * USO:
- *   import { getTenantDb } from '@/lib/db/tenant-prisma';
- *   const tenantDb = getTenantDb(db, tenantId);
- *   const result = await tenantDb.lockDevice.findMany({ where: { ... } });
- *   // tenantId é INJETADO automaticamente no where!
+ * ZÉLLA — Prisma application-level tenant isolation.
+ * Automatically injects tenantId for models classified TENANT_SCOPED.
+ * This is application-level isolation; it is not PostgreSQL RLS.
  */
 
 import { PrismaClient } from '@prisma/client';
 
-/**
- * Models that must be tenant-scoped. Duplicates removed (was previously
- * listing LockDevice/LockCode/LockEvent/LockOAuthAccount twice).
- */
 const TENANT_MODELS = [
   'LockDevice', 'LockCode', 'LockEvent', 'LockOAuthAccount',
   'Reservation', 'Guest', 'GuestMessage', 'GuestGuide',
@@ -26,54 +15,54 @@ const TENANT_MODELS = [
   'AgentLog', 'ConversationLog', 'ConversationMessage', 'AIActivityLog',
   'KnowledgeEntry',
   'Transaction', 'Subscription', 'PaymentTransaction',
-  'CalendarSync',
-  'AuditLog', 'ConsentLog',
+  'CalendarSync', 'AuditLog', 'ConsentLog',
   'AirBProperty', 'AirBConversation', 'AirBSubscription',
   'DynamicPricingRule', 'PricingCalculation',
   'ReferralCode', 'AmortizationCredit', 'LiteMilestone',
-  'GuestRegistration',
-  'YieldProfitRecord',
-  'DevicePing',
+  'GuestRegistration', 'YieldProfitRecord', 'DevicePing',
+  'CostLog', 'Booking', 'TrainingPrompt', 'Notification',
+  'PerformanceSnapshot', 'QuickAction', 'Feedback', 'ZelladorMessage',
+  'LgpdDeleteRequest', 'LgpdIncident', 'PushSubscription', 'MetaCostLog',
+  'AirBRegionalKnowledge', 'AirBScrapingJob', 'AirBTransaction',
+  'WhatsAppMessageCost', 'MessageBundle', 'ConsentRecord',
+  'AirbnbWebhookEvent', 'AirbnbOAuthToken', 'DpoPreferencePair',
+  'GraphNode', 'GraphEdge', 'BrainHealthLog', 'CompiledPrompt',
+  'AirbExpense', 'AirbOperationTask', 'AirbGoal', 'AirbCommission',
+  'AirbReport', 'PolicyAudit', 'CerebroWorkflow',
 ] as const;
 
 const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'];
 const CREATE_OPERATIONS = ['create', 'createMany', 'upsert'];
-
 type AnyArgs = { where?: any; data?: any; [key: string]: any };
 
 export function getTenantDb(prisma: PrismaClient, tenantId: string) {
+  if (!tenantId) throw new Error('TENANT_CONTEXT_REQUIRED');
+
   return prisma.$extends({
-    name: 'tenantRLS',
+    name: 'tenantIsolation',
     query: {
       $allModels: {
-        async $allOperations({ model, operation, args, query }: {
-          model: string;
-          operation: string;
-          args: AnyArgs | undefined;
-          query: (args: any) => Promise<any>;
-        }) {
+        async $allOperations({ model, operation, args, query }: { model: string; operation: string; args: AnyArgs | undefined; query: (args: any) => Promise<any> }) {
           if (!TENANT_MODELS.includes(model as any)) return query(args);
 
           if (FILTERED_OPERATIONS.includes(operation)) {
-            if (!args) args = {};
-            if (!args.where) args.where = {};
+            args ??= {};
+            args.where ??= {};
             if (args.where.tenantId && args.where.tenantId !== tenantId) {
-              console.error(`[RLS_VIOLATION] Tenant ${tenantId} tentou acessar tenant ${args.where.tenantId} em ${model}.${operation}`);
+              console.error(`[TENANT_ISOLATION] Cross-tenant access blocked: ${tenantId} -> ${args.where.tenantId} on ${model}.${operation}`);
               if (operation === 'findMany') return [];
               if (operation === 'count') return 0;
+              if (operation === 'aggregate') return { _count: { _all: 0 } };
               return null;
             }
             args.where.tenantId = tenantId;
           }
 
           if (CREATE_OPERATIONS.includes(operation)) {
-            if (!args) args = {};
-            if (!args.data) args.data = {};
-            if (operation === 'createMany' && Array.isArray(args.data)) {
-              args.data = args.data.map((item: any) => ({ ...item, tenantId: item.tenantId || tenantId }));
-            } else if (typeof args.data === 'object') {
-              args.data.tenantId = args.data.tenantId || tenantId;
-            }
+            args ??= {};
+            args.data ??= {};
+            if (operation === 'createMany' && Array.isArray(args.data)) args.data = args.data.map((item: any) => ({ ...item, tenantId }));
+            else if (typeof args.data === 'object') args.data.tenantId = tenantId;
           }
 
           return query(args);
@@ -86,7 +75,9 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
 export function assertTenantOwnership(record: { tenantId?: string } | null, tenantId: string, modelName?: string): void {
   if (!record) return;
   if (record.tenantId && record.tenantId !== tenantId) {
-    console.error(`[RLS_VIOLATION] Tenant ${tenantId} tentou acessar registro de ${record.tenantId} em ${modelName || 'model'}`);
+    console.error(`[TENANT_ISOLATION] Cross-tenant record blocked for ${tenantId} on ${modelName || 'model'}`);
     throw new Error('TENANT_MISMATCH: Record does not belong to this tenant');
   }
 }
+
+export { TENANT_MODELS };

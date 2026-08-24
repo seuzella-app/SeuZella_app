@@ -40,9 +40,6 @@ export function getNextAuthSecret(): string { return requireProductionSecret('NE
 export const MP_ACCESS_TOKEN = getOptionalEnv('MP_ACCESS_TOKEN');
 export const MP_WEBHOOK_URL = getOptionalEnv('MP_WEBHOOK_URL');
 export const PAYMENT_WEBHOOK_SECRET = getOptionalEnv('PAYMENT_WEBHOOK_SECRET') || getOptionalEnv('MP_WEBHOOK_SECRET');
-export const STRIPE_SECRET_KEY = getOptionalEnv('STRIPE_SECRET_KEY');
-export const STRIPE_WEBHOOK_SECRET = getOptionalEnv('STRIPE_WEBHOOK_SECRET');
-export const STRIPE_ACCOUNT_ID = getOptionalEnv('STRIPE_ACCOUNT_ID');
 
 // Asaas
 export const ASAAS_ACCESS_TOKEN = getOptionalEnv('ASAAS_ACCESS_TOKEN');
@@ -51,7 +48,7 @@ export const ASAAS_WEBHOOK_SECRET = getOptionalEnv('ASAAS_WEBHOOK_SECRET');
 export const ASAAS_AUTO_NFSE = process.env.ASAAS_AUTO_NFSE ?? 'true';
 export const ASAAS_MUNICIPAL_SERVICE_CODE = process.env.ASAAS_MUNICIPAL_SERVICE_CODE ?? '01.01';
 export const ASAAS_MUNICIPAL_SERVICE_NAME = process.env.ASAAS_MUNICIPAL_SERVICE_NAME ?? 'Licenciamento ou cessão de direito de uso de programas de computação';
-export const DEFAULT_PAYMENT_GATEWAY = process.env.DEFAULT_PAYMENT_GATEWAY as 'asaas' | 'mercadopago' | 'stripe' | undefined;
+export const DEFAULT_PAYMENT_GATEWAY = process.env.DEFAULT_PAYMENT_GATEWAY as 'asaas' | 'mercadopago' | undefined;
 
 export const WHATSAPP_COMMERCIAL = process.env.NEXT_PUBLIC_WHATSAPP_COMMERCIAL ?? (process.env.NODE_ENV === 'production' ? '' : '5548999990000');
 export const WHATSAPP_SUPPORT = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT ?? (process.env.NODE_ENV === 'production' ? '' : '5548999990001');
@@ -94,7 +91,6 @@ export const META_WABA_ID = getOptionalEnv('META_WABA_ID');
 export const META_COST_GUARD_ENABLED = process.env.META_COST_GUARD_ENABLED ?? 'false';
 export const META_COST_LIMIT_PER_MESSAGE = Number(process.env.META_COST_LIMIT_PER_MESSAGE ?? '0.10');
 
-/** Explicit runtime production guard for deployment/startup checks. */
 export function assertProductionSecurityEnv(): void {
   if (process.env.NODE_ENV !== 'production') return;
   requireProductionSecret('NEXTAUTH_SECRET');
@@ -110,9 +106,5 @@ export function assertProductionSecurityEnv(): void {
   if (DEFAULT_PAYMENT_GATEWAY === 'mercadopago') {
     requireProductionSecret('MP_ACCESS_TOKEN', 1);
     requireProductionSecret('PAYMENT_WEBHOOK_SECRET', 1);
-  }
-  if (DEFAULT_PAYMENT_GATEWAY === 'stripe') {
-    requireProductionSecret('STRIPE_SECRET_KEY', 1);
-    requireProductionSecret('STRIPE_WEBHOOK_SECRET', 1);
   }
 }

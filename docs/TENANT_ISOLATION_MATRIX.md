@@ -2,7 +2,7 @@
 
 ## Regra de classificação
 
-Esta matriz distingue presença de `tenantId` de autorização. Um modelo só entra em `TENANT_SCOPED` quando seus dados pertencem a uma conta/negócio; ter `tenantId` no schema não é, sozinho, prova suficiente de que deve ser filtrado da mesma forma.
+Esta matriz distingue presença de `tenantId` de autorização. Um modelo só entra em `TENANT_SCOPED` quando seus registros pertencem a uma conta/negócio; ter `tenantId` no schema não é, sozinho, prova suficiente de que todo o modelo deve ser filtrado da mesma forma.
 
 Classes:
 - `TENANT_SCOPED`: dados privados do tenant.
@@ -22,7 +22,7 @@ LockDevice, LockCode, LockEvent, LockOAuthAccount, Reservation, Guest, GuestMess
 |---|---|---|---|
 | User | AUTH_GLOBAL / TENANT_SCOPED conforme uso | revisão | possui `tenantId` opcional; identidade não pode depender apenas dele |
 | SecurityAlert | AUDIT_GLOBAL | não adicionar cegamente | tenantId opcional; precisa de regra de visibilidade |
-| CostLog | TENANT_SCOPED por registro + SYSTEM_GLOBAL quando agregado | revisar | tenantId opcional |
+| CostLog | TENANT_SCOPED | adicionar | cada registro de custo com `tenantId` pertence ao tenant; agregações sistêmicas usam caminho ZCC separado |
 | Booking | TENANT_SCOPED | adicionar | dado operacional do tenant |
 | TrainingPrompt | TENANT_SCOPED | adicionar | prompt configurável do tenant |
 | Notification | TENANT_SCOPED | adicionar | notificação de operação do tenant |
@@ -55,12 +55,18 @@ LockDevice, LockCode, LockEvent, LockOAuthAccount, Reservation, Guest, GuestMess
 | AirbReport | TENANT_SCOPED | adicionar | relatório do tenant |
 | PolicyAudit | TENANT_SCOPED | adicionar | auditoria de política com escopo tenant |
 | CerebroWorkflow | TENANT_SCOPED | adicionar | workflow privado do tenant |
-| CerebroTelemetryEvent | AUDIT_GLOBAL/TENANT_SCOPED | revisão | `tenantId` é opcional; visibilidade precisa ser definida |
+| CerebroTelemetryEvent | AUDIT_GLOBAL/TENANT_SCOPED | revisão | `tenantId` é opcional; visibilidade precisa ser definida antes do enforcement automático |
 | AirbTrialSignup | SYSTEM_GLOBAL/TENANT_SCOPED | revisão | confirmar se é lead global ou signup atribuído |
+
+## Contagem de enforcement
+
+- `TENANT_MODELS` pré-existentes: **41**
+- Modelos adicionais classificados como `TENANT_SCOPED`: **32**
+- Total esperado em `TENANT_MODELS` após a Wave 1: **73**
 
 ## Nota de reconciliação
 
-A contagem histórica de 73 modelos com `tenantId` deve ser validada pelo script `scripts/audit-tenant-models.ts`. A matriz é a fonte de classificação, enquanto o script é a fonte de contagem. Modelos opcionais (`String?`) não devem ser tratados como tenant-scoped automaticamente.
+A contagem de modelos com `tenantId` é validada pelo script `scripts/audit-tenant-models.ts`. A matriz é a fonte de classificação, enquanto o script é a fonte de contagem. Modelos com `tenantId` opcional não entram automaticamente; somente modelos classificados como `TENANT_SCOPED` entram no enforcement.
 
 ## Gate Onda 1
 
