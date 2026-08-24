@@ -1,44 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processarWebhookMercadoPago } from '@/lib/payments/mercadopago-service';
-import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
+import { getGateway } from '@/lib/payments';
+import { processPaymentWebhookEvent } from '@/lib/payments/process-webhook';
+import { webhookRatelimit } from '@/lib/rate-limit';
 
-const MAX_WEBHOOK_BYTES = 1024 * 1024;
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const contentLength = Number(req.headers.get('content-length') || 0);
-    if (Number.isFinite(contentLength) && contentLength > MAX_WEBHOOK_BYTES) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+    const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > 1024 * 1024) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
 
-    const rawBody = await req.text();
-    if (new TextEncoder().encode(rawBody).byteLength > MAX_WEBHOOK_BYTES) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
-
-    const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
-    if (!secret) return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 503 });
-
-    const signature = req.headers.get('x-signature');
-    const requestId = req.headers.get('x-request-id') || undefined;
     let body: Record<string, unknown>;
-    try {
-      const parsed = JSON.parse(rawBody);
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 });
-      body = parsed as Record<string, unknown>;
-    } catch {
-      return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 });
-    }
+    try { body = JSON.parse(rawBody) as Record<string, unknown>; }
+    catch { return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 }); }
 
-    const eventId = typeof body.id === 'string' ? body.id : typeof (body.data as Record<string, unknown> | undefined)?.id === 'string' ? (body.data as Record<string, unknown>).id as string : '';
-    if (!eventId) return NextResponse.json({ error: 'MISSING_EVENT_ID' }, { status: 400 });
+    const data = body.data && typeof body.data === 'object' ? body.data as Record<string, unknown> : {};
+    const dataId = typeof data.id === 'string' ? data.id : typeof data.id === 'number' ? String(data.id) : '';
+    const requestId = request.headers.get('x-request-id') || '';
+    const signature = request.headers.get('x-signature') || '';
+    if (!dataId || !requestId || !signature) return NextResponse.json({ error: 'SIGNATURE_CONTEXT_MISSING' }, { status: 401 });
 
-    const verification = verifyMercadoPagoWebhook(rawBody, signature, secret, eventId, requestId);
-    if (!verification.valid) return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401 });
+    const gateway = getGateway('mercadopago');
+    if (!(await gateway.verifyWebhook(rawBody, signature, { requestId, dataId }))) return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401 });
 
-    const result = await processarWebhookMercadoPago(body);
-    if (!result.received) return NextResponse.json({ error: 'WEBHOOK_PROCESSING_FAILED' }, { status: 500 });
+    const limit = await webhookRatelimit.limit(`webhook:mercadopago:${requestId}`);
+    if (!limit.success) return NextResponse.json({ error: 'RATE_LIMITED' }, { status: 429 });
 
-    return NextResponse.json({ received: true, type: result.type, eventId }, { status: 200 });
-  } catch (err) {
-    console.error('[MP_WEBHOOK] processing failed:', err instanceof Error ? err.name : 'UnknownError');
-    return NextResponse.json({ error: 'WEBHOOK_ERROR' }, { status: 500 });
+    const event = await gateway.parseWebhookEvent(rawBody);
+    const result = await processPaymentWebhookEvent(event);
+    return NextResponse.json({ received: true, provider: 'mercadopago', eventId: event.providerEventId, deduplicated: result.deduplicated }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'WEBHOOK_ERROR';
+    const status = message.includes('SUBSCRIPTION_NOT_FOUND') || message.includes('SUBSCRIPTION_ID_MISSING') ? 422 : 500;
+    console.error('[MP_WEBHOOK] processing failed:', message);
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
