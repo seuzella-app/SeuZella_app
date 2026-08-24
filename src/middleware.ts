@@ -1,5 +1,4 @@
 // ZEHLA SmartHotel — Zero Trust middleware
-// Security boundary: no URL master-key bypass or development auth bypass.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
@@ -10,24 +9,16 @@ const PUBLIC_API_PREFIXES = [
   '/api/auth',
   '/api/webhook-whatsapp',
   '/api/webhooks/asaas',
+  '/api/webhooks/mercadopago',
   '/api/checkout/webhook',
 ];
 
 const BLOCKED_API_PREFIXES = ['/api/debug-agent', '/api/proxy', '/api/diagnose'];
 const PROTECTED_PAGE_PREFIXES = ['/zcc', '/dashboard', '/config', '/tenants', '/campaigns', '/leads', '/targets', '/agents', '/roi', '/swipe-templates'];
 
-function startsWithAny(pathname: string, prefixes: string[]): boolean {
-  return prefixes.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
-
-function isPublicApi(pathname: string): boolean {
-  return startsWithAny(pathname, PUBLIC_API_PREFIXES);
-}
-
-function getSessionCookie(request: NextRequest): string | undefined {
-  return request.cookies.get('__Secure-next-auth.session-token')?.value
-    || request.cookies.get('next-auth.session-token')?.value;
-}
+function startsWithAny(pathname: string, prefixes: string[]): boolean { return prefixes.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)); }
+function isPublicApi(pathname: string): boolean { return startsWithAny(pathname, PUBLIC_API_PREFIXES); }
+function getSessionCookie(request: NextRequest): string | undefined { return request.cookies.get('__Secure-next-auth.session-token')?.value || request.cookies.get('next-auth.session-token')?.value; }
 
 function securityHeaders(response: NextResponse): NextResponse {
   response.headers.set('X-Content-Type-Options', 'nosniff');
@@ -37,7 +28,6 @@ function securityHeaders(response: NextResponse): NextResponse {
   response.headers.set('X-DNS-Prefetch-Control', 'off');
   response.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
   response.headers.set('X-Security-Shield', 'zero-trust-v4');
-
   if (process.env.NODE_ENV === 'production') {
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     response.headers.set('Content-Security-Policy', [
@@ -67,69 +57,32 @@ async function authorizeZcc(request: NextRequest): Promise<boolean> {
   if (!token) return false;
   const email = typeof token.email === 'string' ? token.email.trim().toLowerCase() : '';
   const role = typeof token.role === 'string' ? token.role : '';
-  const envAdmins = (process.env.ZCC_ADMIN_EMAILS || '')
-    .split(',')
-    .map(v => v.trim().toLowerCase())
-    .filter(Boolean);
-  const isRoleAuthorized = ['owner', 'admin', 'system_admin'].includes(role);
-  const isEmailAuthorized = envAdmins.includes(email);
-  return Boolean(isRoleAuthorized && isEmailAuthorized);
+  const envAdmins = (process.env.ZCC_ADMIN_EMAILS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+  return ['owner', 'admin', 'system_admin'].includes(role) && envAdmins.includes(email);
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestId = request.headers.get('x-request-id') || request.headers.get('x-vercel-id') || `mid-${crypto.randomUUID()}`;
-
-  const blocked = startsWithAny(pathname, BLOCKED_API_PREFIXES);
-  if (blocked && process.env.NODE_ENV === 'production') {
-    return securityHeaders(NextResponse.json({ error: 'NOT_FOUND', requestId }, { status: 404 }));
-  }
-
+  if (startsWithAny(pathname, BLOCKED_API_PREFIXES) && process.env.NODE_ENV === 'production') return securityHeaders(NextResponse.json({ error:'NOT_FOUND', requestId }, { status:404 }));
   if (pathname === '/zcc/login') return securityHeaders(NextResponse.next());
-
   if (pathname === '/ddc' || pathname.startsWith('/ddc/')) {
     if (pathname === '/ddc' || pathname === '/ddc/') {
-      try {
-        const token = await getAuthenticatedToken(request);
-        const niche = (token as any)?.niche;
-        return securityHeaders(NextResponse.redirect(new URL(niche === 'airbnb' ? '/ddc/airbnb' : '/ddc/pousada', request.url)));
-      } catch {
-        return securityHeaders(NextResponse.next());
-      }
+      try { const token = await getAuthenticatedToken(request); const niche = (token as any)?.niche; return securityHeaders(NextResponse.redirect(new URL(niche === 'airbnb' ? '/ddc/airbnb' : '/ddc/pousada', request.url))); } catch { return securityHeaders(NextResponse.next()); }
     }
     return securityHeaders(NextResponse.next());
   }
-
   if (pathname === '/zcc' || pathname.startsWith('/zcc/')) {
-    try {
-      if (await authorizeZcc(request)) return securityHeaders(NextResponse.next());
-    } catch {
-      // Fail closed.
-    }
-    const loginUrl = new URL('/zcc/login', request.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
-    return securityHeaders(NextResponse.redirect(loginUrl));
+    try { if (await authorizeZcc(request)) return securityHeaders(NextResponse.next()); } catch { /* fail closed */ }
+    const loginUrl = new URL('/zcc/login', request.url); loginUrl.searchParams.set('callbackUrl', pathname); return securityHeaders(NextResponse.redirect(loginUrl));
   }
-
   if (pathname.startsWith('/api/')) {
     if (isPublicApi(pathname)) return securityHeaders(NextResponse.next());
-    const hasSession = Boolean(getSessionCookie(request));
-    const hasMachineCredential = Boolean(request.headers.get('authorization') || request.headers.get('x-api-key'));
-    if (!hasSession && !hasMachineCredential) {
-      return securityHeaders(NextResponse.json({ error: 'AUTH_REQUIRED', requestId }, { status: 401 }));
-    }
+    if (!getSessionCookie(request) && !request.headers.get('authorization') && !request.headers.get('x-api-key')) return securityHeaders(NextResponse.json({ error:'AUTH_REQUIRED', requestId }, { status:401 }));
     return securityHeaders(NextResponse.next());
   }
-
-  if (startsWithAny(pathname, PROTECTED_PAGE_PREFIXES) && !getSessionCookie(request)) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
-    return securityHeaders(NextResponse.redirect(loginUrl));
-  }
-
+  if (startsWithAny(pathname, PROTECTED_PAGE_PREFIXES) && !getSessionCookie(request)) { const loginUrl = new URL('/login', request.url); loginUrl.searchParams.set('callbackUrl', pathname); return securityHeaders(NextResponse.redirect(loginUrl)); }
   return securityHeaders(NextResponse.next());
 }
 
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2)$).*)'],
-};
+export const config = { matcher: ['/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2)$).*)'] };
