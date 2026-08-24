@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 
 export interface TenantOnboardingStatus {
   id: string;
@@ -7,115 +9,147 @@ export interface TenantOnboardingStatus {
   plan: 'lite' | 'pro' | 'max' | 'parceiro';
   niche: 'pousada' | 'airbnb';
   createdAt: string;
+  isTestTenant: boolean;
   steps: {
-    paymentConfirmed: boolean;     // TODO(REAL): subscription.status === 'active'
-    emailSent: boolean;            // TODO(REAL): tenant.welcomeEmailSent === true
-    magicScanExecuted: boolean;    // TODO(REAL): property.scannedAt !== null
-    whatsappConnected: boolean;    // TODO(REAL): meta-cloud.getStatus(tenantId) === 'connected'
-    autoPinActivated: boolean;     // TODO(REAL): db.lock.count({ tenantId }) > 0
+    paymentConfirmed: boolean;
+    emailSent: boolean;
+    magicScanExecuted: boolean;
+    whatsappConnected: boolean;
+    autoPinActivated: boolean;
   };
   overallProgressPercent: number;
 }
 
-export async function GET() {
-  // Mock Data: 5 Tenants em diferentes estágios do funil de onboarding
-  const tenantsOnboarding: TenantOnboardingStatus[] = [
-    {
-      id: 't-101',
-      propertyName: 'Pousada Serenity Paraty',
-      ownerInitials: 'R.S.',
-      plan: 'pro',
-      niche: 'pousada',
-      createdAt: '2026-08-10T14:20:00Z',
-      steps: {
-        paymentConfirmed: true,
-        emailSent: true,
-        magicScanExecuted: true,
-        whatsappConnected: true,
-        autoPinActivated: true,
-      },
-      overallProgressPercent: 100,
-    },
-    {
-      id: 't-102',
-      propertyName: 'Chalé Vista Mar Búzios',
-      ownerInitials: 'F.O.',
-      plan: 'pro',
-      niche: 'pousada',
-      createdAt: '2026-08-10T12:00:00Z',
-      steps: {
-        paymentConfirmed: true,
-        emailSent: true,
-        magicScanExecuted: true,
-        whatsappConnected: true,
-        autoPinActivated: false,
-      },
-      overallProgressPercent: 80,
-    },
-    {
-      id: 't-103',
-      propertyName: 'Flat Studio Copacabana',
-      ownerInitials: 'M.S.',
-      plan: 'lite',
-      niche: 'airbnb',
-      createdAt: '2026-08-09T18:30:00Z',
-      steps: {
-        paymentConfirmed: true,
-        emailSent: true,
-        magicScanExecuted: true,
-        whatsappConnected: false,
-        autoPinActivated: false,
-      },
-      overallProgressPercent: 60,
-    },
-    {
-      id: 't-104',
-      propertyName: 'Loft Cyber Jardins SP',
-      ownerInitials: 'C.A.',
-      plan: 'max',
-      niche: 'airbnb',
-      createdAt: '2026-08-08T10:15:00Z',
-      steps: {
-        paymentConfirmed: true,
-        emailSent: true,
-        magicScanExecuted: false,
-        whatsappConnected: false,
-        autoPinActivated: false,
-      },
-      overallProgressPercent: 40,
-    },
-    {
-      id: 't-105',
-      propertyName: 'Pousada Vila dos Coqueiros',
-      ownerInitials: 'J.P.',
-      plan: 'pro',
-      niche: 'pousada',
-      createdAt: '2026-08-07T09:00:00Z',
-      steps: {
-        paymentConfirmed: true,
-        emailSent: true,
-        magicScanExecuted: true,
-        whatsappConnected: true,
-        autoPinActivated: true,
-      },
-      overallProgressPercent: 100,
-    },
-  ];
+const EVENT_ACTIONS = {
+  emailSent: ['WELCOME_EMAIL_SENT', 'ONBOARDING_EMAIL_SENT'],
+  magicScanExecuted: ['MAGIC_SCAN_EXECUTED', 'ONBOARDING_MAGIC_SCAN_COMPLETED'],
+  autoPinActivated: ['AUTO_PIN_ACTIVATED', 'ONBOARDING_AUTO_PIN_ACTIVATED'],
+} as const;
 
-  // Métricas agregadas do funil de onboarding ZCC
-  const metrics = {
-    totalTenants: tenantsOnboarding.length,
-    fullyOnboarded: tenantsOnboarding.filter(t => t.overallProgressPercent === 100).length,
-    whatsappConnectedRate: Math.round((tenantsOnboarding.filter(t => t.steps.whatsappConnected).length / tenantsOnboarding.length) * 100),
-    autoPinActivationRate: Math.round((tenantsOnboarding.filter(t => t.steps.autoPinActivated).length / tenantsOnboarding.length) * 100),
-  };
+function hasAuditAction(auditLogs: Array<{ action: string }>, actions: readonly string[]) {
+  const accepted = new Set(actions);
+  return auditLogs.some((entry) => accepted.has(entry.action.toUpperCase()));
+}
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      metrics,
-      tenants: tenantsOnboarding,
-      timestamp: new Date().toISOString(),
-    },
-  });
+function toPlan(value: string): TenantOnboardingStatus['plan'] {
+  const normalized = value.toLowerCase();
+  if (normalized === 'pro' || normalized === 'max' || normalized === 'parceiro' || normalized === 'lite') {
+    return normalized;
+  }
+  return 'lite';
+}
+
+function toNiche(value: string): TenantOnboardingStatus['niche'] {
+  return value.toLowerCase() === 'airbnb' ? 'airbnb' : 'pousada';
+}
+
+export async function GET(request: NextRequest) {
+  const security = await verifyZCCAccessOrReject(request);
+  if (!security.allowed) return security.response!;
+
+  try {
+    const tenants = await db.tenant.findMany({
+      orderBy: { createdAt: 'asc' },
+      include: {
+        property: { select: { name: true } },
+        subscriptions: {
+          select: { status: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+        lockDevices: { select: { id: true } },
+        lockCodes: { select: { id: true } },
+        auditLogs: {
+          select: { action: true },
+          where: {
+            action: {
+              in: [
+                ...EVENT_ACTIONS.emailSent,
+                ...EVENT_ACTIONS.magicScanExecuted,
+                ...EVENT_ACTIONS.autoPinActivated,
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    const tenantsOnboarding: TenantOnboardingStatus[] = tenants.map((tenant) => {
+      const auditLogs = tenant.auditLogs;
+      const paymentConfirmed = tenant.subscriptions[0]?.status?.toLowerCase() === 'active';
+      const emailSent = hasAuditAction(auditLogs, EVENT_ACTIONS.emailSent);
+      const magicScanExecuted = hasAuditAction(auditLogs, EVENT_ACTIONS.magicScanExecuted);
+      const whatsappConnected = Boolean(tenant.whatsappBusinessId && tenant.whatsappPhoneNumber);
+      const autoPinActivated = hasAuditAction(auditLogs, EVENT_ACTIONS.autoPinActivated)
+        || (tenant.lockDevices.length > 0 && tenant.lockCodes.length > 0);
+
+      const completedSteps = [
+        paymentConfirmed,
+        emailSent,
+        magicScanExecuted,
+        whatsappConnected,
+        autoPinActivated,
+      ].filter(Boolean).length;
+
+      return {
+        id: tenant.id,
+        propertyName: tenant.property?.name || tenant.name,
+        ownerInitials: tenant.name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((part) => `${part[0]}.`)
+          .join(''),
+        plan: toPlan(tenant.plan),
+        niche: toNiche(tenant.niche),
+        createdAt: tenant.createdAt.toISOString(),
+        isTestTenant: tenant.isTestTenant,
+        steps: {
+          paymentConfirmed,
+          emailSent,
+          magicScanExecuted,
+          whatsappConnected,
+          autoPinActivated,
+        },
+        overallProgressPercent: completedSteps * 20,
+      };
+    });
+
+    const totalTenants = tenantsOnboarding.length;
+    const fullyOnboarded = tenantsOnboarding.filter((tenant) => tenant.overallProgressPercent === 100).length;
+    const whatsappConnectedCount = tenantsOnboarding.filter((tenant) => tenant.steps.whatsappConnected).length;
+    const autoPinActivationCount = tenantsOnboarding.filter((tenant) => tenant.steps.autoPinActivated).length;
+
+    return NextResponse.json(
+      {
+        success: true,
+        source: 'database',
+        data: {
+          metrics: {
+            totalTenants,
+            fullyOnboarded,
+            whatsappConnectedRate: totalTenants > 0 ? Math.round((whatsappConnectedCount / totalTenants) * 100) : 0,
+            autoPinActivationRate: totalTenants > 0 ? Math.round((autoPinActivationCount / totalTenants) * 100) : 0,
+          },
+          tenants: tenantsOnboarding,
+          timestamp: new Date().toISOString(),
+        },
+      },
+      { headers: { 'X-ZCC-Data-Source': 'postgresql' } },
+    );
+  } catch (error) {
+    console.error('[ZCC Onboarding Tracker]', error);
+    return NextResponse.json(
+      {
+        success: false,
+        source: 'database',
+        error: 'ONBOARDING_DATA_UNAVAILABLE',
+        message: 'Onboarding tracker requires the operational PostgreSQL database. Mock data is disabled.',
+      },
+      {
+        status: 503,
+        headers: { 'X-ZCC-Data-Source': 'postgresql' },
+      },
+    );
+  }
 }
