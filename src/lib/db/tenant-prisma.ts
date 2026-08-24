@@ -1,9 +1,7 @@
 /**
  * ZÉLLA — Prisma application-level tenant isolation.
- *
- * Automatically injects tenantId into operations for models classified as
- * TENANT_SCOPED by docs/TENANT_ISOLATION_MATRIX.md. This is application-level
- * isolation; it is not PostgreSQL RLS.
+ * Automatically injects tenantId for models classified TENANT_SCOPED.
+ * This is application-level isolation; it is not PostgreSQL RLS.
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -30,7 +28,7 @@ const TENANT_MODELS = [
   'AirbnbWebhookEvent', 'AirbnbOAuthToken', 'DpoPreferencePair',
   'GraphNode', 'GraphEdge', 'BrainHealthLog', 'CompiledPrompt',
   'AirbExpense', 'AirbOperationTask', 'AirbGoal', 'AirbCommission',
-  'AirbReport', 'PolicyAudit', 'CerebroWorkflow', 'CerebroWorkflow',
+  'AirbReport', 'PolicyAudit', 'CerebroWorkflow',
 ] as const;
 
 const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'];
@@ -44,16 +42,11 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
     name: 'tenantIsolation',
     query: {
       $allModels: {
-        async $allOperations({ model, operation, args, query }: {
-          model: string;
-          operation: string;
-          args: AnyArgs | undefined;
-          query: (args: any) => Promise<any>;
-        }) {
+        async $allOperations({ model, operation, args, query }: { model: string; operation: string; args: AnyArgs | undefined; query: (args: any) => Promise<any> }) {
           if (!TENANT_MODELS.includes(model as any)) return query(args);
 
           if (FILTERED_OPERATIONS.includes(operation)) {
-            if (!args) args = {};
+            args ??= {};
             args.where ??= {};
             if (args.where.tenantId && args.where.tenantId !== tenantId) {
               console.error(`[TENANT_ISOLATION] Cross-tenant access blocked: ${tenantId} -> ${args.where.tenantId} on ${model}.${operation}`);
@@ -66,13 +59,10 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
           }
 
           if (CREATE_OPERATIONS.includes(operation)) {
-            if (!args) args = {};
-            if (!args.data) args.data = {};
-            if (operation === 'createMany' && Array.isArray(args.data)) {
-              args.data = args.data.map((item: any) => ({ ...item, tenantId }));
-            } else if (typeof args.data === 'object') {
-              args.data.tenantId = tenantId;
-            }
+            args ??= {};
+            args.data ??= {};
+            if (operation === 'createMany' && Array.isArray(args.data)) args.data = args.data.map((item: any) => ({ ...item, tenantId }));
+            else if (typeof args.data === 'object') args.data.tenantId = tenantId;
           }
 
           return query(args);
