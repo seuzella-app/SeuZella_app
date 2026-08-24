@@ -5,6 +5,7 @@ import { Header } from '@/components/landing/Header';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { PainPointsSection } from '@/components/landing/PainPointsSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
+import { BusinessInfrastructureSection } from '@/components/landing/BusinessInfrastructureSection';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
 import { ProHostSection } from '@/components/landing/ProHostSection';
 import { DashboardPreviewSection } from '@/components/landing/DashboardPreviewSection';
@@ -43,6 +44,8 @@ export default function HomePage() {
           <PainPointsSection />
           <SectionDivider />
           <HowItWorksSection />
+          <SectionDivider />
+          <BusinessInfrastructureSection />
           <SectionDivider />
           <FeaturesSection />
           <SectionDivider />
