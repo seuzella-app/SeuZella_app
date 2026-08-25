@@ -270,7 +270,7 @@ export interface Agent {
 
 // ===== INTEGRAÇÕES =====
 
-export type IntegrationId = "whatsapp" | "booking" | "airbnb" | "meta" | "openai" | "groq" | "stripe" | "mercadopago" | "asaas" | "tuya" | "august" | "whatsapp-cloud-api" | "airbnb-oauth" | "mercado-pago" | "zai-sdk" | "vercel-postgres";
+export type IntegrationId = "whatsapp" | "booking" | "airbnb" | "meta" | "openai" | "groq" | "mercadopago" | "asaas" | "tuya" | "august" | "whatsapp-cloud-api" | "airbnb-oauth" | "mercado-pago" | "zai-sdk" | "vercel-postgres";
 
 export type IntegrationStatus = "online" | "offline" | "warning" | "configuring";
 

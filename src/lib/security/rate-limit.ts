@@ -54,7 +54,7 @@ const LIMIT_CONFIGS: Record<string, LimitConfig> = {
   'api-general': { limit: 100, windowSeconds: 60 },
   'api-write': { limit: 30, windowSeconds: 60 },
   'whatsapp-webhook': { limit: 1000, windowSeconds: 60 },
-  'stripe-webhook': { limit: 100, windowSeconds: 60 },
+  'payment-gateway-webhook': { limit: 100, windowSeconds: 60 },
   'mercadopago-webhook': { limit: 100, windowSeconds: 60 },
   'public-form': { limit: 10, windowSeconds: 60 },
   'password-reset': { limit: 3, windowSeconds: 3600 },

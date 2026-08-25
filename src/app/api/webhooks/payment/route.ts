@@ -28,7 +28,7 @@ interface WebhookPayload {
   event: 'payment.created' | 'payment.updated' | 'invoice.paid' | 'invoice.payment_failed' | 'subscription.canceled';
   // ID externo do pagamento
   paymentId?: string;
-  // ID externo da assinatura (Stripe: subscription ID, MP: preference ID)
+  // ID externo da assinatura (Payment Gateway: subscription ID, MP: preference ID)
   subscriptionExternalId?: string;
   // Status do pagamento
   status?: 'pending' | 'approved' | 'rejected' | 'refunded' | 'cancelled';
@@ -94,7 +94,7 @@ function verifyWebhookSignature(
     return { valid: false, reason: 'MISSING_SIGNATURE: No signature header provided' };
   }
 
-  // ── Formato 1: Stripe-style (t=TIMESTAMP,v1=HMAC_HEX) 
+  // ── Formato 1: Payment Gateway-style (t=TIMESTAMP,v1=HMAC_HEX) 
   if (signatureHeader.includes('t=') && signatureHeader.includes('v1=')) {
     const parts = signatureHeader.split(',');
     const tPart = parts.find(p => p.startsWith('t='));
@@ -113,7 +113,7 @@ function verifyWebhookSignature(
       return { valid: false, reason: 'SIGNATURE_EXPIRED: Webhook signature older than 5 minutes' };
     }
 
-    // Stripe-style: HMAC(timestamp.rawBody)
+    // Payment Gateway-style: HMAC(timestamp.rawBody)
     const expectedPayload = `${timestamp}.${rawBody}`;
     const expectedHash = crypto
       .createHmac('sha256', secret)
@@ -126,7 +126,7 @@ function verifyWebhookSignature(
         Buffer.from(expectedHash, 'hex'),
       );
       if (!isValid) {
-        return { valid: false, reason: 'SIGNATURE_MISMATCH: HMAC verification failed (Stripe format)' };
+        return { valid: false, reason: 'SIGNATURE_MISMATCH: HMAC verification failed (Payment Gateway format)' };
       }
       return { valid: true };
     } catch {
@@ -508,7 +508,7 @@ export async function POST(request: NextRequest) {
 
     // ── Step 2: Validação HMAC da assinatura 
     const signatureHeader = request.headers.get('x-signature')
-      || request.headers.get('stripe-signature')
+      || request.headers.get('payment-gateway-signature')
       || request.headers.get('x-hub-signature-256');
     const timestampHeader = request.headers.get('x-timestamp');
     const webhookSecret = process.env.PAYMENT_WEBHOOK_SECRET || process.env.MP_WEBHOOK_SECRET || '';

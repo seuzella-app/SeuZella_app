@@ -209,7 +209,7 @@ Generate at least 10 attack tests covering:
 2. Authorization bypass (try /api/ddc/locks without auth → expect 401)
 3. Cross-tenant access (try /api/ddc/locks/{id} without auth → expect 401)
 4. Webhook signature bypass (POST /api/webhooks/asaas without signature → expect 401)
-5. Stripe webhook bypass (POST /api/webhooks/stripe without signature → expect 401)
+5. Payment Gateway webhook bypass (POST /api/webhooks/payment-gateway without signature → expect 401)
 6. Alexa JWT bypass (POST /api/alexa/smart-home without Bearer → expect 401)
 7. Rate limit test (same endpoint 100 times → expect some 429)
 8. Information disclosure (GET /api/health → should not leak secrets)
@@ -399,13 +399,13 @@ function getBaselineAttacks(): AttackRequest[] {
       remediation: 'Ensure verifyAsaasWebhook is called before processing',
     },
     {
-      name: 'Webhook bypass — Stripe without signature',
+      name: 'Webhook bypass — Payment Gateway without signature',
       method: 'POST',
-      path: '/api/webhooks/stripe',
+      path: '/api/webhooks/payment-gateway',
       headers: {},
       body: { type: 'checkout.session.completed' },
       expectedStatus: 401,
-      description: 'Stripe webhook without signature should be rejected',
+      description: 'Payment Gateway webhook without signature should be rejected',
       severity: 'critical',
       remediation: 'Ensure verifyWebhook HMAC-SHA256 is called',
     },
@@ -503,7 +503,7 @@ const SECRET_PATTERNS = [
   { name: 'Private Key', pattern: /-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/g, cwe: 'CWE-321' },
   { name: 'JWT Secret', pattern: /(jwt[_-]?(secret|key))\s*[:=]\s*['"]([A-Za-z0-9+/=]{20,})['"]/gi, cwe: 'CWE-798' },
   { name: 'Database URL', pattern: /(postgres|mongodb|redis|mysql):\/\/[^\s]+:[^\s]+@/g, cwe: 'CWE-798' },
-  { name: 'Stripe Key', pattern: /sk_(live|test)_[0-9a-zA-Z]{24,}/g, cwe: 'CWE-798' },
+  { name: 'Payment Gateway Key', pattern: /sk_(live|test)_[0-9a-zA-Z]{24,}/g, cwe: 'CWE-798' },
   { name: 'Hardcoded Password', pattern: /password\s*[:=]\s*['"]([^'"]{8,})['"]/gi, cwe: 'CWE-798' },
   { name: 'API Key Generic', pattern: /(api[_-]?key)\s*[:=]\s*['"]([A-Za-z0-9]{32,})['"]/gi, cwe: 'CWE-798' },
 ];
@@ -633,7 +633,7 @@ export async function runFullSecurityScan(): Promise<ScanResult> {
     'src/middleware.ts',
     'src/lib/security/webhook-verify.ts',
     'src/lib/db/tenant-prisma.ts',
-    'src/app/api/webhooks/stripe/route.ts',
+    'src/app/api/webhooks/payment-gateway/route.ts',
     'src/app/api/webhooks/asaas/route.ts',
     'src/app/api/ddc/locks/[id]/pins/route.ts',
   ];

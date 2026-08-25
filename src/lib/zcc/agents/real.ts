@@ -2,7 +2,7 @@
 // ZCC AGENT ROSTER — 12 agentes Zélla com run() real
 // =============================================================================
 // Cada agente executa trabalho de verdade:
-//   - Consulta connectors (WhatsApp, Stripe, iCal, Prisma)
+//   - Consulta connectors (WhatsApp, Payment Gateway, iCal, Prisma)
 //   - Chama LLM (z-ai-web-dev-sdk) quando precisa raciocinar
 //   - Retorna summary + data + tokens/cost para pricing
 //

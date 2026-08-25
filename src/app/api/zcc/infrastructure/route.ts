@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
   const bullmqAvailable = isBullMQAvailable();
   const pushEnabled = isPushEnabled();
 
-  const dbProvider = process.env.DATABASE_URL?.includes('supabase') ? 'supabase'
-    : process.env.DATABASE_URL?.includes('neon') ? 'neon'
-    : process.env.DATABASE_URL?.includes('railway') ? 'railway'
+  const dbProvider = process.env.DATABASE_URL?.includes('postgresql') ? 'postgresql'
+    : process.env.DATABASE_URL?.includes('postgresql') ? 'postgresql'
+    : process.env.DATABASE_URL?.includes('postgresql') ? 'postgresql'
     : 'unknown';
 
   const vercelInfo = {

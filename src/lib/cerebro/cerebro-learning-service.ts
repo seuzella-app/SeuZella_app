@@ -76,7 +76,7 @@ export interface CerebroProjectContext {
   hasGLMKey: boolean;
   hasWhatsAppKey: boolean;
   hasMPKey: boolean;
-  hasStripeKey: boolean;
+  hasPaymentGatewayKey: boolean;
 }
 
 export interface LearningResult {
@@ -429,7 +429,7 @@ Retorne apenas insights NOVOS (não repetir o que está nos fatos).`;
       hasGLMKey: !!process.env.GLM_5_2_API_KEY,
       hasWhatsAppKey: !!process.env.META_ACCESS_TOKEN,
       hasMPKey: !!process.env.MP_ACCESS_TOKEN,
-      hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+      hasPaymentGatewayKey: false,
     };
   }
 
@@ -492,7 +492,7 @@ Retorne apenas insights NOVOS (não repetir o que está nos fatos).`;
 - Modo atual: ${ctx.cerebroMode === 'live' ? 'LIVE (GLM 5.2 real)' : 'MOCK (sem API key)'}
 - Último audit: ${ctx.lastAuditDate ?? 'nunca executado'} (severity: ${ctx.lastAuditSeverity ?? 'N/A'})
 - Vulnerabilidades abertas: ${ctx.openVulnerabilities}
-- Integrações ativas: GLM ${ctx.hasGLMKey ? '✅' : '❌'}, WhatsApp ${ctx.hasWhatsAppKey ? '✅' : '❌'}, Mercado Pago ${ctx.hasMPKey ? '✅' : '❌'}, Stripe ${ctx.hasStripeKey ? '✅' : '❌'}
+- Integrações ativas: GLM ${ctx.hasGLMKey ? '✅' : '❌'}, WhatsApp ${ctx.hasWhatsAppKey ? '✅' : '❌'}, Mercado Pago ${ctx.hasMPKey ? '✅' : '❌'}, Asaas ${ctx.hasPaymentGatewayKey ? '✅' : '❌'}
 
 === FATOS VALIDADOS (BASEIE-SE NESTES — NÃO INVENTE) ===
 ${facts.length > 0

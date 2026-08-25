@@ -32,7 +32,7 @@ import { toast } from "sonner";
  *  - Mercado Pago PIX:           0.99%
  *  - Mercado Pago Cartão débito: 1.99%
  *  - Mercado Pago Cartão crédito: 4.99% + R$ 0,40
- *  - Stripe Cartão internacional: 4.99% + R$ 0,50 + 1% cross-border
+ *  - Payment Gateway Cartão internacional: 4.99% + R$ 0,50 + 1% cross-border
  *
  * IMPOSTOS (Praia Grande/SP — Litoral Sul de São Paulo):
  *  - Simples Nacional Anexo III: 6% (faixa 1 até R$ 180k/ano)
@@ -111,7 +111,7 @@ const GATEWAY_BADGE: Record<string, { color: string; bg: string; icon: React.Rea
     bg: "bg-sky-500/10 border-sky-500/30",
     icon: <Banknote className="size-3" />,
   },
-  stripe: {
+  "payment-gateway": {
     color: "text-violet-400",
     bg: "bg-violet-500/10 border-violet-500/30",
     icon: <CreditCard className="size-3" />,
@@ -322,7 +322,7 @@ export function ExpensesBreakdown() {
           {" · "}Efetivo médio: <span className="font-bold text-foreground">
             {data.grossRevenueBRL > 0 ? fmtPct((data.totalGatewayFeesBRL / data.grossRevenueBRL) * 100) : '0%'}
           </span>
-          {" · "}Gateways: Mercado Pago (PIX, débito, crédito) + Stripe (internacional)
+          {" · "}Gateways: Mercado Pago (PIX, débito, crédito) + Payment Gateway (internacional)
         </p>
       </div>
 
@@ -497,7 +497,7 @@ export function ExpensesBreakdown() {
           <strong className="text-foreground">Cálculo conforme Praia Grande/SP:</strong>
           {" · "}Simples Nacional Anexo III (6% faixa 1)
           {" · "}ISS municipal já embutido
-          {" · "}Taxas de gateway atualizadas conforme tabela 2025 (MP e Stripe)
+          {" · "}Taxas de gateway atualizadas conforme tabela 2025 (MP e Payment Gateway)
           {" · "}Dados via <code className="font-mono text-primary">/api/zcc/finance/expenses</code>
         </div>
       </div>
@@ -586,9 +586,9 @@ function buildMockData(): ExpensesData {
       feeBRL: (2 * 197 + 2 * 397) * 0.0499 + 4 * 0.40,
     },
     {
-      gateway: 'stripe',
-      paymentMethod: 'credito_internacional',
-      label: 'Stripe · Cartão Internacional',
+      gateway: 'mercadopago',
+  paymentMethod: 'credito_internacional',
+      label: 'Payment Gateway · Cartão Internacional',
       ratePct: 4.99,
       fixedFeeBRL: 0.50,
       effectiveRatePct: 6.24,
@@ -650,7 +650,7 @@ function buildMockData(): ExpensesData {
   const perPlanMap = new Map<string, PerPlanItem>();
   for (const sub of subscriptions) {
     const isPix = sub.paymentMethod === 'pix';
-    const gateway = isPix ? 'mercadopago' : (sub.plan === 'max' ? 'stripe' : 'mercadopago');
+    const gateway = isPix ? 'mercadopago' : (sub.plan === 'max' ? 'mercadopago' : 'mercadopago');
     const feeRate = isPix ? 0.0099 : (sub.plan === 'max' ? 0.0599 : 0.0499);
     const feeFixed = isPix ? 0 : (sub.plan === 'max' ? 0.50 : 0.40);
     const gatewayFeeBRL = sub.amount * feeRate + feeFixed;

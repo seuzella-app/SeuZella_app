@@ -2,7 +2,7 @@
 // IPaymentGatewayAdapter — contract for payment gateways
 // ----------------------------------------------------------------------------
 // Supports the two gateways the Zélla project uses (or will use):
-//   - Stripe (international)
+//   - Payment Gateway (international)
 //   - Mercado Pago (Brazilian PIX + cards)
 //
 // The interface is intentionally minimal. Higher-level concerns like
@@ -10,7 +10,7 @@
 // service that calls this adapter.
 // ============================================================================
 
-export type PaymentProvider = 'stripe' | 'mercadopago';
+export type PaymentProvider = | 'mercadopago';
 export type PaymentMethod = 'pix' | 'credit_card' | 'boleto';
 
 export interface PaymentIntentInput {

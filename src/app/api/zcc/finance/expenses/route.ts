@@ -8,13 +8,13 @@ import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 // CONTEXTO:
 //  - Empresa sediada em Praia Grande, Litoral Sul de São Paulo
 //  - Regime: Simples Nacional (Anexo III — prestação de serviços)
-//  - Gateways escolhidos: Mercado Pago (PIX + Cartão) + Stripe (cartão internacional)
+//  - Gateways escolhidos: Mercado Pago (PIX + Cartão) + Payment Gateway (cartão internacional)
 //
 // GATEWAY FEES (taxas de cartão):
 //  - Mercado Pago PIX:           0.99% (taxa promocional)
 //  - Mercado Pago Cartão débito: 1.99%
 //  - Mercado Pago Cartão crédito: 4.99% + R$ 0,40
-//  - Stripe Cartão internacional: 4.99% + R$ 0,50 + 1% (cross-border)
+//  - Payment Gateway Cartão internacional: 4.99% + R$ 0,50 + 1% (cross-border)
 //
 // IMPOSTOS PRAIA GRANDE/SP:
 //  - Simples Nacional Anexo III (faturamento até R$ 180k/ano):
@@ -35,7 +35,7 @@ import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 // ── Tipos ──────────────────────────────────────────────────────
 
 interface GatewayFee {
-  gateway: 'mercadopago' | 'stripe';
+  gateway: 'mercadopago';
   paymentMethod: 'pix' | 'debito' | 'credito' | 'credito_internacional';
   label: string;
   ratePct: number;
@@ -137,9 +137,9 @@ const GATEWAY_FEES: GatewayFee[] = [
     effectiveRatePct: 5.06, // considerando ticket médio R$ 397
   },
   {
-    gateway: 'stripe',
-    paymentMethod: 'credito_internacional',
-    label: 'Stripe · Cartão Internacional',
+    gateway: 'mercadopago',
+  paymentMethod: 'credito_internacional',
+    label: 'Payment Gateway · Cartão Internacional',
     ratePct: 4.99,
     fixedFeeBRL: 0.50,
     effectiveRatePct: 6.24, // +1% cross-border
@@ -275,7 +275,7 @@ function getEffectiveGatewayFee(
 ): { fee: GatewayFee; feeBRL: number } {
   let method: GatewayFee['paymentMethod'];
   if (paymentMethod === 'pix') method = 'pix';
-  else if (planType === 'max') method = 'credito_internacional'; // MAX usa Stripe (internacional)
+  else if (planType === 'max') method = 'credito_internacional'; // MAX usa Payment Gateway (internacional)
   else method = 'credito';
 
   const fee = GATEWAY_FEES.find((f) => f.paymentMethod === method) ?? GATEWAY_FEES[0];

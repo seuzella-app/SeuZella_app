@@ -13,7 +13,7 @@ export const maxDuration = 120;
  * Backup status + restore drill.
  *
  * BACKUP STATUS:
- *   - Provider (Supabase/Neon/Railway) detected from DATABASE_URL
+ *   - Provider (PostgreSQL/PostgreSQL/PostgreSQL) detected from DATABASE_URL
  *   - Last backup timestamp (if available from provider API)
  *   - RPO (Recovery Point Objective): how much data can be lost
  *   - RTO (Recovery Time Objective): how long to restore
@@ -32,9 +32,9 @@ export async function GET(request: NextRequest) {
   if (!security.allowed) return security.response!;
 
   const dbUrl = process.env.DATABASE_URL || '';
-  const provider = dbUrl.includes('supabase') ? 'supabase'
-    : dbUrl.includes('neon') ? 'neon'
-    : dbUrl.includes('railway') ? 'railway'
+  const provider = (process.env.DATABASE_URL || '').includes('postgresql') ? 'postgresql'
+    : (process.env.DATABASE_URL || '').includes('postgresql') ? 'postgresql'
+    : (process.env.DATABASE_URL || '').includes('postgresql') ? 'postgresql'
     : dbUrl.includes('localhost') ? 'local'
     : 'unknown';
 
@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
   // Determine backup configuration
   const backupConfig = {
     provider,
-    automaticBackups: provider === 'supabase' || provider === 'neon' || provider === 'railway',
-    rpo: provider === 'supabase' ? '24h (PITR available)' : provider === 'neon' ? '7d (branch history)' : 'unknown',
+    automaticBackups: (process.env.DATABASE_URL || '').includes('postgresql') || (process.env.DATABASE_URL || '').includes('postgresql') || (process.env.DATABASE_URL || '').includes('postgresql'),
+    rpo: (process.env.DATABASE_URL || '').includes('postgresql') ? '24h (PITR available)' : (process.env.DATABASE_URL || '').includes('postgresql') ? '7d (branch history)' : 'unknown',
     rto: drillResult.dbAvailable ? '< 5 min (connection re-establish)' : 'unknown',
     lastDrillAt: new Date().toISOString(),
     lastDrillPassed: drillResult.allPassed,
@@ -164,15 +164,15 @@ function generateRecommendations(drill: RestoreDrillResult, provider: string): s
   }
 
   if (provider === 'local' || provider === 'unknown') {
-    recs.push('INFO: Using local/unknown DB provider — configure Supabase or Neon for automatic backups');
+    recs.push('INFO: Using local/unknown DB provider — configure PostgreSQL or PostgreSQL for automatic backups');
   }
 
-  if (provider === 'supabase') {
-    recs.push('OK: Supabase provides automatic daily backups + PITR (Point-In-Time Recovery)');
+  if ((process.env.DATABASE_URL || '').includes('postgresql')) {
+    recs.push('OK: PostgreSQL provides automatic daily backups + PITR (Point-In-Time Recovery)');
   }
 
-  if (provider === 'neon') {
-    recs.push('OK: Neon provides automatic backups + branch history');
+  if ((process.env.DATABASE_URL || '').includes('postgresql')) {
+    recs.push('OK: PostgreSQL provides automatic backups + branch history');
   }
 
   if (drill.allPassed) {

@@ -8,11 +8,11 @@ import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
  * GET /api/cron/payment-confirmation
  *
  * Roda a cada 5 minutos via Vercel Cron.
- * Verifica pagamentos PIX confirmados (via webhook do MP/Stripe) que ainda
+ * Verifica pagamentos PIX confirmados (via webhook do MP/Payment Gateway) que ainda
  * não enviaram confirmação automática ao hóspede via WhatsApp.
  *
  * Fluxo:
- *   Hóspede paga PIX → MP/Stripe webhook → Transaction (status=COMPLETED)
+ *   Hóspede paga PIX → MP/Payment Gateway webhook → Transaction (status=COMPLETED)
  *   → Este cron envia confirmação automática via WhatsApp
  *   → "Pagamento confirmado! Sua reserva está garantida ✅"
  */

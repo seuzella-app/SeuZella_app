@@ -10,7 +10,7 @@
 //
 // ESTRATÉGIA:
 //  - Regex determinístico (não depende de LLM) para alta performance
-//  - Cobertura: AWS, GCP, Azure, Stripe, GitHub, JWT, OpenAI, GLM, JWT
+//  - Cobertura: AWS, GCP, Azure, Payment Gateway, GitHub, JWT, OpenAI, GLM, JWT
 //    bearer tokens, connection strings Prisma/Postgres/MongoDB, chaves
 //    privadas PEM, PIX keys, emails, CPF/CNPJ, números de cartão.
 //  - Cada match é substituído por um placeholder tipado:
@@ -81,16 +81,16 @@ const SECRET_PATTERNS: SecretPattern[] = [
     regex: /\bDefaultEndpointsProtocol=https?;AccountName=[^;]+;AccountKey=[A-Za-z0-9+/=]{88}/g,
     severity: 'critical',
   },
-  // ── Stripe ──
+  // ── Payment Gateway ──
   {
-    type: 'stripe_live_key',
-    placeholder: '[REDACTED:STRIPE_LIVE_KEY]',
+    type: 'payment-gateway_live_key',
+    placeholder: '[REDACTED:PAYMENT_GATEWAY_LIVE_KEY]',
     regex: /\bsk_live_[0-9a-zA-Z]{24,}\b/g,
     severity: 'critical',
   },
   {
-    type: 'stripe_test_key',
-    placeholder: '[REDACTED:STRIPE_TEST_KEY]',
+    type: 'payment-gateway_test_key',
+    placeholder: '[REDACTED:PAYMENT_GATEWAY_TEST_KEY]',
     regex: /\bsk_test_[0-9a-zA-Z]{24,}\b/g,
     severity: 'warning',
   },
@@ -279,7 +279,7 @@ export function _testRedactor(): void {
     const apiKey = "sk-abc1234567890abcdefghijklmnopqrstuvwxyz";
     const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0hDCzM8";
     const conn = "postgresql://admin:supers3cret@db.example.com:5432/prod";
-    const stripeKeySample = "SAMPLE_REDacted_NOT_A_REAL_KEY_xxxxx";
+    const payment-gatewayKeySample = "SAMPLE_REDacted_NOT_A_REAL_KEY_xxxxx";
     const password = "mySecretPassword123";
     process.env.NEXTAUTH_SECRET = "abc123def456ghi789jkl012mno345pqr";
   `;

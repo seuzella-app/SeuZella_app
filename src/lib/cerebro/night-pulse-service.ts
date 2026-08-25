@@ -222,11 +222,11 @@ export class NightPulseService {
       error: process.env.MP_ACCESS_TOKEN ? undefined : 'MP_ACCESS_TOKEN não configurada',
     });
 
-    // 6. Stripe
+    // 6. Payment Gateway
     services.push({
-      name: 'Stripe',
-      status: process.env.STRIPE_SECRET_KEY ? 'ok' : 'warning',
-      error: process.env.STRIPE_SECRET_KEY ? undefined : 'STRIPE_SECRET_KEY não configurada',
+      name: 'Asaas',
+      status: process.env.ASAAS_API_KEY ? 'ok' : 'warning',
+      error: undefined,
     });
 
     // Determina status geral

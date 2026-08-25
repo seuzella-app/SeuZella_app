@@ -128,7 +128,7 @@ export default function PoliticaPrivacidadePage() {
             <ul className="list-disc pl-6 space-y-1">
               <li><strong>WhatsApp Cloud API (Meta):</strong> mensagens dos hóspedes</li>
               <li><strong>Z.ai (GLM 5.2):</strong> processamento de IA (apenas prompt + contexto, sem dados pessoais sensíveis)</li>
-              <li><strong>Mercado Pago / Stripe:</strong> processamento de pagamentos</li>
+              <li><strong>Mercado Pago / Payment Gateway:</strong> processamento de pagamentos</li>
               <li><strong>Provedores de fechadura (TTLock, Tuya, etc.):</strong> apenas PIN e deviceId</li>
               <li><strong>Autoridades:</strong> quando exigido por ordem judicial</li>
             </ul>

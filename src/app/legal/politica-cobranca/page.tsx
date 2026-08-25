@@ -18,7 +18,7 @@ export default function PoliticaCobrancaPage() {
             <h2 className="text-lg font-bold text-emerald-400 mb-2">1. Formas de Pagamento</h2>
             <ul className="list-disc pl-6 space-y-1">
               <li><strong>PIX:</strong> via Mercado Pago (processamento automático)</li>
-              <li><strong>Cartão de crédito:</strong> via Stripe (Visa, Mastercard, Elo, Amex)</li>
+              <li><strong>Cartão de crédito:</strong> via Payment Gateway (Visa, Mastercard, Elo, Amex)</li>
             </ul>
           </section>
 

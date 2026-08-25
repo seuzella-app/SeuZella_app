@@ -1,5 +1,5 @@
 // ============================================================================
-// StripeMock + MercadoPagoMock — Digital Twin payment gateways
+// Payment GatewayMock + MercadoPagoMock — Digital Twin payment gateways
 // ----------------------------------------------------------------------------
 // Generates PIX QR codes (visually valid but non-functional), card intents
 // that always succeed (or fail on demand for testing), and synthetic
@@ -161,7 +161,7 @@ class PaymentMock implements IPaymentGatewayAdapter {
 }
 
 /**
- * Singleton Digital Twin payment adapter. Used for both Stripe and Mercado Pago
+ * Singleton Digital Twin payment adapter. Used for both Payment Gateway and Mercado Pago
  * paths — the `provider` field on the intent records which one was simulated.
  */
 export const paymentMock = new PaymentMock();

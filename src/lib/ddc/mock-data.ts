@@ -48,7 +48,7 @@ export const mockPropertySettings: PropertySettings = {
     booking: false,
     airbnb: false,
     pix: true,
-    stripe: false,
+    "payment-gateway": false,
     calendar: true
   }
 };
