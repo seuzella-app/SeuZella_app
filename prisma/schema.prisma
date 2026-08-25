@@ -1107,6 +1107,30 @@ model PushSubscription {
   @@map("push_subscriptions")
 }
 
+/// Security finding from codex-security / T3MP3ST scans
+model SecurityFinding {
+  id               String   @id @default(cuid())
+  scanType         String   // sast | pentest | secret-scan | dependency
+  title            String
+  description      String   @default("")
+  severity         String   // critical | high | medium | low | info
+  status           String   @default("open") // open | triaged | fixing | fixed | false_positive | wont_fix
+  file             String?
+  line             Int?
+  cwe              String?
+  cvss             Float?
+  exploitPayload   String?
+  remediation      String?
+  autoFixAttempted Boolean  @default(false)
+  autoFixPrUrl     String?
+  scannedAt        DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@index([severity, status])
+  @@index([scanType, scannedAt])
+  @@map("security_findings")
+}
+
 model MetaCostLog {
   id             String   @id @default(cuid())
   tenantId       String
