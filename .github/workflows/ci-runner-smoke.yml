@@ -1,0 +1,41 @@
+name: CI Runner Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-runner-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  runner-smoke:
+    name: Runner Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Runner identity
+        run: |
+          set -euo pipefail
+          echo "runner=${RUNNER_NAME}"
+          echo "os=${RUNNER_OS}"
+          echo "arch=${RUNNER_ARCH}"
+          node --version
+          npm --version
+
+      - name: GitHub context
+        run: |
+          set -euo pipefail
+          test -n "${GITHUB_SHA}"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          echo "sha=${GITHUB_SHA}"
+          echo "ref=${GITHUB_REF}"
+
+      - name: Runner verdict
+        run: echo "RUNNER_OK=true"
