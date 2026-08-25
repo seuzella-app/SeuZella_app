@@ -45,12 +45,16 @@ export async function GET(request: NextRequest) {
   };
 
   // Cron jobs registered in vercel.json
-  let cronCount = 0;
+  let cronCount = 29; // fallback count
   try {
-    const vercelJson = await import('../../../vercel.json').catch(() => ({ crons: [] }));
-    cronCount = (vercelJson.default?.crons || vercelJson.crons || []).length;
+    const { readFileSync } = await import('node:fs');
+    const { resolve: resolvePath } = await import('node:path');
+    const vercelJsonPath = resolvePath(process.cwd(), 'vercel.json');
+    const vercelJsonRaw = readFileSync(vercelJsonPath, 'utf8');
+    const vercelJson = JSON.parse(vercelJsonRaw);
+    cronCount = (vercelJson.crons || []).length;
   } catch {
-    cronCount = 29; // fallback
+    // Keep fallback count
   }
 
   // Missing env vars (critical for production)
