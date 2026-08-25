@@ -3,14 +3,23 @@ name: Production CI/CD Pipeline
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: production-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  VPS_HOST: ${{ secrets.VPS_HOST }}
 
 jobs:
   validate:
     name: Security & Quality Gate
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout Código
         uses: actions/checkout@v4
@@ -19,17 +28,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: npm
 
       - name: Instalar Dependências
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: Prisma Generate
         run: npx prisma generate
 
       - name: Lint & Static TypeCheck
-        run: |
-          npx tsc --noEmit
+        run: npx tsc --noEmit
 
       - name: Suíte de Testes de Segurança & Prontidão
         run: |
@@ -48,7 +56,15 @@ jobs:
     needs: validate
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
+      - name: Verify VPS configuration
+        if: ${{ env.VPS_HOST == '' }}
+        run: |
+          echo "VPS_HOST is not configured; deployment is intentionally blocked."
+          echo "The validation gate remains authoritative; configure VPS secrets before production deployment."
+          exit 0
+
       - name: Disparo de Deploy Remoto na VPS
         if: ${{ env.VPS_HOST != '' }}
         uses: appleboy/ssh-action@v1.2.0
@@ -59,10 +75,10 @@ jobs:
           username: zehla
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           script: |
+            set -euo pipefail
             cd /opt/zehla
-            git pull origin main
+            git pull --ff-only origin main
             docker compose -f docker-compose.prod.yml build --no-cache app
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             docker compose -f docker-compose.prod.yml exec -T app npx prisma migrate deploy
             docker system prune -f
-
