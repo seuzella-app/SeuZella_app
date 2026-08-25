@@ -11,31 +11,25 @@ export const runtime = 'nodejs';
 /**
  * GET /api/zcc/infrastructure
  *
- * Returns infrastructure status:
- *   - Vercel deployment info
- *   - Database (Supabase/Neon) connectivity + backup status
- *   - Redis (Upstash) connectivity
- *   - VPS status (if configured)
- *   - Worker processes (BullMQ)
- *   - Cron jobs health (last execution)
- *   - Env vars configured vs missing
+ * Operational readiness information for the ZCC. This endpoint reports facts
+ * that can be observed from the running deployment; it deliberately does not
+ * claim that a backup has been restored unless a real restore drill recorded it.
  */
 export async function GET(request: NextRequest) {
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response!;
 
   const dbAvailable = await isDatabaseAvailable();
-  const redisConfigured = getActiveTransport() === 'redis';
+  const transport = getActiveTransport();
+  const redisConfigured = transport === 'redis';
   const bullmqAvailable = isBullMQAvailable();
   const pushEnabled = isPushEnabled();
 
-  // Database backup info (Supabase/Neon provides automatic backups)
   const dbProvider = process.env.DATABASE_URL?.includes('supabase') ? 'supabase'
     : process.env.DATABASE_URL?.includes('neon') ? 'neon'
     : process.env.DATABASE_URL?.includes('railway') ? 'railway'
     : 'unknown';
 
-  // Vercel deployment info
   const vercelInfo = {
     env: process.env.VERCEL_ENV || 'development',
     region: process.env.VERCEL_REGION || 'unknown',
@@ -44,20 +38,18 @@ export async function GET(request: NextRequest) {
     deploymentUrl: process.env.VERCEL_URL || 'unknown',
   };
 
-  // Cron jobs registered in vercel.json
-  let cronCount = 29; // fallback count
+  let cronCount = 0;
   try {
     const { readFileSync } = await import('node:fs');
     const { resolve: resolvePath } = await import('node:path');
     const vercelJsonPath = resolvePath(process.cwd(), 'vercel.json');
-    const vercelJsonRaw = readFileSync(vercelJsonPath, 'utf8');
-    const vercelJson = JSON.parse(vercelJsonRaw);
-    cronCount = (vercelJson.crons || []).length;
+    const vercelJson = JSON.parse(readFileSync(vercelJsonPath, 'utf8'));
+    cronCount = Array.isArray(vercelJson.crons) ? vercelJson.crons.length : 0;
   } catch {
-    // Keep fallback count
+    // Unknown is safer than inventing a count.
+    cronCount = -1;
   }
 
-  // Missing env vars (critical for production)
   const requiredEnvVars = [
     'NEXTAUTH_SECRET',
     'NEXTAUTH_URL',
@@ -76,7 +68,6 @@ export async function GET(request: NextRequest) {
     'GLM_5_2_API_KEY',
     'ASAAS_API_KEY',
     'MERCADOPAGO_ACCESS_TOKEN',
-    'STRIPE_SECRET_KEY',
     'WHATSAPP_TOKEN',
     'META_APP_SECRET',
   ];
@@ -84,17 +75,28 @@ export async function GET(request: NextRequest) {
   const missingRequired = requiredEnvVars.filter(v => !process.env[v]);
   const missingOptional = optionalEnvVars.filter(v => !process.env[v]);
 
-  // Active tenants count (for scale awareness)
   let activeTenants = 0;
   if (dbAvailable) {
     try {
-      activeTenants = await db.tenant.count({ where: { status: 'active', isTestTenant: false } }).catch(() => 0);
-    } catch {}
+      activeTenants = await db.tenant.count({ where: { status: 'active', isTestTenant: false } });
+    } catch {
+      // Keep the value conservative and expose DB availability separately.
+      activeTenants = 0;
+    }
   }
 
-  // Determine RPO/RTO status
-  const rpoStatus = dbProvider !== 'unknown' ? 'automatic (provider-managed)' : 'not configured';
-  const rtoStatus = dbAvailable ? '< 5 min (Vercel redeploy)' : 'unknown';
+  // Provider-managed backups are a capability statement, not proof of a tested restore.
+  const providerBackupAvailable = dbProvider !== 'unknown';
+  const restoreTested = false;
+  const rpoStatus = providerBackupAvailable ? 'provider-managed; verify retention policy' : 'not configured';
+  const rtoStatus = restoreTested ? 'validated by restore drill' : 'not validated';
+
+  const readinessReasons: string[] = [];
+  if (missingRequired.length > 0) readinessReasons.push(`${missingRequired.length} required env vars missing`);
+  if (!dbAvailable) readinessReasons.push('database unavailable');
+  if (!providerBackupAvailable) readinessReasons.push('database backup provider not identified');
+  if (!restoreTested) readinessReasons.push('backup restore drill not validated');
+  if (cronCount < 0) readinessReasons.push('cron configuration could not be inspected');
 
   return NextResponse.json({
     success: true,
@@ -107,11 +109,11 @@ export async function GET(request: NextRequest) {
       backupStatus: rpoStatus,
       rpo: rpoStatus,
       rto: rtoStatus,
-      restoreTested: false, // TODO: run restore test
+      restoreTested,
     },
     redis: {
       configured: redisConfigured,
-      transport: getActiveTransport(),
+      transport,
       bullmqAvailable,
     },
     push: {
@@ -120,7 +122,6 @@ export async function GET(request: NextRequest) {
     },
     crons: {
       registered: cronCount,
-      // Last execution would need a CronExecution model — future enhancement
     },
     environment: {
       requiredConfigured: requiredEnvVars.length - missingRequired.length,
@@ -129,12 +130,13 @@ export async function GET(request: NextRequest) {
       optionalMissing: missingOptional,
     },
     readiness: {
-      status: missingRequired.length === 0 ? 'ready' : 'not_ready',
+      status: readinessReasons.length === 0 ? 'ready' : 'not_ready',
       requiredMissing: missingRequired.length,
       optionalMissing: missingOptional.length,
-      message: missingRequired.length === 0
-        ? 'All required env vars configured'
-        : `${missingRequired.length} required env vars missing`,
+      reasons: readinessReasons,
+      message: readinessReasons.length === 0
+        ? 'Production readiness checks passed'
+        : `Not ready: ${readinessReasons.join('; ')}`,
     },
   });
 }
