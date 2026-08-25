@@ -1,0 +1,116 @@
+name: 🔒 Codex Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'prisma/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+  schedule:
+    # Run deep scan every Sunday at 02:00 UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install codex-security
+        run: npm install -D @openai/codex-security
+
+      - name: Run security scan (standard mode on PRs)
+        if: github.event_name == 'pull_request'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          mkdir -p ../security-reports
+          npx codex-security scan . \
+            --output-dir ../security-reports \
+            --mode standard \
+            --max-time-hours 0.5 || true
+
+      - name: Run security scan (deep mode on schedule)
+        if: github.event_name == 'schedule'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          mkdir -p ../security-reports
+          npx codex-security scan . \
+            --output-dir ../security-reports \
+            --mode deep \
+            --max-time-hours 2 || true
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('../security-reports/**/*.sarif') != ''
+        with:
+          sarif_file: ../security-reports/sarif.sarif
+
+      - name: Run custom validators
+        if: github.event_name == 'pull_request'
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+          E2E_TENANT_A_PASSWORD: ${{ secrets.E2E_TENANT_A_PASSWORD }}
+          E2E_TENANT_B_PASSWORD: ${{ secrets.E2E_TENANT_B_PASSWORD }}
+          ALEXA_JWT_SECRET: ${{ secrets.ALEXA_JWT_SECRET }}
+          ASAAS_WEBHOOK_SECRET: ${{ secrets.ASAAS_WEBHOOK_SECRET }}
+        run: |
+          # Start dev server in background
+          npm run dev &
+          SERVER_PID=$!
+          sleep 10
+          # Run validators
+          python3 security-validators/run-all.py || true
+          # Stop server
+          kill $SERVER_PID || true
+
+      - name: Comment PR with findings summary
+        if: always() && github.event_name == 'pull_request' && hashFiles('../security-reports/findings.json') != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const findings = JSON.parse(
+                fs.readFileSync('../security-reports/findings.json', 'utf8')
+              );
+              const list = findings.findings || [];
+              if (list.length === 0) {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: '## 🔒 Security Scan Results\n\n✅ No findings detected.'
+                });
+                return;
+              }
+              const summary = list.slice(0, 20)
+                .map(f => `| ${f.severity || 'N/A'} | ${f.title || 'Untitled'} | ${f.location || 'N/A'} |`)
+                .join('\n');
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `## 🔒 Security Scan Results\n\nFound ${list.length} finding(s):\n\n| Severity | Title | Location |\n|---|---|---|\n${summary}`
+              });
+            } catch (e) {
+              console.log('No findings file found or parse error:', e.message);
+            }

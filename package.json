@@ -64,7 +64,11 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "seed:beta": "npx tsx prisma/seed-beta.ts",
-    "vercel-build": "prisma generate && next build"
+    "vercel-build": "prisma generate && next build",
+    "security:scan": "codex-security scan . --output-dir ../security-reports --mode standard --max-time-hours 0.5",
+    "security:scan:deep": "codex-security scan . --output-dir ../security-reports --mode deep --max-time-hours 2",
+    "security:validate": "codex-security validate --repository-path . --output-dir ../security-reports/validation",
+    "security:validators": "python3 security-validators/run-all.py"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
@@ -178,6 +182,7 @@
     "eslint-config-next": "^16.1.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "impeccable": "^3.2.1",
-    "vitest": "^3.1.4"
+    "vitest": "^3.1.4",
+    "@openai/codex-security": "^0.1.19"
   }
 }

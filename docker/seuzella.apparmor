@@ -1,0 +1,65 @@
+abi <abi/4.0>,
+
+include <tunables/global>
+
+profile seuzella-container flags=(attach_disconnected,mediate_deleted) {
+  include <abstractions/base>
+
+  # Network: allow TCP/UDP
+  network inet,
+  network inet6,
+  network unix,
+
+  # Capabilities
+  capability net_bind_service,
+  capability net_raw,
+  capability setgid,
+  capability setuid,
+  capability dac_override,
+  capability chown,
+  capability fowner,
+  capability kill,
+  capability setpcap,
+  capability sys_chroot,
+
+  # File access: restrict to app directories
+  # Allow read/write to /tmp, /app, /home/node
+  /tmp/** rw,
+  /app/** rw,
+  /home/node/** rw,
+  /usr/local/lib/node_modules/** r,
+  /usr/local/bin/** rix,
+  /usr/bin/** rix,
+  /bin/** rix,
+
+  # Node.js binary
+  /usr/local/bin/node rix,
+  /usr/local/bin/npm rix,
+  /usr/local/bin/npx rix,
+
+  # Deny dangerous proc writes
+  deny @{PROC}/* w,
+  deny @{PROC}/sys/[^k]** w,
+  deny @{PROC}/sys/kernel/{?,??,[^s][^h][^m]**} w,
+  deny @{PROC}/sysrq-trigger rwklx,
+  deny @{PROC}/kcore rwklx,
+  deny @{PROC}/mem rwklx,
+
+  # Deny kernel module access
+  deny /sys/module/** rwklx,
+
+  # Deny raw block device access
+  deny /dev/sd* rwklx,
+  deny /dev/nvme* rwklx,
+  deny /dev/vd* rwklx,
+
+  # Signal handling
+  signal (receive) peer=unconfined,
+  signal (receive) peer=docker-default,
+  signal (send,receive) peer=seuzella-container,
+
+  # Mount: deny by default (Node.js doesn't need it)
+  deny mount,
+  deny umount,
+  deny pivot_root,
+}

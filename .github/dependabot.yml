@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 10
+    labels:
+      - "security"
+      - "dependencies"
+    reviewers:
+      - "MarcioCau14"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      security-updates:
+        update-types: ["security"]
+        patterns: ["*"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "security"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
