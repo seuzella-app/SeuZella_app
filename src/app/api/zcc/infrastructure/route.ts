@@ -11,9 +11,10 @@ export const runtime = 'nodejs';
 /**
  * GET /api/zcc/infrastructure
  *
- * Operational readiness information for the ZCC. This endpoint reports facts
- * that can be observed from the running deployment; it deliberately does not
- * claim that a backup has been restored unless a real restore drill recorded it.
+ * Operational readiness information observed from the running deployment.
+ * This endpoint intentionally separates provider capability from proof of a
+ * successful backup restore. PostgreSQL is the database engine; backup/RPO/RTO
+ * claims require an explicitly configured backup provider and real drill data.
  */
 export async function GET(request: NextRequest) {
   const security = await verifyZCCAccessOrReject(request);
@@ -24,11 +25,12 @@ export async function GET(request: NextRequest) {
   const redisConfigured = transport === 'redis';
   const bullmqAvailable = isBullMQAvailable();
   const pushEnabled = isPushEnabled();
-
-  const dbProvider = process.env.DATABASE_URL?.includes('postgresql') ? 'postgresql'
-    : process.env.DATABASE_URL?.includes('postgresql') ? 'postgresql'
-    : process.env.DATABASE_URL?.includes('postgresql') ? 'postgresql'
-    : 'unknown';
+  const databaseUrl = process.env.DATABASE_URL || '';
+  const dbProvider = databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://')
+    ? 'postgresql'
+    : databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1')
+      ? 'local'
+      : 'unknown';
 
   const vercelInfo = {
     env: process.env.VERCEL_ENV || 'development',
@@ -46,7 +48,6 @@ export async function GET(request: NextRequest) {
     const vercelJson = JSON.parse(readFileSync(vercelJsonPath, 'utf8'));
     cronCount = Array.isArray(vercelJson.crons) ? vercelJson.crons.length : 0;
   } catch {
-    // Unknown is safer than inventing a count.
     cronCount = -1;
   }
 
@@ -70,6 +71,9 @@ export async function GET(request: NextRequest) {
     'MERCADOPAGO_ACCESS_TOKEN',
     'WHATSAPP_TOKEN',
     'META_APP_SECRET',
+    'DATABASE_BACKUP_PROVIDER',
+    'DATABASE_BACKUP_RPO_HOURS',
+    'DATABASE_BACKUP_RTO_MINUTES',
   ];
 
   const missingRequired = requiredEnvVars.filter(v => !process.env[v]);
@@ -80,22 +84,21 @@ export async function GET(request: NextRequest) {
     try {
       activeTenants = await db.tenant.count({ where: { status: 'active', isTestTenant: false } });
     } catch {
-      // Keep the value conservative and expose DB availability separately.
       activeTenants = 0;
     }
   }
 
-  // Provider-managed backups are a capability statement, not proof of a tested restore.
-  const providerBackupAvailable = dbProvider !== 'unknown';
+  const backupProviderConfigured = Boolean(process.env.DATABASE_BACKUP_PROVIDER);
   const restoreTested = false;
-  const rpoStatus = providerBackupAvailable ? 'provider-managed; verify retention policy' : 'not configured';
-  const rtoStatus = restoreTested ? 'validated by restore drill' : 'not validated';
+  const configuredRpoHours = Number(process.env.DATABASE_BACKUP_RPO_HOURS || '0');
+  const configuredRtoMinutes = Number(process.env.DATABASE_BACKUP_RTO_MINUTES || '0');
 
   const readinessReasons: string[] = [];
   if (missingRequired.length > 0) readinessReasons.push(`${missingRequired.length} required env vars missing`);
   if (!dbAvailable) readinessReasons.push('database unavailable');
-  if (!providerBackupAvailable) readinessReasons.push('database backup provider not identified');
-  if (!restoreTested) readinessReasons.push('backup restore drill not validated');
+  if (dbProvider === 'unknown') readinessReasons.push('database provider not identified as PostgreSQL');
+  if (!backupProviderConfigured) readinessReasons.push('backup provider not configured');
+  if (!restoreTested) readinessReasons.push('real backup restore not certified');
   if (cronCount < 0) readinessReasons.push('cron configuration could not be inspected');
 
   return NextResponse.json({
@@ -106,9 +109,10 @@ export async function GET(request: NextRequest) {
       available: dbAvailable,
       provider: dbProvider,
       activeTenants,
-      backupStatus: rpoStatus,
-      rpo: rpoStatus,
-      rto: rtoStatus,
+      backupStatus: backupProviderConfigured ? 'configured_provider' : 'not_configured',
+      backupProvider: process.env.DATABASE_BACKUP_PROVIDER || 'unknown',
+      rpo: configuredRpoHours > 0 ? `${configuredRpoHours}h (configured target)` : 'not validated',
+      rto: configuredRtoMinutes > 0 ? `${configuredRtoMinutes} min (configured target)` : 'not validated',
       restoreTested,
     },
     redis: {
@@ -120,9 +124,7 @@ export async function GET(request: NextRequest) {
       enabled: pushEnabled,
       vapidConfigured: !!process.env.VAPID_PUBLIC_KEY && !!process.env.VAPID_PRIVATE_KEY,
     },
-    crons: {
-      registered: cronCount,
-    },
+    crons: { registered: cronCount },
     environment: {
       requiredConfigured: requiredEnvVars.length - missingRequired.length,
       requiredMissing: missingRequired,

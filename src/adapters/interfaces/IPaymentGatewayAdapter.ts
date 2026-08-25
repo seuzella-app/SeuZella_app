@@ -1,23 +1,20 @@
 // ============================================================================
-// IPaymentGatewayAdapter — contract for payment gateways
+// IPaymentGatewayAdapter — canonical payment provider contract
 // ----------------------------------------------------------------------------
-// Supports the two gateways the Zélla project uses (or will use):
-//   - Payment Gateway (international)
-//   - Mercado Pago (Brazilian PIX + cards)
-//
-// The interface is intentionally minimal. Higher-level concerns like
-// subscription lifecycle, refunds, chargebacks are handled by a domain
-// service that calls this adapter.
+// Production providers for Seu Zélla:
+//   - Asaas — SaaS billing / subscriptions and supported PIX/card flows
+//   - Mercado Pago — guest/reservation payments and PIX/cards
+// Mock remains a test-only Digital Twin.
 // ============================================================================
 
-export type PaymentProvider = | 'mercadopago';
+export type PaymentProvider = 'asaas' | 'mercadopago';
 export type PaymentMethod = 'pix' | 'credit_card' | 'boleto';
 
 export interface PaymentIntentInput {
   amountBRL: number;
   currency?: 'BRL';
   method: PaymentMethod;
-  /** Which provider to use. Required so the registry can route to Mock or Real. */
+  /** Which production provider to use. */
   provider: PaymentProvider;
   /** Customer reference in the CRM. */
   customerRef: string;

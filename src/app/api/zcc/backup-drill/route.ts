@@ -8,54 +8,46 @@ export const runtime = 'nodejs';
 export const maxDuration = 120;
 
 /**
- * GET /api/zcc/backup-drill
+ * GET/POST /api/zcc/backup-drill
  *
- * Backup status + restore drill.
- *
- * BACKUP STATUS:
- *   - Provider (PostgreSQL/PostgreSQL/PostgreSQL) detected from DATABASE_URL
- *   - Last backup timestamp (if available from provider API)
- *   - RPO (Recovery Point Objective): how much data can be lost
- *   - RTO (Recovery Time Objective): how long to restore
- *
- * RESTORE DRILL:
- *   - Tests DB connectivity (can we reach the DB?)
- *   - Tests schema integrity (can we run a simple query?)
- *   - Tests data integrity (can we count active tenants?)
- *   - Records drill result for audit
- *
- * POST /api/zcc/backup-drill
- *   - Triggers a manual restore drill
+ * IMPORTANT: this endpoint performs a DATABASE INTEGRITY DRILL only.
+ * It does NOT restore a physical backup and must never be presented as proof
+ * of backup recoverability. A real restore certification requires an isolated
+ * PostgreSQL target, a real backup artifact, restore execution and RTO/RPO
+ * measurement.
  */
 export async function GET(request: NextRequest) {
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response!;
 
   const dbUrl = process.env.DATABASE_URL || '';
-  const provider = (process.env.DATABASE_URL || '').includes('postgresql') ? 'postgresql'
-    : (process.env.DATABASE_URL || '').includes('postgresql') ? 'postgresql'
-    : (process.env.DATABASE_URL || '').includes('postgresql') ? 'postgresql'
-    : dbUrl.includes('localhost') ? 'local'
-    : 'unknown';
+  const provider = dbUrl.startsWith('postgresql://') || dbUrl.startsWith('postgres://')
+    ? 'postgresql'
+    : dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')
+      ? 'local'
+      : 'unknown';
 
-  // Run restore drill
-  const drillResult = await runRestoreDrill();
+  const integrity = await runDatabaseIntegrityDrill();
+  const backupProviderConfigured = Boolean(process.env.DATABASE_BACKUP_PROVIDER);
+  const configuredRpoHours = Number(process.env.DATABASE_BACKUP_RPO_HOURS || '0');
+  const configuredRtoMinutes = Number(process.env.DATABASE_BACKUP_RTO_MINUTES || '0');
 
-  // Determine backup configuration
   const backupConfig = {
     provider,
-    automaticBackups: (process.env.DATABASE_URL || '').includes('postgresql') || (process.env.DATABASE_URL || '').includes('postgresql') || (process.env.DATABASE_URL || '').includes('postgresql'),
-    rpo: (process.env.DATABASE_URL || '').includes('postgresql') ? '24h (PITR available)' : (process.env.DATABASE_URL || '').includes('postgresql') ? '7d (branch history)' : 'unknown',
-    rto: drillResult.dbAvailable ? '< 5 min (connection re-establish)' : 'unknown',
-    lastDrillAt: new Date().toISOString(),
-    lastDrillPassed: drillResult.allPassed,
+    backupProviderConfigured,
+    backupCapability: backupProviderConfigured ? 'configured_provider' : 'unknown',
+    rpo: configuredRpoHours > 0 ? `${configuredRpoHours}h (configured target)` : 'not validated',
+    rto: configuredRtoMinutes > 0 ? `${configuredRtoMinutes} min (configured target)` : 'not validated',
+    restoreCertified: false,
+    lastIntegrityDrillAt: integrity.timestamp,
+    lastIntegrityDrillPassed: integrity.allPassed,
   };
 
   return NextResponse.json({
     success: true,
     backup: backupConfig,
-    drill: drillResult,
-    recommendations: generateRecommendations(drillResult, provider),
+    integrityDrill: integrity,
+    recommendations: generateRecommendations(integrity, provider, backupProviderConfigured),
     timestamp: new Date().toISOString(),
   });
 }
@@ -64,34 +56,35 @@ export async function POST(request: NextRequest) {
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response!;
 
-  const drillResult = await runRestoreDrill();
+  const integrity = await runDatabaseIntegrityDrill();
 
   return NextResponse.json({
     success: true,
-    drill: drillResult,
+    restoreCertified: false,
+    integrityDrill: integrity,
     timestamp: new Date().toISOString(),
   });
 }
 
-interface RestoreDrillResult {
+interface DatabaseIntegrityDrillResult {
   dbAvailable: boolean;
   schemaIntegrity: boolean;
   dataIntegrity: boolean;
   activeTenantsCount: number;
-  totalModels: number;
+  totalModelsChecked: number;
   queryLatencyMs: number;
   errors: string[];
   allPassed: boolean;
   timestamp: string;
 }
 
-async function runRestoreDrill(): Promise<RestoreDrillResult> {
-  const result: RestoreDrillResult = {
+async function runDatabaseIntegrityDrill(): Promise<DatabaseIntegrityDrillResult> {
+  const result: DatabaseIntegrityDrillResult = {
     dbAvailable: false,
     schemaIntegrity: false,
     dataIntegrity: false,
     activeTenantsCount: 0,
-    totalModels: 0,
+    totalModelsChecked: 0,
     queryLatencyMs: 0,
     errors: [],
     allPassed: false,
@@ -100,37 +93,32 @@ async function runRestoreDrill(): Promise<RestoreDrillResult> {
 
   const start = Date.now();
 
-  // Test 1: DB connectivity
   result.dbAvailable = await isDatabaseAvailable();
   if (!result.dbAvailable) {
-    result.errors.push('Database is not available — restore would fail');
+    result.errors.push('Database is unavailable — integrity could not be verified');
     result.queryLatencyMs = Date.now() - start;
-    result.allPassed = false;
     return result;
   }
 
-  // Test 2: Schema integrity — can we query a core table?
   try {
     const tenantCount = await db.tenant.count({ where: { status: 'active', isTestTenant: false } }).catch(() => -1);
     result.schemaIntegrity = tenantCount >= 0;
     result.activeTenantsCount = tenantCount;
-    if (!result.schemaIntegrity) {
-      result.errors.push('Schema integrity check failed — tenant table not queryable');
-    }
+    if (!result.schemaIntegrity) result.errors.push('Core tenant table is not queryable');
   } catch (err) {
     result.errors.push(`Schema integrity error: ${err instanceof Error ? err.message : 'unknown'}`);
   }
 
-  // Test 3: Data integrity — can we count records in multiple tables?
   try {
     const [tenants, locks, guests, bookings] = await Promise.all([
-      db.tenant.count().catch(() => 0),
-      (db as any).lockDevice?.count?.().catch(() => 0) ?? 0,
-      (db as any).guest?.count?.().catch(() => 0) ?? 0,
-      (db as any).booking?.count?.().catch(() => 0) ?? 0,
+      db.tenant.count().catch(() => -1),
+      (db as any).lockDevice?.count?.().catch(() => -1) ?? -1,
+      (db as any).guest?.count?.().catch(() => -1) ?? -1,
+      (db as any).booking?.count?.().catch(() => -1) ?? -1,
     ]);
-    result.dataIntegrity = tenants >= 0 && locks >= 0 && guests >= 0 && bookings >= 0;
-    result.totalModels = 4; // We tested 4 core tables
+    result.dataIntegrity = [tenants, locks, guests, bookings].every((count) => count >= 0);
+    result.totalModelsChecked = 4;
+    if (!result.dataIntegrity) result.errors.push('One or more core data integrity checks failed');
   } catch (err) {
     result.errors.push(`Data integrity error: ${err instanceof Error ? err.message : 'unknown'}`);
   }
@@ -138,7 +126,7 @@ async function runRestoreDrill(): Promise<RestoreDrillResult> {
   result.queryLatencyMs = Date.now() - start;
   result.allPassed = result.dbAvailable && result.schemaIntegrity && result.dataIntegrity;
 
-  logger.info('[BackupDrill] Restore drill completed', {
+  logger.info('[BackupDrill] Database integrity drill completed', {
     allPassed: result.allPassed,
     latencyMs: result.queryLatencyMs,
     activeTenants: result.activeTenantsCount,
@@ -148,36 +136,19 @@ async function runRestoreDrill(): Promise<RestoreDrillResult> {
   return result;
 }
 
-function generateRecommendations(drill: RestoreDrillResult, provider: string): string[] {
+function generateRecommendations(
+  drill: DatabaseIntegrityDrillResult,
+  provider: string,
+  backupProviderConfigured: boolean,
+): string[] {
   const recs: string[] = [];
 
-  if (!drill.dbAvailable) {
-    recs.push('CRITICAL: Database is down — restore from latest backup immediately');
-  }
-
-  if (!drill.schemaIntegrity) {
-    recs.push('WARNING: Schema integrity check failed — run prisma migrate deploy');
-  }
-
-  if (drill.queryLatencyMs > 1000) {
-    recs.push(`WARNING: DB latency ${drill.queryLatencyMs}ms — investigate slow queries or connection pool`);
-  }
-
-  if (provider === 'local' || provider === 'unknown') {
-    recs.push('INFO: Using local/unknown DB provider — configure PostgreSQL or PostgreSQL for automatic backups');
-  }
-
-  if ((process.env.DATABASE_URL || '').includes('postgresql')) {
-    recs.push('OK: PostgreSQL provides automatic daily backups + PITR (Point-In-Time Recovery)');
-  }
-
-  if ((process.env.DATABASE_URL || '').includes('postgresql')) {
-    recs.push('OK: PostgreSQL provides automatic backups + branch history');
-  }
-
-  if (drill.allPassed) {
-    recs.push('OK: Restore drill passed — DB is operational and data is accessible');
-  }
+  if (!drill.dbAvailable) recs.push('CRITICAL: Database unavailable — investigate connectivity before production use');
+  if (!drill.schemaIntegrity) recs.push('WARNING: Schema integrity check failed — validate Prisma migrations');
+  if (drill.queryLatencyMs > 1000) recs.push(`WARNING: DB query latency ${drill.queryLatencyMs}ms — investigate connection pool or slow queries`);
+  if (provider === 'unknown') recs.push('WARNING: DATABASE_URL provider could not be identified as PostgreSQL');
+  if (!backupProviderConfigured) recs.push('WARNING: No DATABASE_BACKUP_PROVIDER is configured; backup retention and restore capability are not certified');
+  if (drill.allPassed) recs.push('OK: Database integrity drill passed — operational data is accessible and queryable');
 
   return recs;
 }
