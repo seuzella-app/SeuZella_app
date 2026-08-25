@@ -35,8 +35,8 @@
         # Permissions
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
 
-        # CSP
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://sdk.mercadopago.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.cloudinary.com https://*.mercadopago.com; font-src 'self' data:; connect-src 'self' https://*.mercadopago.com wss://smart-hotel-zehla.vercel.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://*.mercadopago.com"
+        # CSP — apenas origens efetivamente utilizadas pelo Seu Zélla
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://sdk.mercadopago.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.cloudinary.com https://*.mercadopago.com; font-src 'self' data:; connect-src 'self' https://*.mercadopago.com wss://smart-hotel-zehla.vercel.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://*.mercadopago.com"
 
         # Remove Server header (security by obscurity)
         -Server
