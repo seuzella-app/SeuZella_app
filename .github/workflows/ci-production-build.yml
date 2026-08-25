@@ -1,27 +1,20 @@
-name: Production Build Gate
+# Retired duplicate production build gate.
+# The authoritative build validation is performed by `.github/workflows/master-gate.yml`.
+# Kept manual-only for forensic/recovery use.
+
+name: Production Build Gate (Legacy Manual)
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
-concurrency:
-  group: production-build-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
 
 jobs:
-  build:
+  retired:
+    name: Legacy production build retired
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx prisma generate
-      - run: npm run typecheck
-      - run: npx vitest run tests/mobile/ tests/pwa/ --reporter=dot
-      - run: npm run vercel-build
+      - run: |
+          echo "This legacy workflow is intentionally manual-only."
+          echo "Use Master Gate for authoritative production validation."
