@@ -191,7 +191,7 @@ describe('🔒 Tenant Isolation Adversarial Certification', () => {
       let threw = false;
       try {
         await db.booking.create({
-          data: { tenantId: tenantId!, guestId: 'guest_B1', guestName: 'João' },
+          data: { tenantId: tenantId!, guestId: 'guest_B1', guestName: 'João', checkIn: new Date(), checkOut: new Date(), totalValue: 590, status: 'confirmed' } as any,
         });
       } catch (e: any) {
         threw = true;
@@ -205,7 +205,7 @@ describe('🔒 Tenant Isolation Adversarial Certification', () => {
       const tenantId = await resolveTenantId();
 
       const booking = await db.booking.create({
-        data: { tenantId: tenantId!, guestId: 'guest_A1', guestName: 'Maria' },
+        data: { tenantId: tenantId!, guestId: 'guest_A1', guestName: 'Maria', checkIn: new Date(), checkOut: new Date(), totalValue: 590 } as any,
       });
 
       expect(booking).toBeDefined();
@@ -314,7 +314,7 @@ describe('🔒 Tenant Isolation — source contracts', () => {
     // Count entries in TENANT_MODELS array
     const match = source.match(/const TENANT_MODELS = \[([\s\S]*?)\]/);
     expect(match, 'TENANT_MODELS array must exist').not.toBeNull();
-    const entries = match![1].split(',').filter(s => s.trim());
+    const entries = match![1].split(',').filter((s: string) => s.trim());
     expect(entries.length, `TENANT_MODELS has ${entries.length} entries (expected >=30)`).toBeGreaterThanOrEqual(30);
   });
 

@@ -179,6 +179,10 @@
     {
       "path": "/api/cron/sre-alerts",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/backup-restore-drill",
+      "schedule": "0 5 * * 0"
     }
   ]
 }
