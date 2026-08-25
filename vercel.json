@@ -175,6 +175,10 @@
     {
       "path": "/api/cron/security-scan",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/sre-alerts",
+      "schedule": "0 7 * * *"
     }
   ]
 }
