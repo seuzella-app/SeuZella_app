@@ -48,7 +48,6 @@ const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx']
 
 function collectFiles(rootDir: string): string[] {
   const files: string[] = [];
-
   function walk(dir: string) {
     for (const entry of readdirSync(dir)) {
       if (IGNORED_DIRS.has(entry)) continue;
@@ -58,7 +57,6 @@ function collectFiles(rootDir: string): string[] {
       else if (SOURCE_EXTENSIONS.has(extname(fullPath)) || entry === 'schema.prisma') files.push(fullPath);
     }
   }
-
   walk(rootDir);
   return files;
 }
@@ -97,17 +95,13 @@ function indexCodebase(rootDir: string): { symbols: CodeSymbol[]; edges: CallEdg
     const routePath = routeName(relPath);
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-
-      // Route detection must happen BEFORE generic const-function detection.
       const routeMatch = line.match(/^\s*export\s+(?:async\s+)?(?:const|function)\s+(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\b/);
       if (routeMatch && routePath) {
         symbols.push({ name: `${routeMatch[1]} ${routePath}`, type: 'route', file: relPath, line: i + 1, exported: true });
       }
 
       const fnMatch = line.match(/^\s*(?:export\s+)?(?:async\s+)?function\s+(\w+)/);
-      if (fnMatch) {
-        symbols.push({ name: fnMatch[1], type: 'function', file: relPath, line: i + 1, exported: /\bexport\b/.test(line) });
-      }
+      if (fnMatch) symbols.push({ name: fnMatch[1], type: 'function', file: relPath, line: i + 1, exported: /\bexport\b/.test(line) });
 
       const arrowMatch = line.match(/^\s*(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>/);
       if (arrowMatch && !['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'].includes(arrowMatch[1])) {
@@ -124,13 +118,9 @@ function indexCodebase(rootDir: string): { symbols: CodeSymbol[]; edges: CallEdg
       if (typeMatch) symbols.push({ name: typeMatch[1], type: 'type', file: relPath, line: i + 1, exported: /\bexport\b/.test(line) });
     }
 
-    // Approximate import edges. This is deliberately labelled as structural,
-    // not a substitute for the native CBM/LSP resolver.
     for (const line of lines) {
       const importMatch = line.match(/(?:from|import)\s*['"]@\/([^'"]+)['"]/);
-      if (importMatch) {
-        edges.push({ from: relPath, to: `src/${importMatch[1]}`, fromFile: relPath, toFile: `src/${importMatch[1]}` });
-      }
+      if (importMatch) edges.push({ from: relPath, to: `src/${importMatch[1]}`, fromFile: relPath, toFile: `src/${importMatch[1]}` });
     }
   }
 
@@ -138,7 +128,6 @@ function indexCodebase(rootDir: string): { symbols: CodeSymbol[]; edges: CallEdg
 }
 
 let cachedIndex: ReturnType<typeof indexCodebase> & { rootDir: string } | null = null;
-
 function getIndex(rootDir: string) {
   if (cachedIndex?.rootDir === rootDir) return cachedIndex;
   const index = indexCodebase(rootDir);
@@ -150,32 +139,28 @@ export function searchGraph(query: string, rootDir: string = process.cwd()): Cod
   const start = Date.now();
   const { symbols } = getIndex(rootDir);
   const term = query.includes(':') ? query.slice(query.indexOf(':') + 1) : query;
-  let results: CodeSymbol[];
-
-  if (query.startsWith('function:')) results = symbols.filter(s => s.type === 'function' && s.name.includes(term));
-  else if (query.startsWith('route:')) results = symbols.filter(s => s.type === 'route' && s.name.includes(term));
-  else if (query.startsWith('model:')) results = symbols.filter(s => s.type === 'model' && s.name.includes(term));
-  else results = symbols.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.file.toLowerCase().includes(query.toLowerCase()));
-
+  const results = query.startsWith('function:')
+    ? symbols.filter(s => s.type === 'function' && s.name.includes(term))
+    : query.startsWith('route:')
+      ? symbols.filter(s => s.type === 'route' && s.name.includes(term))
+      : query.startsWith('model:')
+        ? symbols.filter(s => s.type === 'model' && s.name.includes(term))
+        : symbols.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.file.toLowerCase().includes(query.toLowerCase()));
   return { query, symbols: results, durationMs: Date.now() - start };
 }
 
 export function tracePath(functionName: string, rootDir: string = process.cwd()): CodebaseQueryResult {
   const start = Date.now();
-  const { symbols } = getIndex(rootDir);
   const callers: CodeSymbol[] = [];
-
   try {
     const output = execFileSync('grep', ['-rln', '--include=*.ts', '--include=*.tsx', functionName, 'src/'], { timeout: 5000, encoding: 'utf8' }).trim();
     for (const file of output.split('\n').filter(Boolean)) {
       const relPath = relative(rootDir, file).replace(/\\/g, '/');
-      const content = readFileSync(file, 'utf8');
-      const lines = content.split('\n');
+      const lines = readFileSync(file, 'utf8').split('\n');
       const lineIndex = lines.findIndex(line => line.includes(functionName) && !/\b(import|export)\b/.test(line));
       if (lineIndex >= 0) callers.push({ name: `${functionName} caller`, type: 'function', file: relPath, line: lineIndex + 1, exported: false });
     }
-  } catch { /* grep exit 1 means no matches; return an empty result */ }
-
+  } catch { /* grep exit 1 means no matches */ }
   return { query: `trace:${functionName}`, symbols: callers, durationMs: Date.now() - start };
 }
 
@@ -183,18 +168,14 @@ export function detectDeadCode(rootDir: string = process.cwd()): CodebaseQueryRe
   const start = Date.now();
   const { symbols } = getIndex(rootDir);
   const deadCode: CodeSymbol[] = [];
-
   for (const symbol of symbols) {
     if (symbol.type !== 'function' || !symbol.exported) continue;
     try {
       const output = execFileSync('grep', ['-rnl', '--include=*.ts', '--include=*.tsx', symbol.name, 'src/'], { timeout: 3000, encoding: 'utf8' }).trim();
       const files = output.split('\n').filter(Boolean);
-      // A symbol is only a candidate for dead code when its name is absent from
-      // every other source file. This is intentionally conservative.
       if (files.length === 0 || files.every(file => relative(rootDir, file).replace(/\\/g, '/') === symbol.file)) deadCode.push(symbol);
     } catch { deadCode.push(symbol); }
   }
-
   return { query: 'detect:dead-code', symbols: deadCode, durationMs: Date.now() - start };
 }
 
@@ -206,14 +187,7 @@ export function getArchitecture(rootDir: string = process.cwd()): CodebaseQueryR
   const fileCount: Record<string, number> = {};
   for (const symbol of symbols) fileCount[symbol.file] = (fileCount[symbol.file] ?? 0) + 1;
   const hotspots = Object.entries(fileCount).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([file, symbolCount]) => ({ file, symbolCount }));
-  const deadCode = detectDeadCode(rootDir).symbols.slice(0, 20).map(s => ({ name: s.name, file: s.file, line: s.line }));
-
-  return {
-    query: 'architecture',
-    symbols: [],
-    overview: { languages, totalFiles, totalSymbols: symbols.length, routes, models, hotspots, deadCode },
-    durationMs: Date.now() - start,
-  };
+  return { query: 'architecture', symbols: [], overview: { languages, totalFiles, totalSymbols: symbols.length, routes, models, hotspots, deadCode: [] }, durationMs: Date.now() - start };
 }
 
 export async function queryCodebase(query: string): Promise<CodebaseQueryResult> {
