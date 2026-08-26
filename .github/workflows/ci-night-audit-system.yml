@@ -1,80 +1,40 @@
-# ============================================================================
-# ZÉLLA — CI: Night Audit System (Cérebro Noturno Ativo)
-# ============================================================================
-# Roda os testes do sistema de auditoria noturna após cada push para main.
-#
-# Testes cobertos:
-#   - NightPulseService: 3 tipos de pulso (heartbeat, mini_scan, metrics_snapshot)
-#   - NightPentestService: SAST + API pentest + npm audit + diff
-#   - NightActivityTrackerService: 4 superfícies (landing/ddc/linkinbio/parceiros)
-#   - Agency-Agents Catalog: 12 system prompts + LGPD guard
-#   - GlmCerebroService.runWithAgent: integração com agency agents
-#
-# Resultados:
-#   - Sucesso: ✅ verde (não bloqueia merge — sistema é novo)
-#   - Falha: ❌ vermelho (alerta para revisar antes de deploy)
-# ============================================================================
+# Night Audit certification is diagnostic/deep work, not a PR gate.
+# Master Gate owns mandatory PR/push validation.
 
-name: 🌙 Night Audit System Tests
+name: 🌙 Night Audit System Certification
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/lib/cerebro/night-**.ts'
-      - 'src/lib/cerebro/agency-agents-catalog.ts'
-      - 'src/lib/cerebro/glm-service.ts'
-      - 'src/app/api/cron/cerebro-night-**'
-      - 'src/app/api/zcc/night-audit/**'
-      - 'tests/night-audit-system.test.ts'
-      - 'prisma/schema.prisma'
-      - '.github/workflows/ci-night-audit-system.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'src/lib/cerebro/night-**.ts'
-      - 'src/lib/cerebro/agency-agents-catalog.ts'
-      - 'src/lib/cerebro/glm-service.ts'
-      - 'src/app/api/cron/cerebro-night-**'
-      - 'src/app/api/zcc/night-audit/**'
-      - 'tests/night-audit-system.test.ts'
-      - 'prisma/schema.prisma'
+  schedule:
+    - cron: '30 3 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: night-audit-certification
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+  CI: 'true'
+  NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+  DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
 
 jobs:
   test:
     name: 🧪 Night Audit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 12
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-
-      - name: 📦 Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: 🔧 Generate Prisma Client
-        env:
-          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Generate Prisma Client
         run: npx prisma generate
-
-      - name: 🌙 Run Night Audit System Tests
-        run: npx vitest run tests/night-audit-system.test.ts --reporter=verbose
-
-      - name: 📊 Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: night-audit-test-results
-          path: |
-            test-results/
-            coverage/
-          retention-days: 7
+      - name: Run Night Audit certification
+        run: npx vitest run tests/night-audit-system.test.ts --reporter=dot
