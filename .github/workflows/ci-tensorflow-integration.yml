@@ -1,27 +1,25 @@
-# ============================================================================
-# ZÉLLA — CI: TensorFlow Integration Tests
-# ============================================================================
+# Targeted TensorFlow integration certification.
+# Master Gate owns main push validation; this workflow only runs when its
+# TensorFlow-specific surface changes in a PR.
 
 name: 🧠 TensorFlow Integration Tests
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    branches: [main]
     paths:
       - 'src/lib/ai/tf-client.ts'
       - 'deploy/tensorflow-sidecar/**'
       - 'tests/tensorflow-integration.test.ts'
       - '.github/workflows/ci-tensorflow-integration.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'src/lib/ai/tf-client.ts'
-      - 'deploy/tensorflow-sidecar/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: tensorflow-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -40,7 +38,7 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: 🔧 Generate Prisma Client
         env:
