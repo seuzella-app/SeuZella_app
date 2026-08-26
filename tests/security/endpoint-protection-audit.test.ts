@@ -18,12 +18,16 @@ const CRITICAL_PREFIXES = [
   'src/app/api/ddc/housekeeping',
   'src/app/api/ddc/airb/properties',
   'src/app/api/ddc/realtime',
+  'src/app/api/ddc/conversations/',
   'src/app/api/push',
   'src/app/api/locks/',
   'src/app/api/reservations/',
   'src/app/api/guests/',
   'src/app/api/bookings/',
   'src/app/api/push/',
+  'src/app/api/properties/',
+  'src/app/api/targets/',
+  'src/app/api/checkout/',
 ];
 
 const PUBLIC_EXEMPTIONS = [
