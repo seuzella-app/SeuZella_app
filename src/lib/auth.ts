@@ -79,15 +79,21 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'google' && user.email) {
         try {
           if (!(await isDatabaseAvailable())) return false;
-          const existingTenant = await db.tenant.findUnique({ where: { email: user.email } });
+          const cleanEmail = user.email.trim().toLowerCase();
+          const existingTenant = await db.tenant.findUnique({ where: { email: cleanEmail } });
           if (!existingTenant) {
-            const newTenant = await db.tenant.create({ data: { name: user.name || user.email.split('@')[0], email: user.email, plan: 'lite', status: 'active', niche: 'pousada' } });
+            const newTenant = await db.tenant.create({ data: { name: user.name || cleanEmail.split('@')[0], email: cleanEmail, plan: 'lite', status: 'active', niche: 'pousada' } });
             if (user.id) await db.user.update({ where: { id: user.id }, data: { tenant: { connect: { id: newTenant.id } } } });
           } else {
             if (existingTenant.status !== 'active') return false;
+            // The email is the tenant identity for Google provisioning. If the
+            // adapter user already points elsewhere, repair the binding before
+            // issuing a JWT so a stale account cannot carry another tenantId.
             if (user.id) {
               const existingUser = await db.user.findUnique({ where: { id: user.id } });
-              if (existingUser && !existingUser.tenantId) await db.user.update({ where: { id: user.id }, data: { tenant: { connect: { id: existingTenant.id } } } });
+              if (existingUser && existingUser.tenantId !== existingTenant.id) {
+                await db.user.update({ where: { id: user.id }, data: { tenant: { connect: { id: existingTenant.id } } } });
+              }
             }
           }
           return true;
@@ -99,7 +105,7 @@ export const authOptions: NextAuthOptions = {
       if (user) { token.tenantId = (user as any).tenantId; token.role = (user as any).role; token.plan = (user as any).plan; token.niche = (user as any).niche; }
       if (account?.provider === 'google' && user?.email) {
         try {
-          const tenant = await db.tenant.findUnique({ where: { email: user.email } });
+          const tenant = await db.tenant.findUnique({ where: { email: user.email.trim().toLowerCase() } });
           if (tenant && tenant.status === 'active') {
             token.tenantId = tenant.id;
             token.role = isConfiguredZccAdmin(user.email.toLowerCase()) ? 'system_admin' : tenant.role;
