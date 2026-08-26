@@ -48,16 +48,28 @@ export async function requireTenantAccess(request: NextRequest, options?: Tenant
 
   let tenantId = sessionTenantId as string | undefined;
   const userRole: TenantRole = (session?.user?.role as TenantRole) || 'client';
+  const sessionUserId = session?.user?.id as string | undefined;
 
   try {
     if (!tenantId) {
-      const tenant = await db.tenant.findFirst({ where: { email: userEmail } });
+      const tenant = userEmail ? await db.tenant.findUnique({ where: { email: userEmail.trim().toLowerCase() } }) : null;
       tenantId = tenant?.id;
     } else {
       const tenant = await db.tenant.findUnique({ where: { id: tenantId } });
       if (!tenant) tenantId = undefined;
       else if (tenant.status === 'suspended' || tenant.status === 'churned') {
         return { allowed: false, context: createAnonymousContext(clientIp, userAgent, requestId), response: NextResponse.json({ error: 'Tenant suspenso ou inativo.', code: 'TENANT_SUSPENDED' }, { status: 403 }) };
+      }
+    }
+
+    // A JWT tenantId is not sufficient by itself. For ordinary sessions,
+    // verify that the persisted user record still belongs to the same tenant.
+    // This prevents a stale/reassigned account from carrying an old tenantId.
+    if (tenantId && sessionUserId && userRole !== ('system_admin' as TenantRole)) {
+      const persistedUser = await db.user.findUnique({ where: { id: sessionUserId }, select: { tenantId: true } });
+      if (!persistedUser?.tenantId || persistedUser.tenantId !== tenantId) {
+        logger.warn('[TENANT_AUTH] Session/user tenant mismatch; denying access', { requestId, sessionUserId, tenantId, persistedTenantId: persistedUser?.tenantId });
+        return { allowed: false, context: createAnonymousContext(clientIp, userAgent, requestId), response: NextResponse.json({ error: 'Tenant inválido.', code: 'TENANT_MISMATCH', requestId }, { status: 403 }) };
       }
     }
   } catch (err) {
