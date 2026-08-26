@@ -1,10 +1,13 @@
-name: Production CI/CD Pipeline
+name: Production Deployment
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
+# The Master Gate is the authoritative pre-merge quality gate.
+# This workflow is intentionally deployment-only: it must not duplicate
+# checkout, npm ci, typecheck, lint, security or production-readiness checks.
 permissions:
   contents: read
 
@@ -16,45 +19,9 @@ env:
   VPS_HOST: ${{ secrets.VPS_HOST }}
 
 jobs:
-  validate:
-    name: Security & Quality Gate
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - name: Checkout Código
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Instalar Dependências
-        run: npm ci --legacy-peer-deps
-
-      - name: Prisma Generate
-        run: npx prisma generate
-
-      - name: Lint & Static TypeCheck
-        run: npx tsc --noEmit
-
-      - name: Suíte de Testes de Segurança & Prontidão
-        run: |
-          npx vitest run tests/security/
-          npx vitest run tests/production-readiness-master.test.ts
-
-      - name: Production Preflight Check
-        run: npm run production:check
-        env:
-          ZELLA_ENCRYPTION_KEY: ${{ secrets.CI_TEST_ENCRYPTION_KEY || '01234567890123456789012345678901' }}
-          NEXTAUTH_SECRET: ${{ secrets.CI_TEST_NEXTAUTH_SECRET || 'ci-test-secret-key-32-chars-long!' }}
-          META_APP_SECRET: ${{ secrets.CI_TEST_META_APP_SECRET || 'ci-test-meta-app-secret-valid-key' }}
-
   deploy:
     name: Deploy via SSH na VPS
-    needs: validate
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -62,7 +29,7 @@ jobs:
         if: ${{ env.VPS_HOST == '' }}
         run: |
           echo "VPS_HOST is not configured; deployment is intentionally blocked."
-          echo "The validation gate remains authoritative; configure VPS secrets before production deployment."
+          echo "Master Gate remains authoritative for code quality; configure VPS secrets to enable deployment."
           exit 0
 
       - name: Disparo de Deploy Remoto na VPS
