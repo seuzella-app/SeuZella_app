@@ -31,9 +31,9 @@ const TENANT_MODELS = [
   'AirbReport', 'PolicyAudit', 'CerebroWorkflow',
 ] as const;
 
-const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'];
-const CREATE_OPERATIONS = ['create', 'createMany', 'upsert'];
-type AnyArgs = { where?: any; data?: any; [key: string]: any };
+const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'findUnique', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy', 'upsert'];
+const CREATE_OPERATIONS = ['create', 'createMany'];
+type AnyArgs = { where?: any; data?: any; create?: any; update?: any; [key: string]: any };
 
 export function getTenantDb(prisma: PrismaClient, tenantId: string) {
   if (!tenantId) throw new Error('TENANT_CONTEXT_REQUIRED');
@@ -58,7 +58,12 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
             args.where.tenantId = tenantId;
           }
 
-          if (CREATE_OPERATIONS.includes(operation)) {
+          if (operation === 'upsert') {
+            args.create ??= {};
+            args.update ??= {};
+            args.create.tenantId = tenantId;
+            args.update.tenantId = tenantId;
+          } else if (CREATE_OPERATIONS.includes(operation)) {
             args ??= {};
             args.data ??= {};
             if (operation === 'createMany' && Array.isArray(args.data)) args.data = args.data.map((item: any) => ({ ...item, tenantId }));
