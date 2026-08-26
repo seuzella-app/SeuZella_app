@@ -1,20 +1,9 @@
 # ============================================================================
 # 🚦 MASTER GATE — Pipeline Determinístico GO/NO-GO
 # ============================================================================
-# Este é o ÚNICO gate que precisa ficar verde para um PR ser mergeable.
-# Substitui a fragmentação de 20+ workflows por um pipeline orquestrado:
-#
-#   PR → Fast Gate (< 5min) → Full Suite (< 15min) → GO/NO-GO Verdict
-#
-# Estrutura:
-#   1. FAST GATE (blocking): typecheck + lint + unit tests + secret scan
-#   2. FULL SUITE (blocking): build + security + integration + E2E (mock)
-#   3. VERDICT (summary): GO se todos passarem, NO-GO caso contrário
-#
-# Pipeline types:
-#   - PR para main: Fast Gate + Full Suite (sem deploy)
-#   - Push para main: Fast Gate + Full Suite + Deploy (Vercel auto)
-#   - Nightly (schedule): Deep security scan + stress + E2E real
+# ÚNICO gate obrigatório para PRs/merges.
+# GitHub Actions executa apenas a validação determinística e barata.
+# Stress/E2E/deep scans ficam em janelas próprias (ou serão movidos para VPS).
 # ============================================================================
 
 name: 🚦 Master Gate — GO/NO-GO
@@ -30,12 +19,25 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig.json'
+      - 'next.config.*'
       - 'vercel.json'
+      - '.github/workflows/master-gate.yml'
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'prisma/**'
+      - 'tests/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'next.config.*'
+      - 'vercel.json'
+      - '.github/workflows/**'
   schedule:
-    # Nightly: 02:00 UTC (23:00 BRT) — deep scan
     - cron: '0 2 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -44,7 +46,7 @@ permissions:
   checks: write
 
 concurrency:
-  group: master-gate-${{ github.ref }}
+  group: master-gate-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -52,16 +54,15 @@ env:
   CI: 'true'
   NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
   NEXTAUTH_URL: http://localhost:3000
-  UPSTASH_REDIS_REST_URL: http://localhost:8079
-  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
   DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
 
 jobs:
-  # ═══════════════════════════════════════════════════════════════════════════
-  # FASE 1: FAST GATE — < 5 min (blocking)
-  # ═══════════════════════════════════════════════════════════════════════════
+  # --------------------------------------------------------------------------
+  # FAST GATE — somente PR/push/manual; nunca duplica o nightly.
+  # --------------------------------------------------------------------------
   fast-gate:
     name: ⚡ Fast Gate
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     outputs:
@@ -74,67 +75,65 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
+      - name: Install dependencies (lockfile)
+        run: npm ci --legacy-peer-deps
 
       - name: TypeScript Type Check
         id: typecheck
-        run: npx tsc --noEmit
+        run: npm run typecheck
         continue-on-error: true
 
       - name: ESLint
         id: lint
-        run: npx eslint src/ --max-warnings=0
+        run: npm run lint -- --max-warnings=0
         continue-on-error: true
 
-      - name: Unit Tests (fast)
+      - name: Unit Tests (targeted)
         id: unit
-        run: npx vitest run --reporter=verbose --timeout=30000
-        env:
-          NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
-          DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: npm run test:unit -- --reporter=dot --timeout=30000
         continue-on-error: true
 
-      - name: Secret Scan (regex)
+      - name: Secret Scan (fail closed)
         id: secrets
+        shell: bash
         run: |
-          # Quick regex-based secret scan
-          ! grep -rE '(sk_live_[a-zA-Z0-9]{24,}|ghp_[a-zA-Z0-9]{36,}|AKIA[A-Z0-9]{16}|-----BEGIN.*PRIVATE KEY-----)' \
-            --include='*.ts' --include='*.tsx' --include='*.js' --include='*.json' \
-            --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist \
+          set -o pipefail
+          if grep -rEn \
+            '(sk_live_[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{36,}|github_pat_[a-zA-Z0-9_]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN[[:space:]]+.*PRIVATE KEY-----)' \
+            --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='*.json' \
+            --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist --exclude-dir=.git \
             --exclude='*.test.*' --exclude='*.spec.*' --exclude='.env.example' \
-            src/ 2>/dev/null || echo "No secrets found"
-        continue-on-error: true
+            src/ .github/ 2>/dev/null; then
+            echo '::error::Potential hard-coded secret detected.'
+            exit 1
+          fi
+          echo 'No matching hard-coded secrets detected.'
 
       - name: Fast Gate Verdict
         id: result
+        shell: bash
         run: |
-          TYPECHECK="${{ steps.typecheck.outcome }}"
-          LINT="${{ steps.lint.outcome }}"
-          UNIT="${{ steps.unit.outcome }}"
-          SECRETS="${{ steps.secrets.outcome }}"
-
-          echo "::notice::Fast Gate Results — TS:${TYPECHECK} | Lint:${LINT} | Unit:${UNIT} | Secrets:${SECRETS}"
-
-          if [ "$TYPECHECK" = "success" ] && [ "$LINT" = "success" ] && [ "$UNIT" = "success" ] && [ "$SECRETS" = "success" ]; then
-            echo "passed=true" >> $GITHUB_OUTPUT
-            echo "::notice::✅ Fast Gate PASSED — all 4 checks green"
+          TYPECHECK='${{ steps.typecheck.outcome }}'
+          LINT='${{ steps.lint.outcome }}'
+          UNIT='${{ steps.unit.outcome }}'
+          SECRETS='${{ steps.secrets.outcome }}'
+          echo "TS:${TYPECHECK} | Lint:${LINT} | Unit:${UNIT} | Secrets:${SECRETS}"
+          if [[ "$TYPECHECK" == success && "$LINT" == success && "$UNIT" == success && "$SECRETS" == success ]]; then
+            echo 'passed=true' >> "$GITHUB_OUTPUT"
+            echo '::notice::✅ Fast Gate PASSED'
           else
-            echo "passed=false" >> $GITHUB_OUTPUT
-            echo "::error::❌ Fast Gate FAILED — TS:${TYPECHECK} Lint:${LINT} Unit:${UNIT} Secrets:${SECRETS}"
+            echo 'passed=false' >> "$GITHUB_OUTPUT"
+            echo '::error::❌ Fast Gate FAILED'
             exit 1
           fi
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # FASE 2: FULL SUITE — < 15 min (blocking, depende de Fast Gate)
-  # ═══════════════════════════════════════════════════════════════════════════
+  # --------------------------------------------------------------------------
+  # FULL SUITE — somente depois do Fast Gate.
+  # --------------------------------------------------------------------------
   full-suite:
     name: 🔬 Full Suite
     needs: fast-gate
-    if: needs.fast-gate.outputs.passed == 'true'
+    if: github.event_name != 'schedule' && needs.fast-gate.outputs.passed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -147,26 +146,23 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+      - name: Install dependencies (lockfile)
+        run: npm ci --legacy-peer-deps
 
       - name: Generate Prisma Client
         run: npx prisma generate
 
       - name: Next.js Build
         id: build
-        run: npx next build
+        run: npm run build
         env:
           NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
-          DATABASE_URL: ${{ env.DATABASE_URL }}
         continue-on-error: true
 
-      - name: Security Tests
+      - name: Security Certification Suite
         id: security
-        run: npx vitest run tests/security/ --reporter=verbose --timeout=30000
-        env:
-          NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
+        run: npx vitest run tests/security/ --reporter=dot --timeout=30000
         continue-on-error: true
 
       - name: Prisma Schema Validation
@@ -176,27 +172,26 @@ jobs:
 
       - name: Full Suite Verdict
         id: result
+        shell: bash
         run: |
-          BUILD="${{ steps.build.outcome }}"
-          SECURITY="${{ steps.security.outcome }}"
-          PRISMA="${{ steps.prisma.outcome }}"
-
-          echo "::notice::Full Suite Results — Build:${BUILD} | Security:${SECURITY} | Prisma:${PRISMA}"
-
-          if [ "$BUILD" = "success" ] && [ "$SECURITY" = "success" ] && [ "$PRISMA" = "success" ]; then
-            echo "passed=true" >> $GITHUB_OUTPUT
-            echo "::notice::✅ Full Suite PASSED"
+          BUILD='${{ steps.build.outcome }}'
+          SECURITY='${{ steps.security.outcome }}'
+          PRISMA='${{ steps.prisma.outcome }}'
+          echo "Build:${BUILD} | Security:${SECURITY} | Prisma:${PRISMA}"
+          if [[ "$BUILD" == success && "$SECURITY" == success && "$PRISMA" == success ]]; then
+            echo 'passed=true' >> "$GITHUB_OUTPUT"
+            echo '::notice::✅ Full Suite PASSED'
           else
-            echo "passed=false" >> $GITHUB_OUTPUT
-            echo "::error::❌ Full Suite FAILED — Build:${BUILD} Security:${SECURITY} Prisma:${PRISMA}"
+            echo 'passed=false' >> "$GITHUB_OUTPUT"
+            echo '::error::❌ Full Suite FAILED'
             exit 1
           fi
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # FASE 3: NIGHTLY — Deep security scan (apenas em schedule)
-  # ═══════════════════════════════════════════════════════════════════════════
+  # --------------------------------------------------------------------------
+  # NIGHTLY — somente deep security. Não repete Fast/Full.
+  # --------------------------------------------------------------------------
   nightly-deep-scan:
-    name: 🌙 Nightly Deep Scan
+    name: 🌙 Nightly Deep Security
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -208,60 +203,40 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install
-        run: npm install --legacy-peer-deps
+      - name: Install dependencies (lockfile)
+        run: npm ci --legacy-peer-deps
 
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Deep Security Scan (GLM 5.2)
+      - name: Deep Security Scan
         run: |
-          echo "::notice::Running deep security scan via /api/cron/security-scan"
-          # In production this would hit the deployed endpoint
-          # In CI we run the service directly
-          npx tsx -e "
-            import { runFullSecurityScan } from './src/lib/security/security-scan-service';
-            runFullSecurityScan().then(r => {
-              console.log(JSON.stringify({ total: r.totalFound, critical: r.criticalCount, high: r.highCount, mode: r.mode }));
-              process.exit(r.criticalCount > 0 ? 1 : 0);
-            }).catch(e => { console.error(e); process.exit(1); });
-          " || echo "::warning::Security scan completed with warnings"
+          npx tsx -e "import { runFullSecurityScan } from './src/lib/security/security-scan-service'; runFullSecurityScan().then(r => { console.log(JSON.stringify({ total:r.totalFound, critical:r.criticalCount, high:r.highCount, mode:r.mode })); process.exit(r.criticalCount > 0 ? 1 : 0); }).catch(e => { console.error(e); process.exit(1); });"
 
-      - name: NPM Audit (high+severity)
-        run: npm audit --audit-level=high --omit=dev || true
+      - name: Dependency Audit
+        run: npm audit --audit-level=high --omit=dev
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # VERDICT: GO/NO-GO (summary job)
-  # ═══════════════════════════════════════════════════════════════════════════
+  # --------------------------------------------------------------------------
+  # VERDICT — apenas PR/push/manual; schedule não cria falso NO-GO.
+  # --------------------------------------------------------------------------
   verdict:
     name: 🏁 GO / NO-GO
     needs: [fast-gate, full-suite]
-    if: always()
+    if: github.event_name != 'schedule' && always()
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
       - name: Emit Verdict
+        shell: bash
         run: |
-          FAST="${{ needs.fast-gate.outputs.passed }}"
-          FULL="${{ needs.full-suite.outputs.passed }}"
-
-          echo "============================================"
-          echo "  🏁 MASTER GATE VERDICT"
-          echo "============================================"
-          echo "  Fast Gate:  $FAST"
-          echo "  Full Suite: $FULL"
-          echo "============================================"
-
-          if [ "$FAST" = "true" ] && [ "$FULL" = "true" ]; then
-            echo "::notice::✅ GO — All gates passed. Safe to merge."
-            echo "============================================"
-            echo "  ✅ GO — All gates passed. Safe to merge."
-            echo "============================================"
+          FAST='${{ needs.fast-gate.outputs.passed }}'
+          FULL='${{ needs.full-suite.outputs.passed }}'
+          echo "Fast Gate: $FAST"
+          echo "Full Suite: $FULL"
+          if [[ "$FAST" == true && "$FULL" == true ]]; then
+            echo '::notice::✅ GO — All mandatory gates passed.'
           else
-            echo "::error::❌ NO-GO — One or more gates failed."
-            echo "============================================"
-            echo "  ❌ NO-GO — One or more gates failed."
-            echo "============================================"
+            echo '::error::❌ NO-GO — Mandatory gate failed.'
             exit 1
           fi
 
@@ -273,25 +248,8 @@ jobs:
             const fast = '${{ needs.fast-gate.outputs.passed }}' === 'true';
             const full = '${{ needs.full-suite.outputs.passed }}' === 'true';
             const go = fast && full;
-
-            const emoji = go ? '✅' : '❌';
-            const verdict = go ? 'GO' : 'NO-GO';
-
-            const body = [
-              `## ${emoji} Master Gate Verdict: ${verdict}`,
-              '',
-              '| Gate | Status |',
-              '|------|--------|',
-              `| ⚡ Fast Gate (TS+Lint+Unit+Secrets) | ${fast ? '✅ Pass' : '❌ Fail'} |`,
-              `| 🔬 Full Suite (Build+Security+Prisma) | ${full ? '✅ Pass' : '❌ Fail'} |`,
-              '',
-              go
-                ? '**Safe to merge.** All gates passed.'
-                : '**DO NOT MERGE.** One or more gates failed.',
-            ].join('\n');
-
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.payload.pull_request.number,
-              body,
+              body: `## ${go ? '✅' : '❌'} Master Gate: ${go ? 'GO' : 'NO-GO'}\n\n| Gate | Status |\n|---|---|\n| Fast Gate | ${fast ? '✅' : '❌'} |\n| Full Suite | ${full ? '✅' : '❌'} |\n\n${go ? '**Safe to merge.**' : '**DO NOT MERGE.**'}`,
             });
