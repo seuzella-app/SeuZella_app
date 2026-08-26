@@ -1,18 +1,20 @@
 # ============================================================================
 # Zélla — ZéCode PR Review (CodeRabbit-style)
 # ============================================================================
-# Roda automaticamente quando um PR é aberto ou sincronizado:
-#   1. Extrai diff do PR
-#   2. Roda reviewer-service.ts (reusa 100% do código do ZCC)
-#   3. Em modo mock: heurísticas apenas ($0)
-#   4. Em modo live: GLM 5.2 para análise profunda
-#   5. Posta comentários no PR via GitHub API
-#   6. Adiciona labels: zécode:emergency / zécode:critical
+# Advisory engineering review. Master Gate remains the authoritative merge gate.
+# Runs only when application/infra/security code changes.
 #
-# Para ativar modo live (GLM 5.2):
-#   1. Adicione secret no repo: GLM_5_2_API_KEY
-#   2. Adicione var: CEREBRO_LIVE_MODE=true
-#   3. (Opcional) Adicione secret DATABASE_URL para persistir reviews
+#   1. Extracts PR diff
+#   2. Runs reviewer-service.ts (reuses ZCC code)
+#   3. Mock mode: deterministic heuristics ($0)
+#   4. Live mode: GLM 5.2 for deeper analysis
+#   5. Posts review comments/labels through GitHub API
+#
+# Cost/safety policy:
+#   - No push workflow
+#   - No full-suite duplication
+#   - Cancel superseded synchronize runs
+#   - Live GLM remains opt-in
 # ============================================================================
 
 name: ZéCode PR Review
@@ -21,11 +23,28 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'prisma/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'security-validators/**'
+      - 'public/data/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'next.config.*'
+      - 'vercel.json'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
   pull-requests: write
   issues: write
+
+concurrency:
+  group: zecode-pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   zecode-review:
@@ -37,7 +56,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # necessário para git diff
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -46,7 +65,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: Generate Prisma Client
         run: npx prisma generate
@@ -59,14 +78,11 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-          # Modo mock por default ($0). Para live, configure secrets abaixo:
           CEREBRO_LIVE_MODE: ${{ vars.CEREBRO_LIVE_MODE || 'false' }}
           GLM_5_2_API_KEY: ${{ secrets.GLM_5_2_API_KEY }}
           GLM_BASE_URL: ${{ vars.GLM_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4' }}
           GLM_MODEL: ${{ vars.GLM_MODEL || 'glm-5.2' }}
-          # Budget guard (reusa config do Cérebro)
           CEREBRO_MONTHLY_BUDGET_USD: ${{ vars.CEREBRO_MONTHLY_BUDGET_USD || '20' }}
-          # DATABASE_URL opcional — se vazio, pula persistência
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/seuzella_test' }}
         run: npx tsx scripts/zecode-pr-review.ts
 
