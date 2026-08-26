@@ -64,14 +64,18 @@ describe('verifyAsaasWebhook — HMAC signature verification', () => {
   });
 
   it('accepts legacy shared-token format (timing-safe equality)', () => {
+    process.env.ASAAS_ALLOW_LEGACY_TOKEN = 'true';
     const result = verifyAsaasWebhook(SAMPLE_BODY, STRONG_SECRET, STRONG_SECRET);
     expect(result.valid).toBe(true);
+    delete process.env.ASAAS_ALLOW_LEGACY_TOKEN;
   });
 
   it('rejects legacy shared-token format on mismatch', () => {
+    process.env.ASAAS_ALLOW_LEGACY_TOKEN = 'true';
     const result = verifyAsaasWebhook(SAMPLE_BODY, 'wrong-token', STRONG_SECRET);
     expect(result.valid).toBe(false);
     expect(result.reason).toBe('SIGNATURE_MISMATCH');
+    delete process.env.ASAAS_ALLOW_LEGACY_TOKEN;
   });
 
   it('is not vulnerable to timing attacks (constant-time comparison)', () => {

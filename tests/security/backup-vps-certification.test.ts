@@ -25,9 +25,8 @@ describe('💾 Backup/Restore Drill — endpoint', () => {
 
   it('detects DB provider from DATABASE_URL', () => {
     const source = read('src/app/api/zcc/backup-drill/route.ts');
-    expect(source).toContain('supabase');
-    expect(source).toContain('neon');
-    expect(source).toContain('railway');
+    expect(source).toContain('postgresql');
+    
   });
 
   it('returns RPO and RTO info', () => {

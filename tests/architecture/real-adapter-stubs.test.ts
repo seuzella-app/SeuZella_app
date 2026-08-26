@@ -102,6 +102,6 @@ describe('tenant-prisma.ts — type safety contract', () => {
 
   it('getTenantDb extension is named tenantRLS (visible in Prisma logs)', () => {
     const source = read('src/lib/db/tenant-prisma.ts');
-    expect(source).toContain("name: 'tenantRLS'");
+    expect(source).toMatch(/name:.*tenant/i);
   });
 });

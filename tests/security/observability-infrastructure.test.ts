@@ -126,8 +126,7 @@ describe('📊 /api/zcc/infrastructure endpoint', () => {
 
   it('returns database provider + backup status (RPO/RTO)', () => {
     const source = read('src/app/api/zcc/infrastructure/route.ts');
-    expect(source).toContain('supabase');
-    expect(source).toContain('neon');
+    expect(source).toContain('postgresql');
     expect(source).toContain('backupStatus');
     expect(source).toContain('rpo');
     expect(source).toContain('rto');

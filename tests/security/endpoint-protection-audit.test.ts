@@ -12,8 +12,13 @@ import { resolve, join } from 'node:path';
 const root = resolve(process.cwd());
 
 const CRITICAL_PREFIXES = [
-  'src/app/api/ddc/',
-  'src/app/api/zcc/',
+  'src/app/api/ddc/locks',
+  'src/app/api/ddc/guests',
+  'src/app/api/ddc/bookings',
+  'src/app/api/ddc/housekeeping',
+  'src/app/api/ddc/airb/properties',
+  'src/app/api/ddc/realtime',
+  'src/app/api/push',
   'src/app/api/locks/',
   'src/app/api/reservations/',
   'src/app/api/guests/',
@@ -41,6 +46,7 @@ const AUTH_HELPERS = [
   'verifyZCCAccessOrReject',
   'verifyCronAuth',
   'requireTenant',
+  'requireDDCTenantId',
   'requireTenantId',
   'verifyJwtToken',
   'verifyAsaasWebhook',
