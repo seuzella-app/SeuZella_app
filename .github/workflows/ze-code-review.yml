@@ -3,39 +3,29 @@
 # Acionado em todo PR aberto/sincronizado/reaberto.
 # Chama a API do ZCC para análise automatizada de código.
 #
-# Doc: "Bíblia do ZéCode — GitHub GitOps" (Cap. 7)
-#
 # SEGURANÇA:
 #  - GITHUB_TOKEN nativo (escopos limitados: contents:read, pull-requests:write)
-#  - NUNCA usa PAT do Vault (zero exposure)
-#  - ZE_CODE_WEBHOOK_TOKEN é secret do repositório (64 chars hex)
-#  - Skip automático em PRs criados pelo próprio ZéCode (evita loop)
+#  - NUNCA usa PAT do Vault
+#  - ZE_CODE_WEBHOOK_TOKEN é secret do repositório
+#  - PR metadata é transportado via env/jq, nunca interpolado em shell
+#  - Skip automático em PRs criados pelo próprio ZéCode
 #  - Timeout de 10 min (falha graciosa — não bloqueia merge)
-#  - Diff > 500KB é pulado (economiza recursos)
+#  - Diff > 500KB ou >10000 linhas é pulado
 
 name: ZéCode PR Review
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    # Descomente para filtrar paths e economizar runs:
-    # paths:
-    #   - 'src/**'
-    #   - 'prisma/**'
-    #   - 'package.json'
-    #   - 'tsconfig.json'
 
-# Permite cancelar runs anteriores do mesmo PR quando novo push chega
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-# Permissões mínimas (princípio do menor privilégio)
 permissions:
   contents: read
   pull-requests: write
   checks: write
-  # NUNCA conceder: administrations, secrets, workflows:write
 
 jobs:
   ze-code-review:
@@ -46,55 +36,55 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # necessário para diff completo
+          fetch-depth: 0
 
       - name: Check if ZéCode-automated PR (skip to avoid loop)
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          PR_AUTHOR=$(gh pr view ${{ github.event.pull_request.number }} \
-            --repo ${{ github.repository }} \
-            --json author --jq '.author.login')
-
+          set -euo pipefail
+          PR_AUTHOR=$(gh pr view "$PR_NUMBER" --repo "$REPOSITORY" --json author --jq '.author.login')
           echo "PR author: $PR_AUTHOR"
 
-          # Pula se for PR criado pelo ZéCode (evita loop infinito)
           if [[ "$PR_AUTHOR" == "ze-code-bot[bot]" ]] || \
              [[ "$PR_AUTHOR" == "ze-code-bot" ]] || \
              [[ "$PR_AUTHOR" == *"ze-code-automated"* ]] || \
              [[ "$PR_AUTHOR" == *"[bot]"* && "$PR_AUTHOR" == *"ze-code"* ]]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "::notice::ZéCode-automated PR detected, skipping review to avoid loop."
           else
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Get PR diff size
         if: steps.check.outputs.skip != 'true'
         id: diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr.diff
+          set -euo pipefail
+          git diff "origin/${BASE_REF}...HEAD" > /tmp/pr.diff
           SIZE=$(wc -c < /tmp/pr.diff)
           LINES=$(wc -l < /tmp/pr.diff)
-          echo "size=$SIZE" >> $GITHUB_OUTPUT
-          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "size=$SIZE" >> "$GITHUB_OUTPUT"
+          echo "lines=$LINES" >> "$GITHUB_OUTPUT"
           echo "Diff size: $SIZE bytes ($LINES lines)"
 
       - name: Skip if too large (>500KB)
         if: |
           steps.check.outputs.skip != 'true' &&
           steps.diff.outputs.size > 500000
-        run: |
-          echo "::warning::Diff too large (${{ steps.diff.outputs.size }} bytes), skipping ZéCode review"
+        run: echo "::warning::Diff too large (${{ steps.diff.outputs.size }} bytes), skipping ZéCode review"
 
       - name: Skip if too many lines (>10000)
         if: |
           steps.check.outputs.skip != 'true' &&
           steps.diff.outputs.size <= 500000 &&
           steps.diff.outputs.lines > 10000
-        run: |
-          echo "::warning::Diff too many lines (${{ steps.diff.outputs.lines }}), skipping ZéCode review"
+        run: echo "::warning::Diff too many lines (${{ steps.diff.outputs.lines }}), skipping ZéCode review"
 
       - name: Call ZéCode API
         if: |
@@ -105,7 +95,16 @@ jobs:
         env:
           ZE_CODE_API_URL: ${{ secrets.ZE_CODE_API_URL }}
           ZE_CODE_WEBHOOK_TOKEN: ${{ secrets.ZE_CODE_WEBHOOK_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          DIFF_URL: ${{ github.event.pull_request.diff_url }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          TITLE: ${{ github.event.pull_request.title }}
         run: |
+          set -euo pipefail
           if [ -z "$ZE_CODE_API_URL" ]; then
             echo "::notice::Secret ZE_CODE_API_URL não configurado, skipping external webhook review"
             exit 0
@@ -115,29 +114,30 @@ jobs:
             exit 0
           fi
 
-          RESPONSE=$(curl -s -X POST \
+          PAYLOAD=$(jq -n \
+            --arg repository "$REPOSITORY" \
+            --argjson prNumber "$PR_NUMBER" \
+            --arg headSha "$HEAD_SHA" \
+            --arg baseRef "$BASE_REF" \
+            --arg headRef "$HEAD_REF" \
+            --arg diffUrl "$DIFF_URL" \
+            --arg author "$AUTHOR" \
+            --arg title "$TITLE" \
+            '{repository:$repository,prNumber:$prNumber,headSha:$headSha,baseRef:$baseRef,headRef:$headRef,diffUrl:$diffUrl,author:$author,title:$title}')
+
+          RESPONSE=$(curl --fail-with-body -sS -X POST \
             -H "Authorization: Bearer $ZE_CODE_WEBHOOK_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"repository\": \"${{ github.repository }}\",
-              \"prNumber\": ${{ github.event.pull_request.number }},
-              \"headSha\": \"${{ github.event.pull_request.head.sha }}\",
-              \"baseRef\": \"${{ github.base_ref }}\",
-              \"headRef\": \"${{ github.event.pull_request.head.ref }}\",
-              \"diffUrl\": \"${{ github.event.pull_request.diff_url }}\",
-              \"author\": \"${{ github.event.pull_request.user.login }}\",
-              \"title\": \"$(jq -Rs . <<< '${{ github.event.pull_request.title }}' | sed 's/^"//;s/"$//')\"
-            }" \
+            -d "$PAYLOAD" \
             "$ZE_CODE_API_URL/api/zcc/ze-code/github-review")
 
           REVIEW_ID=$(echo "$RESPONSE" | jq -r '.reviewId // empty')
-
           if [ -z "$REVIEW_ID" ]; then
-            echo "::notice::External ZéCode review skipped: $RESPONSE"
+            echo "::notice::External ZéCode review skipped: response contained no reviewId"
             exit 0
           fi
 
-          echo "review_id=$REVIEW_ID" >> $GITHUB_OUTPUT
+          echo "review_id=$REVIEW_ID" >> "$GITHUB_OUTPUT"
           echo "::notice::ZéCode review started: $REVIEW_ID"
 
       - name: Poll for review completion
@@ -145,55 +145,47 @@ jobs:
         env:
           ZE_CODE_API_URL: ${{ secrets.ZE_CODE_API_URL }}
           ZE_CODE_WEBHOOK_TOKEN: ${{ secrets.ZE_CODE_WEBHOOK_TOKEN }}
+          REVIEW_ID: ${{ steps.review.outputs.review_id }}
         run: |
-          REVIEW_ID="${{ steps.review.outputs.review_id }}"
+          set -euo pipefail
           MAX_POLLS=30
-          POLL_INTERVAL=10 # segundos → max 5 min
+          POLL_INTERVAL=10
 
           for i in $(seq 1 $MAX_POLLS); do
-            STATUS=$(curl -s \
+            STATUS=$(curl --fail-with-body -sS \
               -H "Authorization: Bearer $ZE_CODE_WEBHOOK_TOKEN" \
               "$ZE_CODE_API_URL/api/zcc/ze-code/reviews/$REVIEW_ID/status" \
               | jq -r '.status // "unknown"')
 
             echo "Poll $i/$MAX_POLLS: status=$STATUS"
-
             if [ "$STATUS" = "completed" ]; then
               echo "Review completed!"
-              # Pega o resultado formatado
-              RESULT=$(curl -s \
-                -H "Authorization: Bearer $ZE_CODE_WEBHOOK_TOKEN" \
-                "$ZE_CODE_API_URL/api/zcc/ze-code/reviews/$REVIEW_ID")
-              echo "result=$RESULT" >> $GITHUB_OUTPUT
               exit 0
             fi
-
             if [ "$STATUS" = "failed" ] || [ "$STATUS" = "error" ]; then
               echo "::error::ZéCode review failed"
               exit 1
             fi
-
-            sleep $POLL_INTERVAL
+            sleep "$POLL_INTERVAL"
           done
 
           echo "::warning::ZéCode review timed out after 5 minutes"
-          exit 0 # não falha o build do PR por timeout
+          exit 0
 
       - name: Post review as PR comment
         if: steps.review.outputs.review_id
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ZE_CODE_API_URL: ${{ secrets.ZE_CODE_API_URL }}
+          ZE_CODE_WEBHOOK_TOKEN: ${{ secrets.ZE_CODE_WEBHOOK_TOKEN }}
+          REVIEW_ID: ${{ steps.review.outputs.review_id }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          REVIEW_ID="${{ steps.review.outputs.review_id }}"
-          ZE_CODE_API_URL="${{ secrets.ZE_CODE_API_URL }}"
-          ZE_CODE_WEBHOOK_TOKEN="${{ secrets.ZE_CODE_WEBHOOK_TOKEN }}"
-
-          # Busca review formatada
-          RESULT=$(curl -s \
+          set -euo pipefail
+          RESULT=$(curl --fail-with-body -sS \
             -H "Authorization: Bearer $ZE_CODE_WEBHOOK_TOKEN" \
             "$ZE_CODE_API_URL/api/zcc/ze-code/reviews/$REVIEW_ID")
-
-          # Extrai comment formatado em markdown
           COMMENT_BODY=$(echo "$RESULT" | jq -r '.formattedComment // .summary // empty')
 
           if [ -z "$COMMENT_BODY" ]; then
@@ -201,23 +193,15 @@ jobs:
             exit 0
           fi
 
-          # Verifica se já existe comentário do ZéCode (atualiza em vez de duplicar)
           EXISTING_COMMENT_ID=$(gh api \
-            /repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
-            --jq '[.[] | select(.user.login == "github-actions[bot]" or .body | contains("ZéCode Automated Review"))][0].id // empty' \
-            || echo "")
+            "/repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+            --jq '[.[] | select(.user.login == "github-actions[bot]" or (.body | contains("ZéCode Automated Review")))][0].id // empty' || true)
 
           if [ -n "$EXISTING_COMMENT_ID" ]; then
-            # Atualiza comentário existente
             gh api \
               --method PATCH \
-              /repos/${{ github.repository }}/issues/comments/$EXISTING_COMMENT_ID \
+              "/repos/$REPOSITORY/issues/comments/$EXISTING_COMMENT_ID" \
               -f body="$COMMENT_BODY"
-            echo "::notice::Comentário atualizado: $EXISTING_COMMENT_ID"
           else
-            # Cria novo comentário
-            gh pr comment ${{ github.event.pull_request.number }} \
-              --repo ${{ github.repository }} \
-              --body "$COMMENT_BODY"
-            echo "::notice::Novo comentário criado"
+            gh pr comment "$PR_NUMBER" --repo "$REPOSITORY" --body "$COMMENT_BODY"
           fi
