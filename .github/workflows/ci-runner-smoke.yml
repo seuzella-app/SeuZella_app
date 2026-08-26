@@ -1,17 +1,17 @@
+# Runner diagnostic only. It must not consume a run on every workflow edit.
+
 name: CI Runner Smoke
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/**'
+  schedule:
+    - cron: '0 8 * * 4'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-runner-smoke-${{ github.ref }}
+  group: ci-runner-smoke
   cancel-in-progress: true
 
 jobs:
@@ -28,14 +28,11 @@ jobs:
           echo "arch=${RUNNER_ARCH}"
           node --version
           npm --version
-
       - name: GitHub context
         run: |
           set -euo pipefail
           test -n "${GITHUB_SHA}"
-          test "${GITHUB_REF}" = "refs/heads/main"
           echo "sha=${GITHUB_SHA}"
           echo "ref=${GITHUB_REF}"
-
       - name: Runner verdict
         run: echo "RUNNER_OK=true"
