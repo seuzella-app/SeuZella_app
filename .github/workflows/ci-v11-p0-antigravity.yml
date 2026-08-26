@@ -1,146 +1,68 @@
-name: '🎯 V11-P0 — Google Antigravity Orchestrator'
+# V11-P0 full orchestrator is a heavy certification harness.
+# It MUST NOT run on every push/PR. Master Gate owns merge validation.
+# Use manually before major releases or when validating the complete stack.
+
+name: 🎯 V11-P0 — Google Antigravity Orchestrator (Manual)
 
 on:
   workflow_dispatch:
     inputs:
       run_canaries_pg:
-        description: 'Roda PostgreSQL Canaries'
+        description: 'Run PostgreSQL canaries'
         required: false
         type: boolean
         default: true
       run_build:
-        description: 'Roda Build Smoke Test'
+        description: 'Run build smoke test'
         required: false
         type: boolean
         default: true
       fail_fast:
-        description: 'Para no primeiro erro'
+        description: 'Stop on first error'
         required: false
         type: boolean
         default: false
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
 
+concurrency:
+  group: v11-antigravity-manual
+  cancel-in-progress: true
+
 env:
   NODE_ENV: test
   NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
-  UPSTASH_REDIS_REST_URL: http://localhost:8079
-  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
-  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
+  DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
   CI: 'true'
 
 jobs:
-  stage-1-security:
-    name: '🔒 Estágio 1: Security Audit & M2M Auth'
+  certification:
+    name: 🎯 V11-P0 Full Certification
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.2.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm install --legacy-peer-deps
-      - run: npx prisma generate
-      - run: npx vitest run tests/zcc-security.test.ts tests/sast-static.test.ts tests/data-governance-lgpd.test.ts
-
-  stage-2-canaries:
-    name: '🐦 Estágio 2: RLS Canaries & Multi-Tenant Isolation'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.2.0
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm install --legacy-peer-deps
-      - run: npx prisma generate
-      - run: npx vitest run tests/zella-cross-talk.test.ts tests/locks-multi-tenant-scale.test.ts tests/integration-db-cache.test.ts
-
-  stage-3-harness:
-    name: '🧠 Estágio 3: Harness Build & Integration'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.2.0
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm install --legacy-peer-deps
-      - run: npx prisma generate
-      - run: npx vitest run tests/dspy-optimizer.test.ts tests/dpo-collector.test.ts
-      - run: npx next build
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Generate Prisma Client
+        run: npx prisma generate
+      - name: Security audit
+        run: npx vitest run tests/zcc-security.test.ts tests/sast-static.test.ts tests/data-governance-lgpd.test.ts --reporter=dot
+      - name: RLS and cross-tenant canaries
+        run: npx vitest run tests/zella-cross-talk.test.ts tests/locks-multi-tenant-scale.test.ts tests/integration-db-cache.test.ts --reporter=dot
+      - name: Harness and integration
+        run: npx vitest run tests/dspy-optimizer.test.ts tests/dpo-collector.test.ts --reporter=dot
+      - name: Build smoke test
+        if: ${{ inputs.run_build }}
+        run: npm run build
         env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
-          NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
           NEXTAUTH_URL: http://localhost:3000
-          NODE_ENV: production
-
-  stage-4-digital-twin:
-    name: '🌐 Estágio 4: ZCC Digital Twin & ML Suite'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.2.0
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm install --legacy-peer-deps
-      - run: npx prisma generate
-      - run: npx vitest run tests/zcc-digital-twin/adapter-swap.test.ts tests/zcc-digital-twin/digital-twin.test.ts tests/zcc-digital-twin-financial-growth.test.ts
-
-  stage-5-concurrency:
-    name: '💥 Estágio 5: Concurrency & Avalanche Load'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.2.0
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm install --legacy-peer-deps
-      - run: npx prisma generate
-      - run: npx vitest run tests/stress-avalanche-k6.test.ts tests/high-stress-concurrency.test.ts
-
-  verdict:
-    name: '🎯 Estágio 6: Final GO/NO-GO Verdict'
-    needs: [stage-1-security, stage-2-canaries, stage-3-harness, stage-4-digital-twin, stage-5-concurrency]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Evaluate Orchestrator Results
-        run: |
-          SECURITY="${{ needs.stage-1-security.result }}"
-          CANARIES="${{ needs.stage-2-canaries.result }}"
-          HARNESS="${{ needs.stage-3-harness.result }}"
-          TWIN="${{ needs.stage-4-digital-twin.result }}"
-          STRESS="${{ needs.stage-5-concurrency.result }}"
-
-          echo "=================================================="
-          echo "           V11-P0 VERDICT EVALUATION              "
-          echo "=================================================="
-          echo "Security Audit Stage:    $SECURITY"
-          echo "RLS Canaries Stage:      $CANARIES"
-          echo "Harness Build Stage:     $HARNESS"
-          echo "Digital Twin Stage:      $TWIN"
-          echo "Concurrency Load Stage:  $STRESS"
-          echo "=================================================="
-
-          if [ "$SECURITY" = "success" ] && [ "$CANARIES" = "success" ] && [ "$HARNESS" = "success" ] && [ "$TWIN" = "success" ] && [ "$STRESS" = "success" ]; then
-            echo "VERDICT: GO ✅ → Pode ir pra produção"
-            exit 0
-          else
-            echo "VERDICT: NO-GO ❌ → Falha identificada em um dos estágios"
-            exit 1
-          fi
+      - name: Digital Twin suite
+        run: npx vitest run tests/zcc-digital-twin/ --reporter=dot
+      - name: Concurrency stress
+        run: npx vitest run tests/stress-avalanche-k6.test.ts tests/high-stress-concurrency.test.ts --reporter=dot
