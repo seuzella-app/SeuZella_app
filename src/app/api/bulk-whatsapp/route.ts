@@ -32,10 +32,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Optionally validate template exists
     if (templateId) {
-      const template = await db.swipeTemplate.findUnique({
-        where: { id: templateId },
+      const template = await db.swipeTemplate.findFirst({
+        where: { id: templateId, tenantId },
       });
       if (!template) {
         return NextResponse.json(
@@ -44,17 +43,16 @@ export async function POST(request: Request) {
         );
       }
 
-      // Increment usage count
       await db.swipeTemplate.update({
-        where: { id: templateId },
+        where: { id: template.id },
         data: { usageCount: { increment: leadIds.length } },
       });
     }
 
-    // Mark all specified leads as 'contacted'
     const result = await db.lead.updateMany({
       where: {
         id: { in: leadIds },
+        tenantId,
         status: { not: 'contacted' },
       },
       data: { status: 'contacted' },
@@ -62,7 +60,6 @@ export async function POST(request: Request) {
 
     const sentCount = result.count;
 
-    // Log the bulk send action
     await db.agentLog.create({
       data: {
         tenantId,
