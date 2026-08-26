@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "staging-*",
+    "landing_extracted",
+    "ddc_extracted",
+    "extract-ddc",
+    "upload",
+    "tool-results",
+    "mini-services",
+    "src/components/diagram"
+  ]
+}
