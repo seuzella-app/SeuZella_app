@@ -1,39 +1,28 @@
 # ============================================================================
-# ZÉLLA — CI: SecLists Integration Tests
+# ZÉLLA — SecLists Integration Certification
 # ============================================================================
-# Valida que os 5 datasets de segurança do SecLists estão presentes e íntegros.
-#
-# Datasets validados:
-#   1. jailbreak-prompts.json (1.403 prompts de jailbreak)
-#   2. sast-patterns.json (119 strings de código perigoso)
-#   3. malicious-functions.json (94 funções de backdoor)
-#   4. common-passwords.json (10.000 senhas mais comuns)
-#   5. cmd-injection.json (200 payloads de RCE)
+# Validates the security datasets used by the application security layer.
+# Master Gate remains the authoritative PR/push gate.
+# This is a targeted scheduled/manual certification to avoid duplicate CI.
 # ============================================================================
 
-name: 🛡️ SecLists Integration Tests
+name: 🛡️ SecLists Integration Certification
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/lib/security/seclists-loader.ts'
-      - 'public/data/seclists/**'
-      - 'tests/seclists-integration.test.ts'
-      - '.github/workflows/ci-seclists-integration.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'src/lib/security/seclists-loader.ts'
+  schedule:
+    - cron: '0 4 * * 6'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: seclists-certification
+  cancel-in-progress: true
+
 jobs:
   test:
-    name: 🛡️ SecLists Tests
+    name: 🛡️ SecLists Integrity Tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -48,10 +37,10 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: 🔄 Generate Prisma Client
         run: npx prisma generate
 
-      - name: 🛡️ Run SecLists Tests
-        run: npx vitest run tests/seclists-integration.test.ts --reporter=verbose
+      - name: 🛡️ Run SecLists Certification
+        run: npx vitest run tests/seclists-integration.test.ts --reporter=dot
