@@ -1,0 +1,54 @@
+# ============================================================================
+# 🌙 NIGHTLY DEEP SECURITY — fora do Master Gate obrigatório
+# ============================================================================
+# Falhas aqui não mascaram nem transformam o gate de merge em outro pipeline.
+# O resultado é tratado como auditoria profunda e deve ser acompanhado.
+# ============================================================================
+
+name: 🌙 Nightly Deep Security
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: nightly-deep-security
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+  CI: 'true'
+  NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+  NEXTAUTH_URL: http://localhost:3000
+  DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
+
+jobs:
+  deep-security:
+    name: 🌙 Deep Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies (lockfile)
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Deep Security Scan
+        run: |
+          npx tsx -e "import { runFullSecurityScan } from './src/lib/security/security-scan-service'; runFullSecurityScan().then(r => { console.log(JSON.stringify({ total:r.totalFound, critical:r.criticalCount, high:r.highCount, mode:r.mode })); process.exit(r.criticalCount > 0 ? 1 : 0); }).catch(e => { console.error(e); process.exit(1); });"
+
+      - name: Dependency Audit
+        run: npm audit --audit-level=high --omit=dev
