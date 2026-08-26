@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate a temporary password using CSPRNG (not Math.random)
-    import { randomInt } from 'crypto';
+    const { randomInt } = await import('crypto');
     const randomPart = Array.from({ length: 8 }, () => randomInt(0, 36).toString(36)).join('');
     const tempPassword = `magic_${Date.now()}_${randomPart}`;
     const tempPasswordHash = await bcrypt.hash(tempPassword, 12);
