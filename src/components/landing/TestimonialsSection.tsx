@@ -22,7 +22,7 @@ export function TestimonialsSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const { niche } = useNiche();
   const content = getNicheContent(niche);
-  const testimonials = content.testimonials;
+  const {testimonials} = content;
 
   const headerText = niche === 'pousada' ? 'O que os pousadeiros dizem' : niche === 'airbnb' ? 'O que os anfitriões dizem' : 'O que os parceiros dizem';
 

@@ -31,7 +31,7 @@ export function useSocket({ tenantId, autoConnect = true }: UseSocketOptions) {
     const connect = () => {  
       if (activeSocket?.connected || destroyed) return;
 
-      const newSocket = io('/?XTransformPort=' + REALTIME_PORT, {  
+      const newSocket = io(`/?XTransformPort=${ REALTIME_PORT}`, {  
         transports: ['websocket', 'polling'],  
         reconnection: false,  
       });

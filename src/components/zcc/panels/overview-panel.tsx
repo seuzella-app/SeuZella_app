@@ -309,7 +309,7 @@ export function OverviewPanel({
             title="Configurar Tokens"
             description="6 integrações · 2 LLMs"
             icon={<ChevronRight className="size-4" />}
-            onClick={() => (window.location.href = "/zcc")}
+            onClick={() => { (window.location.href = "/zcc")} }
           />
           <QuickActionCard
             title="Ver Agentes"

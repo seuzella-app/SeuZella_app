@@ -161,7 +161,7 @@ async function getHandler(_request: NextRequest, _ctx: SecurityContext) {
       },
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error('[BFF_DDC_NOTIF_ERROR]', err);
     return NextResponse.json(
       { error: 'internal', reason: 'notifications_failed' },

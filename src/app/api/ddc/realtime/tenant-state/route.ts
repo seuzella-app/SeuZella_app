@@ -89,6 +89,7 @@ function getReplayEvents(tenantId: string, afterSeq: number): TenantStateEvent[]
 const g = globalThis as typeof globalThis & { __tenantStateBufferInitialized?: boolean };
 if (!g.__tenantStateBufferInitialized) {
   // Lazy import to avoid circular dep — pubsub itself has no deps on this module.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require to avoid circular dependency
   const { subscribeAllTenantEvents } = require('@/lib/realtime/tenant-pubsub') as typeof import('@/lib/realtime/tenant-pubsub');
   subscribeAllTenantEvents((event) => {
     bufferEvent(event.tenantId, event);

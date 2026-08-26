@@ -63,11 +63,11 @@ const PLANS = {
 // Mock: simulando distribuição de assinantes (modo demonstração)
 // Em produção: vem do Prisma (model Subscription WHERE status = 'active')
 const MOCK_SUBSCRIBERS = {
-  lite: 8,        // R$ 1.576
-  pro: 5,          // R$ 1.985
-  max: 2,         // R$ 1.594
-  linkInBio: 12,   // R$ 564
-  parceiro: 3,    // R$ 591
+  lite: 8, // R$ 1.576
+  pro: 5, // R$ 1.985
+  max: 2, // R$ 1.594
+  linkInBio: 12, // R$ 564
+  parceiro: 3, // R$ 591
 };
 
 const TOTAL_MRR =
@@ -142,8 +142,8 @@ function GlobalKpiBar() {
   const handleDownload = () => {
     try {
       const dataStr =
-        "data:text/json;charset=utf-8," +
-        encodeURIComponent(JSON.stringify(leads, null, 2));
+        `data:text/json;charset=utf-8,${ 
+        encodeURIComponent(JSON.stringify(leads, null, 2))}`;
       const link = document.createElement("a");
       link.href = dataStr;
       link.download = "zcc-live-leads-export.json";

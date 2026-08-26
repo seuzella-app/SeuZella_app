@@ -48,7 +48,7 @@ export function FAQSection() {
   const [searchQuery, setSearchQuery] = useState('');
   const { niche } = useNiche();
   const content = getNicheContent(niche);
-  const faqs = content.faqs;
+  const {faqs} = content;
 
   const filteredFaqs = faqs.filter(
     (f) =>

@@ -37,15 +37,15 @@ const SINGLE_SHOT_INTENTS: GuestIntent[] = [
   'duvida_geral',
   'checkin_checkout',
   'cancelamento',
-  'suporte_tecnico',   // Solução completa em 1 balão (evita ida e volta)
-  'info_geral',       // Informações gerais consolidadas em 1 balão
+  'suporte_tecnico', // Solução completa em 1 balão (evita ida e volta)
+  'info_geral', // Informações gerais consolidadas em 1 balão
 ];
 
 // Intents that should NOT use single-shot (short acknowledgment responses)
 const NON_SINGLE_SHOT_INTENTS: GuestIntent[] = [
-  'agradecimento',     // "Obrigado!" → resposta curta e natural, sem forçar conteúdo extra
-  'human_handover',   // Escalação → não precisa de resposta longa
-  'desconhecido',     // Fallback → melhor ser conciso
+  'agradecimento', // "Obrigado!" → resposta curta e natural, sem forçar conteúdo extra
+  'human_handover', // Escalação → não precisa de resposta longa
+  'desconhecido', // Fallback → melhor ser conciso
 ];
 
 export function shouldUseSingleShot(intent: GuestIntent): boolean {

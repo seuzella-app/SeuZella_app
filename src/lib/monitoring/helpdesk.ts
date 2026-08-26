@@ -56,12 +56,12 @@ export function getStatusPageUrl(): string {
 // SLA / SLO DEFINIDOS
 // ─────────────────────────────────────────────────────────────────────────────
 export const SLA = {
-  AVAILABILITY_TARGET: 99.5,  // % uptime mensal
-  RESPONSE_TIME_P95_MS: 2000,  // 95% das reqs < 2s
-  RESPONSE_TIME_P99_MS: 5000,  // 99% das reqs < 5s
-  ERROR_RATE_MAX: 1.0,  // <1% de erros 5xx
-  WHATSAPP_RESPONSE_TIME_TARGET_S: 30,  // <30s resposta ao hóspede
-  LLM_FALLBACK_TRIGGER: 3,  // 3 falhas em 30s → circuit breaker
+  AVAILABILITY_TARGET: 99.5, // % uptime mensal
+  RESPONSE_TIME_P95_MS: 2000, // 95% das reqs < 2s
+  RESPONSE_TIME_P99_MS: 5000, // 99% das reqs < 5s
+  ERROR_RATE_MAX: 1.0, // <1% de erros 5xx
+  WHATSAPP_RESPONSE_TIME_TARGET_S: 30, // <30s resposta ao hóspede
+  LLM_FALLBACK_TRIGGER: 3, // 3 falhas em 30s → circuit breaker
 };
 
 export const SUPPORT_HOURS = {

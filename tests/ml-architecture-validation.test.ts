@@ -50,9 +50,9 @@ describe('🧠 Arquitetura ML do Cérebro Zélla — Validação do Documento', 
       'types.ts',
     ];
 
-    for (const module of expectedModules) {
-      it(`✅ ${module} existe`, () => {
-        const filePath = path.join(SRC, 'lib', 'cerebro', module);
+    for (const moduleInstance of expectedModules) {
+      it(`✅ ${moduleInstance} existe`, () => {
+        const filePath = path.join(SRC, 'lib', 'cerebro', moduleInstance);
         expect(fs.existsSync(filePath)).toBe(true);
       });
     }

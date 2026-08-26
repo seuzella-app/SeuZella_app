@@ -82,6 +82,7 @@ export function useDDCInitialState<T = unknown>(
 
   const enabled = options?.enabled !== false;
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- useCallback dependency array is correct; React Compiler cannot infer in-place; tracked for PPR migration
   const fetchData = useCallback(async () => {
     if (!enabled) {
       setLoading(false);

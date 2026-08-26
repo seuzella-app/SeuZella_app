@@ -164,7 +164,7 @@ export async function confirmUpsellPayment(orderId: string): Promise<{ confirmed
       if (!tx) return { confirmed: false, lockExtended: false };
 
       const meta = JSON.parse(tx.metadata || '{}');
-      const order: UpsellOrder = meta.order;
+      const {order} = meta;
 
       if (order.status === 'paid') return { confirmed: true, lockExtended: order.lockExtended || false };
 
@@ -173,7 +173,7 @@ export async function confirmUpsellPayment(orderId: string): Promise<{ confirmed
       order.paidAt = new Date().toISOString();
 
       // Verifica se precisa estender fechadura
-      const needsExtension = order.items.some(item => {
+      const needsExtension = order.items.some((item: { upsellItemId: string }) => {
         const upsellItem = DEFAULT_UPSELL_ITEMS.find(i => i.id === item.upsellItemId);
         return upsellItem?.extendsLock;
       });

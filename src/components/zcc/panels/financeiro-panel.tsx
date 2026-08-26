@@ -404,7 +404,7 @@ export function FinanceiroPanel() {
   // Export CSV
   const exportCSV = () => {
     const rows = [
-      ["Métrica", "Valor (" + PERIOD_LABEL[period] + ")"],
+      ["Métrica", `Valor (${ PERIOD_LABEL[period] })`],
       ["MRR Total", fmtBRL(TOTAL_MRR * mult)],
       ["Custos API (WhatsApp + LLM)", fmtBRL(totalBurn * mult)],
       ...customCosts.map((c) => [`Custo: ${c.label}`, fmtBRL(c.amount * mult)]),
@@ -500,7 +500,7 @@ export function FinanceiroPanel() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <KpiCard label={`MRR ${PERIOD_LABEL[period]}`} value={fmtBRL(TOTAL_MRR * mult)} hint="Receita recorrente" icon={<DollarSign />} tone="primary" trend="up" trendValue="+12% MoM" />
           <KpiCard label={`Custos ${PERIOD_LABEL[period]}`} value={fmtBRL(totalCosts * mult)} hint={`${customCosts.length + 1} itens`} icon={<Flame />} trend="up" trendValue="+R$ 200" />
-          <KpiCard label={`Líquido ${PERIOD_LABEL[period]}`} value={fmtBRL(net * mult)} hint={`Margem ${margin.toFixed(1)}%`} icon={<TrendingUp />} tone={net >= 0 ? "primary" : "default"} trend={net >= 0 ? "up" : "down"} trendValue={margin.toFixed(1) + "%"} />
+          <KpiCard label={`Líquido ${PERIOD_LABEL[period]}`} value={fmtBRL(net * mult)} hint={`Margem ${margin.toFixed(1)}%`} icon={<TrendingUp />} tone={net >= 0 ? "primary" : "default"} trend={net >= 0 ? "up" : "down"} trendValue={`${margin.toFixed(1) }%`} />
           <KpiCard label="ARPA" value={fmtBRL(TOTAL_MRR / TOTAL_CLIENTS)} hint="ticket médio / cliente" icon={<PieChart />} trend="stable" trendValue="—" />
         </div>
 
@@ -871,7 +871,7 @@ function CashflowProjection({ mrr, costs }: { mrr: number; costs: number }) {
     // Período Beta: os 3 primeiros meses são marcados como "Período Beta"
     // (janela de testes — dados mock; será zerado quando dados reais entrarem)
     const baseGrowthRate = 0.10; // 10% MoM (mock)
-    let lastValue = mrr - costs; // líquido atual
+    const lastValue = mrr - costs; // líquido atual
 
     for (let i = 0; i < 6; i++) {
       const date = new Date(now.getFullYear(), now.getMonth() + i, 1);

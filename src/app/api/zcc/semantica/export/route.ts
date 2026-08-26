@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
 
     if (format === 'csv') {
       const csv = generateCSV(decisions);
-      return new NextResponse('\ufeff' + csv, {
+      return new NextResponse(`\ufeff${ csv}`, {
         status: 200,
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',

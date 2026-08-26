@@ -28,7 +28,7 @@ describe('SUÍTE COMPORTAMENTAL 3: Multi-Turn Long Drift', () => {
 
     // Redutor sintético de contexto mantido no histórico
     function reduceConversationState(history: ChatMessage[]): { guestsAdults: number; guestsChildren: number; pets: number } {
-      let state = { guestsAdults: 2, guestsChildren: 0, pets: 0 };
+      const state = { guestsAdults: 2, guestsChildren: 0, pets: 0 };
       for (const msg of history) {
         if (msg.text.includes('3 adultos e 1 criança')) {
           state.guestsAdults = 3;

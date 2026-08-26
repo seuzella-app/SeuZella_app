@@ -24,7 +24,7 @@ export async function GET(
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || request.headers.get('x-real-ip')
     || 'unknown';
-  const pathname = new URL(request.url).pathname;
+  const {pathname} = new URL(request.url);
   try {
     const rl = await apiRatelimit.limit(`download:${session!.tenantId}:${clientIp}:${pathname}`);
     if (!rl.success) {

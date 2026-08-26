@@ -69,7 +69,7 @@ export function MobileBottomNav({
                   {item.icon}
                 </span>
                 <span className="text-[9px] font-semibold tracking-wide mt-0.5 line-clamp-1">
-                  {item.label.length > 12 ? item.label.slice(0, 10) + '...' : item.label}
+                  {item.label.length > 12 ? `${item.label.slice(0, 10) }...` : item.label}
                 </span>
               </motion.button>
             );

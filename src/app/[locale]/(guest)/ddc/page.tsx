@@ -137,7 +137,7 @@ async function fetchDdcOverview(
       return (await res.json()) as DdcOverviewPayload;
     }
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error('[DDC_PAGE_FETCH_LOOPBACK_ERROR]', err);
   }
 

@@ -539,8 +539,8 @@ async function collectGoalsData(
 
   const now = new Date();
   const progress = goals.map(g => {
-    const targetValue = g.targetValue;
-    const currentValue = g.currentValue;
+    const {targetValue} = g;
+    const {currentValue} = g;
     const progressPercent = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
     const remaining = Math.max(0, targetValue - currentValue);
     const daysRemaining = Math.max(0, Math.ceil((new Date(g.endDate).getTime() - now.getTime()) / 86400000));

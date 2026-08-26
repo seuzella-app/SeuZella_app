@@ -207,8 +207,8 @@ async function executeCheckAvailability(
   const startTime = Date.now();
 
   try {  
-    const checkIn = new Date(args.checkInDate + 'T14:00:00');  
-    const checkOut = new Date(args.checkOutDate + 'T11:00:00');
+    const checkIn = new Date(`${args.checkInDate }T14:00:00`);  
+    const checkOut = new Date(`${args.checkOutDate }T11:00:00`);
 
     if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {  
       return {  
@@ -452,7 +452,7 @@ async function executeCalculateDynamicPrice(
   const startTime = Date.now();
 
   try {
-    const date = new Date(args.date + 'T12:00:00');
+    const date = new Date(`${args.date }T12:00:00`);
     if (isNaN(date.getTime())) {
       return {
         toolName: 'calculate_dynamic_price',
@@ -889,10 +889,10 @@ async function executeRegexToolLoop(
   let lastLlmResponse: LLMResponse | null = null;
 
   for (let iteration = 0; iteration < maxIterations; iteration++) {  
-    const fullPrompt = buildToolCallingSystemPrompt(systemPrompt, tools)  
+    const fullPrompt = `${buildToolCallingSystemPrompt(systemPrompt, tools)  
       + (currentContext ? `\n\nResultado das ferramentas:\n${currentContext}\n\n` : '')  
-      + `\nMensagem do hóspede: ${currentMessage}`  
-      + (iteration > 0 ? '\n\nAgora, com base nos dados acima, responda ao hóspede em português de forma natural.' : '');
+       }\nMensagem do hóspede: ${currentMessage}${  
+       iteration > 0 ? '\n\nAgora, com base nos dados acima, responda ao hóspede em português de forma natural.' : ''}`;
 
     const result = await router.generate({  
       message: fullPrompt,  

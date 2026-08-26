@@ -57,7 +57,7 @@ export class ClassifyIntentAction extends MetaAction<z.infer<typeof IntentInputS
   protected async execute(input: z.infer<typeof IntentInputSchema>) {
     const text = input.messageText.toLowerCase();
     let intent: z.infer<typeof IntentOutputSchema>['intent'] = 'GENERAL_INQUIRY';
-    let confidence = 0.95;
+    const confidence = 0.95;
 
     if (text.includes('wifi') || text.includes('wi-fi') || text.includes('senha') || text.includes('internet')) {
       intent = 'WIFI';

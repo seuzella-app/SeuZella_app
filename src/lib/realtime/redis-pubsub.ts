@@ -120,6 +120,7 @@ function ensureRedisSubscriber(): void {
 
   // BullMQ's getRedisConnection returns a shared connection. For subscribing
   // we need a separate connection because once a connection enters subscriber
+    // eslint-disable-next-line no-labels -- labeled break for nested loop clarity
   mode: try {
     const conn = getRedisConnection();
     if (!conn) return;

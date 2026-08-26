@@ -31,11 +31,11 @@ import { getCerebroMode } from '@/lib/cerebro/types';
 // ── Types 
 
 export type BrainAgeStage =
-  | 'newborn'      // 0-7 dias: cérebro fresco, só FAQ inicial
-  | 'infant'       // 7-30 dias: aprendendo padrões básicos
-  | 'adolescent'   // 30-90 dias: padrões consolidados, ainda aprendendo
-  | 'adult'        // 90-365 dias: cérebro maduro, alta autonomia
-  | 'elder'        // 365+ dias: cérebro sábio, otimização fina
+  | 'newborn' // 0-7 dias: cérebro fresco, só FAQ inicial
+  | 'infant' // 7-30 dias: aprendendo padrões básicos
+  | 'adolescent' // 30-90 dias: padrões consolidados, ainda aprendendo
+  | 'adult' // 90-365 dias: cérebro maduro, alta autonomia
+  | 'elder' // 365+ dias: cérebro sábio, otimização fina
   ;
 
 export interface BrainAge {

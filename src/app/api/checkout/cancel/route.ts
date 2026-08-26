@@ -7,7 +7,7 @@ import { authRatelimit } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const {searchParams} = request.nextUrl;
     const subscriptionId = searchParams.get('subscription_id');
 
     const session = await getServerSession(authOptions);

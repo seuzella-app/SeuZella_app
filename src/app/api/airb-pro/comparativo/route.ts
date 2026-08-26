@@ -15,13 +15,13 @@ async function getHandler(_req: NextRequest) {
   if (!session?.user) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
-  const tenantId = (session.user as any).tenantId;
+  const {tenantId} = (session.user as any);
   if (!tenantId) {
     return NextResponse.json({ error: 'TENANT_CONTEXT_MISSING' }, { status: 400 });
   }
 
   try {
-    let imoveis: any[] = [];
+    const imoveis: any[] = [];
 
     if (db && (db as any).airBProperty) {
       const properties = await (db as any).airBProperty.findMany({

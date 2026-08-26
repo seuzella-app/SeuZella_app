@@ -224,7 +224,7 @@ export class ZellaGrowthStrategy extends CortexBase {
   private async proposeICPRefinement(knowledgeId: string, confidence: number): Promise<void> {
     const entry = sharedMemory.get(knowledgeId);
     if (!entry) return;
-    const personaId = (entry.body as { personaId?: string }).personaId;
+    const {personaId} = (entry.body as { personaId?: string });
     if (!personaId) return;
     const decision: StrategicDecision = {
       decisionId: `zgs_decision_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -251,7 +251,7 @@ export class ZellaGrowthStrategy extends CortexBase {
   private async proposeFunnelIntervention(knowledgeId: string, confidence: number): Promise<void> {
     const entry = sharedMemory.get(knowledgeId);
     if (!entry) return;
-    const step = (entry.body as { step?: string }).step;
+    const {step} = (entry.body as { step?: string });
     if (!step) return;
     const decision: StrategicDecision = {
       decisionId: `zgs_decision_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,

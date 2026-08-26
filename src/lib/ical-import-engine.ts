@@ -8,8 +8,8 @@ import { safeFetchExternalUrl, SafeFetchSSRFError } from '@/lib/security/safe-fe
  */
 
 export const MAX_ICAL_BYTES = 2 * 1024 * 1024; // 2MB máximo
-export const MAX_ICAL_EVENTS = 10000;           // Limite de 10000 eventos por sync
-export const ICAL_FETCH_TIMEOUT_MS = 10000;    // 10 segundos timeout
+export const MAX_ICAL_EVENTS = 10000; // Limite de 10000 eventos por sync
+export const ICAL_FETCH_TIMEOUT_MS = 10000; // 10 segundos timeout
 
 interface ICalEvent {
   uid: string;
@@ -80,8 +80,8 @@ export async function importICal(tenantId: string, icalUrl: string): Promise<ICa
     // 2. Processa cada evento de forma transacional e segura
     for (const event of events) {
       try {
-        const checkIn = new Date(event.startDate + 'T14:00:00');
-        const checkOut = new Date(event.endDate + 'T11:00:00');
+        const checkIn = new Date(`${event.startDate }T14:00:00`);
+        const checkOut = new Date(`${event.endDate }T11:00:00`);
 
         if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {
           result.skipped++;

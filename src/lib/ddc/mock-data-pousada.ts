@@ -7,13 +7,13 @@
  */
 
 export interface PousadaOverviewMetrics {
-  occupancyRate: number;        // % Ocupação atual
-  totalRevenue: number;         // R$ Receita acumulada no mês
-  directPixPercent: number;     // % Vendas via Direct PIX (sem taxa OTA)
-  averageDailyRate: number;     // R$ Tarifa média da pousada
-  checkInsToday: number;        // Quantidade de check-ins hoje
-  checkOutsToday: number;       // Quantidade de check-outs hoje
-  aiResponseTimeMs: number;     // Latência de resposta da IA em ms
+  occupancyRate: number; // % Ocupação atual
+  totalRevenue: number; // R$ Receita acumulada no mês
+  directPixPercent: number; // % Vendas via Direct PIX (sem taxa OTA)
+  averageDailyRate: number; // R$ Tarifa média da pousada
+  checkInsToday: number; // Quantidade de check-ins hoje
+  checkOutsToday: number; // Quantidade de check-outs hoje
+  aiResponseTimeMs: number; // Latência de resposta da IA em ms
   whatsappStatus: 'connected' | 'connecting' | 'disconnected';
 }
 
@@ -43,14 +43,14 @@ export interface PousadaGuest {
 
 // ── Overview Metrics Mock (Pousada) ──────────────────────────────────────────
 export const MOCK_POUSADA_OVERVIEW: PousadaOverviewMetrics = {
-  occupancyRate: 78,              // TODO(REAL): db.room.count({ status: 'occupied' }) / totalRooms * 100
-  totalRevenue: 32450.00,         // TODO(REAL): db.paymentTransaction.aggregate({ _sum: { amount: true } })
-  directPixPercent: 68,           // TODO(REAL): db.booking.count({ method: 'pix' }) / totalBookings * 100
-  averageDailyRate: 420.00,       // TODO(REAL): db.room.aggregate({ _avg: { dailyRate: true } })
-  checkInsToday: 4,               // TODO(REAL): db.booking.count({ where: { checkIn: today } })
-  checkOutsToday: 2,              // TODO(REAL): db.booking.count({ where: { checkOut: today } })
-  aiResponseTimeMs: 380,          // TODO(REAL): telemetry.average('ai_latency_ms')
-  whatsappStatus: 'connected',    // TODO(REAL): meta-cloudClient.getStatus(tenantId)
+  occupancyRate: 78, // TODO(REAL): db.room.count({ status: 'occupied' }) / totalRooms * 100
+  totalRevenue: 32450.00, // TODO(REAL): db.paymentTransaction.aggregate({ _sum: { amount: true } })
+  directPixPercent: 68, // TODO(REAL): db.booking.count({ method: 'pix' }) / totalBookings * 100
+  averageDailyRate: 420.00, // TODO(REAL): db.room.aggregate({ _avg: { dailyRate: true } })
+  checkInsToday: 4, // TODO(REAL): db.booking.count({ where: { checkIn: today } })
+  checkOutsToday: 2, // TODO(REAL): db.booking.count({ where: { checkOut: today } })
+  aiResponseTimeMs: 380, // TODO(REAL): telemetry.average('ai_latency_ms')
+  whatsappStatus: 'connected', // TODO(REAL): meta-cloudClient.getStatus(tenantId)
 };
 
 // ── Rooms Mock (Pousada) ─────────────────────────────────────────────────────
@@ -60,8 +60,8 @@ export const MOCK_POUSADA_ROOMS: PousadaRoom[] = [
     name: 'Suíte Master 101',
     type: 'Suíte Master',
     capacity: 2,
-    dailyRate: 450.00,            // TODO(REAL): db.room.findUnique({ id: '101' }).dailyRate
-    status: 'ocupado',            // TODO(REAL): db.room.findUnique({ id: '101' }).status
+    dailyRate: 450.00, // TODO(REAL): db.room.findUnique({ id: '101' }).dailyRate
+    status: 'ocupado', // TODO(REAL): db.room.findUnique({ id: '101' }).status
     currentGuest: 'Dr. Roberto Silva', // TODO(REAL): db.booking.findFirst({ roomId: '101', active: true }).guestName
     checkOutDate: '12/08',
     amenities: ['Wi-Fi 500MB', 'Vista Mar', 'Hidromassagem', 'Café incluso'],
@@ -102,12 +102,12 @@ export const MOCK_POUSADA_GUESTS: PousadaGuest[] = [
   {
     id: 'g1',
     name: 'Carlos Eduardo',
-    phone: '(11) 98765-4321',    // TODO(REAL): db.guest.phone
+    phone: '(11) 98765-4321', // TODO(REAL): db.guest.phone
     roomType: 'Suíte Master 101',
     checkIn: '10/08',
     checkOut: '13/08',
-    value: 1350.00,              // TODO(REAL): db.booking.totalValue
-    source: 'Direct PIX',         // TODO(REAL): db.booking.channel
+    value: 1350.00, // TODO(REAL): db.booking.totalValue
+    source: 'Direct PIX', // TODO(REAL): db.booking.channel
     status: 'check-in-realizado',
   },
   {

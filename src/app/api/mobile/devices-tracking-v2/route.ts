@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date();
-    const devicePing = (db as any).devicePing;
+    const {devicePing} = (db as any);
     if (!devicePing) {
       return NextResponse.json({ success: true, persisted: false });
     }

@@ -17,8 +17,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const token = String(body.token || '');
-    const password = body.password;
-    const confirmPassword = body.confirmPassword;
+    const {password} = body;
+    const {confirmPassword} = body;
     if (!token || token.length < 32 || !validPassword(password) || password !== confirmPassword) return NextResponse.json({ error: 'Token inválido ou senha fora dos requisitos.' }, { status: 400 });
     if (!(await isDatabaseAvailable())) return NextResponse.json({ error: 'Serviço indisponível.' }, { status: 503 });
     await ensureResetTable();

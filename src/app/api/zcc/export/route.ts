@@ -93,7 +93,7 @@ function generateCSV(data: any, sections: string[], periodLabel: string, generat
 
   if (!data) {
     rows.push(['ERRO', 'Dados nao recebidos']);
-    return '\ufeff' + rows.map((r) => r.join(sep)).join('\n');
+    return `\ufeff${ rows.map((r) => r.join(sep)).join('\n')}`;
   }
 
   const curr = data.current || {};
@@ -185,7 +185,7 @@ function generateCSV(data: any, sections: string[], periodLabel: string, generat
     rows.push([]);
   }
 
-  return '\ufeff' + rows.map((r) => r.map((c) => String(c ?? '')).join(sep)).join('\n');
+  return `\ufeff${ rows.map((r) => r.map((c) => String(c ?? '')).join(sep)).join('\n')}`;
 }
 
 function calcChange(curr: number, prev: number): string {

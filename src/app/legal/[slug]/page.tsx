@@ -310,8 +310,8 @@ export default function LegalDocumentPage() {
   const [copied, setCopied] = useState(false);
 
   const handleCopyMarkdown = () => {
-    const fullText = `# ${page.title}\n${page.subtitle}\n\n` + 
-      page.sections.map(s => `## ${s.heading}\n${s.content}`).join('\n\n');
+    const fullText = `# ${page.title}\n${page.subtitle}\n\n${  
+      page.sections.map(s => `## ${s.heading}\n${s.content}`).join('\n\n')}`;
     navigator.clipboard.writeText(fullText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);

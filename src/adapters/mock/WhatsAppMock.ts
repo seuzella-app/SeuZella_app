@@ -85,7 +85,7 @@ class WhatsAppMock implements IWhatsAppAdapter {
       try {
         await handler(msg);
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error('[WhatsAppMock] inbound handler failed:', err);
       }
     }

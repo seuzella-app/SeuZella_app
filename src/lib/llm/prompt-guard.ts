@@ -124,12 +124,12 @@ export function validateLLMResponse(
 
   // Detecta vazamento de dados sensíveis
   const sensitivePatterns = [
-    /sk-[a-zA-Z0-9_-]{20,}/i,     // API keys (OpenAI, Anthropic) — inclui hífens
-    /ghp_[a-zA-Z0-9]{36}/i,        // GitHub PAT
-    /AKIA[A-Z0-9]{16}/i,           // AWS keys
+    /sk-[a-zA-Z0-9_-]{20,}/i, // API keys (OpenAI, Anthropic) — inclui hífens
+    /ghp_[a-zA-Z0-9]{36}/i, // GitHub PAT
+    /AKIA[A-Z0-9]{16}/i, // AWS keys
     /-----BEGIN [A-Z]+ PRIVATE KEY-----/i, // Private keys
-    /password\s*[:=]\s*["']\w+/i,   // Password assignments
-    /Bearer\s+[a-zA-Z0-9._-]+/i,    // Bearer tokens
+    /password\s*[:=]\s*["']\w+/i, // Password assignments
+    /Bearer\s+[a-zA-Z0-9._-]+/i, // Bearer tokens
   ];
 
   for (const pattern of sensitivePatterns) {
@@ -232,8 +232,8 @@ export function getSystemPromptForSector(sector: LLMSector): string {
 // ─────────────────────────────────────────────────────────────────────────────
 export function sanitizeResponse(response: string): string {
   return response
-    .replace(/\u0000/g, '')           // null bytes
+    .replace(/\u0000/g, '') // null bytes
     .replace(/[\u200B-\u200D\uFEFF]/g, '') // zero-width chars
-    .replace(/\r\n/g, '\n')           // normaliza quebras de linha
+    .replace(/\r\n/g, '\n') // normaliza quebras de linha
     .trim();
 }

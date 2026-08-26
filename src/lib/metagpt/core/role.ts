@@ -8,9 +8,9 @@ import { RoleMemory } from './memory';
 
 export interface RoleProfile {
   name: string;
-  profile: string;          // Ex: 'Senior Yield Specialist', 'Anti-Hallucination QA'
-  goal: string;             // Ex: 'Maximizar receita preservando ocupação'
-  constraints?: string[];   // Ex: ['Nunca exceder 7% de taxa', 'Nunca prometer check-in antes das 14h sem autorização']
+  profile: string; // Ex: 'Senior Yield Specialist', 'Anti-Hallucination QA'
+  goal: string; // Ex: 'Maximizar receita preservando ocupação'
+  constraints?: string[]; // Ex: ['Nunca exceder 7% de taxa', 'Nunca prometer check-in antes das 14h sem autorização']
   subscribedTopics?: string[];
 }
 

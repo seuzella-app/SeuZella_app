@@ -53,7 +53,7 @@ async function runAnalysis(request: NextRequest): Promise<NextResponse> {
   if (!auth.ok) {
     return auth.response;
   }
-  const principal = auth.principal;
+  const {principal} = auth;
 
   try {
     // ── 1. Roda AnomalyDetector para coletar anomalias atuais ──

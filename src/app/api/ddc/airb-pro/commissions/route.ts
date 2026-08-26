@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Gera partnerCode único se não fornecido
-    let partnerCode = input.partnerCode;
+    let {partnerCode} = input;
     if (!partnerCode) {
       const slug = input.partnerName.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
       const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');

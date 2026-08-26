@@ -217,7 +217,7 @@ class NotificationMemoryStore {
 
 // ─── Singleton ─────────────────────────────────────────────────────────────
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __ZELLA_NOTIFICATION_STORE__: NotificationMemoryStore | undefined;
 }
 

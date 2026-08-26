@@ -44,7 +44,7 @@ export const MOCK_SHARED_NOTIFICATIONS: SharedNotification[] = [
     description: 'Reserva R$ 1.350,00 de Dr. Roberto Silva confirmada no PIX Direto (0% taxa).',
     time: 'Há 5 min',
     unread: true,
-    type: 'pix',                      // TODO(REAL): sseLiveFeed.on('notification')
+    type: 'pix', // TODO(REAL): sseLiveFeed.on('notification')
   },
   {
     id: 'n2',
@@ -115,7 +115,7 @@ export const MOCK_SHARED_TRANSACTIONS: SharedTransaction[] = [
     id: 'tx-101',
     guestName: 'Dr. Roberto Silva',
     description: 'Reserva Direct PIX — Suíte Master 101 (3 diárias)',
-    paymentMethod: 'PIX',            // TODO(REAL): db.paymentTransaction.findMany()
+    paymentMethod: 'PIX', // TODO(REAL): db.paymentTransaction.findMany()
     amount: 1350.00,
     date: 'Hoje, 15:22',
     status: 'approved',

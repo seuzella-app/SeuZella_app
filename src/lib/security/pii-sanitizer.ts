@@ -34,7 +34,7 @@ export function sanitizePIIWithProof(text: string): SanitizationProof {
   for (const [type, pattern] of Object.entries(SENSITIVE_PATTERNS)) {
     const matches = [...sanitized.matchAll(pattern)];
     if (matches.length > 0) {
-      const samples = matches.slice(0, 3).map(m => m[0].slice(0, 20) + '...');
+      const samples = matches.slice(0, 3).map(m => `${m[0].slice(0, 20) }...`);
       detections.push({ type, count: matches.length, samples });
       sanitized = sanitized.replace(pattern, `[${type.toUpperCase()}_REMOVIDO]`);
     }

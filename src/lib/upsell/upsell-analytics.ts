@@ -36,10 +36,10 @@ export interface BehavioralMetrics {
   removeCount: number;
   successCount: number;
   totalSalesAmount: number;
-  conversionRate: number;  // successCount / viewCount * 100
-  acceptanceRate: number;  // acceptCount / viewCount * 100
-  removalRate: number;     // removeCount / viewCount * 100
-  averageTicket: number;   // totalSalesAmount / successCount
+  conversionRate: number; // successCount / viewCount * 100
+  acceptanceRate: number; // acceptCount / viewCount * 100
+  removalRate: number; // removeCount / viewCount * 100
+  averageTicket: number; // totalSalesAmount / successCount
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ export async function calcularBehavioralMetrics(params: {
 
     const where: any = {
       tenantId: params.tenantId,
-      isSandbox: false,  // exclui ofertas de teste
+      isSandbox: false, // exclui ofertas de teste
     };
     if (params.type) where.type = params.type;
     if (params.startDate || params.endDate) {
@@ -187,8 +187,8 @@ export interface TriggerContext {
   temporada?: 'alta' | 'média' | 'baixa';
   feriado?: string;
   guestId?: string;
-  horaDoDia: number;  // 0-23
-  diaDaSemana: number;  // 0=domingo, 6=sábado
+  horaDoDia: number; // 0-23
+  diaDaSemana: number; // 0=domingo, 6=sábado
 }
 
 export interface TriggerConfig {
@@ -198,11 +198,11 @@ export interface TriggerConfig {
   isSandbox: boolean;
   triggerCartMin?: number | null;
   triggerCartMax?: number | null;
-  triggerCategories?: string | null;  // JSON
-  triggerProducts?: string | null;    // JSON
-  triggerSeasons?: string | null;     // JSON
-  triggerFeriados?: string | null;     // JSON
-  triggerWeekdays?: string | null;    // JSON [0,1,2,3,4,5,6]
+  triggerCategories?: string | null; // JSON
+  triggerProducts?: string | null; // JSON
+  triggerSeasons?: string | null; // JSON
+  triggerFeriados?: string | null; // JSON
+  triggerWeekdays?: string | null; // JSON [0,1,2,3,4,5,6]
   triggerHourStart?: number | null;
   triggerHourEnd?: number | null;
   triggerOncePerGuest: boolean;
@@ -210,7 +210,7 @@ export interface TriggerConfig {
 
 export interface TriggerResult {
   shouldShow: boolean;
-  reason?: string;  // motivo se não exibir
+  reason?: string; // motivo se não exibir
 }
 
 /**

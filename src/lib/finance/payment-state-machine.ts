@@ -40,10 +40,10 @@ export const VALID_TRANSITIONS: Record<PaymentState, PaymentState[]> = {
   CONFIRMED: ['ACTIVE', 'REFUNDED', 'CHARGEBACK', 'CANCELLED'],
   ACTIVE: ['REFUNDED', 'CHARGEBACK', 'EXPIRED'],
   FAILED: ['PENDING', 'CREATED'], // Permite nova tentativa
-  CANCELLED: [],                  // Estado terminal
-  EXPIRED: [],                    // Estado terminal
-  REFUNDED: [],                   // Estado terminal — NUNCA reativa
-  CHARGEBACK: [],                 // Estado terminal — NUNCA reativa
+  CANCELLED: [], // Estado terminal
+  EXPIRED: [], // Estado terminal
+  REFUNDED: [], // Estado terminal — NUNCA reativa
+  CHARGEBACK: [], // Estado terminal — NUNCA reativa
 };
 
 export interface StateTransitionResult {

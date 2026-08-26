@@ -36,7 +36,7 @@ export function generateSpreadsheet(leads: Lead[]): ArrayBuffer {
 
   /* Style header row — bold + royal blue background */
   const headerRange = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-  for (let c = headerRange.s.c; c <= headerRange.e.c; c++) {
+  for (let {c} = headerRange.s; c <= headerRange.e.c; c++) {
     const cellAddress = XLSX.utils.encode_cell({ r: 0, c });
     const cell = ws[cellAddress];
     if (cell) {
@@ -50,7 +50,7 @@ export function generateSpreadsheet(leads: Lead[]): ArrayBuffer {
 
   /* Apply alternating row colors and padding */
   for (let r = 1; r <= headerRange.e.r; r++) {
-    for (let c = headerRange.s.c; c <= headerRange.e.c; c++) {
+    for (let {c} = headerRange.s; c <= headerRange.e.c; c++) {
       const cellAddress = XLSX.utils.encode_cell({ r, c });
       const cell = ws[cellAddress];
       if (cell) {

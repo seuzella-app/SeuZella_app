@@ -154,7 +154,7 @@ export function gerarICalDoZehla(
     status: string;
   }>,
 ): string {
-  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const now = `${new Date().toISOString().replace(/[-:]/g, '').split('.')[0] }Z`;
   const dtstamp = `DTSTAMP:${now}`;
 
   let ical = `BEGIN:VCALENDAR

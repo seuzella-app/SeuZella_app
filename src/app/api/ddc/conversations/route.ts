@@ -268,7 +268,7 @@ export async function GET(request: NextRequest) {
       await seedDemoConversations(tenantId);
     }
 
-    const searchParams = request.nextUrl.searchParams;
+    const {searchParams} = request.nextUrl;
     const status = searchParams.get('status');
     const escalated = searchParams.get('escalated');
     const search = searchParams.get('search');

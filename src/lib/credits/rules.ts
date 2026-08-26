@@ -51,10 +51,10 @@ export const LITE_INITIAL_LINKINBIO_DAYS = 60;
  * Arredondado para facilitar comunicação.
  */
 export const CREDIT_REWARD_BY_PLAN_CENTS: Record<Exclude<PlanTier, 'gratuito'>, number> = {
-  lite: 3000,      // R$ 30 por LITE convertido (15% de R$197 ≈ R$29,55)
-  pro: 6000,       // R$ 60 por PRO convertido (15% de R$397 ≈ R$59,55)
-  max: 12000,      // R$ 120 por MAX convertido (15% de R$797 ≈ R$119,55)
-  parceiro: 2500,  // R$ 25 por PARCEIRO convertido (10% de R$247 ≈ R$24,70)
+  lite: 3000, // R$ 30 por LITE convertido (15% de R$197 ≈ R$29,55)
+  pro: 6000, // R$ 60 por PRO convertido (15% de R$397 ≈ R$59,55)
+  max: 12000, // R$ 120 por MAX convertido (15% de R$797 ≈ R$119,55)
+  parceiro: 2500, // R$ 25 por PARCEIRO convertido (10% de R$247 ≈ R$24,70)
 };
 
 // ── Limites e janelas anti-fraude ────────────────────────────────────────────
@@ -119,7 +119,7 @@ export const REFERRAL_CHANNELS: ChannelConfig[] = [
     icon: 'message-circle',
     buildUrl: (baseUrl, code, extra) => {
       const msg = extra?.message || `Olha esse sistema que achei pro seu Airbnb/Pousada: seuzella.com — atende hóspedes no WhatsApp 24/7!`;
-      return `https://wa.me/?text=${encodeURIComponent(msg + ' ' + baseUrl + '/r/' + code)}`;
+      return `https://wa.me/?text=${encodeURIComponent(`${msg } ${ baseUrl }/r/${ code}`)}`;
     },
   },
   {

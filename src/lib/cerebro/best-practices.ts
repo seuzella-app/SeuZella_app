@@ -532,7 +532,7 @@ export function listBestPractices(): Array<{
     filePath: entry.filePath,
     category: entry.metadata.category,
     tags: entry.metadata.tags,
-    preview: entry.content.substring(0, 200) + '...',
+    preview: `${entry.content.substring(0, 200) }...`,
   }));
 }
 

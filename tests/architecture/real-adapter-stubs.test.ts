@@ -28,16 +28,16 @@ describe('Real adapter stubs — architecture contract', () => {
   });
 
   it('every real adapter exports an instance that throws RealAdapterNotImplementedError', async () => {
-    const module = await import('@/adapters/real');
+    const moduleInstance = await import('@/adapters/real');
     const adapters = [
-      { name: 'googleAdsReal', instance: module.googleAdsReal },
-      { name: 'metaAdsReal', instance: module.metaAdsReal },
-      { name: 'paymentReal', instance: module.paymentReal },
-      { name: 'crmReal', instance: module.crmReal },
-      { name: 'whatsappReal', instance: module.whatsappReal },
-      { name: 'analyticsReal', instance: module.analyticsReal },
-      { name: 'emailReal', instance: module.emailReal },
-      { name: 'mapsReal', instance: module.mapsReal },
+      { name: 'googleAdsReal', instance: moduleInstance.googleAdsReal },
+      { name: 'metaAdsReal', instance: moduleInstance.metaAdsReal },
+      { name: 'paymentReal', instance: moduleInstance.paymentReal },
+      { name: 'crmReal', instance: moduleInstance.crmReal },
+      { name: 'whatsappReal', instance: moduleInstance.whatsappReal },
+      { name: 'analyticsReal', instance: moduleInstance.analyticsReal },
+      { name: 'emailReal', instance: moduleInstance.emailReal },
+      { name: 'mapsReal', instance: moduleInstance.mapsReal },
     ];
 
     for (const { name, instance } of adapters) {
@@ -47,19 +47,19 @@ describe('Real adapter stubs — architecture contract', () => {
   });
 
   it('every real adapter method throws RealAdapterNotImplementedError (never silently no-ops)', async () => {
-    const module = await import('@/adapters/real');
+    const moduleInstance = await import('@/adapters/real');
 
     // Each adapter must throw on every method call. This contract ensures
     // we never silently route production traffic through an unimplemented adapter.
     const calls = [
-      () => module.googleAdsReal.createCampaign(),
-      () => module.metaAdsReal.createCampaign(),
-      () => module.paymentReal.createIntent(),
-      () => module.crmReal.createLead(),
-      () => module.whatsappReal.send(),
-      () => module.analyticsReal.trackEvent(),
-      () => module.emailReal.send(),
-      () => module.mapsReal.geocode(),
+      () => moduleInstance.googleAdsReal.createCampaign(),
+      () => moduleInstance.metaAdsReal.createCampaign(),
+      () => moduleInstance.paymentReal.createIntent(),
+      () => moduleInstance.crmReal.createLead(),
+      () => moduleInstance.whatsappReal.send(),
+      () => moduleInstance.analyticsReal.trackEvent(),
+      () => moduleInstance.emailReal.send(),
+      () => moduleInstance.mapsReal.geocode(),
     ];
 
     for (const call of calls) {
@@ -71,8 +71,8 @@ describe('Real adapter stubs — architecture contract', () => {
     // Exception: onInbound returns an unsubscribe function, not a Promise.
     // It must return a no-op rather than throwing so consumers can register
     // handlers without try/catch around the subscription.
-    const module = await import('@/adapters/real');
-    const unsubscribe = module.whatsappReal.onInbound();
+    const moduleInstance = await import('@/adapters/real');
+    const unsubscribe = moduleInstance.whatsappReal.onInbound();
     expect(typeof unsubscribe).toBe('function');
   });
 });

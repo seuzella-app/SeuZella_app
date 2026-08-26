@@ -23,11 +23,11 @@ export interface LgpdDeleteRequest {
   guestName: string;
   guestEmail?: string;
   guestPhone?: string;
-  reason: string;  // motivo do pedido (art. 18 VI)
+  reason: string; // motivo do pedido (art. 18 VI)
   status: 'pending' | 'processing' | 'completed' | 'rejected';
   requestedAt: string;
   completedAt?: string;
-  deletedTables: string[];  // tabelas onde dados foram apagados
+  deletedTables: string[]; // tabelas onde dados foram apagados
   notes?: string;
 }
 

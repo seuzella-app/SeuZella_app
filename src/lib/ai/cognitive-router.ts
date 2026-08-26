@@ -121,7 +121,7 @@ export async function executeCognitivePipeline(
   // ── V11-P0.6: Resolve system prompt via DSPy CompiledPrompt (com fallback) ──
   // niche='pousada' é o padrão do Seu Zélla; em P1 pode ser parametrizado por tenant.
   const promptResolution = await resolveSystemPrompt(tenantId, 'pousada', request.systemPrompt);
-  const systemPrompt = promptResolution.systemPrompt;
+  const {systemPrompt} = promptResolution;
 
   // Etapa 1: Guardrails  
   const guardResult = guardWhatsAppMessage(message);  
@@ -250,7 +250,7 @@ export async function executeCognitivePipeline(
     systemPrompt: enrichedPrompt,
     sessionId,
     tier: 2,
-    tenantId,  // Per-tenant budget isolation
+    tenantId, // Per-tenant budget isolation
   });
 
   // ── AUDIT-PATH (async, não bloqueia resposta) ─────────────────────

@@ -4,10 +4,10 @@
 
 export interface MetaMessage<T = unknown> {
   id: string;
-  sender: string;           // Ex: 'DemandAnalystRole', 'GuestConciergeRole', 'User'
+  sender: string; // Ex: 'DemandAnalystRole', 'GuestConciergeRole', 'User'
   senderRole?: string;
-  recipient?: string;       // Ex: 'YieldStrategistRole', 'All', 'Environment'
-  topic: string;            // Ex: 'yield.proposal', 'guest.message', 'hardware.alert'
+  recipient?: string; // Ex: 'YieldStrategistRole', 'All', 'Environment'
+  topic: string; // Ex: 'yield.proposal', 'guest.message', 'hardware.alert'
   content: string;
   data?: T;
   timestamp: number;

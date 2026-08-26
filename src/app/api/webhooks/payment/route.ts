@@ -299,12 +299,12 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
   // 2. Cria o Property associado (se nome informado)
   let propertyId: string | undefined;
   if (propertyName) {
-    const slug = propertyName
+    const slug = `${propertyName
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') + '-' + tenant.id.slice(-6);
+      .replace(/^-|-$/g, '') }-${ tenant.id.slice(-6)}`;
 
     const property = await db.property.create({
       data: {

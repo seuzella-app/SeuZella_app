@@ -162,11 +162,11 @@ const isProduction = process.env.NODE_ENV === 'production';
 if (isProduction && !hasRedis) {
   // Log crítico no boot — não derruba o processo mas sinaliza fortemente
   console.error(
-    '═'.repeat(80) + '\n' +
-    '[RATE-LIMIT] CRÍTICO: Produção sem UPSTASH_REDIS_REST_URL/TOKEN configurados.\n' +
-    'Rate limiting está operando em modo DENY-ALL. Configure Upstash Redis imediatamente.\n' +
-    'Docs: https://docs.upstash.com/redis/serverless-databases\n' +
-    '═'.repeat(80)
+    `${'═'.repeat(80) }\n` +
+    `[RATE-LIMIT] CRÍTICO: Produção sem UPSTASH_REDIS_REST_URL/TOKEN configurados.\n` +
+    `Rate limiting está operando em modo DENY-ALL. Configure Upstash Redis imediatamente.\n` +
+    `Docs: https://docs.upstash.com/redis/serverless-databases\n${ 
+    '═'.repeat(80)}`
   );
 }
 

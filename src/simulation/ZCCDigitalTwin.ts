@@ -76,7 +76,7 @@ export async function bootDigitalTwin(opts: DigitalTwinBootOptions = {}): Promis
       },
       baseline: { knowledgePublished: 1 },
     });
-    // eslint-disable-next-line no-console
+     
     console.log('[DigitalTwin] Lab run completed:', result.verdict);
   });
 
@@ -114,7 +114,7 @@ export async function bootDigitalTwin(opts: DigitalTwinBootOptions = {}): Promis
       competitorCount: 20,
       historyYears: 0,
     });
-    // eslint-disable-next-line no-console
+     
     console.log(
       `[DigitalTwin] Synthetic Brazil seeded: ${brazil.cities.length} cities, ${brazil.pousadas.length} pousadas, ${brazil.airbnbs.length} airbnbs, ${brazil.guests.length} guests, ${brazil.competitors.length} competitors`
     );

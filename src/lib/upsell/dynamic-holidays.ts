@@ -55,7 +55,7 @@ export function getUpcomingHolidays(referenceDate: Date = new Date()): DynamicHo
       label: '🎆 Pacote Réveillon & Ano Novo',
       getDateRange: (ano: number) => ({
         start: new Date(ano, 11, 28), // 28/Dez
-        end: new Date(ano + 1, 0, 2),  // 02/Jan
+        end: new Date(ano + 1, 0, 2), // 02/Jan
       }),
       upsellSugerido: 350,
       desc: 'Pico máximo de procura no WhatsApp. Valorização de 80% a 120% da diária por quarto.',

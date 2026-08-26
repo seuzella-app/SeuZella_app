@@ -242,8 +242,8 @@ export async function detectBottlenecks(opts: BottleneckDetectorOptions = {}): P
   const start = Date.now();
   const target = opts.target ?? 'src/';
   const maxFiles = opts.maxFiles ?? 10;
-  const onlyTypes = opts.onlyTypes;
-  const jobId = opts.jobId;
+  const {onlyTypes} = opts;
+  const {jobId} = opts;
   const shouldPersist = opts.persist ?? !!jobId;
   const mode = getCerebroMode();
 
@@ -259,7 +259,7 @@ export async function detectBottlenecks(opts: BottleneckDetectorOptions = {}): P
     if (!result.ok || !result.lines || !result.redactedContent) continue;
     filesScanned++;
 
-    const lines = result.lines;
+    const {lines} = result;
     const content = result.redactedContent;
     const isApiRoute = relPath.includes('/api/') && relPath.endsWith('route.ts');
 

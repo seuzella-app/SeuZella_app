@@ -63,7 +63,7 @@ const STATE_PATHS: Record<UF, string> = {
 const ALL_UFS = Object.keys(STATE_PATHS) as UF[];
 
 function intensityColor(ratio: number): string {
-  if (ratio <= 0) return "oklch(0.22 0.02 162.48 / 0.6)";   // sem leads — quase preto
+  if (ratio <= 0) return "oklch(0.22 0.02 162.48 / 0.6)"; // sem leads — quase preto
   if (ratio < 0.2) return "oklch(0.32 0.06 162.48 / 0.7)";
   if (ratio < 0.4) return "oklch(0.42 0.10 162.48 / 0.8)";
   if (ratio < 0.6) return "oklch(0.55 0.13 162.48 / 0.88)";
@@ -73,8 +73,8 @@ function intensityColor(ratio: number): string {
 
 function leadMarkerColor(lead: Lead): string {
   if (lead.converted || lead.status === "convertido") return "#10b981"; // verde
-  if (lead.hot || lead.score ?? 0 >= 85) return "#ef4444";                   // vermelho
-  return "#f59e0b";                                                      // amarelo
+  if (lead.hot || lead.score ?? 0 >= 85) return "#ef4444"; // vermelho
+  return "#f59e0b"; // amarelo
 }
 
 export function BrazilMap({
@@ -112,7 +112,7 @@ export function BrazilMap({
 
   const tooltipText = (uf: UF): string => {
     const a = getAggregate(uf);
-    if (!a || a.totalLeads ?? 0 === 0) return `${STATE_NAMES[uf]} — sem leads`;
+    if (!a || (a.totalLeads ?? 0) === 0) return `${STATE_NAMES[uf]} — sem leads`;
     return `${STATE_NAMES[uf]} — ${a.totalLeads ?? 0} leads · ${a.hotLeads} quentes`;
   };
 

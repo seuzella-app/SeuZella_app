@@ -33,14 +33,14 @@ export class CostKnowledge {
   /* ---------------------------------------------------------- */
   private initPricing(): void {
     const models: ModelPricing[] = [
-      { providerId: 'ollama-llama3',   inputPer1M: 0,     outputPer1M: 0,     cachePer1M: 0,    contextTokens: 8192,    tier: 1 },
-      { providerId: 'ollama-gemma3',   inputPer1M: 0,     outputPer1M: 0,     cachePer1M: 0,    contextTokens: 8192,    tier: 1 },
-      { providerId: 'groq-llama3-70b', inputPer1M: 0.59,  outputPer1M: 0.79,  cachePer1M: 0,    contextTokens: 32768,   tier: 2 },
-      { providerId: 'gemini-flash',    inputPer1M: 1.50,  outputPer1M: 9.00,  cachePer1M: 0.15, contextTokens: 1_048_576, tier: 3 },
-      { providerId: 'deepseek-v4-flash',  inputPer1M: 0.14,  outputPer1M: 0.28,  cachePer1M: 0.0028, contextTokens: 1_048_576, tier: 1 },
-      { providerId: 'zhipu-glm5',      inputPer1M: 1.40,  outputPer1M: 4.40,  cachePer1M: 0.26, contextTokens: 1_048_576, tier: 2 },
-      { providerId: 'moonshot-kimi-k2-6', inputPer1M: 0.95, outputPer1M: 4.00, cachePer1M: 0.16, contextTokens: 262_144,  tier: 2 },
-      { providerId: 'openrouter-gpt4o',   inputPer1M: 2.50, outputPer1M: 10.00, cachePer1M: 0,    contextTokens: 128000,  tier: 3 },
+      { providerId: 'ollama-llama3', inputPer1M: 0, outputPer1M: 0, cachePer1M: 0, contextTokens: 8192, tier: 1 },
+      { providerId: 'ollama-gemma3', inputPer1M: 0, outputPer1M: 0, cachePer1M: 0, contextTokens: 8192, tier: 1 },
+      { providerId: 'groq-llama3-70b', inputPer1M: 0.59, outputPer1M: 0.79, cachePer1M: 0, contextTokens: 32768, tier: 2 },
+      { providerId: 'gemini-flash', inputPer1M: 1.50, outputPer1M: 9.00, cachePer1M: 0.15, contextTokens: 1_048_576, tier: 3 },
+      { providerId: 'deepseek-v4-flash', inputPer1M: 0.14, outputPer1M: 0.28, cachePer1M: 0.0028, contextTokens: 1_048_576, tier: 1 },
+      { providerId: 'zhipu-glm5', inputPer1M: 1.40, outputPer1M: 4.40, cachePer1M: 0.26, contextTokens: 1_048_576, tier: 2 },
+      { providerId: 'moonshot-kimi-k2-6', inputPer1M: 0.95, outputPer1M: 4.00, cachePer1M: 0.16, contextTokens: 262_144, tier: 2 },
+      { providerId: 'openrouter-gpt4o', inputPer1M: 2.50, outputPer1M: 10.00, cachePer1M: 0, contextTokens: 128000, tier: 3 },
     ];
     for (const m of models) {
       this.pricing.set(m.providerId, m);

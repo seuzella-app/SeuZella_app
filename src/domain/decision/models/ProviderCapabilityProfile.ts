@@ -1,11 +1,11 @@
 export interface ICapabilityVector {
-  readonly reasoning: number;       // [0, 1]
-  readonly conversation: number;    // [0, 1]
-  readonly code: number;           // [0, 1]
-  readonly json: number;           // [0, 1]
-  readonly creative: number;       // [0, 1]
-  readonly multilingual: number;   // [0, 1]
-  readonly safety: number;         // [0, 1]
+  readonly reasoning: number; // [0, 1]
+  readonly conversation: number; // [0, 1]
+  readonly code: number; // [0, 1]
+  readonly json: number; // [0, 1]
+  readonly creative: number; // [0, 1]
+  readonly multilingual: number; // [0, 1]
+  readonly safety: number; // [0, 1]
 }
 
 export class ProviderCapabilityProfile {

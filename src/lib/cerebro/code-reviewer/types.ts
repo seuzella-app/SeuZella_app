@@ -113,13 +113,13 @@ export interface ReviewRequest {
 // ── Quality Gate Failures ──────────────────────────────────────────────────
 
 export type QualityGateFailure =
-  | 'path_not_allowed'        // caminho fora da allowlist
-  | 'file_too_large'          // arquivo excede MAX_FILE_SIZE_KB
-  | 'max_files_exceeded'      // lotes excedem maxFiles
-  | 'budget_exhausted'        // budget mensal do Cérebro estourou
-  | 'rate_limited'             // too many reviews em janela curta
-  | 'diff_empty'               // diff vazio
-  | 'invalid_request'          // request malformado
+  | 'path_not_allowed' // caminho fora da allowlist
+  | 'file_too_large' // arquivo excede MAX_FILE_SIZE_KB
+  | 'max_files_exceeded' // lotes excedem maxFiles
+  | 'budget_exhausted' // budget mensal do Cérebro estourou
+  | 'rate_limited' // too many reviews em janela curta
+  | 'diff_empty' // diff vazio
+  | 'invalid_request' // request malformado
   | 'secret_detected_in_path'; // caminho parece conter secret
 
 export interface QualityGateResult {

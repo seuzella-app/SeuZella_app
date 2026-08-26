@@ -77,7 +77,7 @@ async function handlePost(request: NextRequest, ctx: SecurityContext): Promise<N
         return NextResponse.json({ error: 'VALIDATION', message: 'date é obrigatório para mode=single.' }, { status: 400 });
       }
 
-      const date = new Date(dateStr + 'T12:00:00');
+      const date = new Date(`${dateStr }T12:00:00`);
       if (isNaN(date.getTime())) {
         return NextResponse.json({ error: 'VALIDATION', message: 'date inválido. Use YYYY-MM-DD.' }, { status: 400 });
       }
@@ -118,8 +118,8 @@ async function handlePost(request: NextRequest, ctx: SecurityContext): Promise<N
         return NextResponse.json({ error: 'VALIDATION', message: 'startDate e endDate são obrigatórios para mode=batch.' }, { status: 400 });
       }
 
-      const startDate = new Date(startDateStr + 'T12:00:00');
-      const endDate = new Date(endDateStr + 'T12:00:00');
+      const startDate = new Date(`${startDateStr }T12:00:00`);
+      const endDate = new Date(`${endDateStr }T12:00:00`);
 
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         return NextResponse.json({ error: 'VALIDATION', message: 'Datas inválidas. Use YYYY-MM-DD.' }, { status: 400 });

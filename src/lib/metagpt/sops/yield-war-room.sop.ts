@@ -32,7 +32,7 @@ const YieldInputSchema = z.object({
 const YieldOutputSchema = z.object({
   totalExcedentGross: z.number(),
   landlordNetProfit: z.number(), // 93%
-  zellaSuccessFee: z.number(),   // 7%
+  zellaSuccessFee: z.number(), // 7%
   roiMultiplier: z.number(),
 });
 

@@ -55,8 +55,8 @@ export type OperatingMode = 'pousada' | 'airbnb';
 export interface AirbnbPropertyContext {
   // Identificação
   id: string;
-  name: string;                     // "Apartamento Vista Mar"
-  airbnbListingId?: string;         // ID do anúncio no Airbnb
+  name: string; // "Apartamento Vista Mar"
+  airbnbListingId?: string; // ID do anúncio no Airbnb
   type: 'apartamento' | 'casa' | 'studio' | 'loft' | 'chalé' | 'outro';
 
   // Localização (campos que Property JÁ TEM parcialmente)
@@ -68,18 +68,18 @@ export interface AirbnbPropertyContext {
   longitude?: number;
 
   // Instruções de acesso (NOVO — Property NÃO tem)
-  checkInInstructions: string;      // "A chave está no lockbox código 4521"
+  checkInInstructions: string; // "A chave está no lockbox código 4521"
   lockProvider?: 'lockbox' | 'smart_lock' | 'key_handoff' | 'building_staff';
-  lockCode?: string;                // "4521" (se lockbox) ou código da fechadura
-  wifiNetwork: string;              // "CasaVistaMar_5G"
-  wifiPassword: string;             // "praia2024"
-  parkingInstructions?: string;     // "Vaga 14 na garagem do prédio"
+  lockCode?: string; // "4521" (se lockbox) ou código da fechadura
+  wifiNetwork: string; // "CasaVistaMar_5G"
+  wifiPassword: string; // "praia2024"
+  parkingInstructions?: string; // "Vaga 14 na garagem do prédio"
 
   // Regras da casa (NOVO — Property NÃO tem)
-  houseRules: string[];             // ["Sem festas", "Sem fumar", "Pet permitido até 10kg"]
-  quietHoursStart?: string;         // "22:00"
-  quietHoursEnd?: string;           // "08:00"
-  maxGuests: number;                // 4
+  houseRules: string[]; // ["Sem festas", "Sem fumar", "Pet permitido até 10kg"]
+  quietHoursStart?: string; // "22:00"
+  quietHoursEnd?: string; // "08:00"
+  maxGuests: number; // 4
   allowsPets: boolean;
   allowsSmoking: boolean;
   allowsParties: boolean;
@@ -108,9 +108,9 @@ export interface AirbnbPropertyContext {
 export interface HostKnowledgeEntry {
   id: string;
   category: 'quirk' | 'tip' | 'warning' | 'how_to';
-  title: string;                    // "Torneira da cozinha"
-  description: string;              // "Demora 30s pra esquentar, é normal!"
-  isImportant: boolean;             // true = incluir no check-in message
+  title: string; // "Torneira da cozinha"
+  description: string; // "Demora 30s pra esquentar, é normal!"
+  isImportant: boolean; // true = incluir no check-in message
 }
 
 /**
@@ -122,11 +122,11 @@ export interface HostKnowledgeEntry {
 export interface NeighborhoodTip {
   id: string;
   category: 'food' | 'transport' | 'leisure' | 'warning' | 'service' | 'shopping';
-  name: string;                     // "Padaria da Esquina"
-  description: string;              // "Pão fresco às 6h, melhor da rua"
-  distance?: string;                // "2 min a pé"
+  name: string; // "Padaria da Esquina"
+  description: string; // "Pão fresco às 6h, melhor da rua"
+  distance?: string; // "2 min a pé"
   phone?: string;
-  hours?: string;                   // "5h-20h"
+  hours?: string; // "5h-20h"
 }
 
 /**
@@ -135,21 +135,21 @@ export interface NeighborhoodTip {
  */
 export interface EquipmentEntry {
   id: string;
-  name: string;                     // "Ar-condicionado do quarto"
-  location: string;                 // "Quarto principal"
-  instructions: string;             // "Ligar no modo Cool, 23°C"
-  whereIsRemote?: string;           // "Controle na gaveta da mesa de cabeceira"
-  troubleshooting?: string;         // "Se não ligar, verificar disjuntor na caixa do corredor"
+  name: string; // "Ar-condicionado do quarto"
+  location: string; // "Quarto principal"
+  instructions: string; // "Ligar no modo Cool, 23°C"
+  whereIsRemote?: string; // "Controle na gaveta da mesa de cabeceira"
+  troubleshooting?: string; // "Se não ligar, verificar disjuntor na caixa do corredor"
 }
 
 /**
  * Contato de emergência.
  */
 export interface EmergencyContact {
-  name: string;                     // "Síndico — Carlos"
+  name: string; // "Síndico — Carlos"
   phone: string;
-  role: string;                     // "Síndico do prédio"
-  availableHours?: string;          // "8h-18h"
+  role: string; // "Síndico do prédio"
+  availableHours?: string; // "8h-18h"
 }
 
 
@@ -178,21 +178,21 @@ export interface EmergencyContact {
  *     MAINTENANCE_ISSUE, LOCAL_RECOMMENDATION, UNKNOWN, HUMAN_HANDOVER
  */
 export type AirBIntent =
-  | 'CHECK_IN_GUIDE'           // "Como faço check-in?"
-  | 'SELF_CHECK_IN'            // "Qual o código do lockbox?"
-  | 'HOUSE_RULES'              // "Posso ter visita? Posso fumar?"
-  | 'WIFI_INFO'                // "Qual a senha do wifi?"
-  | 'EQUIPMENT_HELP'           // "Como liga o ar? Onde fica o ferro?"
-  | 'NEIGHBORHOOD_TIPS'        // "Tem padaria perto? Onde comer?"
-  | 'PARKING_INFO'             // "Onde estaciono?"
-  | 'EMERGENCY'                // "Vazou água! / Perdi a chave!"
-  | 'HOST_GREETING'            // Primeiro contato — boas-vindas do anfitrião
-  | 'HOST_FAREWELL'            // "Obrigado pela estadia!"
-  | 'EXTEND_STAY'              // "Posso ficar mais um dia?"
-  | 'CLEANING_REQUEST'         // "Preciso de limpeza / toalhas extras"
-  | 'MAINTENANCE_ISSUE'        // "Chuveiro não funciona / ar quebrou"
-  | 'LOCAL_RECOMMENDATION'     // "O que fazer por aqui? Praia? Passeio?"
-  | 'HUMAN_HANDOVER'           // Precisa do anfitrião real
+  | 'CHECK_IN_GUIDE' // "Como faço check-in?"
+  | 'SELF_CHECK_IN' // "Qual o código do lockbox?"
+  | 'HOUSE_RULES' // "Posso ter visita? Posso fumar?"
+  | 'WIFI_INFO' // "Qual a senha do wifi?"
+  | 'EQUIPMENT_HELP' // "Como liga o ar? Onde fica o ferro?"
+  | 'NEIGHBORHOOD_TIPS' // "Tem padaria perto? Onde comer?"
+  | 'PARKING_INFO' // "Onde estaciono?"
+  | 'EMERGENCY' // "Vazou água! / Perdi a chave!"
+  | 'HOST_GREETING' // Primeiro contato — boas-vindas do anfitrião
+  | 'HOST_FAREWELL' // "Obrigado pela estadia!"
+  | 'EXTEND_STAY' // "Posso ficar mais um dia?"
+  | 'CLEANING_REQUEST' // "Preciso de limpeza / toalhas extras"
+  | 'MAINTENANCE_ISSUE' // "Chuveiro não funciona / ar quebrou"
+  | 'LOCAL_RECOMMENDATION' // "O que fazer por aqui? Praia? Passeio?"
+  | 'HUMAN_HANDOVER' // Precisa do anfitrião real
   | 'UNKNOWN';
 
 /**
@@ -509,7 +509,7 @@ export function buildAirBTools(context: AirbnbPropertyContext): AirBToolDefiniti
           : context.equipment;
 
         if (matches.length === 0) {
-          return JSON.stringify({ message: 'Equipamento não encontrado. Equipamentos disponíveis: ' + context.equipment.map(e => e.name).join(', ') });
+          return JSON.stringify({ message: `Equipamento não encontrado. Equipamentos disponíveis: ${ context.equipment.map(e => e.name).join(', ')}` });
         }
 
         return JSON.stringify(matches.map(e => ({
@@ -532,7 +532,7 @@ export function buildAirBTools(context: AirbnbPropertyContext): AirBToolDefiniti
         },
       },
       execute: async (args) => {
-        const category = args.category;
+        const {category} = args;
         const tips = category
           ? context.neighborhoodTips.filter(t => t.category === category)
           : context.neighborhoodTips;
@@ -1100,7 +1100,7 @@ async function executeAirBToolsForIntent(
     WIFI_INFO:               ['airb_get_wifi_info'],
     EQUIPMENT_HELP:          ['airb_get_equipment_help'],
     NEIGHBORHOOD_TIPS:       ['airb_get_neighborhood_tips'],
-    PARKING_INFO:            ['airb_get_checkin_guide'],  // parking está no checkin guide
+    PARKING_INFO:            ['airb_get_checkin_guide'], // parking está no checkin guide
     EMERGENCY:               ['airb_get_emergency_info'],
     HOST_GREETING:           ['airb_get_checkin_guide'],
     HOST_FAREWELL:           [],

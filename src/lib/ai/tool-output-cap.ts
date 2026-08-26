@@ -80,7 +80,7 @@ export function capToolOutput(rawOutput: string, options: CapOptions = {}): CapR
   const maxTokens = options.maxTokens ?? DEFAULT_MAX_TOKENS;
   const maxChars = options.maxChars ?? maxTokens * 4;
   const strategy = options.strategy ?? 'summarize';
-  const toolName = options.toolName;
+  const {toolName} = options;
 
   const originalTokens = estimateTokens(rawOutput);
 
@@ -131,7 +131,7 @@ export function capToolOutput(rawOutput: string, options: CapOptions = {}): CapR
  */
 function truncateStrategy(output: string, maxChars: number): string {
   if (output.length <= maxChars) return output;
-  return output.slice(0, maxChars - 3) + '...';
+  return `${output.slice(0, maxChars - 3) }...`;
 }
 
 /**

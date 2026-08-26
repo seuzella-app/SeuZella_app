@@ -11,7 +11,7 @@ export interface BudgetConfig {
 export const DEFAULT_SOP_BUDGET: BudgetConfig = {
   maxTokensPerSOP: 8000,
   maxCostUsdPerSOP: 0.005, // Máximo de meio centavo de dólar por execução completa
-  maxDurationMs: 15000,    // 15 segundos timeout
+  maxDurationMs: 15000, // 15 segundos timeout
 };
 
 export class BudgetGuard {

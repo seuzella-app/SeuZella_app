@@ -14,15 +14,15 @@ export type NotificationNiche = 'pousada' | 'airbnb' | 'all';
 
 // ─── Categories (9 total) ──────────────────────────────────────────────────
 export type NotificationCategory =
-  | 'reservations'    // Reservas (novas, confirmadas, canceladas, check-in/out)
-  | 'financial'       // Financeiro (PIX, estornos, comissões OTA)
-  | 'guests'          // Hóspedes (novos leads,CRM, escalonamentos)
-  | 'ai'              // IA (Cérebro — aprendizado, anomalias, offline)
-  | 'operations'      // Operações (iCal, OTA sync, double-booking)
-  | 'marketing'       // Marketing (Google Ads, Meta Ads, OpenAI Ads)
-  | 'system'          // Sistema (plano, faturamento, segurança)
-  | 'achievements'    // Conquistas (gamificação PARCEIRO ZÉLLA)
-  | 'external';       // Externo (reviews, métricas públicas, clima)
+  | 'reservations' // Reservas (novas, confirmadas, canceladas, check-in/out)
+  | 'financial' // Financeiro (PIX, estornos, comissões OTA)
+  | 'guests' // Hóspedes (novos leads,CRM, escalonamentos)
+  | 'ai' // IA (Cérebro — aprendizado, anomalias, offline)
+  | 'operations' // Operações (iCal, OTA sync, double-booking)
+  | 'marketing' // Marketing (Google Ads, Meta Ads, OpenAI Ads)
+  | 'system' // Sistema (plano, faturamento, segurança)
+  | 'achievements' // Conquistas (gamificação PARCEIRO ZÉLLA)
+  | 'external'; // Externo (reviews, métricas públicas, clima)
 
 // ─── Priorities ────────────────────────────────────────────────────────────
 export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -56,19 +56,19 @@ export interface DDCNotification {
   id: string;
   niche: NotificationNiche;
   category: NotificationCategory;
-  type: string;                // e.g. 'booking.created', 'payment.pix_received'
+  type: string; // e.g. 'booking.created', 'payment.pix_received'
   priority: NotificationPriority;
   status: NotificationStatus;
   title: string;
   message: string;
   source: NotificationSource;
-  entityId?: string;           // bookingId, guestId, paymentId, etc.
+  entityId?: string; // bookingId, guestId, paymentId, etc.
   metadata?: Record<string, any>;
   actionUrl?: string;
   actionLabel?: string;
-  expiresAt?: string | null;   // ISO date — auto-archive after
+  expiresAt?: string | null; // ISO date — auto-archive after
   readAt?: string | null;
-  createdAt: string;           // ISO date
+  createdAt: string; // ISO date
   tenantId?: string;
   userId?: string;
   propertyId?: string;
@@ -79,12 +79,12 @@ export interface DDCNotification {
 // ─── Producer input (what callers pass) ────────────────────────────────────
 export interface ProduceNotificationInput {
   niche: NotificationNiche;
-  category?: NotificationCategory;  // optional — catalog lookup fills if missing
+  category?: NotificationCategory; // optional — catalog lookup fills if missing
   type: string;
   priority?: NotificationPriority;
-  title?: string;                   // optional — catalog template fills if missing
-  message?: string;                 // optional — catalog template fills if missing
-  source?: NotificationSource;      // optional — catalog default fills if missing
+  title?: string; // optional — catalog template fills if missing
+  message?: string; // optional — catalog template fills if missing
+  source?: NotificationSource; // optional — catalog default fills if missing
   entityId?: string;
   metadata?: Record<string, any>;
   actionUrl?: string;

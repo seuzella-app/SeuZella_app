@@ -181,8 +181,8 @@ export interface ProviderRegistration {
 export interface RouterProviderState {
   registration: ProviderRegistration;
   circuitBreaker: CircuitBreaker;
-  alpha: number;  // Beta posterior α (successes + prior)
-  beta: number;   // Beta posterior β (failures + prior)
+  alpha: number; // Beta posterior α (successes + prior)
+  beta: number; // Beta posterior β (failures + prior)
   totalLatencyMs: number;
   totalRequests: number;
 }
@@ -309,14 +309,14 @@ const DEFAULT_PROVIDERS: ProviderRegistration[] = [
     id: 'zhipu-glm-4-7-flash',
     name: 'Zhipu GLM-4.7-Flash',
     tier: 1,
-    costPer1kInput: 0.00010,   // $0.10 / 1M input
-    costPer1kOutput: 0.00010,  // $0.10 / 1M output
-    expectedLatencyMs: 35,     // sub-40ms target for WhatsApp
+    costPer1kInput: 0.00010, // $0.10 / 1M input
+    costPer1kOutput: 0.00010, // $0.10 / 1M output
+    expectedLatencyMs: 35, // sub-40ms target for WhatsApp
     maxContextTokens: 128_000,
     supportsJson: true,
     supportsTools: true,
     baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    initialAlpha: 2.5,         // mild prior preference (cheap + fast)
+    initialAlpha: 2.5, // mild prior preference (cheap + fast)
     initialBeta: 1.0,
   },
   // ─── NEW (Patch B): Claude 3.5 Haiku — Tier 3 primary for Refactor Agent ───
@@ -324,14 +324,14 @@ const DEFAULT_PROVIDERS: ProviderRegistration[] = [
     id: 'anthropic-claude-3-5-haiku',
     name: 'Anthropic Claude 3.5 Haiku',
     tier: 3,
-    costPer1kInput: 0.00080,   // $0.80 / 1M
-    costPer1kOutput: 0.00400,  // $4.00 / 1M
+    costPer1kInput: 0.00080, // $0.80 / 1M
+    costPer1kOutput: 0.00400, // $4.00 / 1M
     expectedLatencyMs: 90,
     maxContextTokens: 200_000,
     supportsJson: true,
     supportsTools: true,
     baseUrl: 'https://api.anthropic.com/v1',
-    initialAlpha: 3.0,         // strong prior — known excellent for code
+    initialAlpha: 3.0, // strong prior — known excellent for code
     initialBeta: 1.0,
   },
   // ─── NEW (Patch B): Claude 3.5 Sonnet — Tier 3 option for Cerebro Agent (deep reasoning) ───
@@ -339,8 +339,8 @@ const DEFAULT_PROVIDERS: ProviderRegistration[] = [
     id: 'anthropic-claude-3-5-sonnet',
     name: 'Anthropic Claude 3.5 Sonnet',
     tier: 3,
-    costPer1kInput: 0.00300,   // $3.00 / 1M
-    costPer1kOutput: 0.01500,  // $15.00 / 1M
+    costPer1kInput: 0.00300, // $3.00 / 1M
+    costPer1kOutput: 0.01500, // $15.00 / 1M
     expectedLatencyMs: 120,
     maxContextTokens: 200_000,
     supportsJson: true,

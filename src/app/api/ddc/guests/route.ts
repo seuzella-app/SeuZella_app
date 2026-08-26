@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     const { success } = await apiRatelimit.limit(tenantId);
     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
-    const searchParams = request.nextUrl.searchParams;
+    const {searchParams} = request.nextUrl;
     const status = searchParams.get('status');
     const scoreMin = searchParams.get('scoreMin');
     const scoreMax = searchParams.get('scoreMax');

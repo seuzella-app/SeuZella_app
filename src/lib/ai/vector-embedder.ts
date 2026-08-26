@@ -155,7 +155,7 @@ export async function batchGenerateEmbeddings(
     }
 
     const data = await response.json();
-    const embeddings: Array<{ values?: number[] }> = data.embeddings;
+    const {embeddings} = data;
 
     if (!Array.isArray(embeddings)) {
       throw new Error('[VectorEmbedder] Resposta batch invalida');

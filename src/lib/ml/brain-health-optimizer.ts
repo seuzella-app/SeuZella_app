@@ -16,7 +16,7 @@ export interface BrainHealthCheckResult {
 
 export async function checkAndOptimizePrompts(tenantId: string): Promise<BrainHealthCheckResult> {
   let avgConversion = 0.25; // Default saudável em dev mode (25%)
-  let avgTakeover = 0.05;   // Default saudável em dev mode (5%)
+  let avgTakeover = 0.05; // Default saudável em dev mode (5%)
 
   try {
     if (db && (db as any).brainHealthLog) {

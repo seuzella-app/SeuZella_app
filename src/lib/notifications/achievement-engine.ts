@@ -34,7 +34,7 @@ type AchievementProgress = {
 };
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __ZELLA_ACHIEVEMENT_PROGRESS__: Map<string, AchievementProgress> | undefined;
 }
 

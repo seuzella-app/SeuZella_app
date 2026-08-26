@@ -158,7 +158,7 @@ export class ZellaCentralControl {
         );
       } catch (err) {
         // Best-effort shutdown.
-        // eslint-disable-next-line no-console
+         
         console.error(`[ZCC] cortex ${reg.id} stop failed:`, err);
       }
     }
@@ -236,7 +236,7 @@ export class ZellaCentralControl {
           })
         );
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error('[ZCC] heartbeat failed:', err);
       }
     }, interval);

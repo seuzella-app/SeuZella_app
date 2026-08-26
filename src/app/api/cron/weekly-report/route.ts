@@ -597,7 +597,7 @@ export async function GET(request: NextRequest) {
   if (!auth.ok) {
     return auth.response;
   }
-  const principal = auth.principal;
+  const {principal} = auth;
 
   // ── Step 2: Check database availability 
   const dbAvailable = await isDatabaseAvailable();

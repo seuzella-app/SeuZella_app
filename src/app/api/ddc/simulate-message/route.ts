@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const tenantId = session.user.tenantId;
+  const {tenantId} = session.user;
 
   let body: { message?: string; guestName?: string; guestPhone?: string } = {};
   try {

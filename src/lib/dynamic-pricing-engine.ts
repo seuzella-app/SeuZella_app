@@ -19,10 +19,10 @@ import { db } from '@/lib/db';
 // ── Types ────────────────────────────────────────────────────────────
 
 export interface BrazilianHoliday {
-  date: string;       // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   name: string;
   type: 'national' | 'state' | 'municipal';
-  state?: string;     // ISO state code (SP, RJ, BA, etc.) for state holidays
+  state?: string; // ISO state code (SP, RJ, BA, etc.) for state holidays
 }
 
 export interface ModifierBreakdownEntry {
@@ -49,7 +49,7 @@ export interface PricingCalculationResult {
 
 export interface SeasonPeriod {
   label: string;
-  startMonth: number;  // 1-12
+  startMonth: number; // 1-12
   startDay: number;
   endMonth: number;
   endDay: number;
@@ -76,7 +76,7 @@ function calculateEaster(year: number): Date {
   const k = c % 4;
   const l = (32 + 2 * e + 2 * i - h - k) % 7;
   const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31);  // 3 = March, 4 = April
+  const month = Math.floor((h + l - 7 * m + 114) / 31); // 3 = March, 4 = April
   const day = ((h + l - 7 * m + 114) % 31) + 1;
   return new Date(year, month - 1, day);
 }
@@ -349,10 +349,10 @@ export async function getApplicableRules(
       status: 'active',
       // Date range: rule covers the target date
       OR: [
-        { startDate: null, endDate: null },  // Always active
-        { startDate: null, endDate: { gte: date } },  // No start, ends after target
-        { startDate: { lte: date }, endDate: null },  // Starts before, no end
-        { startDate: { lte: date }, endDate: { gte: date } },  // Fully covers
+        { startDate: null, endDate: null }, // Always active
+        { startDate: null, endDate: { gte: date } }, // No start, ends after target
+        { startDate: { lte: date }, endDate: null }, // Starts before, no end
+        { startDate: { lte: date }, endDate: { gte: date } }, // Fully covers
       ],
       // Occupancy range
       minOccupancy: { lte: occupancyRate },

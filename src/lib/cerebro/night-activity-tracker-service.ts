@@ -64,22 +64,22 @@ export interface ActivityTrackerResult {
 
 const THRESHOLDS = {
   landingPage: {
-    bounceRatePercent: 50,        // > 50% bounce com > 100 visitas
+    bounceRatePercent: 50, // > 50% bounce com > 100 visitas
     minVisitsForBounceAlert: 100,
-    maxRequestsPerIpPerHour: 50,  // > 50 req/IP/hora = bot
+    maxRequestsPerIpPerHour: 50, // > 50 req/IP/hora = bot
     suspiciousUserAgents: ['curl', 'python-requests', 'scrapy', 'wget', 'go-http-client', 'node-fetch'],
   },
   ddc: {
-    maxFailedLoginsPerHour: 20,  // > 20 logins falhos/hora = brute force
+    maxFailedLoginsPerHour: 20, // > 20 logins falhos/hora = brute force
     maxUnauthenticatedApiCalls: 50, // > 50 tentativas sem auth
-    minSessionDurationSec: 5,    // sessões < 5s com pageviews > 10 = bot
+    minSessionDurationSec: 5, // sessões < 5s com pageviews > 10 = bot
   },
   linkinbio: {
-    maxClicksPerIpPercent: 20,   // > 20% cliques de mesmo IP
-    maxBrokenLinksPercent: 5,    // > 5% retornaram 404
+    maxClicksPerIpPercent: 20, // > 20% cliques de mesmo IP
+    maxBrokenLinksPercent: 5, // > 5% retornaram 404
   },
   zellaParceiros: {
-    maxInvalidPhonesPerDay: 5,   // > 5 indicações com telefone inválido
+    maxInvalidPhonesPerDay: 5, // > 5 indicações com telefone inválido
   },
 };
 
@@ -130,7 +130,7 @@ export class NightActivityTrackerService {
     try {
       // Conta DevicePing na rota '/' (visitas à landing)
       let landingVisits = 0;
-      let uniqueIPs = 1;
+      const uniqueIPs = 1;
 
       try {
         landingVisits = await (db as any).devicePing?.count({

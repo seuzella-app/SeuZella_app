@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const tenantId: string = session.user.tenantId;
+  const {tenantId} = session.user;
   const { ip, userAgent } = getClientInfo(request);
 
   // ──────────────────────────────────────────────────────────────────────────

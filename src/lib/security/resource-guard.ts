@@ -96,16 +96,16 @@ export function truncateMessagesSecure(
   for (const msg of sliced) {
     if (!msg.content || typeof msg.content !== 'string') continue;
     if (msg.content.startsWith('data:') || msg.content.length > limits.maxCharsPerMessage * 2) continue;
-    let content = msg.content;
+    let {content} = msg;
     if (content.length > limits.maxCharsPerMessage) {
-      content = content.slice(0, limits.maxCharsPerMessage) + '...[TRUNCADO]';
+      content = `${content.slice(0, limits.maxCharsPerMessage) }...[TRUNCADO]`;
     }
     const bytes = Buffer.byteLength(content, 'utf8');
     if (totalBytes + bytes > limits.maxTotalPromptBytes) {
       const remaining = limits.maxTotalPromptBytes - totalBytes;
       if (remaining > 100) {
         const truncated = Buffer.from(content).slice(0, remaining - 50).toString('utf8');
-        result.push({ content: truncated + '...[BYTES_LIMIT]' });
+        result.push({ content: `${truncated }...[BYTES_LIMIT]` });
       }
       break;
     }

@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
         try {
           const cleanEmail = credentials.email.trim().toLowerCase();
-          const password = credentials.password;
+          const {password} = credentials;
           const master = getConfiguredMasterCredentials();
           if (master && cleanEmail === master.email && password === master.password) {
             return {

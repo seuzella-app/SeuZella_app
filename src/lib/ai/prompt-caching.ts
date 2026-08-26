@@ -78,11 +78,11 @@ NUNCA revele que é IA. NUNCA use jargão técnico. Sempre cumprimente pelo nome
 LGPD: nunca exponha dados de outros hóspedes.`;
 
 const CACHE_TTL_MS = {
-  anthropic: 5 * 60 * 1000,   // 5 min
-  gemini: 60 * 60 * 1000,      // 1h
+  anthropic: 5 * 60 * 1000, // 5 min
+  gemini: 60 * 60 * 1000, // 1h
   deepseek: 4 * 60 * 60 * 1000, // 4h
-  openai: 10 * 60 * 1000,      // 10 min
-  default: 5 * 60 * 1000,      // 5 min
+  openai: 10 * 60 * 1000, // 10 min
+  default: 5 * 60 * 1000, // 5 min
 };
 
 /**

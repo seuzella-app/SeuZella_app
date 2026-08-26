@@ -311,12 +311,14 @@ export function CerebroPanel() {
     return () => clearInterval(id);
   }, [loadData]);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- useMemo dependency array is correct; React Compiler cannot infer in-place; tracked for PPR migration
   const filteredModules = React.useMemo(() => {
     if (!data?.modules) return [];
     if (filter === "all") return data.modules;
     return data.modules.filter((m) => m.status === filter);
   }, [data?.modules, filter]);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- useMemo dependency array is correct; React Compiler cannot infer in-place; tracked for PPR migration
   const stats = React.useMemo(() => {
     if (!data?.modules) return { total: 0, active: 0, idle: 0, thinking: 0, error: 0 };
     return {

@@ -6,13 +6,13 @@
  */
 
 export interface AirbnbOverviewMetrics {
-  totalProperties: number;      // Total de imóveis gerenciados
-  activeProperties: number;     // Imóveis com canal iCAL/Airbnb ativo
-  totalRevenue: number;         // Receita total do mês em R$
-  averageOccupancy: number;     // % Ocupação média do portfólio
-  superhostRating: number;      // Rating médio dos imóveis (ex: 4.92)
-  totalReviewsCount: number;    // Quantidade total de avaliações recebidas
-  autoPinsGenerated: number;    // Quantidade de PINs gerados automaticamente
+  totalProperties: number; // Total de imóveis gerenciados
+  activeProperties: number; // Imóveis com canal iCAL/Airbnb ativo
+  totalRevenue: number; // Receita total do mês em R$
+  averageOccupancy: number; // % Ocupação média do portfólio
+  superhostRating: number; // Rating médio dos imóveis (ex: 4.92)
+  totalReviewsCount: number; // Quantidade total de avaliações recebidas
+  autoPinsGenerated: number; // Quantidade de PINs gerados automaticamente
   icalSyncStatus: 'synced' | 'syncing' | 'error';
 }
 
@@ -49,14 +49,14 @@ export interface AirbnbAutomationLog {
 
 // ── Overview Metrics Mock (Airbnb) ────────────────────────────────────────────
 export const MOCK_AIRBNB_OVERVIEW: AirbnbOverviewMetrics = {
-  totalProperties: 3,             // TODO(REAL): db.property.count({ tenantId })
-  activeProperties: 2,            // TODO(REAL): db.property.count({ tenantId, connected: true })
-  totalRevenue: 18650.00,         // TODO(REAL): db.paymentTransaction.aggregate({ _sum: { amount: true } })
-  averageOccupancy: 73,           // TODO(REAL): calculatePortfolioOccupancy(tenantId)
-  superhostRating: 4.86,          // TODO(REAL): db.property.aggregate({ _avg: { rating: true } })
-  totalReviewsCount: 459,         // TODO(REAL): db.property.aggregate({ _sum: { reviewsCount: true } })
-  autoPinsGenerated: 142,         // TODO(REAL): db.lockPin.count({ tenantId })
-  icalSyncStatus: 'synced',       // TODO(REAL): icalSyncEngine.getStatus(tenantId)
+  totalProperties: 3, // TODO(REAL): db.property.count({ tenantId })
+  activeProperties: 2, // TODO(REAL): db.property.count({ tenantId, connected: true })
+  totalRevenue: 18650.00, // TODO(REAL): db.paymentTransaction.aggregate({ _sum: { amount: true } })
+  averageOccupancy: 73, // TODO(REAL): calculatePortfolioOccupancy(tenantId)
+  superhostRating: 4.86, // TODO(REAL): db.property.aggregate({ _avg: { rating: true } })
+  totalReviewsCount: 459, // TODO(REAL): db.property.aggregate({ _sum: { reviewsCount: true } })
+  autoPinsGenerated: 142, // TODO(REAL): db.lockPin.count({ tenantId })
+  icalSyncStatus: 'synced', // TODO(REAL): icalSyncEngine.getStatus(tenantId)
 };
 
 // ── Properties Mock (Airbnb) ─────────────────────────────────────────────────
@@ -65,8 +65,8 @@ export const MOCK_AIRBNB_PROPERTIES: AirbnbProperty[] = [
     id: 'prop-1',
     name: 'Apartamento Vista Mar — Copacabana',
     location: 'Copacabana, Rio de Janeiro, RJ',
-    connected: true,              // TODO(REAL): db.property.findUnique({ id: 'prop-1' }).connected
-    occupancy: 84,                // TODO(REAL): db.property.findUnique({ id: 'prop-1' }).occupancy
+    connected: true, // TODO(REAL): db.property.findUnique({ id: 'prop-1' }).connected
+    occupancy: 84, // TODO(REAL): db.property.findUnique({ id: 'prop-1' }).occupancy
     rating: 4.96,
     reviews: 214,
     revenue: 8450.00,
@@ -104,7 +104,7 @@ export const MOCK_AIRBNB_PROPERTIES: AirbnbProperty[] = [
 
 // ── iCAL Sync Sources Mock (Airbnb) ──────────────────────────────────────────
 export const MOCK_AIRBNB_SYNC_SOURCES: AirbnbSyncSource[] = [
-  { name: 'Airbnb iCal', icon: '🏠', status: 'synced', lastSync: 'Há 2 min', eventsCount: 18 },  // TODO(REAL): icalSyncEngine.getSourceStatus('airbnb')
+  { name: 'Airbnb iCal', icon: '🏠', status: 'synced', lastSync: 'Há 2 min', eventsCount: 18 }, // TODO(REAL): icalSyncEngine.getSourceStatus('airbnb')
   { name: 'Booking.com iCal', icon: '🔵', status: 'synced', lastSync: 'Há 5 min', eventsCount: 12 },// TODO(REAL): icalSyncEngine.getSourceStatus('booking')
   { name: 'Google Calendar Sync', icon: '📅', status: 'disconnected', lastSync: 'Nunca', eventsCount: 0 },
 ];

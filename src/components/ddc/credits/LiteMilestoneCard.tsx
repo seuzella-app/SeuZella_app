@@ -24,7 +24,7 @@ export function LiteMilestoneCard({ milestone, loading }: Props) {
   }
 
   const progress = Math.min(100, (milestone.paidReferralsCount / milestone.target) * 100);
-  const achieved = milestone.achieved;
+  const {achieved} = milestone;
 
   return (
     <Card className={`bg-gradient-to-br from-amber-500/[0.06] via-[#0d0d14] to-[#0d0d14] border-amber-500/20 overflow-hidden relative`}>

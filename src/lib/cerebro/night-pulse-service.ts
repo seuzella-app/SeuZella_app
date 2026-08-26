@@ -82,9 +82,9 @@ const MINI_PATTERNS = [
 ];
 
 const BASELINE_ALERT_THRESHOLDS = {
-  errorRatePercent: 5,        // > 5% de erros = alerta
-  latencyMs: 2000,           // > 2s = alerta
-  failedLoginsPerHour: 20,   // > 20 logins falhos/hora = alerta
+  errorRatePercent: 5, // > 5% de erros = alerta
+  latencyMs: 2000, // > 2s = alerta
+  failedLoginsPerHour: 20, // > 20 logins falhos/hora = alerta
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -379,7 +379,7 @@ export class NightPulseService {
 
     let activeConversations = 0;
     let reservationsCreated = 0;
-    let failedLoginsLastHour = 0;
+    const failedLoginsLastHour = 0;
     let errorRate = 0;
 
     try {

@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
     };
 
     // ── Complementa com dados do DB se disponível ─────────────────
-    let dbTenantsByState: Record<string, { pousada: number; airbnb: number; mrr: number }> = {};
+    const dbTenantsByState: Record<string, { pousada: number; airbnb: number; mrr: number }> = {};
     if (dbOk) {
       try {
         // Conta tenants ativos por UF + plano

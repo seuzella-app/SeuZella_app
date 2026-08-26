@@ -25,7 +25,7 @@ const ALLOWED_IPS = (process.env.WAF_ALLOWED_IPS || '').split(',').filter(Boolea
 const SUSPICIOUS_USER_AGENTS = [
   'sqlmap', 'nikto', 'nmap', 'masscan', 'dirbuster', 'wpscan',
   'acunetix', 'nessus', 'burp', 'owasp zap', 'hydra', 'metasploit',
-  'libwww-perl', 'python-requests/2.25',  // versões antigas suspeitas
+  'libwww-perl', 'python-requests/2.25', // versões antigas suspeitas
 ];
 
 const KNOWN_BOT_PATTERNS = [
@@ -38,15 +38,15 @@ const KNOWN_BOT_PATTERNS = [
 // ─────────────────────────────────────────────────────────────────────────────
 function getClientIP(req: NextRequest): string {
   return (
-    req.headers.get('cf-connecting-ip') ||      // Cloudflare
-    req.headers.get('x-real-ip') ||              // Nginx
+    req.headers.get('cf-connecting-ip') || // Cloudflare
+    req.headers.get('x-real-ip') || // Nginx
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     'unknown'
   );
 }
 
 function getCountry(req: NextRequest): string {
-  return req.headers.get('cf-ipcountry') || 'BR';  // Cloudflare
+  return req.headers.get('cf-ipcountry') || 'BR'; // Cloudflare
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

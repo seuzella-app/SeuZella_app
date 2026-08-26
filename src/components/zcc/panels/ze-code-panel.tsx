@@ -454,11 +454,11 @@ export function ZeCodePanel() {
   // ── Render ──
 
   const views: { id: ZeCodeView; label: string; icon: React.ElementType }[] = [
-    { id: 'overview',    label: 'Overview',    icon: Activity },
-    { id: 'reviews',     label: 'Reviews',     icon: GitBranch },
-    { id: 'refactors',  label: 'Refactors',    icon: Wrench },
-    { id: 'gaps',        label: 'Gaps',        icon: Target },
-    { id: 'bottlenecks', label: 'Gargalos',    icon: Gauge },
+    { id: 'overview', label: 'Overview', icon: Activity },
+    { id: 'reviews', label: 'Reviews', icon: GitBranch },
+    { id: 'refactors', label: 'Refactors', icon: Wrench },
+    { id: 'gaps', label: 'Gaps', icon: Target },
+    { id: 'bottlenecks', label: 'Gargalos', icon: Gauge },
   ];
 
   return (

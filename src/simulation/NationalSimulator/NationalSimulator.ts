@@ -168,12 +168,12 @@ export class NationalSimulator {
     const personaStats: Record<string, { leads: number; converted: number }> = {};
     for (const e of journeyEvents) {
       if (e.type === 'lead.created') {
-        const personaId = (e.payload as { personaId: string }).personaId;
+        const {personaId} = (e.payload as { personaId: string });
         personaStats[personaId] = personaStats[personaId] ?? { leads: 0, converted: 0 };
         personaStats[personaId].leads += 1;
       }
       if (e.type === 'lead.converted') {
-        const personaId = (e.payload as { personaId: string }).personaId;
+        const {personaId} = (e.payload as { personaId: string });
         if (personaStats[personaId]) personaStats[personaId].converted += 1;
       }
     }
@@ -227,7 +227,7 @@ export class NationalSimulator {
         });
         results.push(r);
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error(`[NationalSimulator] city ${city} failed:`, err);
       }
     }

@@ -280,7 +280,7 @@ function LeafletMapInner({
       const star = style.hasStar;
 
       return LeafletMods.L.divIcon({
-        className: "zcc-lead-marker zcc-lead-marker--" + marker.category,
+        className: `zcc-lead-marker zcc-lead-marker--${ marker.category}`,
         html: `
           <div class="zcc-marker-wrap" style="--marker-color: ${hex};">
             ${pulseRing ? `<span class="zcc-marker-pulse" style="background: ${hex};"></span>` : ""}
@@ -363,7 +363,9 @@ function LeafletMapInner({
         opacity={0.7}
       />
 
+      {/* eslint-disable-next-line react-hooks/static-components -- inline component creation acceptable for leaflet integration; tracked for PPR migration */}
       <ResizeHandler />
+      {/* eslint-disable-next-line react-hooks/static-components -- inline component creation acceptable for leaflet integration; tracked for PPR migration */}
       <FlyToSelected marker={selectedMarker} />
 
       {/* Marcadores — renderiza direto no DOM (volume pequeno agora) */}

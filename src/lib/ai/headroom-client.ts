@@ -76,9 +76,9 @@ function estimateTokenCount(charLength: number): number {
 function mockSmartCrusherCompress(prompt: string, targetRatio: number): string {
   // Step 1: Normalize whitespace (usually saves 5-15%)
   let compressed = prompt
-    .replace(/[ \t]+/g, ' ')       // Collapse multiple spaces/tabs
-    .replace(/\n{3,}/g, '\n\n')    // Collapse 3+ newlines to 2
-    .replace(/ {2,}/g, ' ')        // Final space collapse
+    .replace(/[ \t]+/g, ' ') // Collapse multiple spaces/tabs
+    .replace(/\n{3,}/g, '\n\n') // Collapse 3+ newlines to 2
+    .replace(/ {2,}/g, ' ') // Final space collapse
     .trim();
 
   // Step 2: Remove filler phrases common in Portuguese hospitality context

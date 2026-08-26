@@ -57,7 +57,7 @@ const GITHUB_IP_RANGES = [
 ];
 
 // Cache de IPs do GitHub (busca via /meta API, atualiza 1x por dia)
-let githubIpCache: { ips: string[]; fetchedAt: Date } | null = null;
+const githubIpCache: { ips: string[]; fetchedAt: Date } | null = null;
 
 // Idempotência — últimos 1000 delivery IDs
 const processedDeliveries = new Map<string, Date>();
@@ -126,7 +126,7 @@ function verifyWebhookSignature(payload: string, signature: string, secret: stri
     return false;
   }
   const expected =
-    'sha256=' + crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    `sha256=${ crypto.createHmac('sha256', secret).update(payload).digest('hex')}`;
   const expectedBuf = Buffer.from(expected);
   const signatureBuf = Buffer.from(signature);
   if (expectedBuf.length !== signatureBuf.length) return false;
@@ -279,7 +279,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
  */
 async function handlePush(payload: any): Promise<void> {
   const repo = payload.repository.full_name;
-  const ref = payload.ref; // refs/heads/main
+  const {ref} = payload; // refs/heads/main
   const branch = ref.replace('refs/heads/', '');
   const commits = payload.commits || [];
 
@@ -313,7 +313,7 @@ async function handlePush(payload: any): Promise<void> {
  * Ação: rastreia ciclo de vida de RefactorSuggestions.
  */
 async function handlePullRequest(payload: any): Promise<void> {
-  const action = payload.action; // opened | synchronize | closed | reopened | etc.
+  const {action} = payload; // opened | synchronize | closed | reopened | etc.
   const pr = payload.pull_request;
   const repo = payload.repository.full_name;
   const prNumber = pr.number;
@@ -368,11 +368,11 @@ async function handlePullRequest(payload: any): Promise<void> {
  * Ação: se CI falhou em PR do ZéCode, notifica admin.
  */
 async function handleCheckSuite(payload: any): Promise<void> {
-  const action = payload.action;
+  const {action} = payload;
   const suite = payload.check_suite;
 
   if (action === 'completed') {
-    const conclusion = suite.conclusion; // success | failure | cancelled | etc.
+    const {conclusion} = suite; // success | failure | cancelled | etc.
     const headSha = suite.head_sha;
     const headBranch = suite.head_branch;
 
@@ -398,7 +398,7 @@ async function handleCheckSuite(payload: any): Promise<void> {
  * Ação: loga status de checks individuais (opcional — verbose).
  */
 async function handleCheckRun(payload: any): Promise<void> {
-  const action = payload.action;
+  const {action} = payload;
   const checkRun = payload.check_run;
   if (action === 'completed') {
     console.log(
@@ -412,8 +412,8 @@ async function handleCheckRun(payload: any): Promise<void> {
  * Ação: sincroniza labels de issues criadas pelo ZéCode.
  */
 async function handleIssue(payload: any): Promise<void> {
-  const action = payload.action;
-  const issue = payload.issue;
+  const {action} = payload;
+  const {issue} = payload;
 
   if (action === 'labeled' || action === 'unlabeled') {
     const label = payload.label?.name;

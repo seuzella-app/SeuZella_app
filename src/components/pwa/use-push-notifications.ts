@@ -39,7 +39,7 @@ export function usePushNotifications(): UsePushNotificationsResult {
     }
 
     // Check current permission
-    const permission = Notification.permission;
+    const {permission} = Notification;
     setPermissionState(permission as PushPermissionState);
 
     // Check if already subscribed

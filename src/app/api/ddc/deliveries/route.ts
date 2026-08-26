@@ -301,8 +301,8 @@ export async function GET(request: NextRequest) {
         : demoData.messageBundling;
 
     // One-Shot Resolution
-    const totalOneShots = bundlerStats.totalOneShots;
-    const oneShotRate = bundlerStats.oneShotRate;
+    const {totalOneShots} = bundlerStats;
+    const {oneShotRate} = bundlerStats;
     const oneShotExample =
       totalOneShots > 0
         ? {

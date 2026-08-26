@@ -37,14 +37,14 @@ export type AgentDepartment =
 export type LlmModel = 'glm-4.7-flash' | 'glm-4.7' | 'glm-5.2';
 
 export const MODEL_BY_PURPOSE: Record<string, LlmModel> = {
-  routing: 'glm-4.7-flash',        // Conductor — alto volume, baixa complexidade
-  retrieval: 'glm-4.7-flash',      // Data Agent — retrieve + sumarize
-  analysis: 'glm-4.7',             // Finance/Cerebro — exige raciocínio
-  scoring: 'glm-4.7-flash',        // Leads Agent — classificação
-  summary: 'glm-4.7-flash',        // Comms Agent — sumarização
-  decision: 'glm-4.7-flash',       // Operations — decisão binária
-  code: 'glm-4.7',                 // Refactor — código exige raciocínio
-  reasoning: 'glm-4.7',            // Cérebro anomalias
+  routing: 'glm-4.7-flash', // Conductor — alto volume, baixa complexidade
+  retrieval: 'glm-4.7-flash', // Data Agent — retrieve + sumarize
+  analysis: 'glm-4.7', // Finance/Cerebro — exige raciocínio
+  scoring: 'glm-4.7-flash', // Leads Agent — classificação
+  summary: 'glm-4.7-flash', // Comms Agent — sumarização
+  decision: 'glm-4.7-flash', // Operations — decisão binária
+  code: 'glm-4.7', // Refactor — código exige raciocínio
+  reasoning: 'glm-4.7', // Cérebro anomalias
 };
 
 // ── Tool definition (Function Calling) ──────────────────────────────────────

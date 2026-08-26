@@ -73,7 +73,7 @@ class ZellaCognitiveBus {
           // Self-correction without recursion: log to console only.
           // (We avoid publishing a `bus.handler.error` event to prevent
           // infinite loops if the error handler itself errors.)
-          // eslint-disable-next-line no-console
+           
           console.error(
             `[ZCB] handler ${s.id} failed on ${event.type}:`,
             err
@@ -93,7 +93,7 @@ class ZellaCognitiveBus {
       try {
         await handler(event);
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error('[ZCB] replay handler failed:', err);
       }
     }

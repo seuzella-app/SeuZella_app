@@ -5,10 +5,10 @@ export enum CircuitState {
 }
 
 export interface CircuitBreakerConfig {
-  readonly failureThreshold: number;      // Falhas consecutivas para abrir (default: 5)
-  readonly halfOpenMaxAttempts: number;   // Tentativas em half-open (default: 1)
-  readonly openDurationMs: number;        // Tempo em OPEN antes de half-open (default: 30_000)
-  readonly successThreshold: number;      // Sucessos para fechar (default: 2)
+  readonly failureThreshold: number; // Falhas consecutivas para abrir (default: 5)
+  readonly halfOpenMaxAttempts: number; // Tentativas em half-open (default: 1)
+  readonly openDurationMs: number; // Tempo em OPEN antes de half-open (default: 30_000)
+  readonly successThreshold: number; // Sucessos para fechar (default: 2)
 }
 
 export const DEFAULT_CB_CONFIG: CircuitBreakerConfig = {

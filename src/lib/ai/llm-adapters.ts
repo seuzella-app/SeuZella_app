@@ -703,10 +703,10 @@ export async function callAnthropicWithTools(params: {
  */
 export async function callGeminiWithAudio(params: {
   apiKey: string;
-  model?: string;            // defaults to 'gemini-2.0-flash-exp'
-  audioBase64: string;       // base64-encoded audio bytes (no data: prefix)
+  model?: string; // defaults to 'gemini-2.0-flash-exp'
+  audioBase64: string; // base64-encoded audio bytes (no data: prefix)
   audioMimeType: 'audio/wav' | 'audio/mp3' | 'audio/aac' | 'audio/ogg' | 'audio/aiff';
-  textPrompt?: string;       // optional text instruction accompanying audio
+  textPrompt?: string; // optional text instruction accompanying audio
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;

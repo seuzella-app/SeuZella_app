@@ -184,8 +184,8 @@ export async function detectGaps(opts: GapDetectorOptions = {}): Promise<GapDete
   const start = Date.now();
   const target = opts.target ?? 'src/';
   const maxFiles = opts.maxFiles ?? 10;
-  const onlyTypes = opts.onlyTypes;
-  const jobId = opts.jobId;
+  const {onlyTypes} = opts;
+  const {jobId} = opts;
   const shouldPersist = opts.persist ?? !!jobId;
   const mode = getCerebroMode();
 
@@ -204,7 +204,7 @@ export async function detectGaps(opts: GapDetectorOptions = {}): Promise<GapDete
     }
     filesScanned++;
 
-    const lines = result.lines;
+    const {lines} = result;
     const content = result.redactedContent;
 
     // H1: missing_type — uso de `any`

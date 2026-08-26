@@ -29,15 +29,15 @@ export const LINK_IN_BIO_WARNING_DAYS_BEFORE = 2; // dia 58 = aviso
 export const LINK_IN_BIO_STANDALONE_PRICE_BRL = 47; // mensal sem IA
 
 export type LinkInBioPlanStatus =
-  | 'included_unlimited'  // PRO/MAX/PARCEIRO
-  | 'lite_trial_active'    // LITE dentro dos 60 dias
-  | 'lite_trial_expiring'  // LITE dia 58-59 (warning)
-  | 'lite_trial_expired'   // LITE dia 60+ sem addon comprado
-  | 'addon_active'         // Addon R$47 comprado, dentro dos 60 dias extras
-  | 'addon_expiring'       // Addon dia 58-59 (warning)
-  | 'addon_expired'        // Addon dia 60+ sem renovação
-  | 'standalone_active'    // Cliente cancelou Zélla mas manteve LiB standalone
-  | 'inactive';            // Link-in-Bio desativado
+  | 'included_unlimited' // PRO/MAX/PARCEIRO
+  | 'lite_trial_active' // LITE dentro dos 60 dias
+  | 'lite_trial_expiring' // LITE dia 58-59 (warning)
+  | 'lite_trial_expired' // LITE dia 60+ sem addon comprado
+  | 'addon_active' // Addon R$47 comprado, dentro dos 60 dias extras
+  | 'addon_expiring' // Addon dia 58-59 (warning)
+  | 'addon_expired' // Addon dia 60+ sem renovação
+  | 'standalone_active' // Cliente cancelou Zélla mas manteve LiB standalone
+  | 'inactive'; // Link-in-Bio desativado
 
 export interface LinkInBioStatus {
   status: LinkInBioPlanStatus;

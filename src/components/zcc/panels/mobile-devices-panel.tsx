@@ -695,7 +695,7 @@ function DailyTrendChart({
                 />
               </div>
               <span className="text-[9px] text-muted-foreground">
-                {new Date(d.date + "T00:00:00").toLocaleDateString("pt-BR", {
+                {new Date(`${d.date }T00:00:00`).toLocaleDateString("pt-BR", {
                   day: "2-digit",
                   weekday: "short",
                 }).slice(0, 4)}
@@ -760,7 +760,7 @@ function HourlyHeatmap({
 
 function DeviceRow({ device }: { device: DevicePing }) {
   const ago = computeTimeAgo(device.lastSeen);
-  const isMobile = device.isMobile;
+  const {isMobile} = device;
   const nicheColor =
     device.niche === "pousada"
       ? "bg-emerald-100 text-emerald-700 border-emerald-200"

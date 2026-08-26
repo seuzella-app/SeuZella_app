@@ -82,10 +82,10 @@ describe('E2E Integration Pipeline: Webhook -> PINNs -> BIM Vision -> WebGL Brid
       const mockBody = JSON.stringify({
         entry: [{ changes: [{ value: { contacts: [{ wa_id: MOCK_PHONE }] } }] }],
       });
-      const signature = 'sha256=' + crypto
+      const signature = `sha256=${ crypto
         .createHmac('sha256', MOCK_WHATSAPP_SECRET)
         .update(mockBody)
-        .digest('hex');
+        .digest('hex')}`;
 
       const result = verifyWhatsAppWebhook(
         mockBody,
@@ -549,11 +549,11 @@ describe('E2E Integration Pipeline: Webhook -> PINNs -> BIM Vision -> WebGL Brid
       console.log(`  Tenant: ${MOCK_TENANT_ID}`);
       console.log('='.repeat(120));
       console.log(
-        'TIMESTAMP'.padEnd(30) +
+        `${'TIMESTAMP'.padEnd(30) +
         'MODULE'.padEnd(30) +
         'STATUS'.padEnd(12) +
-        'LATENCY_MS'.padEnd(14) +
-        'CONFIDENCE'
+        'LATENCY_MS'.padEnd(14) 
+        }CONFIDENCE`
       );
       console.log('-'.repeat(120));
 

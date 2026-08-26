@@ -24,7 +24,7 @@ function getClientIp(req: NextRequest): string {
 export async function GET(req: NextRequest, { params }: RouteParams) {
   const { code } = await params;
   const url = req.nextUrl.clone();
-  const searchParams = url.searchParams;
+  const {searchParams} = url;
   const channel = searchParams.get('ch') || 'linkinbio';
   const emailToken = searchParams.get('e');
 

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Body deve conter { leads: [...] }' }, { status: 400 });
   }
 
-  const leads = (body as { leads: unknown[] }).leads;
+  const {leads} = (body as { leads: unknown[] });
   if (leads.length === 0 || leads.length > 100) {
     return NextResponse.json({ error: 'Quantidade de leads deve estar entre 1 e 100' }, { status: 400 });
   }

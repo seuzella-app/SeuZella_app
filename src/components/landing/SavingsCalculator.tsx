@@ -40,10 +40,10 @@ const CUSTO_ZELLA_PRO_POUSADA = 397;
 // ============================================================================
 const CONVERSAO_SEM_ZELLA_AIRBNB = 0.18; // 18% — anfitrião demora a responder, hóspede vai para outro
 const CONVERSAO_COM_ZELLA_AIRBNB = 0.32; // 32% — resposta instantânea 24/7 + PIX direto
-const ESTADIA_MEDIA_AIRBNB = 3.2;      // noites por reserva Airbnb (média Brasil)
-const TAXA_RESERVA_DIRETA = 0.25;      // 25% das reservas Zélla são diretas (sem comissão)
-const CUSTO_ZELLA_PRO_AIRBNB = 197;    // R$/mês plano PRO Airbnb
-const CUSTO_ZELLA_MAX_AIRBNB = 397;    // R$/mês plano MAX Airbnb
+const ESTADIA_MEDIA_AIRBNB = 3.2; // noites por reserva Airbnb (média Brasil)
+const TAXA_RESERVA_DIRETA = 0.25; // 25% das reservas Zélla são diretas (sem comissão)
+const CUSTO_ZELLA_PRO_AIRBNB = 197; // R$/mês plano PRO Airbnb
+const CUSTO_ZELLA_MAX_AIRBNB = 397; // R$/mês plano MAX Airbnb
 const ECONOMIA_AUTOMACAO_AIRBNB = 950; // R$/mês economizados (automação noturna/fim de semana)
 
 // ============================================================================
@@ -367,8 +367,8 @@ function AirbnbCalculator() {
   // ─── Inputs ────────────────────────────────────────────────────────
   const [numImoveis, setNumImoveis] = useState(2);
   const [diariaMedia, setDiariaMedia] = useState(280);
-  const [ocupacaoMensal, setOcupacaoMensal] = useState(65);       // %
-  const [comissaoAirbnb, setComissaoAirbnb] = useState(15);        // %
+  const [ocupacaoMensal, setOcupacaoMensal] = useState(65); // %
+  const [comissaoAirbnb, setComissaoAirbnb] = useState(15); // %
   const [contatosWhatsapp, setContatosWhatsapp] = useState(40);
   const [planoZella, setPlanoZella] = useState<'pro' | 'max'>('pro');
 

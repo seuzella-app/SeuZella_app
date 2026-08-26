@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     if (requestedGateway === 'mock' && process.env.NODE_ENV === 'production') return createError(400, 'INVALID_GATEWAY', 'Gateway mock não é permitido em produção.');
 
     const quote = getPrice(planType, paymentMethod);
-    const amount = quote.amount;
+    const {amount} = quote;
     if (amount === undefined) return createError(400, 'INVALID_PRICING', 'Combinação plano/método inválida.');
 
     const session = await getServerSession(authOptions);

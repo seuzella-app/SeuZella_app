@@ -33,7 +33,7 @@ export function useAILiveFeed(): UseAILiveFeedReturn {
       const result = await fetchConversations();
 
       if (result.success && result.data) {
-        const items = result.data.items;
+        const {items} = result.data;
         setConversations(Array.isArray(items) ? items : Array.isArray(result.data) ? result.data : []);
 
         // Select first conversation if none selected

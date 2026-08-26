@@ -42,7 +42,7 @@ export function useReadinessEvaluation() {
     },
     // Poll every 3 seconds if there's no URL yet
     refetchInterval: (query) => {
-      const data = query.state.data;
+      const {data} = query.state;
       // If we don't have a playbookUrl, poll
       return data && data.playbookUrl ? false : 3000;
     },

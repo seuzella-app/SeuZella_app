@@ -439,7 +439,7 @@ export default function DDCPousadaContent() {
       // created, we don't add a new room — we just mark the device as
       // having an active PIN (visible in the locks panel).
       // For now, surface a toast so the host sees the event instantly.
-      toast.success('PIN gerado' + (p.guestName ? ` para ${p.guestName}` : ''));
+      toast.success(`PIN gerado${ p.guestName ? ` para ${p.guestName}` : ''}`);
     } else if (lastEvent.type === 'pin:revoked') {
       const p = lastEvent.payload as { bulkRevoke?: boolean; revokedCount?: number };
       if (p.bulkRevoke) {
@@ -1511,7 +1511,7 @@ export default function DDCPousadaContent() {
                       <span className={`w-1.5 h-1.5 rounded-full ${plat.connected ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
                     </div>
                     <p className="text-[10px] text-zinc-500 truncate">
-                      {plat.url ? plat.url.replace(/^https?:\/\//, '').slice(0, 40) + '...' : 'Não conectado'}
+                      {plat.url ? `${plat.url.replace(/^https?:\/\//, '').slice(0, 40) }...` : 'Não conectado'}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">

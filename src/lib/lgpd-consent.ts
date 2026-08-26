@@ -132,8 +132,8 @@ export function isOptOutMessage(text: string | undefined | null): boolean {
   // 3. Match exato OU primeira palavra (permite "SAIR por favor", "STOP agora")
   return OPT_OUT_KEYWORDS.some((kw) => {
     if (normalized === kw) return true;
-    if (normalized.startsWith(kw + ' ')) return true;
-    if (normalized.startsWith(kw + ',')) return true;
+    if (normalized.startsWith(`${kw } `)) return true;
+    if (normalized.startsWith(`${kw },`)) return true;
     return false;
   });
 }

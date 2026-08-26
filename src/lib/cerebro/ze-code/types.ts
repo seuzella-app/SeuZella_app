@@ -34,11 +34,11 @@ import type { ReviewSeverity, CommentCategory } from '../code-reviewer/types';
 export type ZeCodeView = 'overview' | 'reviews' | 'refactors' | 'gaps' | 'bottlenecks';
 
 export const ZE_CODE_VIEWS: { id: ZeCodeView; label: string; desc: string }[] = [
-  { id: 'overview',     label: 'Overview',     desc: 'Visão geral + codebase domain + safety locks' },
-  { id: 'reviews',      label: 'Reviews',      desc: 'Revisões estilo CodeRabbit (diff/file/dir/hotspot)' },
-  { id: 'refactors',    label: 'Refactors',    desc: 'Sugestões de refatoração para erros recorrentes' },
-  { id: 'gaps',         label: 'Gaps',         desc: 'Testes faltando, tipos ausentes, error handling' },
-  { id: 'bottlenecks',  label: 'Gargalos',     desc: 'N+1 queries, sync blocking, missing indexes' },
+  { id: 'overview', label: 'Overview', desc: 'Visão geral + codebase domain + safety locks' },
+  { id: 'reviews', label: 'Reviews', desc: 'Revisões estilo CodeRabbit (diff/file/dir/hotspot)' },
+  { id: 'refactors', label: 'Refactors', desc: 'Sugestões de refatoração para erros recorrentes' },
+  { id: 'gaps', label: 'Gaps', desc: 'Testes faltando, tipos ausentes, error handling' },
+  { id: 'bottlenecks', label: 'Gargalos', desc: 'N+1 queries, sync blocking, missing indexes' },
 ];
 
 // ── Codebase Domain (estado do conhecimento do ZéCode sobre o projeto) ───────

@@ -102,7 +102,7 @@ export class ZCCSimulationLab {
             metrics[name] = fn(allEvents);
           } catch (err) {
             metrics[name] = NaN;
-            // eslint-disable-next-line no-console
+             
             console.error(`[Lab] metric ${name} failed:`, err);
           }
         }

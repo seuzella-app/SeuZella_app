@@ -600,7 +600,7 @@ export async function runSecretScan(directory: string): Promise<SecurityFinding[
 export async function runFullSecurityScan(): Promise<ScanResult> {
   const startTime = Date.now();
   const allFindings: SecurityFinding[] = [];
-  let glmTokensUsed = 0;
+  const glmTokensUsed = 0;
   const config = getGlmConfig();
 
   logger.info('[SecurityScan] Starting full security scan', {

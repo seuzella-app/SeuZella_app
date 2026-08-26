@@ -24,7 +24,7 @@ export function LinkInBioPage({ profile, isPreview = false }: { profile: LinkInB
 
   const accentColor = profile.accentColor || '#10b981';
   const whatsappUrl = buildWhatsAppUrl(profile.whatsappNumber);
-  const whatsappNumber = profile.whatsappNumber;
+  const {whatsappNumber} = profile;
 
   // Interactive reviews state
   const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);

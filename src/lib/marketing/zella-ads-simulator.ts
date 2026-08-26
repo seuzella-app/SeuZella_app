@@ -52,10 +52,10 @@ export interface GoogleAdsKeywordCampaign {
 }
 
 export interface WeeklyBudgetEntry {
-  weekNumber: number;       // 1 a 12
-  monthLabel: string;       // "Setembro", "Outubro", "Novembro"
-  monthNumber: number;      // 1, 2, 3
-  weeklyBudget: number;     // Valor em R$
+  weekNumber: number; // 1 a 12
+  monthLabel: string; // "Setembro", "Outubro", "Novembro"
+  monthNumber: number; // 1, 2, 3
+  weeklyBudget: number; // Valor em R$
   estimatedClicks: number;
   estimatedLeads: number;
   estimatedSales: number;
@@ -73,7 +73,7 @@ export interface MonthlyProjection {
   salesConvRate: number;
   totalSales: number;
   mrrGenerated: number;
-  cumulativeMRR: number;    // MRR acumulado de TODOS os meses anteriores + este
+  cumulativeMRR: number; // MRR acumulado de TODOS os meses anteriores + este
   cumulativeSales: number;
 }
 
@@ -285,17 +285,17 @@ export class ZellaAdsSimulator {
   static getOfficialWeeklyBudgetRoadmap(): Array<{ week: number; month: string; monthNumber: number; budget: number }> {
     return [
       // ── MÊS 1: SETEMBRO 2026 (R$ 2.200) ──
-      { week: 1,  month: 'Setembro', monthNumber: 1, budget: 500 },
-      { week: 2,  month: 'Setembro', monthNumber: 1, budget: 500 },
-      { week: 3,  month: 'Setembro', monthNumber: 1, budget: 600 },
-      { week: 4,  month: 'Setembro', monthNumber: 1, budget: 600 },
+      { week: 1, month: 'Setembro', monthNumber: 1, budget: 500 },
+      { week: 2, month: 'Setembro', monthNumber: 1, budget: 500 },
+      { week: 3, month: 'Setembro', monthNumber: 1, budget: 600 },
+      { week: 4, month: 'Setembro', monthNumber: 1, budget: 600 },
       // ── MÊS 2: OUTUBRO 2026 (R$ 3.200) ──
-      { week: 5,  month: 'Outubro',  monthNumber: 2, budget: 600 },
-      { week: 6,  month: 'Outubro',  monthNumber: 2, budget: 600 },
-      { week: 7,  month: 'Outubro',  monthNumber: 2, budget: 1000 },
-      { week: 8,  month: 'Outubro',  monthNumber: 2, budget: 1000 },
+      { week: 5, month: 'Outubro', monthNumber: 2, budget: 600 },
+      { week: 6, month: 'Outubro', monthNumber: 2, budget: 600 },
+      { week: 7, month: 'Outubro', monthNumber: 2, budget: 1000 },
+      { week: 8, month: 'Outubro', monthNumber: 2, budget: 1000 },
       // ── MÊS 3: NOVEMBRO 2026 (R$ 4.000) [+R$ 200/semana vs Outubro] ──
-      { week: 9,  month: 'Novembro', monthNumber: 3, budget: 800 },
+      { week: 9, month: 'Novembro', monthNumber: 3, budget: 800 },
       { week: 10, month: 'Novembro', monthNumber: 3, budget: 800 },
       { week: 11, month: 'Novembro', monthNumber: 3, budget: 1200 },
       { week: 12, month: 'Novembro', monthNumber: 3, budget: 1200 },
@@ -328,9 +328,9 @@ export class ZellaAdsSimulator {
 
     // Premissas por mês
     const monthParams: Record<number, { cpc: number; landingConv: number; salesConv: number }> = {
-      1: { cpc: 3.50, landingConv: 0.14, salesConv: 0.20 },  // Setembro
-      2: { cpc: 3.30, landingConv: 0.16, salesConv: 0.22 },  // Outubro
-      3: { cpc: 3.10, landingConv: 0.18, salesConv: 0.25 },  // Novembro (+R$200/sem)
+      1: { cpc: 3.50, landingConv: 0.14, salesConv: 0.20 }, // Setembro
+      2: { cpc: 3.30, landingConv: 0.16, salesConv: 0.22 }, // Outubro
+      3: { cpc: 3.10, landingConv: 0.18, salesConv: 0.25 }, // Novembro (+R$200/sem)
     };
 
     // Calcular semana a semana
@@ -483,17 +483,17 @@ export class ZellaAdsSimulator {
     // Orçamento semanal completo (16 semanas: Set a Dez)
     const fullRoadmap = [
       // Set
-      { week: 1,  monthNum: 1, month: 'Setembro 2026', budget: 500 },
-      { week: 2,  monthNum: 1, month: 'Setembro 2026', budget: 500 },
-      { week: 3,  monthNum: 1, month: 'Setembro 2026', budget: 600 },
-      { week: 4,  monthNum: 1, month: 'Setembro 2026', budget: 600 },
+      { week: 1, monthNum: 1, month: 'Setembro 2026', budget: 500 },
+      { week: 2, monthNum: 1, month: 'Setembro 2026', budget: 500 },
+      { week: 3, monthNum: 1, month: 'Setembro 2026', budget: 600 },
+      { week: 4, monthNum: 1, month: 'Setembro 2026', budget: 600 },
       // Out
-      { week: 5,  monthNum: 2, month: 'Outubro 2026', budget: 600 },
-      { week: 6,  monthNum: 2, month: 'Outubro 2026', budget: 600 },
-      { week: 7,  monthNum: 2, month: 'Outubro 2026', budget: 1000 },
-      { week: 8,  monthNum: 2, month: 'Outubro 2026', budget: 1000 },
+      { week: 5, monthNum: 2, month: 'Outubro 2026', budget: 600 },
+      { week: 6, monthNum: 2, month: 'Outubro 2026', budget: 600 },
+      { week: 7, monthNum: 2, month: 'Outubro 2026', budget: 1000 },
+      { week: 8, monthNum: 2, month: 'Outubro 2026', budget: 1000 },
       // Nov (+R$200/sem)
-      { week: 9,  monthNum: 3, month: 'Novembro 2026', budget: 800 },
+      { week: 9, monthNum: 3, month: 'Novembro 2026', budget: 800 },
       { week: 10, monthNum: 3, month: 'Novembro 2026', budget: 800 },
       { week: 11, monthNum: 3, month: 'Novembro 2026', budget: 1200 },
       { week: 12, monthNum: 3, month: 'Novembro 2026', budget: 1200 },
@@ -517,7 +517,7 @@ export class ZellaAdsSimulator {
       churnedThisMonth: number;
       activePayingClients: number;
       mrrThisMonth: number;
-    }>  = [];
+    }> = [];
 
     for (let mn = 1; mn <= 4; mn++) {
       const p = params[mn];

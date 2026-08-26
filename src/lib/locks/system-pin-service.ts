@@ -39,13 +39,13 @@ export async function generateReservationPin(input: GenerateReservationPinInput)
 
   if (info.apiAvailable && hasCredentialsConfigured(brand) && device.externalDeviceId) {
     const provider = getProviderModule(brand);
-    const module = provider?.module;
-    if (!module || typeof module.generatePin !== 'function') {
+    const moduleInstance = provider?.module;
+    if (!moduleInstance || typeof moduleInstance.generatePin !== 'function') {
       throw new Error('LOCK_PROVIDER_GENERATE_PIN_UNAVAILABLE');
     }
 
     try {
-      const result = await module.generatePin({
+      const result = await moduleInstance.generatePin({
         deviceId: device.id,
         brand,
         providerType: device.providerType as 'api' | 'manual',

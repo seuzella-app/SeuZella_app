@@ -7,16 +7,16 @@
 
 /** Marcas suportadas pelo Zélla — alinhadas ao mercado brasileiro real. */
 export type LockBrand =
-  | 'ttlock'      // ~30-40% do mercado BR (MercadoLivre: Mecfree, Liftlov, Hofor…)
-  | 'tuya'        // ~20-25% (muitas marcas chinesas usam Tuya/Smart Life)
-  | 'igloohome'   // 5-10% (Airbnb premium BR — único com PIN offline real)
-  | 'nuki'        // 1-3% (premium Airbnb — Nuki Smart Lock 3.0/4.0 Pro)
-  | 'august'      // <1% (Yale Assure Lock 2 usa API August)
-  | 'intelbras'   // 15-20% (líder em pousadas — IFR 1000, FR 1100/1200/1400)
-  | 'yale'        // 5-10% (premium — YDM 4109, YDM 7100A, Assure Lock 2)
-  | 'papaiz'      // 5-10% (brasileira tradicional — Eletronika FR 100/200)
-  | 'philco'      // 2-5% (PH200S, PH300S)
-  | 'samsung';    // 1-3% (SHP-DP609, SHP-DH538 via SmartThings)
+  | 'ttlock' // ~30-40% do mercado BR (MercadoLivre: Mecfree, Liftlov, Hofor…)
+  | 'tuya' // ~20-25% (muitas marcas chinesas usam Tuya/Smart Life)
+  | 'igloohome' // 5-10% (Airbnb premium BR — único com PIN offline real)
+  | 'nuki' // 1-3% (premium Airbnb — Nuki Smart Lock 3.0/4.0 Pro)
+  | 'august' // <1% (Yale Assure Lock 2 usa API August)
+  | 'intelbras' // 15-20% (líder em pousadas — IFR 1000, FR 1100/1200/1400)
+  | 'yale' // 5-10% (premium — YDM 4109, YDM 7100A, Assure Lock 2)
+  | 'papaiz' // 5-10% (brasileira tradicional — Eletronika FR 100/200)
+  | 'philco' // 2-5% (PH200S, PH300S)
+  | 'samsung'; // 1-3% (SHP-DP609, SHP-DH538 via SmartThings)
 
 /** Tipo de integração com a marca. */
 export type ProviderType = 'api' | 'manual';

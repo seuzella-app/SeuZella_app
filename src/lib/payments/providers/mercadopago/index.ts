@@ -37,7 +37,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
     if (!this.isConfigured()) throw new PaymentGatewayError('MercadoPago not configured — set MP_ACCESS_TOKEN', 'mercadopago', 'NOT_CONFIGURED');
     const client = await this.getClient();
     const mp = await import('mercadopago');
-    const Payment = (mp as { Payment: new (c: unknown) => { create: (a: { body: unknown; requestOptions?: { idempotencyKey?: string } }) => Promise<MPPaymentResponse> } }).Payment;
+    const {Payment} = (mp as { Payment: new (c: unknown) => { create: (a: { body: unknown; requestOptions?: { idempotencyKey?: string } }) => Promise<MPPaymentResponse> } });
     const payment = new Payment(client);
     const [firstName, ...lastNameParts] = input.customer.name.split(' ');
     const body: Record<string, unknown> = {
@@ -89,7 +89,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
     if (!this.isConfigured()) throw new PaymentGatewayError('MercadoPago not configured', 'mercadopago', 'NOT_CONFIGURED');
     const client = await this.getClient();
     const mp = await import('mercadopago');
-    const Payment = (mp as { Payment: new (c: unknown) => { get: (a: { id: string }) => Promise<MPPaymentResponse> } }).Payment;
+    const {Payment} = (mp as { Payment: new (c: unknown) => { get: (a: { id: string }) => Promise<MPPaymentResponse> } });
     try {
       return this.normalizeStatus((await new Payment(client).get({ id: gatewayPaymentId })).status);
     } catch (err) {
@@ -127,7 +127,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
       const status = await this.getPaymentStatus(paymentId);
       const client = await this.getClient();
       const mp = await import('mercadopago');
-      const Payment = (mp as { Payment: new (c: unknown) => { get: (a: { id: string }) => Promise<MPPaymentResponse> } }).Payment;
+      const {Payment} = (mp as { Payment: new (c: unknown) => { get: (a: { id: string }) => Promise<MPPaymentResponse> } });
       const full = await new Payment(client).get({ id: paymentId });
       const referenceId = full.external_reference ?? '';
       return {

@@ -38,11 +38,11 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 // TIPOS
 // ─────────────────────────────────────────────────────────────────────────────
 export type LLMSector =
-  | 'whatsapp_concierge'   // Atendimento WhatsApp + UPSELL
-  | 'smart_locks'          // Fechaduras + PINs + Function Calling
-  | 'yield_finance'        // Dynamic Yield + Cálculos financeiros
-  | 'security_pentest'     // Night Audit + LGPD + Pentest
-  | 'contingency';         // Contingência de latência zero
+  | 'whatsapp_concierge' // Atendimento WhatsApp + UPSELL
+  | 'smart_locks' // Fechaduras + PINs + Function Calling
+  | 'yield_finance' // Dynamic Yield + Cálculos financeiros
+  | 'security_pentest' // Night Audit + LGPD + Pentest
+  | 'contingency'; // Contingência de latência zero
 
 export type LLMProvider = 'zai' | 'qwen' | 'openai' | 'deepseek' | 'mistral' | 'groq' | 'fallback-local';
 
@@ -53,8 +53,8 @@ export interface LLMModelConfig {
   apiKeyEnv: string;
   maxTokens: number;
   temperature: number;
-  costPer1kIn: number;   // USD por 1M tokens in / 1000
-  costPer1kOut: number;  // USD por 1M tokens out / 1000
+  costPer1kIn: number; // USD por 1M tokens in / 1000
+  costPer1kOut: number; // USD por 1M tokens out / 1000
   timeoutMs: number;
 }
 
@@ -70,8 +70,8 @@ export const SECTOR_MODELS: Record<LLMSector, LLMModelConfig> = {
     apiKeyEnv: 'DEEPINFRA_API_KEY',
     maxTokens: 500,
     temperature: 0.7,
-    costPer1kIn: 0.00017,   // $0.17/1M = $0.00017/1k
-    costPer1kOut: 0.0004,   // $0.40/1M = $0.0004/1k
+    costPer1kIn: 0.00017, // $0.17/1M = $0.00017/1k
+    costPer1kOut: 0.0004, // $0.40/1M = $0.0004/1k
     timeoutMs: 10_000,
   },
   // 2. Smart Locks & Fechaduras → GPT-4o-mini (Function Calling preciso)
@@ -81,7 +81,7 @@ export const SECTOR_MODELS: Record<LLMSector, LLMModelConfig> = {
     baseUrl: 'https://api.openai.com/v1/chat/completions',
     apiKeyEnv: 'OPENAI_API_KEY',
     maxTokens: 300,
-    temperature: 0.3,  // baixa temperatura para precisão de JSON
+    temperature: 0.3, // baixa temperatura para precisão de JSON
     costPer1kIn: 0.00015,
     costPer1kOut: 0.0006,
     timeoutMs: 8_000,
@@ -93,7 +93,7 @@ export const SECTOR_MODELS: Record<LLMSector, LLMModelConfig> = {
     baseUrl: 'https://api.deepseek.com/v1/chat/completions',
     apiKeyEnv: 'DEEPSEEK_API_KEY',
     maxTokens: 400,
-    temperature: 0.2,  // quase determinístico para cálculos
+    temperature: 0.2, // quase determinístico para cálculos
     costPer1kIn: 0.00014,
     costPer1kOut: 0.00028,
     timeoutMs: 10_000,
@@ -105,7 +105,7 @@ export const SECTOR_MODELS: Record<LLMSector, LLMModelConfig> = {
     baseUrl: 'https://api.mistral.ai/v1/chat/completions',
     apiKeyEnv: 'MISTRAL_API_KEY',
     maxTokens: 600,
-    temperature: 0.1,  // determinístico para auditoria
+    temperature: 0.1, // determinístico para auditoria
     costPer1kIn: 0.0002,
     costPer1kOut: 0.0006,
     timeoutMs: 15_000,
@@ -120,7 +120,7 @@ export const SECTOR_MODELS: Record<LLMSector, LLMModelConfig> = {
     temperature: 0.7,
     costPer1kIn: 0.00013,
     costPer1kOut: 0.0004,
-    timeoutMs: 5_000,  // Groq é ultra rápido, 5s é mais que suficiente
+    timeoutMs: 5_000, // Groq é ultra rápido, 5s é mais que suficiente
   },
 };
 
@@ -297,8 +297,8 @@ export async function callLLMBySector(
   // Define cadeia de fallback: primário → Zai GLM → Groq Llama → fallback local
   const fallbackChain: { config: LLMModelConfig | null; useZai: boolean }[] = [
     { config: primaryConfig, useZai: false },
-    { config: null, useZai: true },  // Zai GLM 5.2 como fallback universal
-    { config: SECTOR_MODELS.contingency, useZai: false },  // Groq Llama como contingência
+    { config: null, useZai: true }, // Zai GLM 5.2 como fallback universal
+    { config: SECTOR_MODELS.contingency, useZai: false }, // Groq Llama como contingência
   ];
 
   let lastError: Error | null = null;

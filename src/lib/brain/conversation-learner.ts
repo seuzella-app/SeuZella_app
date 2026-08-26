@@ -49,7 +49,7 @@ interface LearningResult {
 // ── Constantes ───────────────────────────────────────────────────────
 
 const MIN_CONVERSATION_MESSAGES = 3; // Mínimo de trocas para analisar
-const MAX_PATTERNS_PER_RUN = 5;     // Limite de extração por conversa
+const MAX_PATTERNS_PER_RUN = 5; // Limite de extração por conversa
 const PROMOTION_SUCCESS_THRESHOLD = 0.8;
 const PROMOTION_MIN_USES = 3;
 const PROMOTION_MIN_SUCCESSFUL = 2;
@@ -61,11 +61,11 @@ const CONFIDENCE_PENALTY = 0.15;
 const EFFECTIVENESS_BOOST_FACTOR = 0.05;
 
 // ── v2.0: Sentiment & Decay Constants ──
-const DECAY_DAYS_THRESHOLD = 30;     // Dias sem uso para ativar decay
-const DECAY_RATE_PER_DAY = 0.02;     // Redução de confiança por dia acima do threshold
-const DECAY_MIN_CONFIDENCE = 0.3;    // Confiança mínima após decay
-const RECENCY_BOOST = 0.05;          // Boost para padrões usados nas últimas 24h
-const ANTI_PATTERN_MAX = 3;          // Máximo de anti-padrões por conversa escalada
+const DECAY_DAYS_THRESHOLD = 30; // Dias sem uso para ativar decay
+const DECAY_RATE_PER_DAY = 0.02; // Redução de confiança por dia acima do threshold
+const DECAY_MIN_CONFIDENCE = 0.3; // Confiança mínima após decay
+const RECENCY_BOOST = 0.05; // Boost para padrões usados nas últimas 24h
+const ANTI_PATTERN_MAX = 3; // Máximo de anti-padrões por conversa escalada
 
 // ── Função Principal: Aprender de uma Conversa ────────────────────────
 

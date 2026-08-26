@@ -53,12 +53,12 @@ import * as path from 'path';
 
 export interface VulnFinding {
   severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
-  type: string;          // 'eval_usage' | 'dangerously_set_inner_html' | etc.
-  file: string;          // path relativo
+  type: string; // 'eval_usage' | 'dangerously_set_inner_html' | etc.
+  file: string; // path relativo
   line: number;
   description: string;
   recommendation: string;
-  cwe?: string;          // Common Weakness Enumeration (opcional)
+  cwe?: string; // Common Weakness Enumeration (opcional)
 }
 
 export interface DayMetrics {
@@ -454,7 +454,7 @@ export class NightAuditService {
 
     for (const pattern of VULN_PATTERNS) {
       // Reset regex lastIndex (em caso de flag g)
-      const regex = new RegExp(pattern.pattern.source, pattern.pattern.flags.replace('g', '') + 'g');
+      const regex = new RegExp(pattern.pattern.source, `${pattern.pattern.flags.replace('g', '') }g`);
       let match: RegExpExecArray | null;
 
       while ((match = regex.exec(content)) !== null) {

@@ -84,13 +84,13 @@ export interface PousadaContext {
 // DETECÇÃO DE EMOÇÃO — analisa primeira mensagem do hóspede
 // ─────────────────────────────────────────────────────────────────────────────
 export type EmocaoHospede =
-  | 'entusiasmo'      // emojis, exclamações, "amei", "top", "vai ser massa"
-  | 'ansiedade'       // muitas perguntas, "como funciona", "e se", "tenho medo"
-  | 'pressa'          // "rápido", "urgente", "hoje", "agora", várias mensagens curtas
-  | 'desconfianca'    // "é confiável?", "já ouvi histórias", "CNPJ?"
-  | 'curiosidade'     // perguntas detalhadas sobre features, passeios, experiência
+  | 'entusiasmo' // emojis, exclamações, "amei", "top", "vai ser massa"
+  | 'ansiedade' // muitas perguntas, "como funciona", "e se", "tenho medo"
+  | 'pressa' // "rápido", "urgente", "hoje", "agora", várias mensagens curtas
+  | 'desconfianca' // "é confiável?", "já ouvi histórias", "CNPJ?"
+  | 'curiosidade' // perguntas detalhadas sobre features, passeios, experiência
   | 'preocupacao_fin' // "caro", "orçamento", "fora do meu alcance"
-  | 'calor'           // saudação amigável, "tudo bem", conversa fácil
+  | 'calor' // saudação amigável, "tudo bem", conversa fácil
   | 'neutro';
 
 export interface EmocaoResult {
@@ -265,7 +265,7 @@ const EMOJIS_PERMITIDOS = ['😊', '👍', '✨', '🌿', '📍', '💡'];
 
 function talvezEmoji(rng: () => number, probabilidade: number = 0.30): string {
   if (rng() < probabilidade) {
-    return ' ' + pick(EMOJIS_PERMITIDOS, rng);
+    return ` ${ pick(EMOJIS_PERMITIDOS, rng)}`;
   }
   return '';
 }
@@ -293,7 +293,7 @@ export function gerarPrimeiraResposta(
 
   // Saudação conforme estilo da persona
   const saudacoes = SAUDACOES_POR_ESTILO[hospede.estilo_dialogo] || SAUDACOES_GENERICAS;
-  let saudacao = pick(saudacoes, rng);
+  const saudacao = pick(saudacoes, rng);
 
   // Ajuste conforme emoção detectada
   if (emocao.emocao === 'pressa') {
@@ -504,8 +504,8 @@ export function gerarRespostaDetalhes(
   return {
     content: `Claro, ${nome}! Café da manhã das 7h às 10h. ` +
       `Estacionamento ${pousada.estacionamento ? 'coberto, sim' : 'não temos'}. ` +
-      `Check-in a partir das ${pousada.checkIn}, check-out até as ${pousada.checkOut}. ` +
-      pick(['Quer reservar?', 'Fechamos agora?', 'Posso segurar o quarto?'], rng),
+      `Check-in a partir das ${pousada.checkIn}, check-out até as ${pousada.checkOut}. ${ 
+      pick(['Quer reservar?', 'Fechamos agora?', 'Posso segurar o quarto?'], rng)}`,
     intent: 'detalhes',
   };
 }

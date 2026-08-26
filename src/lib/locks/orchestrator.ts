@@ -503,9 +503,9 @@ export async function generatePin(input: GeneratePinInput): Promise<GeneratePinR
   });
 
   const codeStr = providerResult.pin;
-  const source = providerResult.source;
-  const codeType = providerResult.codeType;
-  const externalCodeId = providerResult.externalCodeId;
+  const {source} = providerResult;
+  const {codeType} = providerResult;
+  const {externalCodeId} = providerResult;
 
   const status = derivePinStatus({
     validFrom: input.validFrom,

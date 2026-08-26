@@ -106,7 +106,7 @@ export class GitHubClient {
 
     const privateKeyPem = await getCredential(this.credentialId);
     const appId = cred.githubAppId;
-    const installationId = cred.installationId;
+    const {installationId} = cred;
 
     // Gera JWT (válido 10 min)
     const jwt = this.generateAppJWT(appId, privateKeyPem);

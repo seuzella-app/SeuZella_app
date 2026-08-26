@@ -7,7 +7,7 @@ export interface BudgetSnapshot {
 
 export enum BudgetLevel {
   NORMAL = 'NORMAL',
-  WARNING = 'WARNING',   // ≥ 80%
+  WARNING = 'WARNING', // ≥ 80%
   CRITICAL = 'CRITICAL', // ≥ 95%
 }
 

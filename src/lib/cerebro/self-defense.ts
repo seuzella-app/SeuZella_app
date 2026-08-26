@@ -104,9 +104,9 @@ function recordAction(action: DefenseAction, target: string): void {
 function ttlForSeverity(severity: Severity): number {
   switch (severity) {
     case 'emergency': return 24 * 60; // 24h
-    case 'critical': return 4 * 60;   // 4h
-    case 'warning': return 30;        // 30min
-    case 'info': return 5;            // 5min
+    case 'critical': return 4 * 60; // 4h
+    case 'warning': return 30; // 30min
+    case 'info': return 5; // 5min
     default: return 15;
   }
 }

@@ -73,7 +73,7 @@ Responda EXATAMENTE em formato JSON estruturado com os seguintes campos:
         dorPrincipal: lead.dorIdentificada === 'financeiro' ? 'Comissão alta de 18% para Booking/Airbnb' : lead.dorIdentificada === 'operacional' ? 'Falta de recepção 24h e atrasos em cotações' : 'Taxa de ocupação oscilante nos dias de semana',
         planoRecomendado: plan,
         scriptWhatsapp: `Olá! Aqui é o Seu Zélla. Vi a ${lead.pousada} em ${lead.cidade} e sei exatamente como podemos zerar suas taxas de comissão e colocar seu WhatsApp atendendo e vendendo diárias no PIX 24h por dia. Podemos conversar 2 minutinhos?`,
-        probabilidadeConversao: Math.min(Math.max(lead.scoreQual + 5, 80), 98) + '%',
+        probabilidadeConversao: `${Math.min(Math.max(lead.scoreQual + 5, 80), 98) }%`,
       };
     }
 

@@ -154,7 +154,7 @@ export function useTenantStateSync(): TenantStateSync {
 
     // 3. Custom event — same-tab instant sync (dispatched by TenantStateBridge)
     const onCustom = (event: Event) => {
-      const detail = (event as CustomEvent).detail;
+      const {detail} = (event as CustomEvent);
       if (detail && typeof detail === 'object') {
         setState({
           tenantName: detail.name ?? detail.tenantName ?? null,

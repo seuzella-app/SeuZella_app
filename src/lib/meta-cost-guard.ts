@@ -27,7 +27,7 @@ export async function recordMetaCost(entry: MetaCostEntry): Promise<void> {
     entry.messageType === "service_reply"
       ? META_COST_PER_MSG
       : entry.messageType === "utility_template"
-        ? META_COST_PER_MSG * 0.5  // Utility templates typically cost less
+        ? META_COST_PER_MSG * 0.5 // Utility templates typically cost less
         : 0; // Marketing templates have their own cost tracking
 
   if (costUsd === 0) return;
@@ -106,7 +106,7 @@ type PlanKey = "gratuito" | "lite" | "pro" | "max" | "parceiro";
 
 const BUDGET_LIMITS: Record<PlanKey, number> = {
   gratuito: parseFloat(process.env.META_BUDGET_GRATUITO_USD || "3.40"),
-  lite: parseFloat(process.env.META_BUDGET_LITE_USD || "12.00"),   // ~350 msgs/mês — viável para R$197
+  lite: parseFloat(process.env.META_BUDGET_LITE_USD || "12.00"), // ~350 msgs/mês — viável para R$197
   pro: parseFloat(process.env.META_BUDGET_PRO_USD || "34.00"),
   max: parseFloat(process.env.META_BUDGET_MAX_USD || "68.00"),
   parceiro: parseFloat(process.env.META_BUDGET_PARCEIRO_USD || "34.00"),

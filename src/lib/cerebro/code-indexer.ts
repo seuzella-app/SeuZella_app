@@ -200,7 +200,7 @@ export async function indexCodebase(rootDir?: string): Promise<IndexResult> {
   for (const file of files) {
     try {
       const content = readFileSync(file.path, 'utf-8');
-      const relativePath = file.path.replace(projectRoot + '/', '');
+      const relativePath = file.path.replace(`${projectRoot }/`, '');
       const chunks = chunkFile(relativePath, content);
 
       for (const chunk of chunks) {

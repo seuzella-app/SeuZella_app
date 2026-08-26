@@ -59,8 +59,8 @@ export interface RAGResult {
 // ── Constantes ───────────────────────────────────────────────────────
 
 const DEFAULT_TOP_K = 4;
-const VECTOR_MIN_SIMILARITY_BASE = 0.3;  // Threshold base para embeddings vetoriais
-const TFIDF_MIN_SIMILARITY = 0.05;  // Threshold para TF-IDF (mais permissivo)
+const VECTOR_MIN_SIMILARITY_BASE = 0.3; // Threshold base para embeddings vetoriais
+const TFIDF_MIN_SIMILARITY = 0.05; // Threshold para TF-IDF (mais permissivo)
 
 // v2.0: Adaptive RAG Threshold
 // Quando a base de conhecimento cresce, o threshold aumenta para reduzir ruído.

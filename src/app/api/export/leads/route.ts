@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const leads = body.leads;
+    const {leads} = body;
 
     if (!Array.isArray(leads) || leads.length === 0 || leads.length > 5000) {
       return NextResponse.json({ error: 'Quantidade de leads inválida' }, { status: 400 });

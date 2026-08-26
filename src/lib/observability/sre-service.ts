@@ -105,7 +105,7 @@ export async function collectObservabilityMetrics(): Promise<ObservabilityMetric
   let lastScanAt: string | undefined;
   if (dbAvailable) {
     try {
-      const securityFinding = (db as any).securityFinding;
+      const {securityFinding} = (db as any);
       if (!securityFinding) throw new Error('SecurityFinding model unavailable');
       const [open, critical, high, lastScan] = await Promise.all([
         securityFinding.count({ where: { status: 'open' } }),
@@ -149,7 +149,7 @@ export async function collectObservabilityMetrics(): Promise<ObservabilityMetric
   let llmCostUsdThisMonth = 0;
   if (dbAvailable) {
     try {
-      const metaCostLog = (db as any).metaCostLog;
+      const {metaCostLog} = (db as any);
       if (!metaCostLog) throw new Error('MetaCostLog model unavailable');
       const monthStart = new Date();
       monthStart.setDate(1);
@@ -169,7 +169,7 @@ export async function collectObservabilityMetrics(): Promise<ObservabilityMetric
   let activeSubscriptions = 0;
   if (dbAvailable) {
     try {
-      const pushSubscription = (db as any).pushSubscription;
+      const {pushSubscription} = (db as any);
       if (!pushSubscription) throw new Error('PushSubscription model unavailable');
       activeSubscriptions = await pushSubscription.count({ where: { isActive: true } });
     } catch (err) {

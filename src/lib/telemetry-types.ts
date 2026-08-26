@@ -9,22 +9,22 @@
 // ── Event Type Enum ────────────────────────────────────────────────────────────
 
 export type TelemetryEventType =
-  | 'whatsapp.message_sent'      // Burn rate tracking
-  | 'whatsapp.message_bundled'   // Cost savings tracking
-  | 'reservation.created'        // Revenue tracking
-  | 'reservation.cancelled'      // Churn tracking
-  | 'payment.received'           // MRR tracking
-  | 'payment.failed'             // Risk tracking
-  | 'ai.response_generated'      // AI usage tracking
-  | 'guest.checkin'              // Operations tracking
-  | 'guest.checkout'             // Operations tracking
-  | 'ical.sync_completed'        // Integration tracking
-  | 'oauth.connected'            // Integration tracking
-  | 'tenant.plan_changed'        // Subscription tracking
-  | 'tenant.suspended'           // Kill switch event
-  | 'tenant.reactivated'         // Kill switch event
-  | 'airbnb.review_received'     // Quality tracking
-  | 'airbnb.response_time'       // Algorithm health
+  | 'whatsapp.message_sent' // Burn rate tracking
+  | 'whatsapp.message_bundled' // Cost savings tracking
+  | 'reservation.created' // Revenue tracking
+  | 'reservation.cancelled' // Churn tracking
+  | 'payment.received' // MRR tracking
+  | 'payment.failed' // Risk tracking
+  | 'ai.response_generated' // AI usage tracking
+  | 'guest.checkin' // Operations tracking
+  | 'guest.checkout' // Operations tracking
+  | 'ical.sync_completed' // Integration tracking
+  | 'oauth.connected' // Integration tracking
+  | 'tenant.plan_changed' // Subscription tracking
+  | 'tenant.suspended' // Kill switch event
+  | 'tenant.reactivated' // Kill switch event
+  | 'airbnb.review_received' // Quality tracking
+  | 'airbnb.response_time' // Algorithm health
 ;
 
 // ── Category Grouping ──────────────────────────────────────────────────────────

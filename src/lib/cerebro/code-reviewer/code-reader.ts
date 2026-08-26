@@ -245,7 +245,7 @@ function matchGlob(pattern: string, path: string): boolean {
     .replace(/\?/g, '.');
 
   if (!re.endsWith('$')) re += '$';
-  if (!re.startsWith('^')) re = '^' + re;
+  if (!re.startsWith('^')) re = `^${ re}`;
 
   try {
     return new RegExp(re).test(path);

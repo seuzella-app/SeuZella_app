@@ -29,24 +29,24 @@ import { db } from '@/lib/db';
 // ─────────────────────────────────────────────────────────────────────────────
 export type UpsellType =
   | 'aumento_diaria_feriado' // aumento de diária em feriado/alta demanda por quarto
-  | 'reveillon'              // pacote especial réveillon (UPSELL por quarto)
-  | 'carnaval'               // pacote especial carnaval (UPSELL por quarto)
+  | 'reveillon' // pacote especial réveillon (UPSELL por quarto)
+  | 'carnaval' // pacote especial carnaval (UPSELL por quarto)
   | 'alta_demanda_temporada' // tarifa dinâmica por alta procura sazonal
-  | 'late_checkout'           // extensão de horário de check-out (R$ 50/hora extra)
-  | 'cafe_premium'           // café da manhã premium (R$ 35/diária)
-  | 'massagem'               // massagem relaxante (R$ 150/sessão)
-  | 'passeio_barco'          // passeio de barco (R$ 120/pessoa)
-  | 'transfer_aeroporto'     // transfer ida/volta aeroporto (R$ 80)
-  | 'jantar_romantico'       // jantar romântico montado no quarto (R$ 200)
-  | 'decoracao_aniversario'  // decoração quarto para aniversário (R$ 90)
-  | 'garrafa_vinho'          // garrafa de vinho (R$ 70)
-  | 'aula_surf'              // aula de surf (R$ 100/pessoa)
-  | 'passeio_bugue'          // passeio de bugue (R$ 90/pessoa)
-  | 'spa_day'                // spa day com hidratação (R$ 250)
-  | 'kit_praia'              // kit praia: guarda-sol + cadeiras (R$ 50/diária)
+  | 'late_checkout' // extensão de horário de check-out (R$ 50/hora extra)
+  | 'cafe_premium' // café da manhã premium (R$ 35/diária)
+  | 'massagem' // massagem relaxante (R$ 150/sessão)
+  | 'passeio_barco' // passeio de barco (R$ 120/pessoa)
+  | 'transfer_aeroporto' // transfer ida/volta aeroporto (R$ 80)
+  | 'jantar_romantico' // jantar romântico montado no quarto (R$ 200)
+  | 'decoracao_aniversario' // decoração quarto para aniversário (R$ 90)
+  | 'garrafa_vinho' // garrafa de vinho (R$ 70)
+  | 'aula_surf' // aula de surf (R$ 100/pessoa)
+  | 'passeio_bugue' // passeio de bugue (R$ 90/pessoa)
+  | 'spa_day' // spa day com hidratação (R$ 250)
+  | 'kit_praia' // kit praia: guarda-sol + cadeiras (R$ 50/diária)
   | 'late_checkin_madrugada' // late check-in madrugada (R$ 30)
-  | 'limpeza_diaria_extra'  // limpeza extra (R$ 40)
-  | 'outros';                // outros (descrição livre)
+  | 'limpeza_diaria_extra' // limpeza extra (R$ 40)
+  | 'outros'; // outros (descrição livre)
 
 export type UpsellStatus = 'pending' | 'confirmed' | 'paid' | 'cancelled';
 export type Temporada = 'alta' | 'média' | 'baixa';
@@ -62,7 +62,7 @@ export interface UpsellRecord {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  comissionRate: number;  // 0.07 = 7%
+  comissionRate: number; // 0.07 = 7%
   comissionAmount: number; // totalPrice * comissionRate
   status: UpsellStatus;
   paidAt?: Date;

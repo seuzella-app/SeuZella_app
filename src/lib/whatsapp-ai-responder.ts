@@ -373,7 +373,7 @@ export async function processIncomingMessage(params: ProcessParams): Promise<Pro
 
   // 5. Structure the dynamic system prompt
   const intentResult = await classifyIntent(messageContent);
-  const intent = intentResult.intent;
+  const {intent} = intentResult;
 
   const assistantName = (planType === 'max') 
     ? (trainingPrompts.find(p => p.type === 'name')?.content || 'ZÉLLA') 

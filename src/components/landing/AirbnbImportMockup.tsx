@@ -52,17 +52,17 @@ export function AirbnbImportMockup() {
       setFilledCount(0);
       setProgress(0);
 
-      timers.push(setTimeout(() => setPhase(1), 500));      // Show Airbnb listing
-      timers.push(setTimeout(() => setPhase(2), 4000));      // Transition to Zélla
-      timers.push(setTimeout(() => setPhase(3), 5000));      // Show paste field
-      timers.push(setTimeout(() => setPhase(4), 6500));      // Start auto-config
+      timers.push(setTimeout(() => setPhase(1), 500)); // Show Airbnb listing
+      timers.push(setTimeout(() => setPhase(2), 4000)); // Transition to Zélla
+      timers.push(setTimeout(() => setPhase(3), 5000)); // Show paste field
+      timers.push(setTimeout(() => setPhase(4), 6500)); // Start auto-config
       // Filled items progress
       timers.push(setTimeout(() => { setFilledCount(1); setProgress(20); }, 7000));
       timers.push(setTimeout(() => { setFilledCount(2); setProgress(40); }, 7800));
       timers.push(setTimeout(() => { setFilledCount(3); setProgress(60); }, 8500));
       timers.push(setTimeout(() => { setFilledCount(4); setProgress(80); }, 9200));
       timers.push(setTimeout(() => { setFilledCount(5); setProgress(100); }, 9800));
-      timers.push(setTimeout(() => setPhase(5), 10500));     // Success!
+      timers.push(setTimeout(() => setPhase(5), 10500)); // Success!
     };
 
     startAnimation();

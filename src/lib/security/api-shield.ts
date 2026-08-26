@@ -23,7 +23,7 @@ import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 // ── Configuration ──
 
 const DEFAULT_MAX_PAYLOAD_BYTES = 1_000_000; // 1MB default
-const STRICT_MAX_PAYLOAD_BYTES = 100_000;    // 100KB for auth/sensitive routes
+const STRICT_MAX_PAYLOAD_BYTES = 100_000; // 100KB for auth/sensitive routes
 
 /** Routes completely blocked in production */
 const PROD_BLOCKED_ROUTES = [
@@ -112,7 +112,7 @@ export function withSecurity(
   options: SecurityOptions = {}
 ): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest) => {
-    const pathname = new URL(request.url).pathname;
+    const {pathname} = new URL(request.url);
     // Sanitiza e valida o x-request-id do cliente para evitar log injection
     const rawReqId = request.headers.get('x-request-id') || request.headers.get('x-vercel-id');
     const isValidReqId = rawReqId && rawReqId.length <= 64 && /^[a-zA-Z0-9_-]+$/.test(rawReqId);

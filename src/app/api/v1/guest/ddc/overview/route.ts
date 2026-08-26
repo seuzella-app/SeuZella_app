@@ -242,7 +242,7 @@ async function getHandler(_request: NextRequest, _ctx: SecurityContext) {
     const sizeBytes = Buffer.byteLength(serialized, 'utf8');
 
     if (sizeBytes > MAX_PAYLOAD_BYTES) {
-      // eslint-disable-next-line no-console
+       
       console.error(
         `[BFF_DDC_OVERSIZE] tenant=${tenantId} bytes=${sizeBytes} ` +
           `cap=${MAX_PAYLOAD_BYTES} ` +
@@ -280,7 +280,7 @@ async function getHandler(_request: NextRequest, _ctx: SecurityContext) {
       },
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error('[BFF_DDC_OVERVIEW_ERROR]', err);
     return NextResponse.json(
       { error: 'internal', reason: 'aggregation_failed' },

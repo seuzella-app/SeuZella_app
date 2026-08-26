@@ -7,19 +7,19 @@ import { useNiche } from '@/contexts/NicheContext';
 
 // ── Types 
 type DemoPhase =
-  | 'instagram'        // Instagram profile with pulsing link
-  | 'linkinbio'        // LIB page, no button highlighted yet
-  | 'reservar'         // Button 1 highlighted + reservation preview
-  | 'galeria'          // Button 2 highlighted + gallery preview
-  | 'avaliacoes'       // Button 3 highlighted + reviews preview
-  | 'mapa'             // Button 4 highlighted + map preview
-  | 'whatsapp';        // Button 5 → full WhatsApp conversation
+  | 'instagram' // Instagram profile with pulsing link
+  | 'linkinbio' // LIB page, no button highlighted yet
+  | 'reservar' // Button 1 highlighted + reservation preview
+  | 'galeria' // Button 2 highlighted + gallery preview
+  | 'avaliacoes' // Button 3 highlighted + reviews preview
+  | 'mapa' // Button 4 highlighted + map preview
+  | 'whatsapp'; // Button 5 → full WhatsApp conversation
 
 // ── Niche-specific profile data 
 interface ProfileData {
   igHandle: string;
   profileName: string;
-  profileLabel: string;   // "Pousada" | "Airbnb" | "Parceiro Zélla"
+  profileLabel: string; // "Pousada" | "Airbnb" | "Parceiro Zélla"
   bioLine1: string;
   bioLine2: string;
   bioLine3: string;
@@ -28,10 +28,10 @@ interface ProfileData {
   libLocation: string;
   libMapLabel: string;
   libMapAddress: string;
-  roomLabel: string;       // "Chalé Vista Mar" | "Apartamento Vista Mar" etc.
-  roomDetails: string;     // "Cama king · Varanda · Hidromassagem"
-  roomPrice: string;       // "R$ 490"
-  roomPriceTotal: string;  // "R$ 980"
+  roomLabel: string; // "Chalé Vista Mar" | "Apartamento Vista Mar" etc.
+  roomDetails: string; // "Cama king · Varanda · Hidromassagem"
+  roomPrice: string; // "R$ 490"
+  roomPriceTotal: string; // "R$ 980"
   roomPriceBreakdown: string; // "R$ 490/noite × 2 noites"
   highlights: { icon: string; label: string }[];
   galleryPhotos: { src: string; label: string }[];
@@ -288,7 +288,7 @@ export function LinkInBioDemo() {
 
   const profile = isAirbnb ? anfitriaoProfile : pousadaProfile;
   const libButtons = isAirbnb ? anfitriaoButtons : pousadaButtons;
-  const chatMessages = profile.chatMessages;
+  const {chatMessages} = profile;
 
   const TOTAL_CHAT_DURATION = chatMessages.length * CHAT_MSG_INTERVAL + CHAT_PAUSE_AFTER_COMPLETE;
   const TOTAL_LOOP = INSTAGRAM_DURATION + 1000 + (5 * BUTTON_CYCLE_INTERVAL) + TOTAL_CHAT_DURATION;

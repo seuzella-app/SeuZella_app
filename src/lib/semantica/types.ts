@@ -26,29 +26,29 @@
 
 /** Tipos de nó do grafo (alinhado com Prisma GraphNode.entityType) */
 export type EntityType =
-  | 'RULE'        // regra rígida ("Check-in às 14h")
-  | 'POLICY'      // política negociável ("Pets permitidos com taxa")
-  | 'AMENITY'     // comodidade ("Piscina aquecida")
-  | 'CHECKIN'     // procedimento de check-in
-  | 'CHECKOUT'    // procedimento de check-out
-  | 'PAYMENT'     // regra de pagamento ("PIX com 5% desconto")
-  | 'CANCEL'      // política de cancelamento
-  | 'SERVICE'     // serviço adicional ("Café da manhã")
-  | 'GUEST'       // hóspede (anonimizado p/ LGPD)
+  | 'RULE' // regra rígida ("Check-in às 14h")
+  | 'POLICY' // política negociável ("Pets permitidos com taxa")
+  | 'AMENITY' // comodidade ("Piscina aquecida")
+  | 'CHECKIN' // procedimento de check-in
+  | 'CHECKOUT' // procedimento de check-out
+  | 'PAYMENT' // regra de pagamento ("PIX com 5% desconto")
+  | 'CANCEL' // política de cancelamento
+  | 'SERVICE' // serviço adicional ("Café da manhã")
+  | 'GUEST' // hóspede (anonimizado p/ LGPD)
   | 'RESERVATION' // reserva específica
-  | 'ROOM'        // quarto/acomodação
-  | 'FAQ'         // pergunta frequente
-  | 'CUSTOM';     // entidade customizada pelo tenant
+  | 'ROOM' // quarto/acomodação
+  | 'FAQ' // pergunta frequente
+  | 'CUSTOM'; // entidade customizada pelo tenant
 
 /** Tipos de relação (aresta) — alinhado com Prisma GraphEdge.relationType */
 export type RelationType =
-  | 'SUPERSEDES'  // A sobrepõe B (A é mais recente/específica)
-  | 'FORBIDS'     // A proíbe B
-  | 'REQUIRES'    // A requer B (pré-requisito)
-  | 'OVERLAPS'    // A e B se sobrepõem (parcialmente equivalentes)
-  | 'ENABLES'     // A habilita B
-  | 'CAUSED'      // A causou B (cadeia causal de decisões)
-  | 'INFLUENCED'  // A influenciou B
+  | 'SUPERSEDES' // A sobrepõe B (A é mais recente/específica)
+  | 'FORBIDS' // A proíbe B
+  | 'REQUIRES' // A requer B (pré-requisito)
+  | 'OVERLAPS' // A e B se sobrepõem (parcialmente equivalentes)
+  | 'ENABLES' // A habilita B
+  | 'CAUSED' // A causou B (cadeia causal de decisões)
+  | 'INFLUENCED' // A influenciou B
   | 'PRECEDENT_FOR'; // A é precedente para B
 
 /** Severidade de conflito */
@@ -138,23 +138,23 @@ export interface GraphConflict {
 // ============================================================================
 
 export type DecisionCategory =
-  | 'guest_response'        // resposta ao hóspede
+  | 'guest_response' // resposta ao hóspede
   | 'intent_classification' // classificação de intenção
-  | 'tool_calling'          // execução de ferramenta (reserva, cotação)
-  | 'human_handover'        // escalação para humano
-  | 'message_blocked'       // mensagem bloqueada por guardrails
-  | 'graph_query'           // consulta ao grafo
-  | 'refactor_suggestion'   // sugestão de refatoração
-  | 'budget_alert'          // alerta de budget
-  | 'anomaly_detected';     // anomalia detectada
+  | 'tool_calling' // execução de ferramenta (reserva, cotação)
+  | 'human_handover' // escalação para humano
+  | 'message_blocked' // mensagem bloqueada por guardrails
+  | 'graph_query' // consulta ao grafo
+  | 'refactor_suggestion' // sugestão de refatoração
+  | 'budget_alert' // alerta de budget
+  | 'anomaly_detected'; // anomalia detectada
 
 export type DecisionOutcome =
-  | 'success'         // sucesso total
+  | 'success' // sucesso total
   | 'partial_success' // parcialmente correto
-  | 'failure'         // falhou
-  | 'escalated'      // escalado para humano
-  | 'blocked'        // bloqueado por policy
-  | 'pending';       // aguardando outcome
+  | 'failure' // falhou
+  | 'escalated' // escalado para humano
+  | 'blocked' // bloqueado por policy
+  | 'pending'; // aguardando outcome
 
 export interface DecisionRecord {
   id: string;
@@ -357,18 +357,18 @@ export interface GraphStats {
 // ============================================================================
 
 export type SemanticaErrorCode =
-  | 'UNAUTHORIZED'        // 401 — API key inválida
-  | 'FORBIDDEN'           // 403 — tenant não tem acesso
-  | 'NOT_FOUND'           // 404 — nó/aresta/decisão não existe
-  | 'VALIDATION_ERROR'    // 400 — payload inválido
-  | 'CONFLICT'            // 409 — conflito de versão
-  | 'RATE_LIMITED'        // 429 — excedeu limite
-  | 'TIMEOUT'             // 408 — excedeu timeout
-  | 'INTERNAL_ERROR'      // 500 — erro interno
+  | 'UNAUTHORIZED' // 401 — API key inválida
+  | 'FORBIDDEN' // 403 — tenant não tem acesso
+  | 'NOT_FOUND' // 404 — nó/aresta/decisão não existe
+  | 'VALIDATION_ERROR' // 400 — payload inválido
+  | 'CONFLICT' // 409 — conflito de versão
+  | 'RATE_LIMITED' // 429 — excedeu limite
+  | 'TIMEOUT' // 408 — excedeu timeout
+  | 'INTERNAL_ERROR' // 500 — erro interno
   | 'SERVICE_UNAVAILABLE' // 503 — sidecar down
-  | 'BAD_GATEWAY'         // 502 — erro de upstream
-  | 'GRAPH_INVALID'       // grafo do tenant corrompido
-  | 'ONTLOGY_VIOLATION';  // quebrou restrição SHACL
+  | 'BAD_GATEWAY' // 502 — erro de upstream
+  | 'GRAPH_INVALID' // grafo do tenant corrompido
+  | 'ONTLOGY_VIOLATION'; // quebrou restrição SHACL
 
 export class SemanticaError extends Error {
   constructor(

@@ -4,8 +4,8 @@
 
 export interface AutoGenMessage {
   id: string;
-  sender: string;           // Nome do agente remetente
-  recipient?: string;       // Destinatário específico ou 'GroupChat'
+  sender: string; // Nome do agente remetente
+  recipient?: string; // Destinatário específico ou 'GroupChat'
   content: string;
   role?: 'user' | 'assistant' | 'system';
   timestamp: number;

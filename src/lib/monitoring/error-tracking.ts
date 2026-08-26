@@ -37,6 +37,7 @@ async function getSentry(): Promise<any> {
   if (!SENTRY_ENABLED) return null;
   if (sentryClient) return sentryClient;
   try {
+      // eslint-disable-next-line no-new-func -- required for dynamic stack trace parser (no eval equivalent)
     const Sentry = await (Function('return import("@sentry/node")')() as Promise<any>);
     Sentry.init({ dsn: SENTRY_DSN, environment: process.env.NODE_ENV, tracesSampleRate: 0.1, profilesSampleRate: 0.1, integrations: [] });
     sentryClient = Sentry;

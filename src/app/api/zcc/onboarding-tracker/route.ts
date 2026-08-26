@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     });
 
     const tenantsOnboarding: TenantOnboardingStatus[] = tenants.map((tenant) => {
-      const auditLogs = tenant.auditLogs;
+      const {auditLogs} = tenant;
       const paymentConfirmed = tenant.subscriptions[0]?.status?.toLowerCase() === 'active';
       const emailSent = hasAuditAction(auditLogs, EVENT_ACTIONS.emailSent);
       const magicScanExecuted = hasAuditAction(auditLogs, EVENT_ACTIONS.magicScanExecuted);

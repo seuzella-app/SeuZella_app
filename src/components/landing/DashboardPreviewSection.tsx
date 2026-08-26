@@ -20,7 +20,7 @@ export function DashboardPreviewSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const { niche, isPousada, isAirbnb } = useNiche();
   const content = getNicheContent(niche);
-  const dashboard = content.dashboard;
+  const {dashboard} = content;
 
   const accentColor = isPousada ? 'emerald' : isAirbnb ? 'blue' : 'amber';
   const accentBg = isPousada ? 'bg-emerald-500/10' : isAirbnb ? 'bg-blue-500/10' : 'bg-amber-500/10';

@@ -64,8 +64,8 @@ function calcProgress(goal: {
   createdAt: Date; updatedAt: Date;
 }): GoalProgress {
   const now = new Date();
-  const targetValue = goal.targetValue;
-  const currentValue = goal.currentValue;
+  const {targetValue} = goal;
+  const {currentValue} = goal;
   const progressPercent = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
   const remaining = Math.max(0, targetValue - currentValue);
   const daysRemaining = Math.max(0, Math.ceil((new Date(goal.endDate).getTime() - now.getTime()) / 86400000));
@@ -110,7 +110,7 @@ async function refreshGoalCurrentValues(tenantId: string): Promise<void> {
   for (const goal of activeGoals) {
     if (now < new Date(goal.startDate)) continue;
 
-    let currentValue = goal.currentValue;
+    let {currentValue} = goal;
 
     try {
       switch (goal.type) {

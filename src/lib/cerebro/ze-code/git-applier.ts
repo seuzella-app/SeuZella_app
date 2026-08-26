@@ -155,7 +155,7 @@ function validateFilePath(filePath: string): { ok: boolean; reason?: string } {
 function mockApply(req: GitApplyRequest): GitApplyResult {
   const branch = branchName(req);
   const mockPrNumber = Math.floor(Math.random() * 9000) + 1000;
-  const mockSha = 'mock_sha_' + Math.random().toString(36).slice(2, 12);
+  const mockSha = `mock_sha_${ Math.random().toString(36).slice(2, 12)}`;
 
   logSink.info({
     module: 'ze-code',

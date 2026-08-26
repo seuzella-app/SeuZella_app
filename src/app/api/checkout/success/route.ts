@@ -9,7 +9,7 @@ import type { PlanTier } from '@/lib/plan-features';
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const {searchParams} = request.nextUrl;
     const subscriptionId = searchParams.get('subscription_id');
     const sig = searchParams.get('sig');
 

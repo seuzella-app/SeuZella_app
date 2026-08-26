@@ -241,7 +241,7 @@ export function FeaturesSection() {
   const isInView = useInView(ref, { once: true, margin: '-50px' });
   const { niche, isPousada, isAirbnb } = useNiche();
   const content = getNicheContent(niche);
-  const features = content.features;
+  const {features} = content;
 
   return (
     <section ref={ref} id="funcionalidades" className="py-28 sm:py-36 lg:py-44 bg-[#0a0a0a]">

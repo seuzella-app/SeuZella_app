@@ -7,8 +7,11 @@
 let Ratelimit: any = null;
 let Redis: any = null;
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require for optional peer dep; runtime guarded by try/catch
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require for optional peer dep; runtime guarded by try/catch
   Ratelimit = require('@upstash/ratelimit').Ratelimit;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require for optional peer dep; runtime guarded by try/catch
   Redis = require('@upstash/redis').Redis;
 } catch {
   // Optional in development; production fails closed below.
@@ -20,7 +23,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const REDIS_CONFIGURED = Boolean(UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN && Ratelimit && Redis);
 
 let redisClient: any = null;
-let ratelimiters: Record<string, any> = {};
+const ratelimiters: Record<string, any> = {};
 
 function getRedis(): any | null {
   if (!IS_PRODUCTION || !REDIS_CONFIGURED) return null;

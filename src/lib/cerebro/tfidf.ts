@@ -76,7 +76,7 @@ export function tokenize(text: string): string[] {
  */
 function stem(word: string): string {
   // Remove plurals
-  if (word.endsWith('ies') && word.length > 4) return word.slice(0, -3) + 'y';
+  if (word.endsWith('ies') && word.length > 4) return `${word.slice(0, -3) }y`;
   if (word.endsWith('ses') && word.length > 4) return word.slice(0, -2);
   if (word.endsWith('s') && !word.endsWith('ss') && word.length > 3) return word.slice(0, -1);
 

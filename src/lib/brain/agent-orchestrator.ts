@@ -121,7 +121,7 @@ class ToolCallingHandler extends AgentHandler {
       try { results[name] = JSON.parse(await executeTool(name, args)); } catch (e) { results[name] = { error: String(e) }; }
     }
     const toolContextBlock = Object.entries(results).filter(([, v]) => !(v as Record<string, unknown>)?.error).map(([k, v]) => `[${k}]\n${JSON.stringify(v, null, 2)}`).join('\n\n');
-    if (toolContextBlock) ctx.systemPrompt = (ctx.systemPrompt || '') + `\n\n## DADOS\n${toolContextBlock}`;
+    if (toolContextBlock) ctx.systemPrompt = `${ctx.systemPrompt || '' }\n\n## DADOS\n${toolContextBlock}`;
     return ctx;
   }
 }

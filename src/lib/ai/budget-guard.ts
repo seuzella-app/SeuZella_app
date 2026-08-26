@@ -21,9 +21,9 @@ export enum BudgetLevel {
 }
 
 export enum ProviderTier {
-  BUDGET = 1,   // Local Ollama, free/cheap models
-  MID = 2,      // Groq, Gemini Flash
-  PREMIUM = 3,  // GPT-4o, Claude
+  BUDGET = 1, // Local Ollama, free/cheap models
+  MID = 2, // Groq, Gemini Flash
+  PREMIUM = 3, // GPT-4o, Claude
 }
 
 export interface BudgetGuardConfig {

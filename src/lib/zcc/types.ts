@@ -358,13 +358,13 @@ export type ZccTabId =
 // Opera em paralelo ao Cérebro, sem conflito (escopos diferentes).
 
 export type ZeCodeAnalysisKind =
-  | "bottleneck"        // gargalo de performance
-  | "gap"               // gap de funcionalidade / ausência de teste / etc
-  | "improvement"       // melhoria incremental
-  | "refactor"          // refactor estrutural
-  | "security"          // audit de segurança
-  | "tech_debt"          // débito técnico identificado
-  | "anti_pattern";     // anti-pattern detectado
+  | "bottleneck" // gargalo de performance
+  | "gap" // gap de funcionalidade / ausência de teste / etc
+  | "improvement" // melhoria incremental
+  | "refactor" // refactor estrutural
+  | "security" // audit de segurança
+  | "tech_debt" // débito técnico identificado
+  | "anti_pattern"; // anti-pattern detectado
 
 export type ZeCodeSeverity = "info" | "low" | "medium" | "high" | "critical";
 
@@ -411,10 +411,10 @@ export interface ZeCodeFileNode {
 }
 
 export type ZeCodeScanMode =
-  | "quick"          // scan rápido de hot files
-  | "deep"           // scan profundo (todos arquivos src/)
-  | "targeted"       // scan de arquivo/path específico
-  | "diff";          // scan de diff git (pending changes)
+  | "quick" // scan rápido de hot files
+  | "deep" // scan profundo (todos arquivos src/)
+  | "targeted" // scan de arquivo/path específico
+  | "diff"; // scan de diff git (pending changes)
 
 export interface ZeCodeScanRequest {
   mode: ZeCodeScanMode;

@@ -237,7 +237,7 @@ export function ReferralLinksCard({ codes, onCreateCode, loading }: Props) {
                       onClick={() => setNewChannel(ch.id)}
                       className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all ${
                         newChannel === ch.id
-                          ? CHANNEL_COLOR[ch.id] + ' border-current'
+                          ? `${CHANNEL_COLOR[ch.id] } border-current`
                           : 'bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:bg-white/[0.04]'
                       }`}
                     >

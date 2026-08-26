@@ -45,7 +45,7 @@ async function runBudgetForecast(request: NextRequest): Promise<NextResponse> {
   if (!auth.ok) {
     return auth.response;
   }
-  const principal = auth.principal;
+  const {principal} = auth;
 
   try {
     const service = getGlmCerebroService();

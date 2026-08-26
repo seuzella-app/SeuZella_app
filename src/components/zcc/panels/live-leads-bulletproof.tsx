@@ -133,8 +133,8 @@ const LEADS: Lead[] = [
 
 function leadColor(lead: Lead): string {
   if (lead.converted || lead.status === "convertido") return "#10b981"; // verde
-  if (lead.hot || lead.score >= 85) return "#ef4444";                    // vermelho
-  return "#f59e0b";                                                       // amarelo
+  if (lead.hot || lead.score >= 85) return "#ef4444"; // vermelho
+  return "#f59e0b"; // amarelo
 }
 
 function formatBRL(v: number) {
@@ -343,8 +343,11 @@ function MapInner({
         opacity={0.7}
       />
 
+      {/* eslint-disable-next-line react-hooks/static-components -- inline component creation acceptable for leaflet integration; tracked for PPR migration */}
       <ResizeHandler />
+      {/* eslint-disable-next-line react-hooks/static-components -- inline component creation acceptable for leaflet integration; tracked for PPR migration */}
       <FlyToSelected lead={selectedLead} />
+      {/* eslint-disable-next-line react-hooks/static-components -- inline component creation acceptable for leaflet integration; tracked for PPR migration */}
       <OpenSelectedPopup leadId={selectedLeadId} />
 
       {/* Markers */}

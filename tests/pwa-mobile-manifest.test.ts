@@ -39,7 +39,7 @@ describe('PWA & Mobile App Readiness Suite', () => {
 
   it('one-tap kill-switch toggles AI state deterministically', () => {
     let aiBotActive = true;
-    const toggle = () => (aiBotActive = !aiBotActive);
+    const toggle = () => { (aiBotActive = !aiBotActive); }
     expect(toggle()).toBe(false);
     expect(toggle()).toBe(true);
   });

@@ -62,8 +62,8 @@ function buildPitch(
   const city = profile.city ? ` em ${profile.city}` : '';
 
   return `Pousadas com ${rooms}${city} que usam sistemas tradicionais perdem tempo com ${primary.description.toLowerCase()}. ` +
-    `O ZEHLA resolve isso com ${primary.zehlaModule} — ${primary.zehlAttack}. ` +
-    secondary.map(s => `Além disso, ${s.zehlAttack.toLowerCase()}.`).join(' ');
+    `O ZEHLA resolve isso com ${primary.zehlaModule} — ${primary.zehlAttack}. ${ 
+    secondary.map(s => `Além disso, ${s.zehlAttack.toLowerCase()}.`).join(' ')}`;
 }
 
 function buildProofPoints(

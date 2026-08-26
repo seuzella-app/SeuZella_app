@@ -129,7 +129,7 @@ async function postHandler(request: NextRequest, ctx: SecurityContext): Promise<
       case 'forecast': {
         // Roda budget forecast para top 10 tenants em risco
         const body = await request.json().catch(() => ({}));
-        const tenantId = (body as { tenantId?: string }).tenantId;
+        const {tenantId} = (body as { tenantId?: string });
 
         const service = getGlmCerebroService();
 

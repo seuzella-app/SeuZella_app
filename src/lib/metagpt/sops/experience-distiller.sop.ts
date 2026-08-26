@@ -52,7 +52,7 @@ export class AnalyzeNPSFeedbackAction extends MetaAction<z.infer<typeof NPSFeedb
     }
 
     const text = input.feedbackText || '';
-    let praise = 'Hospedagem perfeita e atendimento acolhedor.';
+    const praise = 'Hospedagem perfeita e atendimento acolhedor.';
     let opportunity: string | undefined = undefined;
 
     if (text.toLowerCase().includes('travesseiro') || text.toLowerCase().includes('cama')) {

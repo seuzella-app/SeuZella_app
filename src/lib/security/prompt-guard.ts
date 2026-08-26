@@ -47,7 +47,7 @@ export function scanForInjection(text: string): InjectionScanResult {
       const severity = criticalKeywords.some(kw => sourceText.includes(kw))
         ? 'CRITICAL'
         : 'HIGH';
-      matches.push({ pattern: pattern.source.slice(0, 40) + '...', severity });
+      matches.push({ pattern: `${pattern.source.slice(0, 40) }...`, severity });
       score += severity === 'CRITICAL' ? 50 : 25;
       sanitized = sanitized.replace(pattern, '[INSTRUÇÃO_REMOVIDA_POR_SEGURANÇA]');
     }

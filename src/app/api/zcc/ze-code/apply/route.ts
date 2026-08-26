@@ -111,7 +111,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Busca o finding no DB para obter filePath + rationale
-    let filePath = body.filePath;
+    let {filePath} = body;
     let rationale = '';
     let severity = 'info';
     let findingTitle = '';

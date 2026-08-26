@@ -21,7 +21,7 @@ async function getHandler(req: NextRequest) {
   if (!session?.user) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
-  const tenantId = (session.user as any).tenantId;
+  const {tenantId} = (session.user as any);
   if (!tenantId) {
     return NextResponse.json({ error: 'TENANT_CONTEXT_MISSING' }, { status: 400 });
   }

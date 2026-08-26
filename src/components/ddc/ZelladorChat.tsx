@@ -306,7 +306,7 @@ function UpgradePrompt({ currentPlan }: { currentPlan: string }) {
       </div>
 
       <Button
-        onClick={() => (window.location.href = '/#precos')}
+        onClick={() => { (window.location.href = '/#precos')} }
         className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-semibold px-8 py-2.5 rounded-lg"
       >
         <Crown className="w-4 h-4 mr-2" />

@@ -87,7 +87,7 @@ export class AlexaLockService {
   ) {
     const lockId = directive.endpoint?.endpointId;
     const action = directive.header.name; // 'Lock' | 'Unlock'
-    const correlationToken = directive.header.correlationToken;
+    const {correlationToken} = directive.header;
 
     if (!lockId) {
       throw new Error('EndpointId ausente na diretiva Alexa');

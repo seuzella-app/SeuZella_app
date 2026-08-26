@@ -205,8 +205,8 @@ export interface CaptureOptions {
 export const errorReporter = {
   capture(error: unknown, options: CaptureOptions = {}): void {
     const errObj = error instanceof Error ? error : new Error(String(error));
-    const message = errObj.message;
-    const stack = errObj.stack;
+    const {message} = errObj;
+    const {stack} = errObj;
     const level = options.level || 'error';
 
     // 1. Sempre registra no LogSink (Cérebro analisa)
@@ -300,13 +300,13 @@ export const errorReporter = {
     };
 
     // Sentry envelope format (newer API)
-    const envelope = JSON.stringify({
+    const envelope = `${JSON.stringify({
       event_id: event.event_id,
       sent_at: new Date().toISOString(),
-    }) + '\n' + JSON.stringify({
+    }) }\n${ JSON.stringify({
       type: 'event',
       ...event,
-    });
+    })}`;
 
     const url = `https://${host}/api/${projectId}/envelope/`;
     const res = await fetch(url, {
