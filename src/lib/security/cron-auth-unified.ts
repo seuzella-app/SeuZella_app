@@ -1,4 +1,3 @@
-// @ts-nocheck — to be fixed in dedicated type refactoring pass
 /**
  * Cron Auth Unified — tenta M2M EdDSA JWT primeiro, fallback para CRON_SECRET
  * =====================================================================

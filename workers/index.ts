@@ -8,6 +8,14 @@
  * 1. Inicializar todos os workers (Delivery, Payments, Scheduler)
  * 2. Monitorar saúde dos workers
  * 3. Capturar sinais SIGTERM / SIGINT e executar graceful shutdown sem perda de jobs
+ *
+ * ⚠️ VPS-ONLY: Este processo NÃO roda na Vercel (serverless não suporta
+ * processos longos). Deve ser executado via systemd em VPS:
+ *   systemctl start zella-workers
+ * ou via CLI: npx tsx workers/index.ts
+ *
+ * Na Vercel, o processamento assíncrono é feito via Vercel Cron Jobs
+ * que invocam endpoints /api/cron/* periodicamente.
  * ============================================================================
  */
 

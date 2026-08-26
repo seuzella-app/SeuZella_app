@@ -31,8 +31,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    // Generate a temporary password
-    const tempPassword = `magic_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    // Generate a temporary password using CSPRNG (not Math.random)
+    import { randomInt } from 'crypto';
+    const randomPart = Array.from({ length: 8 }, () => randomInt(0, 36).toString(36)).join('');
+    const tempPassword = `magic_${Date.now()}_${randomPart}`;
     const tempPasswordHash = await bcrypt.hash(tempPassword, 12);
 
     // Update the tenant's password hash

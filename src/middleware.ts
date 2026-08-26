@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { wafMiddleware } from '@/lib/security/waf-middleware';
 
 const PUBLIC_API_PREFIXES = [
   '/api/health',
@@ -64,6 +65,11 @@ async function authorizeZcc(request: NextRequest): Promise<boolean> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestId = request.headers.get('x-request-id') || request.headers.get('x-vercel-id') || `mid-${crypto.randomUUID()}`;
+
+  // ── WAF: bot detection + attack pattern screening ──
+  const wafResponse = wafMiddleware(request);
+  if (wafResponse) return securityHeaders(wafResponse);
+
   if (startsWithAny(pathname, BLOCKED_API_PREFIXES) && process.env.NODE_ENV === 'production') return securityHeaders(NextResponse.json({ error:'NOT_FOUND', requestId }, { status:404 }));
   if (pathname === '/zcc/login') return securityHeaders(NextResponse.next());
   if (pathname === '/ddc' || pathname.startsWith('/ddc/')) {
