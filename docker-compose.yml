@@ -6,6 +6,7 @@
 # Restart:      docker compose restart app
 # Parar:        docker compose down
 # ==============================================================================
+# PRODUCTION SAFETY: PostgreSQL credentials are mandatory. No insecure defaults.
 
 services:
   app:
@@ -23,7 +24,7 @@ services:
       - PORT=3000
       - HOSTNAME=0.0.0.0
       - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-zeulla_admin}:${POSTGRES_PASSWORD:-ChangeMePostgres2026Sec!}@postgres:5432/${POSTGRES_DB:-seuzella_prod}?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER:?POSTGRES_USER must be set}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB must be set}?schema=public
     volumes:
       - seuzella-uploads:/app/public/uploads
     depends_on:
@@ -58,13 +59,13 @@ services:
     container_name: seuzella-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-zeulla_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMePostgres2026Sec!}
-      POSTGRES_DB: ${POSTGRES_DB:-seuzella_prod}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
     volumes:
       - seuzella-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zeulla_admin} -d ${POSTGRES_DB:-seuzella_prod}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
