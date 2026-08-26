@@ -3,7 +3,7 @@
 # ============================================================================
 # ÚNICO gate obrigatório para PRs/merges.
 # PR/push executam UMA instalação/checkout e uma sequência determinística.
-# Stress/E2E/deep scans ficam em janelas próprias (ou serão movidos para VPS).
+# Deep scans/noturnos vivem em workflow separado e nunca poluem o gate.
 # ============================================================================
 
 name: 🚦 Master Gate — GO/NO-GO
@@ -21,7 +21,7 @@ on:
       - 'tsconfig.json'
       - 'next.config.*'
       - 'vercel.json'
-      - '.github/workflows/master-gate.yml'
+      - '.github/workflows/**'
   push:
     branches: [main]
     paths:
@@ -35,8 +35,6 @@ on:
       - 'next.config.*'
       - 'vercel.json'
       - '.github/workflows/**'
-  schedule:
-    - cron: '0 2 * * *'
   workflow_dispatch:
 
 permissions:
@@ -57,13 +55,8 @@ env:
   DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
 
 jobs:
-  # --------------------------------------------------------------------------
-  # MANDATORY QUALITY GATE — UMA máquina, UMA instalação, execução em ordem.
-  # Isso elimina a duplicação de checkout/npm ci entre Fast e Full Suite.
-  # --------------------------------------------------------------------------
   quality-gate:
     name: ⚡ Quality Gate — GO/NO-GO
-    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 28
     steps:
@@ -126,7 +119,6 @@ jobs:
           fi
 
       # ========================== FULL SUITE ================================
-      # Só roda depois do Fast Gate. Reutiliza exatamente a mesma instalação.
       - name: Generate Prisma Client
         if: success()
         run: npx prisma generate
@@ -197,32 +189,3 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body: `## ${go ? '✅' : '❌'} Master Gate: ${go ? 'GO' : 'NO-GO'}\n\n| Gate | Status |\n|---|---|\n| Fast Gate | ${fast ? '✅' : '❌'} |\n| Full Suite | ${full ? '✅' : '❌'} |\n\n${go ? '**Safe to merge.**' : '**DO NOT MERGE.**'}`,
             });
-
-  # --------------------------------------------------------------------------
-  # NIGHTLY — somente deep security. Não repete o gate obrigatório.
-  # --------------------------------------------------------------------------
-  nightly-deep-scan:
-    name: 🌙 Nightly Deep Security
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies (lockfile)
-        run: npm ci --legacy-peer-deps
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Deep Security Scan
-        run: |
-          npx tsx -e "import { runFullSecurityScan } from './src/lib/security/security-scan-service'; runFullSecurityScan().then(r => { console.log(JSON.stringify({ total:r.totalFound, critical:r.criticalCount, high:r.highCount, mode:r.mode })); process.exit(r.criticalCount > 0 ? 1 : 0); }).catch(e => { console.error(e); process.exit(1); });"
-
-      - name: Dependency Audit
-        run: npm audit --audit-level=high --omit=dev
