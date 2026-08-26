@@ -1,33 +1,20 @@
-name: production-build
+# Retired duplicate production build gate.
+# Authoritative PR/main validation is `.github/workflows/master-gate.yml`.
+# Kept manual-only for recovery and forensic validation.
+
+name: Production Build Gate (Legacy Manual)
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
-concurrency:
-  group: production-build-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
 
 jobs:
-  verify:
+  retired:
+    name: Legacy production build retired
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/zehla_ci
-      DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/zehla_ci
-      NEXTAUTH_SECRET: ci-only-secret-not-for-production
-      NEXTAUTH_URL: http://localhost:3000
-      NODE_ENV: test
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx prisma generate
-      - run: npx tsc --noEmit
-      - run: npx vitest run tests/mobile tests/security tests/locks tests/brain tests/sast-static.test.ts tests/data-governance-lgpd.test.ts tests/ai-prompt-eval-lgpd.test.ts tests/pwa-mobile-manifest.test.ts tests/zcc-security.test.ts
-      - run: npm run build
+      - run: |
+          echo "This legacy workflow is intentionally manual-only."
+          echo "Use Master Gate for authoritative CI/CD validation."
