@@ -55,12 +55,10 @@ export function verifySyncSecret(receivedSecret: string | null, expectedSecret: 
 /**
  * Verify Asaas webhook signature.
  *
- * Asaas sends the signature in the `asaas-signature` header as `sha256=<hex>`.
- * Some legacy integrations also accept a plain `asaas-access-token` shared
- * secret. We prefer HMAC verification when present, falling back to
- * timing-safe token equality only for legacy dev configurations.
- *
- * In production, weak shared secrets (length < 32) are rejected.
+ * Preferred format: `sha256=<hex digest>` HMAC over the raw request body.
+ * Legacy `asaas-access-token` equality is available only with an explicit
+ * opt-in (`ASAAS_ALLOW_LEGACY_TOKEN=true`). Production does not silently
+ * downgrade to the legacy shared-token mechanism.
  */
 export function verifyAsaasWebhook(
   rawBody: string,
@@ -68,22 +66,22 @@ export function verifyAsaasWebhook(
   webhookSecret: string,
 ): WebhookVerificationResult {
   if (!webhookSecret) return { valid: false, reason: 'MISSING_WEBHOOK_SECRET' };
-  if (process.env.NODE_ENV === 'production' && !strongSecret(webhookSecret)) {
-    return { valid: false, reason: 'WEAK_WEBHOOK_SECRET' };
-  }
+  if (process.env.NODE_ENV === 'production' && !strongSecret(webhookSecret)) return { valid: false, reason: 'WEAK_WEBHOOK_SECRET' };
   if (!signatureHeader) return { valid: false, reason: 'MISSING_SIGNATURE' };
 
-  // Format 1 (recommended): `sha256=<hex digest>`
   if (signatureHeader.startsWith('sha256=')) {
     const received = signatureHeader.slice(7);
     const expected = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
     return safeEqualHex(received, expected) ? { valid: true } : { valid: false, reason: 'SIGNATURE_MISMATCH' };
   }
 
-  // Format 2 (legacy shared-token): timing-safe equality.
-  return safeEqualText(signatureHeader, webhookSecret)
-    ? { valid: true }
-    : { valid: false, reason: 'SIGNATURE_MISMATCH' };
+  if (process.env.ASAAS_ALLOW_LEGACY_TOKEN === 'true') {
+    return safeEqualText(signatureHeader, webhookSecret)
+      ? { valid: true }
+      : { valid: false, reason: 'SIGNATURE_MISMATCH' };
+  }
+
+  return { valid: false, reason: 'LEGACY_TOKEN_DISABLED' };
 }
 
 export function validateWebhookTenant(payloadPhoneNumber: string | undefined, resolvedTenantId: string | null): WebhookVerificationResult {
