@@ -1,61 +1,35 @@
-# ============================================================================
-# ZÉLLA — CI: Locks Integration Tests
-# ============================================================================
-# Valida integrações de fechaduras eletrônicas:
-#   - FNRH → PIN generation
-#   - Upsell → PIN extension
-#   - Caução PIX → PIN revocation
-#   - Cron de locks (manutenção automática)
-#   - remoteUnlock (Nuki/August)
-#   - Landing page atualizada
-# ============================================================================
+# Targeted Smart Locks integration certification.
+# Deliberately removed from every PR/push to avoid duplicating Master Gate.
+# Runs weekly and on demand; lock changes remain covered by Master Gate security tests.
 
-name: 🔐 Locks Integration Tests
+name: 🔐 Locks Integration Certification
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/lib/locks/**'
-      - 'src/app/api/ddc/locks/**'
-      - 'src/app/api/cron/locks-maintenance/**'
-      - 'src/components/landing/SmartLockSecurityProof.tsx'
-      - 'src/components/mobile/MobileAirbnbSuperApp.tsx'
-      - 'src/lib/db/tenant-prisma.ts'
-      - 'vercel.json'
-      - 'tests/locks-integration.test.ts'
-      - '.github/workflows/ci-locks-integration.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'src/lib/locks/**'
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: locks-integration-certification
+  cancel-in-progress: true
+
 jobs:
   test:
-    name: 🔐 Locks Tests
+    name: 🔐 Locks lifecycle integration
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-
+    timeout-minutes: 8
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-
-      - name: 📦 Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: 🔄 Generate Prisma Client
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Generate Prisma Client
         run: npx prisma generate
-
-      - name: 🔐 Run Locks Tests
-        run: npx vitest run tests/locks-integration.test.ts --reporter=verbose
+      - name: Run Locks Certification
+        run: npx vitest run tests/locks-integration.test.ts --reporter=dot
