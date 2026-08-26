@@ -1,72 +1,43 @@
-name: 📱 DDC Mobile & Web Suite — CI/CD Quality & Health Gate
+# Targeted DDC/mobile diagnostic.
+# Automatic typecheck/lint/unit validation belongs to Master Gate.
+# Run manually when changing DDC/mobile surfaces.
+
+name: 📱 DDC Mobile & Web Suite (Manual Diagnostic)
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ddc-mobile-manual
+  cancel-in-progress: true
+
 env:
   NODE_ENV: test
   NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
-  UPSTASH_REDIS_REST_URL: http://localhost:8079
-  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
-  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
+  DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
   CI: 'true'
 
 jobs:
-  typecheck-and-lint:
-    name: 🛡️ TypeScript Strict & Lint Check
+  ddc-suite:
+    name: 📱 DDC Mobile/Web targeted tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 12
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4.2.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
-
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
       - name: Generate Prisma Client
         run: npx prisma generate
-
-      - name: TypeScript Type Check (tsc --noEmit)
+      - name: Typecheck DDC baseline
         run: npx tsc --noEmit
-
-  mobile-and-web-suite-tests:
-    name: 🧪 Mobile & Web DDC Suite Vitest Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4.2.0
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Run DDC Mobile Suite Tests
+      - name: DDC mobile suite
         run: npx vitest run tests/mobile-ddc-suite.test.tsx
-
-      - name: Run Unit & Business Logic Test Suite
+      - name: DDC regression tests
         run: npx vitest run tests/unit-business-logic.test.ts tests/pwa-mobile-manifest.test.ts
