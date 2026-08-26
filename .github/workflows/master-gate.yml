@@ -104,6 +104,19 @@ jobs:
         run: npm run test:unit -- --reporter=dot --timeout=30000
         continue-on-error: true
 
+      - name: Critical Security Regression Suite
+        id: security-regression
+        run: |
+          npx vitest run \
+            tests/security/endpoint-protection-audit.test.ts \
+            tests/security/cron-auth.test.ts \
+            tests/security/cron-error-regression.test.ts \
+            tests/security/zero-trust-hardening.test.ts \
+            tests/security/health-check-regression.test.ts \
+            tests/security/readiness-regression.test.ts \
+            --reporter=dot --timeout=30000
+        continue-on-error: true
+
       - name: Secret Scan (fail closed)
         id: secrets
         shell: bash
@@ -127,9 +140,10 @@ jobs:
           TYPECHECK='${{ steps.typecheck.outcome }}'
           LINT='${{ steps.lint.outcome }}'
           UNIT='${{ steps.unit.outcome }}'
+          SECURITY='${{ steps.security-regression.outcome }}'
           SECRETS='${{ steps.secrets.outcome }}'
-          echo "TS:${TYPECHECK} | Lint:${LINT} | Unit:${UNIT} | Secrets:${SECRETS}"
-          if [[ "$TYPECHECK" == success && "$LINT" == success && "$UNIT" == success && "$SECRETS" == success ]]; then
+          echo "TS:${TYPECHECK} | Lint:${LINT} | Unit:${UNIT} | Security:${SECURITY} | Secrets:${SECRETS}"
+          if [[ "$TYPECHECK" == success && "$LINT" == success && "$UNIT" == success && "$SECURITY" == success && "$SECRETS" == success ]]; then
             echo '::notice::✅ Fast Gate PASSED — advancing to Full Suite.'
           else
             echo '::error::❌ Fast Gate FAILED — Full Suite blocked.'
