@@ -1,19 +1,20 @@
-name: 🚀 Master CI — Fast Security, Lint & Unit Tests
+# ============================================================================
+# RETIRED — legacy fast gate kept for manual diagnostics only.
+# The mandatory PR/main gate is .github/workflows/master-gate.yml.
+# This workflow intentionally has no push/pull_request trigger to avoid running
+# a second checkout/install/test pipeline in parallel with the Master Gate.
+# ============================================================================
+
+name: 🧰 Legacy Master CI — Manual Diagnostics
 
 on:
-  push:
-    branches:
-      - main
-      - security-hardening-2026-08-20
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: master-ci-${{ github.workflow }}-${{ github.ref }}
+  group: legacy-master-ci-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -25,11 +26,10 @@ env:
   CI: 'true'
 
 jobs:
-  typecheck-and-lint:
-    name: 🛡️ TypeScript Strict Check & ESLint
+  diagnostic:
+    name: 🧰 Legacy Fast Gate Diagnostic
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 20
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.2.2
@@ -41,39 +41,18 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: TypeScript Type Check (tsc --noEmit)
-        run: npx tsc --noEmit
+      - name: TypeScript Type Check
+        run: npm run typecheck
 
       - name: ESLint Audit
-        run: npx eslint . --max-warnings=0
+        run: npm run lint -- --max-warnings=0
 
-  unit-and-security-tests:
-    name: 🧪 Unit Tests, SAST & LGPD Compliance
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4.2.0
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Execute Fast Vitest Suite (Unit, SAST, LGPD, PWA, Security Regression)
+      - name: Unit and Security Regression Suite
         run: |
           npx vitest run \
             tests/unit-business-logic.test.ts \
