@@ -76,9 +76,11 @@ export async function POST(request: NextRequest) {
     const log = await db.consentLog.create({
       data: {
         tenantId,
-        action: 'lgpd_forget',
-        details: JSON.stringify({
-          guestId,
+        guestId: guest.id,
+        type: 'lgpd_forget',
+        channel: 'system',
+        evidence: JSON.stringify({
+          action: 'lgpd_forget',
           reason,
           authorizedBy,
           nodesMarkedForgotten: result.nodesMarkedForgotten,

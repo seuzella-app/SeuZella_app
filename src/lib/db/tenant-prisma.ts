@@ -59,15 +59,19 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
           }
 
           if (operation === 'upsert') {
-            args.create ??= {};
-            args.update ??= {};
-            args.create.tenantId = tenantId;
-            args.update.tenantId = tenantId;
+            args ??= {};
+            args.create ??= {} as any;
+            args.update ??= {} as any;
+            (args.create as any).tenantId = tenantId;
+            (args.update as any).tenantId = tenantId;
           } else if (CREATE_OPERATIONS.includes(operation)) {
             args ??= {};
-            args.data ??= {};
-            if (operation === 'createMany' && Array.isArray(args.data)) args.data = args.data.map((item: any) => ({ ...item, tenantId }));
-            else if (typeof args.data === 'object') args.data.tenantId = tenantId;
+            args.data ??= {} as any;
+            if (operation === 'createMany' && Array.isArray(args.data)) {
+              args.data = (args.data as any[]).map((item: any) => ({ ...item, tenantId }));
+            } else if (typeof args.data === 'object') {
+              (args.data as any).tenantId = tenantId;
+            }
           }
 
           return query(args);
