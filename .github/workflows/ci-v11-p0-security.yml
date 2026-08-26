@@ -1,50 +1,45 @@
-name: 🔒 V11-P0 — Security Suite
+# Extended security certification.
+# Master Gate is the blocking merge gate; this suite is intentionally scheduled.
+
+name: 🔒 V11-P0 — Security Certification
 
 on:
+  schedule:
+    - cron: '0 3 * * 3'
   workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
 
+concurrency:
+  group: v11-security-certification
+  cancel-in-progress: true
+
 env:
   NODE_ENV: test
   NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
-  UPSTASH_REDIS_REST_URL: http://localhost:8079
-  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
-  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
+  DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
   CI: 'true'
 
 jobs:
-  security-m2m-audit:
-    name: 🔒 M2M Auth (13 Testes) & ZCC Security Audit
+  security-certification:
+    name: 🔒 Extended ZCC/M2M Security
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 12
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4.2.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
-
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
       - name: Generate Prisma Client
         run: npx prisma generate
-
-      - name: Audit ZCC Security & M2M Auth Protocols
+      - name: Security certification suite
         run: |
           npx vitest run \
             tests/zcc-security.test.ts \
             tests/sast-static.test.ts \
-            tests/data-governance-lgpd.test.ts
+            tests/data-governance-lgpd.test.ts \
+            --reporter=dot
