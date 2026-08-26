@@ -9,27 +9,22 @@ export async function PUT(request: NextRequest) {
     if (!tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { success } = await apiRatelimit.limit(tenantId);
-    if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    const { success, reset } = await apiRatelimit.limit(tenantId);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many requests', retryAfter: Math.max(1, Math.ceil((reset - Date.now()) / 1000)) },
+        { status: 429, headers: { 'Retry-After': String(Math.max(1, Math.ceil((reset - Date.now()) / 1000))) } },
+      );
+    }
 
     await db.notification.updateMany({
       where: { tenantId, read: false },
       data: { read: true },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: null
-    });
+    return NextResponse.json({ success: true, data: null });
   } catch (error) {
-    console.error('Error marking all notifications as read:', error);
-    return NextResponse.json({
-      success: false,
-      error: {
-        code: '500',
-        message: 'Failed to mark all notifications as read',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }
-    }, { status: 500 });
+    console.error('[DDC_NOTIFICATIONS_READ_ALL]', error instanceof Error ? error.name : 'unknown');
+    return NextResponse.json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Não foi possível atualizar as notificações' } }, { status: 500 });
   }
 }
