@@ -1,16 +1,20 @@
+# Extended harness certification.
+# Master Gate is the only mandatory PR/push gate.
+# This heavier build/integration lane runs weekly or on demand.
+
 name: 🧠 V11-P0 — Harness Build & Integration
 
 on:
+  schedule:
+    - cron: '0 5 * * 1'
   workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
+
+concurrency:
+  group: v11-harness-certification
+  cancel-in-progress: true
 
 env:
   NODE_ENV: test
@@ -22,7 +26,7 @@ env:
 
 jobs:
   harness-build-integration:
-    name: 🏗️ Prisma Schema + TypeCheck Full + DSPy Wire + Production Build
+    name: 🏗️ Prisma + TypeCheck + DSPy/DPO + Production Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -37,15 +41,13 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: Prisma Schema Integrity Check
         run: npx prisma generate && npx prisma validate
-        env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
 
       - name: TypeScript Full TypeCheck
-        run: npx tsc --noEmit || echo "Typecheck informational pass"
+        run: npm run typecheck
 
       - name: DSPy & DPO Wire Audit
         run: |
