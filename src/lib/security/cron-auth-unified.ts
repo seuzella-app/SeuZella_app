@@ -25,7 +25,7 @@ import { verifyCronSecret } from './cron-secret';
 export interface UnifiedCronAuthResult {
   ok: boolean;
   response?: NextResponse;
-  source?: 'm2m' | 'cron-secret' | 'dev-bypass';
+  source?: 'm2m' | 'cron-secret' | 'dev-bypass' | 'bearer' | 'header' | 'query';
   principal?: { clientId: string; scope: CronScope };
 }
 
