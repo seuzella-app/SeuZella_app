@@ -1,58 +1,40 @@
-# ============================================================================
-# ZÉLLA — CI: Dify Integration Tests
-# ============================================================================
-# Valida implementação inspirada no Dify:
-#   - CerebroWorkflowEngine (workflow DAG)
-#   - Prompt IDE (testador de prompts)
-#   - LLMOps (observabilidade de LLM)
-#   - ToolRegistry (tools plugáveis)
-# ============================================================================
+# Targeted Dify/Cérebro integration certification.
+# Master Gate is the authoritative PR/push gate; this suite is scheduled/manual.
 
-name: 🧠 Dify Integration Tests
+name: 🧠 Dify Integration Certification
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/lib/cerebro/workflow-engine.ts'
-      - 'src/lib/ai/tool-registry.ts'
-      - 'src/app/api/zcc/cerebro/prompt-ide/**'
-      - 'src/app/api/zcc/cerebro/llmops/**'
-      - 'src/app/api/zcc/cerebro/workflows/**'
-      - 'prisma/schema.prisma'
-      - 'tests/dify-integration.test.ts'
-      - '.github/workflows/ci-dify-integration.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'src/lib/cerebro/workflow-engine.ts'
+  schedule:
+    - cron: '0 6 * * 2'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: dify-integration-certification
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+  CI: 'true'
+  NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
+  DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
+
 jobs:
   test:
-    name: 🧠 Dify Tests
+    name: 🧠 Dify Integration Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-
+    timeout-minutes: 8
     steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-
-      - name: 📦 Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: 🔄 Generate Prisma Client
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Generate Prisma Client
         run: npx prisma generate
-
-      - name: 🧠 Run Dify Integration Tests
-        run: npx vitest run tests/dify-integration.test.ts --reporter=verbose
+      - name: Run Dify integration certification
+        run: npx vitest run tests/dify-integration.test.ts --reporter=dot
