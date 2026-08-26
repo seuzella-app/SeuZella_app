@@ -8,7 +8,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { withApiGuard } from '@/lib/security/api-guard';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -17,9 +16,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.tenantId) {
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+    }
+
     const { id } = await params;
     const property = await db.airBProperty.findFirst({
-      where: { id, status: 'active' },
+      where: { id, tenantId: session.user.tenantId, status: 'active' },
     });
 
     if (!property) {
@@ -38,10 +42,17 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.tenantId) {
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await db.airBProperty.findUnique({ where: { id } });
+    const existing = await db.airBProperty.findFirst({
+      where: { id, tenantId: session.user.tenantId },
+    });
     if (!existing) {
       return NextResponse.json({ error: 'Propriedade não encontrada.' }, { status: 404 });
     }
@@ -91,9 +102,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.tenantId) {
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+    }
+
     const { id } = await params;
 
-    const existing = await db.airBProperty.findUnique({ where: { id } });
+    const existing = await db.airBProperty.findFirst({
+      where: { id, tenantId: session.user.tenantId },
+    });
     if (!existing) {
       return NextResponse.json({ error: 'Propriedade não encontrada.' }, { status: 404 });
     }

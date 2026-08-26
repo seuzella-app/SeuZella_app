@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(
   request: Request,
@@ -16,9 +18,19 @@ export async function GET(
   }
 
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.tenantId) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
+      );
+    }
+
     const { id } = await params;
 
-    const target = await db.target.findUnique({ where: { id } });
+    const target = await db.target.findFirst({
+      where: { id, tenantId: session.user.tenantId },
+    });
 
     if (!target) {
       return NextResponse.json(
@@ -55,10 +67,20 @@ export async function PUT(
   }
 
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.tenantId) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await db.target.findUnique({ where: { id } });
+    const existing = await db.target.findFirst({
+      where: { id, tenantId: session.user.tenantId },
+    });
     if (!existing) {
       return NextResponse.json(
         { error: 'Target não encontrado' },
@@ -109,9 +131,19 @@ export async function DELETE(
   }
 
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.tenantId) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
+      );
+    }
+
     const { id } = await params;
 
-    const existing = await db.target.findUnique({ where: { id } });
+    const existing = await db.target.findFirst({
+      where: { id, tenantId: session.user.tenantId },
+    });
     if (!existing) {
       return NextResponse.json(
         { error: 'Target não encontrado' },

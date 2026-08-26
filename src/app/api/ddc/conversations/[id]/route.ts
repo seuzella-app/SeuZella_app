@@ -21,8 +21,8 @@ export async function GET(
     const g = await guard();
     if (g instanceof NextResponse) return g;
     const { id } = await params;
-    const conversation = await db.conversationLog.findUnique({
-      where: { id },
+    const conversation = await db.conversationLog.findFirst({
+      where: { id, tenantId: g },
       include: { messages: { orderBy: { timestamp: 'asc' } } },
     });
 
@@ -31,7 +31,7 @@ export async function GET(
     }
 
     return apiSuccess(conversation);
-  } catch (error) {
+  } catch {
     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
   }
 }
@@ -46,6 +46,13 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     const { status, aiConfidence, metadata } = body;
+
+    const existing = await db.conversationLog.findFirst({
+      where: { id, tenantId: g },
+    });
+    if (!existing) {
+      return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
+    }
 
     const conversation = await db.conversationLog.update({
       where: { id },
@@ -66,7 +73,7 @@ export async function PATCH(
     }
 
     return apiSuccess(conversation);
-  } catch (error) {
+  } catch {
     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
   }
 }
