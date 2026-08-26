@@ -1,50 +1,45 @@
-name: 🐦 V11-P0 — RLS Canaries
+# Multi-tenant RLS canaries are a scheduled certification, not a duplicate PR gate.
+# Master Gate remains the mandatory merge gate.
+
+name: 🐦 V11-P0 — RLS Canaries (Scheduled)
 
 on:
+  schedule:
+    - cron: '30 2 * * 2'
   workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
 
+concurrency:
+  group: rls-canaries
+  cancel-in-progress: true
+
 env:
   NODE_ENV: test
   NEXTAUTH_SECRET: ci-secret-key-32-characters-minimum-length-xyz
-  UPSTASH_REDIS_REST_URL: http://localhost:8079
-  UPSTASH_REDIS_REST_TOKEN: mock_token_for_ci
-  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/seuzella_test"
+  DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/seuzella_test'
   CI: 'true'
 
 jobs:
-  rls-canaries-sqlite:
-    name: 🐦 RLS Multi-Tenant Canaries (SQLite 16 Testes)
+  rls-canaries:
+    name: 🐦 RLS Multi-Tenant Canaries
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4.2.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
-
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
       - name: Generate Prisma Client
         run: npx prisma generate
-
-      - name: Execute Multi-Tenant RLS & Cross-Talk Canaries
+      - name: Execute cross-tenant canaries
         run: |
           npx vitest run \
             tests/zella-cross-talk.test.ts \
             tests/locks-multi-tenant-scale.test.ts \
-            tests/integration-db-cache.test.ts
+            tests/integration-db-cache.test.ts \
+            --reporter=dot
