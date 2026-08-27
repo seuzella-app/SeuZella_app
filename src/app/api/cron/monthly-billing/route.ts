@@ -107,7 +107,6 @@ async function handleMonthlyBilling(request: NextRequest) {
         phone: true,
         plan: true,
         niche: true,
-        metadata: true,
       },
     });
 
