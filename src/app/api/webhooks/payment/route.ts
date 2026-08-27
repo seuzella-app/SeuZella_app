@@ -230,7 +230,52 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
     (payload.payer?.phone ? `${payload.payer.phone.area_code || ''}${payload.payer.phone.number || ''}` : '');
   const propertyName = meta.propertyName || '';
 
-  // Se já temos tenantId nos metadados, é um cliente existente
+  // Se temos subscriptionId, derivar o tenant de forma autoritativa no banco
+  if (meta.subscriptionId) {
+    const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });
+    if (subscription) {
+      const existingTenant = await db.tenant.findUnique({ where: { id: subscription.tenantId } });
+      if (existingTenant) {
+        const now = new Date();
+        const periodEnd = new Date(now);
+        periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+        await db.tenant.update({
+          where: { id: existingTenant.id },
+          data: {
+            plan: planTier,
+            status: 'active',
+            subscriptionAt: now,
+            niche: niche as string,
+          },
+        });
+
+        await db.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            status: 'active',
+            paymentStatus: 'approved',
+            paymentId: payload.paymentId || null,
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
+            planType: planTier,
+          },
+        });
+
+        return {
+          tenantId: existingTenant.id,
+          userId: '',
+          propertyId: undefined,
+          subscriptionId: subscription.id,
+          planTier,
+          niche,
+          isNewTenant: false,
+        };
+      }
+    }
+  }
+
+  // Se já temos tenantId nos metadados, valida existência
   if (meta.tenantId) {
     const existingTenant = await db.tenant.findUnique({ where: { id: meta.tenantId } });
     if (existingTenant) {
@@ -249,10 +294,10 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
         },
       });
 
-      // Atualiza a subscription existente
+      // Atualiza a subscription existente se vinculada
       if (meta.subscriptionId) {
-        await db.subscription.update({
-          where: { id: meta.subscriptionId },
+        await db.subscription.updateMany({
+          where: { id: meta.subscriptionId, tenantId: existingTenant.id },
           data: {
             status: 'active',
             paymentStatus: 'approved',
@@ -516,16 +561,11 @@ export async function POST(request: NextRequest) {
     const verification = verifyWebhookSignature(rawBody, signatureHeader, webhookSecret, timestampHeader);
 
     if (!verification.valid) {
-      // Em produção, rejeitar IMEDIATAMENTE
-      if (process.env.NODE_ENV === 'production') {
-        console.warn(`[webhooks/payment] ❌ REJECTED: ${verification.reason}`);
-        return NextResponse.json(
-          { error: 'SIGNATURE_INVALID', reason: verification.reason },
-          { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } },
-        );
-      }
-      // Em dev, logar warning mas continuar para testes
-      console.warn(`[webhooks/payment] ⚠️ DEV WARNING: ${verification.reason} — allowing for testing`);
+      console.warn(`[webhooks/payment] ❌ REJECTED: ${verification.reason}`);
+      return NextResponse.json(
+        { error: 'SIGNATURE_INVALID', reason: verification.reason },
+        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } },
+      );
     }
 
     // ── Step 3: Parse do payload 
@@ -665,11 +705,14 @@ export async function POST(request: NextRequest) {
     if (CANCELLATION_EVENTS.includes(eventType)) {
       // ── Cancelamento / Falha de pagamento 
       const meta = payload.metadata || {};
-      if (meta.tenantId) {
-        // Marca subscription como cancelada
-        if (meta.subscriptionId) {
+      let targetTenantId = meta.tenantId;
+
+      if (meta.subscriptionId) {
+        const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });
+        if (subscription) {
+          targetTenantId = subscription.tenantId;
           await db.subscription.update({
-            where: { id: meta.subscriptionId },
+            where: { id: subscription.id },
             data: {
               status: eventType === 'subscription.canceled' ? 'canceled' : 'pending',
               paymentStatus: 'rejected',
@@ -677,14 +720,14 @@ export async function POST(request: NextRequest) {
             },
           });
         }
+      }
 
-        // Tenant: suspende apenas se cancelamento definitivo
-        if (eventType === 'subscription.canceled') {
-          await db.tenant.update({
-            where: { id: meta.tenantId },
-            data: { status: 'suspended' },
-          });
-        }
+      // Tenant: suspende apenas se cancelamento definitivo e tenant confirmado
+      if (targetTenantId && eventType === 'subscription.canceled') {
+        await db.tenant.update({
+          where: { id: targetTenantId },
+          data: { status: 'suspended' },
+        });
       }
 
       return NextResponse.json(

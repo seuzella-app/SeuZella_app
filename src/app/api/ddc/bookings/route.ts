@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const guestId = searchParams.get('guestId');
 
-    const where: any = { tenantId };
+    const where: Record<string, unknown> = { tenantId };
     if (status) where.status = status === 'completed' ? { in: ['checked_in', 'checked_out'] } : status;
     if (guestId) where.guestId = guestId;
 
@@ -107,24 +107,80 @@ export async function POST(request: NextRequest) {
     }
     const checkIn = new Date(body.checkIn);
     const checkOut = new Date(body.checkOut);
+
+    if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime()) || checkOut <= checkIn) {
+      return NextResponse.json(
+        { success: false, error: { code: 'INVALID_DATES', message: 'Data de check-out deve ser posterior ao check-in' } },
+        { status: 400 }
+      );
+    }
+
     const nights = Math.max(1, Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
-    const booking = await db.booking.create({
-      data: {
-        tenantId,
-        guestId: body.guestId,
-        guestName: body.guestName || '',
-        roomName: body.roomId || body.roomName || '',
-        checkIn,
-        checkOut,
-        nights,
-        guests: body.guests || 1,
-        totalValue: body.total,
-        status: body.status || 'pending',
-        paymentMethod: body.paymentMethod || 'pix',
-        paymentStatus: body.paymentStatus || 'pending',
-        source: body.source || 'whatsapp_ai',
+    const targetRoom = body.roomId || body.roomName || '';
+
+    const transactionResult = await db.$transaction(async (tx) => {
+      // 🔒 Anti Double Booking Overlap Enforcement
+      const overlapConditions: Array<{ roomId?: string; roomName?: string }> = [];
+      if (body.roomId) overlapConditions.push({ roomId: body.roomId });
+      if (targetRoom) overlapConditions.push({ roomName: targetRoom });
+
+      if (overlapConditions.length > 0) {
+        const overlap = await tx.booking.findFirst({
+          where: {
+            tenantId,
+            status: { notIn: ['cancelled', 'canceled', 'rejected'] },
+            OR: overlapConditions,
+            AND: [
+              { checkIn: { lt: checkOut } },
+              { checkOut: { gt: checkIn } },
+            ],
+          },
+        });
+
+        if (overlap) {
+          return {
+            conflict: true,
+            message: 'Quarto indisponível para o período selecionado. Conflito de reserva existente.',
+          };
+        }
       }
+
+      const newBooking = await tx.booking.create({
+        data: {
+          tenantId,
+          guestId: body.guestId,
+          guestName: body.guestName || '',
+          roomName: targetRoom,
+          roomId: body.roomId || undefined,
+          checkIn,
+          checkOut,
+          nights,
+          guests: body.guests || 1,
+          totalValue: body.total,
+          status: body.status || 'pending',
+          paymentMethod: body.paymentMethod || 'pix',
+          paymentStatus: body.paymentStatus || 'pending',
+          source: body.source || 'whatsapp_ai',
+        },
+      });
+
+      return { conflict: false, booking: newBooking };
     });
+
+    if (transactionResult.conflict || !transactionResult.booking) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'DOUBLE_BOOKING_CONFLICT',
+            message: transactionResult.message || 'Conflito de reserva detectado.',
+          },
+        },
+        { status: 409 }
+      );
+    }
+
+    const { booking } = transactionResult;
 
     // ── Notification bridge: notify owner about new reservation ──
     try {

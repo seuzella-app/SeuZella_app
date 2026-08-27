@@ -19,13 +19,22 @@ export async function GET(
   try {
     const g = await guard();
     if (g instanceof NextResponse) return g;
+    const tenantId = g as string;
     const { id: conversationId } = await params;
+
+    const conversation = await db.conversationLog.findFirst({
+      where: { id: conversationId, tenantId },
+    });
+    if (!conversation) {
+      return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
+    }
+
     const messages = await db.conversationMessage.findMany({
       where: { conversationId },
       orderBy: { timestamp: 'asc' },
     });
     return apiSuccess(messages);
-  } catch (error) {
+  } catch {
     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
   }
 }
@@ -37,7 +46,16 @@ export async function POST(
   try {
     const g = await guard();
     if (g instanceof NextResponse) return g;
+    const tenantId = g as string;
     const { id: conversationId } = await params;
+
+    const conversation = await db.conversationLog.findFirst({
+      where: { id: conversationId, tenantId },
+    });
+    if (!conversation) {
+      return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
+    }
+
     const body = await request.json();
     const { from, content, metadata = {} } = body;
 
@@ -60,7 +78,7 @@ export async function POST(
     });
 
     return apiSuccess(message, { status: 201 });
-  } catch (error) {
+  } catch {
     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
   }
 }

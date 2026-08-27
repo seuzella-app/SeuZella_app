@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId, mapConversation } from '@/lib/ddc/ddc-mapper';
 import { createError, apiSuccess } from '@/lib/error-handler';
@@ -24,6 +24,13 @@ export async function POST(request: NextRequest) {
     if (!success) return createError(429, 'RATE_LIMITED', 'Muitas requisições');
     const body = await request.json();
     const data = messageSchema.parse(body);
+
+    const conv = await db.conversationLog.findFirst({
+      where: { id: data.conversationId, tenantId },
+    });
+    if (!conv) {
+      return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
+    }
 
     const message = await db.conversationMessage.create({
       data: {
@@ -99,8 +106,9 @@ export async function GET(request: NextRequest) {
       };
 
       // Register listener globally
-      (globalThis as any).sseListeners = (globalThis as any).sseListeners || new Set();
-      (globalThis as any).sseListeners.add(listener);
+      const globalScope = globalThis as unknown as { sseListeners?: Set<(incomingTenantId: string, sseData: string) => void> };
+      globalScope.sseListeners = globalScope.sseListeners || new Set();
+      globalScope.sseListeners.add(listener);
 
       // Initial load
       try {
@@ -127,7 +135,7 @@ export async function GET(request: NextRequest) {
           if (newMessages.length > 0) {
             const convIds = [...new Set(newMessages.map(m => m.conversationId))];
             const updatedConvs = await db.conversationLog.findMany({
-              where: { id: { in: convIds } },
+              where: { id: { in: convIds }, tenantId },
               include: { messages: { orderBy: { timestamp: 'asc' } } },
             });
 
@@ -136,15 +144,15 @@ export async function GET(request: NextRequest) {
             }
           }
           lastCheck = new Date();
-        } catch (error) {
+        } catch {
           // Silently continue polling
         }
       }, 5000);
 
       const cleanup = () => {
         clearInterval(interval);
-        if ((globalThis as any).sseListeners) {
-          (globalThis as any).sseListeners.delete(listener);
+        if (globalScope.sseListeners) {
+          globalScope.sseListeners.delete(listener);
         }
         try {
           controller.close();

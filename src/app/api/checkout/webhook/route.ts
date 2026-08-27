@@ -13,12 +13,7 @@ export async function POST(request: NextRequest) {
     const requestId = request.headers.get('x-request-id') || undefined;
     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.MERCADOPAGO_WEBHOOK_SECRET;
 
-    if (process.env.NODE_ENV === 'production' && !webhookSecret) {
-      console.error('[checkout-webhook] CRITICAL: Mercado Pago webhook secret not configured');
-      return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 503, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
-    }
-
-    if (process.env.NODE_ENV === 'production') {
+    if (webhookSecret) {
       if (!signature) return NextResponse.json({ error: 'SIGNATURE_REQUIRED' }, { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
       const bodyForSignature = (() => {
         try { return JSON.parse(rawBody) as Record<string, unknown>; } catch { return null; }
@@ -36,11 +31,6 @@ export async function POST(request: NextRequest) {
         } catch (notifErr) { console.error('[checkout-webhook] security bridge error:', notifErr); }
         return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
       }
-    } else if (webhookSecret && signature) {
-      const bodyForSignature = JSON.parse(rawBody) as Record<string, unknown>;
-      const paymentId = typeof bodyForSignature.data === 'object' && bodyForSignature.data !== null && typeof (bodyForSignature.data as Record<string, unknown>).id === 'string'
-        ? String((bodyForSignature.data as Record<string, unknown>).id) : typeof bodyForSignature.id === 'string' ? bodyForSignature.id : '';
-      if (paymentId) verifyMercadoPagoWebhook(rawBody, signature, webhookSecret, paymentId, requestId);
     }
 
     let body: Record<string, unknown>;
