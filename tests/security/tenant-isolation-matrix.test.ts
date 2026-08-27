@@ -23,8 +23,8 @@ describe('Tenant isolation matrix enforcement', () => {
     }
   });
 
-  it('does not auto-scope explicitly global administration/auth models', () => {
-    for (const model of ['User', 'ZCCAccessLog']) {
+  it('does not auto-scope explicitly global administration/auth models or removed phantoms', () => {
+    for (const model of ['User', 'ZCCAccessLog', 'GuestRegistration']) {
       expect(TENANT_MODELS).not.toContain(model);
     }
   });

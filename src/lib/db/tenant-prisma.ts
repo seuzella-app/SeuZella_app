@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * ZÉLLA — Prisma application-level tenant isolation.
  * Automatically injects tenantId for models classified TENANT_SCOPED.
@@ -34,7 +33,7 @@ const TENANT_MODELS = [
 
 const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'findUnique', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy', 'upsert'];
 const CREATE_OPERATIONS = ['create', 'createMany'];
-type AnyArgs = { where?: any; data?: any; create?: any; update?: any; [key: string]: any };
+type AnyArgs = { where?: Record<string, unknown>; data?: Record<string, unknown> | Record<string, unknown>[]; create?: Record<string, unknown>; update?: Record<string, unknown>; [key: string]: unknown };
 
 export function getTenantDb(prisma: PrismaClient, tenantId: string) {
   if (!tenantId) throw new Error('TENANT_CONTEXT_REQUIRED');
@@ -43,8 +42,8 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
     name: 'tenantIsolation',
     query: {
       $allModels: {
-        async $allOperations({ model, operation, args, query }: { model: string; operation: string; args: AnyArgs | undefined; query: (args: any) => Promise<any> }) {
-          if (!TENANT_MODELS.includes(model as any)) return query(args);
+        async $allOperations({ model, operation, args, query }: { model: string; operation: string; args: AnyArgs | undefined; query: (args: unknown) => Promise<unknown> }) {
+          if (!TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) return query(args);
 
           if (FILTERED_OPERATIONS.includes(operation)) {
             args ??= {};
@@ -61,17 +60,14 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
 
           if (operation === 'upsert') {
             args ??= {};
-            args.create ??= {} as any;
-            args.update ??= {} as any;
-            (args.create as any).tenantId = tenantId;
-            (args.update as any).tenantId = tenantId;
+            args.create = typeof args.create === 'object' && args.create !== null ? { ...args.create, tenantId } : { tenantId };
+            args.update = typeof args.update === 'object' && args.update !== null ? { ...args.update, tenantId } : { tenantId };
           } else if (CREATE_OPERATIONS.includes(operation)) {
             args ??= {};
-            args.data ??= {} as any;
             if (operation === 'createMany' && Array.isArray(args.data)) {
-              args.data = (args.data as any[]).map((item: any) => ({ ...item, tenantId }));
-            } else if (typeof args.data === 'object') {
-              (args.data as any).tenantId = tenantId;
+              args.data = args.data.map((item) => (typeof item === 'object' && item !== null ? { ...item, tenantId } : item));
+            } else if (typeof args.data === 'object' && args.data !== null) {
+              args.data = { ...args.data, tenantId };
             }
           }
 
