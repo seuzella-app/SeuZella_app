@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import crypto from 'crypto';
 import { sendEmail } from '@/lib/email-sender';
 import { generateWelcomeEmailHtml } from '@/lib/email-templates/welcome-email';
+import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
 
 // ══
 // SEUZÉLLA — Webhook de Provisionamento (PASSO 2 + PASSO 3)
@@ -550,107 +551,138 @@ export async function POST(request: NextRequest) {
 
     if (PROVISIONING_EVENTS.includes(eventType) && payload.status === 'approved') {
       // ══
-      // 🪄 PROVISIONAMENTO MÁGICO
+      // 🪄 PROVISIONAMENTO MÁGICO (com Idempotência C6)
       // ══
-      const result = await provisionNewCustomer(payload);
+      const eventId = payload.paymentId || payload.subscriptionExternalId || payload.metadata?.subscriptionId || 'unknown';
 
-      // ── PASSO 3: Notificador ZCC (telemetria de conversão) 
-      await notifyZCCConversion(result, payload);
+      const idempotencyResult = await executeWithBillingIdempotency(
+        {
+          provider: 'asaas',
+          eventId,
+          eventType,
+          status: payload.status,
+          metadata: { amount: payload.amount, niche: payload.metadata?.niche },
+        },
+        async () => {
+          const result = await provisionNewCustomer(payload);
+          await notifyZCCConversion(result, payload);
+          return {
+            tenantId: result.tenantId,
+            planTier: result.planTier,
+            niche: result.niche,
+            isNewTenant: result.isNewTenant,
+          };
+        },
+      );
 
       const durationMs = Date.now() - startTime;
-      console.log(`[webhooks/payment] ✅ ${eventType} processed in ${durationMs}ms — tenant=${result.tenantId}`);
+      console.log(`[webhooks/payment] ✅ ${eventType} processed in ${durationMs}ms — tenant=${idempotencyResult.data?.tenantId || 'cached'} (deduplicated=${idempotencyResult.deduplicated})`);
 
       return NextResponse.json({
         received: true,
         event: eventType,
-        provisioning: {
-          tenantId: result.tenantId,
-          planTier: result.planTier,
-          niche: result.niche,
-          isNewTenant: result.isNewTenant,
-        },
+        deduplicated: idempotencyResult.deduplicated,
+        provisioning: idempotencyResult.data,
         processingTimeMs: durationMs,
       }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
     }
 
     if (STATUS_UPDATE_EVENTS.includes(eventType)) {
-      // ── Atualização de status de pagamento 
+      // ── Atualização de status de pagamento (com Idempotência C6)
       if (payload.paymentId && payload.status) {
-        const transaction = await db.paymentTransaction.findFirst({
-          where: { externalId: String(payload.paymentId) },
-        });
+        const eventId = String(payload.paymentId);
 
-        if (transaction) {
-          await db.paymentTransaction.update({
-            where: { id: transaction.id },
-            data: { status: payload.status },
-          });
-
-          if (payload.status === 'approved') {
-            const subscription = await db.subscription.findUnique({
-              where: { id: transaction.subscriptionId },
+        const idempotencyResult = await executeWithBillingIdempotency(
+          {
+            provider: 'asaas',
+            eventId,
+            eventType,
+            status: payload.status,
+          },
+          async () => {
+            const transaction = await db.paymentTransaction.findFirst({
+              where: { externalId: String(payload.paymentId) },
             });
 
-            if (subscription) {
-              const now = new Date();
-              const periodEnd = new Date(now);
-              periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-              await db.subscription.update({
-                where: { id: subscription.id },
-                data: {
-                  status: 'active',
-                  paymentStatus: 'approved',
-                  currentPeriodStart: now,
-                  currentPeriodEnd: periodEnd,
-                },
+            if (transaction) {
+              await db.paymentTransaction.update({
+                where: { id: transaction.id },
+                data: { status: payload.status },
               });
 
-              await db.tenant.update({
-                where: { id: subscription.tenantId },
-                data: { plan: subscription.planType, subscriptionAt: now, status: 'active' },
-              });
-
-              // ── Notification bridge: payment received 
-              try {
-                bridgePaymentEvent({
-                  niche: 'all',
-                  paymentId: String(payload.paymentId),
-                  amount: Number(transaction.amount ?? 0),
-                  guestName: subscription.tenantId,
-                  method: 'pix',
-                  status: 'received',
-                  tenantId: subscription.tenantId,
+              if (payload.status === 'approved') {
+                const subscription = await db.subscription.findUnique({
+                  where: { id: transaction.subscriptionId },
                 });
-              } catch (notifErr) {
-                console.error('[webhooks/payment] bridgePaymentEvent error:', notifErr);
+
+                if (subscription) {
+                  const now = new Date();
+                  const periodEnd = new Date(now);
+                  periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+                  await db.subscription.update({
+                    where: { id: subscription.id },
+                    data: {
+                      status: 'active',
+                      paymentStatus: 'approved',
+                      currentPeriodStart: now,
+                      currentPeriodEnd: periodEnd,
+                    },
+                  });
+
+                  await db.tenant.update({
+                    where: { id: subscription.tenantId },
+                    data: { plan: subscription.planType, subscriptionAt: now, status: 'active' },
+                  });
+
+                  // ── Notification bridge: payment received
+                  try {
+                    bridgePaymentEvent({
+                      niche: 'all',
+                      paymentId: String(payload.paymentId),
+                      amount: Number(transaction.amount ?? 0),
+                      guestName: subscription.tenantId,
+                      method: 'pix',
+                      status: 'received',
+                      tenantId: subscription.tenantId,
+                    });
+                  } catch (notifErr) {
+                    console.error('[webhooks/payment] bridgePaymentEvent error:', notifErr);
+                  }
+                }
+              } else if (payload.status === 'rejected') {
+                const subscription = await db.subscription.findUnique({
+                  where: { id: transaction.subscriptionId },
+                });
+                if (subscription) {
+                  await db.subscription.update({
+                    where: { id: subscription.id },
+                    data: { paymentStatus: 'rejected' },
+                  });
+                  // ── Notification bridge: payment failed
+                  try {
+                    bridgePaymentEvent({
+                      niche: 'all',
+                      paymentId: String(payload.paymentId),
+                      amount: Number(transaction.amount ?? 0),
+                      guestName: subscription.tenantId,
+                      status: 'failed',
+                      tenantId: subscription.tenantId,
+                    });
+                  } catch (notifErr) {
+                    console.error('[webhooks/payment] bridgePaymentEvent rejected error:', notifErr);
+                  }
+                }
               }
             }
-          } else if (payload.status === 'rejected') {
-            const subscription = await db.subscription.findUnique({
-              where: { id: transaction.subscriptionId },
-            });
-            if (subscription) {
-              await db.subscription.update({
-                where: { id: subscription.id },
-                data: { paymentStatus: 'rejected' },
-              });
-              // ── Notification bridge: payment failed 
-              try {
-                bridgePaymentEvent({
-                  niche: 'all',
-                  paymentId: String(payload.paymentId),
-                  amount: Number(transaction.amount ?? 0),
-                  guestName: subscription.tenantId,
-                  status: 'failed',
-                  tenantId: subscription.tenantId,
-                });
-              } catch (notifErr) {
-                console.error('[webhooks/payment] bridgePaymentEvent rejected error:', notifErr);
-              }
-            }
-          }
-        }
+            return { updated: true, paymentId: payload.paymentId, status: payload.status };
+          },
+        );
+
+        return NextResponse.json(
+          { received: true, event: eventType, deduplicated: idempotencyResult.deduplicated },
+          { headers: { 'X-Security-Shield': 'zero-trust-v2' } },
+        );
       }
 
       return NextResponse.json(
@@ -660,35 +692,49 @@ export async function POST(request: NextRequest) {
     }
 
     if (CANCELLATION_EVENTS.includes(eventType)) {
-      // ── Cancelamento / Falha de pagamento 
-      const meta = payload.metadata || {};
-      let targetTenantId: string | undefined = undefined;
+      // ── Cancelamento / Falha de pagamento (com Idempotência C6)
+      const eventId = payload.subscriptionExternalId || payload.metadata?.subscriptionId || payload.paymentId || 'unknown';
 
-      if (meta.subscriptionId) {
-        const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });
-        if (subscription) {
-          targetTenantId = subscription.tenantId;
-          await db.subscription.update({
-            where: { id: subscription.id },
-            data: {
-              status: eventType === 'subscription.canceled' ? 'canceled' : 'pending',
-              paymentStatus: 'rejected',
-              cancelAtPeriodEnd: eventType === 'subscription.canceled',
-            },
-          });
-        }
-      }
+      const idempotencyResult = await executeWithBillingIdempotency(
+        {
+          provider: 'asaas',
+          eventId,
+          eventType,
+          status: 'canceled',
+        },
+        async () => {
+          const meta = payload.metadata || {};
+          let targetTenantId: string | undefined = undefined;
 
-      // Tenant: suspende apenas se cancelamento definitivo e tenant confirmado
-      if (targetTenantId && eventType === 'subscription.canceled') {
-        await db.tenant.update({
-          where: { id: targetTenantId },
-          data: { status: 'suspended' },
-        });
-      }
+          if (meta.subscriptionId) {
+            const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });
+            if (subscription) {
+              targetTenantId = subscription.tenantId;
+              await db.subscription.update({
+                where: { id: subscription.id },
+                data: {
+                  status: eventType === 'subscription.canceled' ? 'canceled' : 'pending',
+                  paymentStatus: 'rejected',
+                  cancelAtPeriodEnd: eventType === 'subscription.canceled',
+                },
+              });
+            }
+          }
+
+          // Tenant: suspende apenas se cancelamento definitivo e tenant confirmado
+          if (targetTenantId && eventType === 'subscription.canceled') {
+            await db.tenant.update({
+              where: { id: targetTenantId },
+              data: { status: 'suspended' },
+            });
+          }
+
+          return { action: 'cancellation_processed', targetTenantId: targetTenantId || null };
+        },
+      );
 
       return NextResponse.json(
-        { received: true, event: eventType, action: 'cancellation_processed' },
+        { received: true, event: eventType, deduplicated: idempotencyResult.deduplicated, action: 'cancellation_processed' },
         { headers: { 'X-Security-Shield': 'zero-trust-v2' } },
       );
     }

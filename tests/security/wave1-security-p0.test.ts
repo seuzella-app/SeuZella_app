@@ -3,6 +3,11 @@ import { NextRequest } from 'next/server';
 
 const { mockDb } = vi.hoisted(() => {
   const dbInstance = {
+    billingIdempotency: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'idem_test' }),
+      update: vi.fn().mockResolvedValue({ id: 'idem_test' }),
+    },
     subscription: {
       findUnique: vi.fn(),
       update: vi.fn(),

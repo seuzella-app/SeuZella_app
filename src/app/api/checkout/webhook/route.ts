@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
 import { bridgePaymentEvent, bridgeSecurityAlert } from '@/lib/notifications/bridges';
+import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
 
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
 
@@ -50,20 +51,38 @@ export async function POST(request: NextRequest) {
           if (!mpResponse.ok) return NextResponse.json({ error: 'PAYMENT_STATUS_UNAVAILABLE' }, { status: 503 });
           const mpData = await mpResponse.json();
           const newStatus = typeof mpData.status === 'string' ? mpData.status : 'unknown';
-          await db.paymentTransaction.update({ where: { id: transaction.id }, data: { status: newStatus } });
 
-          if (newStatus === 'approved') {
-            const subscription = await db.subscription.findUnique({ where: { id: transaction.subscriptionId } });
-            if (subscription) {
-              const now = new Date();
-              const periodEnd = new Date(now); periodEnd.setMonth(periodEnd.getMonth() + 1);
-              await db.subscription.update({ where: { id: subscription.id }, data: { status: 'active', paymentStatus: 'approved', paymentId, currentPeriodStart: now, currentPeriodEnd: periodEnd } });
-              await db.tenant.update({ where: { id: subscription.tenantId }, data: { plan: subscription.planType, subscriptionAt: now, status: 'active' } });
-              try { bridgePaymentEvent({ niche: 'all', paymentId, amount: Number(transaction.amount ?? 0), guestName: subscription.tenantId, method: 'pix', status: 'received', tenantId: subscription.tenantId }); } catch (notifErr) { console.error('[checkout-webhook] payment bridge error:', notifErr); }
-            }
-          } else if (newStatus === 'rejected') {
-            await db.subscription.update({ where: { id: transaction.subscriptionId }, data: { paymentStatus: 'rejected' } });
-          }
+          const idempotencyResult = await executeWithBillingIdempotency(
+            {
+              provider: 'mercadopago',
+              eventId: paymentId,
+              eventType: String(body.action || body.type || 'payment.updated'),
+              status: newStatus,
+            },
+            async () => {
+              await db.paymentTransaction.update({ where: { id: transaction.id }, data: { status: newStatus } });
+
+              if (newStatus === 'approved') {
+                const subscription = await db.subscription.findUnique({ where: { id: transaction.subscriptionId } });
+                if (subscription) {
+                  const now = new Date();
+                  const periodEnd = new Date(now); periodEnd.setMonth(periodEnd.getMonth() + 1);
+                  await db.subscription.update({ where: { id: subscription.id }, data: { status: 'active', paymentStatus: 'approved', paymentId, currentPeriodStart: now, currentPeriodEnd: periodEnd } });
+                  await db.tenant.update({ where: { id: subscription.tenantId }, data: { plan: subscription.planType, subscriptionAt: now, status: 'active' } });
+                  try { bridgePaymentEvent({ niche: 'all', paymentId, amount: Number(transaction.amount ?? 0), guestName: subscription.tenantId, method: 'pix', status: 'received', tenantId: subscription.tenantId }); } catch (notifErr) { console.error('[checkout-webhook] payment bridge error:', notifErr); }
+                }
+              } else if (newStatus === 'rejected') {
+                await db.subscription.update({ where: { id: transaction.subscriptionId }, data: { paymentStatus: 'rejected' } });
+              }
+
+              return { updated: true, paymentId, status: newStatus };
+            },
+          );
+
+          return NextResponse.json(
+            { received: true, deduplicated: idempotencyResult.deduplicated },
+            { headers: { 'X-Security-Shield': 'zero-trust-v2' } },
+          );
         } catch (mpError) { console.error('[checkout-webhook] provider status lookup failed:', mpError instanceof Error ? mpError.name : 'UnknownError'); return NextResponse.json({ error: 'PAYMENT_PROVIDER_UNAVAILABLE' }, { status: 503 }); }
       }
       return NextResponse.json({ received: true }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
