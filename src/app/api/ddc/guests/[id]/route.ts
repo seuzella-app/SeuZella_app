@@ -4,9 +4,6 @@ import { db } from '@/lib/db';
 import { resolveTenantId, mapGuest } from '@/lib/ddc/ddc-mapper';
 import { createError, apiSuccess } from '@/lib/error-handler';
 import { apiRatelimit } from '@/lib/rate-limit';
-import { withApiGuard } from '@/lib/security/api-guard';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 
 interface RouteContext { params: Promise<{ id: string }> }
 
@@ -23,10 +20,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const g = await guard();
     if (g instanceof NextResponse) return g;
     const { id } = await context.params;
-    const guest = await db.guest.findUnique({ where: { id } });
+    const guest = await db.guest.findFirst({ where: { id, tenantId: g } });
     if (!guest) return createError(404, 'NOT_FOUND', 'Guest not found');
     return apiSuccess(mapGuest(guest));
-  } catch (error) {
+  } catch {
     return createError(500, 'FETCH_FAILED', 'Failed to fetch guest');
   }
 }
@@ -37,10 +34,10 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     if (g instanceof NextResponse) return g;
     const { id } = await context.params;
     const body = await request.json();
-    const existing = await db.guest.findUnique({ where: { id } });
+    const existing = await db.guest.findFirst({ where: { id, tenantId: g } });
     if (!existing) return createError(404, 'NOT_FOUND', 'Guest not found');
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (body.name) updateData.name = body.name;
     if (body.phoneNumber) updateData.phone = body.phoneNumber;
     if (body.email !== undefined) updateData.email = body.email;
@@ -49,7 +46,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     if (body.notes !== undefined) updateData.notes = body.notes;
     if (body.value !== undefined) updateData.value = body.value;
 
-    const updated = await db.guest.update({ where: { id }, data: updateData });
+    const updated = await db.guest.update({ where: { id: existing.id }, data: updateData });
 
     // Publish realtime event AFTER DB write succeeds.
     publishTenantEvent(g, 'guest:updated', {
@@ -59,7 +56,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     });
 
     return apiSuccess(mapGuest(updated));
-  } catch (error) {
+  } catch {
     return createError(500, 'UPDATE_FAILED', 'Failed to update guest');
   }
 }
@@ -69,7 +66,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const g = await guard();
     if (g instanceof NextResponse) return g;
     const { id } = await context.params;
-    await db.guest.delete({ where: { id } });
+    const existing = await db.guest.findFirst({ where: { id, tenantId: g } });
+    if (!existing) return createError(404, 'NOT_FOUND', 'Guest not found');
+
+    await db.guest.delete({ where: { id: existing.id } });
 
     // Publish realtime event AFTER DB delete succeeds.
     publishTenantEvent(g, 'guest:updated', {
@@ -78,7 +78,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     });
 
     return apiSuccess(null);
-  } catch (error) {
+  } catch {
     return createError(500, 'DELETE_FAILED', 'Failed to delete guest');
   }
 }

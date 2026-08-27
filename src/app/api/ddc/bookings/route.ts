@@ -216,7 +216,30 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ success: true, data: mapBooking(booking) }, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    const errCode = (error as { code?: string })?.code;
+
+    // Mapeamento estrito de violação de exclusão PostgreSQL (23P01), Prisma (P2002/P2010) ou constraint booking_no_overlap
+    if (
+      errCode === '23P01' ||
+      errCode === 'P2002' ||
+      errMessage.includes('booking_no_overlap') ||
+      errMessage.includes('exclusion constraint') ||
+      errMessage.includes('conflicting key value violates exclusion constraint')
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'DOUBLE_BOOKING_CONFLICT',
+            message: 'Quarto indisponível para o período selecionado. Conflito de reserva existente.',
+          },
+        },
+        { status: 409 }
+      );
+    }
+
     console.error('[DDC bookings POST] Error:', error);
     return NextResponse.json({ success: false, error: { code: '500', message: 'Failed to create booking' } }, { status: 500 });
   }

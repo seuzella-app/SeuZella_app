@@ -275,52 +275,9 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
     }
   }
 
-  // Se já temos tenantId nos metadados, valida existência
-  if (meta.tenantId) {
-    const existingTenant = await db.tenant.findUnique({ where: { id: meta.tenantId } });
-    if (existingTenant) {
-      // Atualiza o plano do tenant existente
-      const now = new Date();
-      const periodEnd = new Date(now);
-      periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-      await db.tenant.update({
-        where: { id: existingTenant.id },
-        data: {
-          plan: planTier,
-          status: 'active',
-          subscriptionAt: now,
-          niche: niche as string,
-        },
-      });
-
-      // Atualiza a subscription existente se vinculada
-      if (meta.subscriptionId) {
-        await db.subscription.updateMany({
-          where: { id: meta.subscriptionId, tenantId: existingTenant.id },
-          data: {
-            status: 'active',
-            paymentStatus: 'approved',
-            paymentId: payload.paymentId || null,
-            currentPeriodStart: now,
-            currentPeriodEnd: periodEnd,
-          },
-        });
-      }
-
-      return {
-        tenantId: existingTenant.id,
-        userId: '',
-        subscriptionId: meta.subscriptionId || '',
-        planTier,
-        niche,
-        isNewTenant: false,
-      };
-    }
-  }
-
   // ══
-  // 🪄 PROVISIONAMENTO MÁGICO — Novo Cliente
+  // 🪄 PROVISIONAMENTO MÁGICO — Novo Cliente (Tenant Isolado)
+  // Sem subscriptionId autorizada prévia, nunca mutamos um tenant existente por meta.tenantId.
   // ══
 
   const now = new Date();
@@ -705,7 +662,7 @@ export async function POST(request: NextRequest) {
     if (CANCELLATION_EVENTS.includes(eventType)) {
       // ── Cancelamento / Falha de pagamento 
       const meta = payload.metadata || {};
-      let targetTenantId = meta.tenantId;
+      let targetTenantId: string | undefined = undefined;
 
       if (meta.subscriptionId) {
         const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });

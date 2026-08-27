@@ -21,18 +21,18 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     if (g instanceof NextResponse) return g;
     const { id } = await context.params;
     const body = await request.json();
-    const existing = await db.trainingPrompt.findUnique({ where: { id } });
+    const existing = await db.trainingPrompt.findFirst({ where: { id, tenantId: g } });
     if (!existing) return createError(404, 'NOT_FOUND', 'Training not found');
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (body.title) updateData.name = body.title;
     if (body.content) updateData.content = body.content;
     if (body.category) updateData.type = body.category;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
-    const updated = await db.trainingPrompt.update({ where: { id }, data: updateData });
+    const updated = await db.trainingPrompt.update({ where: { id: existing.id }, data: updateData });
     return apiSuccess(mapTraining(updated));
-  } catch (error) {
+  } catch {
     return createError(500, 'UPDATE_FAILED', 'Failed to update training');
   }
 }
@@ -42,9 +42,12 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const g = await guard();
     if (g instanceof NextResponse) return g;
     const { id } = await context.params;
-    await db.trainingPrompt.delete({ where: { id } });
+    const existing = await db.trainingPrompt.findFirst({ where: { id, tenantId: g } });
+    if (!existing) return createError(404, 'NOT_FOUND', 'Training not found');
+
+    await db.trainingPrompt.delete({ where: { id: existing.id } });
     return apiSuccess(null);
-  } catch (error) {
+  } catch {
     return createError(500, 'DELETE_FAILED', 'Failed to delete training');
   }
 }
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const g = await guard();
     if (g instanceof NextResponse) return g;
     const { id } = await context.params;
-    const training = await db.trainingPrompt.findUnique({ where: { id } });
+    const training = await db.trainingPrompt.findFirst({ where: { id, tenantId: g } });
     if (!training) return createError(404, 'NOT_FOUND', 'Training not found');
 
     const property = await db.property.findFirst({ where: { tenantId: g } });
@@ -123,7 +126,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 }
 
-function getTestScenarios(type: string, propertyName: string, trainingContent: string) {
+function getTestScenarios(type: string, propertyName: string, _trainingContent: string) {
   const base = [
     {
       label: 'Pergunta direta',

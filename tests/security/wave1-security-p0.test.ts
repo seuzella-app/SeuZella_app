@@ -7,11 +7,15 @@ const { mockDb } = vi.hoisted(() => {
       findUnique: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+      create: vi.fn().mockResolvedValue({ id: 'sub_new_123' }),
+    },
+    user: {
+      create: vi.fn().mockResolvedValue({ id: 'user_new_123' }),
     },
     tenant: {
       findUnique: vi.fn(),
       update: vi.fn(),
-      create: vi.fn(),
+      create: vi.fn().mockResolvedValue({ id: 'tenant_new_generated_uuid' }),
     },
     booking: {
       findFirst: vi.fn(),
@@ -34,10 +38,42 @@ const { mockDb } = vi.hoisted(() => {
       findMany: vi.fn(),
       count: vi.fn(),
     },
+    guest: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    trainingPrompt: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    property: {
+      findFirst: vi.fn(),
+      create: vi.fn().mockResolvedValue({ id: 'prop_new_123' }),
+    },
+    airBProperty: {
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    target: {
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    paymentTransaction: {
+      create: vi.fn().mockResolvedValue({ id: 'pt_new_123' }),
+    },
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(dbInstance)),
   };
   return { mockDb: dbInstance };
 });
+
+vi.mock('@/lib/email-sender', () => ({
+  sendEmail: vi.fn().mockResolvedValue({ success: true }),
+}));
 
 vi.mock('@/lib/db', () => ({
   db: mockDb,
@@ -57,6 +93,8 @@ vi.mock('@/lib/ddc/ddc-mapper', () => ({
   resolveTenantId: vi.fn(),
   mapBooking: vi.fn((b) => b),
   mapConversation: vi.fn((c) => c),
+  mapGuest: vi.fn((g) => g),
+  mapTraining: vi.fn((t) => t),
 }));
 
 vi.mock('@/lib/notifications/bridges', () => ({
@@ -70,6 +108,16 @@ vi.mock('@/lib/realtime/emit-tenant-event', () => ({
   buildPushForEvent: vi.fn(),
 }));
 
+vi.mock('@/lib/realtime/tenant-pubsub', () => ({
+  publishTenantEvent: vi.fn(),
+}));
+
+vi.mock('@/lib/ai/zaos-neuro-router', () => ({
+  getNeuroRouter: vi.fn().mockResolvedValue({
+    generate: vi.fn().mockResolvedValue({ response: 'Olá, quarto confirmado!' }),
+  }),
+}));
+
 import { getServerSession } from 'next-auth';
 import { resolveTenantId } from '@/lib/ddc/ddc-mapper';
 import { POST as paymentWebhookPOST } from '@/app/api/webhooks/payment/route';
@@ -78,6 +126,10 @@ import { GET as convMessagesGET, POST as convMessagesPOST } from '@/app/api/ddc/
 import { POST as liveFeedPOST } from '@/app/api/ddc/live-feed/route';
 import { GET as agentLogsGET } from '@/app/api/agent-logs/route';
 import { GET as conversationsGET } from '@/app/api/conversations/route';
+import { GET as guestGET, PUT as guestPUT, DELETE as guestDELETE } from '@/app/api/ddc/guests/[id]/route';
+import { PUT as trainingPUT, DELETE as trainingDELETE, POST as trainingPOST } from '@/app/api/ddc/training/[id]/route';
+import { GET as propertyGET, PUT as propertyPUT, DELETE as propertyDELETE } from '@/app/api/properties/[id]/route';
+import { GET as targetGET, PUT as targetPUT, DELETE as targetDELETE } from '@/app/api/targets/[id]/route';
 
 describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
   beforeEach(() => {
@@ -103,7 +155,6 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
     });
 
     it('derives tenant authority from database Subscription record rather than spoofed metadata.tenantId', async () => {
-      // Mock valid signature verification
       process.env.PAYMENT_WEBHOOK_SECRET = '';
       mockDb.subscription.findUnique.mockResolvedValueOnce({
         id: 'sub_real_123',
@@ -134,10 +185,76 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
       const response = await paymentWebhookPOST(request);
       expect(response.status).toBe(200);
 
-      // Verify that the update was applied to authoritative tenant A, NOT attacker tenant B
       expect(mockDb.tenant.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'tenant_authoritative_A' },
+        })
+      );
+    });
+
+    it('creates a new tenant and never mutates an existing tenant when subscriptionId is missing even if metadata.tenantId is provided (P1 hardening)', async () => {
+      process.env.PAYMENT_WEBHOOK_SECRET = '';
+      mockDb.tenant.create.mockResolvedValueOnce({
+        id: 'tenant_new_generated_uuid',
+        name: 'New Client Hotel',
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/webhooks/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'payment.created',
+          status: 'approved',
+          paymentId: 'pay_1000',
+          amount: 199.0,
+          payer: {
+            first_name: 'Novo',
+            last_name: 'Cliente',
+            email: 'novocliente@exemplo.com',
+          },
+          metadata: {
+            tenantId: 'VICTIM_TENANT_EXISTING', // Spoofed tenant without valid subscription
+            propertyName: 'Pousada Nova',
+          },
+        }),
+      });
+
+      const response = await paymentWebhookPOST(request);
+      expect(response.status).toBe(200);
+
+      // Verify that tenant.update was NOT called on VICTIM_TENANT_EXISTING
+      expect(mockDb.tenant.update).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'VICTIM_TENANT_EXISTING' },
+        })
+      );
+
+      // Verify a new tenant was created
+      expect(mockDb.tenant.create).toHaveBeenCalled();
+    });
+
+    it('rejects cancellation on unauthorized tenant when subscriptionId is absent or unverified', async () => {
+      process.env.PAYMENT_WEBHOOK_SECRET = '';
+
+      const request = new NextRequest('http://localhost:3000/api/webhooks/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'subscription.canceled',
+          metadata: {
+            tenantId: 'VICTIM_TENANT_TO_SUSPEND', // Spoofed target
+          },
+        }),
+      });
+
+      const response = await paymentWebhookPOST(request);
+      expect(response.status).toBe(200);
+
+      // Verify that victim tenant was NOT suspended
+      expect(mockDb.tenant.update).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'VICTIM_TENANT_TO_SUSPEND' },
+          data: { status: 'suspended' },
         })
       );
     });
@@ -147,7 +264,6 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
     it('blocks double booking with 409 when room and dates overlap', async () => {
       vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_sol');
 
-      // Existing booking from Aug 10 to Aug 15
       mockDb.booking.findFirst.mockResolvedValueOnce({
         id: 'existing_booking_1',
         roomId: 'suite_101',
@@ -162,7 +278,7 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
         body: JSON.stringify({
           guestId: 'guest_attacker',
           roomId: 'suite_101',
-          checkIn: '2026-08-12T14:00:00Z', // Overlaps with 10..15
+          checkIn: '2026-08-12T14:00:00Z',
           checkOut: '2026-08-18T12:00:00Z',
           total: 800,
         }),
@@ -177,7 +293,7 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
 
     it('permits booking when dates do not overlap', async () => {
       vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_sol');
-      mockDb.booking.findFirst.mockResolvedValueOnce(null); // No overlap
+      mockDb.booking.findFirst.mockResolvedValueOnce(null);
       mockDb.booking.create.mockResolvedValueOnce({
         id: 'new_bk_ok',
         tenantId: 'tenant_sol',
@@ -202,12 +318,37 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
       expect(response.status).toBe(201);
       expect(mockDb.booking.create).toHaveBeenCalled();
     });
+
+    it('maps PostgreSQL exclusion violation (23P01) or booking_no_overlap to HTTP 409 DOUBLE_BOOKING_CONFLICT', async () => {
+      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_sol');
+      mockDb.booking.findFirst.mockResolvedValueOnce(null); // Simulated race condition where findFirst passed
+      // Simulated DB exclusion constraint violation on insert
+      const exclusionError = new Error('conflicting key value violates exclusion constraint "booking_no_overlap"');
+      (exclusionError as unknown as { code: string }).code = '23P01';
+      mockDb.booking.create.mockRejectedValueOnce(exclusionError);
+
+      const request = new NextRequest('http://localhost:3000/api/ddc/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestId: 'guest_race_loser',
+          roomId: 'suite_101',
+          checkIn: '2026-08-10T14:00:00Z',
+          checkOut: '2026-08-15T12:00:00Z',
+          total: 800,
+        }),
+      });
+
+      const response = await bookingPOST(request);
+      expect(response.status).toBe(409);
+      const data = await response.json();
+      expect(data.error.code).toBe('DOUBLE_BOOKING_CONFLICT');
+    });
   });
 
   describe('W1-A1: IDOR & Multi-Tenant Access Control', () => {
-    it('blocks cross-tenant access to conversation messages with 404 (IDOR prevention)', async () => {
+    it('blocks cross-tenant access to conversation messages with 404', async () => {
       vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_attacker');
-      // Conversation belongs to tenant_victim, not tenant_attacker
       mockDb.conversationLog.findFirst.mockResolvedValueOnce(null);
 
       const request = new NextRequest('http://localhost:3000/api/ddc/conversations/conv_victim_99/messages');
@@ -251,14 +392,116 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
       expect(mockDb.conversationMessage.create).not.toHaveBeenCalled();
     });
 
+    it('blocks cross-tenant GET, PUT, DELETE on guests/[id] with 404', async () => {
+      vi.mocked(resolveTenantId).mockResolvedValue('tenant_attacker');
+      mockDb.guest.findFirst.mockResolvedValue(null);
+
+      const reqGet = new NextRequest('http://localhost:3000/api/ddc/guests/guest_victim_1');
+      const resGet = await guestGET(reqGet, { params: Promise.resolve({ id: 'guest_victim_1' }) });
+      expect(resGet.status).toBe(404);
+
+      const reqPut = new NextRequest('http://localhost:3000/api/ddc/guests/guest_victim_1', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Hacked Name' }),
+      });
+      const resPut = await guestPUT(reqPut, { params: Promise.resolve({ id: 'guest_victim_1' }) });
+      expect(resPut.status).toBe(404);
+      expect(mockDb.guest.update).not.toHaveBeenCalled();
+
+      const reqDel = new NextRequest('http://localhost:3000/api/ddc/guests/guest_victim_1', { method: 'DELETE' });
+      const resDel = await guestDELETE(reqDel, { params: Promise.resolve({ id: 'guest_victim_1' }) });
+      expect(resDel.status).toBe(404);
+      expect(mockDb.guest.delete).not.toHaveBeenCalled();
+    });
+
+    it('blocks cross-tenant PUT, DELETE, POST on training/[id] with 404', async () => {
+      vi.mocked(resolveTenantId).mockResolvedValue('tenant_attacker');
+      mockDb.trainingPrompt.findFirst.mockResolvedValue(null);
+
+      const reqPut = new NextRequest('http://localhost:3000/api/ddc/training/train_victim_1', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Hacked Prompt' }),
+      });
+      const resPut = await trainingPUT(reqPut, { params: Promise.resolve({ id: 'train_victim_1' }) });
+      expect(resPut.status).toBe(404);
+      expect(mockDb.trainingPrompt.update).not.toHaveBeenCalled();
+
+      const reqDel = new NextRequest('http://localhost:3000/api/ddc/training/train_victim_1', { method: 'DELETE' });
+      const resDel = await trainingDELETE(reqDel, { params: Promise.resolve({ id: 'train_victim_1' }) });
+      expect(resDel.status).toBe(404);
+      expect(mockDb.trainingPrompt.delete).not.toHaveBeenCalled();
+
+      const reqPost = new NextRequest('http://localhost:3000/api/ddc/training/train_victim_1', { method: 'POST' });
+      const resPost = await trainingPOST(reqPost, { params: Promise.resolve({ id: 'train_victim_1' }) });
+      expect(resPost.status).toBe(404);
+    });
+
+    it('requires session and scopes properties/[id] to session tenantId', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce(null);
+      const req1 = new NextRequest('http://localhost:3000/api/properties/prop_1');
+      const res1 = await propertyGET(req1, { params: Promise.resolve({ id: 'prop_1' }) });
+      expect(res1.status).toBe(401);
+
+      vi.mocked(getServerSession).mockResolvedValue({
+        user: { tenantId: 'tenant_pousada_1' },
+        expires: new Date(Date.now() + 86400000).toISOString(),
+      });
+      mockDb.airBProperty.findFirst.mockResolvedValue(null);
+
+      const req2 = new NextRequest('http://localhost:3000/api/properties/prop_victim');
+      const res2 = await propertyGET(req2, { params: Promise.resolve({ id: 'prop_victim' }) });
+      expect(res2.status).toBe(404);
+
+      const reqPut = new NextRequest('http://localhost:3000/api/properties/prop_victim', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Hacked Prop' }),
+      });
+      const resPut = await propertyPUT(reqPut, { params: Promise.resolve({ id: 'prop_victim' }) });
+      expect(resPut.status).toBe(404);
+
+      const reqDel = new NextRequest('http://localhost:3000/api/properties/prop_victim', { method: 'DELETE' });
+      const resDel = await propertyDELETE(reqDel, { params: Promise.resolve({ id: 'prop_victim' }) });
+      expect(resDel.status).toBe(404);
+    });
+
+    it('requires session and scopes targets/[id] to session tenantId', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce(null);
+      const req1 = new Request('http://localhost:3000/api/targets/target_1');
+      const res1 = await targetGET(req1, { params: Promise.resolve({ id: 'target_1' }) });
+      expect(res1.status).toBe(401);
+
+      vi.mocked(getServerSession).mockResolvedValue({
+        user: { tenantId: 'tenant_pousada_1' },
+        expires: new Date(Date.now() + 86400000).toISOString(),
+      });
+      mockDb.target.findFirst.mockResolvedValue(null);
+
+      const req2 = new Request('http://localhost:3000/api/targets/target_victim');
+      const res2 = await targetGET(req2, { params: Promise.resolve({ id: 'target_victim' }) });
+      expect(res2.status).toBe(404);
+
+      const reqPut = new Request('http://localhost:3000/api/targets/target_victim', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Hacked Target' }),
+      });
+      const resPut = await targetPUT(reqPut, { params: Promise.resolve({ id: 'target_victim' }) });
+      expect(resPut.status).toBe(404);
+
+      const reqDel = new Request('http://localhost:3000/api/targets/target_victim', { method: 'DELETE' });
+      const resDel = await targetDELETE(reqDel, { params: Promise.resolve({ id: 'target_victim' }) });
+      expect(resDel.status).toBe(404);
+    });
+
     it('requires session and scopes agent-logs to session tenantId', async () => {
-      // 1. Unauthenticated -> 401
       vi.mocked(getServerSession).mockResolvedValueOnce(null);
       const req1 = new Request('http://localhost:3000/api/agent-logs');
       const res1 = await agentLogsGET(req1);
       expect(res1.status).toBe(401);
 
-      // 2. Authenticated -> scopes by tenantId
       vi.mocked(getServerSession).mockResolvedValueOnce({
         user: { tenantId: 'tenant_pousada_1' },
         expires: new Date(Date.now() + 86400000).toISOString(),
@@ -276,13 +519,11 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
     });
 
     it('requires session and scopes conversations list to session tenantId', async () => {
-      // 1. Unauthenticated -> 401
       vi.mocked(getServerSession).mockResolvedValueOnce(null);
       const req1 = new NextRequest('http://localhost:3000/api/conversations');
       const res1 = await conversationsGET(req1);
       expect(res1.status).toBe(401);
 
-      // 2. Authenticated -> scopes by tenantId
       vi.mocked(getServerSession).mockResolvedValueOnce({
         user: { tenantId: 'tenant_pousada_2' },
         expires: new Date(Date.now() + 86400000).toISOString(),
