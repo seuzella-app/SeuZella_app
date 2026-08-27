@@ -1,3 +1,4 @@
+/* eslint-disable zella-v11/no-use-client-in-route */
 'use client';
 
 import { useState, Suspense, useEffect, useCallback } from 'react';
@@ -61,9 +62,6 @@ function LoginContent() {
   const searchParams = useSearchParams();
   // Default redirect target after successful login
   const callbackUrl = searchParams.get('callbackUrl') || '/ddc';
-  const magicLoginParam = searchParams.get('magicLogin');
-  const magicEmailParam = searchParams.get('email');
-  const magicRedirectParam = searchParams.get('redirect');
   const errorParam = searchParams.get('error');
 
   // Determine context from callback URL
@@ -96,50 +94,6 @@ function LoginContent() {
     niche: 'pousada' as 'pousada' | 'airbnb',
   });
   const [agreedTerms, setAgreedTerms] = useState(false);
-
-  // Handle magic link auto-login
-  useEffect(() => {
-    if (magicLoginParam === 'true' && magicEmailParam) {
-      const doMagicLogin = async () => {
-        setIsLoading(true);
-        try {
-          const response = await fetch('/api/auth/magic-verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: magicEmailParam }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.tempPassword) {
-              const { signIn } = await import('next-auth/react');
-              const result = await signIn('credentials', {
-                email: magicEmailParam,
-                password: data.tempPassword,
-                redirect: false,
-              });
-              if (result?.ok) {
-                toast.success('Acesso autorizado!');
-                await new Promise(r => setTimeout(r, 500));
-                const redirectPath = magicRedirectParam || '/ddc';
-                router.push(redirectPath);
-                router.refresh();
-              } else {
-                toast.error('Credenciais inválidas.');
-              }
-            }
-          } else {
-            toast.error('Link expirado ou inválido.');
-          }
-        } catch {
-          toast.error('Erro de conexão.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      doMagicLogin();
-    }
-  }, [magicLoginParam, magicEmailParam, magicRedirectParam, router]);
 
   // Show error from URL params
   useEffect(() => {
@@ -281,19 +235,6 @@ function LoginContent() {
       setIsLoading(false);
     }
   }, [signUpData, agreedTerms, router]);
-
-  // ── Loading overlay 
-  if (magicLoginParam === 'true' && isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080b14]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
-          <span className="text-zinc-500 text-sm">Verificando acesso...</span>
-        </div>
-        <Toaster position="top-center" richColors />
-      </div>
-    );
-  }
 
   const ContextIcon = contextIcon;
 

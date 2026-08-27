@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Certification Hardening — 7 blocker fixes verified
  *
@@ -11,7 +12,7 @@
  * 7. TypeScript compiles with 0 errors
  */
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -83,14 +84,12 @@ describe('🔧 Certification Hardening — 7 Blocker Fixes', () => {
     expect(source).not.toMatch(/^DEEPSEEK_API_KEY=/m);
   });
 
-  // B6: magic-verify uses CSPRNG
-  it('magic-verify uses randomInt (CSPRNG) not Math.random', () => {
-    const source = read('src/app/api/auth/magic-verify/route.ts');
-    expect(source).toContain('randomInt');
-    expect(source).toContain('crypto');
-    // Must NOT use Math.random in the password generation
-    const codeLines = source.split('\n').filter(l => !l.trim().startsWith('//'));
-    expect(codeLines.join('\n')).not.toMatch(/Math\.random\(/);
+  // B6: magic-link uses CSPRNG and magic-verify is permanently removed
+  it('magic-link uses CSPRNG and magic-verify is absent', () => {
+    expect(existsSync(`${root}/src/app/api/auth/magic-verify/route.ts`)).toBe(false);
+    const source = read('src/app/api/auth/magic-link/route.ts');
+    expect(source).toContain('crypto.randomBytes');
+    expect(source).not.toMatch(/Math\.random\(/);
   });
 
   // B7: cron-auth-unified has no @ts-nocheck
@@ -132,7 +131,7 @@ describe('🔧 Certification Hardening — 7 Blocker Fixes', () => {
       'src/middleware.ts',
       'src/lib/security/waf-middleware.ts',
       'src/lib/security/cron-auth-unified.ts',
-      'src/app/api/auth/magic-verify/route.ts',
+      'src/app/api/auth/magic-link/route.ts',
       'workers/index.ts',
     ];
     for (const file of files) {

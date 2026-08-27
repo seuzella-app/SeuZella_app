@@ -55,6 +55,7 @@ function getCountry(req: NextRequest): string {
 export function wafMiddleware(req: NextRequest): NextResponse | null {
   const ip = getClientIP(req);
   const userAgent = req.headers.get('user-agent') || '';
+  const country = getCountry(req);
   const path = req.nextUrl?.pathname || (req.url ? new URL(req.url).pathname : '/');
 
   // ─── 1. Skip para assets estáticos e health checks ───
