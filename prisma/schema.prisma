@@ -762,6 +762,9 @@ model PaymentTransaction {
   metadata       String  @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([subscriptionId])
+  @@index([externalId])
+  @@unique([paymentMethod, externalId])
   @@map("payment_transactions")
 }
 

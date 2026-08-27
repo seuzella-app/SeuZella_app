@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const verifyCronM2MToken = vi.fn();
-const verifyCronSecret = vi.fn();
+const { verifyCronM2MToken, verifyCronSecret } = vi.hoisted(() => ({
+  verifyCronM2MToken: vi.fn(),
+  verifyCronSecret: vi.fn(),
+}));
 
 vi.mock('@/lib/security/cron-auth', () => ({
   verifyCronM2MToken,
@@ -31,7 +33,7 @@ describe('unified cron auth regression', () => {
     const request = new Request('https://example.test/api/cron/x', {
       headers: { authorization: 'Bearer eyJinvalid' },
     });
-    const result = await verifyCronAuth(request as any, 'cerebro:write');
+    const result = await verifyCronAuth(request as unknown as import('next/server').NextRequest, 'cerebro:write');
 
     expect(result.ok).toBe(false);
     expect(result.source).toBe('m2m');
@@ -43,7 +45,7 @@ describe('unified cron auth regression', () => {
     verifyCronSecret.mockReturnValue({ ok: true, source: 'header' });
 
     const request = new Request('https://example.test/api/cron/x');
-    const result = await verifyCronAuth(request as any, 'cerebro:write');
+    const result = await verifyCronAuth(request as unknown as import('next/server').NextRequest, 'cerebro:write');
 
     expect(result).toEqual({ ok: true, source: 'cron-secret' });
     expect(verifyCronM2MToken).not.toHaveBeenCalled();

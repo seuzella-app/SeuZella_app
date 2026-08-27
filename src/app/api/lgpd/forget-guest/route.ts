@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
     if (!guest) {
       return NextResponse.json({ success: false, error: 'GUEST_NOT_FOUND' }, { status: 404 });
     }
-    const {tenantId} = guest;
+    // eslint-disable-next-line prefer-destructuring
+    const tenantId = guest.tenantId;
 
     const result = {
       guestId,
