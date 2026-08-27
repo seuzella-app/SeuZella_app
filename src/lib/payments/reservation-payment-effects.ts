@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '@/lib/db';
 import { getLockForRoom } from '@/lib/locks/room-assignment';
 import { generateReservationPin } from '@/lib/locks/system-pin-service';
@@ -103,4 +104,81 @@ export async function activateReservationAccess(input: {
     });
     return { lockDeviceId: lock.deviceId, reason: 'PIN_GENERATION_FAILED' };
   }
+}
+
+/**
+ * Registra o estorno/reversão contábil no ledger de transações de reservas (C4.1).
+ * Preserva o lançamento original e cria um lançamento contrapartida idempotente.
+ */
+export async function writeReversalTransaction(
+  tx: any,
+  input: {
+    tenantId: string;
+    reservationId: string;
+    amount: number;
+    gateway: string;
+    reason?: string;
+    providerEventId?: string;
+  }
+): Promise<{ transactionId: string; alreadyReversed: boolean }> {
+  // Idempotência: verifica se já existe uma transação de estorno para este evento/reserva
+  const existingReversal = await tx.transaction.findFirst({
+    where: {
+      tenantId: input.tenantId,
+      reservationId: input.reservationId,
+      type: `RESERVATION_REFUND:${input.gateway}`,
+      status: 'REFUNDED',
+    },
+    select: { id: true },
+  });
+
+  if (existingReversal) {
+    return { transactionId: existingReversal.id, alreadyReversed: true };
+  }
+
+  const reversalAmount = -Math.abs(input.amount);
+  const created = await tx.transaction.create({
+    data: {
+      tenantId: input.tenantId,
+      reservationId: input.reservationId,
+      type: `RESERVATION_REFUND:${input.gateway}`,
+      amount: reversalAmount,
+      method: input.gateway,
+      status: 'REFUNDED',
+    },
+  });
+
+  return { transactionId: created.id, alreadyReversed: false };
+}
+
+/**
+ * Emite notificação persistida de estorno de reserva para o dashboard do cliente (C4.4).
+ */
+export async function createReservationRefundNotification(input: {
+  tenantId: string;
+  reservationId: string;
+  guestName: string;
+  amount: number;
+  gateway: string;
+  reason?: string;
+}): Promise<void> {
+  await db.notification.create({
+    data: {
+      tenantId: input.tenantId,
+      type: 'payment.reservation_refunded',
+      priority: 'high',
+      title: 'Estorno de reserva processado',
+      message: `Estorno da reserva de ${input.guestName} processado via ${input.gateway}. Valor: R$ ${Math.abs(input.amount).toFixed(2)}.`,
+      actionUrl: `/ddc/pousada?reservation_id=${encodeURIComponent(input.reservationId)}`,
+      actionLabel: 'Abrir reserva',
+      read: false,
+      metadata: JSON.stringify({
+        reservationId: input.reservationId,
+        guestName: input.guestName,
+        amount: input.amount,
+        gateway: input.gateway,
+        reason: input.reason || 'refund_requested',
+      }),
+    },
+  });
 }

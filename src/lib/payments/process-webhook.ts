@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { processReservationPaymentWebhookEvent } from './process-reservation-webhook';
+import { validatePaymentWebhookTransition } from './webhook-transition';
 import type { WebhookEvent } from './types';
 
 /**
@@ -61,6 +62,15 @@ async function processSubscriptionWebhookEvent(event: WebhookEvent): Promise<{ d
       select: { id: true, tenantId: true, planType: true, status: true, paymentStatus: true },
     });
     if (!subscription) throw new Error('PAYMENT_WEBHOOK_SUBSCRIPTION_NOT_FOUND');
+
+    // C4.3: Validação determinística de transição de máquina de estados para assinaturas
+    if (subscription.paymentStatus) {
+      const transition = validatePaymentWebhookTransition(subscription.paymentStatus, event.status);
+      if (!transition.accepted) {
+        console.warn(`[SUBSCRIPTION_PAYMENT] Transição rejeitada: ${subscription.paymentStatus} -> ${event.status} (${transition.reason})`);
+        return { deduplicated: true, subscriptionId: subscription.id };
+      }
+    }
 
     const lockKey = `payment-event:${event.gateway}:${event.providerEventId}`;
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 /**
  * Zélla — Notification Producer (MOCK MODE)
  *
@@ -258,6 +259,24 @@ export const notifyPaymentOverdue = (vars: {
     type: 'payment.overdue',
     source: 'webhook_payment',
     priority: 'urgent',
+    metadata: { ...stripFrameworkFields(vars), amount: vars.amount.toFixed(2) },
+    tenantId: vars.tenantId,
+  });
+
+export const notifyPaymentRefunded = (vars: {
+  niche: NotificationNiche | NicheType;
+  amount: number;
+  guestName: string;
+  paymentId?: string;
+  reason?: string;
+  tenantId?: string;
+}): ProduceResult =>
+  notify({
+    niche: toNiche(vars.niche),
+    type: 'payment.refunded',
+    source: 'webhook_payment',
+    priority: 'medium',
+    entityId: vars.paymentId,
     metadata: { ...stripFrameworkFields(vars), amount: vars.amount.toFixed(2) },
     tenantId: vars.tenantId,
   });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Zélla — Notification Bridges (Phase 2 — Gap-fill)
  *
@@ -35,6 +36,7 @@ import {
   notifyOtaTokenExpired,
   notifyPaymentFailed,
   notifyPaymentOverdue,
+  notifyPaymentRefunded,
   notifyPixReceived,
   notifyPlanExpiring,
   notifyReviewNegative,
@@ -196,6 +198,14 @@ export function bridgePaymentEvent(event: PaymentEvent): ProduceResult {
         amount: event.amount,
         guestName: event.guestName,
         days: event.daysOverdue ?? 1,
+        tenantId: event.tenantId,
+      });
+    case 'refunded':
+      return notifyPaymentRefunded({
+        niche: event.niche,
+        amount: event.amount,
+        guestName: event.guestName,
+        paymentId: event.paymentId,
         tenantId: event.tenantId,
       });
     default:

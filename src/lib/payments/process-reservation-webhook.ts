@@ -1,6 +1,14 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
-import { activateReservationAccess, createReservationPaymentConfirmationNotification } from './reservation-payment-effects';
+import {
+  activateReservationAccess,
+  createReservationPaymentConfirmationNotification,
+  createReservationRefundNotification,
+  writeReversalTransaction,
+} from './reservation-payment-effects';
+import { revokeReservationPins } from '@/lib/locks/orchestrator';
+import { bridgePaymentEvent } from '@/lib/notifications/bridges';
+import { validatePaymentWebhookTransition } from './webhook-transition';
 import type { WebhookEvent } from './types';
 
 export async function processReservationPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; reservationId: string }> {
@@ -18,7 +26,19 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
         AND "provider_event_id" = ${event.providerEventId}
       LIMIT 1
     `;
-    if (duplicate[0]) return { deduplicated: true, reservationId, tenantId: '', guestName: '', guestPhone: '', checkIn: new Date(0), checkOut: new Date(0), newlyApproved: false };
+    if (duplicate[0]) {
+      return {
+        deduplicated: true,
+        reservationId,
+        tenantId: '',
+        guestName: '',
+        guestPhone: '',
+        checkIn: new Date(0),
+        checkOut: new Date(0),
+        newlyApproved: false,
+        newlyRefunded: false,
+      };
+    }
 
     const reservation = await tx.reservation.findUnique({
       where: { id: reservationId },
@@ -27,6 +47,7 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
         tenantId: true,
         checkIn: true,
         checkOut: true,
+        status: true,
         guest: { select: { name: true, phone: true } },
       },
     });
@@ -41,7 +62,27 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
       LIMIT 1
     `;
 
-    const existing = rows[0];
+    const [existing] = rows;
+
+    // C4.3: Validação determinística de transição de máquina de estados
+    if (existing?.status) {
+      const transition = validatePaymentWebhookTransition(existing.status, event.status);
+      if (!transition.accepted) {
+        console.warn(`[RESERVATION_PAYMENT] Transição rejeitada: ${existing.status} -> ${event.status} (${transition.reason})`);
+        return {
+          deduplicated: true,
+          reservationId: reservation.id,
+          tenantId: reservation.tenantId,
+          guestName: reservation.guest.name,
+          guestPhone: reservation.guest.phone ?? '',
+          checkIn: reservation.checkIn,
+          checkOut: reservation.checkOut,
+          newlyApproved: false,
+          newlyRefunded: false,
+        };
+      }
+    }
+
     if (!existing) {
       const paymentId = randomUUID();
       await tx.$executeRaw`
@@ -62,6 +103,8 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
     }
 
     const newlyApproved = event.status === 'approved' && (!existing || existing.status !== 'approved');
+    const newlyRefunded = (event.status === 'refunded' || event.status === 'cancelled') && (!existing || existing.status !== event.status);
+
     if (newlyApproved) {
       await tx.transaction.create({
         data: {
@@ -72,6 +115,28 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
           method: event.gateway,
           status: 'COMPLETED',
         },
+      });
+
+      await tx.reservation.update({
+        where: { id: reservation.id },
+        data: { status: 'CONFIRMED' },
+      });
+    }
+
+    // C4.1: Registro de Reversão / Estorno Contábil no Ledger
+    if (newlyRefunded) {
+      await writeReversalTransaction(tx, {
+        tenantId: reservation.tenantId,
+        reservationId: reservation.id,
+        amount: event.amount ?? 0,
+        gateway: event.gateway,
+        providerEventId: event.providerEventId,
+        reason: event.status === 'refunded' ? 'refund' : 'cancellation',
+      });
+
+      await tx.reservation.update({
+        where: { id: reservation.id },
+        data: { status: event.status === 'refunded' ? 'REFUNDED' : 'CANCELLED' },
       });
     }
 
@@ -84,6 +149,7 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
       checkIn: reservation.checkIn,
       checkOut: reservation.checkOut,
       newlyApproved,
+      newlyRefunded,
     };
   });
 
@@ -111,6 +177,45 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
       });
     } catch (accessError) {
       console.error('[RESERVATION_PAYMENT] lock access automation failed:', accessError);
+    }
+  }
+
+  // C4.2 & C4.4: Revogação de Acesso Físico (PINs) e Notificações de Estorno
+  if (!result.deduplicated && result.newlyRefunded) {
+    try {
+      await revokeReservationPins({
+        tenantId: result.tenantId,
+        reservationId: result.reservationId,
+        reason: `Pagamento ${event.status === 'refunded' ? 'estornado' : 'cancelado'} via webhook ${event.gateway}`,
+      });
+    } catch (pinError) {
+      console.warn('[RESERVATION_PAYMENT] PIN revocation warning:', pinError);
+    }
+
+    try {
+      await createReservationRefundNotification({
+        tenantId: result.tenantId,
+        reservationId: result.reservationId,
+        guestName: result.guestName,
+        amount: event.amount ?? 0,
+        gateway: event.gateway,
+        reason: event.status === 'refunded' ? 'refund' : 'cancellation',
+      });
+    } catch (notificationError) {
+      console.error('[RESERVATION_PAYMENT] refund notification failed:', notificationError);
+    }
+
+    try {
+      bridgePaymentEvent({
+        niche: 'all',
+        paymentId: event.providerEventId,
+        amount: event.amount ?? 0,
+        guestName: result.guestName,
+        status: 'refunded',
+        tenantId: result.tenantId,
+      });
+    } catch (bridgeError) {
+      console.error('[RESERVATION_PAYMENT] bridgePaymentEvent error:', bridgeError);
     }
   }
 
