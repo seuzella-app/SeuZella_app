@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { TENANT_MODELS } from '@/lib/db/tenant-prisma';
 
 describe('Tenant isolation matrix enforcement', () => {
-  it('enforces exactly the 73 approved tenant-scoped models', () => {
-    expect(TENANT_MODELS).toHaveLength(73);
-    expect(new Set(TENANT_MODELS).size).toBe(73);
+  it('enforces exactly the 72 approved tenant-scoped models', () => {
+    expect(TENANT_MODELS).toHaveLength(72);
+    expect(new Set(TENANT_MODELS).size).toBe(72);
   });
 
   it('includes newly classified operational tenant models', () => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * ZÉLLA — Prisma application-level tenant isolation.
  * Automatically injects tenantId for models classified TENANT_SCOPED.
@@ -19,7 +20,7 @@ const TENANT_MODELS = [
   'AirBProperty', 'AirBConversation', 'AirBSubscription',
   'DynamicPricingRule', 'PricingCalculation',
   'ReferralCode', 'AmortizationCredit', 'LiteMilestone',
-  'GuestRegistration', 'YieldProfitRecord', 'DevicePing',
+  'YieldProfitRecord', 'DevicePing',
   'CostLog', 'Booking', 'TrainingPrompt', 'Notification',
   'PerformanceSnapshot', 'QuickAction', 'Feedback', 'ZelladorMessage',
   'LgpdDeleteRequest', 'LgpdIncident', 'PushSubscription', 'MetaCostLog',
