@@ -1,18 +1,21 @@
 name: Production Deployment
 
 on:
-  push:
+  # Deploy only after the authoritative Master Gate completes successfully on main.
+  # This prevents deployment from racing ahead of a failed post-merge gate.
+  workflow_run:
+    workflows: ["🚦 Master Gate — GO/NO-GO"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
-# The Master Gate is the authoritative pre-merge quality gate.
-# This workflow is intentionally deployment-only: it must not duplicate
-# checkout, npm ci, typecheck, lint, security or production-readiness checks.
+# Deployment is intentionally separate from validation. Master Gate owns
+# code-quality/security readiness; this workflow only performs the VPS rollout.
 permissions:
   contents: read
 
 concurrency:
-  group: production-deploy-${{ github.ref }}
+  group: production-deploy-main
   cancel-in-progress: false
 
 env:
@@ -21,7 +24,13 @@ env:
 jobs:
   deploy:
     name: Deploy via SSH na VPS
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    # Manual dispatch remains available for recovery. Automatic deployment
+    # requires the Master Gate to have completed successfully on main.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
