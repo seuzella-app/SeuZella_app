@@ -37,20 +37,6 @@ async function handleMonthlyBilling(request: NextRequest) {
     return authResult.response ?? NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
 
-  const authHeader = request.headers.get('authorization');
-  const { searchParams } = new URL(request.url);
-  const secretParam = searchParams.get('secret');
-  const cronSecret = process.env.CRON_SECRET || 'seuzella-cron-secret-2026';
-
-  const isAuthorized =
-    authHeader === `Bearer ${cronSecret}` ||
-    secretParam === cronSecret ||
-    process.env.NODE_ENV === 'development';
-
-  if (!isAuthorized) {
-    return NextResponse.json({ error: 'UNAUTHORIZED_CRON' }, { status: 401 });
-  }
-
   const now = new Date();
   const refYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const refMonth = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
