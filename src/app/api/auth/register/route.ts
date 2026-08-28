@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
           name: data.name,
           email: data.email,
           passwordHash,
+          passwordChangedAt: new Date(),
           phone: data.phone,
           plan: 'lite',
           status: 'active',

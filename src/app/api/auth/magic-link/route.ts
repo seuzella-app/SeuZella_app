@@ -30,12 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Serviço de e-mail não está configurado em produção.' }, { status: 503 });
     }
 
-    let tenant = await db.tenant.findUnique({ where: { email } });
-    const configuredAdmins = process.env.ZCC_ADMIN_EMAILS ? process.env.ZCC_ADMIN_EMAILS.split(',').map(v => v.trim().toLowerCase()).filter(Boolean) : [];
-    const adminEmails = new Set(configuredAdmins);
-    if (!tenant && adminEmails.has(email)) {
-      tenant = await db.tenant.create({ data: { name: 'Administrador ZCC', email, role: 'system_admin', plan: 'enterprise', status: 'active', niche: 'pousada' } });
-    }
+    const tenant = await db.tenant.findUnique({ where: { email } });
     if (!tenant) return NextResponse.json({ error: 'E-mail não cadastrado. Use Criar conta primeiro.' }, { status: 404 });
     if (tenant.status !== 'active') return NextResponse.json({ error: 'Conta inativa.' }, { status: 403 });
 

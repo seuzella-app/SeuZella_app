@@ -14,10 +14,10 @@ describe('ZCC password reset flow contracts', () => {
     expect(route).not.toContain('devUrl');
   });
 
-  it('returns a generic response to prevent account enumeration', () => {
+  it('returns a generic response to prevent account enumeration and checks active tenant', () => {
     const route = read('src/app/api/auth/forgot-password/route.ts');
     expect(route).toContain('GENERIC_RESPONSE');
-    expect(route).toContain('if (!tenant) return NextResponse.json(GENERIC_RESPONSE)');
+    expect(route).toContain('if (!tenant || tenant.status !== \'active\') return NextResponse.json(GENERIC_RESPONSE)');
   });
 
   it('requires a strong password and consumes reset tokens once', () => {
@@ -28,11 +28,9 @@ describe('ZCC password reset flow contracts', () => {
     expect(route).toContain('CURRENT_TIMESTAMP');
   });
 
-  it('bootstraps only the configured ZCC admin email', () => {
+  it('does not contain hardcoded admin fallback emails and requires configured environment', () => {
     const route = read('src/app/api/auth/forgot-password/route.ts');
-    expect(route).toContain('ZCC_ADMIN_EMAILS');
-    expect(route).toContain('marciocau14@gmail.com');
-    expect(route).toContain("role: 'system_admin'");
+    expect(route).not.toContain('marciocau14@gmail.com');
   });
 
   it('provides dedicated user-facing forgot and reset pages', () => {

@@ -7,10 +7,6 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const GENERIC_RESPONSE = { ok: true, message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.' };
-function adminEmails(): Set<string> {
-  const configured = process.env.ZCC_ADMIN_EMAILS ? process.env.ZCC_ADMIN_EMAILS.split(',').map(v => v.trim().toLowerCase()).filter(Boolean) : [];
-  return new Set(configured);
-}
 function baseUrl(request: Request): string { return (process.env.NEXTAUTH_URL || new URL(request.url).origin).replace(/\/$/, ''); }
 
 async function ensureResetTable() {
@@ -27,9 +23,8 @@ export async function POST(request: Request) {
     if (!(await isDatabaseAvailable())) return NextResponse.json(GENERIC_RESPONSE);
     await ensureResetTable();
 
-    let tenant = await db.tenant.findUnique({ where: { email } });
-    if (!tenant && adminEmails().has(email)) tenant = await db.tenant.create({ data: { email, name: 'Administrador ZCC', role: 'system_admin', plan: 'enterprise', status: 'active' } });
-    if (!tenant) return NextResponse.json(GENERIC_RESPONSE);
+    const tenant = await db.tenant.findUnique({ where: { email } });
+    if (!tenant || tenant.status !== 'active') return NextResponse.json(GENERIC_RESPONSE);
 
     await db.$executeRaw`UPDATE "password_reset_tokens" SET "used_at" = CURRENT_TIMESTAMP WHERE "tenant_id" = ${tenant.id} AND "used_at" IS NULL`;
     const token = crypto.randomBytes(32).toString('base64url');

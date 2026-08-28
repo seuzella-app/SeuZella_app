@@ -25,12 +25,12 @@ export async function POST(request: Request) {
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     const rows = await db.$queryRaw<Array<{ id: string; tenant_id: string; expires_at: Date; used_at: Date | null }>>`SELECT "id", "tenant_id", "expires_at", "used_at" FROM "password_reset_tokens" WHERE "token_hash" = ${tokenHash} LIMIT 1`;
-    const reset = rows[0];
+    const [reset] = rows;
     if (!reset || reset.used_at || new Date(reset.expires_at).getTime() <= Date.now()) return NextResponse.json({ error: 'Link inválido, expirado ou já utilizado.' }, { status: 400 });
 
     const passwordHash = await bcrypt.hash(password, 12);
     await db.$transaction(async tx => {
-      await tx.tenant.update({ where: { id: reset.tenant_id }, data: { passwordHash, status: 'active' } });
+      await tx.tenant.update({ where: { id: reset.tenant_id }, data: { passwordHash, passwordChangedAt: new Date(), status: 'active' } });
       await tx.$executeRaw`UPDATE "password_reset_tokens" SET "used_at" = CURRENT_TIMESTAMP WHERE "id" = ${reset.id} AND "used_at" IS NULL`;
       await tx.$executeRaw`UPDATE "password_reset_tokens" SET "used_at" = CURRENT_TIMESTAMP WHERE "tenant_id" = ${reset.tenant_id} AND "used_at" IS NULL`;
     });

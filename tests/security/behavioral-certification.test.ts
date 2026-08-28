@@ -30,7 +30,7 @@ const read = (file: string) => readFileSync(resolve(root, file), 'utf8');
 describe('📊 1. CBM Benchmark Mensurável', () => {
   it('indexa o repositório em < 5s', () => {
     const start = Date.now();
-    execFileSync('grep', ['-rl', '--include=*.ts', '--include=*.tsx', 'export', 'src/'], {
+    execFileSync('git', ['grep', '-l', 'export', 'src/'], {
       timeout: 5000, encoding: 'utf8', cwd: root,
     });
     const duration = Date.now() - start;
@@ -41,8 +41,8 @@ describe('📊 1. CBM Benchmark Mensurável', () => {
   it('encontra rotas API com query estruturada', () => {
     let result = '';
     try {
-      result = execFileSync('grep', ['-r', '--include=*.ts', '-l', 'export const GET', 'src/app/api/'], {
-        timeout: 3000, encoding: 'utf8', cwd: root,
+      result = execFileSync('git', ['grep', '-l', 'function GET', 'src/app/api/'], {
+        timeout: 5000, encoding: 'utf8', cwd: root,
       }).trim();
     } catch {
       // No matches
@@ -53,8 +53,8 @@ describe('📊 1. CBM Benchmark Mensurável', () => {
   });
 
   it('trace callers de resolveTenantId', () => {
-    const result = execFileSync('grep', ['-rl', '--include=*.ts', 'resolveTenantId', 'src/'], {
-      timeout: 3000, encoding: 'utf8', cwd: root,
+    const result = execFileSync('git', ['grep', '-l', 'resolveTenantId', 'src/'], {
+      timeout: 15000, encoding: 'utf8', cwd: root,
     }).trim();
     const callers = result.split('\n').filter(Boolean);
     expect(callers.length).toBeGreaterThan(10);

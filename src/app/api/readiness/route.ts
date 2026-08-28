@@ -3,6 +3,7 @@ import { isDatabaseAvailable, db } from '@/lib/db';
 import { isPushEnabled } from '@/lib/push/push-service';
 import { getActiveTransport } from '@/lib/realtime/tenant-pubsub';
 import { isBullMQAvailable } from '@/lib/queue/queue-bridge';
+import { assertProductionSecurityEnv } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -29,6 +30,21 @@ export async function GET(_request: NextRequest) {
   checks.push({ name: 'Payment gateway (Asaas|Mercado Pago)', passed: hasAsaas || hasMP, required: true, hint: 'Configure at least one: ASAAS_ACCESS_TOKEN or MP_ACCESS_TOKEN' });
   checks.push({ name: 'Asaas webhook secret', passed: !hasAsaas || !!process.env.ASAAS_WEBHOOK_SECRET, required: hasAsaas, hint: 'Required when Asaas is configured' });
   checks.push({ name: 'Mercado Pago webhook secret', passed: !hasMP || !!(process.env.PAYMENT_WEBHOOK_SECRET || process.env.MP_WEBHOOK_SECRET), required: hasMP, hint: 'Required when Mercado Pago is configured' });
+
+  let prodSecurityPassed = true;
+  let prodSecurityHint = 'Production security environment assertion passed';
+  try {
+    assertProductionSecurityEnv();
+  } catch (err: unknown) {
+    prodSecurityPassed = false;
+    prodSecurityHint = err instanceof Error ? err.message : 'Failed production security env assertion';
+  }
+  checks.push({
+    name: 'assertProductionSecurityEnv',
+    passed: prodSecurityPassed,
+    required: process.env.NODE_ENV === 'production',
+    hint: prodSecurityHint,
+  });
 
   checks.push({ name: 'WHATSAPP_TOKEN', passed: !!process.env.WHATSAPP_TOKEN, required: false, hint: 'Meta WhatsApp Business API token' });
   checks.push({ name: 'META_APP_SECRET', passed: !!process.env.META_APP_SECRET, required: false, hint: 'Meta app secret for webhook HMAC verification' });

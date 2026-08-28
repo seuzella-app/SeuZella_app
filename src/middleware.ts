@@ -13,7 +13,6 @@ const PUBLIC_API_PREFIXES = [
   '/api/webhooks/mercadopago',
   '/api/webhooks/payment',
   '/api/checkout/webhook',
-  '/api/webhooks/stripe',
   '/api/webhooks/booking-com',
 ];
 
@@ -65,6 +64,33 @@ async function authorizeZcc(request: NextRequest): Promise<boolean> {
   return ['owner', 'admin', 'system_admin'].includes(role) && envAdmins.includes(email);
 }
 
+function timingSafeEqualStr(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
+function isMachineAuthorized(request: NextRequest): boolean {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader) return false;
+
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+  if (!token) return false;
+
+  const validSecrets = [
+    process.env.CRON_SECRET,
+    process.env.ZEHLA_LOOP_API_KEY,
+    process.env.ZAI_API_KEY,
+  ].filter((s): s is string => typeof s === 'string' && s.length >= 16);
+
+  if (validSecrets.length === 0) return false;
+
+  return validSecrets.some(secret => timingSafeEqualStr(token, secret));
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestId = request.headers.get('x-request-id') || request.headers.get('x-vercel-id') || `mid-${crypto.randomUUID()}`;
@@ -87,7 +113,7 @@ export async function middleware(request: NextRequest) {
   }
   if (pathname.startsWith('/api/')) {
     if (isPublicApi(pathname)) return securityHeaders(NextResponse.next());
-    if (!getSessionCookie(request) && !request.headers.get('authorization') && !request.headers.get('x-api-key')) return securityHeaders(NextResponse.json({ error:'AUTH_REQUIRED', requestId }, { status:401 }));
+    if (!getSessionCookie(request) && !isMachineAuthorized(request)) return securityHeaders(NextResponse.json({ error:'AUTH_REQUIRED', requestId }, { status:401 }));
     return securityHeaders(NextResponse.next());
   }
   if (startsWithAny(pathname, PROTECTED_PAGE_PREFIXES) && !getSessionCookie(request)) { const loginUrl = new URL('/login', request.url); loginUrl.searchParams.set('callbackUrl', pathname); return securityHeaders(NextResponse.redirect(loginUrl)); }

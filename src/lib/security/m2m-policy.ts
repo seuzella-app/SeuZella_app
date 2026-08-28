@@ -55,9 +55,9 @@ export function registerM2MClient(client: M2MClientPolicy): void {
   M2M_CLIENT_REGISTRY[client.clientId] = { ...client, secretHash: client.secretHash };
 }
 
-export async function hashClientSecret(plainSecret: string): Promise<string> {
+export async function hashClientSecret(plainSecret: string, rounds = 10): Promise<string> {
   if (!plainSecret || plainSecret.length < 32) throw new Error('M2M_SECRET_TOO_WEAK');
-  return bcrypt.hash(plainSecret, 12);
+  return bcrypt.hash(plainSecret, rounds);
 }
 
 function loadDynamicHashedClient(clientId: string): M2MClientPolicy | undefined {
@@ -136,7 +136,15 @@ export async function verifyM2MClientCredentials(
 }
 
 export function revokeJti(jti: string): void {
-  if (jti) revokedJtis.add(jti);
+  if (jti) {
+    revokedJtis.add(jti);
+    try {
+      // Lazy import to avoid circular dependency
+      import('@/lib/auth').then(({ revokeSessionToken }) => {
+        revokeSessionToken(jti, new Date(Date.now() + 24 * 60 * 60 * 1000), undefined, 'm2m_revoked').catch(() => undefined);
+      }).catch(() => undefined);
+    } catch {}
+  }
 }
 
 export function isJtiRevoked(jti?: string): boolean {

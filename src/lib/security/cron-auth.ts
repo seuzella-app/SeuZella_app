@@ -2,6 +2,7 @@ import { jwtVerify, SignJWT, importSPKI, importPKCS8 } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { verifyM2MClientCredentials, isJtiRevoked, type CronScope } from './m2m-policy';
+import { isSessionTokenRevoked } from '@/lib/auth';
 
 export type { CronScope } from './m2m-policy';
 
@@ -74,7 +75,7 @@ export async function verifyCronM2MToken(
       if (process.env.NODE_ENV === 'production') return unauthorized('missing_jti');
       jti = `m2m_test_${azp}`;
     }
-    if (isJtiRevoked(jti)) return unauthorized('token_revoked');
+    if (isJtiRevoked(jti) || (await isSessionTokenRevoked(jti))) return unauthorized('token_revoked');
     if (typeof payload.iat !== 'number' || typeof payload.exp !== 'number') return unauthorized('invalid_temporal_claims');
 
     return { ok: true, principal: { clientId: azp, scope: scope!, issuedAt: new Date(payload.iat * 1000), expiresAt: new Date(payload.exp * 1000), jti } };
