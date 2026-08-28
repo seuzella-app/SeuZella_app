@@ -109,6 +109,7 @@ model Tenant {
   lgpdDeleteRequests LgpdDeleteRequest[]
   lgpdIncidents      LgpdIncident[]
   pushSubscriptions  PushSubscription[]
+  passwordChangedAt  DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@map("tenants")
@@ -1569,6 +1570,19 @@ model VerificationToken {
   createdAt  DateTime @default(now())
   @@id([identifier, token])
   @@map("verification_tokens")
+}
+
+model RevokedSession {
+  id         String   @id @default(cuid())
+  jti        String   @unique
+  tenantId   String?
+  reason     String?
+  revokedAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([jti])
+  @@index([tenantId])
+  @@map("revoked_sessions")
 }
 
 model CerebroAnalysis {

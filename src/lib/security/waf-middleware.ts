@@ -125,19 +125,8 @@ export function wafMiddleware(req: NextRequest): NextResponse | null {
     }
   }
 
-  // ─── 8. Adiciona headers de segurança ───
-  const response = NextResponse.next();
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  // HSTS apenas em HTTPS
-  if (req.nextUrl.protocol === 'https:') {
-    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  }
-
-  return response;
+  // ─── 8. Pass-through limpo (o middleware principal adiciona security headers) ───
+  return null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

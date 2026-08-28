@@ -11,7 +11,10 @@ const PUBLIC_API_PREFIXES = [
   '/api/webhook-whatsapp',
   '/api/webhooks/asaas',
   '/api/webhooks/mercadopago',
+  '/api/webhooks/payment',
   '/api/checkout/webhook',
+  '/api/webhooks/stripe',
+  '/api/webhooks/booking-com',
 ];
 
 const BLOCKED_API_PREFIXES = ['/api/debug-agent', '/api/proxy', '/api/diagnose'];

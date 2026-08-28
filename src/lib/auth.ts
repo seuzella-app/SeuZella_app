@@ -102,9 +102,18 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
-      if (user) { token.tenantId = (user as any).tenantId; token.role = (user as any).role; token.plan = (user as any).plan; token.niche = (user as any).niche; }
+      if (user) {
+        token.jti = (token.jti as string) || crypto.randomUUID();
+        token.authTime = Math.floor(Date.now() / 1000);
+        token.tenantId = (user as any).tenantId;
+        token.role = (user as any).role;
+        token.plan = (user as any).plan;
+        token.niche = (user as any).niche;
+      }
       if (account?.provider === 'google' && user?.email) {
         try {
+          if (!token.jti) token.jti = crypto.randomUUID();
+          token.authTime = token.authTime || Math.floor(Date.now() / 1000);
           const tenant = await db.tenant.findUnique({ where: { email: user.email.trim().toLowerCase() } });
           if (tenant && tenant.status === 'active') {
             token.tenantId = tenant.id;
@@ -116,7 +125,47 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) { (session.user as any).tenantId = (token as any).tenantId; (session.user as any).role = (token as any).role; (session.user as any).plan = (token as any).plan; (session.user as any).niche = (token as any).niche; }
+      const jti = (token as any).jti as string | undefined;
+      const tenantId = (token as any).tenantId as string | undefined;
+      const authTime = (token as any).authTime as number | undefined;
+
+      // ── M-AUTH-002: Invalidação de sessões revogadas (RevokedSession) ──
+      if (jti && (await isSessionTokenRevoked(jti))) {
+        return { ...session, user: undefined, expires: new Date(0).toISOString() } as any;
+      }
+
+      // ── M-AUTH-004 & M-AUTH-005: Revalidação de tenant.status e passwordChangedAt ──
+      if (tenantId && tenantId !== 'zcc-admin-tenant' && (await isDatabaseAvailable())) {
+        try {
+          const tenant = await db.tenant.findUnique({
+            where: { id: tenantId },
+            select: { status: true, passwordChangedAt: true },
+          });
+
+          // Invalida sessão se tenant suspenso/inativo
+          if (!tenant || tenant.status !== 'active') {
+            return { ...session, user: undefined, expires: new Date(0).toISOString() } as any;
+          }
+
+          // Invalida sessão se senha alterada após emissão do token
+          if (tenant.passwordChangedAt && authTime) {
+            const passwordChangedSec = Math.floor(tenant.passwordChangedAt.getTime() / 1000);
+            if (passwordChangedSec > authTime) {
+              return { ...session, user: undefined, expires: new Date(0).toISOString() } as any;
+            }
+          }
+        } catch (err) {
+          console.error('[auth] session tenant status check failed', err);
+        }
+      }
+
+      if (session.user) {
+        (session.user as any).jti = jti;
+        (session.user as any).tenantId = (token as any).tenantId;
+        (session.user as any).role = (token as any).role;
+        (session.user as any).plan = (token as any).plan;
+        (session.user as any).niche = (token as any).niche;
+      }
       return session;
     },
     async redirect({ url, baseUrl }) {
@@ -134,10 +183,57 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
 };
 
+/**
+ * Invalidate/Revoke a specific session by jti.
+ */
+export async function revokeSessionToken(jti: string, expiresAt: Date, tenantId?: string, reason?: string) {
+  if (!jti || !(await isDatabaseAvailable())) return;
+  try {
+    await db.revokedSession.upsert({
+      where: { jti },
+      update: { revokedAt: new Date(), reason },
+      create: { jti, tenantId, reason, expiresAt },
+    });
+  } catch (err) {
+    console.error('[auth] failed to revoke session token', err);
+  }
+}
+
+/**
+ * Check whether a session token (jti) has been revoked.
+ */
+export async function isSessionTokenRevoked(jti: string): Promise<boolean> {
+  if (!jti || !(await isDatabaseAvailable())) return false;
+  try {
+    const revoked = await db.revokedSession.findUnique({ where: { jti } });
+    if (!revoked) return false;
+    if (revoked.expiresAt < new Date()) {
+      // Lazy cleanup of expired entry
+      await db.revokedSession.delete({ where: { jti } }).catch(() => undefined);
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function requireTenant() {
   const session = await getServerSession(authOptions);
   const tenantId = (session?.user as any)?.tenantId;
   if (!session?.user || !tenantId) redirect('/login');
+
+  // Hardening de autorização em tempo real: verificar se tenant está ativo
+  if (tenantId !== 'zcc-admin-tenant' && (await isDatabaseAvailable())) {
+    const tenant = await db.tenant.findUnique({
+      where: { id: tenantId },
+      select: { status: true },
+    });
+    if (!tenant || tenant.status !== 'active') {
+      redirect('/login?error=account_inactive');
+    }
+  }
+
   return tenantId as string;
 }
 
