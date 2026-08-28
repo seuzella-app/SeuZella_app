@@ -7,7 +7,10 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const GENERIC_RESPONSE = { ok: true, message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.' };
-function adminEmails(): Set<string> { return new Set((process.env.ZCC_ADMIN_EMAILS || 'marciocau14@gmail.com').split(',').map(v => v.trim().toLowerCase()).filter(Boolean)); }
+function adminEmails(): Set<string> {
+  const configured = process.env.ZCC_ADMIN_EMAILS ? process.env.ZCC_ADMIN_EMAILS.split(',').map(v => v.trim().toLowerCase()).filter(Boolean) : [];
+  return new Set(configured);
+}
 function baseUrl(request: Request): string { return (process.env.NEXTAUTH_URL || new URL(request.url).origin).replace(/\/$/, ''); }
 
 async function ensureResetTable() {

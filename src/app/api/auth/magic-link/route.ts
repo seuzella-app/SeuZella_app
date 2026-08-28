@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
     }
 
     let tenant = await db.tenant.findUnique({ where: { email } });
-    const adminEmails = new Set((process.env.ZCC_ADMIN_EMAILS || 'marciocau14@gmail.com').split(',').map(v => v.trim().toLowerCase()).filter(Boolean));
+    const configuredAdmins = process.env.ZCC_ADMIN_EMAILS ? process.env.ZCC_ADMIN_EMAILS.split(',').map(v => v.trim().toLowerCase()).filter(Boolean) : [];
+    const adminEmails = new Set(configuredAdmins);
     if (!tenant && adminEmails.has(email)) {
       tenant = await db.tenant.create({ data: { name: 'Administrador ZCC', email, role: 'system_admin', plan: 'enterprise', status: 'active', niche: 'pousada' } });
     }

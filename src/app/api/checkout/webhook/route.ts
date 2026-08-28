@@ -14,7 +14,16 @@ export async function POST(request: NextRequest) {
     const requestId = request.headers.get('x-request-id') || undefined;
     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.MERCADOPAGO_WEBHOOK_SECRET;
 
-    if (webhookSecret) {
+    // ── M-PAY-011: Fail-closed em produção se webhook secret não estiver configurado ──
+    if (process.env.NODE_ENV === 'production' && !webhookSecret) {
+      console.error('[checkout-webhook] FAIL-CLOSED: MP_WEBHOOK_SECRET is not configured in production');
+      return NextResponse.json(
+        { error: 'WEBHOOK_SECRET_NOT_CONFIGURED' },
+        { status: 500, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
+      );
+    }
+
+    if (webhookSecret || process.env.NODE_ENV === 'production') {
       if (!signature) return NextResponse.json({ error: 'SIGNATURE_REQUIRED' }, { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
       const bodyForSignature = (() => {
         try { return JSON.parse(rawBody) as Record<string, unknown>; } catch { return null; }
@@ -24,7 +33,7 @@ export async function POST(request: NextRequest) {
         ? String((bodyForSignature.data as Record<string, unknown>).id)
         : typeof bodyForSignature.id === 'string' ? bodyForSignature.id : '';
       if (!paymentId) return NextResponse.json({ error: 'MISSING_PAYMENT_ID' }, { status: 400 });
-      const verification = verifyMercadoPagoWebhook(rawBody, signature, webhookSecret!, paymentId, requestId);
+      const verification = verifyMercadoPagoWebhook(rawBody, signature, webhookSecret || '', paymentId, requestId);
       if (!verification.valid) {
         console.warn(`[checkout-webhook] REJECTED: ${verification.reason}`);
         try {

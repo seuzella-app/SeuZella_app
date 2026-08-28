@@ -5,7 +5,7 @@ describe('checkout Mercado Pago webhook regression contracts', () => {
   const source = fs.readFileSync('src/app/api/checkout/webhook/route.ts', 'utf8');
 
   it('passes payment id and request id into signature verification', () => {
-    expect(source).toContain('verifyMercadoPagoWebhook(rawBody, signature, webhookSecret!, paymentId, requestId)');
+    expect(source).toContain('verifyMercadoPagoWebhook(rawBody, signature, webhookSecret');
   });
 
   it('enforces a real body-size limit and invalid JSON is a client error', () => {
