@@ -99,7 +99,7 @@ export async function PUT(
     if (state !== undefined) updateData.state = state;
 
     const updated = await db.target.update({
-      where: { id },
+      where: { id: existing.id },
       data: updateData,
     });
 
@@ -151,7 +151,7 @@ export async function DELETE(
       );
     }
 
-    await db.target.delete({ where: { id } });
+    await db.target.delete({ where: { id: existing.id } });
 
     return NextResponse.json({ success: true, deletedId: id }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
   } catch (error) {

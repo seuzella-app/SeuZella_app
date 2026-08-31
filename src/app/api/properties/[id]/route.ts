@@ -86,7 +86,7 @@ export async function PUT(
     }
 
     const property = await db.airBProperty.update({
-      where: { id },
+      where: { id: existing.id },
       data: updateData,
     });
 
@@ -118,7 +118,7 @@ export async function DELETE(
 
     // Soft delete
     await db.airBProperty.update({
-      where: { id },
+      where: { id: existing.id },
       data: { status: 'inactive' },
     });
 

@@ -169,9 +169,16 @@ async function handlePost(request: NextRequest, ctx: SecurityContext): Promise<N
     };
 
     if (ruleId) {
-      // Update existing rule
+      // Update existing rule - verify tenant ownership
+      const existing = await db.dynamicPricingRule.findFirst({
+        where: { id: ruleId, tenantId },
+      });
+      if (!existing) {
+        return NextResponse.json({ error: 'NOT_FOUND', message: 'Regra não encontrada.' }, { status: 404 });
+      }
+
       const updated = await db.dynamicPricingRule.update({
-        where: { id: ruleId },
+        where: { id: existing.id },
         data: ruleData,
       });
       return NextResponse.json({ success: true, data: updated });
@@ -223,7 +230,7 @@ async function handleDelete(request: NextRequest, _ctx: SecurityContext): Promis
     }
 
     await db.dynamicPricingRule.delete({
-      where: { id: ruleId },
+      where: { id: rule.id },
     });
 
     return NextResponse.json({ success: true, data: { deleted: ruleId } });

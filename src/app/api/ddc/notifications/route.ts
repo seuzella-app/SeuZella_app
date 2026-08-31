@@ -48,8 +48,15 @@ export async function PUT(request: NextRequest) {
     if (!notificationId || !status) {
       return NextResponse.json({ success: false, error: { code: '400', message: 'Missing required fields: notificationId, status' } }, { status: 400 });
     }
+    const existing = await db.notification.findFirst({
+      where: { id: notificationId, tenantId },
+    });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: { code: '404', message: 'Notification not found' } }, { status: 404 });
+    }
+
     const updated = await db.notification.update({
-      where: { id: notificationId },
+      where: { id: existing.id },
       data: { read: status === 'read' },
     });
     return NextResponse.json({ success: true, data: mapNotification(updated) });

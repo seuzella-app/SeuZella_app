@@ -86,7 +86,7 @@ export async function PUT(
     if (socialMedia !== undefined) updateData.socialMedia = JSON.stringify(socialMedia);
 
     const updated = await db.lead.update({
-      where: { id },
+      where: { id: existing.id },
       data: updateData,
     });
 
@@ -132,7 +132,7 @@ export async function DELETE(
       );
     }
 
-    await db.lead.delete({ where: { id } });
+    await db.lead.delete({ where: { id: existing.id } });
 
     return NextResponse.json({ success: true, deletedId: id }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
   } catch (error) {

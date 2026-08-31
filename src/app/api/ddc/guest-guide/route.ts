@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withSecurity } from '@/lib/security/api-shield';
 import { db } from '@/lib/db';
 import { generateSlug } from '@/lib/slug-utils';
+import { resolveTenantId } from '@/lib/ddc/auth-utils';
 
 // GET /api/ddc/guest-guide — List guest guides for tenant
 async function getHandler(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
-    if (!tenantId) {
-      return NextResponse.json({ success: false, error: 'tenantId required' }, { status: 400 });
+    const authenticatedTenantId = await resolveTenantId();
+    if (!authenticatedTenantId) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
     }
+    const tenantId = authenticatedTenantId;
 
     const guides = await db.guestGuide.findMany({
       where: { tenantId },
@@ -34,12 +35,14 @@ async function getHandler(request: NextRequest) {
 // POST /api/ddc/guest-guide — Create or auto-generate a guest guide
 async function postHandler(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { tenantId, airbPropertyId, propertyId, autoGenerate, welcomeMessage, sections, title } = body;
-
-    if (!tenantId) {
-      return NextResponse.json({ success: false, error: 'tenantId required' }, { status: 400 });
+    const authenticatedTenantId = await resolveTenantId();
+    if (!authenticatedTenantId) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
     }
+    const tenantId = authenticatedTenantId;
+
+    const body = await request.json();
+    const { airbPropertyId, propertyId, autoGenerate, welcomeMessage, sections, title } = body;
 
     if (autoGenerate) {
       // Auto-generate guide from property data
@@ -232,15 +235,27 @@ async function postHandler(request: NextRequest) {
 // PUT /api/ddc/guest-guide — Update guide
 async function putHandler(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { guideId, tenantId, title, welcomeMessage, sections, status } = body;
+    const authenticatedTenantId = await resolveTenantId();
+    if (!authenticatedTenantId) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
 
-    if (!guideId || !tenantId) {
-      return NextResponse.json({ success: false, error: 'guideId and tenantId required' }, { status: 400 });
+    const body = await request.json();
+    const { guideId, title, welcomeMessage, sections, status } = body;
+
+    if (!guideId) {
+      return NextResponse.json({ success: false, error: 'guideId required' }, { status: 400 });
+    }
+
+    const existing = await db.guestGuide.findFirst({
+      where: { id: guideId, tenantId: authenticatedTenantId },
+    });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Guide not found or not owned by tenant' }, { status: 404 });
     }
 
     const guide = await db.guestGuide.update({
-      where: { id: guideId },
+      where: { id: existing.id },
       data: {
         title: title || undefined,
         welcomeMessage: welcomeMessage || undefined,
@@ -259,21 +274,25 @@ async function putHandler(request: NextRequest) {
 // DELETE /api/ddc/guest-guide — Delete guide
 async function deleteHandler(request: NextRequest) {
   try {
+    const authenticatedTenantId = await resolveTenantId();
+    if (!authenticatedTenantId) {
+      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const guideId = searchParams.get('guideId');
-    const tenantId = searchParams.get('tenantId');
 
-    if (!guideId || !tenantId) {
-      return NextResponse.json({ success: false, error: 'guideId and tenantId required' }, { status: 400 });
+    if (!guideId) {
+      return NextResponse.json({ success: false, error: 'guideId required' }, { status: 400 });
     }
 
     // Verify ownership
-    const guide = await db.guestGuide.findFirst({ where: { id: guideId, tenantId } });
+    const guide = await db.guestGuide.findFirst({ where: { id: guideId, tenantId: authenticatedTenantId } });
     if (!guide) {
       return NextResponse.json({ success: false, error: 'Guide not found or not owned by tenant' }, { status: 404 });
     }
 
-    await db.guestGuide.delete({ where: { id: guideId } });
+    await db.guestGuide.delete({ where: { id: guide.id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

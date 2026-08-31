@@ -115,6 +115,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Verify property ownership for the tenant
+    const property = await db.airBProperty.findFirst({
+      where: { id: propertyId, tenantId },
+    });
+
+    if (!property) {
+      return NextResponse.json({ success: false, error: 'Propriedade não encontrada' }, { status: 404 });
+    }
+
     switch (action) {
       case 'advance_step': {
         if (!step) {
@@ -133,13 +142,13 @@ export async function POST(request: NextRequest) {
 
         const newStatus = statusMap[step] || 'in_progress';
         await db.airBProperty.update({
-          where: { id: propertyId },
+          where: { id: property.id },
           data: { status: step === 'activate' ? 'active' : newStatus },
         });
 
         return NextResponse.json({
           success: true,
-          data: { propertyId, previousStep: step, currentStep: nextStep, status: newStatus },
+          data: { propertyId: property.id, previousStep: step, currentStep: nextStep, status: newStatus },
         });
       }
 
@@ -161,25 +170,17 @@ export async function POST(request: NextRequest) {
         if (data.pixKey !== undefined) updateData.pixKey = data.pixKey;
 
         await db.airBProperty.update({
-          where: { id: propertyId },
+          where: { id: property.id },
           data: updateData,
         });
 
         return NextResponse.json({
           success: true,
-          data: { propertyId, updatedFields: Object.keys(updateData) },
+          data: { propertyId: property.id, updatedFields: Object.keys(updateData) },
         });
       }
 
       case 'activate': {
-        const property = await db.airBProperty.findFirst({
-          where: { id: propertyId, tenantId },
-        });
-
-        if (!property) {
-          return NextResponse.json({ success: false, error: 'Propriedade não encontrada' }, { status: 404 });
-        }
-
         const missingFields: string[] = [];
         if (!property.wifiName) missingFields.push('wifiName');
         if (!property.lockCode) missingFields.push('lockCode');
@@ -196,13 +197,13 @@ export async function POST(request: NextRequest) {
         }
 
         await db.airBProperty.update({
-          where: { id: propertyId },
+          where: { id: property.id },
           data: { status: 'active' },
         });
 
         return NextResponse.json({
           success: true,
-          data: { propertyId, status: 'active', message: 'Propriedade ativada com sucesso! O Zélla AirB já pode atender hóspedes.' },
+          data: { propertyId: property.id, status: 'active', message: 'Propriedade ativada com sucesso! O Zélla AirB já pode atender hóspedes.' },
         });
       }
 

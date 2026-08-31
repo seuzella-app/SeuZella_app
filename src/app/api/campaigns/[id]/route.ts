@@ -98,7 +98,7 @@ export async function PUT(
     }
 
     const updated = await db.campaign.update({
-      where: { id },
+      where: { id: existing.id },
       data: updateData,
     });
 
@@ -147,7 +147,7 @@ export async function DELETE(
       );
     }
 
-    await db.campaign.delete({ where: { id } });
+    await db.campaign.delete({ where: { id: existing.id } });
 
     return NextResponse.json({ success: true, deletedId: id }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
   } catch (error) {

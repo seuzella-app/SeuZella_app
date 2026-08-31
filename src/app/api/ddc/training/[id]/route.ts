@@ -106,7 +106,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const feedback = generateFeedback(training.type, avgScore, results);
 
     await db.trainingPrompt.update({
-      where: { id },
+      where: { id: training.id },
       data: {
         successRate: avgScore,
         usageCount: { increment: 1 },

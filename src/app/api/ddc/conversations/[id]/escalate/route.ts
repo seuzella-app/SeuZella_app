@@ -18,8 +18,8 @@ export async function POST(
     const { success } = await apiRatelimit.limit(tenantId);
     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
-    const conversation = await db.conversationLog.findUnique({
-      where: { id },
+    const conversation = await db.conversationLog.findFirst({
+      where: { id, tenantId },
     });
 
     if (!conversation) {
@@ -38,7 +38,7 @@ export async function POST(
     // Update conversation status to escalated and create notification
     const [updatedConversation, notification] = await Promise.all([
       db.conversationLog.update({
-        where: { id },
+        where: { id: conversation.id },
         data: {
           status: 'escalated',
           lastUpdate: new Date(),
