@@ -56,6 +56,31 @@ export const PLAN_CONFIG = {
       multiWhatsapp: true,
     },
   },
+  parceiro: {
+    slug: 'parceiro' as const,
+    name: 'PARCEIRO',
+    priceCents: 24700,
+    maxProperties: 4, // Exato limite do PRO
+    maxWhatsappNumbers: 1, // Exato limite do PRO
+    features: {
+      aiAttendance: true,
+      preBookingMode: true,
+      postBookingMode: true,
+      autoScraping: true,
+      magicOnboarding: true,
+      oneShotResolution: true,
+      dashboard: true,
+      conversationHistory: true,
+      analytics: false,
+      weeklyReports: false,
+      publicApi: false,
+      abTesting: false,
+      customWebhooks: false,
+      dataExport: false,
+      prioritySupport: false,
+      multiWhatsapp: false,
+    },
+  },
 } as const;
 
 export type PlanSlug = keyof typeof PLAN_CONFIG;

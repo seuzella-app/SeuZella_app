@@ -77,8 +77,8 @@ export const PLAN_DISPLAY: Record<PlanTier, { name: string; label: string; color
   },
 };
 
-// Tier hierarchy for comparison
-const TIER_LEVEL: Record<PlanTier, number> = { gratuito: 0, lite: 1, pro: 2, max: 3, parceiro: 1 };
+// Tier hierarchy for comparison — PARCEIRO is full PRO parity (level 2)
+const TIER_LEVEL: Record<PlanTier, number> = { gratuito: 0, lite: 1, pro: 2, max: 3, parceiro: 2 };
 
 export function tierLevel(tier: PlanTier): number {
   return TIER_LEVEL[tier] ?? 0;
@@ -375,15 +375,17 @@ export const PLAN_HIGHLIGHTS: Record<PlanTier, { headline: string; features: str
     valueProposition: 'Para redes e pousadas de alto padrão que querem um parceiro estratégico.',
   },
   parceiro: {
-    headline: 'Parceiro Zélla — Ganhe indicando',
+    headline: 'Parceiro Zélla — Mesma potência do Plano PRO',
     features: [
-      'Selo Parceiro Zélla verificado',
-      'Link-in-Bio profissional personalizado',
-      'Comissão por indicação convertida',
-      'Dashboard de indicações',
-      'Acesso antecipado a novas features',
+      'TUDO do plano PRO incluído',
+      'Mensagens ILIMITADAS no WhatsApp (Zero Taxas)',
+      'Selo Oficial de Parceiro Zélla no perfil/Link-in-Bio',
+      'Preço de lançamento R$ 247/mês garantido por 24 meses',
+      'CRM Pipeline com score IA e Treinamento de Persona',
+      'Sincronização iCal e Fechaduras Eletrônicas',
+      'Exclusivo para os 100 primeiros parceiros pioneiros',
     ],
-    valueProposition: 'Para quem quer monetizar sua rede e ser parceiro oficial Zélla.',
+    valueProposition: 'Condição especial de lançamento por R$ 247/mês com contrato de 24 meses.',
   },
 };
 

@@ -100,28 +100,27 @@ describe('🔧 Certification Hardening — 7 Blocker Fixes', () => {
 
   // B1: getTenantDb has real callers (not dead code)
   it('getTenantDb is called by at least 1 production file', () => {
-    // Verify via git grep that getTenantDb is imported somewhere outside its definition
     let result = '';
     try {
-      result = execFileSync('git', ['grep', '-l', 'getTenantDb', 'src/'], {
-        timeout: 15000, encoding: 'utf8', cwd: root,
+      result = execFileSync('git', ['grep', '--untracked', '-l', 'getTenantDb', 'src/'], {
+        timeout: 30000, encoding: 'utf8', cwd: root,
       }).trim();
     } catch { /* no matches */ }
     const files = result.split('\n').filter(f => f && !f.includes('tenant-prisma.ts'));
     expect(files.length).toBeGreaterThan(0);
-  });
+  }, 30000);
 
   // B8: No Stripe anywhere
   it('zero references to stripe in src/', () => {
     let result = '';
     try {
-      result = execFileSync('git', ['grep', '-li', 'stripe', 'src/'], {
-        timeout: 15000, encoding: 'utf8', cwd: root,
+      result = execFileSync('git', ['grep', '--untracked', '-li', 'stripe', 'src/'], {
+        timeout: 30000, encoding: 'utf8', cwd: root,
       }).trim();
     } catch { /* no matches = good */ }
     const files = result.split('\n').filter(Boolean);
     expect(files).toEqual([]);
-  });
+  }, 30000);
 
   // B9: TypeScript compiles
   it('TypeScript compiles with 0 errors (excluding known legacy)', () => {

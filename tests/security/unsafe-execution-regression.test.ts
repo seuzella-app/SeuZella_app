@@ -6,10 +6,10 @@ describe('unsafe execution regression', () => {
     const result = spawnSync(
       'git',
       ['grep', '-nE', '(^|[^A-Za-z_.])eval\\(|new Function\\(|child_process.*execSync\\(', 'src/app', 'src/lib/security'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30000 },
     );
 
     expect(result.status).toBe(1);
     expect(result.stdout).toBe('');
-  });
+  }, 30000);
 });

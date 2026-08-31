@@ -112,6 +112,7 @@ model Tenant {
   specialDates       SpecialDate[]
   specialDateSuggestions SpecialDateSuggestion[]
   priceOverrides     PriceOverride[]
+  partnerClaim       PartnerClaim?
   passwordChangedAt  DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1555,6 +1556,65 @@ model PriceOverride {
   @@unique([tenantId, roomId, date])
   @@index([tenantId, date])
   @@map("price_overrides")
+}
+
+model PartnerProgramConfig {
+  id              String   @id @default("default")
+  maxSlotsInitial Int      @default(100)
+  maxSlotsCeiling Int      @default(200)
+  claimedSlots    Int      @default(0)
+  status          String   @default("ACTIVE") // ACTIVE | FULL | WAITLIST | REOPENED | CLOSED
+  monthlyPrice    Float    @default(247.0)
+  contractMonths  Int      @default(24)
+  activeBatch     Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@map("partner_program_config")
+}
+
+model PartnerClaim {
+  id             String    @id @default(cuid())
+  slotNumber     Int       @unique
+  tenantId       String    @unique
+  propertyId     String?
+  pousadaName    String
+  ownerName      String
+  email          String
+  phone          String
+  monthlyPrice   Float     @default(247.0)
+  contractMonths Int       @default(24)
+  status         String    @default("ACTIVE") // ACTIVE | CANCELLED | DEFAULTED | COMPLETED
+  badgeActive    Boolean   @default(true)
+  batch          Int       @default(1)
+  claimedAt      DateTime  @default(now())
+  contractStart  DateTime  @default(now())
+  contractEnd    DateTime
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  @@index([status])
+  @@index([tenantId])
+  @@map("partner_claims")
+}
+
+model PartnerWaitlist {
+  id          String    @id @default(cuid())
+  tenantId    String?
+  pousadaName String
+  contactName String
+  email       String    @unique
+  phone       String
+  city        String?
+  state       String?
+  roomCount   Int?
+  notes       String    @default("")
+  status      String    @default("PENDING") // PENDING | INVITED | CONVERTED | EXPIRED
+  invitedAt   DateTime?
+  convertedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  @@index([status])
+  @@map("partner_waitlist")
 }
 
 model GuestGuide {
