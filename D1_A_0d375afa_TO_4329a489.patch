@@ -1,0 +1,819 @@
+diff --git a/src/app/api/ddc/conversations/[id]/route.ts b/src/app/api/ddc/conversations/[id]/route.ts
+index ff1b4dd7..e6f615d0 100755
+--- a/src/app/api/ddc/conversations/[id]/route.ts
++++ b/src/app/api/ddc/conversations/[id]/route.ts
+@@ -21,8 +21,8 @@ export async function GET(
+     const g = await guard();
+     if (g instanceof NextResponse) return g;
+     const { id } = await params;
+-    const conversation = await db.conversationLog.findUnique({
+-      where: { id },
++    const conversation = await db.conversationLog.findFirst({
++      where: { id, tenantId: g },
+       include: { messages: { orderBy: { timestamp: 'asc' } } },
+     });
+ 
+@@ -31,7 +31,7 @@ export async function GET(
+     }
+ 
+     return apiSuccess(conversation);
+-  } catch (error) {
++  } catch {
+     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
+   }
+ }
+@@ -47,6 +47,13 @@ export async function PATCH(
+     const body = await request.json();
+     const { status, aiConfidence, metadata } = body;
+ 
++    const existing = await db.conversationLog.findFirst({
++      where: { id, tenantId: g },
++    });
++    if (!existing) {
++      return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
++    }
++
+     const conversation = await db.conversationLog.update({
+       where: { id },
+       data: {
+@@ -66,7 +73,7 @@ export async function PATCH(
+     }
+ 
+     return apiSuccess(conversation);
+-  } catch (error) {
++  } catch {
+     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
+   }
+ }
+\ No newline at end of file
+diff --git a/src/app/api/properties/[id]/route.ts b/src/app/api/properties/[id]/route.ts
+index bec3bf6b..e8040a01 100755
+--- a/src/app/api/properties/[id]/route.ts
++++ b/src/app/api/properties/[id]/route.ts
+@@ -8,7 +8,6 @@
+ 
+ import { NextRequest, NextResponse } from 'next/server';
+ import { db } from '@/lib/db';
+-import { withApiGuard } from '@/lib/security/api-guard';
+ import { getServerSession } from 'next-auth';
+ import { authOptions } from '@/lib/auth';
+ 
+@@ -17,9 +16,14 @@ export async function GET(
+   { params }: { params: Promise<{ id: string }> }
+ ) {
+   try {
++    const session = await getServerSession(authOptions);
++    if (!session?.user?.tenantId) {
++      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
++    }
++
+     const { id } = await params;
+     const property = await db.airBProperty.findFirst({
+-      where: { id, status: 'active' },
++      where: { id, tenantId: session.user.tenantId, status: 'active' },
+     });
+ 
+     if (!property) {
+@@ -38,10 +42,17 @@ export async function PUT(
+   { params }: { params: Promise<{ id: string }> }
+ ) {
+   try {
++    const session = await getServerSession(authOptions);
++    if (!session?.user?.tenantId) {
++      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
++    }
++
+     const { id } = await params;
+     const body = await request.json();
+ 
+-    const existing = await db.airBProperty.findUnique({ where: { id } });
++    const existing = await db.airBProperty.findFirst({
++      where: { id, tenantId: session.user.tenantId },
++    });
+     if (!existing) {
+       return NextResponse.json({ error: 'Propriedade não encontrada.' }, { status: 404 });
+     }
+@@ -91,9 +102,16 @@ export async function DELETE(
+   { params }: { params: Promise<{ id: string }> }
+ ) {
+   try {
++    const session = await getServerSession(authOptions);
++    if (!session?.user?.tenantId) {
++      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
++    }
++
+     const { id } = await params;
+ 
+-    const existing = await db.airBProperty.findUnique({ where: { id } });
++    const existing = await db.airBProperty.findFirst({
++      where: { id, tenantId: session.user.tenantId },
++    });
+     if (!existing) {
+       return NextResponse.json({ error: 'Propriedade não encontrada.' }, { status: 404 });
+     }
+diff --git a/src/app/api/targets/[id]/route.ts b/src/app/api/targets/[id]/route.ts
+index dcead6fd..be2b40dd 100755
+--- a/src/app/api/targets/[id]/route.ts
++++ b/src/app/api/targets/[id]/route.ts
+@@ -1,6 +1,8 @@
+ import { NextResponse } from 'next/server';
+ import { db } from '@/lib/db';
+ import { apiRatelimit } from '@/lib/rate-limit';
++import { getServerSession } from 'next-auth';
++import { authOptions } from '@/lib/auth';
+ 
+ export async function GET(
+   request: Request,
+@@ -16,9 +18,19 @@ export async function GET(
+   }
+ 
+   try {
++    const session = await getServerSession(authOptions);
++    if (!session?.user?.tenantId) {
++      return NextResponse.json(
++        { error: 'Não autorizado' },
++        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
++      );
++    }
++
+     const { id } = await params;
+ 
+-    const target = await db.target.findUnique({ where: { id } });
++    const target = await db.target.findFirst({
++      where: { id, tenantId: session.user.tenantId },
++    });
+ 
+     if (!target) {
+       return NextResponse.json(
+@@ -55,10 +67,20 @@ export async function PUT(
+   }
+ 
+   try {
++    const session = await getServerSession(authOptions);
++    if (!session?.user?.tenantId) {
++      return NextResponse.json(
++        { error: 'Não autorizado' },
++        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
++      );
++    }
++
+     const { id } = await params;
+     const body = await request.json();
+ 
+-    const existing = await db.target.findUnique({ where: { id } });
++    const existing = await db.target.findFirst({
++      where: { id, tenantId: session.user.tenantId },
++    });
+     if (!existing) {
+       return NextResponse.json(
+         { error: 'Target não encontrado' },
+@@ -109,9 +131,19 @@ export async function DELETE(
+   }
+ 
+   try {
++    const session = await getServerSession(authOptions);
++    if (!session?.user?.tenantId) {
++      return NextResponse.json(
++        { error: 'Não autorizado' },
++        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
++      );
++    }
++
+     const { id } = await params;
+ 
+-    const existing = await db.target.findUnique({ where: { id } });
++    const existing = await db.target.findFirst({
++      where: { id, tenantId: session.user.tenantId },
++    });
+     if (!existing) {
+       return NextResponse.json(
+         { error: 'Target não encontrado' },
+diff --git a/src/lib/db/tenant-prisma.ts b/src/lib/db/tenant-prisma.ts
+index 596255b1..5f76c342 100644
+--- a/src/lib/db/tenant-prisma.ts
++++ b/src/lib/db/tenant-prisma.ts
+@@ -19,7 +19,7 @@ const TENANT_MODELS = [
+   'AirBProperty', 'AirBConversation', 'AirBSubscription',
+   'DynamicPricingRule', 'PricingCalculation',
+   'ReferralCode', 'AmortizationCredit', 'LiteMilestone',
+-  'GuestRegistration', 'YieldProfitRecord', 'DevicePing',
++  'YieldProfitRecord', 'DevicePing',
+   'CostLog', 'Booking', 'TrainingPrompt', 'Notification',
+   'PerformanceSnapshot', 'QuickAction', 'Feedback', 'ZelladorMessage',
+   'LgpdDeleteRequest', 'LgpdIncident', 'PushSubscription', 'MetaCostLog',
+@@ -33,7 +33,7 @@ const TENANT_MODELS = [
+ 
+ const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'findUnique', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy', 'upsert'];
+ const CREATE_OPERATIONS = ['create', 'createMany'];
+-type AnyArgs = { where?: any; data?: any; create?: any; update?: any; [key: string]: any };
++type AnyArgs = { where?: Record<string, unknown>; data?: Record<string, unknown> | Record<string, unknown>[]; create?: Record<string, unknown>; update?: Record<string, unknown>; [key: string]: unknown };
+ 
+ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
+   if (!tenantId) throw new Error('TENANT_CONTEXT_REQUIRED');
+@@ -42,8 +42,8 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
+     name: 'tenantIsolation',
+     query: {
+       $allModels: {
+-        async $allOperations({ model, operation, args, query }: { model: string; operation: string; args: AnyArgs | undefined; query: (args: any) => Promise<any> }) {
+-          if (!TENANT_MODELS.includes(model as any)) return query(args);
++        async $allOperations({ model, operation, args, query }: { model: string; operation: string; args: AnyArgs | undefined; query: (args: unknown) => Promise<unknown> }) {
++          if (!TENANT_MODELS.includes(model as typeof TENANT_MODELS[number])) return query(args);
+ 
+           if (FILTERED_OPERATIONS.includes(operation)) {
+             args ??= {};
+@@ -60,17 +60,14 @@ export function getTenantDb(prisma: PrismaClient, tenantId: string) {
+ 
+           if (operation === 'upsert') {
+             args ??= {};
+-            args.create ??= {} as any;
+-            args.update ??= {} as any;
+-            (args.create as any).tenantId = tenantId;
+-            (args.update as any).tenantId = tenantId;
++            args.create = typeof args.create === 'object' && args.create !== null ? { ...args.create, tenantId } : { tenantId };
++            args.update = typeof args.update === 'object' && args.update !== null ? { ...args.update, tenantId } : { tenantId };
+           } else if (CREATE_OPERATIONS.includes(operation)) {
+             args ??= {};
+-            args.data ??= {} as any;
+             if (operation === 'createMany' && Array.isArray(args.data)) {
+-              args.data = (args.data as any[]).map((item: any) => ({ ...item, tenantId }));
+-            } else if (typeof args.data === 'object') {
+-              (args.data as any).tenantId = tenantId;
++              args.data = args.data.map((item) => (typeof item === 'object' && item !== null ? { ...item, tenantId } : item));
++            } else if (typeof args.data === 'object' && args.data !== null) {
++              args.data = { ...args.data, tenantId };
+             }
+           }
+ 
+diff --git a/tests/security/endpoint-protection-audit.test.ts b/tests/security/endpoint-protection-audit.test.ts
+index 92f65b57..a2d871fc 100644
+--- a/tests/security/endpoint-protection-audit.test.ts
++++ b/tests/security/endpoint-protection-audit.test.ts
+@@ -18,12 +18,16 @@ const CRITICAL_PREFIXES = [
+   'src/app/api/ddc/housekeeping',
+   'src/app/api/ddc/airb/properties',
+   'src/app/api/ddc/realtime',
++  'src/app/api/ddc/conversations/',
+   'src/app/api/push',
+   'src/app/api/locks/',
+   'src/app/api/reservations/',
+   'src/app/api/guests/',
+   'src/app/api/bookings/',
+   'src/app/api/push/',
++  'src/app/api/properties/',
++  'src/app/api/targets/',
++  'src/app/api/checkout/',
+ ];
+ 
+ const PUBLIC_EXEMPTIONS = [
+diff --git a/tests/security/idor-c1-endpoints.test.ts b/tests/security/idor-c1-endpoints.test.ts
+new file mode 100644
+index 00000000..9c9c3409
+--- /dev/null
++++ b/tests/security/idor-c1-endpoints.test.ts
+@@ -0,0 +1,407 @@
++import { describe, expect, it, vi, beforeEach } from 'vitest';
++import { NextRequest } from 'next/server';
++import * as propertiesRoute from '@/app/api/properties/[id]/route';
++import * as targetsRoute from '@/app/api/targets/[id]/route';
++import * as conversationsRoute from '@/app/api/ddc/conversations/[id]/route';
++import { db } from '@/lib/db';
++import { getServerSession } from 'next-auth';
++import { resolveTenantId } from '@/lib/ddc/ddc-mapper';
++import { apiRatelimit } from '@/lib/rate-limit';
++
++vi.mock('next-auth', () => ({
++  getServerSession: vi.fn(),
++}));
++
++vi.mock('@/lib/auth', () => ({
++  authOptions: {},
++}));
++
++vi.mock('@/lib/ddc/ddc-mapper', () => ({
++  resolveTenantId: vi.fn(),
++}));
++
++vi.mock('@/lib/rate-limit', () => ({
++  apiRatelimit: {
++    limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }),
++  },
++  authRatelimit: {
++    limit: vi.fn().mockResolvedValue({ success: true, reset: Date.now() + 60000 }),
++  },
++}));
++
++vi.mock('@/lib/db', () => {
++  return {
++    db: {
++      airBProperty: {
++        findFirst: vi.fn(),
++        findUnique: vi.fn(),
++        update: vi.fn(),
++      },
++      target: {
++        findFirst: vi.fn(),
++        findUnique: vi.fn(),
++        update: vi.fn(),
++        delete: vi.fn(),
++      },
++      conversationLog: {
++        findFirst: vi.fn(),
++        findUnique: vi.fn(),
++        update: vi.fn(),
++      },
++    },
++  };
++});
++
++describe('DELTA-2 / C1 — Multi-Tenant IDOR Protection Suite', () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  // ===========================================================================
++  // 1. PROPERTIES ([id])
++  // ===========================================================================
++  describe('Properties [id] endpoint', () => {
++    it('1. GET: blocks unauthenticated requests with 401', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req = new NextRequest('http://localhost/api/properties/prop_1');
++      const res = await propertiesRoute.GET(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(401);
++    });
++
++    it('2. GET: returns property when accessed by authorized tenant', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_A' } } as any);
++      vi.mocked(db.airBProperty.findFirst).mockResolvedValueOnce({ id: 'prop_1', tenantId: 'tenant_A', name: 'Casa 1' } as any);
++
++      const req = new NextRequest('http://localhost/api/properties/prop_1');
++      const res = await propertiesRoute.GET(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(200);
++      const body = await res.json();
++      expect(body.property.id).toBe('prop_1');
++      expect(db.airBProperty.findFirst).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: expect.objectContaining({ id: 'prop_1', tenantId: 'tenant_A', status: 'active' }),
++        })
++      );
++    });
++
++    it('3. GET: blocks adversary tenant B accessing property of tenant A with 404', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_B' } } as any);
++      vi.mocked(db.airBProperty.findFirst).mockResolvedValueOnce(null);
++
++      const req = new NextRequest('http://localhost/api/properties/prop_1');
++      const res = await propertiesRoute.GET(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(404);
++      expect(db.airBProperty.findFirst).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: expect.objectContaining({ id: 'prop_1', tenantId: 'tenant_B', status: 'active' }),
++        })
++      );
++    });
++
++    it('4. PUT: blocks unauthenticated requests with 401', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req = new NextRequest('http://localhost/api/properties/prop_1', {
++        method: 'PUT',
++        body: JSON.stringify({ name: 'Hack Name' }),
++      });
++      const res = await propertiesRoute.PUT(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(401);
++    });
++
++    it('5. PUT: allows update by authorized tenant owner', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_A' } } as any);
++      vi.mocked(db.airBProperty.findFirst).mockResolvedValueOnce({ id: 'prop_1', tenantId: 'tenant_A' } as any);
++      vi.mocked(db.airBProperty.update).mockResolvedValueOnce({ id: 'prop_1', name: 'Novo Nome' } as any);
++
++      const req = new NextRequest('http://localhost/api/properties/prop_1', {
++        method: 'PUT',
++        body: JSON.stringify({ name: 'Novo Nome' }),
++      });
++      const res = await propertiesRoute.PUT(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(200);
++      expect(db.airBProperty.update).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'prop_1' },
++          data: expect.objectContaining({ name: 'Novo Nome' }),
++        })
++      );
++    });
++
++    it('6. PUT: blocks cross-tenant update and does NOT mutate resource', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_B' } } as any);
++      vi.mocked(db.airBProperty.findFirst).mockResolvedValueOnce(null);
++
++      const req = new NextRequest('http://localhost/api/properties/prop_1', {
++        method: 'PUT',
++        body: JSON.stringify({ name: 'Malicious Name' }),
++      });
++      const res = await propertiesRoute.PUT(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(404);
++      expect(db.airBProperty.update).not.toHaveBeenCalled();
++    });
++
++    it('7. PUT: ignores forged tenantId injected in body payload', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_A' } } as any);
++      vi.mocked(db.airBProperty.findFirst).mockResolvedValueOnce({ id: 'prop_1', tenantId: 'tenant_A' } as any);
++      vi.mocked(db.airBProperty.update).mockResolvedValueOnce({ id: 'prop_1' } as any);
++
++      const req = new NextRequest('http://localhost/api/properties/prop_1', {
++        method: 'PUT',
++        body: JSON.stringify({ name: 'Legit', tenantId: 'tenant_FORGED' }),
++      });
++      const res = await propertiesRoute.PUT(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(200);
++      expect(db.airBProperty.update).toHaveBeenCalledWith(
++        expect.objectContaining({
++          data: expect.not.objectContaining({ tenantId: 'tenant_FORGED' }),
++        })
++      );
++    });
++
++    it('8. DELETE: blocks unauthenticated delete with 401', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req = new NextRequest('http://localhost/api/properties/prop_1', { method: 'DELETE' });
++      const res = await propertiesRoute.DELETE(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(401);
++    });
++
++    it('9. DELETE: allows soft delete by authorized tenant', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_A' } } as any);
++      vi.mocked(db.airBProperty.findFirst).mockResolvedValueOnce({ id: 'prop_1', tenantId: 'tenant_A' } as any);
++      vi.mocked(db.airBProperty.update).mockResolvedValueOnce({ id: 'prop_1', status: 'inactive' } as any);
++
++      const req = new NextRequest('http://localhost/api/properties/prop_1', { method: 'DELETE' });
++      const res = await propertiesRoute.DELETE(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(200);
++      expect(db.airBProperty.update).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'prop_1' },
++          data: { status: 'inactive' },
++        })
++      );
++    });
++
++    it('10. DELETE: blocks cross-tenant deletion with 404 and does not mutate', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_B' } } as any);
++      vi.mocked(db.airBProperty.findFirst).mockResolvedValueOnce(null);
++
++      const req = new NextRequest('http://localhost/api/properties/prop_1', { method: 'DELETE' });
++      const res = await propertiesRoute.DELETE(req, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res.status).toBe(404);
++      expect(db.airBProperty.update).not.toHaveBeenCalled();
++    });
++  });
++
++  // ===========================================================================
++  // 2. TARGETS ([id])
++  // ===========================================================================
++  describe('Targets [id] endpoint', () => {
++    it('11. GET: blocks unauthenticated requests with 401', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req = new Request('http://localhost/api/targets/tgt_1');
++      const res = await targetsRoute.GET(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(401);
++    });
++
++    it('12. GET: returns target when accessed by owner tenant', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_A' } } as any);
++      vi.mocked(db.target.findFirst).mockResolvedValueOnce({
++        id: 'tgt_1',
++        tenantId: 'tenant_A',
++        name: 'Target 1',
++        createdAt: new Date(),
++        updatedAt: new Date(),
++      } as any);
++
++      const req = new Request('http://localhost/api/targets/tgt_1');
++      const res = await targetsRoute.GET(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(200);
++      expect(db.target.findFirst).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'tgt_1', tenantId: 'tenant_A' },
++        })
++      );
++    });
++
++    it('13. GET: blocks adversary tenant B with 404', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_B' } } as any);
++      vi.mocked(db.target.findFirst).mockResolvedValueOnce(null);
++
++      const req = new Request('http://localhost/api/targets/tgt_1');
++      const res = await targetsRoute.GET(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(404);
++      expect(db.target.findFirst).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'tgt_1', tenantId: 'tenant_B' },
++        })
++      );
++    });
++
++    it('14. PUT: blocks unauthenticated request with 401', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req = new Request('http://localhost/api/targets/tgt_1', {
++        method: 'PUT',
++        body: JSON.stringify({ name: 'Hacked' }),
++      });
++      const res = await targetsRoute.PUT(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(401);
++    });
++
++    it('15. PUT: allows update by authorized tenant owner', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_A' } } as any);
++      vi.mocked(db.target.findFirst).mockResolvedValueOnce({ id: 'tgt_1', tenantId: 'tenant_A' } as any);
++      vi.mocked(db.target.update).mockResolvedValueOnce({
++        id: 'tgt_1',
++        name: 'Atualizado',
++        createdAt: new Date(),
++        updatedAt: new Date(),
++      } as any);
++
++      const req = new Request('http://localhost/api/targets/tgt_1', {
++        method: 'PUT',
++        body: JSON.stringify({ name: 'Atualizado' }),
++      });
++      const res = await targetsRoute.PUT(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(200);
++      expect(db.target.update).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'tgt_1' },
++          data: expect.objectContaining({ name: 'Atualizado' }),
++        })
++      );
++    });
++
++    it('16. PUT: blocks cross-tenant update with 404 and does not mutate', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_B' } } as any);
++      vi.mocked(db.target.findFirst).mockResolvedValueOnce(null);
++
++      const req = new Request('http://localhost/api/targets/tgt_1', {
++        method: 'PUT',
++        body: JSON.stringify({ name: 'Malicious' }),
++      });
++      const res = await targetsRoute.PUT(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(404);
++      expect(db.target.update).not.toHaveBeenCalled();
++    });
++
++    it('17. DELETE: blocks unauthenticated delete with 401', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req = new Request('http://localhost/api/targets/tgt_1', { method: 'DELETE' });
++      const res = await targetsRoute.DELETE(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(401);
++    });
++
++    it('18. DELETE: allows delete by authorized tenant', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_A' } } as any);
++      vi.mocked(db.target.findFirst).mockResolvedValueOnce({ id: 'tgt_1', tenantId: 'tenant_A' } as any);
++      vi.mocked(db.target.delete).mockResolvedValueOnce({ id: 'tgt_1' } as any);
++
++      const req = new Request('http://localhost/api/targets/tgt_1', { method: 'DELETE' });
++      const res = await targetsRoute.DELETE(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(200);
++      expect(db.target.delete).toHaveBeenCalledWith({ where: { id: 'tgt_1' } });
++    });
++
++    it('19. DELETE: blocks cross-tenant deletion with 404 and does not delete', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce({ user: { tenantId: 'tenant_B' } } as any);
++      vi.mocked(db.target.findFirst).mockResolvedValueOnce(null);
++
++      const req = new Request('http://localhost/api/targets/tgt_1', { method: 'DELETE' });
++      const res = await targetsRoute.DELETE(req, { params: Promise.resolve({ id: 'tgt_1' }) });
++      expect(res.status).toBe(404);
++      expect(db.target.delete).not.toHaveBeenCalled();
++    });
++  });
++
++  // ===========================================================================
++  // 3. CONVERSATIONS ([id])
++  // ===========================================================================
++  describe('DDC Conversations [id] endpoint', () => {
++    it('20. GET: blocks unauthenticated request with 401', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce(null as any);
++      const req = new NextRequest('http://localhost/api/ddc/conversations/conv_1');
++      const res = await conversationsRoute.GET(req, { params: Promise.resolve({ id: 'conv_1' }) });
++      expect(res.status).toBe(401);
++    });
++
++    it('21. GET: returns conversation when accessed by owning tenant', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_A');
++      vi.mocked(db.conversationLog.findFirst).mockResolvedValueOnce({
++        id: 'conv_1',
++        tenantId: 'tenant_A',
++        messages: [],
++      } as any);
++
++      const req = new NextRequest('http://localhost/api/ddc/conversations/conv_1');
++      const res = await conversationsRoute.GET(req, { params: Promise.resolve({ id: 'conv_1' }) });
++      expect(res.status).toBe(200);
++      expect(db.conversationLog.findFirst).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'conv_1', tenantId: 'tenant_A' },
++        })
++      );
++    });
++
++    it('22. GET: blocks adversary tenant B with 404', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_B');
++      vi.mocked(db.conversationLog.findFirst).mockResolvedValueOnce(null);
++
++      const req = new NextRequest('http://localhost/api/ddc/conversations/conv_1');
++      const res = await conversationsRoute.GET(req, { params: Promise.resolve({ id: 'conv_1' }) });
++      expect(res.status).toBe(404);
++      expect(db.conversationLog.findFirst).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'conv_1', tenantId: 'tenant_B' },
++        })
++      );
++    });
++
++    it('23. PATCH: blocks unauthenticated request with 401', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce(null as any);
++      const req = new NextRequest('http://localhost/api/ddc/conversations/conv_1', {
++        method: 'PATCH',
++        body: JSON.stringify({ status: 'resolved' }),
++      });
++      const res = await conversationsRoute.PATCH(req, { params: Promise.resolve({ id: 'conv_1' }) });
++      expect(res.status).toBe(401);
++    });
++
++    it('24. PATCH: allows update by owning tenant', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_A');
++      vi.mocked(db.conversationLog.findFirst).mockResolvedValueOnce({
++        id: 'conv_1',
++        tenantId: 'tenant_A',
++      } as any);
++      vi.mocked(db.conversationLog.update).mockResolvedValueOnce({
++        id: 'conv_1',
++        status: 'resolved',
++      } as any);
++
++      const req = new NextRequest('http://localhost/api/ddc/conversations/conv_1', {
++        method: 'PATCH',
++        body: JSON.stringify({ status: 'resolved' }),
++      });
++      const res = await conversationsRoute.PATCH(req, { params: Promise.resolve({ id: 'conv_1' }) });
++      expect(res.status).toBe(200);
++      expect(db.conversationLog.update).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'conv_1' },
++          data: expect.objectContaining({ status: 'resolved' }),
++        })
++      );
++    });
++
++    it('25. PATCH: blocks cross-tenant modification with 404 and does not mutate', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_B');
++      vi.mocked(db.conversationLog.findFirst).mockResolvedValueOnce(null);
++
++      const req = new NextRequest('http://localhost/api/ddc/conversations/conv_1', {
++        method: 'PATCH',
++        body: JSON.stringify({ status: 'resolved' }),
++      });
++      const res = await conversationsRoute.PATCH(req, { params: Promise.resolve({ id: 'conv_1' }) });
++      expect(res.status).toBe(404);
++      expect(db.conversationLog.update).not.toHaveBeenCalled();
++    });
++  });
++});
+diff --git a/tests/security/idor-checkout-paths.test.ts b/tests/security/idor-checkout-paths.test.ts
+new file mode 100644
+index 00000000..73529e38
+--- /dev/null
++++ b/tests/security/idor-checkout-paths.test.ts
+@@ -0,0 +1,105 @@
++import { describe, expect, it } from 'vitest';
++import fs from 'node:fs';
++import path from 'node:path';
++
++describe('DELTA-2 / C1 — Checkout Paths & Code Contract Audit', () => {
++  it('26. /api/checkout/cancel: enforces session tenant isolation', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/checkout/cancel/route.ts'), 'utf8');
++    expect(code).toContain('getServerSession');
++    expect(code).toContain('session.user.tenantId');
++    expect(code).toContain('subscription.tenantId !== session.user.tenantId');
++  });
++
++  it('27. /api/checkout/upgrade: enforces session tenant boundary', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/checkout/upgrade/route.ts'), 'utf8');
++    expect(code).toContain('getServerSession');
++    expect(code).toContain('session.user.tenantId');
++    expect(code).toContain('tenantId !== session.user.tenantId');
++  });
++
++  it('28. /api/checkout/pix-status: enforces payment ownership verification against tenant', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/checkout/pix-status/route.ts'), 'utf8');
++    expect(code).toContain('getServerSession');
++    expect(code).toContain('subscription.tenantId !== tenantId');
++  });
++
++  it('29. /api/checkout/success: enforces HMAC signature and session tenant verification', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/checkout/success/route.ts'), 'utf8');
++    expect(code).toContain('getServerSession');
++    expect(code).toContain('subscription.tenantId !== session.user.tenantId');
++    expect(code).toContain('timingSafeEqual');
++  });
++
++  it('30. /api/properties/[id]: GET combines resource id and session tenantId', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/properties/[id]/route.ts'), 'utf8');
++    expect(code).toContain('getServerSession');
++    expect(code).toContain('session.user.tenantId');
++    expect(code).toContain('tenantId: session.user.tenantId');
++  });
++
++  it('31. /api/properties/[id]: PUT combines resource id and session tenantId', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/properties/[id]/route.ts'), 'utf8');
++    expect(code).toContain('findFirst');
++    expect(code).toContain('where: { id, tenantId: session.user.tenantId }');
++  });
++
++  it('32. /api/properties/[id]: DELETE combines resource id and session tenantId', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/properties/[id]/route.ts'), 'utf8');
++    expect(code).toContain('findFirst');
++    expect(code).toContain('where: { id, tenantId: session.user.tenantId }');
++  });
++
++  it('33. /api/targets/[id]: GET combines resource id and session tenantId', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/targets/[id]/route.ts'), 'utf8');
++    expect(code).toContain('getServerSession');
++    expect(code).toContain('where: { id, tenantId: session.user.tenantId }');
++  });
++
++  it('34. /api/targets/[id]: PUT combines resource id and session tenantId', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/targets/[id]/route.ts'), 'utf8');
++    expect(code).toContain('findFirst');
++    expect(code).toContain('tenantId: session.user.tenantId');
++  });
++
++  it('35. /api/targets/[id]: DELETE combines resource id and session tenantId', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/targets/[id]/route.ts'), 'utf8');
++    expect(code).toContain('findFirst');
++    expect(code).toContain('tenantId: session.user.tenantId');
++  });
++
++  it('36. /api/ddc/conversations/[id]: GET scopes query to tenant context', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/ddc/conversations/[id]/route.ts'), 'utf8');
++    expect(code).toContain('guard()');
++    expect(code).toContain('tenantId: g');
++  });
++
++  it('37. /api/ddc/conversations/[id]: PATCH checks tenant ownership before mutation', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/ddc/conversations/[id]/route.ts'), 'utf8');
++    expect(code).toContain('findFirst');
++    expect(code).toContain('where: { id, tenantId: g }');
++  });
++
++  it('38. No raw findUnique on multi-tenant property detail in /api/properties/[id]', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/properties/[id]/route.ts'), 'utf8');
++    expect(code).not.toContain('db.airBProperty.findUnique');
++  });
++
++  it('39. No raw findUnique on multi-tenant target detail in /api/targets/[id]', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/targets/[id]/route.ts'), 'utf8');
++    expect(code).not.toContain('db.target.findUnique');
++  });
++
++  it('40. No raw findUnique on multi-tenant conversation detail in /api/ddc/conversations/[id]', () => {
++    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/api/ddc/conversations/[id]/route.ts'), 'utf8');
++    expect(code).not.toContain('db.conversationLog.findUnique');
++  });
++
++  it('41. Error responses do not leak cross-tenant existence across C1 endpoints', () => {
++    const propCode = fs.readFileSync(path.join(process.cwd(), 'src/app/api/properties/[id]/route.ts'), 'utf8');
++    const targetCode = fs.readFileSync(path.join(process.cwd(), 'src/app/api/targets/[id]/route.ts'), 'utf8');
++    const convCode = fs.readFileSync(path.join(process.cwd(), 'src/app/api/ddc/conversations/[id]/route.ts'), 'utf8');
++    expect(propCode).toContain('status: 404');
++    expect(targetCode).toContain('status: 404');
++    expect(convCode).toContain('NOT_FOUND');
++  });
++});
+diff --git a/tests/security/tenant-isolation-matrix.test.ts b/tests/security/tenant-isolation-matrix.test.ts
+index 56591dfe..5c0d4559 100644
+--- a/tests/security/tenant-isolation-matrix.test.ts
++++ b/tests/security/tenant-isolation-matrix.test.ts
+@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
+ import { TENANT_MODELS } from '@/lib/db/tenant-prisma';
+ 
+ describe('Tenant isolation matrix enforcement', () => {
+-  it('enforces exactly the 73 approved tenant-scoped models', () => {
+-    expect(TENANT_MODELS).toHaveLength(73);
+-    expect(new Set(TENANT_MODELS).size).toBe(73);
++  it('enforces exactly the 72 approved tenant-scoped models', () => {
++    expect(TENANT_MODELS).toHaveLength(72);
++    expect(new Set(TENANT_MODELS).size).toBe(72);
+   });
+ 
+   it('includes newly classified operational tenant models', () => {
+@@ -23,8 +23,8 @@ describe('Tenant isolation matrix enforcement', () => {
+     }
+   });
+ 
+-  it('does not auto-scope explicitly global administration/auth models', () => {
+-    for (const model of ['User', 'ZCCAccessLog']) {
++  it('does not auto-scope explicitly global administration/auth models or removed phantoms', () => {
++    for (const model of ['User', 'ZCCAccessLog', 'GuestRegistration']) {
+       expect(TENANT_MODELS).not.toContain(model);
+     }
+   });

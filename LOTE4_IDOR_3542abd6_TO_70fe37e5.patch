@@ -1,0 +1,564 @@
+diff --git a/IMPLEMENTATION_RECONCILIATION_MATRIX.md b/IMPLEMENTATION_RECONCILIATION_MATRIX.md
+new file mode 100644
+index 00000000..f8df25c0
+--- /dev/null
++++ b/IMPLEMENTATION_RECONCILIATION_MATRIX.md
+@@ -0,0 +1,52 @@
++# IMPLEMENTATION_RECONCILIATION_MATRIX
++
++**Data**: 2026-08-31T12:36:00-03:00  
++**Branch**: `wave/8-implementation-v3`  
++**HEAD**: `3542abd6`  
++**Protocolo**: SUPER COMANDO MASTER DE IMPLEMENTAÇÃO — GOOGLE ANTIGRAVITY
++
++---
++
++## 1. Classificação das Funcionalidades
++
++Legenda:
++- **A**: Já funcionando e validado
++- **B**: Implementado parcialmente (requer lapidação/integração)
++- **C**: Implementado mas incorreto (requer correção)
++- **D**: Implementado no Antigravity e ausente no GitHub
++- **E**: Documentado mas não implementado
++- **F**: Duplicado
++- **G**: Obsoleto
++
++---
++
++## 2. Matriz por Domínio do Super Comando
++
++| # | Domínio | Componente / Recurso | Status | Arquivos Relevantes | Ação Requerida |
++|---|---------|----------------------|--------|---------------------|----------------|
++| 01 | **Database** | PostgreSQL + Prisma + Decimal/Int precision | **B** | `prisma/schema.prisma`, `src/lib/db.ts` | Garantir precisão monetária e checagem de indexes compostos |
++| 02 | **Multi-Tenancy** | Middleware & Tenant Context Resolution | **A** | `src/middleware.ts`, `src/lib/security/tenant-context.ts` | Validado na Wave 3R |
++| 03 | **IDOR** | CRUD dinâmico (`[id]`) em DDC, CRM e Properties | **B** | `src/app/api/properties/[id]`, `targets`, `campaigns`, `leads`, `guest-guide`, `dynamic-pricing`, `notifications` | Hardening aplicado; criar suíte de testes de estresse adversarial |
++| 04 | **Reservas / Concorrência** | Prevenção de Double Booking via DB/Tx | **B** | `src/app/api/v1/reservations/route.ts`, `src/lib/reservations/` | Transação atômica existente; reforçar lock transacional de alta concorrência e testes |
++| 05 | **Upsell (Conceito Real)** | 7% sobre diferencial de tarifa especial em datas comemorativas | **C** | `src/lib/ai/tools/dynamic-yield-engine.ts`, `src/lib/ai/tools/yield-profit-tracker.ts`, `src/app/api/yield/` | Alinhar terminologia e remover conceito errôneo de serviços adicionais |
++| 06 | **Modelo de Upsell & Ledger** | SpecialDate / PriceOverride / YieldProfitRecord snapshot | **B** | `prisma/schema.prisma` (`YieldProfitRecord`), `src/lib/ai/tools/` | Assegurar snapshot imutável de tarifa base vs especial |
++| 07 | **Cérebro Zélla + HITL** | Detecção de feriados / recomendação com aprovação do host | **B** | `src/lib/ai/tools/dynamic-yield-engine.ts`, `src/app/api/ddc/dynamic-pricing/` | Assegurar que IA nunca altere preço automaticamente sem HITL |
++| 08 | **Notificações** | Bridges de notificação, push e WhatsApp | **B** | `src/lib/notifications/bridges.ts`, `src/app/api/ddc/notifications/` | Idempotência e hardening contra duplicidade |
++| 09 | **Billing Mensal** | Cálculo de mensalidade + 7% upsell com idempotência | **A** | `src/app/api/cron/monthly-billing/route.ts`, `src/lib/billing/` | Reconciliado no Lote 2 / 3R |
++| 10 | **Cron & Workers** | Locks distribuídos de jobs (locks-maintenance, billing) | **A** | `src/app/api/cron/` | Reconciliado no Lote 2 |
++| 11 | **Webhooks** | Mercado Pago, Asaas, WhatsApp com `BillingIdempotency` | **A** | `src/app/api/webhooks/mercadopago/`, `asaas/`, `payment/` | Reconciliado no Lote 3R |
++| 12 | **Auth & Session** | `RevokedSession`, hash SHA-256 de tokens, sem admin hardcoded | **A** | `src/lib/auth.ts`, `src/middleware.ts` | Reconciliado no Lote 3R |
++| 13 | **Estado em Memória** | Avaliação de Maps in-memory vs DB | **B** | `src/lib/` | Garantir que estado crítico não se perca em cold starts |
++| 14 | **Observabilidade** | Structured logging, Correlation IDs, Audit Trail | **A** | `src/lib/security/api-shield.ts`, `src/lib/logger.ts` | Integrado via Zero-Trust Shield |
++| 15 | **Pacotes Comerciais** | Starter, Pro, Enterprise | **B** | `src/config/plans.ts`, `src/app/landing/` | Alinhar limites e especificações |
++| 16 | **Parceiro Zélla** | R$ 247/mês, 24 meses, 100 vagas, paridade total PRO | **B** | `src/config/plans.ts`, `src/app/page.tsx` | Ajustar contrato de 24 meses e 100 vagas com paridade PRO |
++| 17 | **Lista de Espera & Selo** | Fila após 100 vagas e selo no perfil/Link in Bio | **B** | `src/app/api/ddc/linkinbio/`, `src/types/` | Adicionar flag e contador configurável |
++| 18 | **Testes E2E & Regressão** | Pousada Mar Azul, Encanto da Serra, Sol & Mar | **B** | `tests/` | Criar suíte completa cobrindo fluxo ponta a ponta |
++| 19 | **VPS Readiness** | Configurações para Hostinger MVK 4 | **B** | `scripts/`, `deploy/` | Validar preflight e scripts de inicialização |
++
++---
++
++## 3. Próxima Execução Imediata
++1. **Concluir Lote 4 (IDOR Exhaustive Test Suite)** com testes adversariais multi-tenant.
++2. **Executar Lote 5 (Reservations Concurrency & Double Booking Lock)** com transações seguras.
++3. **Executar Lote 6 (Upsell & HITL Special Dates)** garantindo modelo de 7% sobre diárias especiais com HITL do proprietário.
+diff --git a/PRE_IMPLEMENTATION_SNAPSHOT.md b/PRE_IMPLEMENTATION_SNAPSHOT.md
+new file mode 100644
+index 00000000..91e12713
+--- /dev/null
++++ b/PRE_IMPLEMENTATION_SNAPSHOT.md
+@@ -0,0 +1,24 @@
++# PRE_IMPLEMENTATION_SNAPSHOT
++
++- **Data / Hora**: 2026-08-31T12:35:00-03:00
++- **Branch**: `wave/8-implementation-v3`
++- **HEAD Commit**: `3542abd6469a03a806c0c4cdfacddca15aec4197`
++- **Mensagem do HEAD**: `fix(security): close remaining lote3r forensic findings`
++- **Baseline de Trabalho**: Limpo sobre HEAD `3542abd6` com hardening inicial de rotas dinâmicas do Lote 4 no worktree.
++- **Rollback Safety**: `git checkout 3542abd6` ou stash/patch de recuperação instantânea.
++
++## Arquivos Modificados no Worktree Atual (Lote 4 em progresso):
++1. `src/app/api/campaigns/[id]/route.ts` — Hardening IDOR / tenant scope
++2. `src/app/api/ddc/airb/onboarding/route.ts` — Hardening IDOR / verificação de propriedade
++3. `src/app/api/ddc/conversations/[id]/escalate/route.ts` — Hardening IDOR / tenant isolation
++4. `src/app/api/ddc/dynamic-pricing/route.ts` — Hardening IDOR / tenant verification
++5. `src/app/api/ddc/guest-guide/route.ts` — Hardening IDOR / resolveTenantId
++6. `src/app/api/ddc/notifications/route.ts` — Hardening IDOR / tenant filter
++7. `src/app/api/ddc/training/[id]/route.ts` — Hardening IDOR / verified scope
++8. `src/app/api/leads/[id]/route.ts` — Hardening IDOR / tenant scope
++9. `src/app/api/properties/[id]/route.ts` — Hardening IDOR / tenant scope
++10. `src/app/api/targets/[id]/route.ts` — Hardening IDOR / tenant scope
++
++## Integridade do Ambiente:
++- Operação: Modo Estrito Local (Zero Push, Zero Merge, Rollback-Aware).
++- Proxy de Otimização: RTK (Rust Token Killer) ativo para comandos bash/git.
+diff --git a/src/app/api/campaigns/[id]/route.ts b/src/app/api/campaigns/[id]/route.ts
+index 2de995ba..1adc3312 100755
+--- a/src/app/api/campaigns/[id]/route.ts
++++ b/src/app/api/campaigns/[id]/route.ts
+@@ -98,7 +98,7 @@ export async function PUT(
+     }
+ 
+     const updated = await db.campaign.update({
+-      where: { id },
++      where: { id: existing.id },
+       data: updateData,
+     });
+ 
+@@ -147,7 +147,7 @@ export async function DELETE(
+       );
+     }
+ 
+-    await db.campaign.delete({ where: { id } });
++    await db.campaign.delete({ where: { id: existing.id } });
+ 
+     return NextResponse.json({ success: true, deletedId: id }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+   } catch (error) {
+diff --git a/src/app/api/ddc/airb/onboarding/route.ts b/src/app/api/ddc/airb/onboarding/route.ts
+index 54600d3a..ee85eafc 100755
+--- a/src/app/api/ddc/airb/onboarding/route.ts
++++ b/src/app/api/ddc/airb/onboarding/route.ts
+@@ -115,6 +115,15 @@ export async function POST(request: NextRequest) {
+       });
+     }
+ 
++    // Verify property ownership for the tenant
++    const property = await db.airBProperty.findFirst({
++      where: { id: propertyId, tenantId },
++    });
++
++    if (!property) {
++      return NextResponse.json({ success: false, error: 'Propriedade não encontrada' }, { status: 404 });
++    }
++
+     switch (action) {
+       case 'advance_step': {
+         if (!step) {
+@@ -133,13 +142,13 @@ export async function POST(request: NextRequest) {
+ 
+         const newStatus = statusMap[step] || 'in_progress';
+         await db.airBProperty.update({
+-          where: { id: propertyId },
++          where: { id: property.id },
+           data: { status: step === 'activate' ? 'active' : newStatus },
+         });
+ 
+         return NextResponse.json({
+           success: true,
+-          data: { propertyId, previousStep: step, currentStep: nextStep, status: newStatus },
++          data: { propertyId: property.id, previousStep: step, currentStep: nextStep, status: newStatus },
+         });
+       }
+ 
+@@ -161,25 +170,17 @@ export async function POST(request: NextRequest) {
+         if (data.pixKey !== undefined) updateData.pixKey = data.pixKey;
+ 
+         await db.airBProperty.update({
+-          where: { id: propertyId },
++          where: { id: property.id },
+           data: updateData,
+         });
+ 
+         return NextResponse.json({
+           success: true,
+-          data: { propertyId, updatedFields: Object.keys(updateData) },
++          data: { propertyId: property.id, updatedFields: Object.keys(updateData) },
+         });
+       }
+ 
+       case 'activate': {
+-        const property = await db.airBProperty.findFirst({
+-          where: { id: propertyId, tenantId },
+-        });
+-
+-        if (!property) {
+-          return NextResponse.json({ success: false, error: 'Propriedade não encontrada' }, { status: 404 });
+-        }
+-
+         const missingFields: string[] = [];
+         if (!property.wifiName) missingFields.push('wifiName');
+         if (!property.lockCode) missingFields.push('lockCode');
+@@ -196,13 +197,13 @@ export async function POST(request: NextRequest) {
+         }
+ 
+         await db.airBProperty.update({
+-          where: { id: propertyId },
++          where: { id: property.id },
+           data: { status: 'active' },
+         });
+ 
+         return NextResponse.json({
+           success: true,
+-          data: { propertyId, status: 'active', message: 'Propriedade ativada com sucesso! O Zélla AirB já pode atender hóspedes.' },
++          data: { propertyId: property.id, status: 'active', message: 'Propriedade ativada com sucesso! O Zélla AirB já pode atender hóspedes.' },
+         });
+       }
+ 
+diff --git a/src/app/api/ddc/conversations/[id]/escalate/route.ts b/src/app/api/ddc/conversations/[id]/escalate/route.ts
+index a838fd8a..57a079bc 100755
+--- a/src/app/api/ddc/conversations/[id]/escalate/route.ts
++++ b/src/app/api/ddc/conversations/[id]/escalate/route.ts
+@@ -18,8 +18,8 @@ export async function POST(
+     const { success } = await apiRatelimit.limit(tenantId);
+     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+ 
+-    const conversation = await db.conversationLog.findUnique({
+-      where: { id },
++    const conversation = await db.conversationLog.findFirst({
++      where: { id, tenantId },
+     });
+ 
+     if (!conversation) {
+@@ -38,7 +38,7 @@ export async function POST(
+     // Update conversation status to escalated and create notification
+     const [updatedConversation, notification] = await Promise.all([
+       db.conversationLog.update({
+-        where: { id },
++        where: { id: conversation.id },
+         data: {
+           status: 'escalated',
+           lastUpdate: new Date(),
+diff --git a/src/app/api/ddc/dynamic-pricing/route.ts b/src/app/api/ddc/dynamic-pricing/route.ts
+index 4e9134fb..916e25e8 100755
+--- a/src/app/api/ddc/dynamic-pricing/route.ts
++++ b/src/app/api/ddc/dynamic-pricing/route.ts
+@@ -169,9 +169,16 @@ async function handlePost(request: NextRequest, ctx: SecurityContext): Promise<N
+     };
+ 
+     if (ruleId) {
+-      // Update existing rule
++      // Update existing rule - verify tenant ownership
++      const existing = await db.dynamicPricingRule.findFirst({
++        where: { id: ruleId, tenantId },
++      });
++      if (!existing) {
++        return NextResponse.json({ error: 'NOT_FOUND', message: 'Regra não encontrada.' }, { status: 404 });
++      }
++
+       const updated = await db.dynamicPricingRule.update({
+-        where: { id: ruleId },
++        where: { id: existing.id },
+         data: ruleData,
+       });
+       return NextResponse.json({ success: true, data: updated });
+@@ -223,7 +230,7 @@ async function handleDelete(request: NextRequest, _ctx: SecurityContext): Promis
+     }
+ 
+     await db.dynamicPricingRule.delete({
+-      where: { id: ruleId },
++      where: { id: rule.id },
+     });
+ 
+     return NextResponse.json({ success: true, data: { deleted: ruleId } });
+diff --git a/src/app/api/ddc/guest-guide/route.ts b/src/app/api/ddc/guest-guide/route.ts
+index 3b771661..26e6e2d7 100755
+--- a/src/app/api/ddc/guest-guide/route.ts
++++ b/src/app/api/ddc/guest-guide/route.ts
+@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
+ import { withSecurity } from '@/lib/security/api-shield';
+ import { db } from '@/lib/db';
+ import { generateSlug } from '@/lib/slug-utils';
++import { resolveTenantId } from '@/lib/ddc/auth-utils';
+ 
+ // GET /api/ddc/guest-guide — List guest guides for tenant
+ async function getHandler(request: NextRequest) {
+   try {
+-    const { searchParams } = new URL(request.url);
+-    const tenantId = searchParams.get('tenantId');
+-    if (!tenantId) {
+-      return NextResponse.json({ success: false, error: 'tenantId required' }, { status: 400 });
++    const authenticatedTenantId = await resolveTenantId();
++    if (!authenticatedTenantId) {
++      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+     }
++    const tenantId = authenticatedTenantId;
+ 
+     const guides = await db.guestGuide.findMany({
+       where: { tenantId },
+@@ -34,12 +35,14 @@ async function getHandler(request: NextRequest) {
+ // POST /api/ddc/guest-guide — Create or auto-generate a guest guide
+ async function postHandler(request: NextRequest) {
+   try {
+-    const body = await request.json();
+-    const { tenantId, airbPropertyId, propertyId, autoGenerate, welcomeMessage, sections, title } = body;
+-
+-    if (!tenantId) {
+-      return NextResponse.json({ success: false, error: 'tenantId required' }, { status: 400 });
++    const authenticatedTenantId = await resolveTenantId();
++    if (!authenticatedTenantId) {
++      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+     }
++    const tenantId = authenticatedTenantId;
++
++    const body = await request.json();
++    const { airbPropertyId, propertyId, autoGenerate, welcomeMessage, sections, title } = body;
+ 
+     if (autoGenerate) {
+       // Auto-generate guide from property data
+@@ -232,15 +235,27 @@ async function postHandler(request: NextRequest) {
+ // PUT /api/ddc/guest-guide — Update guide
+ async function putHandler(request: NextRequest) {
+   try {
++    const authenticatedTenantId = await resolveTenantId();
++    if (!authenticatedTenantId) {
++      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
++    }
++
+     const body = await request.json();
+-    const { guideId, tenantId, title, welcomeMessage, sections, status } = body;
++    const { guideId, title, welcomeMessage, sections, status } = body;
+ 
+-    if (!guideId || !tenantId) {
+-      return NextResponse.json({ success: false, error: 'guideId and tenantId required' }, { status: 400 });
++    if (!guideId) {
++      return NextResponse.json({ success: false, error: 'guideId required' }, { status: 400 });
++    }
++
++    const existing = await db.guestGuide.findFirst({
++      where: { id: guideId, tenantId: authenticatedTenantId },
++    });
++    if (!existing) {
++      return NextResponse.json({ success: false, error: 'Guide not found or not owned by tenant' }, { status: 404 });
+     }
+ 
+     const guide = await db.guestGuide.update({
+-      where: { id: guideId },
++      where: { id: existing.id },
+       data: {
+         title: title || undefined,
+         welcomeMessage: welcomeMessage || undefined,
+@@ -259,21 +274,25 @@ async function putHandler(request: NextRequest) {
+ // DELETE /api/ddc/guest-guide — Delete guide
+ async function deleteHandler(request: NextRequest) {
+   try {
++    const authenticatedTenantId = await resolveTenantId();
++    if (!authenticatedTenantId) {
++      return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
++    }
++
+     const { searchParams } = new URL(request.url);
+     const guideId = searchParams.get('guideId');
+-    const tenantId = searchParams.get('tenantId');
+ 
+-    if (!guideId || !tenantId) {
+-      return NextResponse.json({ success: false, error: 'guideId and tenantId required' }, { status: 400 });
++    if (!guideId) {
++      return NextResponse.json({ success: false, error: 'guideId required' }, { status: 400 });
+     }
+ 
+     // Verify ownership
+-    const guide = await db.guestGuide.findFirst({ where: { id: guideId, tenantId } });
++    const guide = await db.guestGuide.findFirst({ where: { id: guideId, tenantId: authenticatedTenantId } });
+     if (!guide) {
+       return NextResponse.json({ success: false, error: 'Guide not found or not owned by tenant' }, { status: 404 });
+     }
+ 
+-    await db.guestGuide.delete({ where: { id: guideId } });
++    await db.guestGuide.delete({ where: { id: guide.id } });
+ 
+     return NextResponse.json({ success: true });
+   } catch (error) {
+diff --git a/src/app/api/ddc/notifications/route.ts b/src/app/api/ddc/notifications/route.ts
+index 8f3be3e3..df2d0e87 100755
+--- a/src/app/api/ddc/notifications/route.ts
++++ b/src/app/api/ddc/notifications/route.ts
+@@ -48,8 +48,15 @@ export async function PUT(request: NextRequest) {
+     if (!notificationId || !status) {
+       return NextResponse.json({ success: false, error: { code: '400', message: 'Missing required fields: notificationId, status' } }, { status: 400 });
+     }
++    const existing = await db.notification.findFirst({
++      where: { id: notificationId, tenantId },
++    });
++    if (!existing) {
++      return NextResponse.json({ success: false, error: { code: '404', message: 'Notification not found' } }, { status: 404 });
++    }
++
+     const updated = await db.notification.update({
+-      where: { id: notificationId },
++      where: { id: existing.id },
+       data: { read: status === 'read' },
+     });
+     return NextResponse.json({ success: true, data: mapNotification(updated) });
+diff --git a/src/app/api/ddc/training/[id]/route.ts b/src/app/api/ddc/training/[id]/route.ts
+index d590e574..e26dfe51 100755
+--- a/src/app/api/ddc/training/[id]/route.ts
++++ b/src/app/api/ddc/training/[id]/route.ts
+@@ -106,7 +106,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
+     const feedback = generateFeedback(training.type, avgScore, results);
+ 
+     await db.trainingPrompt.update({
+-      where: { id },
++      where: { id: training.id },
+       data: {
+         successRate: avgScore,
+         usageCount: { increment: 1 },
+diff --git a/src/app/api/leads/[id]/route.ts b/src/app/api/leads/[id]/route.ts
+index 2d593ecb..69212ae4 100755
+--- a/src/app/api/leads/[id]/route.ts
++++ b/src/app/api/leads/[id]/route.ts
+@@ -86,7 +86,7 @@ export async function PUT(
+     if (socialMedia !== undefined) updateData.socialMedia = JSON.stringify(socialMedia);
+ 
+     const updated = await db.lead.update({
+-      where: { id },
++      where: { id: existing.id },
+       data: updateData,
+     });
+ 
+@@ -132,7 +132,7 @@ export async function DELETE(
+       );
+     }
+ 
+-    await db.lead.delete({ where: { id } });
++    await db.lead.delete({ where: { id: existing.id } });
+ 
+     return NextResponse.json({ success: true, deletedId: id }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+   } catch (error) {
+diff --git a/src/app/api/properties/[id]/route.ts b/src/app/api/properties/[id]/route.ts
+index e8040a01..4f76f4ff 100755
+--- a/src/app/api/properties/[id]/route.ts
++++ b/src/app/api/properties/[id]/route.ts
+@@ -86,7 +86,7 @@ export async function PUT(
+     }
+ 
+     const property = await db.airBProperty.update({
+-      where: { id },
++      where: { id: existing.id },
+       data: updateData,
+     });
+ 
+@@ -118,7 +118,7 @@ export async function DELETE(
+ 
+     // Soft delete
+     await db.airBProperty.update({
+-      where: { id },
++      where: { id: existing.id },
+       data: { status: 'inactive' },
+     });
+ 
+diff --git a/src/app/api/targets/[id]/route.ts b/src/app/api/targets/[id]/route.ts
+index be2b40dd..26e6129d 100755
+--- a/src/app/api/targets/[id]/route.ts
++++ b/src/app/api/targets/[id]/route.ts
+@@ -99,7 +99,7 @@ export async function PUT(
+     if (state !== undefined) updateData.state = state;
+ 
+     const updated = await db.target.update({
+-      where: { id },
++      where: { id: existing.id },
+       data: updateData,
+     });
+ 
+@@ -151,7 +151,7 @@ export async function DELETE(
+       );
+     }
+ 
+-    await db.target.delete({ where: { id } });
++    await db.target.delete({ where: { id: existing.id } });
+ 
+     return NextResponse.json({ success: true, deletedId: id }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+   } catch (error) {
+diff --git a/tests/security/lote4-tenant-idor-exhaustive.test.ts b/tests/security/lote4-tenant-idor-exhaustive.test.ts
+new file mode 100644
+index 00000000..e458d1b3
+--- /dev/null
++++ b/tests/security/lote4-tenant-idor-exhaustive.test.ts
+@@ -0,0 +1,104 @@
++import { describe, expect, it, beforeEach, vi } from 'vitest';
++import { readFileSync } from 'node:fs';
++import { resolve } from 'node:path';
++
++describe('🛡️ LOTE 4: Exhaustive Multi-Tenant IDOR Protection Suite', () => {
++  describe('1. Properties Endpoint IDOR Hardening (/api/properties/[id])', () => {
++    it('enforces tenantId check in findFirst and binds update/delete to existing.id', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/properties/[id]/route.ts'), 'utf8');
++      expect(src).toContain('where: { id, tenantId: session.user.tenantId, status: \'active\' }');
++      expect(src).toContain('where: { id, tenantId: session.user.tenantId }');
++      expect(src).toContain('where: { id: existing.id }');
++      expect(src).not.toMatch(/airBProperty\.update\(\{\s*where:\s*\{\s*id\s*\}\s*,/);
++    });
++  });
++
++  describe('2. Targets Endpoint IDOR Hardening (/api/targets/[id])', () => {
++    it('enforces tenantId check in findFirst and binds update/delete to existing.id', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/targets/[id]/route.ts'), 'utf8');
++      expect(src).toContain('where: { id, tenantId: session.user.tenantId }');
++      expect(src).toContain('where: { id: existing.id }');
++      expect(src).not.toMatch(/target\.update\(\{\s*where:\s*\{\s*id\s*\}\s*,/);
++      expect(src).not.toMatch(/target\.delete\(\{\s*where:\s*\{\s*id\s*\}\s*\}\)/);
++    });
++  });
++
++  describe('3. Campaigns Endpoint IDOR Hardening (/api/campaigns/[id])', () => {
++    it('enforces tenantId check in findFirst and binds update/delete to existing.id', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/campaigns/[id]/route.ts'), 'utf8');
++      expect(src).toContain('where: { id, tenantId }');
++      expect(src).toContain('where: { id: existing.id }');
++      expect(src).not.toMatch(/campaign\.update\(\{\s*where:\s*\{\s*id\s*\}\s*,/);
++      expect(src).not.toMatch(/campaign\.delete\(\{\s*where:\s*\{\s*id\s*\}\s*\}\)/);
++    });
++  });
++
++  describe('4. Leads Endpoint IDOR Hardening (/api/leads/[id])', () => {
++    it('enforces tenantId check in findFirst and binds update/delete to existing.id', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/leads/[id]/route.ts'), 'utf8');
++      expect(src).toContain('where: { id, tenantId }');
++      expect(src).toContain('where: { id: existing.id }');
++      expect(src).not.toMatch(/lead\.update\(\{\s*where:\s*\{\s*id\s*\}\s*,/);
++      expect(src).not.toMatch(/lead\.delete\(\{\s*where:\s*\{\s*id\s*\}\s*\}\)/);
++    });
++  });
++
++  describe('5. DDC Training Prompt IDOR Hardening (/api/ddc/training/[id])', () => {
++    it('enforces tenantId check in findFirst and binds update, delete and test to verified id', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/ddc/training/[id]/route.ts'), 'utf8');
++      expect(src).toContain('where: { id, tenantId: g }');
++      expect(src).toContain('where: { id: existing.id }');
++      expect(src).toContain('where: { id: training.id }');
++      expect(src).not.toMatch(/trainingPrompt\.update\(\{\s*where:\s*\{\s*id\s*\}\s*,/);
++    });
++  });
++
++  describe('6. DDC Guest Guide IDOR Hardening (/api/ddc/guest-guide)', () => {
++    it('resolves authenticated tenantId and enforces ownership for all CRUD operations', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/ddc/guest-guide/route.ts'), 'utf8');
++      expect(src).toContain('const authenticatedTenantId = await resolveTenantId()');
++      expect(src).toContain('where: { id: guideId, tenantId: authenticatedTenantId }');
++      expect(src).toContain('where: { id: existing.id }');
++      expect(src).toContain('where: { id: guide.id }');
++      expect(src).not.toMatch(/guestGuide\.update\(\{\s*where:\s*\{\s*id:\s*guideId\s*\}\s*,/);
++      expect(src).not.toMatch(/guestGuide\.delete\(\{\s*where:\s*\{\s*id:\s*guideId\s*\}\s*\}\)/);
++    });
++  });
++
++  describe('7. DDC Dynamic Pricing IDOR Hardening (/api/ddc/dynamic-pricing)', () => {
++    it('verifies tenant ownership before update and delete on dynamic pricing rules', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/ddc/dynamic-pricing/route.ts'), 'utf8');
++      expect(src).toContain('where: { id: ruleId, tenantId }');
++      expect(src).toContain('where: { id: existing.id }');
++      expect(src).toContain('where: { id: rule.id }');
++      expect(src).not.toMatch(/dynamicPricingRule\.update\(\{\s*where:\s*\{\s*id:\s*ruleId\s*\}\s*,/);
++    });
++  });
++
++  describe('8. DDC Notifications IDOR Hardening (/api/ddc/notifications)', () => {
++    it('verifies notification belongs to tenantId before updating read status', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/ddc/notifications/route.ts'), 'utf8');
++      expect(src).toContain('where: { id: notificationId, tenantId }');
++      expect(src).toContain('where: { id: existing.id }');
++      expect(src).not.toMatch(/notification\.update\(\{\s*where:\s*\{\s*id:\s*notificationId\s*\}\s*,/);
++    });
++  });
++
++  describe('9. DDC AirB Onboarding IDOR Hardening (/api/ddc/airb/onboarding)', () => {
++    it('verifies property ownership for tenant in all onboarding actions', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/ddc/airb/onboarding/route.ts'), 'utf8');
++      expect(src).toContain('where: { id: propertyId, tenantId }');
++      expect(src).toContain('where: { id: property.id }');
++      expect(src).not.toMatch(/airBProperty\.update\(\{\s*where:\s*\{\s*id:\s*propertyId\s*\}\s*,/);
++    });
++  });
++
++  describe('10. DDC Conversation Escalation IDOR Hardening (/api/ddc/conversations/[id]/escalate)', () => {
++    it('verifies conversation belongs to tenant before escalating', () => {
++      const src = readFileSync(resolve(process.cwd(), 'src/app/api/ddc/conversations/[id]/escalate/route.ts'), 'utf8');
++      expect(src).toContain('where: { id, tenantId }');
++      expect(src).toContain('where: { id: conversation.id }');
++      expect(src).not.toContain('findUnique({');
++    });
++  });
++});

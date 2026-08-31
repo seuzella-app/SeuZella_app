@@ -1,0 +1,1208 @@
+diff --git a/LOTE6_SPECIAL_DATES_UPSELL_IMPLEMENTATION_PLAN.md b/LOTE6_SPECIAL_DATES_UPSELL_IMPLEMENTATION_PLAN.md
+new file mode 100644
+index 00000000..9f73f156
+--- /dev/null
++++ b/LOTE6_SPECIAL_DATES_UPSELL_IMPLEMENTATION_PLAN.md
+@@ -0,0 +1,79 @@
++# LOTE 6 — SPECIAL DATES + UPSELL 7% + HITL DO ZÉLLA IMPLEMENTATION PLAN
++
++**Data**: 2026-08-31  
++**Autor**: Google Antigravity (Executor Técnico Principal)  
++**Baseline**: `fe3c6dd7`  
++**Objetivo**: Implementação do ciclo completo:  
++`Data Especial ➔ Oportunidade ➔ Sugestão Zélla (Pending) ➔ Aprovação Proprietário (HITL) ➔ Price Override ➔ Reserva ➔ Upsell 7% ➔ Ledger ➔ Billing`
++
++---
++
++## 1. Regra Inegociável de Negócio (HITL)
++- O Zélla **NUNCA** altera preços automaticamente.
++- O Zélla atua como o zelador digital: detecta a data especial, analisa a oportunidade de mercado, calcula a sugestão com justificativa e emite a sugestão com status `pending`.
++- Apenas a aprovação explícita do proprietário (`owner` / `admin`) autoriza a criação do `PriceOverride`.
++- Caso rejeitado, o preço base permanece inalterado e o histórico de auditoria é preservado.
++
++---
++
++## 2. Conceito Canônico de Upsell (7%)
++- **O que NÃO é**: Café da manhã, late checkout, passeio, minibar ou serviço adicional.
++- **O que É**: A taxa de 7% de comissão sobre o valor bruto da reserva realizada com tarifa especial recomendada pelo Zélla e aprovada pelo anfitrião em datas comemorativas / sazonais.
++- Função canônica: `src/lib/billing/upsell-calculator.ts`.
++
++---
++
++## 3. Modelo de Dados Prisma & Persistência
++
++### 3.1 Modelos Adicionados em `prisma/schema.prisma`
++1. `SpecialDate`: Entidade de calendário de feriados nacionais, estaduais e sazonais por tenant.
++2. `SpecialDateSuggestion`: Sugestão gerada pelo Zélla com status (`pending`, `approved`, `rejected`, `expired`).
++3. `PriceOverride`: Tarifa especial efetivamente aprovada pelo proprietário para um quarto/propriedade em uma data específica.
++
++---
++
++## 4. Camada de Serviços e Rotas
++
++1. `src/lib/billing/upsell-calculator.ts`
++   - `calculateUpsell`: Cálculo puro, determinístico e com arredondamento seguro em centavos.
++   - `calculateMonthlyBilling`: Consolidação para a fatura mensal.
++2. `src/lib/ai/special-dates/hitl-service.ts`
++   - `detectSpecialDateOpportunity`: Cria sugestão `pending` sem modificar preços.
++   - `approveSuggestion`: Valida tenant, marca `approved` e persiste `PriceOverride`.
++   - `rejectSuggestion`: Marca `rejected` e mantém preço inalterado.
++   - `getActivePriceForDate`: Consulta se há `PriceOverride` ativo para a data da reserva.
++3. Rotas de API com Proteção Anti-IDOR & Zero Trust:
++   - `POST /api/ddc/special-dates/suggestions/[id]/approve`
++   - `POST /api/ddc/special-dates/suggestions/[id]/reject`
++   - `GET /api/ddc/special-dates`
++   - `GET /api/ddc/special-dates/overrides`
++
++---
++
++## 5. Matriz de Testes do Lote 6 (`tests/security/lote6-special-dates-upsell-hitl.test.ts`)
++1. **Fluxo Feliz Completo**:
++   - Pousada Mar Azul / Quarto 101 / Tarifa Base R$ 300.
++   - Réveillon sugerido a R$ 600 (`pending`).
++   - Verificação: Preço ativo continua R$ 300 (sem override antes da aprovação).
++   - Aprovação pelo proprietário ➔ Cria `PriceOverride` de R$ 600.
++   - Nova reserva de 3 diárias a R$ 600 (Total R$ 1.800).
++   - Cálculo de Upsell: 7% de R$ 1.800 = R$ 126 para o Zélla / R$ 1.674 para o proprietário.
++   - Ledger mensal consolida fatura base + R$ 126.
++2. **Rejeição pelo Proprietário**:
++   - Sugestão rejeitada ➔ Status `rejected` ➔ Preço ativo permanece R$ 300.
++3. **Proteção Anti-IDOR e Permissões**:
++   - Tenant A não pode aprovar ou rejeitar sugestão de Tenant B (404/403).
++   - Tenant A não pode listar overrides de Tenant B.
++4. **Idempotência**:
++   - Dupla chamada de aprovação não gera override duplicado nem comissão duplicada.
++5. **Auditoria e Rastreabilidade**:
++   - Registro de `decidedBy`, `decidedAt`, `reason` e `approvedAt`.
++
++---
++
++## 6. Critérios de Aceitação
++- 100% dos testes do Lote 6 passando.
++- Zero regressão nas suítes dos Lotes 4 e 5.
++- `tsc --noEmit` = 0 erros.
++- `npm run build` = Exit 0.
++- Patch exportado com SHA-256 e relatórios formatados.
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 9e376911..d5f8b712 100755
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -109,6 +109,9 @@ model Tenant {
+   lgpdDeleteRequests LgpdDeleteRequest[]
+   lgpdIncidents      LgpdIncident[]
+   pushSubscriptions  PushSubscription[]
++  specialDates       SpecialDate[]
++  specialDateSuggestions SpecialDateSuggestion[]
++  priceOverrides     PriceOverride[]
+   passwordChangedAt  DateTime?
+   createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+@@ -1488,6 +1491,72 @@ model PricingCalculation {
+   @@map("pricing_calculations")
+ }
+ 
++model SpecialDate {
++  id          String   @id @default(cuid())
++  tenantId    String
++  propertyId  String?
++  date        DateTime
++  type        String   @default("national")
++  name        String
++  state       String?
++  city        String?
++  description String   @default("")
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
++  suggestions SpecialDateSuggestion[]
++  @@unique([tenantId, date, type])
++  @@index([tenantId, date])
++  @@map("special_dates")
++}
++
++model SpecialDateSuggestion {
++  id             String   @id @default(cuid())
++  tenantId       String
++  specialDateId  String
++  propertyId     String?
++  roomId         String?
++  currentPrice   Float
++  suggestedPrice Float
++  reason         String   @default("")
++  impactEstimate String   @default("")
++  status         String   @default("pending")
++  decidedAt      DateTime?
++  decidedBy      String?
++  decisionNote   String   @default("")
++  expiresAt      DateTime?
++  createdAt      DateTime @default(now())
++  updatedAt      DateTime @updatedAt
++  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
++  specialDate    SpecialDate @relation(fields: [specialDateId], references: [id], onDelete: Cascade)
++  priceOverrides PriceOverride[]
++  @@index([tenantId, status])
++  @@index([specialDateId])
++  @@map("special_date_suggestions")
++}
++
++model PriceOverride {
++  id           String   @id @default(cuid())
++  tenantId     String
++  propertyId   String?
++  roomId       String?
++  date         DateTime
++  price        Float
++  basePrice    Float
++  suggestionId String?
++  createdBy    String   @default("owner")
++  approvedAt   DateTime @default(now())
++  expiresAt    DateTime?
++  status       String   @default("active")
++  createdAt    DateTime @default(now())
++  updatedAt    DateTime @updatedAt
++  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
++  suggestion   SpecialDateSuggestion? @relation(fields: [suggestionId], references: [id], onDelete: SetNull)
++  @@unique([tenantId, roomId, date])
++  @@index([tenantId, date])
++  @@map("price_overrides")
++}
++
+ model GuestGuide {
+   id            String    @id @default(cuid())
+   tenantId      String
+diff --git a/src/app/api/ddc/special-dates/overrides/route.ts b/src/app/api/ddc/special-dates/overrides/route.ts
+new file mode 100644
+index 00000000..3546f689
+--- /dev/null
++++ b/src/app/api/ddc/special-dates/overrides/route.ts
+@@ -0,0 +1,21 @@
++import { NextRequest, NextResponse } from 'next/server';
++import { db } from '@/lib/db';
++import { requireTenant } from '@/lib/auth';
++import { withSecurity } from '@/lib/security/api-shield';
++
++async function getHandler(_request: NextRequest) {
++  try {
++    const tenantId = await requireTenant();
++    const overrides = await (db as any).priceOverride.findMany({
++      where: { tenantId, status: 'active' },
++      include: { suggestion: { include: { specialDate: true } } },
++      orderBy: { date: 'asc' },
++    });
++
++    return NextResponse.json(overrides);
++  } catch (error) {
++    return NextResponse.json({ error: 'Unauthorized or invalid tenant' }, { status: 401 });
++  }
++}
++
++export const GET = withSecurity(getHandler, { routeLabel: 'ddc-special-dates-overrides' });
+diff --git a/src/app/api/ddc/special-dates/route.ts b/src/app/api/ddc/special-dates/route.ts
+new file mode 100644
+index 00000000..f207280b
+--- /dev/null
++++ b/src/app/api/ddc/special-dates/route.ts
+@@ -0,0 +1,59 @@
++import { NextRequest, NextResponse } from 'next/server';
++import { db } from '@/lib/db';
++import { requireTenant } from '@/lib/auth';
++import { withSecurity } from '@/lib/security/api-shield';
++import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
++
++async function getHandler(_request: NextRequest) {
++  try {
++    const tenantId = await requireTenant();
++    const specialDates = await (db as any).specialDate.findMany({
++      where: { tenantId },
++      include: {
++        suggestions: {
++          orderBy: { createdAt: 'desc' },
++        },
++      },
++      orderBy: { date: 'asc' },
++    });
++
++    return NextResponse.json(specialDates);
++  } catch (error) {
++    return NextResponse.json({ error: 'Unauthorized or invalid tenant' }, { status: 401 });
++  }
++}
++
++async function postHandler(request: NextRequest) {
++  try {
++    const tenantId = await requireTenant();
++    const body = await request.json();
++    const { propertyId, roomId, date, name, type, basePrice, suggestedPrice, reason, impactEstimate } = body;
++
++    if (!date || !name || !basePrice || !suggestedPrice) {
++      return NextResponse.json(
++        { error: 'Campos obrigatórios ausentes (date, name, basePrice, suggestedPrice)' },
++        { status: 400 }
++      );
++    }
++
++    const result = await SpecialDatesHitlService.detectOpportunity({
++      tenantId,
++      propertyId,
++      roomId,
++      date,
++      name,
++      type,
++      basePrice: Number(basePrice),
++      suggestedPrice: Number(suggestedPrice),
++      reason: reason || 'Oportunidade de alta demanda identificada pelo Seu Zélla.',
++      impactEstimate,
++    });
++
++    return NextResponse.json(result, { status: 201 });
++  } catch (error) {
++    return NextResponse.json({ error: 'Falha ao processar oportunidade de data especial' }, { status: 500 });
++  }
++}
++
++export const GET = withSecurity(getHandler, { routeLabel: 'ddc-special-dates' });
++export const POST = withSecurity(postHandler, { routeLabel: 'ddc-special-dates' });
+diff --git a/src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts b/src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts
+new file mode 100644
+index 00000000..c4a21efb
+--- /dev/null
++++ b/src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts
+@@ -0,0 +1,39 @@
++import { NextRequest, NextResponse } from 'next/server';
++import { requireTenant } from '@/lib/auth';
++import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
++
++export async function POST(
++  request: NextRequest,
++  { params }: { params: Promise<{ id: string }> }
++) {
++  try {
++    const tenantId = await requireTenant();
++    const { id } = await params;
++    let body: any = {};
++    try {
++      body = await request.json();
++    } catch {
++      // Body is optional
++    }
++
++    const { customPrice, note, approvedBy = 'owner' } = body;
++
++    const result = await SpecialDatesHitlService.approveSuggestion({
++      tenantId,
++      suggestionId: id,
++      approvedBy,
++      customPrice: customPrice ? Number(customPrice) : undefined,
++      note,
++    });
++
++    return NextResponse.json(result, { status: 200 });
++  } catch (error: any) {
++    if (error.message === 'SUGGESTION_NOT_FOUND_OR_NOT_OWNED') {
++      return NextResponse.json(
++        { error: 'Sugestão não encontrada ou não pertence ao tenant autenticado', code: 'RESOURCE_NOT_FOUND' },
++        { status: 404 }
++      );
++    }
++    return NextResponse.json({ error: 'Falha ao aprovar sugestão de data especial' }, { status: 500 });
++  }
++}
+diff --git a/src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts b/src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts
+new file mode 100644
+index 00000000..1c63d834
+--- /dev/null
++++ b/src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts
+@@ -0,0 +1,38 @@
++import { NextRequest, NextResponse } from 'next/server';
++import { requireTenant } from '@/lib/auth';
++import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
++
++export async function POST(
++  request: NextRequest,
++  { params }: { params: Promise<{ id: string }> }
++) {
++  try {
++    const tenantId = await requireTenant();
++    const { id } = await params;
++    let body: any = {};
++    try {
++      body = await request.json();
++    } catch {
++      // Body is optional
++    }
++
++    const { reason, rejectedBy = 'owner' } = body;
++
++    const result = await SpecialDatesHitlService.rejectSuggestion({
++      tenantId,
++      suggestionId: id,
++      rejectedBy,
++      reason,
++    });
++
++    return NextResponse.json(result, { status: 200 });
++  } catch (error: any) {
++    if (error.message === 'SUGGESTION_NOT_FOUND_OR_NOT_OWNED') {
++      return NextResponse.json(
++        { error: 'Sugestão não encontrada ou não pertence ao tenant autenticado', code: 'RESOURCE_NOT_FOUND' },
++        { status: 404 }
++      );
++    }
++    return NextResponse.json({ error: 'Falha ao rejeitar sugestão de data especial' }, { status: 500 });
++  }
++}
+diff --git a/src/app/api/v1/reservations/route.ts b/src/app/api/v1/reservations/route.ts
+index 92adc151..fa747923 100755
+--- a/src/app/api/v1/reservations/route.ts
++++ b/src/app/api/v1/reservations/route.ts
+@@ -7,6 +7,8 @@ import { YieldProfitTracker } from '@/lib/ai/tools/yield-profit-tracker';
+ import { detectBrazilianHighSeasonHoliday } from '@/lib/ai/tools/dynamic-yield-engine';
+ 
+ import { withAdvisoryLock, mapConcurrencyError } from '@/lib/db/concurrency';
++import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
++import { calculateUpsell } from '@/lib/billing/upsell-calculator';
+ 
+ async function getHandler(_request: NextRequest, _ctx: any) {
+   try {
+@@ -115,6 +117,62 @@ async function postHandler(request: NextRequest, _ctx: any) {
+       throw txErr;
+     }
+ 
++    // 3. Special Dates Price Override & Canonical 7% Upsell Calculation
++    try {
++      const nights = computeNights(targetCheckIn, targetCheckOut);
++      let hasSpecialDate = false;
++      let totalEffectiveSpecialRate = 0;
++
++      for (const night of nights) {
++        const activePrice = await SpecialDatesHitlService.getActivePriceForDate(
++          tenantId,
++          roomId || 'all',
++          night,
++          baseDailyRate
++        );
++        if (activePrice.isSpecialDate) {
++          hasSpecialDate = true;
++          totalEffectiveSpecialRate += activePrice.price;
++        } else {
++          totalEffectiveSpecialRate += baseDailyRate;
++        }
++      }
++
++      if (hasSpecialDate && nights.length > 0) {
++        const avgSpecialRate = totalEffectiveSpecialRate / nights.length;
++        const upsellCalc = calculateUpsell({
++          baseRate: baseDailyRate,
++          specialRate: avgSpecialRate,
++          nights: nights.length,
++          attributedToZehla: true,
++          isSpecialDate: true,
++        });
++
++        if (upsellCalc.upsellDue && upsellCalc.upsellAmount > 0) {
++          await (prisma as any).upsellRecord.create({
++            data: {
++              tenantId,
++              roomId,
++              reservationId: reservation.id,
++              guestId,
++              type: 'special_date_tariff',
++              description: 'Tarifa especial em data comemorativa aprovada pelo anfitrião',
++              quantity: nights.length,
++              unitPrice: avgSpecialRate,
++              totalPrice: upsellCalc.reservationValue,
++              comissionRate: upsellCalc.commissionRate,
++              comissionAmount: upsellCalc.upsellAmount,
++              status: 'confirmed',
++              suggestedByZehla: true,
++              notes: upsellCalc.reason,
++            },
++          });
++        }
++      }
++    } catch (upsellErr) {
++      console.warn('[RESERVATION_CREATE] Special date / upsell tracking error (reservation persisted):', upsellErr);
++    }
++
+     if (baseDailyRate > 0 && totalRooms > 0) {
+       try {
+         const nights = computeNights(targetCheckIn, targetCheckOut);
+diff --git a/src/lib/ai/special-dates/hitl-service.ts b/src/lib/ai/special-dates/hitl-service.ts
+new file mode 100644
+index 00000000..f04f7503
+--- /dev/null
++++ b/src/lib/ai/special-dates/hitl-service.ts
+@@ -0,0 +1,270 @@
++/**
++ * SPECIAL DATES & HITL APPROVAL SERVICE — Seu Zélla
++ * ============================================================================
++ * NON-NEGOTIABLE ARCHITECTURAL RULE:
++ * Seu Zélla DETECTS opportunities and SUGGESTS price adjustments (status = 'pending').
++ * Seu Zélla NEVER modifies prices automatically without explicit owner approval.
++ * Only an approved suggestion materializes a `PriceOverride`.
++ */
++import { db } from '@/lib/db';
++
++export interface DetectOpportunityInput {
++  tenantId: string;
++  propertyId?: string;
++  roomId?: string;
++  date: Date | string;
++  name: string;
++  type?: string;
++  basePrice: number;
++  suggestedPrice: number;
++  reason: string;
++  impactEstimate?: string;
++}
++
++export interface ApproveSuggestionInput {
++  tenantId: string;
++  suggestionId: string;
++  approvedBy: string;
++  customPrice?: number;
++  note?: string;
++}
++
++export interface RejectSuggestionInput {
++  tenantId: string;
++  suggestionId: string;
++  rejectedBy: string;
++  reason?: string;
++}
++
++export interface ActivePriceResult {
++  price: number;
++  basePrice: number;
++  isSpecialDate: boolean;
++  source: 'price_override' | 'base_rate';
++  overrideId?: string;
++  suggestionId?: string;
++}
++
++export class SpecialDatesHitlService {
++  /**
++   * Detects a high-demand special date or holiday and records a PENDING suggestion.
++   * NEVER alters the active price at this stage.
++   */
++  static async detectOpportunity(input: DetectOpportunityInput) {
++    const {
++      tenantId,
++      propertyId,
++      roomId,
++      date,
++      name,
++      type = 'national',
++      basePrice,
++      suggestedPrice,
++      reason,
++      impactEstimate = '',
++    } = input;
++
++    const targetDate = new Date(date);
++    targetDate.setHours(0, 0, 0, 0);
++
++    // 1. Find or create SpecialDate record
++    let specialDate = await (db as any).specialDate.findFirst({
++      where: { tenantId, date: targetDate, type },
++    });
++
++    if (!specialDate) {
++      specialDate = await (db as any).specialDate.create({
++        data: {
++          tenantId,
++          propertyId,
++          date: targetDate,
++          type,
++          name,
++          description: reason,
++        },
++      });
++    }
++
++    // 2. Check if a pending suggestion already exists (Idempotency)
++    const existingSuggestion = await (db as any).specialDateSuggestion.findFirst({
++      where: {
++        tenantId,
++        specialDateId: specialDate.id,
++        roomId: roomId ?? null,
++        status: 'pending',
++      },
++    });
++
++    if (existingSuggestion) {
++      return {
++        specialDate,
++        suggestion: existingSuggestion,
++        status: 'pending_approval',
++        isNew: false,
++      };
++    }
++
++    // 3. Create PENDING suggestion for owner review
++    const suggestion = await (db as any).specialDateSuggestion.create({
++      data: {
++        tenantId,
++        specialDateId: specialDate.id,
++        propertyId,
++        roomId,
++        currentPrice: basePrice,
++        suggestedPrice,
++        reason,
++        impactEstimate,
++        status: 'pending',
++      },
++    });
++
++    return {
++      specialDate,
++      suggestion,
++      status: 'pending_approval',
++      isNew: true,
++    };
++  }
++
++  /**
++   * Owner approves the suggested tariff.
++   * Materializes the `PriceOverride` so future bookings for this date receive the approved price.
++   */
++  static async approveSuggestion(input: ApproveSuggestionInput) {
++    const { tenantId, suggestionId, approvedBy, customPrice, note } = input;
++
++    const suggestion = await (db as any).specialDateSuggestion.findFirst({
++      where: { id: suggestionId, tenantId },
++      include: { specialDate: true },
++    });
++
++    if (!suggestion) {
++      throw new Error('SUGGESTION_NOT_FOUND_OR_NOT_OWNED');
++    }
++
++    const finalPrice = customPrice !== undefined && customPrice > 0 ? customPrice : suggestion.suggestedPrice;
++    const targetDate = new Date(suggestion.specialDate.date);
++
++    // 1. Update suggestion status
++    const updatedSuggestion = await (db as any).specialDateSuggestion.update({
++      where: { id: suggestion.id },
++      data: {
++        status: 'approved',
++        decidedAt: new Date(),
++        decidedBy: approvedBy,
++        decisionNote: note || 'Aprovado pelo proprietário/anfitrião',
++      },
++    });
++
++    // 2. Upsert PriceOverride (idempotent)
++    const priceOverride = await (db as any).priceOverride.upsert({
++      where: {
++        tenantId_roomId_date: {
++          tenantId,
++          roomId: suggestion.roomId || 'all',
++          date: targetDate,
++        },
++      },
++      update: {
++        price: finalPrice,
++        basePrice: suggestion.currentPrice,
++        suggestionId: suggestion.id,
++        createdBy: approvedBy,
++        approvedAt: new Date(),
++        status: 'active',
++      },
++      create: {
++        tenantId,
++        propertyId: suggestion.propertyId,
++        roomId: suggestion.roomId || 'all',
++        date: targetDate,
++        price: finalPrice,
++        basePrice: suggestion.currentPrice,
++        suggestionId: suggestion.id,
++        createdBy: approvedBy,
++        approvedAt: new Date(),
++        status: 'active',
++      },
++    });
++
++    return {
++      suggestion: updatedSuggestion,
++      priceOverride,
++      success: true,
++    };
++  }
++
++  /**
++   * Owner rejects the suggestion.
++   * Preserves historical decision without creating any PriceOverride.
++   */
++  static async rejectSuggestion(input: RejectSuggestionInput) {
++    const { tenantId, suggestionId, rejectedBy, reason } = input;
++
++    const suggestion = await (db as any).specialDateSuggestion.findFirst({
++      where: { id: suggestionId, tenantId },
++    });
++
++    if (!suggestion) {
++      throw new Error('SUGGESTION_NOT_FOUND_OR_NOT_OWNED');
++    }
++
++    const updatedSuggestion = await (db as any).specialDateSuggestion.update({
++      where: { id: suggestion.id },
++      data: {
++        status: 'rejected',
++        decidedAt: new Date(),
++        decidedBy: rejectedBy,
++        decisionNote: reason || 'Rejeitado pelo anfitrião',
++      },
++    });
++
++    return {
++      suggestion: updatedSuggestion,
++      success: true,
++    };
++  }
++
++  /**
++   * Resolves the effective active price for a room on a given calendar date.
++   * Returns approved PriceOverride if present, else fallback to base room rate.
++   */
++  static async getActivePriceForDate(
++    tenantId: string,
++    roomId: string,
++    date: Date | string,
++    basePrice: number
++  ): Promise<ActivePriceResult> {
++    const targetDate = new Date(date);
++    targetDate.setHours(0, 0, 0, 0);
++
++    // Look for specific room override or general room override
++    const override = await (db as any).priceOverride.findFirst({
++      where: {
++        tenantId,
++        date: targetDate,
++        status: 'active',
++        OR: [{ roomId }, { roomId: 'all' }, { roomId: null }],
++      },
++    });
++
++    if (override) {
++      return {
++        price: override.price,
++        basePrice,
++        isSpecialDate: true,
++        source: 'price_override',
++        overrideId: override.id,
++        suggestionId: override.suggestionId ?? undefined,
++      };
++    }
++
++    return {
++      price: basePrice,
++      basePrice,
++      isSpecialDate: false,
++      source: 'base_rate',
++    };
++  }
++}
+diff --git a/src/lib/billing/upsell-calculator.ts b/src/lib/billing/upsell-calculator.ts
+new file mode 100644
+index 00000000..3bb28a4f
+--- /dev/null
++++ b/src/lib/billing/upsell-calculator.ts
+@@ -0,0 +1,114 @@
++/**
++ * UPSELL CALCULATOR — Canonical Business Rule for Seu Zélla
++ * ============================================================================
++ * NON-NEGOTIABLE DEFINITION:
++ * Upsell is the 7% operational fee applied exclusively to reservations that utilize
++ * special-date tariffs recommended by Seu Zélla and approved by the owner.
++ *
++ * UPSELL IS NOT: breakfast, late checkout, tour, beach kit, minibar, or ancillary services.
++ */
++
++export interface UpsellCalculationInput {
++  baseRate: number;
++  specialRate: number;
++  nights: number;
++  attributedToZehla: boolean;
++  isSpecialDate: boolean;
++}
++
++export interface UpsellCalculationOutput {
++  reservationValue: number;
++  baseValue: number;
++  incrementalValue: number;
++  commissionRate: number;
++  upsellAmount: number;
++  ownerAmount: number;
++  upsellDue: boolean;
++  reason: string;
++}
++
++/**
++ * Calculates the canonical 7% upsell fee on eligible special-date reservations.
++ * Pure, deterministic, and rounded to 2 decimal places.
++ */
++export function calculateUpsell(input: UpsellCalculationInput): UpsellCalculationOutput {
++  const { baseRate, specialRate, nights, attributedToZehla, isSpecialDate } = input;
++  const effectiveRate = isSpecialDate ? specialRate : baseRate;
++  const reservationValue = Math.round(effectiveRate * nights * 100) / 100;
++  const baseValue = Math.round(baseRate * nights * 100) / 100;
++  const incrementalValue = Math.max(0, Math.round((reservationValue - baseValue) * 100) / 100);
++  const commissionRate = 0.07;
++
++  if (!isSpecialDate) {
++    return {
++      reservationValue,
++      baseValue: reservationValue,
++      incrementalValue: 0,
++      commissionRate,
++      upsellAmount: 0,
++      ownerAmount: reservationValue,
++      upsellDue: false,
++      reason: 'NOT_SPECIAL_DATE - Tarifa normal, 100% da receita para o proprietário.',
++    };
++  }
++
++  if (!attributedToZehla) {
++    return {
++      reservationValue,
++      baseValue,
++      incrementalValue,
++      commissionRate,
++      upsellAmount: 0,
++      ownerAmount: reservationValue,
++      upsellDue: false,
++      reason: 'SPECIAL_DATE_BUT_NOT_ATTRIBUTED - Oportunidade não trabalhada pelo Zélla, 100% para o proprietário.',
++    };
++  }
++
++  // 7% fee on the full special-rate reservation value worked by Zélla
++  const upsellAmount = Math.round(reservationValue * commissionRate * 100) / 100;
++  const ownerAmount = Math.round((reservationValue - upsellAmount) * 100) / 100;
++
++  return {
++    reservationValue,
++    baseValue,
++    incrementalValue,
++    commissionRate,
++    upsellAmount,
++    ownerAmount,
++    upsellDue: true,
++    reason: `SPECIAL_DATE_AND_ATTRIBUTED - Comissão canônica de 7% (R$ ${upsellAmount}) para Seu Zélla.`,
++  };
++}
++
++export interface MonthlyBillingInput {
++  baseSubscription: number;
++  upsellRecords: Array<{ commissionAmount: number; status: string; reservationId?: string }>;
++}
++
++export interface MonthlyBillingOutput {
++  baseSubscription: number;
++  upsellTotal: number;
++  totalInvoice: number;
++  upsellCount: number;
++}
++
++/**
++ * Consolidates the base monthly plan subscription with confirmed upsell commissions.
++ */
++export function calculateMonthlyBilling(input: MonthlyBillingInput): MonthlyBillingOutput {
++  const { baseSubscription, upsellRecords } = input;
++  const confirmed = upsellRecords.filter(
++    (r) => r.status === 'confirmed' || r.status === 'paid' || r.status === 'APPROVED'
++  );
++  const upsellTotal = confirmed.reduce((sum, r) => sum + (r.commissionAmount || 0), 0);
++  const roundedUpsell = Math.round(upsellTotal * 100) / 100;
++  const totalInvoice = Math.round((baseSubscription + roundedUpsell) * 100) / 100;
++
++  return {
++    baseSubscription: Math.round(baseSubscription * 100) / 100,
++    upsellTotal: roundedUpsell,
++    totalInvoice,
++    upsellCount: confirmed.length,
++  };
++}
+diff --git a/tests/security/lote6-special-dates-upsell-hitl.test.ts b/tests/security/lote6-special-dates-upsell-hitl.test.ts
+new file mode 100644
+index 00000000..5af40301
+--- /dev/null
++++ b/tests/security/lote6-special-dates-upsell-hitl.test.ts
+@@ -0,0 +1,377 @@
++import { describe, expect, it, vi, beforeEach } from 'vitest';
++import { NextRequest } from 'next/server';
++
++// In-memory stores for Special Dates, Suggestions, Overrides, UpsellRecords
++let specialDatesStore: any[] = [];
++let suggestionsStore: any[] = [];
++let priceOverridesStore: any[] = [];
++let upsellRecordsStore: any[] = [];
++
++vi.mock('@/lib/db', () => ({
++  db: {
++    specialDate: {
++      findFirst: vi.fn(async ({ where }: any) => {
++        return (
++          specialDatesStore.find(
++            (s) =>
++              s.tenantId === where.tenantId &&
++              (!where.type || s.type === where.type) &&
++              (!where.date || new Date(s.date).getTime() === new Date(where.date).getTime())
++          ) || null
++        );
++      }),
++      create: vi.fn(async ({ data }: any) => {
++        const item = { id: `sd_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, ...data };
++        specialDatesStore.push(item);
++        return item;
++      }),
++      findMany: vi.fn(async ({ where }: any) => {
++        return specialDatesStore
++          .filter((s) => s.tenantId === where.tenantId)
++          .map((s) => ({
++            ...s,
++            suggestions: suggestionsStore.filter((sug) => sug.specialDateId === s.id),
++          }));
++      }),
++    },
++    specialDateSuggestion: {
++      findFirst: vi.fn(async ({ where, include }: any) => {
++        const sug = suggestionsStore.find(
++          (s) =>
++            (!where.id || s.id === where.id) &&
++            (!where.tenantId || s.tenantId === where.tenantId) &&
++            (!where.specialDateId || s.specialDateId === where.specialDateId) &&
++            (!where.status || s.status === where.status)
++        );
++        if (!sug) return null;
++        if (include?.specialDate) {
++          const sd = specialDatesStore.find((d) => d.id === sug.specialDateId);
++          return { ...sug, specialDate: sd };
++        }
++        return sug;
++      }),
++      create: vi.fn(async ({ data }: any) => {
++        const item = {
++          id: `sug_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
++          createdAt: new Date(),
++          ...data,
++        };
++        suggestionsStore.push(item);
++        return item;
++      }),
++      update: vi.fn(async ({ where, data }: any) => {
++        const idx = suggestionsStore.findIndex((s) => s.id === where.id);
++        if (idx >= 0) {
++          suggestionsStore[idx] = { ...suggestionsStore[idx], ...data, updatedAt: new Date() };
++          return suggestionsStore[idx];
++        }
++        return null;
++      }),
++    },
++    priceOverride: {
++      findFirst: vi.fn(async ({ where }: any) => {
++        return (
++          priceOverridesStore.find((p) => {
++            if (p.tenantId !== where.tenantId) return false;
++            if (where.status && p.status !== where.status) return false;
++            if (where.date && new Date(p.date).getTime() !== new Date(where.date).getTime()) return false;
++            return true;
++          }) || null
++        );
++      }),
++      findMany: vi.fn(async ({ where }: any) => {
++        return priceOverridesStore.filter((p) => p.tenantId === where.tenantId && (!where.status || p.status === where.status));
++      }),
++      upsert: vi.fn(async ({ where, update, create }: any) => {
++        const targetDate = where.tenantId_roomId_date.date;
++        const tenantId = where.tenantId_roomId_date.tenantId;
++        const roomId = where.tenantId_roomId_date.roomId;
++
++        const idx = priceOverridesStore.findIndex(
++          (p) =>
++            p.tenantId === tenantId &&
++            p.roomId === roomId &&
++            new Date(p.date).getTime() === new Date(targetDate).getTime()
++        );
++
++        if (idx >= 0) {
++          priceOverridesStore[idx] = { ...priceOverridesStore[idx], ...update };
++          return priceOverridesStore[idx];
++        } else {
++          const item = {
++            id: `pov_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
++            ...create,
++          };
++          priceOverridesStore.push(item);
++          return item;
++        }
++      }),
++    },
++    upsellRecord: {
++      create: vi.fn(async ({ data }: any) => {
++        const item = { id: `up_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, ...data };
++        upsellRecordsStore.push(item);
++        return item;
++      }),
++    },
++  },
++  isDatabaseAvailable: vi.fn().mockResolvedValue(true),
++}));
++
++vi.mock('@/lib/auth', () => ({
++  requireTenant: vi.fn().mockResolvedValue('tenant_pousada_mar_azul'),
++}));
++
++vi.mock('@/lib/security/api-shield', () => ({
++  withSecurity: (handler: any) => handler,
++}));
++
++import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
++import { calculateUpsell, calculateMonthlyBilling } from '@/lib/billing/upsell-calculator';
++import { POST as approveSuggestionRoute } from '@/app/api/ddc/special-dates/suggestions/[id]/approve/route';
++import { POST as rejectSuggestionRoute } from '@/app/api/ddc/special-dates/suggestions/[id]/reject/route';
++import { requireTenant } from '@/lib/auth';
++
++describe('🎯 LOTE 6: Special Dates, Canonical 7% Upsell & HITL Owner Approval Suite', () => {
++  beforeEach(() => {
++    specialDatesStore = [];
++    suggestionsStore = [];
++    priceOverridesStore = [];
++    upsellRecordsStore = [];
++    vi.mocked(requireTenant).mockResolvedValue('tenant_pousada_mar_azul');
++  });
++
++  it('1. End-to-End Canonical Flow: Pousada Mar Azul, Réveillon R$ 600, Approval, 7% Upsell & Ledger', async () => {
++    const tenantId = 'tenant_pousada_mar_azul';
++    const roomId = 'room_101';
++    const baseDailyRate = 300;
++    const reveillonDate = new Date('2026-12-31T00:00:00Z');
++
++    // Step A: Zélla detects Réveillon opportunity and emits PENDING suggestion
++    const detection = await SpecialDatesHitlService.detectOpportunity({
++      tenantId,
++      roomId,
++      date: reveillonDate,
++      name: 'Réveillon 2027',
++      type: 'national',
++      basePrice: baseDailyRate,
++      suggestedPrice: 600,
++      reason: 'Feriado de alta procura no litoral; ocupação histórica de 100%.',
++      impactEstimate: '+100% de receita na diária',
++    });
++
++    expect(detection.status).toBe('pending_approval');
++    expect(detection.suggestion.status).toBe('pending');
++    expect(detection.suggestion.suggestedPrice).toBe(600);
++
++    // Step B: Before approval, active price remains base rate (R$ 300) - HITL Gate Verified!
++    const activeBeforeApproval = await SpecialDatesHitlService.getActivePriceForDate(
++      tenantId,
++      roomId,
++      reveillonDate,
++      baseDailyRate
++    );
++    expect(activeBeforeApproval.price).toBe(300);
++    expect(activeBeforeApproval.isSpecialDate).toBe(false);
++    expect(priceOverridesStore.length).toBe(0);
++
++    // Step C: Owner explicitly approves the suggested tariff via HITL endpoint
++    const approveReq = new NextRequest(
++      `http://localhost:3000/api/ddc/special-dates/suggestions/${detection.suggestion.id}/approve`,
++      {
++        method: 'POST',
++        body: JSON.stringify({ approvedBy: 'proprietario_mar_azul', note: 'Aprovado para o Réveillon' }),
++      }
++    );
++
++    const approveRes = await approveSuggestionRoute(approveReq, {
++      params: Promise.resolve({ id: detection.suggestion.id }),
++    });
++    expect(approveRes.status).toBe(200);
++
++    // Step D: Active price for Réveillon is now R$ 600 (PriceOverride materialized)
++    const activeAfterApproval = await SpecialDatesHitlService.getActivePriceForDate(
++      tenantId,
++      roomId,
++      reveillonDate,
++      baseDailyRate
++    );
++    expect(activeAfterApproval.price).toBe(600);
++    expect(activeAfterApproval.isSpecialDate).toBe(true);
++    expect(activeAfterApproval.source).toBe('price_override');
++
++    // Step E: 3-night reservation booked over Réveillon at approved rate
++    const nights = 3;
++    const specialRate = activeAfterApproval.price; // R$ 600
++
++    const upsellCalc = calculateUpsell({
++      baseRate: baseDailyRate, // R$ 300
++      specialRate, // R$ 600
++      nights, // 3 noites
++      attributedToZehla: true,
++      isSpecialDate: true,
++    });
++
++    // Verification of Canonical 7% Upsell Rule:
++    // Total Reservation: 3 * R$ 600 = R$ 1.800
++    // Base Reservation: 3 * R$ 300 = R$ 900
++    // Incremental: R$ 900
++    // Upsell Commission (7% of R$ 1.800): R$ 126.00
++    // Owner Net Amount: R$ 1.800 - R$ 126 = R$ 1.674.00
++    expect(upsellCalc.reservationValue).toBe(1800);
++    expect(upsellCalc.baseValue).toBe(900);
++    expect(upsellCalc.commissionRate).toBe(0.07);
++    expect(upsellCalc.upsellAmount).toBe(126);
++    expect(upsellCalc.ownerAmount).toBe(1674);
++    expect(upsellCalc.upsellDue).toBe(true);
++
++    // Step F: Monthly Billing Ledger Consolidation
++    const monthlyBilling = calculateMonthlyBilling({
++      baseSubscription: 247, // Parceiro Zélla PRO
++      upsellRecords: [{ commissionAmount: upsellCalc.upsellAmount, status: 'confirmed' }],
++    });
++
++    expect(monthlyBilling.baseSubscription).toBe(247);
++    expect(monthlyBilling.upsellTotal).toBe(126);
++    expect(monthlyBilling.totalInvoice).toBe(373); // R$ 247 + R$ 126
++    expect(monthlyBilling.upsellCount).toBe(1);
++  });
++
++  it('2. Owner Rejection: suggestion marked rejected, price remains base rate (R$ 300), zero overrides', async () => {
++    const tenantId = 'tenant_pousada_mar_azul';
++    const roomId = 'room_101';
++    const baseDailyRate = 300;
++    const tiradentesDate = new Date('2026-04-21T00:00:00Z');
++
++    const detection = await SpecialDatesHitlService.detectOpportunity({
++      tenantId,
++      roomId,
++      date: tiradentesDate,
++      name: 'Tiradentes',
++      basePrice: baseDailyRate,
++      suggestedPrice: 450,
++      reason: 'Feriado nacional prolongado',
++    });
++
++    const rejectReq = new NextRequest(
++      `http://localhost:3000/api/ddc/special-dates/suggestions/${detection.suggestion.id}/reject`,
++      {
++        method: 'POST',
++        body: JSON.stringify({ reason: 'Quero manter o preço base neste feriado', rejectedBy: 'proprietario' }),
++      }
++    );
++
++    const rejectRes = await rejectSuggestionRoute(rejectReq, {
++      params: Promise.resolve({ id: detection.suggestion.id }),
++    });
++    expect(rejectRes.status).toBe(200);
++
++    const sugInDb = suggestionsStore.find((s) => s.id === detection.suggestion.id);
++    expect(sugInDb.status).toBe('rejected');
++    expect(sugInDb.decisionNote).toBe('Quero manter o preço base neste feriado');
++
++    // Price remains R$ 300
++    const activePrice = await SpecialDatesHitlService.getActivePriceForDate(
++      tenantId,
++      roomId,
++      tiradentesDate,
++      baseDailyRate
++    );
++    expect(activePrice.price).toBe(300);
++    expect(activePrice.isSpecialDate).toBe(false);
++    expect(priceOverridesStore.length).toBe(0);
++  });
++
++  it('3. Anti-IDOR & Zero Trust: Tenant A cannot approve or reject suggestion belonging to Tenant B', async () => {
++    // Suggestion created by Tenant B (Pousada Encanto da Serra)
++    const sugTenantB = {
++      id: 'sug_encanto_99',
++      tenantId: 'tenant_pousada_encanto',
++      specialDateId: 'sd_1',
++      currentPrice: 250,
++      suggestedPrice: 500,
++      status: 'pending',
++    };
++    suggestionsStore.push(sugTenantB);
++
++    // Tenant A (Pousada Mar Azul) attempts to approve Tenant B's suggestion
++    vi.mocked(requireTenant).mockResolvedValue('tenant_pousada_mar_azul');
++
++    const reqApprove = new NextRequest(
++      `http://localhost:3000/api/ddc/special-dates/suggestions/sug_encanto_99/approve`,
++      { method: 'POST' }
++    );
++
++    const resApprove = await approveSuggestionRoute(reqApprove, {
++      params: Promise.resolve({ id: 'sug_encanto_99' }),
++    });
++    expect(resApprove.status).toBe(404);
++    const jsonApprove = await resApprove.json();
++    expect(jsonApprove.code).toBe('RESOURCE_NOT_FOUND');
++
++    // Tenant A attempts to reject Tenant B's suggestion
++    const reqReject = new NextRequest(
++      `http://localhost:3000/api/ddc/special-dates/suggestions/sug_encanto_99/reject`,
++      { method: 'POST' }
++    );
++
++    const resReject = await rejectSuggestionRoute(reqReject, {
++      params: Promise.resolve({ id: 'sug_encanto_99' }),
++    });
++    expect(resReject.status).toBe(404);
++  });
++
++  it('4. Idempotency: Double approval does not duplicate PriceOverride or create ledger conflicts', async () => {
++    const tenantId = 'tenant_pousada_mar_azul';
++    const date = new Date('2026-11-15T00:00:00Z');
++
++    const detection = await SpecialDatesHitlService.detectOpportunity({
++      tenantId,
++      date,
++      name: 'Proclamação da República',
++      basePrice: 300,
++      suggestedPrice: 480,
++      reason: 'Feriado de novembro',
++    });
++
++    // First Approval
++    const req1 = new NextRequest(`http://localhost:3000/api/ddc/special-dates/suggestions/${detection.suggestion.id}/approve`, {
++      method: 'POST',
++      body: JSON.stringify({ approvedBy: 'proprietario' }),
++    });
++    const res1 = await approveSuggestionRoute(req1, {
++      params: Promise.resolve({ id: detection.suggestion.id }),
++    });
++    expect(res1.status).toBe(200);
++
++    // Second Approval (Immediate replay / double-click)
++    const req2 = new NextRequest(`http://localhost:3000/api/ddc/special-dates/suggestions/${detection.suggestion.id}/approve`, {
++      method: 'POST',
++      body: JSON.stringify({ approvedBy: 'proprietario' }),
++    });
++    const res2 = await approveSuggestionRoute(req2, {
++      params: Promise.resolve({ id: detection.suggestion.id }),
++    });
++    expect(res2.status).toBe(200);
++
++    // Verify exactly ONE active price override exists
++    const overrides = priceOverridesStore.filter((p) => p.tenantId === tenantId);
++    expect(overrides.length).toBe(1);
++    expect(overrides[0].price).toBe(480);
++  });
++
++  it('5. Upsell Definition Purity: Normal dates without special attribution produce R$ 0 upsell', () => {
++    const normalReservation = calculateUpsell({
++      baseRate: 300,
++      specialRate: 300,
++      nights: 4,
++      attributedToZehla: false,
++      isSpecialDate: false,
++    });
++
++    expect(normalReservation.reservationValue).toBe(1200);
++    expect(normalReservation.upsellAmount).toBe(0);
++    expect(normalReservation.ownerAmount).toBe(1200);
++    expect(normalReservation.upsellDue).toBe(false);
++  });
++});

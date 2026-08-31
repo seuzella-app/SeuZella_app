@@ -1,0 +1,213 @@
+diff --git a/src/app/api/cron/monthly-billing/route.ts b/src/app/api/cron/monthly-billing/route.ts
+index 3ac8c183..5994aa6e 100755
+--- a/src/app/api/cron/monthly-billing/route.ts
++++ b/src/app/api/cron/monthly-billing/route.ts
+@@ -37,20 +37,6 @@ async function handleMonthlyBilling(request: NextRequest) {
+     return authResult.response ?? NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+   }
+ 
+-  const authHeader = request.headers.get('authorization');
+-  const { searchParams } = new URL(request.url);
+-  const secretParam = searchParams.get('secret');
+-  const cronSecret = process.env.CRON_SECRET || 'seuzella-cron-secret-2026';
+-
+-  const isAuthorized =
+-    authHeader === `Bearer ${cronSecret}` ||
+-    secretParam === cronSecret ||
+-    process.env.NODE_ENV === 'development';
+-
+-  if (!isAuthorized) {
+-    return NextResponse.json({ error: 'UNAUTHORIZED_CRON' }, { status: 401 });
+-  }
+-
+   const now = new Date();
+   const refYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+   const refMonth = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+diff --git a/src/app/api/integrations/sync/route.ts b/src/app/api/integrations/sync/route.ts
+index 8d6d81b8..56336ff2 100755
+--- a/src/app/api/integrations/sync/route.ts
++++ b/src/app/api/integrations/sync/route.ts
+@@ -1,53 +1,68 @@
+ import { NextRequest, NextResponse } from 'next/server';
++import { getToken } from 'next-auth/jwt';
+ import { syncAllActiveChannels } from '@/lib/integrations/ical-service';
+ import { verifySyncSecret } from '@/lib/security/webhook-verify';
++import { verifyCronM2MToken } from '@/lib/security/cron-auth';
++import { getNextAuthSecret } from '@/lib/env';
+ 
+ /**
+  * POST /api/integrations/sync
+  *
+  * SECURITY (Zero Trust V2):
+- * - Uses timing-safe comparison for sync secret (no plain === comparison).
+- * - In production, requires CALENDAR_SYNC_SECRET env var (no hardcoded fallback).
+- * - NextAuth session validation as secondary auth path.
++ * - Auth Path 1: Uses timing-safe comparison for X-Sync-Secret header.
++ * - Auth Path 2: Cryptographic M2M Token authorization via verifyCronM2MToken.
++ * - Auth Path 3: Authenticated NextAuth session with admin/owner/system_admin role.
++ * - Rejects any unauthenticated or forged token with 401.
+  */
+ export async function POST(request: NextRequest) {
+   try {
+     const syncSecretHeader = request.headers.get('x-sync-secret');
+-
+-    // SECURITY: Always require env var. No hardcoded fallback ever.
+     const configuredSecret = process.env.CALENDAR_SYNC_SECRET;
+-    if (!configuredSecret) {
+-      console.error('[sync-api] CRITICAL: CALENDAR_SYNC_SECRET not set');
+-      return NextResponse.json(
+-        { error: 'SERVICE_NOT_CONFIGURED' },
+-        { status: 503, headers: { 'X-Security-Shield': 'zero-trust-v1' } }
+-      );
+-    }
+ 
+-    // Use env var directly (no fallback)
+-    const expectedSecret = configuredSecret;
++    let isAuthorized = false;
+ 
+-    // Auth Path 1: Timing-safe secret comparison
+-    if (syncSecretHeader && expectedSecret) {
+-      const verification = verifySyncSecret(syncSecretHeader, expectedSecret);
+-      if (!verification.valid) {
+-        console.warn(`[sync-api] REJECTED: ${verification.reason}`);
++    // Auth Path 1: Timing-safe secret comparison via X-Sync-Secret header
++    if (syncSecretHeader && configuredSecret) {
++      const verification = verifySyncSecret(syncSecretHeader, configuredSecret);
++      if (verification.valid) {
++        isAuthorized = true;
++      } else {
++        console.warn(`[sync-api] REJECTED (X-Sync-Secret): ${verification.reason}`);
+         return NextResponse.json(
+           { error: 'UNAUTHORIZED', reason: verification.reason },
+           { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v1' } }
+         );
+       }
+-    } else {
+-      // Auth Path 2: NextAuth session
+-      const authHeader = request.headers.get('authorization');
+-      if (!authHeader) {
+-        return NextResponse.json(
+-          { error: 'Autenticação necessária. Envie o header X-Sync-Secret ou faça login.' },
+-          { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v1' } }
+-        );
++    }
++
++    // Auth Path 2: Strict Cryptographic M2M Auth (Bearer JWT)
++    if (!isAuthorized) {
++      const m2mAuth = await verifyCronM2MToken(request, 'cerebro:write');
++      if (m2mAuth.ok) {
++        isAuthorized = true;
++      }
++    }
++
++    // Auth Path 3: NextAuth session (admin/owner/system_admin)
++    if (!isAuthorized) {
++      try {
++        const secret = process.env.NEXTAUTH_SECRET ? getNextAuthSecret() : undefined;
++        const token = await getToken({ req: request as any, secret });
++        if (token && ['owner', 'admin', 'system_admin'].includes(String(token.role || ''))) {
++          isAuthorized = true;
++        }
++      } catch {
++        // Fallthrough to 401
+       }
+     }
+ 
++    if (!isAuthorized) {
++      return NextResponse.json(
++        { error: 'UNAUTHORIZED', message: 'Autenticação necessária. Envie o header X-Sync-Secret, credencial M2M válida ou realize login administrativo.' },
++        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v1' } }
++      );
++    }
++
+     const result = await syncAllActiveChannels();
+ 
+     return NextResponse.json({
+diff --git a/tests/security/reconciliation-lote3r-adversarial.test.ts b/tests/security/reconciliation-lote3r-adversarial.test.ts
+new file mode 100644
+index 00000000..56eaeed7
+--- /dev/null
++++ b/tests/security/reconciliation-lote3r-adversarial.test.ts
+@@ -0,0 +1,82 @@
++import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
++import { NextRequest } from 'next/server';
++import { POST as syncHandler } from '@/app/api/integrations/sync/route';
++import { GET as monthlyBillingHandler } from '@/app/api/cron/monthly-billing/route';
++
++describe('🔬 Adversarial Security Tests — Lote 3R Reconciliation (P0-A, P0-B, P0-C)', () => {
++  const originalEnv = { ...process.env };
++
++  beforeEach(() => {
++    process.env = { ...originalEnv };
++  });
++
++  afterEach(() => {
++    process.env = { ...originalEnv };
++    vi.restoreAllMocks();
++  });
++
++  describe('P0-B: /api/integrations/sync boundary enforcement', () => {
++    it('rejects unauthenticated request (no headers)', async () => {
++      process.env.CALENDAR_SYNC_SECRET = 'super-secure-calendar-sync-secret-32ch!';
++      const req = new NextRequest('http://localhost:3000/api/integrations/sync', {
++        method: 'POST',
++      });
++      const res = await syncHandler(req);
++      expect(res.status).toBe(401);
++      const json = await res.json();
++      expect(json.error).toBe('UNAUTHORIZED');
++    });
++
++    it('rejects forged Authorization: Bearer x', async () => {
++      process.env.CALENDAR_SYNC_SECRET = 'super-secure-calendar-sync-secret-32ch!';
++      const req = new NextRequest('http://localhost:3000/api/integrations/sync', {
++        method: 'POST',
++        headers: {
++          authorization: 'Bearer x',
++        },
++      });
++      const res = await syncHandler(req);
++      expect(res.status).toBe(401);
++      const json = await res.json();
++      expect(json.error).toBe('UNAUTHORIZED');
++    });
++
++    it('rejects invalid x-sync-secret header', async () => {
++      process.env.CALENDAR_SYNC_SECRET = 'super-secure-calendar-sync-secret-32ch!';
++      const req = new NextRequest('http://localhost:3000/api/integrations/sync', {
++        method: 'POST',
++        headers: {
++          'x-sync-secret': 'wrong-sync-secret-value-12345678',
++        },
++      });
++      const res = await syncHandler(req);
++      expect(res.status).toBe(401);
++      const json = await res.json();
++      expect(json.error).toBe('UNAUTHORIZED');
++    });
++  });
++
++  describe('P0-C: /api/cron/monthly-billing boundary enforcement', () => {
++    it('rejects query parameter secret bypass (?secret=seuzella-cron-secret-2026)', async () => {
++      (process.env as any).NODE_ENV = 'production';
++      process.env.CRON_SECRET = 'real-production-cron-secret-32chars!';
++
++      const req = new NextRequest('http://localhost:3000/api/cron/monthly-billing?secret=seuzella-cron-secret-2026', {
++        method: 'GET',
++      });
++      const res = await monthlyBillingHandler(req);
++      expect(res.status).toBe(401);
++    });
++
++    it('rejects unauthenticated request in production', async () => {
++      (process.env as any).NODE_ENV = 'production';
++      process.env.CRON_SECRET = 'real-production-cron-secret-32chars!';
++
++      const req = new NextRequest('http://localhost:3000/api/cron/monthly-billing', {
++        method: 'GET',
++      });
++      const res = await monthlyBillingHandler(req);
++      expect(res.status).toBe(401);
++    });
++  });
++});

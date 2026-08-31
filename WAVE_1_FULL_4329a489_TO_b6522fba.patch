@@ -1,0 +1,1241 @@
+diff --git a/prisma/migrations/20260901000005_add_booking_exclusion_constraint/migration.sql b/prisma/migrations/20260901000005_add_booking_exclusion_constraint/migration.sql
+new file mode 100644
+index 00000000..ec4fe670
+--- /dev/null
++++ b/prisma/migrations/20260901000005_add_booking_exclusion_constraint/migration.sql
+@@ -0,0 +1,18 @@
++-- CreateExtension
++CREATE EXTENSION IF NOT EXISTS btree_gist;
++
++-- CreateExclusionConstraint on bookings
++-- Ensures PostgreSQL strictly rejects overlapping booking date ranges for the same tenant and room
++ALTER TABLE "bookings"
++DROP CONSTRAINT IF EXISTS "booking_no_overlap";
++
++ALTER TABLE "bookings"
++ADD CONSTRAINT "booking_no_overlap"
++EXCLUDE USING gist (
++  "tenantId" WITH =,
++  "roomName" WITH =,
++  tstzrange("checkIn", "checkOut", '[)') WITH &&
++)
++WHERE (
++  "status" NOT IN ('cancelled', 'canceled', 'rejected')
++);
+diff --git a/src/app/api/agent-logs/route.ts b/src/app/api/agent-logs/route.ts
+index 65a04bcf..39893cdd 100755
+--- a/src/app/api/agent-logs/route.ts
++++ b/src/app/api/agent-logs/route.ts
+@@ -1,8 +1,16 @@
+ import { NextResponse } from 'next/server';
+ import { db } from '@/lib/db';
+ import { apiRatelimit } from '@/lib/rate-limit';
++import { getServerSession } from 'next-auth';
++import { authOptions } from '@/lib/auth';
+ 
+ export async function GET(request: Request) {
++  const session = await getServerSession(authOptions);
++  if (!session?.user?.tenantId) {
++    return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
++  }
++  const { tenantId } = session.user;
++
+   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+   const rl = await apiRatelimit.limit(`api:${clientIp}:${new URL(request.url).pathname}`);
+   if (!rl.success) {
+@@ -18,7 +26,7 @@ export async function GET(request: Request) {
+     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
+     const agentId = searchParams.get('agentId') || undefined;
+ 
+-    const where: Record<string, unknown> = {};
++    const where: Record<string, unknown> = { tenantId };
+     if (agentId) {
+       where.agentId = agentId;
+     }
+@@ -30,7 +38,7 @@ export async function GET(request: Request) {
+     });
+ 
+     return NextResponse.json(
+-      logs.map((log: any) => ({
++      logs.map((log: { id: string; createdAt: Date; [key: string]: unknown }) => ({
+         ...log,
+         createdAt: log.createdAt.toISOString(),
+       })),
+diff --git a/src/app/api/checkout/webhook/route.ts b/src/app/api/checkout/webhook/route.ts
+index 59d53ede..99a9834c 100755
+--- a/src/app/api/checkout/webhook/route.ts
++++ b/src/app/api/checkout/webhook/route.ts
+@@ -13,12 +13,7 @@ export async function POST(request: NextRequest) {
+     const requestId = request.headers.get('x-request-id') || undefined;
+     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.MERCADOPAGO_WEBHOOK_SECRET;
+ 
+-    if (process.env.NODE_ENV === 'production' && !webhookSecret) {
+-      console.error('[checkout-webhook] CRITICAL: Mercado Pago webhook secret not configured');
+-      return NextResponse.json({ error: 'WEBHOOK_NOT_CONFIGURED' }, { status: 503, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+-    }
+-
+-    if (process.env.NODE_ENV === 'production') {
++    if (webhookSecret) {
+       if (!signature) return NextResponse.json({ error: 'SIGNATURE_REQUIRED' }, { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+       const bodyForSignature = (() => {
+         try { return JSON.parse(rawBody) as Record<string, unknown>; } catch { return null; }
+@@ -36,11 +31,6 @@ export async function POST(request: NextRequest) {
+         } catch (notifErr) { console.error('[checkout-webhook] security bridge error:', notifErr); }
+         return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+       }
+-    } else if (webhookSecret && signature) {
+-      const bodyForSignature = JSON.parse(rawBody) as Record<string, unknown>;
+-      const paymentId = typeof bodyForSignature.data === 'object' && bodyForSignature.data !== null && typeof (bodyForSignature.data as Record<string, unknown>).id === 'string'
+-        ? String((bodyForSignature.data as Record<string, unknown>).id) : typeof bodyForSignature.id === 'string' ? bodyForSignature.id : '';
+-      if (paymentId) verifyMercadoPagoWebhook(rawBody, signature, webhookSecret, paymentId, requestId);
+     }
+ 
+     let body: Record<string, unknown>;
+diff --git a/src/app/api/conversations/route.ts b/src/app/api/conversations/route.ts
+index e5ef4119..814b7244 100755
+--- a/src/app/api/conversations/route.ts
++++ b/src/app/api/conversations/route.ts
+@@ -6,21 +6,23 @@
+ 
+ import { NextRequest, NextResponse } from 'next/server';
+ import { db } from '@/lib/db';
++import { getServerSession } from 'next-auth';
++import { authOptions } from '@/lib/auth';
+ 
+ export async function GET(request: NextRequest) {
+   try {
+-    // Get the first active tenant (demo mode)
+-    const tenant = await db.tenant.findFirst({ where: { status: 'active' } });
+-    if (!tenant) {
+-      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
++    const session = await getServerSession(authOptions);
++    if (!session?.user?.tenantId) {
++      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+     }
++    const { tenantId } = session.user;
+ 
+     const { searchParams } = new URL(request.url);
+     const propertyId = searchParams.get('propertyId');
+     const status = searchParams.get('status');
+     const mode = searchParams.get('mode');
+ 
+-    const where: Record<string, unknown> = { tenantId: tenant.id };
++    const where: Record<string, unknown> = { tenantId };
+     if (propertyId) where.propertyId = propertyId;
+     if (status) where.status = status;
+     if (mode) where.conversationMode = mode;
+@@ -46,9 +48,9 @@ export async function GET(request: NextRequest) {
+ 
+     // Get counts by mode
+     const [preBookingCount, postBookingCount, activeCount] = await Promise.all([
+-      db.conversation.count({ where: { tenantId: tenant.id, conversationMode: 'pre_booking' } }),
+-      db.conversation.count({ where: { tenantId: tenant.id, conversationMode: 'post_booking' } }),
+-      db.conversation.count({ where: { tenantId: tenant.id, status: 'active' } }),
++      db.conversation.count({ where: { tenantId, conversationMode: 'pre_booking' } }),
++      db.conversation.count({ where: { tenantId, conversationMode: 'post_booking' } }),
++      db.conversation.count({ where: { tenantId, status: 'active' } }),
+     ]);
+ 
+     return NextResponse.json({
+diff --git a/src/app/api/ddc/bookings/route.ts b/src/app/api/ddc/bookings/route.ts
+index 4299f4bd..5d033747 100755
+--- a/src/app/api/ddc/bookings/route.ts
++++ b/src/app/api/ddc/bookings/route.ts
+@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
+     const status = searchParams.get('status');
+     const guestId = searchParams.get('guestId');
+ 
+-    const where: any = { tenantId };
++    const where: Record<string, unknown> = { tenantId };
+     if (status) where.status = status === 'completed' ? { in: ['checked_in', 'checked_out'] } : status;
+     if (guestId) where.guestId = guestId;
+ 
+@@ -107,25 +107,81 @@ export async function POST(request: NextRequest) {
+     }
+     const checkIn = new Date(body.checkIn);
+     const checkOut = new Date(body.checkOut);
++
++    if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime()) || checkOut <= checkIn) {
++      return NextResponse.json(
++        { success: false, error: { code: 'INVALID_DATES', message: 'Data de check-out deve ser posterior ao check-in' } },
++        { status: 400 }
++      );
++    }
++
+     const nights = Math.max(1, Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
+-    const booking = await db.booking.create({
+-      data: {
+-        tenantId,
+-        guestId: body.guestId,
+-        guestName: body.guestName || '',
+-        roomName: body.roomId || body.roomName || '',
+-        checkIn,
+-        checkOut,
+-        nights,
+-        guests: body.guests || 1,
+-        totalValue: body.total,
+-        status: body.status || 'pending',
+-        paymentMethod: body.paymentMethod || 'pix',
+-        paymentStatus: body.paymentStatus || 'pending',
+-        source: body.source || 'whatsapp_ai',
++    const targetRoom = body.roomId || body.roomName || '';
++
++    const transactionResult = await db.$transaction(async (tx) => {
++      // 🔒 Anti Double Booking Overlap Enforcement
++      const overlapConditions: Array<{ roomId?: string; roomName?: string }> = [];
++      if (body.roomId) overlapConditions.push({ roomId: body.roomId });
++      if (targetRoom) overlapConditions.push({ roomName: targetRoom });
++
++      if (overlapConditions.length > 0) {
++        const overlap = await tx.booking.findFirst({
++          where: {
++            tenantId,
++            status: { notIn: ['cancelled', 'canceled', 'rejected'] },
++            OR: overlapConditions,
++            AND: [
++              { checkIn: { lt: checkOut } },
++              { checkOut: { gt: checkIn } },
++            ],
++          },
++        });
++
++        if (overlap) {
++          return {
++            conflict: true,
++            message: 'Quarto indisponível para o período selecionado. Conflito de reserva existente.',
++          };
++        }
+       }
++
++      const newBooking = await tx.booking.create({
++        data: {
++          tenantId,
++          guestId: body.guestId,
++          guestName: body.guestName || '',
++          roomName: targetRoom,
++          roomId: body.roomId || undefined,
++          checkIn,
++          checkOut,
++          nights,
++          guests: body.guests || 1,
++          totalValue: body.total,
++          status: body.status || 'pending',
++          paymentMethod: body.paymentMethod || 'pix',
++          paymentStatus: body.paymentStatus || 'pending',
++          source: body.source || 'whatsapp_ai',
++        },
++      });
++
++      return { conflict: false, booking: newBooking };
+     });
+ 
++    if (transactionResult.conflict || !transactionResult.booking) {
++      return NextResponse.json(
++        {
++          success: false,
++          error: {
++            code: 'DOUBLE_BOOKING_CONFLICT',
++            message: transactionResult.message || 'Conflito de reserva detectado.',
++          },
++        },
++        { status: 409 }
++      );
++    }
++
++    const { booking } = transactionResult;
++
+     // ── Notification bridge: notify owner about new reservation ──
+     try {
+       bridgeReservationEvent({
+@@ -160,7 +216,30 @@ export async function POST(request: NextRequest) {
+     );
+ 
+     return NextResponse.json({ success: true, data: mapBooking(booking) }, { status: 201 });
+-  } catch (error) {
++  } catch (error: unknown) {
++    const errMessage = error instanceof Error ? error.message : String(error);
++    const errCode = (error as { code?: string })?.code;
++
++    // Mapeamento estrito de violação de exclusão PostgreSQL (23P01), Prisma (P2002/P2010) ou constraint booking_no_overlap
++    if (
++      errCode === '23P01' ||
++      errCode === 'P2002' ||
++      errMessage.includes('booking_no_overlap') ||
++      errMessage.includes('exclusion constraint') ||
++      errMessage.includes('conflicting key value violates exclusion constraint')
++    ) {
++      return NextResponse.json(
++        {
++          success: false,
++          error: {
++            code: 'DOUBLE_BOOKING_CONFLICT',
++            message: 'Quarto indisponível para o período selecionado. Conflito de reserva existente.',
++          },
++        },
++        { status: 409 }
++      );
++    }
++
+     console.error('[DDC bookings POST] Error:', error);
+     return NextResponse.json({ success: false, error: { code: '500', message: 'Failed to create booking' } }, { status: 500 });
+   }
+diff --git a/src/app/api/ddc/conversations/[id]/messages/route.ts b/src/app/api/ddc/conversations/[id]/messages/route.ts
+index 201d2dee..e13df5f4 100755
+--- a/src/app/api/ddc/conversations/[id]/messages/route.ts
++++ b/src/app/api/ddc/conversations/[id]/messages/route.ts
+@@ -19,13 +19,22 @@ export async function GET(
+   try {
+     const g = await guard();
+     if (g instanceof NextResponse) return g;
++    const tenantId = g as string;
+     const { id: conversationId } = await params;
++
++    const conversation = await db.conversationLog.findFirst({
++      where: { id: conversationId, tenantId },
++    });
++    if (!conversation) {
++      return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
++    }
++
+     const messages = await db.conversationMessage.findMany({
+       where: { conversationId },
+       orderBy: { timestamp: 'asc' },
+     });
+     return apiSuccess(messages);
+-  } catch (error) {
++  } catch {
+     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
+   }
+ }
+@@ -37,7 +46,16 @@ export async function POST(
+   try {
+     const g = await guard();
+     if (g instanceof NextResponse) return g;
++    const tenantId = g as string;
+     const { id: conversationId } = await params;
++
++    const conversation = await db.conversationLog.findFirst({
++      where: { id: conversationId, tenantId },
++    });
++    if (!conversation) {
++      return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
++    }
++
+     const body = await request.json();
+     const { from, content, metadata = {} } = body;
+ 
+@@ -60,7 +78,7 @@ export async function POST(
+     });
+ 
+     return apiSuccess(message, { status: 201 });
+-  } catch (error) {
++  } catch {
+     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
+   }
+ }
+diff --git a/src/app/api/ddc/guests/[id]/route.ts b/src/app/api/ddc/guests/[id]/route.ts
+index 0ff75e4e..f6989cf2 100755
+--- a/src/app/api/ddc/guests/[id]/route.ts
++++ b/src/app/api/ddc/guests/[id]/route.ts
+@@ -4,9 +4,6 @@ import { db } from '@/lib/db';
+ import { resolveTenantId, mapGuest } from '@/lib/ddc/ddc-mapper';
+ import { createError, apiSuccess } from '@/lib/error-handler';
+ import { apiRatelimit } from '@/lib/rate-limit';
+-import { withApiGuard } from '@/lib/security/api-guard';
+-import { getServerSession } from 'next-auth';
+-import { authOptions } from '@/lib/auth';
+ 
+ interface RouteContext { params: Promise<{ id: string }> }
+ 
+@@ -23,10 +20,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
+     const g = await guard();
+     if (g instanceof NextResponse) return g;
+     const { id } = await context.params;
+-    const guest = await db.guest.findUnique({ where: { id } });
++    const guest = await db.guest.findFirst({ where: { id, tenantId: g } });
+     if (!guest) return createError(404, 'NOT_FOUND', 'Guest not found');
+     return apiSuccess(mapGuest(guest));
+-  } catch (error) {
++  } catch {
+     return createError(500, 'FETCH_FAILED', 'Failed to fetch guest');
+   }
+ }
+@@ -37,10 +34,10 @@ export async function PUT(request: NextRequest, context: RouteContext) {
+     if (g instanceof NextResponse) return g;
+     const { id } = await context.params;
+     const body = await request.json();
+-    const existing = await db.guest.findUnique({ where: { id } });
++    const existing = await db.guest.findFirst({ where: { id, tenantId: g } });
+     if (!existing) return createError(404, 'NOT_FOUND', 'Guest not found');
+ 
+-    const updateData: any = {};
++    const updateData: Record<string, unknown> = {};
+     if (body.name) updateData.name = body.name;
+     if (body.phoneNumber) updateData.phone = body.phoneNumber;
+     if (body.email !== undefined) updateData.email = body.email;
+@@ -49,7 +46,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
+     if (body.notes !== undefined) updateData.notes = body.notes;
+     if (body.value !== undefined) updateData.value = body.value;
+ 
+-    const updated = await db.guest.update({ where: { id }, data: updateData });
++    const updated = await db.guest.update({ where: { id: existing.id }, data: updateData });
+ 
+     // Publish realtime event AFTER DB write succeeds.
+     publishTenantEvent(g, 'guest:updated', {
+@@ -59,7 +56,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
+     });
+ 
+     return apiSuccess(mapGuest(updated));
+-  } catch (error) {
++  } catch {
+     return createError(500, 'UPDATE_FAILED', 'Failed to update guest');
+   }
+ }
+@@ -69,7 +66,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
+     const g = await guard();
+     if (g instanceof NextResponse) return g;
+     const { id } = await context.params;
+-    await db.guest.delete({ where: { id } });
++    const existing = await db.guest.findFirst({ where: { id, tenantId: g } });
++    if (!existing) return createError(404, 'NOT_FOUND', 'Guest not found');
++
++    await db.guest.delete({ where: { id: existing.id } });
+ 
+     // Publish realtime event AFTER DB delete succeeds.
+     publishTenantEvent(g, 'guest:updated', {
+@@ -78,7 +78,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
+     });
+ 
+     return apiSuccess(null);
+-  } catch (error) {
++  } catch {
+     return createError(500, 'DELETE_FAILED', 'Failed to delete guest');
+   }
+ }
+diff --git a/src/app/api/ddc/live-feed/route.ts b/src/app/api/ddc/live-feed/route.ts
+index 8adb8bf9..7ad5da3d 100755
+--- a/src/app/api/ddc/live-feed/route.ts
++++ b/src/app/api/ddc/live-feed/route.ts
+@@ -1,4 +1,4 @@
+-import { NextRequest, NextResponse } from 'next/server';
++import { NextRequest } from 'next/server';
+ import { db, isDatabaseAvailable } from '@/lib/db';
+ import { resolveTenantId, mapConversation } from '@/lib/ddc/ddc-mapper';
+ import { createError, apiSuccess } from '@/lib/error-handler';
+@@ -25,6 +25,13 @@ export async function POST(request: NextRequest) {
+     const body = await request.json();
+     const data = messageSchema.parse(body);
+ 
++    const conv = await db.conversationLog.findFirst({
++      where: { id: data.conversationId, tenantId },
++    });
++    if (!conv) {
++      return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
++    }
++
+     const message = await db.conversationMessage.create({
+       data: {
+         conversationId: data.conversationId,
+@@ -99,8 +106,9 @@ export async function GET(request: NextRequest) {
+       };
+ 
+       // Register listener globally
+-      (globalThis as any).sseListeners = (globalThis as any).sseListeners || new Set();
+-      (globalThis as any).sseListeners.add(listener);
++      const globalScope = globalThis as unknown as { sseListeners?: Set<(incomingTenantId: string, sseData: string) => void> };
++      globalScope.sseListeners = globalScope.sseListeners || new Set();
++      globalScope.sseListeners.add(listener);
+ 
+       // Initial load
+       try {
+@@ -127,7 +135,7 @@ export async function GET(request: NextRequest) {
+           if (newMessages.length > 0) {
+             const convIds = [...new Set(newMessages.map(m => m.conversationId))];
+             const updatedConvs = await db.conversationLog.findMany({
+-              where: { id: { in: convIds } },
++              where: { id: { in: convIds }, tenantId },
+               include: { messages: { orderBy: { timestamp: 'asc' } } },
+             });
+ 
+@@ -136,15 +144,15 @@ export async function GET(request: NextRequest) {
+             }
+           }
+           lastCheck = new Date();
+-        } catch (error) {
++        } catch {
+           // Silently continue polling
+         }
+       }, 5000);
+ 
+       const cleanup = () => {
+         clearInterval(interval);
+-        if ((globalThis as any).sseListeners) {
+-          (globalThis as any).sseListeners.delete(listener);
++        if (globalScope.sseListeners) {
++          globalScope.sseListeners.delete(listener);
+         }
+         try {
+           controller.close();
+diff --git a/src/app/api/ddc/training/[id]/route.ts b/src/app/api/ddc/training/[id]/route.ts
+index 1faf6d32..d590e574 100755
+--- a/src/app/api/ddc/training/[id]/route.ts
++++ b/src/app/api/ddc/training/[id]/route.ts
+@@ -21,18 +21,18 @@ export async function PUT(request: NextRequest, context: RouteContext) {
+     if (g instanceof NextResponse) return g;
+     const { id } = await context.params;
+     const body = await request.json();
+-    const existing = await db.trainingPrompt.findUnique({ where: { id } });
++    const existing = await db.trainingPrompt.findFirst({ where: { id, tenantId: g } });
+     if (!existing) return createError(404, 'NOT_FOUND', 'Training not found');
+ 
+-    const updateData: any = {};
++    const updateData: Record<string, unknown> = {};
+     if (body.title) updateData.name = body.title;
+     if (body.content) updateData.content = body.content;
+     if (body.category) updateData.type = body.category;
+     if (body.isActive !== undefined) updateData.isActive = body.isActive;
+ 
+-    const updated = await db.trainingPrompt.update({ where: { id }, data: updateData });
++    const updated = await db.trainingPrompt.update({ where: { id: existing.id }, data: updateData });
+     return apiSuccess(mapTraining(updated));
+-  } catch (error) {
++  } catch {
+     return createError(500, 'UPDATE_FAILED', 'Failed to update training');
+   }
+ }
+@@ -42,9 +42,12 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
+     const g = await guard();
+     if (g instanceof NextResponse) return g;
+     const { id } = await context.params;
+-    await db.trainingPrompt.delete({ where: { id } });
++    const existing = await db.trainingPrompt.findFirst({ where: { id, tenantId: g } });
++    if (!existing) return createError(404, 'NOT_FOUND', 'Training not found');
++
++    await db.trainingPrompt.delete({ where: { id: existing.id } });
+     return apiSuccess(null);
+-  } catch (error) {
++  } catch {
+     return createError(500, 'DELETE_FAILED', 'Failed to delete training');
+   }
+ }
+@@ -60,7 +63,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
+     const g = await guard();
+     if (g instanceof NextResponse) return g;
+     const { id } = await context.params;
+-    const training = await db.trainingPrompt.findUnique({ where: { id } });
++    const training = await db.trainingPrompt.findFirst({ where: { id, tenantId: g } });
+     if (!training) return createError(404, 'NOT_FOUND', 'Training not found');
+ 
+     const property = await db.property.findFirst({ where: { tenantId: g } });
+@@ -123,7 +126,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
+   }
+ }
+ 
+-function getTestScenarios(type: string, propertyName: string, trainingContent: string) {
++function getTestScenarios(type: string, propertyName: string, _trainingContent: string) {
+   const base = [
+     {
+       label: 'Pergunta direta',
+diff --git a/src/app/api/webhooks/payment/route.ts b/src/app/api/webhooks/payment/route.ts
+index eaadabce..f148d5ec 100755
+--- a/src/app/api/webhooks/payment/route.ts
++++ b/src/app/api/webhooks/payment/route.ts
+@@ -230,52 +230,54 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
+     (payload.payer?.phone ? `${payload.payer.phone.area_code || ''}${payload.payer.phone.number || ''}` : '');
+   const propertyName = meta.propertyName || '';
+ 
+-  // Se já temos tenantId nos metadados, é um cliente existente
+-  if (meta.tenantId) {
+-    const existingTenant = await db.tenant.findUnique({ where: { id: meta.tenantId } });
+-    if (existingTenant) {
+-      // Atualiza o plano do tenant existente
+-      const now = new Date();
+-      const periodEnd = new Date(now);
+-      periodEnd.setMonth(periodEnd.getMonth() + 1);
+-
+-      await db.tenant.update({
+-        where: { id: existingTenant.id },
+-        data: {
+-          plan: planTier,
+-          status: 'active',
+-          subscriptionAt: now,
+-          niche: niche as string,
+-        },
+-      });
++  // Se temos subscriptionId, derivar o tenant de forma autoritativa no banco
++  if (meta.subscriptionId) {
++    const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });
++    if (subscription) {
++      const existingTenant = await db.tenant.findUnique({ where: { id: subscription.tenantId } });
++      if (existingTenant) {
++        const now = new Date();
++        const periodEnd = new Date(now);
++        periodEnd.setMonth(periodEnd.getMonth() + 1);
++
++        await db.tenant.update({
++          where: { id: existingTenant.id },
++          data: {
++            plan: planTier,
++            status: 'active',
++            subscriptionAt: now,
++            niche: niche as string,
++          },
++        });
+ 
+-      // Atualiza a subscription existente
+-      if (meta.subscriptionId) {
+         await db.subscription.update({
+-          where: { id: meta.subscriptionId },
++          where: { id: subscription.id },
+           data: {
+             status: 'active',
+             paymentStatus: 'approved',
+             paymentId: payload.paymentId || null,
+             currentPeriodStart: now,
+             currentPeriodEnd: periodEnd,
++            planType: planTier,
+           },
+         });
+-      }
+ 
+-      return {
+-        tenantId: existingTenant.id,
+-        userId: '',
+-        subscriptionId: meta.subscriptionId || '',
+-        planTier,
+-        niche,
+-        isNewTenant: false,
+-      };
++        return {
++          tenantId: existingTenant.id,
++          userId: '',
++          propertyId: undefined,
++          subscriptionId: subscription.id,
++          planTier,
++          niche,
++          isNewTenant: false,
++        };
++      }
+     }
+   }
+ 
+   // ══
+-  // 🪄 PROVISIONAMENTO MÁGICO — Novo Cliente
++  // 🪄 PROVISIONAMENTO MÁGICO — Novo Cliente (Tenant Isolado)
++  // Sem subscriptionId autorizada prévia, nunca mutamos um tenant existente por meta.tenantId.
+   // ══
+ 
+   const now = new Date();
+@@ -516,16 +518,11 @@ export async function POST(request: NextRequest) {
+     const verification = verifyWebhookSignature(rawBody, signatureHeader, webhookSecret, timestampHeader);
+ 
+     if (!verification.valid) {
+-      // Em produção, rejeitar IMEDIATAMENTE
+-      if (process.env.NODE_ENV === 'production') {
+-        console.warn(`[webhooks/payment] ❌ REJECTED: ${verification.reason}`);
+-        return NextResponse.json(
+-          { error: 'SIGNATURE_INVALID', reason: verification.reason },
+-          { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } },
+-        );
+-      }
+-      // Em dev, logar warning mas continuar para testes
+-      console.warn(`[webhooks/payment] ⚠️ DEV WARNING: ${verification.reason} — allowing for testing`);
++      console.warn(`[webhooks/payment] ❌ REJECTED: ${verification.reason}`);
++      return NextResponse.json(
++        { error: 'SIGNATURE_INVALID', reason: verification.reason },
++        { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } },
++      );
+     }
+ 
+     // ── Step 3: Parse do payload 
+@@ -665,11 +662,14 @@ export async function POST(request: NextRequest) {
+     if (CANCELLATION_EVENTS.includes(eventType)) {
+       // ── Cancelamento / Falha de pagamento 
+       const meta = payload.metadata || {};
+-      if (meta.tenantId) {
+-        // Marca subscription como cancelada
+-        if (meta.subscriptionId) {
++      let targetTenantId: string | undefined = undefined;
++
++      if (meta.subscriptionId) {
++        const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });
++        if (subscription) {
++          targetTenantId = subscription.tenantId;
+           await db.subscription.update({
+-            where: { id: meta.subscriptionId },
++            where: { id: subscription.id },
+             data: {
+               status: eventType === 'subscription.canceled' ? 'canceled' : 'pending',
+               paymentStatus: 'rejected',
+@@ -677,14 +677,14 @@ export async function POST(request: NextRequest) {
+             },
+           });
+         }
++      }
+ 
+-        // Tenant: suspende apenas se cancelamento definitivo
+-        if (eventType === 'subscription.canceled') {
+-          await db.tenant.update({
+-            where: { id: meta.tenantId },
+-            data: { status: 'suspended' },
+-          });
+-        }
++      // Tenant: suspende apenas se cancelamento definitivo e tenant confirmado
++      if (targetTenantId && eventType === 'subscription.canceled') {
++        await db.tenant.update({
++          where: { id: targetTenantId },
++          data: { status: 'suspended' },
++        });
+       }
+ 
+       return NextResponse.json(
+diff --git a/tests/security/wave1-security-p0.test.ts b/tests/security/wave1-security-p0.test.ts
+new file mode 100644
+index 00000000..5ec3b754
+--- /dev/null
++++ b/tests/security/wave1-security-p0.test.ts
+@@ -0,0 +1,544 @@
++import { describe, expect, it, vi, beforeEach } from 'vitest';
++import { NextRequest } from 'next/server';
++
++const { mockDb } = vi.hoisted(() => {
++  const dbInstance = {
++    subscription: {
++      findUnique: vi.fn(),
++      update: vi.fn(),
++      updateMany: vi.fn(),
++      create: vi.fn().mockResolvedValue({ id: 'sub_new_123' }),
++    },
++    user: {
++      create: vi.fn().mockResolvedValue({ id: 'user_new_123' }),
++    },
++    tenant: {
++      findUnique: vi.fn(),
++      update: vi.fn(),
++      create: vi.fn().mockResolvedValue({ id: 'tenant_new_generated_uuid' }),
++    },
++    booking: {
++      findFirst: vi.fn(),
++      create: vi.fn(),
++      findMany: vi.fn(),
++    },
++    conversationLog: {
++      findFirst: vi.fn(),
++      findMany: vi.fn(),
++      update: vi.fn(),
++    },
++    conversationMessage: {
++      findMany: vi.fn(),
++      create: vi.fn(),
++    },
++    agentLog: {
++      findMany: vi.fn(),
++    },
++    conversation: {
++      findMany: vi.fn(),
++      count: vi.fn(),
++    },
++    guest: {
++      findFirst: vi.fn(),
++      findUnique: vi.fn(),
++      update: vi.fn(),
++      delete: vi.fn(),
++    },
++    trainingPrompt: {
++      findFirst: vi.fn(),
++      findUnique: vi.fn(),
++      update: vi.fn(),
++      delete: vi.fn(),
++    },
++    property: {
++      findFirst: vi.fn(),
++      create: vi.fn().mockResolvedValue({ id: 'prop_new_123' }),
++    },
++    airBProperty: {
++      findFirst: vi.fn(),
++      update: vi.fn(),
++    },
++    target: {
++      findFirst: vi.fn(),
++      update: vi.fn(),
++      delete: vi.fn(),
++    },
++    paymentTransaction: {
++      create: vi.fn().mockResolvedValue({ id: 'pt_new_123' }),
++    },
++    $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) => callback(dbInstance)),
++  };
++  return { mockDb: dbInstance };
++});
++
++vi.mock('@/lib/email-sender', () => ({
++  sendEmail: vi.fn().mockResolvedValue({ success: true }),
++}));
++
++vi.mock('@/lib/db', () => ({
++  db: mockDb,
++  isDatabaseAvailable: vi.fn().mockResolvedValue(true),
++}));
++
++vi.mock('@/lib/rate-limit', () => ({
++  apiRatelimit: { limit: vi.fn().mockResolvedValue({ success: true, reset: 0 }) },
++  authRatelimit: { limit: vi.fn().mockResolvedValue({ success: true, reset: 0 }) },
++}));
++
++vi.mock('next-auth', () => ({
++  getServerSession: vi.fn(),
++}));
++
++vi.mock('@/lib/ddc/ddc-mapper', () => ({
++  resolveTenantId: vi.fn(),
++  mapBooking: vi.fn((b) => b),
++  mapConversation: vi.fn((c) => c),
++  mapGuest: vi.fn((g) => g),
++  mapTraining: vi.fn((t) => t),
++}));
++
++vi.mock('@/lib/notifications/bridges', () => ({
++  bridgeReservationEvent: vi.fn(),
++  bridgeSecurityAlert: vi.fn(),
++  bridgePaymentEvent: vi.fn(),
++}));
++
++vi.mock('@/lib/realtime/emit-tenant-event', () => ({
++  emitTenantEvent: vi.fn(),
++  buildPushForEvent: vi.fn(),
++}));
++
++vi.mock('@/lib/realtime/tenant-pubsub', () => ({
++  publishTenantEvent: vi.fn(),
++}));
++
++vi.mock('@/lib/ai/zaos-neuro-router', () => ({
++  getNeuroRouter: vi.fn().mockResolvedValue({
++    generate: vi.fn().mockResolvedValue({ response: 'Olá, quarto confirmado!' }),
++  }),
++}));
++
++import { getServerSession } from 'next-auth';
++import { resolveTenantId } from '@/lib/ddc/ddc-mapper';
++import { POST as paymentWebhookPOST } from '@/app/api/webhooks/payment/route';
++import { POST as bookingPOST } from '@/app/api/ddc/bookings/route';
++import { GET as convMessagesGET, POST as convMessagesPOST } from '@/app/api/ddc/conversations/[id]/messages/route';
++import { POST as liveFeedPOST } from '@/app/api/ddc/live-feed/route';
++import { GET as agentLogsGET } from '@/app/api/agent-logs/route';
++import { GET as conversationsGET } from '@/app/api/conversations/route';
++import { GET as guestGET, PUT as guestPUT, DELETE as guestDELETE } from '@/app/api/ddc/guests/[id]/route';
++import { PUT as trainingPUT, DELETE as trainingDELETE, POST as trainingPOST } from '@/app/api/ddc/training/[id]/route';
++import { GET as propertyGET, PUT as propertyPUT, DELETE as propertyDELETE } from '@/app/api/properties/[id]/route';
++import { GET as targetGET, PUT as targetPUT, DELETE as targetDELETE } from '@/app/api/targets/[id]/route';
++
++describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  describe('W1-C3: Webhook Tenant Isolation & Signature Hardening', () => {
++    it('rejects webhooks with invalid HMAC signature with 401 unconditionally', async () => {
++      process.env.PAYMENT_WEBHOOK_SECRET = 'secret_test_123';
++      const request = new NextRequest('http://localhost:3000/api/webhooks/payment', {
++        method: 'POST',
++        headers: {
++          'Content-Type': 'application/json',
++          'x-signature': 'invalid_signature_hex',
++        },
++        body: JSON.stringify({ event: 'payment.created', status: 'approved' }),
++      });
++
++      const response = await paymentWebhookPOST(request);
++      expect(response.status).toBe(401);
++      const data = await response.json();
++      expect(data.error).toBe('SIGNATURE_INVALID');
++    });
++
++    it('derives tenant authority from database Subscription record rather than spoofed metadata.tenantId', async () => {
++      process.env.PAYMENT_WEBHOOK_SECRET = '';
++      mockDb.subscription.findUnique.mockResolvedValueOnce({
++        id: 'sub_real_123',
++        tenantId: 'tenant_authoritative_A',
++      });
++      mockDb.tenant.findUnique.mockResolvedValueOnce({
++        id: 'tenant_authoritative_A',
++        plan: 'gratuito',
++      });
++      mockDb.tenant.update.mockResolvedValueOnce({ id: 'tenant_authoritative_A' });
++      mockDb.subscription.update.mockResolvedValueOnce({ id: 'sub_real_123' });
++
++      const request = new NextRequest('http://localhost:3000/api/webhooks/payment', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({
++          event: 'payment.created',
++          status: 'approved',
++          paymentId: 'pay_999',
++          amount: 199.0,
++          metadata: {
++            subscriptionId: 'sub_real_123',
++            tenantId: 'ATTACKER_SPOOFED_TENANT_B', // Spoofed!
++          },
++        }),
++      });
++
++      const response = await paymentWebhookPOST(request);
++      expect(response.status).toBe(200);
++
++      expect(mockDb.tenant.update).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'tenant_authoritative_A' },
++        })
++      );
++    });
++
++    it('creates a new tenant and never mutates an existing tenant when subscriptionId is missing even if metadata.tenantId is provided (P1 hardening)', async () => {
++      process.env.PAYMENT_WEBHOOK_SECRET = '';
++      mockDb.tenant.create.mockResolvedValueOnce({
++        id: 'tenant_new_generated_uuid',
++        name: 'New Client Hotel',
++      });
++
++      const request = new NextRequest('http://localhost:3000/api/webhooks/payment', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({
++          event: 'payment.created',
++          status: 'approved',
++          paymentId: 'pay_1000',
++          amount: 199.0,
++          payer: {
++            first_name: 'Novo',
++            last_name: 'Cliente',
++            email: 'novocliente@exemplo.com',
++          },
++          metadata: {
++            tenantId: 'VICTIM_TENANT_EXISTING', // Spoofed tenant without valid subscription
++            propertyName: 'Pousada Nova',
++          },
++        }),
++      });
++
++      const response = await paymentWebhookPOST(request);
++      expect(response.status).toBe(200);
++
++      // Verify that tenant.update was NOT called on VICTIM_TENANT_EXISTING
++      expect(mockDb.tenant.update).not.toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'VICTIM_TENANT_EXISTING' },
++        })
++      );
++
++      // Verify a new tenant was created
++      expect(mockDb.tenant.create).toHaveBeenCalled();
++    });
++
++    it('rejects cancellation on unauthorized tenant when subscriptionId is absent or unverified', async () => {
++      process.env.PAYMENT_WEBHOOK_SECRET = '';
++
++      const request = new NextRequest('http://localhost:3000/api/webhooks/payment', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({
++          event: 'subscription.canceled',
++          metadata: {
++            tenantId: 'VICTIM_TENANT_TO_SUSPEND', // Spoofed target
++          },
++        }),
++      });
++
++      const response = await paymentWebhookPOST(request);
++      expect(response.status).toBe(200);
++
++      // Verify that victim tenant was NOT suspended
++      expect(mockDb.tenant.update).not.toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { id: 'VICTIM_TENANT_TO_SUSPEND' },
++          data: { status: 'suspended' },
++        })
++      );
++    });
++  });
++
++  describe('W1-D2: Double Booking Concurrency & Overlap Prevention', () => {
++    it('blocks double booking with 409 when room and dates overlap', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_sol');
++
++      mockDb.booking.findFirst.mockResolvedValueOnce({
++        id: 'existing_booking_1',
++        roomId: 'suite_101',
++        checkIn: new Date('2026-08-10T14:00:00Z'),
++        checkOut: new Date('2026-08-15T12:00:00Z'),
++        status: 'confirmed',
++      });
++
++      const request = new NextRequest('http://localhost:3000/api/ddc/bookings', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({
++          guestId: 'guest_attacker',
++          roomId: 'suite_101',
++          checkIn: '2026-08-12T14:00:00Z',
++          checkOut: '2026-08-18T12:00:00Z',
++          total: 800,
++        }),
++      });
++
++      const response = await bookingPOST(request);
++      expect(response.status).toBe(409);
++      const data = await response.json();
++      expect(data.error.code).toBe('DOUBLE_BOOKING_CONFLICT');
++      expect(mockDb.booking.create).not.toHaveBeenCalled();
++    });
++
++    it('permits booking when dates do not overlap', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_sol');
++      mockDb.booking.findFirst.mockResolvedValueOnce(null);
++      mockDb.booking.create.mockResolvedValueOnce({
++        id: 'new_bk_ok',
++        tenantId: 'tenant_sol',
++        roomId: 'suite_101',
++        totalValue: 500,
++        status: 'confirmed',
++      });
++
++      const request = new NextRequest('http://localhost:3000/api/ddc/bookings', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({
++          guestId: 'guest_legit',
++          roomId: 'suite_101',
++          checkIn: '2026-08-20T14:00:00Z',
++          checkOut: '2026-08-25T12:00:00Z',
++          total: 500,
++        }),
++      });
++
++      const response = await bookingPOST(request);
++      expect(response.status).toBe(201);
++      expect(mockDb.booking.create).toHaveBeenCalled();
++    });
++
++    it('maps PostgreSQL exclusion violation (23P01) or booking_no_overlap to HTTP 409 DOUBLE_BOOKING_CONFLICT', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_sol');
++      mockDb.booking.findFirst.mockResolvedValueOnce(null); // Simulated race condition where findFirst passed
++      // Simulated DB exclusion constraint violation on insert
++      const exclusionError = new Error('conflicting key value violates exclusion constraint "booking_no_overlap"');
++      (exclusionError as unknown as { code: string }).code = '23P01';
++      mockDb.booking.create.mockRejectedValueOnce(exclusionError);
++
++      const request = new NextRequest('http://localhost:3000/api/ddc/bookings', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({
++          guestId: 'guest_race_loser',
++          roomId: 'suite_101',
++          checkIn: '2026-08-10T14:00:00Z',
++          checkOut: '2026-08-15T12:00:00Z',
++          total: 800,
++        }),
++      });
++
++      const response = await bookingPOST(request);
++      expect(response.status).toBe(409);
++      const data = await response.json();
++      expect(data.error.code).toBe('DOUBLE_BOOKING_CONFLICT');
++    });
++  });
++
++  describe('W1-A1: IDOR & Multi-Tenant Access Control', () => {
++    it('blocks cross-tenant access to conversation messages with 404', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_attacker');
++      mockDb.conversationLog.findFirst.mockResolvedValueOnce(null);
++
++      const request = new NextRequest('http://localhost:3000/api/ddc/conversations/conv_victim_99/messages');
++      const response = await convMessagesGET(request, { params: Promise.resolve({ id: 'conv_victim_99' }) });
++
++      expect(response.status).toBe(404);
++      expect(mockDb.conversationMessage.findMany).not.toHaveBeenCalled();
++    });
++
++    it('blocks cross-tenant message creation in conversation with 404', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_attacker');
++      mockDb.conversationLog.findFirst.mockResolvedValueOnce(null);
++
++      const request = new NextRequest('http://localhost:3000/api/ddc/conversations/conv_victim_99/messages', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({ from: 'guest', content: 'Injected message' }),
++      });
++
++      const response = await convMessagesPOST(request, { params: Promise.resolve({ id: 'conv_victim_99' }) });
++      expect(response.status).toBe(404);
++      expect(mockDb.conversationMessage.create).not.toHaveBeenCalled();
++    });
++
++    it('blocks cross-tenant message injection in live-feed POST with 404', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValueOnce('tenant_attacker');
++      mockDb.conversationLog.findFirst.mockResolvedValueOnce(null);
++
++      const request = new NextRequest('http://localhost:3000/api/ddc/live-feed', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({
++          conversationId: 'conv_victim_99',
++          content: 'Injected live feed message',
++          from: 'guest',
++        }),
++      });
++
++      const response = await liveFeedPOST(request);
++      expect(response.status).toBe(404);
++      expect(mockDb.conversationMessage.create).not.toHaveBeenCalled();
++    });
++
++    it('blocks cross-tenant GET, PUT, DELETE on guests/[id] with 404', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValue('tenant_attacker');
++      mockDb.guest.findFirst.mockResolvedValue(null);
++
++      const reqGet = new NextRequest('http://localhost:3000/api/ddc/guests/guest_victim_1');
++      const resGet = await guestGET(reqGet, { params: Promise.resolve({ id: 'guest_victim_1' }) });
++      expect(resGet.status).toBe(404);
++
++      const reqPut = new NextRequest('http://localhost:3000/api/ddc/guests/guest_victim_1', {
++        method: 'PUT',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({ name: 'Hacked Name' }),
++      });
++      const resPut = await guestPUT(reqPut, { params: Promise.resolve({ id: 'guest_victim_1' }) });
++      expect(resPut.status).toBe(404);
++      expect(mockDb.guest.update).not.toHaveBeenCalled();
++
++      const reqDel = new NextRequest('http://localhost:3000/api/ddc/guests/guest_victim_1', { method: 'DELETE' });
++      const resDel = await guestDELETE(reqDel, { params: Promise.resolve({ id: 'guest_victim_1' }) });
++      expect(resDel.status).toBe(404);
++      expect(mockDb.guest.delete).not.toHaveBeenCalled();
++    });
++
++    it('blocks cross-tenant PUT, DELETE, POST on training/[id] with 404', async () => {
++      vi.mocked(resolveTenantId).mockResolvedValue('tenant_attacker');
++      mockDb.trainingPrompt.findFirst.mockResolvedValue(null);
++
++      const reqPut = new NextRequest('http://localhost:3000/api/ddc/training/train_victim_1', {
++        method: 'PUT',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({ title: 'Hacked Prompt' }),
++      });
++      const resPut = await trainingPUT(reqPut, { params: Promise.resolve({ id: 'train_victim_1' }) });
++      expect(resPut.status).toBe(404);
++      expect(mockDb.trainingPrompt.update).not.toHaveBeenCalled();
++
++      const reqDel = new NextRequest('http://localhost:3000/api/ddc/training/train_victim_1', { method: 'DELETE' });
++      const resDel = await trainingDELETE(reqDel, { params: Promise.resolve({ id: 'train_victim_1' }) });
++      expect(resDel.status).toBe(404);
++      expect(mockDb.trainingPrompt.delete).not.toHaveBeenCalled();
++
++      const reqPost = new NextRequest('http://localhost:3000/api/ddc/training/train_victim_1', { method: 'POST' });
++      const resPost = await trainingPOST(reqPost, { params: Promise.resolve({ id: 'train_victim_1' }) });
++      expect(resPost.status).toBe(404);
++    });
++
++    it('requires session and scopes properties/[id] to session tenantId', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req1 = new NextRequest('http://localhost:3000/api/properties/prop_1');
++      const res1 = await propertyGET(req1, { params: Promise.resolve({ id: 'prop_1' }) });
++      expect(res1.status).toBe(401);
++
++      vi.mocked(getServerSession).mockResolvedValue({
++        user: { tenantId: 'tenant_pousada_1' },
++        expires: new Date(Date.now() + 86400000).toISOString(),
++      });
++      mockDb.airBProperty.findFirst.mockResolvedValue(null);
++
++      const req2 = new NextRequest('http://localhost:3000/api/properties/prop_victim');
++      const res2 = await propertyGET(req2, { params: Promise.resolve({ id: 'prop_victim' }) });
++      expect(res2.status).toBe(404);
++
++      const reqPut = new NextRequest('http://localhost:3000/api/properties/prop_victim', {
++        method: 'PUT',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({ name: 'Hacked Prop' }),
++      });
++      const resPut = await propertyPUT(reqPut, { params: Promise.resolve({ id: 'prop_victim' }) });
++      expect(resPut.status).toBe(404);
++
++      const reqDel = new NextRequest('http://localhost:3000/api/properties/prop_victim', { method: 'DELETE' });
++      const resDel = await propertyDELETE(reqDel, { params: Promise.resolve({ id: 'prop_victim' }) });
++      expect(resDel.status).toBe(404);
++    });
++
++    it('requires session and scopes targets/[id] to session tenantId', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req1 = new Request('http://localhost:3000/api/targets/target_1');
++      const res1 = await targetGET(req1, { params: Promise.resolve({ id: 'target_1' }) });
++      expect(res1.status).toBe(401);
++
++      vi.mocked(getServerSession).mockResolvedValue({
++        user: { tenantId: 'tenant_pousada_1' },
++        expires: new Date(Date.now() + 86400000).toISOString(),
++      });
++      mockDb.target.findFirst.mockResolvedValue(null);
++
++      const req2 = new Request('http://localhost:3000/api/targets/target_victim');
++      const res2 = await targetGET(req2, { params: Promise.resolve({ id: 'target_victim' }) });
++      expect(res2.status).toBe(404);
++
++      const reqPut = new Request('http://localhost:3000/api/targets/target_victim', {
++        method: 'PUT',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({ name: 'Hacked Target' }),
++      });
++      const resPut = await targetPUT(reqPut, { params: Promise.resolve({ id: 'target_victim' }) });
++      expect(resPut.status).toBe(404);
++
++      const reqDel = new Request('http://localhost:3000/api/targets/target_victim', { method: 'DELETE' });
++      const resDel = await targetDELETE(reqDel, { params: Promise.resolve({ id: 'target_victim' }) });
++      expect(resDel.status).toBe(404);
++    });
++
++    it('requires session and scopes agent-logs to session tenantId', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req1 = new Request('http://localhost:3000/api/agent-logs');
++      const res1 = await agentLogsGET(req1);
++      expect(res1.status).toBe(401);
++
++      vi.mocked(getServerSession).mockResolvedValueOnce({
++        user: { tenantId: 'tenant_pousada_1' },
++        expires: new Date(Date.now() + 86400000).toISOString(),
++      });
++      mockDb.agentLog.findMany.mockResolvedValueOnce([]);
++
++      const req2 = new Request('http://localhost:3000/api/agent-logs');
++      const res2 = await agentLogsGET(req2);
++      expect(res2.status).toBe(200);
++      expect(mockDb.agentLog.findMany).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: { tenantId: 'tenant_pousada_1' },
++        })
++      );
++    });
++
++    it('requires session and scopes conversations list to session tenantId', async () => {
++      vi.mocked(getServerSession).mockResolvedValueOnce(null);
++      const req1 = new NextRequest('http://localhost:3000/api/conversations');
++      const res1 = await conversationsGET(req1);
++      expect(res1.status).toBe(401);
++
++      vi.mocked(getServerSession).mockResolvedValueOnce({
++        user: { tenantId: 'tenant_pousada_2' },
++        expires: new Date(Date.now() + 86400000).toISOString(),
++      });
++      mockDb.conversation.findMany.mockResolvedValueOnce([]);
++      mockDb.conversation.count.mockResolvedValue(0);
++
++      const req2 = new NextRequest('http://localhost:3000/api/conversations');
++      const res2 = await conversationsGET(req2);
++      expect(res2.status).toBe(200);
++      expect(mockDb.conversation.findMany).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: expect.objectContaining({ tenantId: 'tenant_pousada_2' }),
++        })
++      );
++    });
++  });
++});

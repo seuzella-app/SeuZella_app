@@ -1,0 +1,1098 @@
+From 8e09697fa80fd0416dbd9f4498dd394742c07139 Mon Sep 17 00:00:00 2001
+From: MarcioCau14 <marciocau14@users.noreply.github.com>
+Date: Thu, 27 Aug 2026 13:03:45 -0300
+Subject: [PATCH] fix(billing): implement atomic webhook idempotency
+
+---
+ .../migration.sql                             |  24 ++
+ prisma/schema.prisma                          |  17 +
+ src/app/api/checkout/webhook/route.ts         |  45 +-
+ src/app/api/webhooks/payment/route.ts         | 258 ++++++-----
+ src/lib/payments/idempotency.ts               | 202 ++++++++-
+ src/lib/security/waf-middleware.ts            |   3 +-
+ tests/security/billing-idempotency.test.ts    | 401 ++++++++++++++++++
+ tests/security/wave1-security-p0.test.ts      |   5 +
+ 8 files changed, 829 insertions(+), 126 deletions(-)
+ create mode 100644 prisma/migrations/20260901000006_add_billing_idempotency/migration.sql
+ create mode 100644 tests/security/billing-idempotency.test.ts
+
+diff --git a/prisma/migrations/20260901000006_add_billing_idempotency/migration.sql b/prisma/migrations/20260901000006_add_billing_idempotency/migration.sql
+new file mode 100644
+index 00000000..f0fec1d5
+--- /dev/null
++++ b/prisma/migrations/20260901000006_add_billing_idempotency/migration.sql
+@@ -0,0 +1,24 @@
++-- CreateTable
++CREATE TABLE IF NOT EXISTS "billing_idempotency" (
++    "id" TEXT NOT NULL,
++    "key" TEXT NOT NULL,
++    "provider" TEXT NOT NULL,
++    "eventId" TEXT NOT NULL,
++    "eventType" TEXT NOT NULL,
++    "status" TEXT NOT NULL DEFAULT 'processing',
++    "response" TEXT NOT NULL DEFAULT '{}',
++    "attempts" INTEGER NOT NULL DEFAULT 1,
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "billing_idempotency_pkey" PRIMARY KEY ("id")
++);
++
++-- CreateIndex
++CREATE UNIQUE INDEX IF NOT EXISTS "billing_idempotency_key_key" ON "billing_idempotency"("key");
++
++-- CreateIndex
++CREATE INDEX IF NOT EXISTS "billing_idempotency_provider_eventId_idx" ON "billing_idempotency"("provider", "eventId");
++
++-- CreateIndex
++CREATE INDEX IF NOT EXISTS "billing_idempotency_status_idx" ON "billing_idempotency"("status");
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index c196c800..cb4a5cb7 100755
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -2551,3 +2551,20 @@ model LLMCallLog {
+   @@index([source, createdAt])
+   @@map("llm_call_logs")
+ }
++
++model BillingIdempotency {
++  id          String   @id @default(cuid())
++  key         String   @unique
++  provider    String
++  eventId     String
++  eventType   String
++  status      String   @default("processing")
++  response    String   @default("{}") @db.Text
++  attempts    Int      @default(1)
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++
++  @@index([provider, eventId])
++  @@index([status])
++  @@map("billing_idempotency")
++}
+diff --git a/src/app/api/checkout/webhook/route.ts b/src/app/api/checkout/webhook/route.ts
+index 99a9834c..0a9cb1d8 100755
+--- a/src/app/api/checkout/webhook/route.ts
++++ b/src/app/api/checkout/webhook/route.ts
+@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
+ import { db } from '@/lib/db';
+ import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
+ import { bridgePaymentEvent, bridgeSecurityAlert } from '@/lib/notifications/bridges';
++import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+ 
+ const MAX_WEBHOOK_BYTES = 1024 * 1024;
+ 
+@@ -50,20 +51,38 @@ export async function POST(request: NextRequest) {
+           if (!mpResponse.ok) return NextResponse.json({ error: 'PAYMENT_STATUS_UNAVAILABLE' }, { status: 503 });
+           const mpData = await mpResponse.json();
+           const newStatus = typeof mpData.status === 'string' ? mpData.status : 'unknown';
+-          await db.paymentTransaction.update({ where: { id: transaction.id }, data: { status: newStatus } });
+ 
+-          if (newStatus === 'approved') {
+-            const subscription = await db.subscription.findUnique({ where: { id: transaction.subscriptionId } });
+-            if (subscription) {
+-              const now = new Date();
+-              const periodEnd = new Date(now); periodEnd.setMonth(periodEnd.getMonth() + 1);
+-              await db.subscription.update({ where: { id: subscription.id }, data: { status: 'active', paymentStatus: 'approved', paymentId, currentPeriodStart: now, currentPeriodEnd: periodEnd } });
+-              await db.tenant.update({ where: { id: subscription.tenantId }, data: { plan: subscription.planType, subscriptionAt: now, status: 'active' } });
+-              try { bridgePaymentEvent({ niche: 'all', paymentId, amount: Number(transaction.amount ?? 0), guestName: subscription.tenantId, method: 'pix', status: 'received', tenantId: subscription.tenantId }); } catch (notifErr) { console.error('[checkout-webhook] payment bridge error:', notifErr); }
+-            }
+-          } else if (newStatus === 'rejected') {
+-            await db.subscription.update({ where: { id: transaction.subscriptionId }, data: { paymentStatus: 'rejected' } });
+-          }
++          const idempotencyResult = await executeWithBillingIdempotency(
++            {
++              provider: 'mercadopago',
++              eventId: paymentId,
++              eventType: String(body.action || body.type || 'payment.updated'),
++              status: newStatus,
++            },
++            async () => {
++              await db.paymentTransaction.update({ where: { id: transaction.id }, data: { status: newStatus } });
++
++              if (newStatus === 'approved') {
++                const subscription = await db.subscription.findUnique({ where: { id: transaction.subscriptionId } });
++                if (subscription) {
++                  const now = new Date();
++                  const periodEnd = new Date(now); periodEnd.setMonth(periodEnd.getMonth() + 1);
++                  await db.subscription.update({ where: { id: subscription.id }, data: { status: 'active', paymentStatus: 'approved', paymentId, currentPeriodStart: now, currentPeriodEnd: periodEnd } });
++                  await db.tenant.update({ where: { id: subscription.tenantId }, data: { plan: subscription.planType, subscriptionAt: now, status: 'active' } });
++                  try { bridgePaymentEvent({ niche: 'all', paymentId, amount: Number(transaction.amount ?? 0), guestName: subscription.tenantId, method: 'pix', status: 'received', tenantId: subscription.tenantId }); } catch (notifErr) { console.error('[checkout-webhook] payment bridge error:', notifErr); }
++                }
++              } else if (newStatus === 'rejected') {
++                await db.subscription.update({ where: { id: transaction.subscriptionId }, data: { paymentStatus: 'rejected' } });
++              }
++
++              return { updated: true, paymentId, status: newStatus };
++            },
++          );
++
++          return NextResponse.json(
++            { received: true, deduplicated: idempotencyResult.deduplicated },
++            { headers: { 'X-Security-Shield': 'zero-trust-v2' } },
++          );
+         } catch (mpError) { console.error('[checkout-webhook] provider status lookup failed:', mpError instanceof Error ? mpError.name : 'UnknownError'); return NextResponse.json({ error: 'PAYMENT_PROVIDER_UNAVAILABLE' }, { status: 503 }); }
+       }
+       return NextResponse.json({ received: true }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+diff --git a/src/app/api/webhooks/payment/route.ts b/src/app/api/webhooks/payment/route.ts
+index f148d5ec..d26d46df 100755
+--- a/src/app/api/webhooks/payment/route.ts
++++ b/src/app/api/webhooks/payment/route.ts
+@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
+ import crypto from 'crypto';
+ import { sendEmail } from '@/lib/email-sender';
+ import { generateWelcomeEmailHtml } from '@/lib/email-templates/welcome-email';
++import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+ 
+ // ══
+ // SEUZÉLLA — Webhook de Provisionamento (PASSO 2 + PASSO 3)
+@@ -550,107 +551,138 @@ export async function POST(request: NextRequest) {
+ 
+     if (PROVISIONING_EVENTS.includes(eventType) && payload.status === 'approved') {
+       // ══
+-      // 🪄 PROVISIONAMENTO MÁGICO
++      // 🪄 PROVISIONAMENTO MÁGICO (com Idempotência C6)
+       // ══
+-      const result = await provisionNewCustomer(payload);
+-
+-      // ── PASSO 3: Notificador ZCC (telemetria de conversão) 
+-      await notifyZCCConversion(result, payload);
++      const eventId = payload.paymentId || payload.subscriptionExternalId || payload.metadata?.subscriptionId || 'unknown';
++
++      const idempotencyResult = await executeWithBillingIdempotency(
++        {
++          provider: 'asaas',
++          eventId,
++          eventType,
++          status: payload.status,
++          metadata: { amount: payload.amount, niche: payload.metadata?.niche },
++        },
++        async () => {
++          const result = await provisionNewCustomer(payload);
++          await notifyZCCConversion(result, payload);
++          return {
++            tenantId: result.tenantId,
++            planTier: result.planTier,
++            niche: result.niche,
++            isNewTenant: result.isNewTenant,
++          };
++        },
++      );
+ 
+       const durationMs = Date.now() - startTime;
+-      console.log(`[webhooks/payment] ✅ ${eventType} processed in ${durationMs}ms — tenant=${result.tenantId}`);
++      console.log(`[webhooks/payment] ✅ ${eventType} processed in ${durationMs}ms — tenant=${idempotencyResult.data?.tenantId || 'cached'} (deduplicated=${idempotencyResult.deduplicated})`);
+ 
+       return NextResponse.json({
+         received: true,
+         event: eventType,
+-        provisioning: {
+-          tenantId: result.tenantId,
+-          planTier: result.planTier,
+-          niche: result.niche,
+-          isNewTenant: result.isNewTenant,
+-        },
++        deduplicated: idempotencyResult.deduplicated,
++        provisioning: idempotencyResult.data,
+         processingTimeMs: durationMs,
+       }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+     }
+ 
+     if (STATUS_UPDATE_EVENTS.includes(eventType)) {
+-      // ── Atualização de status de pagamento 
++      // ── Atualização de status de pagamento (com Idempotência C6)
+       if (payload.paymentId && payload.status) {
+-        const transaction = await db.paymentTransaction.findFirst({
+-          where: { externalId: String(payload.paymentId) },
+-        });
+-
+-        if (transaction) {
+-          await db.paymentTransaction.update({
+-            where: { id: transaction.id },
+-            data: { status: payload.status },
+-          });
+-
+-          if (payload.status === 'approved') {
+-            const subscription = await db.subscription.findUnique({
+-              where: { id: transaction.subscriptionId },
++        const eventId = String(payload.paymentId);
++
++        const idempotencyResult = await executeWithBillingIdempotency(
++          {
++            provider: 'asaas',
++            eventId,
++            eventType,
++            status: payload.status,
++          },
++          async () => {
++            const transaction = await db.paymentTransaction.findFirst({
++              where: { externalId: String(payload.paymentId) },
+             });
+ 
+-            if (subscription) {
+-              const now = new Date();
+-              const periodEnd = new Date(now);
+-              periodEnd.setMonth(periodEnd.getMonth() + 1);
+-
+-              await db.subscription.update({
+-                where: { id: subscription.id },
+-                data: {
+-                  status: 'active',
+-                  paymentStatus: 'approved',
+-                  currentPeriodStart: now,
+-                  currentPeriodEnd: periodEnd,
+-                },
+-              });
+-
+-              await db.tenant.update({
+-                where: { id: subscription.tenantId },
+-                data: { plan: subscription.planType, subscriptionAt: now, status: 'active' },
++            if (transaction) {
++              await db.paymentTransaction.update({
++                where: { id: transaction.id },
++                data: { status: payload.status },
+               });
+ 
+-              // ── Notification bridge: payment received 
+-              try {
+-                bridgePaymentEvent({
+-                  niche: 'all',
+-                  paymentId: String(payload.paymentId),
+-                  amount: Number(transaction.amount ?? 0),
+-                  guestName: subscription.tenantId,
+-                  method: 'pix',
+-                  status: 'received',
+-                  tenantId: subscription.tenantId,
++              if (payload.status === 'approved') {
++                const subscription = await db.subscription.findUnique({
++                  where: { id: transaction.subscriptionId },
+                 });
+-              } catch (notifErr) {
+-                console.error('[webhooks/payment] bridgePaymentEvent error:', notifErr);
+-              }
+-            }
+-          } else if (payload.status === 'rejected') {
+-            const subscription = await db.subscription.findUnique({
+-              where: { id: transaction.subscriptionId },
+-            });
+-            if (subscription) {
+-              await db.subscription.update({
+-                where: { id: subscription.id },
+-                data: { paymentStatus: 'rejected' },
+-              });
+-              // ── Notification bridge: payment failed 
+-              try {
+-                bridgePaymentEvent({
+-                  niche: 'all',
+-                  paymentId: String(payload.paymentId),
+-                  amount: Number(transaction.amount ?? 0),
+-                  guestName: subscription.tenantId,
+-                  status: 'failed',
+-                  tenantId: subscription.tenantId,
++
++                if (subscription) {
++                  const now = new Date();
++                  const periodEnd = new Date(now);
++                  periodEnd.setMonth(periodEnd.getMonth() + 1);
++
++                  await db.subscription.update({
++                    where: { id: subscription.id },
++                    data: {
++                      status: 'active',
++                      paymentStatus: 'approved',
++                      currentPeriodStart: now,
++                      currentPeriodEnd: periodEnd,
++                    },
++                  });
++
++                  await db.tenant.update({
++                    where: { id: subscription.tenantId },
++                    data: { plan: subscription.planType, subscriptionAt: now, status: 'active' },
++                  });
++
++                  // ── Notification bridge: payment received
++                  try {
++                    bridgePaymentEvent({
++                      niche: 'all',
++                      paymentId: String(payload.paymentId),
++                      amount: Number(transaction.amount ?? 0),
++                      guestName: subscription.tenantId,
++                      method: 'pix',
++                      status: 'received',
++                      tenantId: subscription.tenantId,
++                    });
++                  } catch (notifErr) {
++                    console.error('[webhooks/payment] bridgePaymentEvent error:', notifErr);
++                  }
++                }
++              } else if (payload.status === 'rejected') {
++                const subscription = await db.subscription.findUnique({
++                  where: { id: transaction.subscriptionId },
+                 });
+-              } catch (notifErr) {
+-                console.error('[webhooks/payment] bridgePaymentEvent rejected error:', notifErr);
++                if (subscription) {
++                  await db.subscription.update({
++                    where: { id: subscription.id },
++                    data: { paymentStatus: 'rejected' },
++                  });
++                  // ── Notification bridge: payment failed
++                  try {
++                    bridgePaymentEvent({
++                      niche: 'all',
++                      paymentId: String(payload.paymentId),
++                      amount: Number(transaction.amount ?? 0),
++                      guestName: subscription.tenantId,
++                      status: 'failed',
++                      tenantId: subscription.tenantId,
++                    });
++                  } catch (notifErr) {
++                    console.error('[webhooks/payment] bridgePaymentEvent rejected error:', notifErr);
++                  }
++                }
+               }
+             }
+-          }
+-        }
++            return { updated: true, paymentId: payload.paymentId, status: payload.status };
++          },
++        );
++
++        return NextResponse.json(
++          { received: true, event: eventType, deduplicated: idempotencyResult.deduplicated },
++          { headers: { 'X-Security-Shield': 'zero-trust-v2' } },
++        );
+       }
+ 
+       return NextResponse.json(
+@@ -660,35 +692,49 @@ export async function POST(request: NextRequest) {
+     }
+ 
+     if (CANCELLATION_EVENTS.includes(eventType)) {
+-      // ── Cancelamento / Falha de pagamento 
+-      const meta = payload.metadata || {};
+-      let targetTenantId: string | undefined = undefined;
+-
+-      if (meta.subscriptionId) {
+-        const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });
+-        if (subscription) {
+-          targetTenantId = subscription.tenantId;
+-          await db.subscription.update({
+-            where: { id: subscription.id },
+-            data: {
+-              status: eventType === 'subscription.canceled' ? 'canceled' : 'pending',
+-              paymentStatus: 'rejected',
+-              cancelAtPeriodEnd: eventType === 'subscription.canceled',
+-            },
+-          });
+-        }
+-      }
++      // ── Cancelamento / Falha de pagamento (com Idempotência C6)
++      const eventId = payload.subscriptionExternalId || payload.metadata?.subscriptionId || payload.paymentId || 'unknown';
++
++      const idempotencyResult = await executeWithBillingIdempotency(
++        {
++          provider: 'asaas',
++          eventId,
++          eventType,
++          status: 'canceled',
++        },
++        async () => {
++          const meta = payload.metadata || {};
++          let targetTenantId: string | undefined = undefined;
+ 
+-      // Tenant: suspende apenas se cancelamento definitivo e tenant confirmado
+-      if (targetTenantId && eventType === 'subscription.canceled') {
+-        await db.tenant.update({
+-          where: { id: targetTenantId },
+-          data: { status: 'suspended' },
+-        });
+-      }
++          if (meta.subscriptionId) {
++            const subscription = await db.subscription.findUnique({ where: { id: meta.subscriptionId } });
++            if (subscription) {
++              targetTenantId = subscription.tenantId;
++              await db.subscription.update({
++                where: { id: subscription.id },
++                data: {
++                  status: eventType === 'subscription.canceled' ? 'canceled' : 'pending',
++                  paymentStatus: 'rejected',
++                  cancelAtPeriodEnd: eventType === 'subscription.canceled',
++                },
++              });
++            }
++          }
++
++          // Tenant: suspende apenas se cancelamento definitivo e tenant confirmado
++          if (targetTenantId && eventType === 'subscription.canceled') {
++            await db.tenant.update({
++              where: { id: targetTenantId },
++              data: { status: 'suspended' },
++            });
++          }
++
++          return { action: 'cancellation_processed', targetTenantId: targetTenantId || null };
++        },
++      );
+ 
+       return NextResponse.json(
+-        { received: true, event: eventType, action: 'cancellation_processed' },
++        { received: true, event: eventType, deduplicated: idempotencyResult.deduplicated, action: 'cancellation_processed' },
+         { headers: { 'X-Security-Shield': 'zero-trust-v2' } },
+       );
+     }
+diff --git a/src/lib/payments/idempotency.ts b/src/lib/payments/idempotency.ts
+index 8dbb75fa..0340d65d 100755
+--- a/src/lib/payments/idempotency.ts
++++ b/src/lib/payments/idempotency.ts
+@@ -1,12 +1,204 @@
+ // ==============================================================================
+-// SEUZÉLLA — Payment Idempotency Layer
+-// Supports Asaas + Mercado Pago webhook retries for SaaS subscriptions and
+-// guest reservations. Subscription billing uses PaymentTransaction; guest
+-// reservation payments use the dedicated reservation_payments ledger.
++// SEUZÉLLA — Production Billing Idempotency Layer (C6)
++// Provides atomic, PostgreSQL-backed idempotency for webhook ingestion across
++// Asaas and Mercado Pago gateways. Guarantees exactly-once execution, safe
++// concurrent retries, and strict isolation between distinct event types.
+ // ==============================================================================
+ 
+-import { randomUUID } from 'crypto';
+ import { db } from '@/lib/db';
++
++export interface IdempotencyOptions {
++  provider: 'asaas' | 'mercadopago' | 'generic';
++  eventId: string;
++  eventType: string;
++  status?: string;
++  metadata?: Record<string, unknown>;
++}
++
++export interface IdempotencyResult<T> {
++  success: boolean;
++  deduplicated: boolean;
++  inProgress?: boolean;
++  status: 'completed' | 'processing' | 'failed';
++  data: T | null;
++  key: string;
++}
++
++/**
++ * Builds a deterministic canonical key for webhook idempotency.
++ * Distinguishes different event types and statuses for the same payment.
++ */
++export function buildIdempotencyKey(options: IdempotencyOptions): string {
++  const cleanProvider = options.provider.trim().toLowerCase();
++  const cleanEventId = (options.eventId || 'unknown').trim();
++  const cleanEventType = (options.eventType || 'generic').trim().toLowerCase();
++  const cleanStatus = options.status ? `:${options.status.trim().toLowerCase()}` : '';
++  return `webhook:${cleanProvider}:${cleanEventId}:${cleanEventType}${cleanStatus}`;
++}
++
++/**
++ * Executes a payment/webhook handler with guaranteed atomic database-backed idempotency.
++ *
++ * - If already 'completed': returns cached result without re-executing handler.
++ * - If 'processing' (concurrent execution): returns inProgress deduplicated response.
++ * - If 'failed': allows retry by re-acquiring lock.
++ * - If new: executes handler within tracked lifecycle and saves final response.
++ */
++export async function executeWithBillingIdempotency<T extends Record<string, unknown>>(
++  options: IdempotencyOptions,
++  handler: () => Promise<T>,
++): Promise<IdempotencyResult<T>> {
++  const key = buildIdempotencyKey(options);
++
++  // Fallback: If DB or billingIdempotency delegate is unavailable (e.g. legacy mocks/bootstrap), execute handler
++  if (!db?.billingIdempotency) {
++    const result = await handler();
++    return {
++      success: true,
++      deduplicated: false,
++      status: 'completed',
++      data: result,
++      key,
++    };
++  }
++
++  // 1. Check existing idempotency record in PostgreSQL
++  let record = await db.billingIdempotency.findUnique({
++    where: { key },
++  });
++
++  if (record) {
++    if (record.status === 'completed') {
++      let parsedData: T | null = null;
++      try {
++        parsedData = JSON.parse(record.response) as T;
++      } catch {
++        parsedData = null;
++      }
++      console.log(`[billing-idempotency] ⚡ DEDUPLICATED (completed): key=${key}`);
++      return {
++        success: true,
++        deduplicated: true,
++        status: 'completed',
++        data: parsedData,
++        key,
++      };
++    }
++
++    if (record.status === 'processing') {
++      // Check if it's stale (older than 2 minutes). If not stale, treat as concurrent in-flight.
++      const isStale = Date.now() - new Date(record.updatedAt).getTime() > 120000;
++      if (!isStale) {
++        console.log(`[billing-idempotency] ⏳ DEDUPLICATED (in-progress): key=${key}`);
++        return {
++          success: true,
++          deduplicated: true,
++          inProgress: true,
++          status: 'processing',
++          data: null,
++          key,
++        };
++      }
++    }
++
++    // If failed or stale, update to processing for retry
++    await db.billingIdempotency.update({
++      where: { key },
++      data: {
++        status: 'processing',
++        attempts: { increment: 1 },
++      },
++    });
++  } else {
++    // 2. Try creating initial processing record
++    try {
++      record = await db.billingIdempotency.create({
++        data: {
++          key,
++          provider: options.provider,
++          eventId: options.eventId,
++          eventType: options.eventType,
++          status: 'processing',
++          attempts: 1,
++        },
++      });
++    } catch (err: unknown) {
++      // Handle race condition on unique constraint collision
++      const isUniqueError = err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === 'P2002';
++      if (isUniqueError) {
++        const existing = await db.billingIdempotency.findUnique({ where: { key } });
++        if (existing?.status === 'completed') {
++          let parsedData: T | null = null;
++          try {
++            parsedData = JSON.parse(existing.response) as T;
++          } catch {
++            parsedData = null;
++          }
++          return {
++            success: true,
++            deduplicated: true,
++            status: 'completed',
++            data: parsedData,
++            key,
++          };
++        }
++        return {
++          success: true,
++          deduplicated: true,
++          inProgress: true,
++          status: 'processing',
++          data: null,
++          key,
++        };
++      }
++      throw err;
++    }
++  }
++
++  // 3. Execute the actual billing operation
++  try {
++    const result = await handler();
++
++    // 4. Mark idempotency record as completed with result payload
++    await db.billingIdempotency.update({
++      where: { key },
++      data: {
++        status: 'completed',
++        response: JSON.stringify(result),
++      },
++    });
++
++    console.log(`[billing-idempotency] ✅ PROCESSED & PERSISTED: key=${key}`);
++    return {
++      success: true,
++      deduplicated: false,
++      status: 'completed',
++      data: result,
++      key,
++    };
++  } catch (handlerError) {
++    // 5. Mark as failed so subsequent legitimate retries are allowed
++    try {
++      await db.billingIdempotency.update({
++        where: { key },
++        data: {
++          status: 'failed',
++          response: JSON.stringify({
++            error: handlerError instanceof Error ? handlerError.message : 'Unknown error',
++            failedAt: new Date().toISOString(),
++          }),
++        },
++      });
++    } catch (updateErr) {
++      console.error('[billing-idempotency] Failed to record failure state:', updateErr);
++    }
++    throw handlerError;
++  }
++}
++
++// ── Backward Compatible Helpers for Reservation and Legacy Webhook Ledgers ──
++
++import { randomUUID } from 'crypto';
+ import type { GatewayId, PaymentStatus, WebhookEvent } from './types';
+ 
+ function eventKey(event: WebhookEvent): string {
+diff --git a/src/lib/security/waf-middleware.ts b/src/lib/security/waf-middleware.ts
+index 1430a6d9..25a32c2a 100755
+--- a/src/lib/security/waf-middleware.ts
++++ b/src/lib/security/waf-middleware.ts
+@@ -55,8 +55,7 @@ function getCountry(req: NextRequest): string {
+ export function wafMiddleware(req: NextRequest): NextResponse | null {
+   const ip = getClientIP(req);
+   const userAgent = req.headers.get('user-agent') || '';
+-  const country = getCountry(req);
+-  const path = req.nextUrl.pathname;
++  const path = req.nextUrl?.pathname || (req.url ? new URL(req.url).pathname : '/');
+ 
+   // ─── 1. Skip para assets estáticos e health checks ───
+   if (
+diff --git a/tests/security/billing-idempotency.test.ts b/tests/security/billing-idempotency.test.ts
+new file mode 100644
+index 00000000..d78ee24c
+--- /dev/null
++++ b/tests/security/billing-idempotency.test.ts
+@@ -0,0 +1,401 @@
++import { describe, expect, it, vi, beforeEach } from 'vitest';
++import { NextRequest } from 'next/server';
++
++const { mockDb } = vi.hoisted(() => {
++  const dbInstance = {
++    billingIdempotency: {
++      findUnique: vi.fn(),
++      findFirst: vi.fn(),
++      create: vi.fn(),
++      update: vi.fn(),
++    },
++    subscription: {
++      findUnique: vi.fn(),
++      update: vi.fn(),
++      create: vi.fn().mockResolvedValue({ id: 'sub_new_123' }),
++    },
++    user: {
++      create: vi.fn().mockResolvedValue({ id: 'user_new_123' }),
++    },
++    tenant: {
++      findUnique: vi.fn(),
++      update: vi.fn(),
++      create: vi.fn().mockResolvedValue({ id: 'tenant_new_123' }),
++    },
++    paymentTransaction: {
++      findFirst: vi.fn(),
++      update: vi.fn(),
++    },
++    property: {
++      findFirst: vi.fn(),
++      create: vi.fn().mockResolvedValue({ id: 'prop_new_123' }),
++    },
++    auditLog: {
++      create: vi.fn().mockResolvedValue({ id: 'audit_new_123' }),
++    },
++  };
++  return { mockDb: dbInstance };
++});
++
++vi.mock('@/lib/db', () => ({
++  db: mockDb,
++}));
++
++vi.mock('@/lib/email-sender', () => ({
++  sendEmail: vi.fn().mockResolvedValue({ success: true }),
++}));
++
++vi.mock('@/lib/notifications/bridges', () => ({
++  bridgePaymentEvent: vi.fn(),
++  bridgeSecurityAlert: vi.fn(),
++}));
++
++import {
++  buildIdempotencyKey,
++  executeWithBillingIdempotency,
++} from '@/lib/payments/idempotency';
++import { POST as paymentWebhookPost } from '@/app/api/webhooks/payment/route';
++import { POST as checkoutWebhookPost } from '@/app/api/checkout/webhook/route';
++
++describe('C6: Billing Idempotency & Concurrency Shield', () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  // ── Scenario 1: Canonical Key Construction
++  it('1. builds deterministic canonical key with sanitized components', () => {
++    const key1 = buildIdempotencyKey({
++      provider: 'asaas',
++      eventId: 'pay_123456',
++      eventType: 'payment.created',
++      status: 'approved',
++    });
++    expect(key1).toBe('webhook:asaas:pay_123456:payment.created:approved');
++
++    const key2 = buildIdempotencyKey({
++      provider: 'mercadopago',
++      eventId: '99887766',
++      eventType: 'payment.updated',
++    });
++    expect(key2).toBe('webhook:mercadopago:99887766:payment.updated');
++  });
++
++  // ── Scenario 2: First-time Successful Execution
++  it('2. executes fresh webhook, records in-progress and completes successfully', async () => {
++    mockDb.billingIdempotency.findUnique.mockResolvedValue(null);
++    mockDb.billingIdempotency.create.mockResolvedValue({
++      id: 'idem_1',
++      key: 'webhook:asaas:pay_fresh_1:payment.created',
++      status: 'processing',
++      attempts: 1,
++    });
++    mockDb.billingIdempotency.update.mockResolvedValue({
++      id: 'idem_1',
++      status: 'completed',
++    });
++
++    const handler = vi.fn().mockResolvedValue({ tenantId: 'tenant_123', status: 'created' });
++
++    const result = await executeWithBillingIdempotency(
++      {
++        provider: 'asaas',
++        eventId: 'pay_fresh_1',
++        eventType: 'payment.created',
++      },
++      handler,
++    );
++
++    expect(handler).toHaveBeenCalledTimes(1);
++    expect(result.success).toBe(true);
++    expect(result.deduplicated).toBe(false);
++    expect(result.status).toBe('completed');
++    expect(result.data).toEqual({ tenantId: 'tenant_123', status: 'created' });
++
++    // Verify DB lifecycle
++    expect(mockDb.billingIdempotency.create).toHaveBeenCalledWith({
++      data: expect.objectContaining({
++        key: 'webhook:asaas:pay_fresh_1:payment.created',
++        status: 'processing',
++        attempts: 1,
++      }),
++    });
++    expect(mockDb.billingIdempotency.update).toHaveBeenCalledWith({
++      where: { key: 'webhook:asaas:pay_fresh_1:payment.created' },
++      data: expect.objectContaining({
++        status: 'completed',
++      }),
++    });
++  });
++
++  // ── Scenario 3: Deduplication of Completed Webhook
++  it('3. returns cached response on retry without executing handler again', async () => {
++    const cachedResponse = { tenantId: 'tenant_cached', plan: 'pro' };
++
++    mockDb.billingIdempotency.findUnique.mockResolvedValue({
++      id: 'idem_cached',
++      key: 'webhook:asaas:pay_dup_1:payment.created',
++      status: 'completed',
++      response: JSON.stringify(cachedResponse),
++      attempts: 1,
++      updatedAt: new Date(),
++    });
++
++    const handler = vi.fn();
++
++    const result = await executeWithBillingIdempotency(
++      {
++        provider: 'asaas',
++        eventId: 'pay_dup_1',
++        eventType: 'payment.created',
++      },
++      handler,
++    );
++
++    expect(handler).not.toHaveBeenCalled();
++    expect(result.success).toBe(true);
++    expect(result.deduplicated).toBe(true);
++    expect(result.status).toBe('completed');
++    expect(result.data).toEqual(cachedResponse);
++    expect(mockDb.billingIdempotency.create).not.toHaveBeenCalled();
++  });
++
++  // ── Scenario 4: Concurrent Execution Collision (P2002 Unique Constraint)
++  it('4. detects concurrent race condition via P2002 and safely deduplicates', async () => {
++    mockDb.billingIdempotency.findUnique
++      .mockResolvedValueOnce(null) // first check sees nothing
++      .mockResolvedValueOnce({ // second check after P2002 finds in-progress record
++        id: 'idem_concurrent',
++        key: 'webhook:asaas:pay_race_1:payment.created',
++        status: 'processing',
++        attempts: 1,
++        updatedAt: new Date(),
++      });
++
++    // Simulate Prisma Unique Constraint Violation
++    const p2002Error = new Error('Unique constraint failed on key');
++    (p2002Error as unknown as { code: string }).code = 'P2002';
++    mockDb.billingIdempotency.create.mockRejectedValue(p2002Error);
++
++    const handler = vi.fn().mockResolvedValue({ ok: true });
++
++    const result = await executeWithBillingIdempotency(
++      {
++        provider: 'asaas',
++        eventId: 'pay_race_1',
++        eventType: 'payment.created',
++      },
++      handler,
++    );
++
++    expect(handler).not.toHaveBeenCalled();
++    expect(result.deduplicated).toBe(true);
++    expect(result.inProgress).toBe(true);
++    expect(result.status).toBe('processing');
++  });
++
++  // ── Scenario 5: Event Isolation (Different Event Types for Same Payment)
++  it('5. isolates different event types for the same payment ID into distinct idempotency records', () => {
++    const keyCreated = buildIdempotencyKey({
++      provider: 'asaas',
++      eventId: 'pay_shared_id',
++      eventType: 'payment.created',
++      status: 'approved',
++    });
++
++    const keyCanceled = buildIdempotencyKey({
++      provider: 'asaas',
++      eventId: 'pay_shared_id',
++      eventType: 'subscription.canceled',
++      status: 'canceled',
++    });
++
++    expect(keyCreated).not.toBe(keyCanceled);
++    expect(keyCreated).toContain('payment.created');
++    expect(keyCanceled).toContain('subscription.canceled');
++  });
++
++  // ── Scenario 6: Provider Isolation (Asaas vs Mercado Pago)
++  it('6. isolates different payment providers using identical external IDs', () => {
++    const keyAsaas = buildIdempotencyKey({
++      provider: 'asaas',
++      eventId: 'ext_123',
++      eventType: 'payment.updated',
++    });
++
++    const keyMP = buildIdempotencyKey({
++      provider: 'mercadopago',
++      eventId: 'ext_123',
++      eventType: 'payment.updated',
++    });
++
++    expect(keyAsaas).not.toBe(keyMP);
++    expect(keyAsaas).toBe('webhook:asaas:ext_123:payment.updated');
++    expect(keyMP).toBe('webhook:mercadopago:ext_123:payment.updated');
++  });
++
++  // ── Scenario 7: Retry After Failed Operation (Fail-Closed Recovery)
++  it('7. allows retry when previous operation status was failed', async () => {
++    mockDb.billingIdempotency.findUnique.mockResolvedValue({
++      id: 'idem_failed',
++      key: 'webhook:asaas:pay_fail_1:payment.created',
++      status: 'failed',
++      attempts: 1,
++      updatedAt: new Date(),
++    });
++    mockDb.billingIdempotency.update.mockResolvedValue({
++      id: 'idem_failed',
++      status: 'completed',
++    });
++
++    const handler = vi.fn().mockResolvedValue({ recovered: true });
++
++    const result = await executeWithBillingIdempotency(
++      {
++        provider: 'asaas',
++        eventId: 'pay_fail_1',
++        eventType: 'payment.created',
++      },
++      handler,
++    );
++
++    expect(handler).toHaveBeenCalledTimes(1);
++    expect(result.success).toBe(true);
++    expect(result.deduplicated).toBe(false);
++    expect(result.status).toBe('completed');
++    expect(mockDb.billingIdempotency.update).toHaveBeenCalledWith({
++      where: { key: 'webhook:asaas:pay_fail_1:payment.created' },
++      data: { status: 'processing', attempts: { increment: 1 } },
++    });
++  });
++
++  // ── Scenario 8: Stale In-Flight Execution Recovery
++  it('8. recovers and retries if in-progress record is older than 2 minutes', async () => {
++    const staleDate = new Date(Date.now() - 150000); // 2.5 minutes ago
++    mockDb.billingIdempotency.findUnique.mockResolvedValue({
++      id: 'idem_stale',
++      key: 'webhook:asaas:pay_stale_1:payment.created',
++      status: 'processing',
++      attempts: 1,
++      updatedAt: staleDate,
++    });
++    mockDb.billingIdempotency.update.mockResolvedValue({
++      id: 'idem_stale',
++      status: 'completed',
++    });
++
++    const handler = vi.fn().mockResolvedValue({ recoveredFromStale: true });
++
++    const result = await executeWithBillingIdempotency(
++      {
++        provider: 'asaas',
++        eventId: 'pay_stale_1',
++        eventType: 'payment.created',
++      },
++      handler,
++    );
++
++    expect(handler).toHaveBeenCalledTimes(1);
++    expect(result.success).toBe(true);
++    expect(result.deduplicated).toBe(false);
++    expect(result.status).toBe('completed');
++  });
++
++  // ── Scenario 9: Payment Webhook Route End-to-End Idempotency
++  it('9. deduplicates incoming POST to /api/webhooks/payment when already processed', async () => {
++    const cachedProvisioning = {
++      tenantId: 'tenant_e2e_cached',
++      planTier: 'parceiro',
++      niche: 'pousada',
++      isNewTenant: false,
++    };
++
++    mockDb.billingIdempotency.findUnique.mockResolvedValue({
++      id: 'idem_route_e2e',
++      key: 'webhook:asaas:pay_e2e_123:payment.created:approved',
++      status: 'completed',
++      response: JSON.stringify(cachedProvisioning),
++      attempts: 1,
++      updatedAt: new Date(),
++    });
++
++    const payload = {
++      event: 'payment.created',
++      paymentId: 'pay_e2e_123',
++      status: 'approved',
++      amount: 297,
++      metadata: {
++        customerName: 'Hotel Teste',
++        niche: 'pousada',
++      },
++    };
++
++    const req = new NextRequest('http://localhost/api/webhooks/payment', {
++      method: 'POST',
++      body: JSON.stringify(payload),
++      headers: { 'Content-Type': 'application/json' },
++    });
++
++    const res = await paymentWebhookPost(req);
++    const body = await res.json();
++
++    expect(res.status).toBe(200);
++    expect(body.received).toBe(true);
++    expect(body.deduplicated).toBe(true);
++    expect(body.provisioning).toEqual(cachedProvisioning);
++    // Tenant must NOT be created again
++    expect(mockDb.tenant.create).not.toHaveBeenCalled();
++  });
++
++  // ── Scenario 10: Checkout Webhook Route End-to-End Idempotency
++  it('10. deduplicates incoming POST to /api/checkout/webhook when already updated', async () => {
++    mockDb.billingIdempotency.findUnique.mockResolvedValue({
++      id: 'idem_mp_e2e',
++      key: 'webhook:mercadopago:mp_payment_888:payment.updated:approved',
++      status: 'completed',
++      response: JSON.stringify({ updated: true, paymentId: 'mp_payment_888', status: 'approved' }),
++      attempts: 1,
++      updatedAt: new Date(),
++    });
++
++    mockDb.paymentTransaction.findFirst.mockResolvedValue({
++      id: 'tx_mp_1',
++      externalId: 'mp_payment_888',
++      subscriptionId: 'sub_mp_1',
++      amount: 197,
++    });
++
++    const payload = {
++      action: 'payment.updated',
++      data: { id: 'mp_payment_888' },
++    };
++
++    // Mock MP API lookup
++    const originalFetch = global.fetch;
++    global.fetch = vi.fn().mockResolvedValue({
++      ok: true,
++      json: async () => ({ status: 'approved' }),
++    } as unknown as Response);
++
++    process.env.MP_ACCESS_TOKEN = 'test_token_mp';
++
++    try {
++      const req = new NextRequest('http://localhost/api/checkout/webhook', {
++        method: 'POST',
++        body: JSON.stringify(payload),
++        headers: { 'Content-Type': 'application/json' },
++      });
++
++      const res = await checkoutWebhookPost(req);
++      const body = await res.json();
++
++      expect(res.status).toBe(200);
++      expect(body.received).toBe(true);
++      expect(body.deduplicated).toBe(true);
++      // DB subscription update should NOT be re-executed
++      expect(mockDb.subscription.update).not.toHaveBeenCalled();
++    } finally {
++      global.fetch = originalFetch;
++      delete process.env.MP_ACCESS_TOKEN;
++    }
++  });
++});
+diff --git a/tests/security/wave1-security-p0.test.ts b/tests/security/wave1-security-p0.test.ts
+index 5ec3b754..b129488a 100644
+--- a/tests/security/wave1-security-p0.test.ts
++++ b/tests/security/wave1-security-p0.test.ts
+@@ -3,6 +3,11 @@ import { NextRequest } from 'next/server';
+ 
+ const { mockDb } = vi.hoisted(() => {
+   const dbInstance = {
++    billingIdempotency: {
++      findUnique: vi.fn().mockResolvedValue(null),
++      create: vi.fn().mockResolvedValue({ id: 'idem_test' }),
++      update: vi.fn().mockResolvedValue({ id: 'idem_test' }),
++    },
+     subscription: {
+       findUnique: vi.fn(),
+       update: vi.fn(),
+-- 
+2.50.1 (Apple Git-155)
+

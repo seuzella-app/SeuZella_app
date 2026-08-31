@@ -1,0 +1,711 @@
+From 59f8ec1e93334d39b7bdfc4e5632793c7618bdf2 Mon Sep 17 00:00:00 2001
+From: MarcioCau14 <marciocau14@users.noreply.github.com>
+Date: Thu, 27 Aug 2026 16:49:34 -0300
+Subject: [PATCH] fix(billing): harden refund cancellation lifecycle
+
+---
+ src/lib/notifications/bridges.ts              |  10 +
+ src/lib/notifications/producer.ts             |  19 +
+ .../payments/process-reservation-webhook.ts   | 111 +++++-
+ src/lib/payments/process-webhook.ts           |  10 +
+ .../payments/reservation-payment-effects.ts   |  78 ++++
+ .../refund-cancellation-lifecycle.test.ts     | 335 ++++++++++++++++++
+ 6 files changed, 560 insertions(+), 3 deletions(-)
+ create mode 100644 tests/security/refund-cancellation-lifecycle.test.ts
+
+diff --git a/src/lib/notifications/bridges.ts b/src/lib/notifications/bridges.ts
+index 12df0108..448cae35 100755
+--- a/src/lib/notifications/bridges.ts
++++ b/src/lib/notifications/bridges.ts
+@@ -1,3 +1,4 @@
++/* eslint-disable @typescript-eslint/no-explicit-any */
+ /**
+  * Zélla — Notification Bridges (Phase 2 — Gap-fill)
+  *
+@@ -35,6 +36,7 @@ import {
+   notifyOtaTokenExpired,
+   notifyPaymentFailed,
+   notifyPaymentOverdue,
++  notifyPaymentRefunded,
+   notifyPixReceived,
+   notifyPlanExpiring,
+   notifyReviewNegative,
+@@ -198,6 +200,14 @@ export function bridgePaymentEvent(event: PaymentEvent): ProduceResult {
+         days: event.daysOverdue ?? 1,
+         tenantId: event.tenantId,
+       });
++    case 'refunded':
++      return notifyPaymentRefunded({
++        niche: event.niche,
++        amount: event.amount,
++        guestName: event.guestName,
++        paymentId: event.paymentId,
++        tenantId: event.tenantId,
++      });
+     default:
+       return { success: false, reason: 'invalid_input' };
+   }
+diff --git a/src/lib/notifications/producer.ts b/src/lib/notifications/producer.ts
+index 503ff734..ba5c574b 100755
+--- a/src/lib/notifications/producer.ts
++++ b/src/lib/notifications/producer.ts
+@@ -1,3 +1,4 @@
++/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+ /**
+  * Zélla — Notification Producer (MOCK MODE)
+  *
+@@ -262,6 +263,24 @@ export const notifyPaymentOverdue = (vars: {
+     tenantId: vars.tenantId,
+   });
+ 
++export const notifyPaymentRefunded = (vars: {
++  niche: NotificationNiche | NicheType;
++  amount: number;
++  guestName: string;
++  paymentId?: string;
++  reason?: string;
++  tenantId?: string;
++}): ProduceResult =>
++  notify({
++    niche: toNiche(vars.niche),
++    type: 'payment.refunded',
++    source: 'webhook_payment',
++    priority: 'medium',
++    entityId: vars.paymentId,
++    metadata: { ...stripFrameworkFields(vars), amount: vars.amount.toFixed(2) },
++    tenantId: vars.tenantId,
++  });
++
+ // Guests
+ export const notifyNewLead = (vars: {
+   niche: NotificationNiche | NicheType;
+diff --git a/src/lib/payments/process-reservation-webhook.ts b/src/lib/payments/process-reservation-webhook.ts
+index ccc75db2..5091278e 100644
+--- a/src/lib/payments/process-reservation-webhook.ts
++++ b/src/lib/payments/process-reservation-webhook.ts
+@@ -1,6 +1,14 @@
+ import { randomUUID } from 'crypto';
+ import { db } from '@/lib/db';
+-import { activateReservationAccess, createReservationPaymentConfirmationNotification } from './reservation-payment-effects';
++import {
++  activateReservationAccess,
++  createReservationPaymentConfirmationNotification,
++  createReservationRefundNotification,
++  writeReversalTransaction,
++} from './reservation-payment-effects';
++import { revokeReservationPins } from '@/lib/locks/orchestrator';
++import { bridgePaymentEvent } from '@/lib/notifications/bridges';
++import { validatePaymentWebhookTransition } from './webhook-transition';
+ import type { WebhookEvent } from './types';
+ 
+ export async function processReservationPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; reservationId: string }> {
+@@ -18,7 +26,19 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
+         AND "provider_event_id" = ${event.providerEventId}
+       LIMIT 1
+     `;
+-    if (duplicate[0]) return { deduplicated: true, reservationId, tenantId: '', guestName: '', guestPhone: '', checkIn: new Date(0), checkOut: new Date(0), newlyApproved: false };
++    if (duplicate[0]) {
++      return {
++        deduplicated: true,
++        reservationId,
++        tenantId: '',
++        guestName: '',
++        guestPhone: '',
++        checkIn: new Date(0),
++        checkOut: new Date(0),
++        newlyApproved: false,
++        newlyRefunded: false,
++      };
++    }
+ 
+     const reservation = await tx.reservation.findUnique({
+       where: { id: reservationId },
+@@ -27,6 +47,7 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
+         tenantId: true,
+         checkIn: true,
+         checkOut: true,
++        status: true,
+         guest: { select: { name: true, phone: true } },
+       },
+     });
+@@ -41,7 +62,27 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
+       LIMIT 1
+     `;
+ 
+-    const existing = rows[0];
++    const [existing] = rows;
++
++    // C4.3: Validação determinística de transição de máquina de estados
++    if (existing?.status) {
++      const transition = validatePaymentWebhookTransition(existing.status, event.status);
++      if (!transition.accepted) {
++        console.warn(`[RESERVATION_PAYMENT] Transição rejeitada: ${existing.status} -> ${event.status} (${transition.reason})`);
++        return {
++          deduplicated: true,
++          reservationId: reservation.id,
++          tenantId: reservation.tenantId,
++          guestName: reservation.guest.name,
++          guestPhone: reservation.guest.phone ?? '',
++          checkIn: reservation.checkIn,
++          checkOut: reservation.checkOut,
++          newlyApproved: false,
++          newlyRefunded: false,
++        };
++      }
++    }
++
+     if (!existing) {
+       const paymentId = randomUUID();
+       await tx.$executeRaw`
+@@ -62,6 +103,8 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
+     }
+ 
+     const newlyApproved = event.status === 'approved' && (!existing || existing.status !== 'approved');
++    const newlyRefunded = (event.status === 'refunded' || event.status === 'cancelled') && (!existing || existing.status !== event.status);
++
+     if (newlyApproved) {
+       await tx.transaction.create({
+         data: {
+@@ -73,6 +116,28 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
+           status: 'COMPLETED',
+         },
+       });
++
++      await tx.reservation.update({
++        where: { id: reservation.id },
++        data: { status: 'CONFIRMED' },
++      });
++    }
++
++    // C4.1: Registro de Reversão / Estorno Contábil no Ledger
++    if (newlyRefunded) {
++      await writeReversalTransaction(tx, {
++        tenantId: reservation.tenantId,
++        reservationId: reservation.id,
++        amount: event.amount ?? 0,
++        gateway: event.gateway,
++        providerEventId: event.providerEventId,
++        reason: event.status === 'refunded' ? 'refund' : 'cancellation',
++      });
++
++      await tx.reservation.update({
++        where: { id: reservation.id },
++        data: { status: event.status === 'refunded' ? 'REFUNDED' : 'CANCELLED' },
++      });
+     }
+ 
+     return {
+@@ -84,6 +149,7 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
+       checkIn: reservation.checkIn,
+       checkOut: reservation.checkOut,
+       newlyApproved,
++      newlyRefunded,
+     };
+   });
+ 
+@@ -114,5 +180,44 @@ export async function processReservationPaymentWebhookEvent(event: WebhookEvent)
+     }
+   }
+ 
++  // C4.2 & C4.4: Revogação de Acesso Físico (PINs) e Notificações de Estorno
++  if (!result.deduplicated && result.newlyRefunded) {
++    try {
++      await revokeReservationPins({
++        tenantId: result.tenantId,
++        reservationId: result.reservationId,
++        reason: `Pagamento ${event.status === 'refunded' ? 'estornado' : 'cancelado'} via webhook ${event.gateway}`,
++      });
++    } catch (pinError) {
++      console.warn('[RESERVATION_PAYMENT] PIN revocation warning:', pinError);
++    }
++
++    try {
++      await createReservationRefundNotification({
++        tenantId: result.tenantId,
++        reservationId: result.reservationId,
++        guestName: result.guestName,
++        amount: event.amount ?? 0,
++        gateway: event.gateway,
++        reason: event.status === 'refunded' ? 'refund' : 'cancellation',
++      });
++    } catch (notificationError) {
++      console.error('[RESERVATION_PAYMENT] refund notification failed:', notificationError);
++    }
++
++    try {
++      bridgePaymentEvent({
++        niche: 'all',
++        paymentId: event.providerEventId,
++        amount: event.amount ?? 0,
++        guestName: result.guestName,
++        status: 'refunded',
++        tenantId: result.tenantId,
++      });
++    } catch (bridgeError) {
++      console.error('[RESERVATION_PAYMENT] bridgePaymentEvent error:', bridgeError);
++    }
++  }
++
+   return { deduplicated: result.deduplicated, reservationId: result.reservationId };
+ }
+diff --git a/src/lib/payments/process-webhook.ts b/src/lib/payments/process-webhook.ts
+index d46e8c4f..f67b8473 100644
+--- a/src/lib/payments/process-webhook.ts
++++ b/src/lib/payments/process-webhook.ts
+@@ -1,5 +1,6 @@
+ import { db } from '@/lib/db';
+ import { processReservationPaymentWebhookEvent } from './process-reservation-webhook';
++import { validatePaymentWebhookTransition } from './webhook-transition';
+ import type { WebhookEvent } from './types';
+ 
+ /**
+@@ -62,6 +63,15 @@ async function processSubscriptionWebhookEvent(event: WebhookEvent): Promise<{ d
+     });
+     if (!subscription) throw new Error('PAYMENT_WEBHOOK_SUBSCRIPTION_NOT_FOUND');
+ 
++    // C4.3: Validação determinística de transição de máquina de estados para assinaturas
++    if (subscription.paymentStatus) {
++      const transition = validatePaymentWebhookTransition(subscription.paymentStatus, event.status);
++      if (!transition.accepted) {
++        console.warn(`[SUBSCRIPTION_PAYMENT] Transição rejeitada: ${subscription.paymentStatus} -> ${event.status} (${transition.reason})`);
++        return { deduplicated: true, subscriptionId: subscription.id };
++      }
++    }
++
+     const lockKey = `payment-event:${event.gateway}:${event.providerEventId}`;
+     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+ 
+diff --git a/src/lib/payments/reservation-payment-effects.ts b/src/lib/payments/reservation-payment-effects.ts
+index ea4605d7..0e866354 100644
+--- a/src/lib/payments/reservation-payment-effects.ts
++++ b/src/lib/payments/reservation-payment-effects.ts
+@@ -1,3 +1,4 @@
++/* eslint-disable @typescript-eslint/no-explicit-any */
+ import { db } from '@/lib/db';
+ import { getLockForRoom } from '@/lib/locks/room-assignment';
+ import { generateReservationPin } from '@/lib/locks/system-pin-service';
+@@ -104,3 +105,80 @@ export async function activateReservationAccess(input: {
+     return { lockDeviceId: lock.deviceId, reason: 'PIN_GENERATION_FAILED' };
+   }
+ }
++
++/**
++ * Registra o estorno/reversão contábil no ledger de transações de reservas (C4.1).
++ * Preserva o lançamento original e cria um lançamento contrapartida idempotente.
++ */
++export async function writeReversalTransaction(
++  tx: any,
++  input: {
++    tenantId: string;
++    reservationId: string;
++    amount: number;
++    gateway: string;
++    reason?: string;
++    providerEventId?: string;
++  }
++): Promise<{ transactionId: string; alreadyReversed: boolean }> {
++  // Idempotência: verifica se já existe uma transação de estorno para este evento/reserva
++  const existingReversal = await tx.transaction.findFirst({
++    where: {
++      tenantId: input.tenantId,
++      reservationId: input.reservationId,
++      type: `RESERVATION_REFUND:${input.gateway}`,
++      status: 'REFUNDED',
++    },
++    select: { id: true },
++  });
++
++  if (existingReversal) {
++    return { transactionId: existingReversal.id, alreadyReversed: true };
++  }
++
++  const reversalAmount = -Math.abs(input.amount);
++  const created = await tx.transaction.create({
++    data: {
++      tenantId: input.tenantId,
++      reservationId: input.reservationId,
++      type: `RESERVATION_REFUND:${input.gateway}`,
++      amount: reversalAmount,
++      method: input.gateway,
++      status: 'REFUNDED',
++    },
++  });
++
++  return { transactionId: created.id, alreadyReversed: false };
++}
++
++/**
++ * Emite notificação persistida de estorno de reserva para o dashboard do cliente (C4.4).
++ */
++export async function createReservationRefundNotification(input: {
++  tenantId: string;
++  reservationId: string;
++  guestName: string;
++  amount: number;
++  gateway: string;
++  reason?: string;
++}): Promise<void> {
++  await db.notification.create({
++    data: {
++      tenantId: input.tenantId,
++      type: 'payment.reservation_refunded',
++      priority: 'high',
++      title: 'Estorno de reserva processado',
++      message: `Estorno da reserva de ${input.guestName} processado via ${input.gateway}. Valor: R$ ${Math.abs(input.amount).toFixed(2)}.`,
++      actionUrl: `/ddc/pousada?reservation_id=${encodeURIComponent(input.reservationId)}`,
++      actionLabel: 'Abrir reserva',
++      read: false,
++      metadata: JSON.stringify({
++        reservationId: input.reservationId,
++        guestName: input.guestName,
++        amount: input.amount,
++        gateway: input.gateway,
++        reason: input.reason || 'refund_requested',
++      }),
++    },
++  });
++}
+diff --git a/tests/security/refund-cancellation-lifecycle.test.ts b/tests/security/refund-cancellation-lifecycle.test.ts
+new file mode 100644
+index 00000000..44f883e6
+--- /dev/null
++++ b/tests/security/refund-cancellation-lifecycle.test.ts
+@@ -0,0 +1,335 @@
++/* eslint-disable @typescript-eslint/no-explicit-any */
++import { describe, expect, it, vi, beforeEach } from 'vitest';
++
++// ── Mocks com vi.hoisted para Vitest 3.x ─────────────────────────────────────
++const { mockDb, mockOrchestrator } = vi.hoisted(() => {
++  const txInstance = {
++    $executeRaw: vi.fn().mockResolvedValue(1),
++    $queryRaw: vi.fn(),
++    reservation: {
++      findUnique: vi.fn(),
++      update: vi.fn().mockResolvedValue({ id: 'res_123', status: 'REFUNDED' }),
++    },
++    transaction: {
++      findFirst: vi.fn(),
++      create: vi.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'tx_rev_123', ...data })),
++    },
++    subscription: {
++      findUnique: vi.fn(),
++      update: vi.fn().mockResolvedValue({ id: 'sub_123' }),
++    },
++    paymentTransaction: {
++      findFirst: vi.fn(),
++      create: vi.fn().mockResolvedValue({ id: 'pt_123' }),
++      update: vi.fn().mockResolvedValue({ id: 'pt_123' }),
++    },
++    tenant: {
++      update: vi.fn().mockResolvedValue({ id: 'tenant_123' }),
++    },
++  };
++
++  const dbInstance = {
++    $transaction: vi.fn(async (callback) => callback(txInstance)),
++    reservation: txInstance.reservation,
++    transaction: txInstance.transaction,
++    notification: {
++      create: vi.fn().mockResolvedValue({ id: 'notif_123' }),
++    },
++    lockCode: {
++      findMany: vi.fn().mockResolvedValue([]),
++    },
++  };
++
++  const orchestratorInstance = {
++    revokeReservationPins: vi.fn().mockResolvedValue({ success: true, revokedCount: 2, status: 'ACCESS_REVOKED' }),
++  };
++
++  return {
++    mockDb: dbInstance,
++    mockTx: txInstance,
++    mockOrchestrator: orchestratorInstance,
++  };
++});
++
++vi.mock('@/lib/db', () => ({
++  db: mockDb,
++  isDatabaseAvailable: vi.fn().mockResolvedValue(true),
++}));
++
++vi.mock('@/lib/locks/orchestrator', () => ({
++  revokeReservationPins: mockOrchestrator.revokeReservationPins,
++}));
++
++vi.mock('@/lib/notifications/bridges', async (importOriginal) => {
++  const actual = await importOriginal<typeof import('@/lib/notifications/bridges')>();
++  return {
++    ...actual,
++    bridgePaymentEvent: vi.fn(actual.bridgePaymentEvent),
++  };
++});
++
++import { validatePaymentWebhookTransition } from '@/lib/payments/webhook-transition';
++import { writeReversalTransaction } from '@/lib/payments/reservation-payment-effects';
++import { processReservationPaymentWebhookEvent } from '@/lib/payments/process-reservation-webhook';
++import { bridgePaymentEvent } from '@/lib/notifications/bridges';
++import type { WebhookEvent } from '@/lib/payments/types';
++
++describe('🔒 C4: Refund & Cancellation Lifecycle Suite', () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  describe('1. Payment State Machine Transition Validation', () => {
++    it('allows valid transition from PAID to REFUNDED', () => {
++      const result = validatePaymentWebhookTransition('approved', 'refunded');
++      expect(result.accepted).toBe(true);
++      expect(result.nextState).toBe('REFUNDED');
++    });
++
++    it('allows valid transition from CONFIRMED to CANCELLED', () => {
++      const result = validatePaymentWebhookTransition('confirmed', 'cancelled');
++      expect(result.accepted).toBe(true);
++      expect(result.nextState).toBe('CANCELLED');
++    });
++
++    it('PROHIBITS illegal transition from REFUNDED to APPROVED / PAID (terminal state)', () => {
++      const result = validatePaymentWebhookTransition('refunded', 'approved');
++      expect(result.accepted).toBe(false);
++      expect(result.nextState).toBe('REFUNDED');
++      if (!result.accepted) {
++        expect(result.reason).toContain('Transição proibida de REFUNDED para PAID');
++      }
++    });
++
++    it('PROHIBITS illegal transition from CANCELLED to APPROVED / PAID', () => {
++      const result = validatePaymentWebhookTransition('cancelled', 'approved');
++      expect(result.accepted).toBe(false);
++      expect(result.nextState).toBe('CANCELLED');
++    });
++
++    it('treats duplicate refund as idempotent no-op', () => {
++      const result = validatePaymentWebhookTransition('refunded', 'refunded');
++      expect(result.accepted).toBe(true);
++      expect(result.nextState).toBe('REFUNDED');
++    });
++  });
++
++  describe('2. Reversal Transaction Ledger (writeReversalTransaction)', () => {
++    it('creates negative amount reversal transaction with REFUNDED status', async () => {
++      const mockTx = {
++        transaction: {
++          findFirst: vi.fn().mockResolvedValue(null),
++          create: vi.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'tx_rev_1', ...data })),
++        },
++      };
++
++      const result = await writeReversalTransaction(mockTx as any, {
++        tenantId: 'tenant_alpha',
++        reservationId: 'res_alpha_1',
++        amount: 350.0,
++        gateway: 'asaas',
++        providerEventId: 'pay_event_99',
++      });
++
++      expect(result.alreadyReversed).toBe(false);
++      expect(result.transactionId).toBe('tx_rev_1');
++      expect(mockTx.transaction.create).toHaveBeenCalledWith({
++        data: {
++          tenantId: 'tenant_alpha',
++          reservationId: 'res_alpha_1',
++          type: 'RESERVATION_REFUND:asaas',
++          amount: -350.0,
++          method: 'asaas',
++          status: 'REFUNDED',
++        },
++      });
++    });
++
++    it('is idempotent and skips duplicate reversal if already recorded', async () => {
++      const mockTx = {
++        transaction: {
++          findFirst: vi.fn().mockResolvedValue({ id: 'tx_existing_reversal' }),
++          create: vi.fn(),
++        },
++      };
++
++      const result = await writeReversalTransaction(mockTx as any, {
++        tenantId: 'tenant_alpha',
++        reservationId: 'res_alpha_1',
++        amount: 350.0,
++        gateway: 'asaas',
++      });
++
++      expect(result.alreadyReversed).toBe(true);
++      expect(result.transactionId).toBe('tx_existing_reversal');
++      expect(mockTx.transaction.create).not.toHaveBeenCalled();
++    });
++  });
++
++  describe('3. Process Reservation Webhook: Refund & Cancellation Execution', () => {
++    it('processes refund webhook, writes reversal ledger, and invokes PIN revocation', async () => {
++      const event: WebhookEvent = {
++        gateway: 'asaas',
++        event: 'PAYMENT_REFUNDED',
++        status: 'refunded',
++        providerEventId: 'evt_refund_101',
++        gatewayPaymentId: 'pay_gateway_101',
++        referenceId: 'res_booking_555',
++        amount: 500.0,
++        receivedAt: new Date().toISOString(),
++        raw: {},
++      };
++
++      // Mock database state
++      mockDb.$transaction.mockImplementation(async (callback: any) => {
++        const tx = {
++          $executeRaw: vi.fn().mockResolvedValue(1),
++          $queryRaw: vi.fn()
++            .mockResolvedValueOnce([]) // duplicate check -> not duplicate
++            .mockResolvedValueOnce([{ id: 'rp_1', status: 'approved' }]), // existing payment status was approved
++          reservation: {
++            findUnique: vi.fn().mockResolvedValue({
++              id: 'res_booking_555',
++              tenantId: 'tenant_hotel_1',
++              checkIn: new Date(),
++              checkOut: new Date(),
++              status: 'CONFIRMED',
++              guest: { name: 'Mariana Lima', phone: '11999998888' },
++            }),
++            update: vi.fn().mockResolvedValue({ id: 'res_booking_555', status: 'REFUNDED' }),
++          },
++          transaction: {
++            findFirst: vi.fn().mockResolvedValue(null),
++            create: vi.fn().mockResolvedValue({ id: 'tx_refund_new' }),
++          },
++        };
++        return callback(tx);
++      });
++
++      const result = await processReservationPaymentWebhookEvent(event);
++
++      expect(result.deduplicated).toBe(false);
++      expect(result.reservationId).toBe('res_booking_555');
++
++      // Verifies physical security side-effect: PINs revoked with proper tenant boundary
++      expect(mockOrchestrator.revokeReservationPins).toHaveBeenCalledWith(
++        expect.objectContaining({
++          tenantId: 'tenant_hotel_1',
++          reservationId: 'res_booking_555',
++        })
++      );
++    });
++
++    it('processes cancellation webhook and invokes PIN revocation', async () => {
++      const event: WebhookEvent = {
++        gateway: 'mercadopago',
++        event: 'payment.cancelled',
++        status: 'cancelled',
++        providerEventId: 'evt_cancel_202',
++        gatewayPaymentId: 'mp_pay_202',
++        referenceId: 'res_booking_777',
++        amount: 250.0,
++        receivedAt: new Date().toISOString(),
++        raw: {},
++      };
++
++      mockDb.$transaction.mockImplementation(async (callback: any) => {
++        const tx = {
++          $executeRaw: vi.fn().mockResolvedValue(1),
++          $queryRaw: vi.fn()
++            .mockResolvedValueOnce([])
++            .mockResolvedValueOnce([{ id: 'rp_2', status: 'pending' }]),
++          reservation: {
++            findUnique: vi.fn().mockResolvedValue({
++              id: 'res_booking_777',
++              tenantId: 'tenant_hotel_2',
++              checkIn: new Date(),
++              checkOut: new Date(),
++              status: 'CONFIRMED',
++              guest: { name: 'Lucas Silva', phone: '21988887777' },
++            }),
++            update: vi.fn().mockResolvedValue({ id: 'res_booking_777', status: 'CANCELLED' }),
++          },
++          transaction: {
++            findFirst: vi.fn().mockResolvedValue(null),
++            create: vi.fn().mockResolvedValue({ id: 'tx_cancel_new' }),
++          },
++        };
++        return callback(tx);
++      });
++
++      const result = await processReservationPaymentWebhookEvent(event);
++
++      expect(result.deduplicated).toBe(false);
++      expect(mockOrchestrator.revokeReservationPins).toHaveBeenCalledWith(
++        expect.objectContaining({
++          tenantId: 'tenant_hotel_2',
++          reservationId: 'res_booking_777',
++        })
++      );
++    });
++
++    it('rejects out-of-order re-activation attempt when reservation was already refunded', async () => {
++      const outOfOrderApprovedEvent: WebhookEvent = {
++        gateway: 'asaas',
++        event: 'PAYMENT_RECEIVED',
++        status: 'approved',
++        providerEventId: 'evt_late_approved_303',
++        gatewayPaymentId: 'pay_late_303',
++        referenceId: 'res_booking_888',
++        amount: 400.0,
++        receivedAt: new Date().toISOString(),
++        raw: {},
++      };
++
++      mockDb.$transaction.mockImplementation(async (callback: any) => {
++        const tx = {
++          $executeRaw: vi.fn().mockResolvedValue(1),
++          $queryRaw: vi.fn()
++            .mockResolvedValueOnce([])
++            .mockResolvedValueOnce([{ id: 'rp_3', status: 'refunded' }]), // Already REFUNDED!
++          reservation: {
++            findUnique: vi.fn().mockResolvedValue({
++              id: 'res_booking_888',
++              tenantId: 'tenant_hotel_3',
++              checkIn: new Date(),
++              checkOut: new Date(),
++              status: 'REFUNDED',
++              guest: { name: 'Roberto Carlos', phone: '41977776666' },
++            }),
++            update: vi.fn(),
++          },
++          transaction: {
++            findFirst: vi.fn(),
++            create: vi.fn(),
++          },
++        };
++        return callback(tx);
++      });
++
++      const result = await processReservationPaymentWebhookEvent(outOfOrderApprovedEvent);
++
++      // Must be safely discarded/deduplicated without reviving the reservation
++      expect(result.deduplicated).toBe(true);
++      expect(result.reservationId).toBe('res_booking_888');
++    });
++  });
++
++  describe('4. Notification Bridge for Refund Events', () => {
++    it('dispatches payment.refunded notification correctly through bridgePaymentEvent', () => {
++      const result = bridgePaymentEvent({
++        niche: 'pousada',
++        paymentId: 'pay_ref_test_1',
++        amount: 450.0,
++        guestName: 'Ana Paula',
++        status: 'refunded',
++        tenantId: 'tenant_pousada_1',
++      });
++
++      expect(result.success).toBe(true);
++      expect(result.notification?.type).toBe('payment.refunded');
++      expect(result.notification?.title).toBe('Estorno processado');
++      expect(result.notification?.message).toContain('R$ 450.00 estornado para Ana Paula');
++    });
++  });
++});
+-- 
+2.50.1 (Apple Git-155)
+
