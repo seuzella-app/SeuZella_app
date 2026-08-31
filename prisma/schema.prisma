@@ -109,6 +109,9 @@ model Tenant {
   lgpdDeleteRequests LgpdDeleteRequest[]
   lgpdIncidents      LgpdIncident[]
   pushSubscriptions  PushSubscription[]
+  specialDates       SpecialDate[]
+  specialDateSuggestions SpecialDateSuggestion[]
+  priceOverrides     PriceOverride[]
   passwordChangedAt  DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1486,6 +1489,72 @@ model PricingCalculation {
   @@index([tenantId, date])
   @@index([tenantId, roomId])
   @@map("pricing_calculations")
+}
+
+model SpecialDate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  propertyId  String?
+  date        DateTime
+  type        String   @default("national")
+  name        String
+  state       String?
+  city        String?
+  description String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  suggestions SpecialDateSuggestion[]
+  @@unique([tenantId, date, type])
+  @@index([tenantId, date])
+  @@map("special_dates")
+}
+
+model SpecialDateSuggestion {
+  id             String   @id @default(cuid())
+  tenantId       String
+  specialDateId  String
+  propertyId     String?
+  roomId         String?
+  currentPrice   Float
+  suggestedPrice Float
+  reason         String   @default("")
+  impactEstimate String   @default("")
+  status         String   @default("pending")
+  decidedAt      DateTime?
+  decidedBy      String?
+  decisionNote   String   @default("")
+  expiresAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  specialDate    SpecialDate @relation(fields: [specialDateId], references: [id], onDelete: Cascade)
+  priceOverrides PriceOverride[]
+  @@index([tenantId, status])
+  @@index([specialDateId])
+  @@map("special_date_suggestions")
+}
+
+model PriceOverride {
+  id           String   @id @default(cuid())
+  tenantId     String
+  propertyId   String?
+  roomId       String?
+  date         DateTime
+  price        Float
+  basePrice    Float
+  suggestionId String?
+  createdBy    String   @default("owner")
+  approvedAt   DateTime @default(now())
+  expiresAt    DateTime?
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  suggestion   SpecialDateSuggestion? @relation(fields: [suggestionId], references: [id], onDelete: SetNull)
+  @@unique([tenantId, roomId, date])
+  @@index([tenantId, date])
+  @@map("price_overrides")
 }
 
 model GuestGuide {

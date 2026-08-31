@@ -7,6 +7,8 @@ import { YieldProfitTracker } from '@/lib/ai/tools/yield-profit-tracker';
 import { detectBrazilianHighSeasonHoliday } from '@/lib/ai/tools/dynamic-yield-engine';
 
 import { withAdvisoryLock, mapConcurrencyError } from '@/lib/db/concurrency';
+import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
+import { calculateUpsell } from '@/lib/billing/upsell-calculator';
 
 async function getHandler(_request: NextRequest, _ctx: any) {
   try {
@@ -113,6 +115,62 @@ async function postHandler(request: NextRequest, _ctx: any) {
         return NextResponse.json({ error: mapped.message, code: mapped.code }, { status: mapped.status });
       }
       throw txErr;
+    }
+
+    // 3. Special Dates Price Override & Canonical 7% Upsell Calculation
+    try {
+      const nights = computeNights(targetCheckIn, targetCheckOut);
+      let hasSpecialDate = false;
+      let totalEffectiveSpecialRate = 0;
+
+      for (const night of nights) {
+        const activePrice = await SpecialDatesHitlService.getActivePriceForDate(
+          tenantId,
+          roomId || 'all',
+          night,
+          baseDailyRate
+        );
+        if (activePrice.isSpecialDate) {
+          hasSpecialDate = true;
+          totalEffectiveSpecialRate += activePrice.price;
+        } else {
+          totalEffectiveSpecialRate += baseDailyRate;
+        }
+      }
+
+      if (hasSpecialDate && nights.length > 0) {
+        const avgSpecialRate = totalEffectiveSpecialRate / nights.length;
+        const upsellCalc = calculateUpsell({
+          baseRate: baseDailyRate,
+          specialRate: avgSpecialRate,
+          nights: nights.length,
+          attributedToZehla: true,
+          isSpecialDate: true,
+        });
+
+        if (upsellCalc.upsellDue && upsellCalc.upsellAmount > 0) {
+          await (prisma as any).upsellRecord.create({
+            data: {
+              tenantId,
+              roomId,
+              reservationId: reservation.id,
+              guestId,
+              type: 'special_date_tariff',
+              description: 'Tarifa especial em data comemorativa aprovada pelo anfitrião',
+              quantity: nights.length,
+              unitPrice: avgSpecialRate,
+              totalPrice: upsellCalc.reservationValue,
+              comissionRate: upsellCalc.commissionRate,
+              comissionAmount: upsellCalc.upsellAmount,
+              status: 'confirmed',
+              suggestedByZehla: true,
+              notes: upsellCalc.reason,
+            },
+          });
+        }
+      }
+    } catch (upsellErr) {
+      console.warn('[RESERVATION_CREATE] Special date / upsell tracking error (reservation persisted):', upsellErr);
     }
 
     if (baseDailyRate > 0 && totalRooms > 0) {
