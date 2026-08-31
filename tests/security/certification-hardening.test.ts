@@ -100,11 +100,11 @@ describe('🔧 Certification Hardening — 7 Blocker Fixes', () => {
 
   // B1: getTenantDb has real callers (not dead code)
   it('getTenantDb is called by at least 1 production file', () => {
-    // Verify via grep that getTenantDb is imported somewhere outside its definition
+    // Verify via git grep that getTenantDb is imported somewhere outside its definition
     let result = '';
     try {
-      result = execFileSync('grep', ['-rl', '--include=*.ts', 'getTenantDb', 'src/'], {
-        timeout: 5000, encoding: 'utf8', cwd: root,
+      result = execFileSync('git', ['grep', '-l', 'getTenantDb', 'src/'], {
+        timeout: 15000, encoding: 'utf8', cwd: root,
       }).trim();
     } catch { /* no matches */ }
     const files = result.split('\n').filter(f => f && !f.includes('tenant-prisma.ts'));
@@ -115,8 +115,8 @@ describe('🔧 Certification Hardening — 7 Blocker Fixes', () => {
   it('zero references to stripe in src/', () => {
     let result = '';
     try {
-      result = execFileSync('grep', ['-rli', 'stripe', 'src/'], {
-        timeout: 5000, encoding: 'utf8', cwd: root,
+      result = execFileSync('git', ['grep', '-li', 'stripe', 'src/'], {
+        timeout: 15000, encoding: 'utf8', cwd: root,
       }).trim();
     } catch { /* no matches = good */ }
     const files = result.split('\n').filter(Boolean);

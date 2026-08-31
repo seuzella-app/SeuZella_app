@@ -6,6 +6,8 @@ import { ZaosYieldEngine } from '@/lib/ai/tools/dynamic-yield-engine';
 import { YieldProfitTracker } from '@/lib/ai/tools/yield-profit-tracker';
 import { detectBrazilianHighSeasonHoliday } from '@/lib/ai/tools/dynamic-yield-engine';
 
+import { withAdvisoryLock, mapConcurrencyError } from '@/lib/db/concurrency';
+
 async function getHandler(_request: NextRequest, _ctx: any) {
   try {
     const tenantId = await requireTenant();
@@ -55,7 +57,7 @@ async function postHandler(request: NextRequest, _ctx: any) {
               roomId,
               checkIn: { lte: new Date() },
               checkOut: { gte: new Date() },
-              status: { notIn: ['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'] },
+              status: { notIn: ['CANCELLED', 'cancelled', 'REJECTED', 'rejected', 'NO_SHOW', 'no_show'] },
             },
           });
         }
@@ -64,10 +66,11 @@ async function postHandler(request: NextRequest, _ctx: any) {
       }
     }
 
-    // DB transaction is the final authority for tenant ownership and overlap.
+    // DB transaction with Advisory Lock is the final authority for tenant ownership and overlap prevention.
     let reservation: any;
+    const lockKey = `reservation:${tenantId}:${roomId || 'general'}`;
     try {
-      reservation = await (prisma as any).$transaction(async (tx: any) => {
+      reservation = await withAdvisoryLock(lockKey, async (tx: any) => {
         if (roomId) {
           const ownedRoom = await tx.room.findFirst({ where: { id: roomId, tenantId } });
           if (!ownedRoom) throw new Error('ROOM_NOT_FOUND_OR_NOT_OWNED');
@@ -76,7 +79,7 @@ async function postHandler(request: NextRequest, _ctx: any) {
             where: {
               tenantId,
               roomId,
-              status: { notIn: ['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'] },
+              status: { notIn: ['CANCELLED', 'cancelled', 'REJECTED', 'rejected', 'NO_SHOW', 'no_show'] },
               AND: [
                 { checkIn: { lt: targetCheckOut } },
                 { checkOut: { gt: targetCheckIn } },
@@ -92,15 +95,22 @@ async function postHandler(request: NextRequest, _ctx: any) {
         }
 
         return tx.reservation.create({
-          data: { tenantId, guestId, roomId, checkIn: targetCheckIn, checkOut: targetCheckOut, totalPrice, source: source || 'DIRECT' },
+          data: {
+            tenantId,
+            guestId,
+            roomId,
+            checkIn: targetCheckIn,
+            checkOut: targetCheckOut,
+            totalPrice,
+            source: source || 'DIRECT',
+            status: 'CONFIRMED',
+          },
         });
       });
     } catch (txErr: any) {
-      if (txErr.message === 'ROOM_UNAVAILABLE_OVERLAPPING_DATES') {
-        return NextResponse.json({ error: 'Quarto indisponível para o período solicitado (conflito de reserva concorrente)', code: 'ROOM_UNAVAILABLE' }, { status: 409 });
-      }
-      if (txErr.message === 'ROOM_NOT_FOUND_OR_NOT_OWNED' || txErr.message === 'GUEST_NOT_FOUND_OR_NOT_OWNED') {
-        return NextResponse.json({ error: 'Recurso não encontrado ou não pertence ao tenant autenticado', code: 'RESOURCE_NOT_FOUND' }, { status: 404 });
+      const mapped = mapConcurrencyError(txErr);
+      if (mapped) {
+        return NextResponse.json({ error: mapped.message, code: mapped.code }, { status: mapped.status });
       }
       throw txErr;
     }
