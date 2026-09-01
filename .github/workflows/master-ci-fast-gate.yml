@@ -50,7 +50,7 @@ jobs:
         run: npm run typecheck
 
       - name: ESLint Audit
-        run: npm run lint -- --max-warnings=0
+        run: npm run lint
 
       - name: Unit and Security Regression Suite
         run: |

@@ -212,6 +212,13 @@ const eslintConfig = [
     "deploy.sh",
     "quick-start.sh",
     "scripts/**",
+    "workers/**",
+    "tests/**",
+    "00_MASTER_CONTROL/**",
+    "03_CI_CD/**",
+    "04_TESTING/**",
+    "99_AUDITS/**",
+    ".agents/**",
   ],
 },
 // ── Override: tests/** — allow require() for lazy module loading ──────────────

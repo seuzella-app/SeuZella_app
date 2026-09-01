@@ -79,14 +79,14 @@ jobs:
           console.log('✅ Every cron directory has route.ts and every cron is registered in vercel.json.');
           NODE
 
-      - name: Cron Auth Security Regression
-        run: npx vitest run tests/security/cron-auth.test.ts tests/security/endpoint-protection-audit.test.ts --reporter=dot --timeout=30000
+      - name: Security Regression Suite (Crons & Auth)
+        run: npx vitest run tests/security/cron-auth.test.ts tests/security/endpoint-protection-audit.test.ts --reporter=dot --test-timeout=30000
 
-      - name: Cron Route Tests
-        run: npx vitest run src/__tests__/crons/cron-routes.test.ts --reporter=dot --timeout=30000
+      - name: Crons Routes Tests
+        run: npx vitest run src/__tests__/crons/cron-routes.test.ts --reporter=dot --test-timeout=30000
 
-      - name: Booking.com Webhook HMAC Tests
-        run: npx vitest run src/__tests__/webhooks/booking-com-reviews.test.ts --reporter=dot --timeout=30000
+      - name: Webhook Booking.com Tests
+        run: npx vitest run src/__tests__/webhooks/booking-com-reviews.test.ts --reporter=dot --test-timeout=30000
 
       - name: Prisma Schema Validation
         run: npx prisma validate
