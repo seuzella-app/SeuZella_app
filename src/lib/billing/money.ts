@@ -40,7 +40,7 @@ export function roundHalfUp(value: number, decimals = 2): number {
   if (Number(nextDigit) >= 5) {
     // Round up — handle carry
     const combined = intPart + keepDigits;
-    let combinedNum = Number(combined) + 1;
+    const combinedNum = Number(combined) + 1;
     const combinedStr = String(combinedNum).padStart(combined.length, '0');
     const newIntPart = combinedStr.slice(0, combinedStr.length - decimals) || '0';
     roundedFrac = combinedStr.slice(combinedStr.length - decimals);
