@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { sendEmail } from '@/lib/email/email-service';
 import crypto from 'crypto';
+import { authRatelimit } from '@/lib/rate-limit';
 
+function getClientIp(request: NextRequest): string { return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'; }
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
@@ -20,6 +22,16 @@ async function ensureResetTable() {
 /** POST /api/auth/magic-link — creates and actually sends a one-time setup link. */
 export async function POST(request: NextRequest) {
   try {
+    // F12: Rate limit — prevent magic-link spam (5 per 15 min per IP)
+    const clientIp = getClientIp(request);
+    const { success: rateOk } = await authRatelimit.limit(`magic-link:${clientIp}`);
+    if (!rateOk) {
+      return NextResponse.json(
+        { error: 'RATE_LIMITED', message: 'Muitas solicitações. Tente novamente em alguns minutos.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {

@@ -266,7 +266,7 @@ describe('bridgePaymentEvent', () => {
     expect(r.notification?.priority).toBe('urgent');
   });
 
-  it('returns invalid_input on refunded status (not implemented)', () => {
+  it('returns success on refunded status (now implemented)', () => {
     const r = bridgePaymentEvent({
       niche: 'pousada',
       paymentId: 'pay-1',
@@ -274,8 +274,7 @@ describe('bridgePaymentEvent', () => {
       guestName: 'Ana',
       status: 'refunded',
     });
-    expect(r.success).toBe(false);
-    expect(r.reason).toBe('invalid_input');
+    expect(r.success).toBe(true);
   });
 });
 

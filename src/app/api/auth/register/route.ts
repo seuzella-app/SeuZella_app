@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import { authRatelimit } from '@/lib/rate-limit';
+
+function getClientIp(request: NextRequest): string { return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'; }
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -15,6 +18,16 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // F12: Rate limit — prevent account creation spam (5 per 15 min per IP)
+    const clientIp = getClientIp(request);
+    const { success: rateOk } = await authRatelimit.limit(`register:${clientIp}`);
+    if (!rateOk) {
+      return NextResponse.json(
+        { error: 'RATE_LIMITED', message: 'Muitas tentativas de cadastro. Tente novamente em alguns minutos.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const data = registerSchema.parse(body);
 

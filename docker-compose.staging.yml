@@ -1,0 +1,127 @@
+version: '3.8'
+
+# ==============================================================================
+# SEU ZÉLLA — STAGING DOCKER COMPOSE (Wave 16 / F18)
+# ==============================================================================
+# Two environments: staging + prod — data NEVER mixed.
+# Staging uses separate database name (zella_staging) and port mapping.
+#
+# USAGE:
+#   docker compose -f docker-compose.staging.yml up -d
+#
+# DIFFERENCES FROM docker-compose.prod.yml:
+#   - DB_NAME: zella_staging (not zella_production)
+#   - App exposed on 3001 (not 3000) to allow parallel staging + prod
+#   - Nginx upstream: app-staging.seuzella.com
+#   - No HSTS (staging uses self-signed cert initially)
+# ==============================================================================
+
+networks:
+  zehla-staging-internal:
+    driver: bridge
+    internal: true
+  zehla-staging-edge:
+    driver: bridge
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: marciocau14/smarthotel-zehla:staging
+    restart: always
+    user: "1001:1001"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://${DB_USER:?DB_USER_REQUIRED}:${DB_PASS:?DB_PASS_REQUIRED}@postgres:5432/${DB_NAME_STAGING:-zella_staging}?schema=public&sslmode=require"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:?REDIS_PASSWORD_REQUIRED}@redis:6379"
+      ZELLA_ENCRYPTION_KEY: "${ZELLA_ENCRYPTION_KEY:?ZELLA_ENCRYPTION_KEY_REQUIRED}"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?NEXTAUTH_SECRET_REQUIRED}"
+      NEXTAUTH_URL: "https://app-staging.seuzella.com"
+      META_APP_SECRET: "${META_APP_SECRET:?META_APP_SECRET_REQUIRED}"
+      ZELLA_M2M_ED25519_PUBLIC_KEY: "${ZELLA_M2M_ED25519_PUBLIC_KEY:?ZELLA_M2M_ED25519_PUBLIC_KEY_REQUIRED}"
+      ZELLA_OPERATING_MODE: "staging"
+    ports:
+      - "127.0.0.1:3001:3000"  # Staging on 3001, prod on 3000 — never same port
+    networks:
+      - zehla-staging-internal
+      - zehla-staging-edge
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: "${DB_USER:?DB_USER_REQUIRED}"
+      POSTGRES_PASSWORD: "${DB_PASS:?DB_PASS_REQUIRED}"
+      # Staging uses separate database — NEVER shared with production
+      POSTGRES_DB: "${DB_NAME_STAGING:-zella_staging}"
+    volumes:
+      - pgdata_staging:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zehla-staging-internal
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --requirepass "${REDIS_PASSWORD:?REDIS_PASSWORD_REQUIRED}" --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_staging:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zehla-staging-internal
+    security_opt:
+      - no-new-privileges:true
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: marciocau14/smarthotel-zehla:staging
+    restart: always
+    user: "1001:1001"
+    command: ["node", "src/workers/index.ts"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://${DB_USER:?DB_USER_REQUIRED}:${DB_PASS:?DB_PASS_REQUIRED}@postgres:5432/${DB_NAME_STAGING:-zella_staging}?schema=public&sslmode=require"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:?REDIS_PASSWORD_REQUIRED}@redis:6379"
+      ZELLA_ENCRYPTION_KEY: "${ZELLA_ENCRYPTION_KEY:?ZELLA_ENCRYPTION_KEY_REQUIRED}"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?NEXTAUTH_SECRET_REQUIRED}"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - zehla-staging-internal
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  pgdata_staging:
+    # Named volume — separate from production pgdata
+  redis_staging:
+    # Named volume — separate from production redis

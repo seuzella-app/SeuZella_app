@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getGateway } from '@/lib/payments';
 import { processPaymentWebhookEvent } from '@/lib/payments/process-webhook';
 import { webhookRatelimit } from '@/lib/rate-limit';
+import { recordLatency } from '@/lib/observability/latency-tracker';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

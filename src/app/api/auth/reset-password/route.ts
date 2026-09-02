@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { db, isDatabaseAvailable } from '@/lib/db';
+import { authRatelimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+function getClientIp(request: Request): string { return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'; }
 function validPassword(password: unknown): password is string { return typeof password === 'string' && password.length >= 12 && password.length <= 128; }
 async function ensureResetTable() {
   await db.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "password_reset_tokens" ("id" TEXT NOT NULL PRIMARY KEY, "tenant_id" TEXT NOT NULL, "token_hash" TEXT NOT NULL UNIQUE, "expires_at" TIMESTAMP(3) NOT NULL, "used_at" TIMESTAMP(3), "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "password_reset_tokens_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE)`);
@@ -15,6 +17,16 @@ async function ensureResetTable() {
 
 export async function POST(request: Request) {
   try {
+    // F12: Rate limit — prevent brute-force on reset tokens (5 per 15 min per IP)
+    const clientIp = getClientIp(request);
+    const { success: rateOk } = await authRatelimit.limit(`reset-password:${clientIp}`);
+    if (!rateOk) {
+      return NextResponse.json(
+        { error: 'RATE_LIMITED', message: 'Muitas tentativas. Tente novamente em alguns minutos.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const token = String(body.token || '');
     const {password} = body;

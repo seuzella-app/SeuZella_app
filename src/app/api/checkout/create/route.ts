@@ -8,6 +8,7 @@ import { type PlanTier } from '@/lib/plan-features';
 import { isMethodAllowed, getPrice } from '@/lib/payments/pricing';
 import { getDefaultGateway, getGateway } from '@/lib/payments/gateway-factory';
 import type { GatewayId, PaymentMethod } from '@/lib/payments/types';
+import { measureLatency } from '@/lib/observability/latency-tracker';
 
 const VALID_PLANS: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
 const VALID_METHODS: PaymentMethod[] = ['pix', 'cartao'];
@@ -22,6 +23,7 @@ function validEmail(value: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  return measureLatency('checkout.create', async () => {
   try {
     const contentLength = Number(request.headers.get('content-length') || '0');
     if (contentLength > 64 * 1024) return createError(413, 'PAYLOAD_TOO_LARGE', 'Payload excede o limite permitido.');
@@ -150,4 +152,5 @@ export async function POST(request: NextRequest) {
   } catch {
     return createError(500, 'CHECKOUT_ERROR', 'Não foi possível iniciar o checkout.');
   }
+  });
 }

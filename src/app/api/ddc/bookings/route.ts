@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { recordLatency } from '@/lib/observability/latency-tracker';
 import { emitTenantEvent, buildPushForEvent } from '@/lib/realtime/emit-tenant-event';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId, mapBooking } from '@/lib/ddc/ddc-mapper';
@@ -52,6 +53,7 @@ const demoBookings = [
 ];
 
 export async function GET(request: NextRequest) {
+  const _latencyStart = Date.now();
   try {
     const dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {
@@ -93,6 +95,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const _latencyStart = Date.now();
   try {
     const tenantId = await resolveTenantId();
     if (!tenantId) {

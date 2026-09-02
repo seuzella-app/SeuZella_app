@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { sendEmail } from '@/lib/email/email-service';
+import { authRatelimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const GENERIC_RESPONSE = { ok: true, message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.' };
 function baseUrl(request: Request): string { return (process.env.NEXTAUTH_URL || new URL(request.url).origin).replace(/\/$/, ''); }
+function getClientIp(request: Request): string { return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'; }
 
 async function ensureResetTable() {
   await db.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "password_reset_tokens" ("id" TEXT NOT NULL PRIMARY KEY, "tenant_id" TEXT NOT NULL, "token_hash" TEXT NOT NULL UNIQUE, "expires_at" TIMESTAMP(3) NOT NULL, "used_at" TIMESTAMP(3), "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "password_reset_tokens_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE)`);
@@ -17,6 +19,16 @@ async function ensureResetTable() {
 
 export async function POST(request: Request) {
   try {
+    // F12: Rate limit — prevent email bombing (5 requests per 15 min per IP)
+    const clientIp = getClientIp(request);
+    const { success: rateOk } = await authRatelimit.limit(`forgot-password:${clientIp}`);
+    if (!rateOk) {
+      return NextResponse.json(
+        { error: 'RATE_LIMITED', message: 'Muitas solicitações. Tente novamente em alguns minutos.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const email = String(body.email || '').trim().toLowerCase();
     if (!email || !email.includes('@') || email.length > 254) return NextResponse.json(GENERIC_RESPONSE);

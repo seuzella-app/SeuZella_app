@@ -425,7 +425,11 @@ describe('Behavioral: wire verification — mutation endpoints publish after DB 
     );
     expect(source).toContain('emitTenantEvent');
     expect(source).toContain("'reservation:created'");
-    const createIdx = source.indexOf('db.booking.create(');
+    // Accept both db.booking.create and tx.booking.create (transaction client)
+    const createIdx = Math.max(
+      source.indexOf('db.booking.create('),
+      source.indexOf('tx.booking.create(')
+    );
     const publishIdx = source.indexOf('emitTenantEvent(');
     expect(createIdx).toBeGreaterThan(-1);
     expect(publishIdx).toBeGreaterThan(createIdx);

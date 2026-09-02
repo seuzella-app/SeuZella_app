@@ -3,6 +3,7 @@ import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 import { db } from '@/lib/db';
 import { AsaasBillingService } from '@/lib/billing/asaas';
 import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+import { captureError } from '@/lib/monitoring/error-tracking';
 
 const PLAN_BASE_PRICES: Record<string, number> = {
   lite: 197,
@@ -186,6 +187,11 @@ async function handleMonthlyBilling(request: NextRequest) {
           error: errorMsg,
         });
         console.error(`[CRON_BILLING_ERROR] Falha ao processar tenant ${tenant.id}:`, tenantErr);
+        // F17: Report to Sentry (if configured)
+        await captureError(tenantErr, {
+          tags: { component: 'cron', action: 'monthly-billing', tenantId: tenant.id },
+          level: 'error',
+        });
       }
     }
 
@@ -197,6 +203,11 @@ async function handleMonthlyBilling(request: NextRequest) {
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error('[CRON_BILLING_FATAL] Erro geral no faturamento mensal:', error);
+    // F17: Report fatal cron error to Sentry (if configured)
+    await captureError(error, {
+      tags: { component: 'cron', action: 'monthly-billing', severity: 'fatal' },
+      level: 'fatal',
+    });
     return NextResponse.json(
       { success: false, error: 'CRON_FATAL_ERROR', message: errorMsg },
       { status: 500 }
