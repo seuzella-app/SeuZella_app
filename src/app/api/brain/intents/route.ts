@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getIntentStats } from '@/lib/brain-health';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -13,8 +15,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId') || undefined;
+    // Wave B IDOR fix: tenantId from session, not query param
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    const tenantId = (session.user as any).tenantId;
     const data = await getIntentStats(tenantId);
     return NextResponse.json(data, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
   } catch (error) {

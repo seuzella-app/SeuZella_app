@@ -19,7 +19,8 @@ async function getHandler(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const tenantId = (session.user as any).tenantId || searchParams.get('tenantId');
+  // Wave B IDOR fix: tenantId from session ONLY — never from query params.
+  const tenantId = (session.user as any).tenantId;
   const guestId = searchParams.get('guestId');
 
   if (!tenantId || !guestId) {

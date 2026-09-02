@@ -42,12 +42,14 @@ const ALLOWED_CANCEL_POLICIES = new Set(['flexible', 'moderate', 'strict']);
 const ALLOWED_AI_TONES = new Set(['formal', 'descontraida', 'divertida', 'profissional']);
 
 /**
- * GET /api/ddc/onboarding-wizard?tenantId=xxx
+ * GET /api/ddc/onboarding-wizard
+ *
+ * Wave B IDOR fix: tenantId derived from session, not query param.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const tenantId = sanitizeStr(searchParams.get('tenantId'), 100);
-
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
+  const tenantId = (session.user as any).tenantId;
   if (!tenantId) {
     return NextResponse.json(
       { success: false, error: 'MISSING_TENANT_ID', message: 'Identificador de tenant não informado.' },
@@ -119,10 +121,22 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/ddc/onboarding-wizard
- * Body: { tenantId, step, data }
+ * Body: { step, data }
+ *
+ * Wave B IDOR fix: tenantId derived from session, not body.
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
+    const tenantId = (session.user as any).tenantId;
+    if (!tenantId) {
+      return NextResponse.json(
+        { success: false, error: 'MISSING_TENANT_ID', message: 'Tenant não encontrado na sessão.' },
+        { status: 400 }
+      );
+    }
+
     let body: any;
     try {
       body = await request.json();
@@ -133,13 +147,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const tenantId = sanitizeStr(body?.tenantId, 100);
     const step = sanitizeStr(body?.step, 50);
     const data = body?.data || {};
 
-    if (!tenantId || !step) {
+    if (!step) {
       return NextResponse.json(
-        { success: false, error: 'MISSING_FIELDS', message: 'tenantId e step são obrigatórios.' },
+        { success: false, error: 'MISSING_FIELDS', message: 'step é obrigatório.' },
         { status: 400 }
       );
     }
