@@ -6,6 +6,7 @@
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
 import { requireDDCTenantId } from '@/lib/ddc/auth-utils';
 import { recordFeedback } from '@/lib/cerebro/learning-engine';
 
@@ -23,6 +24,25 @@ export async function POST(req: NextRequest) {
         { success: false, error: 'Rating deve ser inteiro de 1 a 5' },
         { status: 400 }
       );
+    }
+
+    // Defense in depth: a client may know another tenant's KnowledgeEntry ID.
+    // Never allow feedback in tenant A to mutate knowledge belonging to tenant B.
+    if (body.knowledgeEntryId) {
+      const knowledgeEntry = await db.knowledgeEntry.findFirst({
+        where: {
+          id: String(body.knowledgeEntryId),
+          tenantId,
+        },
+        select: { id: true },
+      });
+
+      if (!knowledgeEntry) {
+        return NextResponse.json(
+          { success: false, error: 'KnowledgeEntry não pertence ao tenant autenticado' },
+          { status: 404 }
+        );
+      }
     }
 
     const result = await recordFeedback({
