@@ -85,6 +85,17 @@ vi.mock('@/lib/db', () => ({
   isDatabaseAvailable: vi.fn().mockResolvedValue(true),
 }));
 
+// Mock withAdvisoryLock to use $transaction with a mock that passes `mockDb` as `tx`
+vi.mock('@/lib/db/concurrency', () => ({
+  withAdvisoryLock: vi.fn(async (_lockKey: string, fn: (tx: any) => Promise<any>) => {
+    return fn(mockDb);
+  }),
+  withSerializableRetry: vi.fn(async (fn: (tx: any) => Promise<any>) => {
+    return fn(mockDb);
+  }),
+  mapConcurrencyError: vi.fn(() => null),
+}));
+
 vi.mock('@/lib/rate-limit', () => ({
   apiRatelimit: { limit: vi.fn().mockResolvedValue({ success: true, reset: 0 }) },
   authRatelimit: { limit: vi.fn().mockResolvedValue({ success: true, reset: 0 }) },

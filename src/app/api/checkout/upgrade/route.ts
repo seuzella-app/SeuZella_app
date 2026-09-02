@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
     const { tenantId: requestedTenantId, newPlanType, paymentMethod } = body as { tenantId?: string; newPlanType?: string; paymentMethod?: string };
     if (!requestedTenantId || !newPlanType) return createError(400, 'MISSING_FIELDS', 'Missing tenantId or newPlanType');
     if (requestedTenantId !== tenantId) return createError(403, 'FORBIDDEN', 'Cannot perform upgrade for another tenant');
+    // Wave R3: Explicit session tenant boundary check (for IDOR contract audit)
+    if (tenantId !== session.user.tenantId) return createError(403, 'FORBIDDEN', 'Tenant mismatch');
     if (!PLAN_ORDER.includes(newPlanType as PlanTier)) return createError(400, 'INVALID_PLAN', `Invalid plan: ${newPlanType}. Valid: ${PLAN_ORDER.join(', ')}`);
 
     const method = (paymentMethod || (newPlanType === 'pro' || newPlanType === 'max' || newPlanType === 'parceiro' ? 'cartao' : 'pix')) as string;
