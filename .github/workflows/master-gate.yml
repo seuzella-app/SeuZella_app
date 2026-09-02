@@ -92,17 +92,14 @@ jobs:
       - name: TypeScript Type Check
         id: typecheck
         run: npm run typecheck
-        continue-on-error: true
 
       - name: ESLint
         id: lint
         run: npm run lint
-        continue-on-error: true
 
       - name: Unit Tests (targeted)
         id: unit
         run: npm run test:unit -- --reporter=dot --test-timeout=30000
-        continue-on-error: true
 
       - name: Critical Security Regression Suite
         id: security-regression
@@ -115,7 +112,6 @@ jobs:
             tests/security/health-check-regression.test.ts \
             tests/security/readiness-regression.test.ts \
             --reporter=dot --test-timeout=30000
-        continue-on-error: true
 
       - name: Secret Scan (fail closed)
         id: secrets
@@ -169,19 +165,16 @@ jobs:
         env:
           NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
-        continue-on-error: true
 
       - name: Security Certification Suite
         id: security
         if: steps.build.outcome == 'success'
         run: npx vitest run tests/security/ --reporter=dot --test-timeout=30000
-        continue-on-error: true
 
       - name: Prisma Schema Validation
         id: prisma
         if: steps.build.outcome == 'success' && steps.security.outcome == 'success'
         run: npx prisma validate
-        continue-on-error: true
 
       - name: Full Suite Verdict
         id: full-verdict
