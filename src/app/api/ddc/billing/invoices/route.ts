@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { AsaasBillingService } from '@/lib/billing/asaas';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
- * GET /api/ddc/billing/invoices?tenantId=xxx
+ * GET /api/ddc/billing/invoices
  *
  * Retorna o extrato de faturas, status de assinatura e links oficiais do Asaas (invoiceUrl, NFS-e)
  * para exibição no painel financeiro do DDC.
+ *
+ * Wave B IDOR fix: tenantId now derived from session, NOT from query param.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const tenantId = searchParams.get('tenantId');
-
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
+  const tenantId = (session.user as any).tenantId;
   if (!tenantId) {
     return NextResponse.json({ success: false, error: 'MISSING_TENANT_ID' }, { status: 400 });
   }

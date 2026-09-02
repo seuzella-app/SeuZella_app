@@ -8,14 +8,20 @@ import { authOptions } from '@/lib/auth';
 /**
  * POST /api/ddc/guest-registration — Cria FNRH pendente
  * PATCH /api/ddc/guest-registration — Atualiza dados coletados
- * GET /api/ddc/guest-registration?tenantId=xxx&guestId=xxx — Verifica status
+ * GET /api/ddc/guest-registration?guestId=xxx — Verifica status
+ *
+ * Wave B IDOR fix: tenantId now derived from session, NOT from query param.
  */
 export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
+  const tenantId = (session.user as any).tenantId;
+  if (!tenantId) return NextResponse.json({ success: false, error: 'TENANT_CONTEXT_MISSING' }, { status: 400 });
+
   const { searchParams } = new URL(request.url);
-  const tenantId = searchParams.get('tenantId');
   const guestId = searchParams.get('guestId');
 
-  if (!tenantId || !guestId) return NextResponse.json({ success: false, error: 'MISSING_PARAMS' }, { status: 400 });
+  if (!guestId) return NextResponse.json({ success: false, error: 'MISSING_PARAMS' }, { status: 400 });
 
   try {
     if (db && (db as any).guestRegistration) {

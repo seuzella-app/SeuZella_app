@@ -10,16 +10,15 @@ import { authOptions } from '@/lib/auth';
  * Gerencia a personalidade da IA de cada pousada.
  * O dono escolhe o tom de voz: formal, descontraída, divertida, profissional.
  *
- * GET ?tenantId=xxx → retorna personalidade atual
- * POST { tenantId, tone, expressions, greeting } → salva personalidade
+ * Wave B IDOR fix: tenantId now derived from session, NOT from query/body param.
  */
 
 const TONE_OPTIONS = ['formal', 'descontraida', 'divertida', 'profissional'] as const;
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const tenantId = searchParams.get('tenantId');
-
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
+  const tenantId = (session.user as any).tenantId;
   if (!tenantId) {
     return NextResponse.json({ success: false, error: 'MISSING_TENANT_ID' }, { status: 400 });
   }
@@ -71,10 +70,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { tenantId, tone, expressions, greeting, assistantName } = body;
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
+    const tenantId = (session.user as any).tenantId;
+    if (!tenantId) {
+      return NextResponse.json({ success: false, error: 'MISSING_TENANT_ID' }, { status: 400 });
+    }
 
-    if (!tenantId || !tone) {
+    const body = await request.json();
+    const { tone, expressions, greeting, assistantName } = body;
+
+    if (!tone) {
       return NextResponse.json({ success: false, error: 'MISSING_FIELDS' }, { status: 400 });
     }
 
