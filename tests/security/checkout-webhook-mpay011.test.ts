@@ -115,14 +115,33 @@ describe('M-PAY-011 Security Hardening — Mercado Pago Checkout Webhook', () =>
   it('4. production + assinatura válida → processa com idempotência', async () => {
     (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
     process.env.MP_WEBHOOK_SECRET = 'secret_mp_prod_123';
+    process.env.MP_ACCESS_TOKEN = 'test_mp_token_for_ci';
     mockVerifyMercadoPagoWebhook.mockReturnValue({ valid: true });
+
+    // Mock global fetch for MP API call
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: 'approved' }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
 
     mockDb.paymentTransaction.findFirst.mockResolvedValue({
       id: 'tx_123',
       externalId: 'mp_pay_123',
       subscriptionId: 'sub_123',
       status: 'pending',
+      amount: 397,
     });
+
+    mockDb.subscription.findUnique.mockResolvedValue({
+      id: 'sub_123',
+      tenantId: 'tenant_test',
+      planType: 'pro',
+    });
+
+    mockDb.subscription.update.mockResolvedValue({});
+    mockDb.tenant.update.mockResolvedValue({});
+    mockDb.paymentTransaction.update.mockResolvedValue({});
 
     const payload = JSON.stringify({ action: 'payment.updated', data: { id: 'mp_pay_123' } });
     const req = new NextRequest('http://localhost/api/checkout/webhook', {
