@@ -54,6 +54,14 @@ export async function POST(request: NextRequest) {
       if (!transaction) return NextResponse.json({ received: true, ignored: true });
 
       const token = process.env.MP_ACCESS_TOKEN;
+      if (process.env.NODE_ENV === 'production' && !token) {
+        console.error('[checkout-webhook] FAIL-CLOSED: MP_ACCESS_TOKEN is not configured in production');
+        return NextResponse.json(
+          { error: 'PAYMENT_PROVIDER_NOT_CONFIGURED' },
+          { status: 503, headers: { 'X-Security-Shield': 'zero-trust-v2' } },
+        );
+      }
+
       if (token) {
         try {
           const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`, { headers: { Authorization: `Bearer ${token}` } });
