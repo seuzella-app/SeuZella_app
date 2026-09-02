@@ -1,8 +1,6 @@
 // ==============================================================================
 // SEUZÉLLA — Production Billing Idempotency Layer (C6)
-// Provides atomic, PostgreSQL-backed idempotency for webhook ingestion across
-// Asaas and Mercado Pago gateways. Guarantees exactly-once execution, safe
-// concurrent retries, and strict isolation between distinct event types.
+// PostgreSQL-backed durable idempotency for billing/webhook execution.
 // ==============================================================================
 
 import { db } from '@/lib/db';
@@ -13,6 +11,8 @@ export interface IdempotencyOptions {
   eventType: string;
   status?: string;
   metadata?: Record<string, unknown>;
+  /** Optional semantic request fingerprint for API idempotency callers. */
+  fingerprint?: string;
 }
 
 export interface IdempotencyResult<T> {
@@ -22,6 +22,47 @@ export interface IdempotencyResult<T> {
   status: 'completed' | 'processing' | 'failed';
   data: T | null;
   key: string;
+}
+
+const FINGERPRINT_MARKER = '__zella_idempotency_fingerprint';
+const DATA_MARKER = 'data';
+const STALE_PROCESSING_MS = 120_000;
+
+function encodeResponse<T>(data: T, fingerprint?: string): string {
+  if (!fingerprint) return JSON.stringify(data);
+  return JSON.stringify({ [FINGERPRINT_MARKER]: fingerprint, [DATA_MARKER]: data });
+}
+
+function decodeResponse<T>(response: string, fingerprint?: string): T | null {
+  try {
+    const parsed = JSON.parse(response) as unknown;
+    if (!fingerprint) return parsed as T;
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      FINGERPRINT_MARKER in parsed &&
+      (parsed as Record<string, unknown>)[FINGERPRINT_MARKER] === fingerprint &&
+      DATA_MARKER in parsed
+    ) {
+      return (parsed as Record<string, unknown>)[DATA_MARKER] as T;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function responseFingerprint(response: string): string | undefined {
+  try {
+    const parsed = JSON.parse(response) as unknown;
+    if (parsed && typeof parsed === 'object') {
+      const value = (parsed as Record<string, unknown>)[FINGERPRINT_MARKER];
+      return typeof value === 'string' ? value : undefined;
+    }
+  } catch {
+    // Treat malformed legacy responses as non-replayable for fingerprinted calls.
+  }
+  return undefined;
 }
 
 /**
@@ -37,77 +78,59 @@ export function buildIdempotencyKey(options: IdempotencyOptions): string {
 }
 
 /**
- * Executes a payment/webhook handler with guaranteed atomic database-backed idempotency.
- *
- * - If already 'completed': returns cached result without re-executing handler.
- * - If 'processing' (concurrent execution): returns inProgress deduplicated response.
- * - If 'failed': allows retry by re-acquiring lock.
- * - If new: executes handler within tracked lifecycle and saves final response.
- *
- * Production invariant: absence of the idempotency store is a hard failure.
- * Executing a billing handler without durable idempotency can double-charge on retry.
- * Tests may inject an explicit in-memory/mock delegate, but production never
- * silently downgrades to best-effort execution.
+ * Executes a billing/webhook handler with durable PostgreSQL-backed idempotency.
+ * The unique key handles the first-writer race; completed responses are replayed
+ * without executing the handler. Optional fingerprints prevent reuse of one API
+ * idempotency key for a semantically different request.
  */
 export async function executeWithBillingIdempotency<T extends Record<string, unknown>>(
   options: IdempotencyOptions,
   handler: () => Promise<T>,
 ): Promise<IdempotencyResult<T>> {
   const key = buildIdempotencyKey(options);
+  const fingerprint = options.fingerprint?.trim() || undefined;
 
-  if (!db?.billingIdempotency) {
-    throw new Error('BILLING_IDEMPOTENCY_UNAVAILABLE');
-  }
+  // Production invariant: absence of the idempotency store is a hard failure.
+  // Executing a billing handler without durable idempotency can double-charge on retry.
+  if (!db?.billingIdempotency) throw new Error('BILLING_IDEMPOTENCY_UNAVAILABLE');
 
-  // 1. Check existing idempotency record in PostgreSQL
-  let record = await db.billingIdempotency.findUnique({
-    where: { key },
-  });
+  let record = await db.billingIdempotency.findUnique({ where: { key } });
 
   if (record) {
-    if (record.status === 'completed') {
-      let parsedData: T | null = null;
-      try {
-        parsedData = JSON.parse(record.response) as T;
-      } catch {
-        parsedData = null;
+    if (fingerprint) {
+      const storedFingerprint = responseFingerprint(record.response);
+      if (record.status === 'completed' && storedFingerprint !== fingerprint) {
+        throw new Error(
+          storedFingerprint
+            ? 'IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST'
+            : 'IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING',
+        );
       }
+      if (record.status === 'processing' && storedFingerprint && storedFingerprint !== fingerprint) {
+        throw new Error('IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST');
+      }
+    }
+
+    if (record.status === 'completed') {
+      const parsedData = decodeResponse<T>(record.response, fingerprint);
+      if (parsedData === null && fingerprint) throw new Error('IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING');
       console.log(`[billing-idempotency] ⚡ DEDUPLICATED (completed): key=${key}`);
-      return {
-        success: true,
-        deduplicated: true,
-        status: 'completed',
-        data: parsedData,
-        key,
-      };
+      return { success: true, deduplicated: true, status: 'completed', data: parsedData, key };
     }
 
     if (record.status === 'processing') {
-      // Check if it's stale (older than 2 minutes). If not stale, treat as concurrent in-flight.
-      const isStale = Date.now() - new Date(record.updatedAt).getTime() > 120000;
+      const isStale = Date.now() - new Date(record.updatedAt).getTime() > STALE_PROCESSING_MS;
       if (!isStale) {
         console.log(`[billing-idempotency] ⏳ DEDUPLICATED (in-progress): key=${key}`);
-        return {
-          success: true,
-          deduplicated: true,
-          inProgress: true,
-          status: 'processing',
-          data: null,
-          key,
-        };
+        return { success: true, deduplicated: true, inProgress: true, status: 'processing', data: null, key };
       }
     }
 
-    // If failed or stale, update to processing for retry
-    await db.billingIdempotency.update({
+    record = await db.billingIdempotency.update({
       where: { key },
-      data: {
-        status: 'processing',
-        attempts: { increment: 1 },
-      },
+      data: { status: 'processing', attempts: { increment: 1 }, response: encodeResponse({}, fingerprint) },
     });
   } else {
-    // 2. Try creating initial processing record
     try {
       record = await db.billingIdempotency.create({
         data: {
@@ -117,64 +140,36 @@ export async function executeWithBillingIdempotency<T extends Record<string, unk
           eventType: options.eventType,
           status: 'processing',
           attempts: 1,
+          response: encodeResponse({}, fingerprint),
         },
       });
     } catch (err: unknown) {
-      // Handle race condition on unique constraint collision
       const isUniqueError = err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === 'P2002';
-      if (isUniqueError) {
-        const existing = await db.billingIdempotency.findUnique({ where: { key } });
-        if (existing?.status === 'completed') {
-          let parsedData: T | null = null;
-          try {
-            parsedData = JSON.parse(existing.response) as T;
-          } catch {
-            parsedData = null;
-          }
-          return {
-            success: true,
-            deduplicated: true,
-            status: 'completed',
-            data: parsedData,
-            key,
-          };
-        }
-        return {
-          success: true,
-          deduplicated: true,
-          inProgress: true,
-          status: 'processing',
-          data: null,
-          key,
-        };
+      if (!isUniqueError) throw err;
+      const existing = await db.billingIdempotency.findUnique({ where: { key } });
+      if (!existing) throw new Error('BILLING_IDEMPOTENCY_RACE_UNRESOLVED');
+      if (fingerprint) {
+        const storedFingerprint = responseFingerprint(existing.response);
+        if (storedFingerprint && storedFingerprint !== fingerprint) throw new Error('IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST');
       }
-      throw err;
+      if (existing.status === 'completed') {
+        const parsedData = decodeResponse<T>(existing.response, fingerprint);
+        if (parsedData === null && fingerprint) throw new Error('IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING');
+        return { success: true, deduplicated: true, status: 'completed', data: parsedData, key };
+      }
+      return { success: true, deduplicated: true, inProgress: true, status: 'processing', data: null, key };
     }
   }
 
-  // 3. Execute the actual billing operation
   try {
     const result = await handler();
-
-    // 4. Mark idempotency record as completed with result payload
     await db.billingIdempotency.update({
       where: { key },
-      data: {
-        status: 'completed',
-        response: JSON.stringify(result),
-      },
+      data: { status: 'completed', response: encodeResponse(result, fingerprint) },
     });
-
     console.log(`[billing-idempotency] ✅ PROCESSED & PERSISTED: key=${key}`);
-    return {
-      success: true,
-      deduplicated: false,
-      status: 'completed',
-      data: result,
-      key,
-    };
+    return { success: true, deduplicated: false, status: 'completed', data: result, key };
   } catch (handlerError) {
-    // 5. Mark as failed so subsequent legitimate retries are allowed
     try {
       await db.billingIdempotency.update({
         where: { key },
@@ -273,7 +268,6 @@ export async function recordWebhookEvent(
       where: { subscriptionId: event.referenceId, externalId, status: event.status },
       select: { id: true },
     });
-
     if (existing) return { id: existing.id, deduplicated: true };
 
     const row = await tx.paymentTransaction.create({
@@ -315,21 +309,13 @@ export async function activateSubscriptionIfNotActive(
       select: { id: true, status: true, paymentStatus: true, tenantId: true },
     });
     if (!subscription) return { activated: false, reason: 'subscription_not_found' };
-
-    if (subscription.status === 'active' && subscription.paymentStatus === 'approved') {
-      return { activated: false, reason: 'already_active' };
-    }
+    if (subscription.status === 'active' && subscription.paymentStatus === 'approved') return { activated: false, reason: 'already_active' };
 
     await tx.subscription.update({
       where: { id: subscriptionId },
       data: { status: 'active', paymentStatus: 'approved', paymentId: gatewayPaymentId },
     });
-
-    await tx.tenant.update({
-      where: { id: subscription.tenantId },
-      data: { status: 'active' },
-    });
-
+    await tx.tenant.update({ where: { id: subscription.tenantId }, data: { status: 'active' } });
     return { activated: true, reason: 'activated' };
   });
 }

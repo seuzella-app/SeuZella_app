@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
@@ -16,12 +17,52 @@ const VALID_PLANS: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
 const VALID_METHODS: PaymentMethod[] = ['pix', 'cartao'];
 const VALID_NICHES = ['pousada', 'airbnb'] as const;
 const VALID_GATEWAYS: GatewayId[] = ['asaas', 'mercadopago', 'mock'];
+const MAX_IDEMPOTENCY_KEY_LENGTH = 255;
 
 function cleanString(value: unknown, max: number): string {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
 }
+
 function validEmail(value: string): boolean {
   return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function buildCheckoutFingerprint(input: {
+  name: string;
+  customerEmail: string;
+  phone: string;
+  document: string;
+  propertyName: string;
+  niche: string;
+  planType: PlanTier;
+  paymentMethod: PaymentMethod;
+  amount: number;
+  requestedGateway?: GatewayId;
+}): string {
+  const canonical = JSON.stringify({
+    name: input.name,
+    customerEmail: input.customerEmail,
+    phone: input.phone,
+    document: input.document,
+    propertyName: input.propertyName,
+    niche: input.niche,
+    planType: input.planType,
+    paymentMethod: input.paymentMethod,
+    amount: input.amount,
+    requestedGateway: input.requestedGateway || null,
+  });
+  return createHash('sha256').update(canonical, 'utf8').digest('hex');
+}
+
+class CheckoutError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'CheckoutError';
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -55,7 +96,7 @@ export async function POST(request: NextRequest) {
       if (amount === undefined) return createError(400, 'INVALID_PRICING', 'Combinação plano/método inválida.');
 
       const session = await getServerSession(authOptions);
-      let tenantId: string;
+      let tenantId: string | undefined;
       let customerEmail = requestedEmail;
 
       if (session?.user?.tenantId) {
@@ -64,88 +105,115 @@ export async function POST(request: NextRequest) {
         tenantId = tenant.id;
         customerEmail = cleanString(session.user.email || tenant.email || requestedEmail, 254).toLowerCase();
         if (!validEmail(customerEmail)) return createError(400, 'INVALID_ACCOUNT_EMAIL', 'Conta sem e-mail válido para cobrança.');
-      } else {
-        const existingTenant = await db.tenant.findUnique({ where: { email: requestedEmail } });
-        if (existingTenant) return createError(409, 'ACCOUNT_EXISTS', 'Este e-mail já possui uma conta. Faça login para continuar.');
-        try {
-          const newTenant = await db.tenant.create({
-            data: {
-              name: propertyName || name,
-              email: requestedEmail,
-              phone: phone || null,
-              niche,
-              plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(),
-              status: 'pending',
-              role: 'owner',
-            },
-          });
-          tenantId = newTenant.id;
-          if (propertyName) {
-            const slugBase = propertyName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70);
-            await db.property.create({ data: { tenantId, name: propertyName, type: niche, slug: `${slugBase || 'propriedade'}-${tenantId.slice(-6)}` } });
-          }
-        } catch {
-          return createError(409, 'ACCOUNT_CREATION_CONFLICT', 'Não foi possível iniciar esta conta. Verifique o e-mail e tente novamente.');
-        }
       }
 
-      const rateResult = await authRatelimit.limit(`checkout:${tenantId}:${customerEmail}`);
+      const idempotencyKey = request.headers.get('x-idempotency-key')?.trim() || undefined;
+      if (idempotencyKey && (idempotencyKey.length > MAX_IDEMPOTENCY_KEY_LENGTH || idempotencyKey.length === 0)) {
+        return createError(400, 'INVALID_IDEMPOTENCY_KEY', 'Chave de idempotência inválida.');
+      }
+
+      // For unauthenticated onboarding, email is the stable pre-tenant scope. The
+      // tenant is created inside the idempotent handler so a retry cannot stop at
+      // ACCOUNT_EXISTS before reaching the cached checkout result.
+      const lockScope = tenantId ? `checkout-create:${tenantId}` : `checkout-onboarding:${requestedEmail}`;
+      const idempotencyScope = tenantId ? `tenant:${tenantId}` : `email:${requestedEmail}`;
+      const fingerprint = buildCheckoutFingerprint({
+        name,
+        customerEmail,
+        phone,
+        document,
+        propertyName,
+        niche,
+        planType,
+        paymentMethod,
+        amount,
+        requestedGateway: requestedGateway || undefined,
+      });
+
+      const rateResult = await authRatelimit.limit(`checkout:${idempotencyScope}`);
       if (!rateResult.success) return createError(429, 'RATE_LIMITED', 'Muitas tentativas de checkout. Tente novamente mais tarde.');
 
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin;
 
-      // Serialize all payment-intent creation for a tenant. The lock is transaction-scoped
-      // and fail-closed in production, preventing concurrent checkout attempts from racing.
-      return await withAdvisoryLock(`checkout-create:${tenantId}`, async () => {
-        // R3-F03: Idempotency key prevents duplicate checkout creation on retry/replay.
-        // If the client sends an Idempotency-Key header, we check if this exact
-        // checkout intent was already processed. If so, return the original result
-        // instead of creating a new subscription + payment.
-        const idempotencyKey = request.headers.get('x-idempotency-key') || undefined;
-        const idempotencyId = idempotencyKey
-          ? `checkout-create:${tenantId}:${planType}:${paymentMethod}:${amount}:${idempotencyKey}`
-          : undefined;
+      return await withAdvisoryLock(lockScope, async () => {
+        const executeCheckout = async () => {
+          let resolvedTenantId = tenantId;
 
-        if (idempotencyId) {
-          return await executeWithBillingIdempotency(
+          if (!resolvedTenantId) {
+            const existingTenant = await db.tenant.findUnique({ where: { email: requestedEmail } });
+            if (existingTenant) {
+              resolvedTenantId = existingTenant.id;
+              customerEmail = cleanString(existingTenant.email, 254).toLowerCase();
+            } else {
+              try {
+                const newTenant = await db.tenant.create({
+                  data: {
+                    name: propertyName || name,
+                    email: requestedEmail,
+                    phone: phone || null,
+                    niche,
+                    plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(),
+                    status: 'pending',
+                    role: 'owner',
+                  },
+                });
+                resolvedTenantId = newTenant.id;
+                if (propertyName) {
+                  const slugBase = propertyName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70);
+                  await db.property.create({ data: { tenantId: resolvedTenantId, name: propertyName, type: niche, slug: `${slugBase || 'propriedade'}-${resolvedTenantId.slice(-6)}` } });
+                }
+              } catch {
+                throw new CheckoutError(409, 'ACCOUNT_CREATION_CONFLICT', 'Não foi possível iniciar esta conta. Verifique o e-mail e tente novamente.');
+              }
+            }
+          }
+
+          return doCheckoutCreate(resolvedTenantId, planType, paymentMethod, amount, name, customerEmail, phone, document, requestedGateway, baseUrl);
+        };
+
+        if (idempotencyKey) {
+          const result = await executeWithBillingIdempotency(
             {
               provider: 'generic',
-              eventId: idempotencyId,
+              eventId: `checkout-create:${idempotencyScope}:${idempotencyKey}`,
               eventType: 'checkout.create',
               status: 'created',
+              fingerprint,
             },
-            async () => {
-              return await doCheckoutCreate(request, tenantId, planType, paymentMethod, amount, name, customerEmail, phone, document, propertyName, niche, requestedGateway, baseUrl);
-            }
-          ).then(result => {
-            if (result.deduplicated) {
-              // Return cached result from previous checkout creation
-              const data = result.data as Record<string, unknown> | null;
-              if (data) return NextResponse.json({ success: true, data }, { status: 200, headers: { 'Cache-Control': 'no-store' } });
-            }
-            const data = result.data as Record<string, unknown> | null;
-            return NextResponse.json({ success: true, data }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+            executeCheckout,
+          );
+
+          if (result.inProgress) {
+            return createError(409, 'IDEMPOTENCY_IN_PROGRESS', 'Este checkout já está sendo processado. Aguarde e tente novamente com a mesma chave.');
+          }
+
+          const data = result.data as Record<string, unknown> | null;
+          if (!data) return createError(502, 'IDEMPOTENCY_RESULT_UNAVAILABLE', 'O resultado idempotente não está disponível.');
+          return NextResponse.json({ success: true, data }, {
+            status: result.deduplicated ? 200 : 201,
+            headers: { 'Cache-Control': 'no-store' },
           });
         }
 
-        // No idempotency key — proceed normally (advisory lock still prevents concurrent races)
-        const data = await doCheckoutCreate(request, tenantId, planType, paymentMethod, amount, name, customerEmail, phone, document, propertyName, niche, requestedGateway, baseUrl);
+        const data = await executeCheckout();
         return NextResponse.json({ success: true, data }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
       });
-    } catch {
+    } catch (error) {
+      if (error instanceof CheckoutError) return createError(error.status, error.code, error.message);
+      if (error instanceof Error) {
+        if (error.message === 'PAYMENT_GATEWAY_NOT_CONFIGURED') return createError(503, 'PAYMENT_GATEWAY_NOT_CONFIGURED', 'Gateway de pagamento não está configurado.');
+        if (error.message === 'PAYMENT_GATEWAY_UNAVAILABLE') return createError(503, 'PAYMENT_GATEWAY_UNAVAILABLE', 'Nenhum gateway de pagamento real está configurado.');
+        if (error.message === 'PAYMENT_GATEWAY_ERROR') return createError(502, 'PAYMENT_GATEWAY_ERROR', 'Não foi possível iniciar o pagamento. Tente novamente.');
+        if (error.message === 'BILLING_IDEMPOTENCY_UNAVAILABLE') return createError(503, 'BILLING_IDEMPOTENCY_UNAVAILABLE', 'Idempotência de cobrança indisponível. Tente novamente mais tarde.');
+        if (error.message === 'IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST') return createError(409, 'IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST', 'A chave de idempotência já foi usada com dados diferentes.');
+        if (error.message === 'IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING') return createError(409, 'IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING', 'A chave de idempotência possui um resultado legado incompatível. Use uma nova chave.');
+      }
       return createError(500, 'CHECKOUT_ERROR', 'Não foi possível iniciar o checkout.');
     }
   });
 }
 
-/**
- * R3-F03: Extracted checkout creation logic for idempotency wrapping.
- * This function performs the actual subscription + payment creation.
- * It can be called either directly (no idempotency key) or wrapped
- * inside executeWithBillingIdempotency (with idempotency key).
- */
 async function doCheckoutCreate(
-  _request: NextRequest,
   tenantId: string,
   planType: PlanTier,
   paymentMethod: PaymentMethod,
@@ -154,21 +222,19 @@ async function doCheckoutCreate(
   customerEmail: string,
   phone: string,
   document: string,
-  _propertyName: string,
-  _niche: string,
   requestedGateway: GatewayId | undefined,
-  baseUrl: string
+  baseUrl: string,
 ): Promise<Record<string, unknown>> {
   const subscription = await db.subscription.create({ data: { tenantId, planType, status: 'pending', paymentMethod, amount, paymentStatus: 'pending' } });
 
   const gateway = requestedGateway ? getGateway(requestedGateway) : getDefaultGateway();
   if (!gateway.isConfigured()) {
     await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
-    throw new Error("PAYMENT_GATEWAY_NOT_CONFIGURED");;
+    throw new Error('PAYMENT_GATEWAY_NOT_CONFIGURED');
   }
   if (process.env.NODE_ENV === 'production' && gateway.id === 'mock') {
     await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
-    throw new Error("PAYMENT_GATEWAY_UNAVAILABLE");;
+    throw new Error('PAYMENT_GATEWAY_UNAVAILABLE');
   }
 
   try {
@@ -220,10 +286,10 @@ async function doCheckoutCreate(
     };
     if (result.pix) responseData.pix = result.pix;
     if (result.boleto) responseData.boleto = result.boleto;
-
     return responseData;
-  } catch {
+  } catch (error) {
     await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+    if (error instanceof Error && ['PAYMENT_GATEWAY_NOT_CONFIGURED', 'PAYMENT_GATEWAY_UNAVAILABLE'].includes(error.message)) throw error;
     throw new Error('PAYMENT_GATEWAY_ERROR');
   }
 }

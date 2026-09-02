@@ -264,7 +264,7 @@ describe('C6: Billing Idempotency & Concurrency Shield', () => {
     expect(result.status).toBe('completed');
     expect(mockDb.billingIdempotency.update).toHaveBeenCalledWith({
       where: { key: 'webhook:asaas:pay_fail_1:payment.created' },
-      data: { status: 'processing', attempts: { increment: 1 } },
+      data: { status: 'processing', attempts: { increment: 1 }, response: expect.any(String) },
     });
   });
 
