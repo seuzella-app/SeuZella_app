@@ -1,0 +1,289 @@
+# ==============================================================================
+# SEU ZÉLLA — ZCC SIMULATION ROUTES ALLOWLIST TEMPLATE (Wave 15 / F09 / F10-D)
+# ==============================================================================
+# PURPOSE: Restrict access to ZCC simulation/lab routes in production.
+#          These routes return synthetic data and don't require app-layer
+#          admin auth, but should NOT be publicly accessible in production.
+#
+# STATUS: TEMPLATE_READY
+# CONFIG: BLOCKED_EXTERNAL (Supervisor must replace placeholder IPs)
+#
+# USAGE:
+#   1. Replace all <SUPERVISOR_PROVIDE_IP> placeholders with real egress IPs
+#      (office IP, VPN CIDR, monitoring probes, backup workstation)
+#   2. Copy this file to: /etc/nginx/snippets/zcc-simulation-allowlist.conf
+#   3. Add to nginx/seuzella.conf HTTPS server block:
+#        include /etc/nginx/snippets/zcc-simulation-allowlist.conf;
+#   4. Test: nginx -t && systemctl reload nginx
+#   5. Verify: authorized IP returns 200, non-authorized returns 403
+#
+# SECURITY:
+#   - Default deny: deny all; at the end of each location block
+#   - Placeholder IPs are RFC1918 private space + loopback ONLY
+#   - NEVER use 0.0.0.0/0 as a solution
+#   - Quarterly IP rotation review recommended
+# ==============================================================================
+
+# ── Upstream (must match nginx/seuzella.conf) ────────────────────────────────
+# upstream seuzella_app {
+#     server 127.0.0.1:3000;
+#     keepalive 64;
+# }
+
+# ── ZCC Simulation Routes Allowlist ──────────────────────────────────────────
+# Each location block:
+#   1. Allows RFC1918 + loopback (REPLACE with real Supervisor IPs in prod)
+#   2. Denies all other sources
+#   3. Proxies to upstream app
+#   4. Applies rate limiting (zone=api: 5 r/s, burst 20)
+
+# ── National Simulator ────────────────────────────────────────────────────────
+location ~ ^/api/zcc/national-simulator(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Synthetic Brazil ──────────────────────────────────────────────────────────
+location ~ ^/api/zcc/synthetic-brazil(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Simulation Lab ────────────────────────────────────────────────────────────
+location ~ ^/api/zcc/simulation-lab(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Digital Twin (F9 added verifyZCCAccessOrReject — defense-in-depth) ──────
+location ~ ^/api/zcc/digital-twin(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Brain ─────────────────────────────────────────────────────────────────────
+location ~ ^/api/zcc/brain(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Cognitive Bus ─────────────────────────────────────────────────────────────
+location ~ ^/api/zcc/cognitive-bus(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Cognitive Memory ──────────────────────────────────────────────────────────
+location ~ ^/api/zcc/cognitive-memory(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Cortex (covers /cortex and /cortex/growth) ───────────────────────────────
+location ~ ^/api/zcc/cortex(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── DSPy Compiler ────────────────────────────────────────────────────────────
+location ~ ^/api/zcc/dspy-compiler(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Personas ──────────────────────────────────────────────────────────────────
+location ~ ^/api/zcc/personas(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── ZGS Decisions ────────────────────────────────────────────────────────────
+location ~ ^/api/zcc/zgs/decisions(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Leads Brain Analyze (LLM cost risk) ──────────────────────────────────────
+location ~ ^/api/zcc/leads/brain-analyze(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Infra Scaling Ruler ──────────────────────────────────────────────────────
+location ~ ^/api/zcc/infra/scaling-ruler(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── Adapters ──────────────────────────────────────────────────────────────────
+location ~ ^/api/zcc/adapters(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ── GitHub Expiry Check ───────────────────────────────────────────────────────
+location ~ ^/api/zcc/github/expiry-check(/.*)?$ {
+    allow 10.0.0.0/8;
+    allow 172.16.0.0/12;
+    allow 192.168.0.0/16;
+    allow 127.0.0.1/32;
+    deny all;
+    limit_req zone=api burst=20 nodelay;
+    limit_req_status 429;
+    proxy_pass http://seuzella_app;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# ==============================================================================
+# EXPLICITLY EXCLUDED (NOT in allowlist — these have app-layer auth):
+#   /api/zcc/observability        — verifyZCCAccessOrReject
+#   /api/zcc/infrastructure       — verifyZCCAccessOrReject
+#   /api/zcc/cerebro/stream       — withSecurity({ auth: 'zcc-admin' })
+#   /api/zcc/cerebro/ml-stats     — getServerSession
+#   /api/zcc/partner-program/reopen — isZccAdmin (F5)
+#   /api/zcc/health               — returns only booleans (no PII), kept reachable
+#   /api/zcc/airbnb/webhook        — verifyZCCAccessOrReject
+# ==============================================================================

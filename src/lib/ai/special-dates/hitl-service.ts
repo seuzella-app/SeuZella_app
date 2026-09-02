@@ -240,14 +240,16 @@ export class SpecialDatesHitlService {
     targetDate.setHours(0, 0, 0, 0);
 
     // Look for specific room override or general room override
-    const override = await (db as any).priceOverride.findFirst({
-      where: {
-        tenantId,
-        date: targetDate,
-        status: 'active',
-        OR: [{ roomId }, { roomId: 'all' }, { roomId: null }],
-      },
-    });
+    const override = (db as any).priceOverride
+      ? await (db as any).priceOverride.findFirst({
+          where: {
+            tenantId,
+            date: targetDate,
+            status: 'active',
+            OR: [{ roomId }, { roomId: 'all' }, { roomId: null }],
+          },
+        })
+      : null;
 
     if (override) {
       return {

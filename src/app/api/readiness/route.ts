@@ -4,11 +4,15 @@ import { isPushEnabled } from '@/lib/push/push-service';
 import { getActiveTransport } from '@/lib/realtime/tenant-pubsub';
 import { isBullMQAvailable } from '@/lib/queue/queue-bridge';
 import { assertProductionSecurityEnv } from '@/lib/env';
+import { resolveTraceId, withTraceHeaders } from '@/lib/observability/trace-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET(_request: NextRequest) {
+/** Readiness probe — verifies all config + infrastructure dependencies.
+ *  F07: Now also returns X-Request-Id response header for correlation. */
+export async function GET(request: NextRequest) {
+  const traceId = resolveTraceId(request);
   const checks: Array<{ name: string; passed: boolean; required: boolean; hint: string }> = [];
 
   checks.push({ name: 'NEXTAUTH_SECRET', passed: !!process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_SECRET.length >= 32, required: true, hint: 'Generate: openssl rand -base64 32 (≥32 chars)' });
@@ -68,11 +72,15 @@ export async function GET(_request: NextRequest) {
   const failedRequired = requiredChecks.filter(c => !c.passed);
   const allPassed = failedRequired.length === 0;
 
-  return NextResponse.json({
-    status: allPassed ? 'ready' : 'not_ready',
-    summary: { total: checks.length, passed: checks.filter(c => c.passed).length, failed: checks.filter(c => !c.passed).length, requiredFailed: failedRequired.length },
-    checks,
-    timestamp: new Date().toISOString(),
-    commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
-  }, { status: allPassed ? 200 : 503, headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate' } });
+  return withTraceHeaders(
+    NextResponse.json({
+      status: allPassed ? 'ready' : 'not_ready',
+      summary: { total: checks.length, passed: checks.filter(c => c.passed).length, failed: checks.filter(c => !c.passed).length, requiredFailed: failedRequired.length },
+      checks,
+      timestamp: new Date().toISOString(),
+      commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
+      requestId: traceId,
+    }, { status: allPassed ? 200 : 503, headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate' } }),
+    traceId
+  );
 }

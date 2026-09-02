@@ -1,109 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDatabaseAvailable, db } from '@/lib/db';
-import { isPushEnabled, getVapidPublicKey } from '@/lib/push/push-service';
+import { isPushEnabled } from '@/lib/push/push-service';
 import { getActiveTransport } from '@/lib/realtime/tenant-pubsub';
 import { isBullMQAvailable } from '@/lib/queue/queue-bridge';
+import { resolveTraceId, withTraceHeaders } from '@/lib/observability/trace-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-/**
- * GET /api/health
- *
- * Returns operational status of all subsystems. Used by:
- *   - Vercel cron monitoring
- *   - Status page (if added later)
- *   - Debug panel in ZCC admin
- *
- * SECURITY: This endpoint returns NO sensitive data — only boolean flags
- * and version info. tenantId-specific data is never exposed.
- *
- * Response shape:
- *   {
- *     status: 'ok' | 'degraded' | 'down',
- *     timestamp: ISO string,
- *     version: { git: string, sw: string },
- *     services: {
- *       database: { available: boolean, latencyMs?: number },
- *       redis: { configured: boolean, transport: 'redis' | 'memory' },
- *       push: { enabled: boolean, vapidConfigured: boolean },
- *       bullmq: { available: boolean },
- *     },
- *     uptime: number (seconds)
- *   }
- */
-export async function GET(_request: NextRequest) {
+/** Operational liveness endpoint. HTTP 503 is reserved for DB-down state.
+ *  F07: Now also returns X-Request-Id response header for correlation. */
+export async function GET(request: NextRequest) {
+  const traceId = resolveTraceId(request);
+  const startedAt = Date.now();
   const timestamp = new Date().toISOString();
-  const startTime = Date.now();
 
-  // Database check (with latency measurement)
   let databaseAvailable = false;
   let dbLatencyMs: number | undefined;
   try {
-    const dbStart = Date.now();
+    const dbStartedAt = Date.now();
     databaseAvailable = await isDatabaseAvailable();
     if (databaseAvailable) {
-      // Quick probe — count tenants (cheap query)
-      await db.tenant.count({ take: 1 }).catch(() => {});
-      dbLatencyMs = Date.now() - dbStart;
+      await db.tenant.count({ take: 1 });
+      dbLatencyMs = Date.now() - dbStartedAt;
     }
   } catch {
     databaseAvailable = false;
   }
 
-  // Redis check
   const transport = getActiveTransport();
   const redisConfigured = transport === 'redis';
-
-  // BullMQ check
   const bullmqAvailable = isBullMQAvailable();
-
-  // Push check
   const pushEnabled = isPushEnabled();
 
-  // Determine overall status
-  let status: 'ok' | 'degraded' | 'down';
-  if (databaseAvailable && redisConfigured && pushEnabled && bullmqAvailable) {
-    status = 'ok';
-  } else if (databaseAvailable) {
-    // DB is the only critical service — if it's up, we're degraded but functional
-    status = 'degraded';
-  } else {
-    status = 'down';
-  }
+  // Database is the critical dependency for request processing. Redis/BullMQ
+  // and push can degrade functionality but must not make the app unreachable.
+  const status: 'ok' | 'degraded' | 'down' = !databaseAvailable
+    ? 'down'
+    : redisConfigured && bullmqAvailable && pushEnabled
+      ? 'ok'
+      : 'degraded';
 
-  return NextResponse.json(
-    {
-      status,
-      timestamp,
-      version: {
-        sw: 'seuzella-pwa-v4',
-        commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
-      },
-      services: {
-        database: {
-          available: databaseAvailable,
-          latencyMs: dbLatencyMs,
-        },
-        redis: {
-          configured: redisConfigured,
-          transport,
-        },
-        push: {
-          enabled: pushEnabled,
-          vapidConfigured: pushEnabled,
-        },
-        bullmq: {
-          available: bullmqAvailable,
-        },
-      },
-      uptime: process.uptime(),
-      responseTimeMs: Date.now() - startTime,
+  const httpStatus = status === 'down' ? 503 : 200;
+  const response = NextResponse.json({
+    status,
+    timestamp,
+    requestId: traceId,
+    version: {
+      sw: 'seuzella-pwa-v4',
+      commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || 'unknown',
     },
-    {
-      headers: {
-        'Cache-Control': 'no-store, max-age=0, must-revalidate',
-      },
+    services: {
+      database: { available: databaseAvailable, latencyMs: dbLatencyMs },
+      redis: { configured: redisConfigured, transport },
+      push: { enabled: pushEnabled, vapidConfigured: pushEnabled },
+      bullmq: { available: bullmqAvailable },
     },
-  );
+    uptime: process.uptime(),
+    responseTimeMs: Date.now() - startedAt,
+  }, {
+    status: httpStatus,
+    headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate' },
+  });
+
+  return withTraceHeaders(response, traceId);
 }

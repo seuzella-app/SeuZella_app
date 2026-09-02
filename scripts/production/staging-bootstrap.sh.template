@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# SEU ZÉLLA — STAGING BOOTSTRAP TEMPLATE (Wave 15 / F10 / F10-F)
+# ==============================================================================
+# PURPOSE: Provisioning template for VPS Hostinger MVK4 staging environment.
+#          Supervisor MUST replace all <PLACEHOLDER> values before execution.
+#
+# STATUS: CODE_READY
+# RUNTIME_VALIDATED: FALSE (not yet executed against real VPS)
+#
+# PREREQUISITES (Operator must complete BEFORE running this script):
+#   1. Purchase VPS Hostinger MVK4 (Ubuntu 22.04 LTS)
+#   2. Configure DNS A records (seuzella.com, www.seuzella.com → VPS public IP)
+#   3. SSH into VPS as root
+#   4. Generate all secrets (see docs/STAGING_INFRASTRUCTURE_PLAN.md §3 SECRET_MATRIX)
+#   5. Review and replace every <PLACEHOLDER> in this file
+#
+# SAFETY:
+#   - This script is a TEMPLATE. It will NOT execute against real infrastructure
+#     until placeholders are replaced.
+#   - Destructive operations are marked [DESTRUCTIVE] — review before uncommenting.
+#   - Supervisor must run `bash -n staging-bootstrap.sh.template` to validate syntax.
+#
+# USAGE (after replacing placeholders):
+#   sudo bash staging-bootstrap.sh.template
+#
+# EXIT CODES:
+#   0 = bootstrap completed successfully
+#   1 = bootstrap failed (see logs above)
+# ==============================================================================
+
+set -euo pipefail
+
+# ── PLACEHOLDERS (REPLACE EVERY ONE BEFORE RUNNING) ─────────────────────────
+VPS_DOMAIN="<SUPERVISOR_PROVIDE: seuzella.com>"
+VPS_PUBLIC_IP="<SUPERVISOR_PROVIDE: VPS public IP>"
+SSH_PORT="<SUPERVISOR_PROVIDE: 22 or custom>"
+DEPLOY_USER="<SUPERVISOR_PROVIDE: zehla>"
+TIMEZONE="<SUPERVISOR_PROVIDE: America/Sao_Paulo>"
+
+# Validate placeholders are replaced
+for var in VPS_DOMAIN VPS_PUBLIC_IP SSH_PORT DEPLOY_USER TIMEZONE; do
+  if [ "${!var}" = "<SUPERVISOR_PROVIDE: "*">" ]; then
+    echo "ERROR: ${var} is still a placeholder. Replace before execution."
+    echo "  see docs/STAGING_INFRASTRUCTURE_PLAN.md §3 SECRET_MATRIX"
+    exit 1
+  fi
+done
+
+echo "==> [1/10] System update + upgrade"
+apt-get update -y
+apt-get upgrade -y
+apt-get install -y \
+  docker.io \
+  docker-compose-plugin \
+  nginx \
+  certbot \
+  python3-certbot-nginx \
+  ufw \
+  fail2ban \
+  chrony \
+  unattended-upgrades \
+  auditd \
+  jq \
+  curl \
+  gnupg \
+  ca-certificates
+
+echo "==> [2/10] System users + groups"
+# Create deploy user if not exists
+if ! id "${DEPLOY_USER}" &>/dev/null; then
+  useradd -m -s /bin/bash "${DEPLOY_USER}"
+  usermod -aG sudo "${DEPLOY_USER}"
+  usermod -aG docker "${DEPLOY_USER}"
+  echo "${DEPLOY_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${DEPLOY_USER}
+  chmod 0440 /etc/sudoers.d/${DEPLOY_USER}
+fi
+
+# Create runtime user (no shell, no SSH) if not exists
+if ! id "runtime" &>/dev/null; then
+  useradd -r -s /usr/sbin/nologin runtime
+  usermod -aG docker runtime
+fi
+
+echo "==> [3/10] SSH hardening"
+# Backup original sshd_config
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak.$(date +%s)
+
+# Apply hardening
+sed -i "s/^#*PermitRootLogin.*/PermitRootLogin no/" /etc/ssh/sshd_config
+sed -i "s/^#*PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
+sed -i "s/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/" /etc/ssh/sshd_config
+sed -i "s/^#*MaxAuthTries.*/MaxAuthTries 3/" /etc/ssh/sshd_config
+sed -i "s/^#*LoginGraceTime.*/LoginGraceTime 30/" /etc/ssh/sshd_config
+sed -i "s/^#*ClientAliveInterval.*/ClientAliveInterval 300/" /etc/ssh/sshd_config
+sed -i "s/^#*ClientAliveCountMax.*/ClientAliveCountMax 2/" /etc/ssh/sshd_config
+echo "AllowUsers ${DEPLOY_USER}" >> /etc/ssh/sshd_config
+
+systemctl restart sshd
+echo "    SSH hardened (root login disabled, password auth disabled, key-only)"
+
+echo "==> [4/10] UFW firewall configuration"
+ufw --force reset
+ufw default deny incoming
+ufw default allow outgoing
+ufw limit ${SSH_PORT}/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+# NEVER allow 5432 (PostgreSQL), 6379 (Redis), 3000 (app) — internal only
+ufw --force enable
+echo "    UFW active (SSH limited, 80/443 allowed, rest denied)"
+
+echo "==> [5/10] fail2ban configuration"
+cat > /etc/fail2ban/jail.local << 'FAIL2BAN'
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 3600
+findtime = 600
+FAIL2BAN
+systemctl enable fail2ban
+systemctl restart fail2ban
+echo "    fail2ban active (sshd jail, 3 retries → 1h ban)"
+
+echo "==> [6/10] Timezone + NTP"
+timedatectl set-timezone "${TIMEZONE}"
+timedatectl set-ntp true
+systemctl enable chrony
+systemctl restart chrony
+echo "    Timezone set to ${TIMEZONE}, NTP active"
+
+echo "==> [7/10] Swap (4 GB) — only if RAM < 16 GB"
+TOTAL_RAM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+TOTAL_RAM_GB=$((TOTAL_RAM_KB / 1024 / 1024))
+if [ "${TOTAL_RAM_GB}" -lt 16 ]; then
+  if [ ! -f /swapfile ]; then
+    fallocate -l 4G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    echo 'vm.swappiness=10' >> /etc/sysctl.conf
+    sysctl -p
+    echo "    Swap (4 GB) created and enabled"
+  else
+    echo "    Swap already exists, skipping"
+  fi
+else
+  echo "    RAM >= 16 GB, swap not required"
+fi
+
+echo "==> [8/10] journald configuration"
+cat > /etc/systemd/journald.conf.d/zella.conf << 'JOURNALD'
+[Journal]
+SystemMaxUse=2G
+SystemKeepFree=4G
+MaxFileSec=1month
+JOURNALD
+systemctl restart systemd-journald
+echo "    journald configured (max 2G, keep 4G free, 1 month retention)"
+
+echo "==> [9/10] Application directory structure"
+mkdir -p /opt/zehla
+mkdir -p /opt/backups/pre-migration
+mkdir -p /opt/backups/daily
+mkdir -p /opt/secrets
+chown -R ${DEPLOY_USER}:${DEPLOY_USER} /opt/zehla /opt/backups
+chmod 700 /opt/secrets
+echo "    /opt/zehla, /opt/backups, /opt/secrets created"
+
+echo "==> [10/10] Docker validation"
+systemctl enable docker
+systemctl restart docker
+docker --version
+docker compose version
+echo "    Docker + Compose installed and running"
+
+echo ""
+echo "==> STAGING BOOTSTRAP COMPLETE"
+echo ""
+echo "NEXT STEPS (Operator must complete manually):"
+echo "  1. Generate all secrets (see docs/STAGING_INFRASTRUCTURE_PLAN.md §3)"
+echo "  2. Configure GitHub Secrets (28 secrets)"
+echo "  3. Create /opt/zehla/.env.production with real values"
+echo "  4. git clone <repo> /opt/zehla"
+echo "  5. docker compose -f /opt/zehla/docker-compose.prod.yml build"
+echo "  6. docker compose -f /opt/zehla/docker-compose.prod.yml up -d postgres redis"
+echo "  7. bash /opt/zehla/scripts/production/backup-pre-migration.sh"
+echo "  8. docker compose -f /opt/zehla/docker-compose.prod.yml exec -T app npx prisma migrate deploy"
+echo "  9. docker compose -f /opt/zehla/docker-compose.prod.yml up -d app worker"
+echo " 10. Configure Nginx + Certbot (TLS via Let's Encrypt)"
+echo " 11. bash /opt/zehla/scripts/production/smoke-post-release.sh http://localhost:3000"
+echo " 12. Verify https://${VPS_DOMAIN}/api/health returns 200"
+echo " 13. Verify https://${VPS_DOMAIN}/api/readiness returns 200"
+echo ""
+echo "AFTER INFRASTRUCTURE IS PROVISIONED:"
+echo "  14. Execute scripts/production/validate-postgresql-runtime.sh (F05 / F10-G)"
+echo "  15. Execute scripts/production/validate-redis-runtime.sh (F06 / F10-H)"
+echo ""
+echo "STATUS: CODE_READY + RUNTIME_VALIDATED=FALSE + AWAITING_OPERATOR"

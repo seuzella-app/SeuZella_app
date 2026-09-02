@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db as prisma } from '@/lib/db';
 import { requireTenant } from '../../../../lib/auth';
 import { withSecurity } from '@/lib/security/api-shield';
-import { ZaosYieldEngine } from '@/lib/ai/tools/dynamic-yield-engine';
+import { assertResourceBelongsToTenant } from '@/lib/security/resource-authorization';
+import { ZaosYieldEngine, detectBrazilianHighSeasonHoliday } from '@/lib/ai/tools/dynamic-yield-engine';
 import { YieldProfitTracker } from '@/lib/ai/tools/yield-profit-tracker';
-import { detectBrazilianHighSeasonHoliday } from '@/lib/ai/tools/dynamic-yield-engine';
-
 import { withAdvisoryLock, mapConcurrencyError } from '@/lib/db/concurrency';
 import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
 import { calculateUpsell } from '@/lib/billing/upsell-calculator';
@@ -13,13 +12,9 @@ import { calculateUpsell } from '@/lib/billing/upsell-calculator';
 async function getHandler(_request: NextRequest, _ctx: any) {
   try {
     const tenantId = await requireTenant();
-    const reservations = await prisma.reservation.findMany({
-      where: { tenantId },
-      include: { guest: true, room: true },
-      orderBy: { checkIn: 'asc' },
-    });
+    const reservations = await prisma.reservation.findMany({ where: { tenantId }, include: { guest: true, room: true }, orderBy: { checkIn: 'asc' } });
     return NextResponse.json(reservations);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Unauthorized or invalid tenant' }, { status: 401 });
   }
 }
@@ -29,6 +24,11 @@ async function postHandler(request: NextRequest, _ctx: any) {
     const tenantId = await requireTenant();
     const body = await request.json();
     const { guestId, roomId, checkIn, checkOut, totalPrice, source } = body;
+
+    if (guestId !== undefined && guestId !== null && typeof guestId !== 'string') return NextResponse.json({ error: 'guestId inválido' }, { status: 400 });
+    if (roomId !== undefined && roomId !== null && typeof roomId !== 'string') return NextResponse.json({ error: 'roomId inválido' }, { status: 400 });
+    if (totalPrice !== undefined && totalPrice !== null && (!Number.isFinite(Number(totalPrice)) || Number(totalPrice) < 0)) return NextResponse.json({ error: 'totalPrice inválido' }, { status: 400 });
+    if (source !== undefined && source !== null && (typeof source !== 'string' || source.length > 64)) return NextResponse.json({ error: 'source inválido' }, { status: 400 });
 
     const targetCheckIn = new Date(checkIn);
     const targetCheckOut = new Date(checkOut);
@@ -41,34 +41,21 @@ async function postHandler(request: NextRequest, _ctx: any) {
     let propertyId: string | null = null;
     let occupiedRooms = 0;
 
-    // Read-only pricing context is tenant-scoped. Never use a room selected only by ID.
     if (roomId) {
       try {
-        const room = await prisma.room.findFirst({
-          where: { id: roomId, tenantId },
-          include: { property: true },
-        });
+        const room = await prisma.room.findFirst({ where: { id: roomId, tenantId }, include: { property: true } });
         if (room) {
+          assertResourceBelongsToTenant({ resource: room, tenantId, resourceName: 'Room' });
           baseDailyRate = Number(room.price ?? 0);
           propertyId = room.propertyId ?? null;
-          const total = await prisma.room.count({ where: { propertyId: room.propertyId, tenantId } });
-          totalRooms = total;
-          occupiedRooms = await prisma.reservation.count({
-            where: {
-              tenantId,
-              roomId,
-              checkIn: { lte: new Date() },
-              checkOut: { gte: new Date() },
-              status: { notIn: ['CANCELLED', 'cancelled', 'REJECTED', 'rejected', 'NO_SHOW', 'no_show'] },
-            },
-          });
+          totalRooms = await prisma.room.count({ where: { propertyId: room.propertyId, tenantId } });
+          occupiedRooms = await prisma.reservation.count({ where: { tenantId, roomId, checkIn: { lte: new Date() }, checkOut: { gte: new Date() }, status: { notIn: ['CANCELLED', 'cancelled', 'REJECTED', 'rejected', 'NO_SHOW', 'no_show'] } } });
         }
       } catch (err) {
         console.warn('[RESERVATION_CREATE] Não foi possível carregar contexto de yield:', err);
       }
     }
 
-    // DB transaction with Advisory Lock is the final authority for tenant ownership and overlap prevention.
     let reservation: any;
     const lockKey = `reservation:${tenantId}:${roomId || 'general'}`;
     try {
@@ -76,17 +63,10 @@ async function postHandler(request: NextRequest, _ctx: any) {
         if (roomId) {
           const ownedRoom = await tx.room.findFirst({ where: { id: roomId, tenantId } });
           if (!ownedRoom) throw new Error('ROOM_NOT_FOUND_OR_NOT_OWNED');
+          assertResourceBelongsToTenant({ resource: ownedRoom, tenantId, resourceName: 'Room' });
 
           const overlapping = await tx.reservation.findFirst({
-            where: {
-              tenantId,
-              roomId,
-              status: { notIn: ['CANCELLED', 'cancelled', 'REJECTED', 'rejected', 'NO_SHOW', 'no_show'] },
-              AND: [
-                { checkIn: { lt: targetCheckOut } },
-                { checkOut: { gt: targetCheckIn } },
-              ],
-            },
+            where: { tenantId, roomId, status: { notIn: ['CANCELLED', 'cancelled', 'REJECTED', 'rejected', 'NO_SHOW', 'no_show'] }, AND: [{ checkIn: { lt: targetCheckOut } }, { checkOut: { gt: targetCheckIn } }] },
           });
           if (overlapping) throw new Error('ROOM_UNAVAILABLE_OVERLAPPING_DATES');
         }
@@ -94,79 +74,36 @@ async function postHandler(request: NextRequest, _ctx: any) {
         if (guestId) {
           const ownedGuest = await tx.guest.findFirst({ where: { id: guestId, tenantId } });
           if (!ownedGuest) throw new Error('GUEST_NOT_FOUND_OR_NOT_OWNED');
+          assertResourceBelongsToTenant({ resource: ownedGuest, tenantId, resourceName: 'Guest' });
         }
 
-        return tx.reservation.create({
-          data: {
-            tenantId,
-            guestId,
-            roomId,
-            checkIn: targetCheckIn,
-            checkOut: targetCheckOut,
-            totalPrice,
-            source: source || 'DIRECT',
-            status: 'CONFIRMED',
-          },
-        });
+        const nights = computeNights(targetCheckIn, targetCheckOut).length;
+        const numericTotalPrice = totalPrice === undefined || totalPrice === null ? baseDailyRate * nights : Number(totalPrice);
+        if (!Number.isFinite(numericTotalPrice) || numericTotalPrice < 0) throw new Error('INVALID_TOTAL_PRICE');
+
+        return tx.reservation.create({ data: { tenantId, guestId, roomId, checkIn: targetCheckIn, checkOut: targetCheckOut, totalPrice: numericTotalPrice, source: source || 'DIRECT', status: 'CONFIRMED' } });
       });
     } catch (txErr: any) {
       const mapped = mapConcurrencyError(txErr);
-      if (mapped) {
-        return NextResponse.json({ error: mapped.message, code: mapped.code }, { status: mapped.status });
-      }
+      if (mapped) return NextResponse.json({ error: mapped.message, code: mapped.code }, { status: mapped.status });
+      if (txErr?.message === 'INVALID_TOTAL_PRICE') return NextResponse.json({ error: 'Preço total inválido' }, { status: 400 });
+      if (txErr?.message === 'ROOM_NOT_FOUND_OR_NOT_OWNED' || txErr?.message === 'GUEST_NOT_FOUND_OR_NOT_OWNED') return NextResponse.json({ error: 'Recurso não encontrado ou não pertence ao tenant' }, { status: 403 });
       throw txErr;
     }
 
-    // 3. Special Dates Price Override & Canonical 7% Upsell Calculation
     try {
       const nights = computeNights(targetCheckIn, targetCheckOut);
       let hasSpecialDate = false;
       let totalEffectiveSpecialRate = 0;
-
       for (const night of nights) {
-        const activePrice = await SpecialDatesHitlService.getActivePriceForDate(
-          tenantId,
-          roomId || 'all',
-          night,
-          baseDailyRate
-        );
-        if (activePrice.isSpecialDate) {
-          hasSpecialDate = true;
-          totalEffectiveSpecialRate += activePrice.price;
-        } else {
-          totalEffectiveSpecialRate += baseDailyRate;
-        }
+        const activePrice = await SpecialDatesHitlService.getActivePriceForDate(tenantId, roomId || 'all', night, baseDailyRate);
+        if (activePrice.isSpecialDate) { hasSpecialDate = true; totalEffectiveSpecialRate += activePrice.price; } else totalEffectiveSpecialRate += baseDailyRate;
       }
-
       if (hasSpecialDate && nights.length > 0) {
         const avgSpecialRate = totalEffectiveSpecialRate / nights.length;
-        const upsellCalc = calculateUpsell({
-          baseRate: baseDailyRate,
-          specialRate: avgSpecialRate,
-          nights: nights.length,
-          attributedToZehla: true,
-          isSpecialDate: true,
-        });
-
+        const upsellCalc = calculateUpsell({ baseRate: baseDailyRate, specialRate: avgSpecialRate, nights: nights.length, attributedToZehla: true, isSpecialDate: true });
         if (upsellCalc.upsellDue && upsellCalc.upsellAmount > 0) {
-          await (prisma as any).upsellRecord.create({
-            data: {
-              tenantId,
-              roomId,
-              reservationId: reservation.id,
-              guestId,
-              type: 'special_date_tariff',
-              description: 'Tarifa especial em data comemorativa aprovada pelo anfitrião',
-              quantity: nights.length,
-              unitPrice: avgSpecialRate,
-              totalPrice: upsellCalc.reservationValue,
-              comissionRate: upsellCalc.commissionRate,
-              comissionAmount: upsellCalc.upsellAmount,
-              status: 'confirmed',
-              suggestedByZehla: true,
-              notes: upsellCalc.reason,
-            },
-          });
+          await (prisma as any).upsellRecord.create({ data: { tenantId, roomId, reservationId: reservation.id, guestId, type: 'special_date_tariff', description: 'Tarifa especial em data comemorativa aprovada pelo anfitrião', quantity: nights.length, unitPrice: avgSpecialRate, totalPrice: upsellCalc.reservationValue, comissionRate: upsellCalc.commissionRate, comissionAmount: upsellCalc.upsellAmount, status: 'confirmed', suggestedByZehla: true, notes: upsellCalc.reason } });
         }
       }
     } catch (upsellErr) {
@@ -175,30 +112,10 @@ async function postHandler(request: NextRequest, _ctx: any) {
 
     if (baseDailyRate > 0 && totalRooms > 0) {
       try {
-        const nights = computeNights(targetCheckIn, targetCheckOut);
-        for (const night of nights) {
+        for (const night of computeNights(targetCheckIn, targetCheckOut)) {
           const holiday = detectBrazilianHighSeasonHoliday(night);
-          const yieldResult = ZaosYieldEngine.calculateYieldPrice({
-            baseDailyRate,
-            totalRooms,
-            occupiedRooms: Math.min(occupiedRooms, totalRooms),
-            targetDate: night,
-            isSpecialHoliday: holiday !== null,
-            holidayName: holiday ?? undefined,
-          });
-          if (yieldResult.extraProfitGenerated > 0) {
-            await YieldProfitTracker.recordYield({
-              tenantId,
-              propertyId,
-              reservationId: reservation.id,
-              roomId,
-              targetDate: night,
-              baseRate: baseDailyRate,
-              yield: yieldResult,
-              isSpecialHoliday: holiday !== null,
-              holidayName: holiday,
-            });
-          }
+          const yieldResult = ZaosYieldEngine.calculateYieldPrice({ baseDailyRate, totalRooms, occupiedRooms: Math.min(occupiedRooms, totalRooms), targetDate: night, isSpecialHoliday: holiday !== null, holidayName: holiday ?? undefined });
+          if (yieldResult.extraProfitGenerated > 0) await YieldProfitTracker.recordYield({ tenantId, propertyId, reservationId: reservation.id, roomId, targetDate: night, baseRate: baseDailyRate, yield: yieldResult, isSpecialHoliday: holiday !== null, holidayName: holiday });
         }
       } catch (yieldErr) {
         console.warn('[RESERVATION_CREATE] Yield tracking falhou (reserva OK):', yieldErr);
@@ -206,21 +123,16 @@ async function postHandler(request: NextRequest, _ctx: any) {
     }
 
     return NextResponse.json(reservation, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create reservation' }, { status: 500 });
   }
 }
 
 function computeNights(checkIn: Date, checkOut: Date): Date[] {
   const nights: Date[] = [];
-  const cursor = new Date(checkIn);
-  cursor.setHours(0, 0, 0, 0);
-  const end = new Date(checkOut);
-  end.setHours(0, 0, 0, 0);
-  while (cursor < end) {
-    nights.push(new Date(cursor));
-    cursor.setDate(cursor.getDate() + 1);
-  }
+  const cursor = new Date(checkIn); cursor.setHours(0, 0, 0, 0);
+  const end = new Date(checkOut); end.setHours(0, 0, 0, 0);
+  while (cursor < end) { nights.push(new Date(cursor)); cursor.setDate(cursor.getDate() + 1); }
   return nights;
 }
 
