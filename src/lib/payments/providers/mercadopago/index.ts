@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { MP_ACCESS_TOKEN, PAYMENT_WEBHOOK_SECRET } from '@/lib/env';
 import type { CreatePaymentInput, CreatePaymentResult, IPaymentGateway, PaymentStatus, WebhookEvent, WebhookVerificationContext } from '../../types';
 import { PaymentGatewayError } from '../../types';
@@ -37,7 +38,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
     if (!this.isConfigured()) throw new PaymentGatewayError('MercadoPago not configured — set MP_ACCESS_TOKEN', 'mercadopago', 'NOT_CONFIGURED');
     const client = await this.getClient();
     const mp = await import('mercadopago');
-    const {Payment} = (mp as { Payment: new (c: unknown) => { create: (a: { body: unknown; requestOptions?: { idempotencyKey?: string } }) => Promise<MPPaymentResponse> } });
+    const { Payment } = (mp as { Payment: new (c: unknown) => { create: (a: { body: unknown; requestOptions?: { idempotencyKey?: string } }) => Promise<MPPaymentResponse> } });
     const payment = new Payment(client);
     const [firstName, ...lastNameParts] = input.customer.name.split(' ');
     const body: Record<string, unknown> = {
@@ -57,10 +58,18 @@ export class MercadoPagoGateway implements IPaymentGateway {
       body.payment_method_id = 'bolbradesco';
       body.date_of_expiration = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
     } else throw new PaymentGatewayError('Card payment requires Checkout Preference flow', 'mercadopago', 'CARD_REQUIRES_PREFERENCE', 400);
+
+    // Mercado Pago requires X-Idempotency-Key for payment creation. Hash the
+    // application operation key to keep the provider header bounded and free of
+    // user-controlled delimiters while preserving deterministic retry identity.
+    const gatewayIdempotencyKey = createHash('sha256')
+      .update(`zella:payment:${input.idempotencyKey?.trim() || `subscription:${referenceId}`}`, 'utf8')
+      .digest('hex');
+
     try {
       return this.normalizeResponse(await payment.create({
         body,
-        requestOptions: { idempotencyKey: `zella:${input.referenceType}:${referenceId}:${input.paymentMethod}` },
+        requestOptions: { idempotencyKey: gatewayIdempotencyKey },
       }));
     } catch (err) {
       throw new PaymentGatewayError(err instanceof Error ? err.message : 'MercadoPago createPayment failed', 'mercadopago', 'CREATE_FAILED', (err as { statusCode?: number })?.statusCode, err);
@@ -89,7 +98,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
     if (!this.isConfigured()) throw new PaymentGatewayError('MercadoPago not configured', 'mercadopago', 'NOT_CONFIGURED');
     const client = await this.getClient();
     const mp = await import('mercadopago');
-    const {Payment} = (mp as { Payment: new (c: unknown) => { get: (a: { id: string }) => Promise<MPPaymentResponse> } });
+    const { Payment } = (mp as { Payment: new (c: unknown) => { get: (a: { id: string }) => Promise<MPPaymentResponse> } });
     try {
       return this.normalizeStatus((await new Payment(client).get({ id: gatewayPaymentId })).status);
     } catch (err) {
@@ -127,7 +136,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
       const status = await this.getPaymentStatus(paymentId);
       const client = await this.getClient();
       const mp = await import('mercadopago');
-      const {Payment} = (mp as { Payment: new (c: unknown) => { get: (a: { id: string }) => Promise<MPPaymentResponse> } });
+      const { Payment } = (mp as { Payment: new (c: unknown) => { get: (a: { id: string }) => Promise<MPPaymentResponse> } });
       const full = await new Payment(client).get({ id: paymentId });
       const referenceId = full.external_reference ?? '';
       return {

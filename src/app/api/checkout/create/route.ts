@@ -8,7 +8,7 @@ import { authRatelimit } from '@/lib/rate-limit';
 import { type PlanTier } from '@/lib/plan-features';
 import { isMethodAllowed, getPrice } from '@/lib/payments/pricing';
 import { getDefaultGateway, getGateway } from '@/lib/payments/gateway-factory';
-import type { GatewayId, PaymentMethod } from '@/lib/payments/types';
+import { PaymentGatewayError, type GatewayId, type PaymentMethod } from '@/lib/payments/types';
 import { measureLatency } from '@/lib/observability/latency-tracker';
 import { withAdvisoryLock } from '@/lib/db/concurrency';
 import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
@@ -112,33 +112,16 @@ export async function POST(request: NextRequest) {
         return createError(400, 'INVALID_IDEMPOTENCY_KEY', 'Chave de idempotência inválida.');
       }
 
-      // For unauthenticated onboarding, email is the stable pre-tenant scope. The
-      // tenant is created inside the idempotent handler so a retry cannot stop at
-      // ACCOUNT_EXISTS before reaching the cached checkout result.
       const lockScope = tenantId ? `checkout-create:${tenantId}` : `checkout-onboarding:${requestedEmail}`;
       const idempotencyScope = tenantId ? `tenant:${tenantId}` : `email:${requestedEmail}`;
-      const fingerprint = buildCheckoutFingerprint({
-        name,
-        customerEmail,
-        phone,
-        document,
-        propertyName,
-        niche,
-        planType,
-        paymentMethod,
-        amount,
-        requestedGateway: requestedGateway || undefined,
-      });
-
+      const fingerprint = buildCheckoutFingerprint({ name, customerEmail, phone, document, propertyName, niche, planType, paymentMethod, amount, requestedGateway: requestedGateway || undefined });
       const rateResult = await authRatelimit.limit(`checkout:${idempotencyScope}`);
       if (!rateResult.success) return createError(429, 'RATE_LIMITED', 'Muitas tentativas de checkout. Tente novamente mais tarde.');
-
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin;
 
       return await withAdvisoryLock(lockScope, async () => {
         const executeCheckout = async () => {
           let resolvedTenantId = tenantId;
-
           if (!resolvedTenantId) {
             const existingTenant = await db.tenant.findUnique({ where: { email: requestedEmail } });
             if (existingTenant) {
@@ -146,17 +129,7 @@ export async function POST(request: NextRequest) {
               customerEmail = cleanString(existingTenant.email, 254).toLowerCase();
             } else {
               try {
-                const newTenant = await db.tenant.create({
-                  data: {
-                    name: propertyName || name,
-                    email: requestedEmail,
-                    phone: phone || null,
-                    niche,
-                    plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(),
-                    status: 'pending',
-                    role: 'owner',
-                  },
-                });
+                const newTenant = await db.tenant.create({ data: { name: propertyName || name, email: requestedEmail, phone: phone || null, niche, plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(), status: 'pending', role: 'owner' } });
                 resolvedTenantId = newTenant.id;
                 if (propertyName) {
                   const slugBase = propertyName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70);
@@ -167,32 +140,15 @@ export async function POST(request: NextRequest) {
               }
             }
           }
-
-          return doCheckoutCreate(resolvedTenantId, planType, paymentMethod, amount, name, customerEmail, phone, document, requestedGateway, baseUrl);
+          return doCheckoutCreate(resolvedTenantId, planType, paymentMethod, amount, name, customerEmail, phone, document, requestedGateway, baseUrl, idempotencyKey);
         };
 
         if (idempotencyKey) {
-          const result = await executeWithBillingIdempotency(
-            {
-              provider: 'generic',
-              eventId: `checkout-create:${idempotencyScope}:${idempotencyKey}`,
-              eventType: 'checkout.create',
-              status: 'created',
-              fingerprint,
-            },
-            executeCheckout,
-          );
-
-          if (result.inProgress) {
-            return createError(409, 'IDEMPOTENCY_IN_PROGRESS', 'Este checkout já está sendo processado. Aguarde e tente novamente com a mesma chave.');
-          }
-
+          const result = await executeWithBillingIdempotency({ provider: 'generic', eventId: `checkout-create:${idempotencyScope}:${idempotencyKey}`, eventType: 'checkout.create', status: 'created', fingerprint }, executeCheckout);
+          if (result.inProgress) return createError(409, 'IDEMPOTENCY_IN_PROGRESS', 'Este checkout já está sendo processado. Aguarde e tente novamente com a mesma chave.');
           const data = result.data as Record<string, unknown> | null;
           if (!data) return createError(502, 'IDEMPOTENCY_RESULT_UNAVAILABLE', 'O resultado idempotente não está disponível.');
-          return NextResponse.json({ success: true, data }, {
-            status: result.deduplicated ? 200 : 201,
-            headers: { 'Cache-Control': 'no-store' },
-          });
+          return NextResponse.json({ success: true, data }, { status: result.deduplicated ? 200 : 201, headers: { 'Cache-Control': 'no-store' } });
         }
 
         const data = await executeCheckout();
@@ -200,6 +156,10 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       if (error instanceof CheckoutError) return createError(error.status, error.code, error.message);
+      if (error instanceof PaymentGatewayError) {
+        const status = error.code === 'AMBIGUOUS_EXISTING_PAYMENT' ? 409 : error.code === 'NOT_CONFIGURED' || error.code === 'RECONCILIATION_FAILED' ? 503 : error.statusCode && error.statusCode >= 400 && error.statusCode < 500 ? error.statusCode : 502;
+        return createError(status, error.code, error.message);
+      }
       if (error instanceof Error) {
         if (error.message === 'PAYMENT_GATEWAY_NOT_CONFIGURED') return createError(503, 'PAYMENT_GATEWAY_NOT_CONFIGURED', 'Gateway de pagamento não está configurado.');
         if (error.message === 'PAYMENT_GATEWAY_UNAVAILABLE') return createError(503, 'PAYMENT_GATEWAY_UNAVAILABLE', 'Nenhum gateway de pagamento real está configurado.');
@@ -213,19 +173,48 @@ export async function POST(request: NextRequest) {
   });
 }
 
-async function doCheckoutCreate(
-  tenantId: string,
-  planType: PlanTier,
-  paymentMethod: PaymentMethod,
-  amount: number,
-  name: string,
-  customerEmail: string,
-  phone: string,
-  document: string,
-  requestedGateway: GatewayId | undefined,
-  baseUrl: string,
-): Promise<Record<string, unknown>> {
-  const subscription = await db.subscription.create({ data: { tenantId, planType, status: 'pending', paymentMethod, amount, paymentStatus: 'pending' } });
+function deterministicSubscriptionId(tenantId: string, idempotencyKey?: string): string | undefined {
+  if (!idempotencyKey) return undefined;
+  return createHash('sha256').update(`checkout-subscription:${tenantId}:${idempotencyKey}`, 'utf8').digest('hex').slice(0, 32);
+}
+
+function responseDataFromSubscription(subscription: { id: string; amount: number; paymentMethod: string; planType: string; paymentId: string | null; checkoutUrl: string | null; metadata: string }): Record<string, unknown> | null {
+  try {
+    const parsed = JSON.parse(subscription.metadata) as Record<string, unknown>;
+    const stored = parsed?.checkoutResponse;
+    if (stored && typeof stored === 'object') return stored as Record<string, unknown>;
+  } catch {
+    // Legacy metadata is still replay-safe when paymentId exists.
+  }
+  if (!subscription.paymentId) return null;
+  return { subscriptionId: subscription.id, amount: subscription.amount, paymentMethod: subscription.paymentMethod, planType: subscription.planType, status: 'pending', checkoutUrl: subscription.checkoutUrl };
+}
+
+async function doCheckoutCreate(tenantId: string, planType: PlanTier, paymentMethod: PaymentMethod, amount: number, name: string, customerEmail: string, phone: string, document: string, requestedGateway: GatewayId | undefined, baseUrl: string, idempotencyKey?: string): Promise<Record<string, unknown>> {
+  const deterministicId = deterministicSubscriptionId(tenantId, idempotencyKey);
+  let subscription = deterministicId ? await db.subscription.findUnique({ where: { id: deterministicId } }) : null;
+
+  if (subscription?.paymentId) {
+    const replay = responseDataFromSubscription(subscription);
+    if (replay) return replay;
+  }
+
+  if (!subscription) {
+    try {
+      subscription = await db.subscription.create({ data: { ...(deterministicId ? { id: deterministicId } : {}), tenantId, planType, status: 'pending', paymentMethod, amount, paymentStatus: 'pending' } });
+    } catch (error) {
+      const isUniqueError = error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2002';
+      if (!isUniqueError || !deterministicId) throw error;
+      subscription = await db.subscription.findUnique({ where: { id: deterministicId } });
+      if (!subscription) throw error;
+      if (subscription.paymentId) {
+        const replay = responseDataFromSubscription(subscription);
+        if (replay) return replay;
+      }
+    }
+  }
+
+  if (!subscription) throw new Error('CHECKOUT_SUBSCRIPTION_UNAVAILABLE');
 
   const gateway = requestedGateway ? getGateway(requestedGateway) : getDefaultGateway();
   if (!gateway.isConfigured()) {
@@ -242,6 +231,7 @@ async function doCheckoutCreate(
       referenceId: subscription.id,
       referenceType: 'subscription',
       tenantId,
+      idempotencyKey: idempotencyKey || `subscription:${subscription.id}`,
       planTier: planType,
       amount,
       paymentMethod,
@@ -254,41 +244,20 @@ async function doCheckoutCreate(
 
     if (!result.gatewayPaymentId) throw new Error('Gateway did not return payment id');
 
-    await db.paymentTransaction.create({
-      data: {
-        subscriptionId: subscription.id,
-        amount,
-        status: result.status,
-        paymentMethod,
-        externalId: result.gatewayPaymentId,
-        metadata: JSON.stringify({ provider: result.gateway, checkout: result.checkoutUrl ?? null }),
-      },
-    });
-
-    await db.subscription.update({
-      where: { id: subscription.id },
-      data: {
-        paymentStatus: result.status === 'approved' ? 'approved' : 'pending',
-        paymentId: result.gatewayPaymentId,
-        checkoutUrl: result.checkoutUrl,
-        metadata: JSON.stringify({ gateway: result.gateway }),
-      },
-    });
-
-    const responseData: Record<string, unknown> = {
-      subscriptionId: subscription.id,
-      amount,
-      paymentMethod,
-      gateway: result.gateway,
-      planType,
-      status: result.status,
-      checkoutUrl: result.checkoutUrl || `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
-    };
+    const responseData: Record<string, unknown> = { subscriptionId: subscription.id, amount, paymentMethod, gateway: result.gateway, planType, status: result.status, checkoutUrl: result.checkoutUrl || `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}` };
     if (result.pix) responseData.pix = result.pix;
     if (result.boleto) responseData.boleto = result.boleto;
+
+    const existingPayment = await db.paymentTransaction.findFirst({ where: { subscriptionId: subscription.id, externalId: result.gatewayPaymentId }, select: { id: true } });
+    if (!existingPayment) {
+      await db.paymentTransaction.create({ data: { subscriptionId: subscription.id, amount, status: result.status, paymentMethod, externalId: result.gatewayPaymentId, metadata: JSON.stringify({ provider: result.gateway, checkout: result.checkoutUrl ?? null }) } });
+    }
+
+    await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: result.status === 'approved' ? 'approved' : 'pending', paymentId: result.gatewayPaymentId, checkoutUrl: result.checkoutUrl, metadata: JSON.stringify({ gateway: result.gateway, checkoutResponse: responseData }) } });
     return responseData;
   } catch (error) {
     await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+    if (error instanceof PaymentGatewayError && error.code === 'AMBIGUOUS_EXISTING_PAYMENT') throw error;
     if (error instanceof Error && ['PAYMENT_GATEWAY_NOT_CONFIGURED', 'PAYMENT_GATEWAY_UNAVAILABLE'].includes(error.message)) throw error;
     throw new Error('PAYMENT_GATEWAY_ERROR');
   }

@@ -15,6 +15,10 @@ interface AsaasPaymentResponse {
   value: number;
   externalReference?: string;
 }
+interface AsaasPaymentListResponse {
+  data?: AsaasPaymentResponse[];
+  totalCount?: number;
+}
 
 function referenceOf(input: CreatePaymentInput): string {
   return input.referenceId || input.subscriptionId || '';
@@ -52,11 +56,42 @@ export class AsaasGateway implements IPaymentGateway {
     return ((await createRes.json()) as AsaasCustomer).id;
   }
 
+  /**
+   * Asaas does not expose a request idempotency header for this payment flow.
+   * Its documented recovery mechanism is to reconcile existing charges by
+   * externalReference before retrying after a timeout/ambiguous response.
+   */
+  private async findExistingPayment(referenceId: string, customerId: string): Promise<AsaasPaymentResponse | null> {
+    const params = new URLSearchParams({ externalReference: referenceId, customer: customerId, limit: '10' });
+    const res = await fetch(`${ASAAS_BASE_URL}/payments?${params.toString()}`, { headers: this.authHeaders() });
+    if (!res.ok) throw new PaymentGatewayError(`Asaas payment reconciliation failed: ${res.status}`, 'asaas', 'RECONCILIATION_FAILED', res.status);
+    const body = (await res.json()) as AsaasPaymentListResponse;
+    const matches = body.data ?? [];
+    if (matches.length > 1) {
+      throw new PaymentGatewayError(
+        `Multiple Asaas payments found for externalReference ${referenceId}`,
+        'asaas',
+        'AMBIGUOUS_EXISTING_PAYMENT',
+        409,
+      );
+    }
+    return matches[0] ?? null;
+  }
+
   async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
     const referenceId = referenceOf(input);
     if (!referenceId) throw new PaymentGatewayError('Payment reference id is required', 'asaas', 'REFERENCE_ID_MISSING');
     if (!this.isConfigured()) throw new PaymentGatewayError('Asaas not configured — set ASAAS_ACCESS_TOKEN', 'asaas', 'NOT_CONFIGURED');
+
     const customerId = await this.ensureCustomer(input);
+
+    // Critical R3-F04 guard: if the first POST succeeded but its response was
+    // lost, the local retry must discover the existing charge and replay it
+    // rather than issuing a second charge. externalReference is the documented
+    // Asaas reconciliation field and is the internal subscription identifier.
+    const existingPayment = await this.findExistingPayment(referenceId, customerId);
+    if (existingPayment) return this.normalizeResponse(existingPayment);
+
     const billingType = input.paymentMethod === 'pix' ? 'PIX' : input.paymentMethod === 'cartao' ? 'CREDIT_CARD' : 'BOLETO';
     const res = await fetch(`${ASAAS_BASE_URL}/payments`, {
       method: 'POST',

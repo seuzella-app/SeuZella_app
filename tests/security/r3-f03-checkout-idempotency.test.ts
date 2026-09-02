@@ -41,8 +41,21 @@ const mockDb = vi.hoisted(() => ({
     }),
   },
   property: { create: vi.fn().mockResolvedValue({ id: 'property_1' }) },
-  subscription: { create: vi.fn(async () => ({ id: `sub_${++state.subscriptionCreates}` })), update: vi.fn() },
-  paymentTransaction: { create: vi.fn(async () => ({ id: `payment_${++state.paymentCreates}` })) },
+  subscription: {
+    findUnique: vi.fn(async () => null),
+    create: vi.fn(async ({ data }: { data: Record<string, unknown> }) => {
+      ++state.subscriptionCreates;
+      const id = data.id || `sub_${state.subscriptionCreates}`;
+      return { id, amount: data.amount || 197, paymentMethod: data.paymentMethod || 'pix', planType: data.planType || 'pro', paymentId: null, checkoutUrl: null, metadata: '{}' };
+    }),
+    update: vi.fn(async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => {
+      return { id: where.id, amount: 197, paymentMethod: 'pix', planType: 'pro', paymentId: data.paymentId || null, checkoutUrl: data.checkoutUrl || null, metadata: data.metadata || '{}' };
+    }),
+  },
+  paymentTransaction: {
+    create: vi.fn(async () => ({ id: `payment_${++state.paymentCreates}` })),
+    findFirst: vi.fn(async () => null),
+  },
 }));
 
 vi.mock('@/lib/db', () => ({ db: mockDb }));
@@ -78,9 +91,11 @@ describe('R3-F03 checkout idempotency', () => {
     mockDb.billingIdempotency.update.mockClear();
     mockDb.tenant.findUnique.mockClear();
     mockDb.tenant.create.mockClear();
+    mockDb.subscription.findUnique.mockClear();
     mockDb.subscription.create.mockClear();
     mockDb.subscription.update.mockClear();
     mockDb.paymentTransaction.create.mockClear();
+    mockDb.paymentTransaction.findFirst.mockClear();
   });
 
   const request = (overrides: Record<string, unknown> = {}, key = 'checkout-key-1') => new NextRequest('http://localhost/api/checkout/create', {

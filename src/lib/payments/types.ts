@@ -23,6 +23,8 @@ export interface CreatePaymentInput {
   referenceType: PaymentReferenceType;
   /** Backward-compatible alias for existing SaaS billing callers. New integrations should use referenceId. */
   subscriptionId?: string;
+  /** Stable operation key supplied by the application idempotency layer. */
+  idempotencyKey?: string;
   tenantId: string;
   planTier?: PlanTier;
   amount: number;
