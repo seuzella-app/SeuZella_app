@@ -167,6 +167,45 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // R3: Create UpsellRecord if this is a special date reservation (RULE_A)
+      if (body.specialDateId || body.isSpecialDate) {
+        try {
+          const { calculateUpsell } = await import('@/lib/billing/upsell-calculator');
+          const baseRate = body.baseRate || body.total / nights;
+          const specialRate = body.total / nights;
+          const upsellCalc = calculateUpsell({
+            baseRate,
+            specialRate,
+            nights,
+            attributedToZehla: body.source === 'whatsapp_ai' || body.attributedToZehla === true,
+            isSpecialDate: true,
+          });
+
+          if (upsellCalc.upsellDue && upsellCalc.upsellAmount > 0) {
+            await (tx as any).upsellRecord.create({
+              data: {
+                tenantId,
+                roomId: body.roomId || null,
+                reservationId: newBooking.id,
+                guestId: body.guestId || null,
+                type: 'special_date_tariff',
+                description: 'Tarifa especial em data comemorativa aprovada pelo anfitrião',
+                quantity: nights,
+                unitPrice: Math.round(specialRate * 100) / 100,
+                totalPrice: upsellCalc.reservationValue,
+                comissionRate: upsellCalc.commissionRate,
+                comissionAmount: upsellCalc.upsellAmount,
+                status: 'confirmed',
+                suggestedByZehla: true,
+                notes: upsellCalc.reason,
+              },
+            });
+          }
+        } catch {
+          // UpsellRecord creation failure does not block booking
+        }
+      }
+
       return { conflict: false, booking: newBooking };
     });
 
