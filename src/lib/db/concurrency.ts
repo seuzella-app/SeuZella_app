@@ -10,7 +10,13 @@ export type TransactionClient = Prisma.TransactionClient;
 
 /**
  * Execute an operation with a PostgreSQL transaction-scoped advisory lock.
- * The lock is automatically released when the transaction ends (commit or rollback).
+ *
+ * Production invariant: if PostgreSQL is expected and the lock cannot be
+ * acquired, fail closed. Never silently execute a supposedly serialized
+ * financial/reservation operation without its concurrency guard.
+ *
+ * The database-unavailable branch exists only for isolated/unit environments
+ * that intentionally use the project's non-PostgreSQL test fallback.
  */
 export async function withAdvisoryLock<T>(
   lockKey: string,
@@ -19,20 +25,16 @@ export async function withAdvisoryLock<T>(
 ): Promise<T> {
   const dbOk = await isDatabaseAvailable();
   if (!dbOk) {
-    // If DB is offline / test fallback, execute without raw SQL lock
-    return (db as any).$transaction(async (tx: TransactionClient) => {
-      return fn(tx);
-    }, options);
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('DATABASE_UNAVAILABLE_FOR_ADVISORY_LOCK');
+    }
+    return (db as any).$transaction(async (tx: TransactionClient) => fn(tx), options);
   }
 
   return (db as any).$transaction(async (tx: TransactionClient) => {
-    try {
-      // hashtext maps arbitrary string to signed 32-bit int for pg_advisory_xact_lock
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
-    } catch (lockErr) {
-      // In SQLite or non-postgres environments, gracefully proceed
-      console.warn('[CONCURRENCY] Advisory lock failed or not supported in current dialect:', lockErr);
-    }
+    // PostgreSQL is the configured production datasource. A lock failure is
+    // a correctness failure, not an optional optimization.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
     return fn(tx);
   }, options);
 }
@@ -54,7 +56,6 @@ export async function withSerializableRetry<T>(
       lastError = error;
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2034') {
-          // Serialization failure, exponential backoff before retry
           const delayMs = 25 * Math.pow(2, attempt);
           await new Promise((resolve) => setTimeout(resolve, delayMs));
           continue;
