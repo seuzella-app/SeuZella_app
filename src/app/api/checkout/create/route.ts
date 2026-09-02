@@ -10,6 +10,7 @@ import { getDefaultGateway, getGateway } from '@/lib/payments/gateway-factory';
 import type { GatewayId, PaymentMethod } from '@/lib/payments/types';
 import { measureLatency } from '@/lib/observability/latency-tracker';
 import { withAdvisoryLock } from '@/lib/db/concurrency';
+import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
 
 const VALID_PLANS: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
 const VALID_METHODS: PaymentMethod[] = ['pix', 'cartao'];
@@ -91,80 +92,138 @@ export async function POST(request: NextRequest) {
       const rateResult = await authRatelimit.limit(`checkout:${tenantId}:${customerEmail}`);
       if (!rateResult.success) return createError(429, 'RATE_LIMITED', 'Muitas tentativas de checkout. Tente novamente mais tarde.');
 
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin;
+
       // Serialize all payment-intent creation for a tenant. The lock is transaction-scoped
       // and fail-closed in production, preventing concurrent checkout attempts from racing.
       return await withAdvisoryLock(`checkout-create:${tenantId}`, async () => {
-        const subscription = await db.subscription.create({ data: { tenantId, planType, status: 'pending', paymentMethod, amount, paymentStatus: 'pending' } });
+        // R3-F03: Idempotency key prevents duplicate checkout creation on retry/replay.
+        // If the client sends an Idempotency-Key header, we check if this exact
+        // checkout intent was already processed. If so, return the original result
+        // instead of creating a new subscription + payment.
+        const idempotencyKey = request.headers.get('x-idempotency-key') || undefined;
+        const idempotencyId = idempotencyKey
+          ? `checkout-create:${tenantId}:${planType}:${paymentMethod}:${amount}:${idempotencyKey}`
+          : undefined;
 
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || request.nextUrl.origin;
-        const gateway = requestedGateway ? getGateway(requestedGateway) : getDefaultGateway();
-        if (!gateway.isConfigured()) {
-          await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
-          return createError(503, 'PAYMENT_GATEWAY_NOT_CONFIGURED', `Gateway ${gateway.id} não está configurado.`);
-        }
-        if (process.env.NODE_ENV === 'production' && gateway.id === 'mock') {
-          await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
-          return createError(503, 'PAYMENT_GATEWAY_UNAVAILABLE', 'Nenhum gateway de pagamento real está configurado.');
-        }
-
-        try {
-          const result = await gateway.createPayment({
-            referenceId: subscription.id,
-            referenceType: 'subscription',
-            tenantId,
-            planTier: planType,
-            amount,
-            paymentMethod,
-            customer: { name, email: customerEmail, phone: phone || undefined, document: document || undefined },
-            description: `ZEHLA SmartHotel - Plano ${planType.toUpperCase()}`,
-            successUrl: `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
-            cancelUrl: `${baseUrl}/checkout/cancel?subscription_id=${encodeURIComponent(subscription.id)}`,
-            webhookUrl: `${baseUrl}/api/webhooks/payment`,
-          });
-
-          if (!result.gatewayPaymentId) throw new Error('Gateway did not return payment id');
-
-          await db.paymentTransaction.create({
-            data: {
-              subscriptionId: subscription.id,
-              amount,
-              status: result.status,
-              paymentMethod,
-              externalId: result.gatewayPaymentId,
-              metadata: JSON.stringify({ provider: result.gateway, checkout: result.checkoutUrl ?? null }),
+        if (idempotencyId) {
+          return await executeWithBillingIdempotency(
+            {
+              provider: 'generic',
+              eventId: idempotencyId,
+              eventType: 'checkout.create',
+              status: 'created',
             },
+            async () => {
+              return await doCheckoutCreate(request, tenantId, planType, paymentMethod, amount, name, customerEmail, phone, document, propertyName, niche, requestedGateway, baseUrl);
+            }
+          ).then(result => {
+            if (result.deduplicated) {
+              // Return cached result from previous checkout creation
+              const data = result.data as Record<string, unknown> | null;
+              if (data) return NextResponse.json({ success: true, data }, { status: 200, headers: { 'Cache-Control': 'no-store' } });
+            }
+            const data = result.data as Record<string, unknown> | null;
+            return NextResponse.json({ success: true, data }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
           });
-
-          await db.subscription.update({
-            where: { id: subscription.id },
-            data: {
-              paymentStatus: result.status === 'approved' ? 'approved' : 'pending',
-              paymentId: result.gatewayPaymentId,
-              checkoutUrl: result.checkoutUrl,
-              metadata: JSON.stringify({ gateway: result.gateway }),
-            },
-          });
-
-          const responseData: Record<string, unknown> = {
-            subscriptionId: subscription.id,
-            amount,
-            paymentMethod,
-            gateway: result.gateway,
-            planType,
-            status: result.status,
-            checkoutUrl: result.checkoutUrl || `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
-          };
-          if (result.pix) responseData.pix = result.pix;
-          if (result.boleto) responseData.boleto = result.boleto;
-
-          return NextResponse.json({ success: true, data: responseData }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
-        } catch {
-          await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
-          return createError(502, 'PAYMENT_GATEWAY_ERROR', 'Não foi possível iniciar o pagamento. Tente novamente.');
         }
+
+        // No idempotency key — proceed normally (advisory lock still prevents concurrent races)
+        const data = await doCheckoutCreate(request, tenantId, planType, paymentMethod, amount, name, customerEmail, phone, document, propertyName, niche, requestedGateway, baseUrl);
+        return NextResponse.json({ success: true, data }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
       });
     } catch {
       return createError(500, 'CHECKOUT_ERROR', 'Não foi possível iniciar o checkout.');
     }
   });
+}
+
+/**
+ * R3-F03: Extracted checkout creation logic for idempotency wrapping.
+ * This function performs the actual subscription + payment creation.
+ * It can be called either directly (no idempotency key) or wrapped
+ * inside executeWithBillingIdempotency (with idempotency key).
+ */
+async function doCheckoutCreate(
+  _request: NextRequest,
+  tenantId: string,
+  planType: PlanTier,
+  paymentMethod: PaymentMethod,
+  amount: number,
+  name: string,
+  customerEmail: string,
+  phone: string,
+  document: string,
+  _propertyName: string,
+  _niche: string,
+  requestedGateway: GatewayId | undefined,
+  baseUrl: string
+): Promise<Record<string, unknown>> {
+  const subscription = await db.subscription.create({ data: { tenantId, planType, status: 'pending', paymentMethod, amount, paymentStatus: 'pending' } });
+
+  const gateway = requestedGateway ? getGateway(requestedGateway) : getDefaultGateway();
+  if (!gateway.isConfigured()) {
+    await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+    throw new Error("PAYMENT_GATEWAY_NOT_CONFIGURED");;
+  }
+  if (process.env.NODE_ENV === 'production' && gateway.id === 'mock') {
+    await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+    throw new Error("PAYMENT_GATEWAY_UNAVAILABLE");;
+  }
+
+  try {
+    const result = await gateway.createPayment({
+      referenceId: subscription.id,
+      referenceType: 'subscription',
+      tenantId,
+      planTier: planType,
+      amount,
+      paymentMethod,
+      customer: { name, email: customerEmail, phone: phone || undefined, document: document || undefined },
+      description: `ZELLA SmartHotel - Plano ${planType.toUpperCase()}`,
+      successUrl: `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
+      cancelUrl: `${baseUrl}/checkout/cancel?subscription_id=${encodeURIComponent(subscription.id)}`,
+      webhookUrl: `${baseUrl}/api/webhooks/payment`,
+    });
+
+    if (!result.gatewayPaymentId) throw new Error('Gateway did not return payment id');
+
+    await db.paymentTransaction.create({
+      data: {
+        subscriptionId: subscription.id,
+        amount,
+        status: result.status,
+        paymentMethod,
+        externalId: result.gatewayPaymentId,
+        metadata: JSON.stringify({ provider: result.gateway, checkout: result.checkoutUrl ?? null }),
+      },
+    });
+
+    await db.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        paymentStatus: result.status === 'approved' ? 'approved' : 'pending',
+        paymentId: result.gatewayPaymentId,
+        checkoutUrl: result.checkoutUrl,
+        metadata: JSON.stringify({ gateway: result.gateway }),
+      },
+    });
+
+    const responseData: Record<string, unknown> = {
+      subscriptionId: subscription.id,
+      amount,
+      paymentMethod,
+      gateway: result.gateway,
+      planType,
+      status: result.status,
+      checkoutUrl: result.checkoutUrl || `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
+    };
+    if (result.pix) responseData.pix = result.pix;
+    if (result.boleto) responseData.boleto = result.boleto;
+
+    return responseData;
+  } catch {
+    await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+    throw new Error('PAYMENT_GATEWAY_ERROR');
+  }
 }
