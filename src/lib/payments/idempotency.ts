@@ -43,6 +43,11 @@ export function buildIdempotencyKey(options: IdempotencyOptions): string {
  * - If 'processing' (concurrent execution): returns inProgress deduplicated response.
  * - If 'failed': allows retry by re-acquiring lock.
  * - If new: executes handler within tracked lifecycle and saves final response.
+ *
+ * Production invariant: absence of the idempotency store is a hard failure.
+ * Executing a billing handler without durable idempotency can double-charge on retry.
+ * Tests may inject an explicit in-memory/mock delegate, but production never
+ * silently downgrades to best-effort execution.
  */
 export async function executeWithBillingIdempotency<T extends Record<string, unknown>>(
   options: IdempotencyOptions,
@@ -50,16 +55,8 @@ export async function executeWithBillingIdempotency<T extends Record<string, unk
 ): Promise<IdempotencyResult<T>> {
   const key = buildIdempotencyKey(options);
 
-  // Fallback: If DB or billingIdempotency delegate is unavailable (e.g. legacy mocks/bootstrap), execute handler
   if (!db?.billingIdempotency) {
-    const result = await handler();
-    return {
-      success: true,
-      deduplicated: false,
-      status: 'completed',
-      data: result,
-      key,
-    };
+    throw new Error('BILLING_IDEMPOTENCY_UNAVAILABLE');
   }
 
   // 1. Check existing idempotency record in PostgreSQL

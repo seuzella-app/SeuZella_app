@@ -2,19 +2,24 @@
  * ZÉLLA — Prisma application-level tenant isolation.
  * Automatically injects tenantId for models classified TENANT_SCOPED.
  * This is application-level isolation; it is not PostgreSQL RLS.
+ *
+ * Child entities whose tenant boundary is inherited through a parent relation
+ * MUST NOT be listed here: they do not have a tenantId column and injecting
+ * tenantId would generate invalid Prisma queries. They are protected by
+ * tenant-bound parent lookups in their owning services/routes.
  */
 
 import { PrismaClient } from '@prisma/client';
 
 const TENANT_MODELS = [
   'LockDevice', 'LockCode', 'LockEvent', 'LockOAuthAccount',
-  'Reservation', 'Guest', 'GuestMessage', 'GuestGuide',
+  'Reservation', 'Guest', 'GuestGuide',
   'Property', 'Room', 'ApiConfig', 'AgentConfig',
-  'Lead', 'Campaign', 'Target', 'SwipeTemplate', 'SwipeUsage',
+  'Lead', 'Campaign', 'Target', 'SwipeTemplate',
   'FunnelEvent', 'FunnelScore',
-  'AgentLog', 'ConversationLog', 'ConversationMessage', 'AIActivityLog',
+  'AgentLog', 'ConversationLog', 'AIActivityLog',
   'KnowledgeEntry',
-  'Transaction', 'Subscription', 'PaymentTransaction',
+  'Transaction', 'Subscription',
   'CalendarSync', 'AuditLog', 'ConsentLog',
   'AirBProperty', 'AirBConversation', 'AirBSubscription',
   'DynamicPricingRule', 'PricingCalculation',
