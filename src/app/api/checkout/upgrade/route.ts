@@ -20,7 +20,7 @@ type UpgradeResult = {
   proratedCost: number;
   creditApplied: number;
   remainingDays: number;
-  pix?: { qrCode?: string; qrCodeBase64?: string; ticketUrl?: string } | null;
+  pix?: { qrCode: string; qrCodeBase64?: string; expiresAt?: string } | null;
   checkoutUrl?: string;
   message: string;
 };
@@ -43,8 +43,7 @@ export async function POST(request: NextRequest) {
     if (!VALID_METHODS.includes(method as (typeof VALID_METHODS)[number])) return createError(400, 'INVALID_PAYMENT_METHOD', 'Método de pagamento inválido.');
     if (!isMethodAllowed(newPlanType as PlanTier, method as any)) return createError(400, 'INVALID_PAYMENT_METHOD', 'Método de pagamento não permitido para este plano.');
 
-    const lockKey = `checkout-upgrade:${tenantId}`;
-    const result = await withAdvisoryLock(lockKey, async (tx) => {
+    const result = await withAdvisoryLock(`checkout-upgrade:${tenantId}`, async (tx) => {
       const subscription = await tx.subscription.findFirst({ where: { tenantId }, orderBy: { createdAt: 'desc' } });
       if (!subscription) return { error: createError(404, 'SUBSCRIPTION_NOT_FOUND', 'No active subscription found for this tenant') } as const;
 
@@ -87,7 +86,7 @@ export async function POST(request: NextRequest) {
           tenantId,
           planTier: newPlanType as PlanTier,
           amount: amountToPay,
-          paymentMethod: method as any,
+          paymentMethod: method as 'pix' | 'cartao',
           customer: { name: tenant?.name || 'ZEHLA', email: tenant?.email || '' },
           description: `ZEHLA Upgrade: ${currentPlan} → ${newPlanType}`,
           successUrl: `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/checkout/success?transaction_id=${encodeURIComponent(transaction.id)}`,
@@ -97,9 +96,9 @@ export async function POST(request: NextRequest) {
         if (!gatewayResult.gatewayPaymentId) throw new Error('Gateway did not return payment id');
         await tx.paymentTransaction.update({ where: { id: transaction.id }, data: { externalId: gatewayResult.gatewayPaymentId, status: gatewayResult.status, metadata: JSON.stringify({ type: 'upgrade', gateway: gatewayResult.gateway }) } });
         const pixData = gatewayResult.pix;
-        return { data: { success: true, transactionId: transaction.id, newPlanType: newPlanType as PlanTier, amountToPay, proratedCost, creditApplied: totalCredit, remainingDays, pix: pixData ? { qrCode: pixData.qrCode, qrCodeBase64: pixData.qrCodeBase64, ticketUrl: pixData.ticketUrl } : null, checkoutUrl: gatewayResult.checkoutUrl, message: `Upgrade de ${currentPlan} para ${newPlanType}. Pró-rata: R$${amountToPay.toFixed(2)}.` } satisfies UpgradeResult } as const;
+        return { data: { success: true, transactionId: transaction.id, newPlanType: newPlanType as PlanTier, amountToPay, proratedCost, creditApplied: totalCredit, remainingDays, pix: pixData ? { qrCode: pixData.qrCode, qrCodeBase64: pixData.qrCodeBase64, expiresAt: pixData.expiresAt } : null, checkoutUrl: gatewayResult.checkoutUrl, message: `Upgrade de ${currentPlan} para ${newPlanType}. Pró-rata: R$${amountToPay.toFixed(2)}.` } satisfies UpgradeResult } as const;
       } catch {
-        await tx.paymentTransaction.update({ where: { id: transaction.id }, data: { status: 'gateway_error' } });
+        await tx.paymentTransaction.update({ where: { id: transaction.id }, data: { status: 'rejected' } });
         return { error: createError(502, 'PAYMENT_GATEWAY_ERROR', 'Não foi possível iniciar o pagamento do upgrade.') } as const;
       }
     });
