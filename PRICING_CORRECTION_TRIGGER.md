@@ -1,0 +1,1 @@
+Temporary trigger for the canonical pricing correction workflow. This file is removed automatically by the workflow after successful validation.
