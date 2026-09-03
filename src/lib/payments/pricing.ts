@@ -36,7 +36,7 @@ export const PRICING_MATRIX: Record<PlanTier, Record<PaymentMethod, number>> = {
   lite: { pix: 197, cartao: 247, boleto: 207 },
   pro: { pix: 397, cartao: 397, boleto: 407 },
   max: { pix: 797, cartao: 797, boleto: 807 },
-  parceiro: { pix: 247, cartao: 247, boleto: 257 },
+  parceiro: { pix: 297, cartao: 297, boleto: 307 },
 };
 
 // ── Payment methods allowed per plan ──────────────────────────────────────────

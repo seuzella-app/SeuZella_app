@@ -90,25 +90,25 @@ const plans: Plan[] = [
     icon: Crown,
     iconBg: 'from-amber-500/20 to-amber-900/10',
     iconColor: 'text-amber-400',
-    pricePix: 247,
-    priceCartao: 247,
-    priceLabel: 'R$247',
+    pricePix: 297,
+    priceCartao: 297,
+    priceLabel: 'R$297',
     pricePixAirbnb: 247,
     priceCartaoAirbnb: 247,
     priceLabelAirbnb: 'R$247',
     onlyCard: false,
-    desc: 'Plano PRO completo por R$247/mês — preço congelado por 24 meses + selo exclusivo de Parceiro Zélla no seu perfil Link-in-Bio. Atendimento e mensagens ilimitados.',
+    desc: 'Plano PRO completo por R$297/mês — preço congelado por 24 meses + selo exclusivo de Parceiro Zélla no seu perfil Link-in-Bio. Atendimento e mensagens ilimitados.',
     descAirbnb: 'Plano MAX completo por R$247/mês — preço congelado por 24 meses + selo exclusivo de Parceiro Zélla no seu perfil. Atendimento automatizado e mensagens ilimitadas.',
     cta: 'Garantir Vaga de Parceiro',
     ctaStyle: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/30',
     ctaStyleAirbnb: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/30',
     popular: true,
     popularAirbnb: true,
-    idealParaPousada: '1–5 pousadas',
+    idealParaPousada: 'até 12 quartos',
     idealParaAirbnb: '1–4 imóveis',
     niches: ['pousada', 'airbnb'],
     features: [
-      { text: 'Plano PRO completo — R$247/mês', included: true },
+      { text: 'Plano PRO completo — R$297/mês', included: true },
       { text: 'Preço congelado por 24 meses', included: true },
       { text: '✨ Conexão Instantânea via QR Code (Zero Taxas por Mensagem)', included: true },
       { text: '🗣️ Clone Digital de Tom de Voz (aprende seu estilo e tom de fala)', included: true },
@@ -125,7 +125,7 @@ const plans: Plan[] = [
       { text: 'Sugestões de preços inteligentes', included: true },
       { text: 'Análise de sentimento', included: true },
       { text: 'Suporte prioritário', included: true },
-      { text: 'Economia de R$150/mês vs. PRO regular', included: true },
+      { text: 'Economia de R$100/mês vs. PRO regular', included: true },
     ],
     featuresAirbnb: [
       { text: 'Plano MAX completo — R$247/mês', included: true },
@@ -163,7 +163,7 @@ const plans: Plan[] = [
     cta: 'Assinar LITE via PIX',
     ctaStyle: 'border border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]',
     popular: false,
-    idealParaPousada: '1–2 pousadas',
+    idealParaPousada: '1–5 quartos',
     niches: ['pousada'],
     features: [
       { text: '50 hóspedes atendidos por mês', included: true },
@@ -205,7 +205,7 @@ const plans: Plan[] = [
     ctaStyleAirbnb: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-lg shadow-blue-500/25',
     popular: false,
     popularAirbnb: false,
-    idealParaPousada: '3–5 pousadas',
+    idealParaPousada: 'até 12 quartos',
     idealParaAirbnb: '1–4 imóveis',
     niches: ['pousada', 'airbnb'],
     showTrialBadge: false,
@@ -266,7 +266,7 @@ const plans: Plan[] = [
     ctaStyleAirbnb: 'bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/25',
     popular: false,
     popularAirbnb: false,
-    idealParaPousada: '6+ pousadas',
+    idealParaPousada: 'até 20 quartos',
     idealParaAirbnb: '5–12 imóveis',
     niches: ['pousada', 'airbnb'],
     showTrialBadge: false,
@@ -665,6 +665,30 @@ export function PricingSection() {
             })}
           </motion.div>
         </AnimatePresence>
+
+        {/* Pacote exclusivo para pousadas acima de 20 quartos */}
+        {isPousada && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="max-w-4xl mx-auto mb-16 mt-4"
+          >
+            <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-b from-amber-950/20 via-zinc-900/90 to-zinc-950/95 p-6 sm:p-8 shadow-2xl">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <div>
+                  <p className="text-amber-400 text-xs font-bold uppercase tracking-wider">PACOTE EXCLUSIVO</p>
+                  <h4 className="text-white font-extrabold text-lg sm:text-xl mt-1">Acima de 20 quartos</h4>
+                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/25">MAX + adicional</span>
+              </div>
+              <p className="text-neutral-300 text-sm leading-relaxed">
+                Para pousadas com <strong className="text-white">mais de 20 quartos</strong>, o pacote passa para o <strong className="text-amber-300">MAX</strong>, mantendo todas as funções do plano, com adicional de <strong className="text-amber-300">R$47,00 por quarto</strong> acima do limite de 20 quartos.
+              </p>
+              <p className="text-neutral-500 text-xs mt-3">Exemplo: 21 quartos = MAX + R$47,00/mês; 25 quartos = MAX + R$235,00/mês.</p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Pousada Upsell & Faturamento Transparente */}
         <AnimatePresence mode="wait">
