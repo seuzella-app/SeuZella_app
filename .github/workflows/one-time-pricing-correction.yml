@@ -61,8 +61,21 @@ jobs:
 
       - name: Validate correction
         run: |
-          grep -n "idealParaPousada\|priceLabel: 'R\\$297'\|parceiro: { pix: 297\|Acima de 20 quartos\|R\\$47,00" src/components/landing/PricingSection.tsx src/lib/payments/pricing.ts
-          ! grep -q "1–5 pousadas\|1–2 pousadas\|3–5 pousadas\|6+ pousadas" src/components/landing/PricingSection.tsx
+          python3 - <<'PY'
+          from pathlib import Path
+          landing = Path('src/components/landing/PricingSection.tsx').read_text()
+          pricing = Path('src/lib/payments/pricing.ts').read_text()
+          assert "priceLabel: 'R$297'" in landing
+          assert "idealParaPousada: 'até 12 quartos'" in landing
+          assert "idealParaPousada: '1–5 quartos'" in landing
+          assert "idealParaPousada: 'até 20 quartos'" in landing
+          assert 'Acima de 20 quartos' in landing
+          assert 'R$47,00 por quarto' in landing
+          assert 'parceiro: { pix: 297, cartao: 297, boleto: 307 }' in pricing
+          for wrong in ('1–5 pousadas', '1–2 pousadas', '3–5 pousadas', '6+ pousadas'):
+              assert wrong not in landing, wrong
+          print('Pricing correction validation: PASS')
+          PY
 
       - name: Commit correction and remove one-time workflow
         run: |
