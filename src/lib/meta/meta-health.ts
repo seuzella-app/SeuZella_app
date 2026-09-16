@@ -1,20 +1,22 @@
 // ==============================================================================
 // ZÉLLA — Meta Health Service (Fase 11)
 // ==============================================================================
-// Verifica saúde da conexão Meta SEM chamadas agressivas à Graph API:
-//  - Sem polling contínuo. Cache com TTL.
-//  - lastHealthCheckAt registrado.
-//  - NUNCA fabrica status verde: CONNECTED só com credenciais + evidência
-//    real (webhook recente). Estados: NOT_CONFIGURED | PENDING | CONNECTED |
-//    ERROR | DISCONNECTED.
+// Health real, multi-tenant-safe e sem chamadas agressivas.
+//
+// CONNECTED só quando existe evidência real de webhook recente e credenciais
+// válidas/configuradas. A verificação Graph usa o cliente centralizado e uma
+// leitura do próprio phone_number_id; nunca faz HEAD sem autenticação e nunca
+// interpreta HTTP 4xx como "Graph saudável".
 // ==============================================================================
 
 import { db } from '@/lib/db';
 import { META_ACCESS_TOKEN, META_PHONE_NUMBER_ID, META_WABA_ID } from '@/lib/env';
 import { META_CONNECT_ENABLED } from './meta-config';
+import { metaGraphFetch } from './meta-client';
 import { MetaConnectionStatus } from './meta-types';
 
-const HEALTH_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min — sem polling agressivo
+const HEALTH_CACHE_TTL_MS = 5 * 60 * 1000;
+const WEBHOOK_RECENT_MS = 24 * 60 * 60 * 1000;
 
 interface MetaHealthCache {
   result: MetaHealthResult;
@@ -33,37 +35,30 @@ export interface MetaHealthResult {
     lastWebhookAt: Date | null;
     lastDeliveryAt: Date | null;
     lastHealthCheckAt: Date;
-    graphReachable: boolean | null; // null = não verificado nesta checagem (cache/TTL)
+    graphReachable: boolean | null;
   };
   reason?: string;
 }
 
-const WEBHOOK_RECENT_MS = 24 * 60 * 60 * 1000; // webhook nas últimas 24h = evidência de vida
-
-/**
- * Executa o health check de um tenant (com cache TTL).
- * graphReachable só é verificado quando há credenciais E o cache expirou —
- * e apenas um GET leve de debug token metadata, sem custo de conversa.
- */
 export async function getMetaHealth(tenantId: string, forceRefresh = false): Promise<MetaHealthResult> {
   const cached = healthCache.get(tenantId);
-  if (!forceRefresh && cached && cached.expiresAt > Date.now()) {
-    return cached.result;
-  }
+  if (!forceRefresh && cached && cached.expiresAt > Date.now()) return cached.result;
 
+  // Nesta onda as credenciais são globais/env. Quando Meta Connect virar
+  // multi-tenant ativo, este ponto deverá consumir a credencial do tenant a
+  // partir do vault/secret store, nunca do frontend.
   const credentialsConfigured = Boolean(META_ACCESS_TOKEN);
   const wabaConfigured = Boolean(META_WABA_ID);
   const phoneNumberConfigured = Boolean(META_PHONE_NUMBER_ID);
 
-  // Evidência de webhook: MetaConnection do tenant (lastWebhookAt) OU qualquer
-  // conexão com webhook recente (fallback single-tenant via env).
   let lastWebhookAt: Date | null = null;
   let lastDeliveryAt: Date | null = null;
+
   try {
     const conn = await db.metaConnection.findFirst({
-      where: { OR: [{ tenantId }, { tenantId: 'shared' }] },
+      where: { tenantId },
       orderBy: { updatedAt: 'desc' },
-      select: { lastWebhookAt: true, lastDeliveryAt: true, connectionStatus: true },
+      select: { lastWebhookAt: true, lastDeliveryAt: true },
     });
     if (conn) {
       lastWebhookAt = conn.lastWebhookAt;
@@ -89,20 +84,27 @@ export async function getMetaHealth(tenantId: string, forceRefresh = false): Pro
     state = 'CONNECTED';
   } else if (lastWebhookAt !== null) {
     state = 'DISCONNECTED';
-    reason = 'Sem webhook nas últimas 24h — verificar assinatura do webhook na Meta';
+    reason = 'Sem webhook nas últimas 24h — verificar assinatura e entrega na Meta';
   } else {
     state = 'PENDING';
     reason = 'Credenciais configuradas, aguardando primeiro webhook da Meta';
   }
 
-  // Verificação de reachability Graph API — leve, com TTL, só se habilitado.
+  // Não chamamos a Graph API se a integração está desligada.
+  // Quando ligada, validamos o próprio phone_number_id com o token configurado.
   let graphReachable: boolean | null = null;
-  if (META_CONNECT_ENABLED && credentialsConfigured && state !== 'NOT_CONFIGURED') {
-    try {
-      const res = await fetch(`https://graph.facebook.com/debug_token`, { method: 'HEAD' });
-      graphReachable = res.status < 500;
-    } catch {
-      graphReachable = false;
+  if (META_CONNECT_ENABLED && credentialsConfigured && phoneNumberConfigured) {
+    const graph = await metaGraphFetch<{ id?: string }>({
+      path: META_PHONE_NUMBER_ID,
+      method: 'GET',
+      query: { fields: 'id' },
+      timeoutMs: 10_000,
+    });
+    graphReachable = graph.ok;
+
+    if (!graph.ok && state === 'CONNECTED') {
+      state = 'ERROR';
+      reason = `Graph API não confirmou o phone_number_id (${graph.error ?? 'erro desconhecido'})`;
     }
   }
 
@@ -123,20 +125,18 @@ export async function getMetaHealth(tenantId: string, forceRefresh = false): Pro
 
   healthCache.set(tenantId, { result, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
 
-  // Persistir lastHealthCheckAt (best-effort, non-fatal)
   try {
     await db.metaConnection.updateMany({
-      where: { OR: [{ tenantId }, { tenantId: 'shared' }] },
+      where: { tenantId },
       data: { lastHealthCheckAt: result.checks.lastHealthCheckAt },
     });
   } catch {
-    // non-fatal
+    // Health persistence é best-effort; nunca derruba o DDC.
   }
 
   return result;
 }
 
-/** Invalida cache (ex: após webhook recebido). */
 export function invalidateMetaHealthCache(tenantId: string): void {
   healthCache.delete(tenantId);
 }
