@@ -3,16 +3,16 @@ import { getEffectivePlan } from '@/lib/plan-resolver';
 import { estimateMetaCost, isCustomerServiceWindowOpen as isServiceWindowOpen, getServiceWindowRemainingHours } from '@/lib/meta/meta-rate-card';
 import { MetaPricingCategory, normalizeMetaPricingCategory } from '@/lib/meta/meta-types';
 
-// ==============================================================================
+// ============================================================================
 // ZÉLLA — Meta Cost Guard
-// ==============================================================================
+// ============================================================================
 // Meta aceitou o envio ≠ Meta cobrou.
-// `pricing.billable` do webhook é a autoridade sobre cobrança.
+// pricing.billable do webhook é a autoridade sobre cobrança.
 // Rate card sem valor monetário da Meta é somente referência/estimativa.
-// `costUsd` é legado: acompanha o valor da linha e deve ser lido junto com
-// `currency`; nunca aplicar câmbio fixo nem interpretar BRL como USD.
-// UNKNOWN nunca recebe preço por suposição.
-// ==============================================================================
+// IMPORTANTE: costUsd é legado e só recebe valores cuja currency é USD.
+// Valores BRL ficam em rate + currency até existir um ledger monetário nativo.
+// Nunca aplicar câmbio fixo nem interpretar BRL como USD.
+// ============================================================================
 
 const META_COST_ENABLED = (process.env.META_COST_TRACKING_ENABLED ?? process.env.META_COST_ENABLED ?? 'true').toLowerCase() !== 'false';
 const LEGACY_META_COST_PER_MSG_USD = Number(process.env.META_COST_PER_SERVICE_MSG || '0.0068');
@@ -38,6 +38,10 @@ function mapMessageTypeToCategory(messageType: MetaMessageType, override?: MetaP
   return 'service';
 }
 
+function isUsd(currency: string | null | undefined): boolean {
+  return (currency ?? '').toUpperCase() === 'USD';
+}
+
 export async function recordMetaCost(entry: MetaCostEntry): Promise<void> {
   if (!META_COST_ENABLED) return;
   try {
@@ -53,8 +57,8 @@ export async function recordMetaCost(entry: MetaCostEntry): Promise<void> {
     }
 
     const estimate = estimateMetaCost({ market: 'BR', category, withinServiceWindow });
-    const cost = estimate?.billable ? estimate.cost : 0;
-    const currency = entry.currency ?? estimate?.currency ?? 'BRL';
+    const amount = estimate?.billable ? estimate.cost : 0;
+    const currency = entry.currency ?? estimate?.currency ?? null;
     const rate = estimate?.billable ? estimate.cost : null;
 
     await db.metaCostLog.create({
@@ -63,7 +67,8 @@ export async function recordMetaCost(entry: MetaCostEntry): Promise<void> {
         conversationId: entry.conversationId,
         messageId: entry.messageId ?? null,
         guestId: entry.guestId ?? null,
-        costUsd: cost,
+        // Legacy field: only USD. BRL is preserved in rate + currency.
+        costUsd: isUsd(currency) ? amount : 0,
         messageType: entry.messageType,
         intent: entry.intent ?? null,
         category,
@@ -75,6 +80,7 @@ export async function recordMetaCost(entry: MetaCostEntry): Promise<void> {
           estimated: true,
           pricingSource: 'rate_card',
           withinServiceWindow,
+          amount,
           amountCurrency: currency,
           ...(estimate === null ? { noRateCardEntry: true } : {}),
           ...(entry.metadata ?? {}),
@@ -138,6 +144,8 @@ export async function recordMetaPricingFromStatus(input: MetaPricingStatusInput)
       pricingValueSource: amountEstimated ? 'rate_card_reference' : 'meta_payload_or_zero',
       pricingModel: input.pricingModel ?? null,
       market,
+      amount,
+      amountCurrency: currency,
       ...(input.metadata ?? {}),
     });
 
@@ -148,7 +156,8 @@ export async function recordMetaPricingFromStatus(input: MetaPricingStatusInput)
       rate,
       source: 'meta_webhook_pricing' as const,
       metadata,
-      costUsd: amount,
+      // Legacy field remains strictly USD. BRL amount is carried by rate/currency.
+      costUsd: isUsd(currency) ? amount : 0,
     };
 
     if (existing) {
@@ -175,7 +184,7 @@ export async function getMetaCostSummary(tenantId: string, startDate: Date, endD
   try {
     const logs = await db.metaCostLog.findMany({
       where: { tenantId, createdAt: { gte: startDate, lte: endDate } },
-      select: { costUsd: true, messageType: true, intent: true, currency: true, category: true, source: true, createdAt: true },
+      select: { costUsd: true, messageType: true, intent: true, currency: true, rate: true, category: true, source: true, createdAt: true },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -186,15 +195,18 @@ export async function getMetaCostSummary(tenantId: string, startDate: Date, endD
 
     for (const log of logs) {
       const currency = (log.currency ?? 'USD').toUpperCase();
-      totalByCurrency[currency] = (totalByCurrency[currency] ?? 0) + log.costUsd;
-      bySource[log.source] = (bySource[log.source] ?? 0) + log.costUsd;
-      if (currency === 'BRL') totalBrl += log.costUsd;
-      else if (currency === 'USD') totalUsd += log.costUsd;
+      const amount = currency === 'USD' ? log.costUsd : (log.rate ?? 0);
+      totalByCurrency[currency] = (totalByCurrency[currency] ?? 0) + amount;
+      bySource[log.source] = (bySource[log.source] ?? 0) + amount;
+      if (currency === 'BRL') totalBrl += amount;
+      else if (currency === 'USD') totalUsd += amount;
     }
 
     const byIntent = logs.reduce((acc, log) => {
       const key = log.intent || 'desconhecido';
-      acc[key] = (acc[key] || 0) + log.costUsd;
+      const currency = (log.currency ?? 'USD').toUpperCase();
+      const amount = currency === 'USD' ? log.costUsd : (log.rate ?? 0);
+      acc[key] = (acc[key] || 0) + amount;
       return acc;
     }, {} as Record<string, number>);
 
@@ -207,6 +219,8 @@ export async function getMetaCostSummary(tenantId: string, startDate: Date, endD
       estimatedCost: bySource.send_accepted ?? 0,
       currencyNote: 'totals_are_per_recorded_currency_no_fixed_fx' as const,
       messageCount: logs.length,
+      // This is an arithmetic average of mixed recorded currencies and must not
+      // be treated as a monetary amount. Prefer totalByCurrency for finance.
       avgCostPerMsg: logs.length ? (totalUsd + totalBrl) / logs.length : 0,
       byIntent,
       period: { start: startDate, end: endDate },
@@ -273,11 +287,7 @@ export function getServiceWindowRemaining(lastGuestMessageAt?: Date | null): num
   return getServiceWindowRemainingHours(lastGuestMessageAt);
 }
 
-/**
- * O budget legado é em USD. Registros em BRL NÃO são convertidos nem somados
- * ao orçamento USD. Isso evita bloquear/autorizar por um câmbio inventado.
- * Até existir budget por moeda no produto, BRL fica em observabilidade.
- */
+/** O budget legado é em USD. BRL não é convertido nem somado ao budget USD. */
 export async function checkMetaBudget(tenantId: string): Promise<BudgetResult> {
   if (BUDGET_OVERRIDE) return { allowed: true, currentSpendUsd: 0, budgetLimitUsd: Infinity, usagePercent: 0, budgetCurrency: 'USD' };
 
@@ -291,26 +301,11 @@ export async function checkMetaBudget(tenantId: string): Promise<BudgetResult> {
       where: { tenantId, createdAt: { gte: start, lte: end } },
       select: { costUsd: true, currency: true },
     });
-    const hasNonUsdBilling = logs.some((log) => (log.currency ?? 'USD').toUpperCase() !== 'USD' && log.costUsd > 0);
     const currentSpendUsd = logs
       .filter((log) => (log.currency ?? 'USD').toUpperCase() === 'USD')
       .reduce((sum, log) => sum + log.costUsd, 0);
     const plan: PlanKey = await getEffectivePlan(tenantId);
     const budgetLimitUsd = BUDGET_LIMITS[plan] ?? BUDGET_LIMITS.gratuito;
-
-    if (hasNonUsdBilling) {
-      const result: BudgetResult = {
-        allowed: true,
-        reason: 'BUDGET_USD_NOT_APPLIED_TO_NON_USD_BILLING',
-        currentSpendUsd,
-        budgetLimitUsd,
-        usagePercent: budgetLimitUsd > 0 ? Math.round((currentSpendUsd / budgetLimitUsd) * 100) : 0,
-        budgetCurrency: 'USD',
-      };
-      budgetCache.set(cacheKey, { result, expiresAt: Date.now() + CACHE_TTL_MS });
-      return result;
-    }
-
     const usagePercent = budgetLimitUsd > 0 ? Math.round((currentSpendUsd / budgetLimitUsd) * 100) : 0;
     const overBudget = currentSpendUsd >= budgetLimitUsd;
     const result: BudgetResult = overBudget
@@ -326,10 +321,7 @@ export async function checkMetaBudget(tenantId: string): Promise<BudgetResult> {
   }
 }
 
-// ─── Savings estimator ───────────────────────────────────────────────────────
-
-// NÃO é verdade financeira: este multiplicador é somente uma hipótese para
-// comparar cenários de bundling. Ele nunca deve ser usado como fatura Meta.
+// Estimativa de cenário, não verdade financeira.
 const UNBUNDLED_MULTIPLIER = 2.5;
 
 export async function getMetaCostSavings(tenantId: string): Promise<{
@@ -344,10 +336,11 @@ export async function getMetaCostSavings(tenantId: string): Promise<{
 }> {
   try {
     const { start, end } = getCurrentMonthRange();
+    // Savings legacy uses USD only; never mix BRL into a USD scenario.
     const [authoritative, estimated, allRows] = await Promise.all([
-      db.metaCostLog.aggregate({ _sum: { costUsd: true }, where: { tenantId, createdAt: { gte: start, lte: end }, source: 'meta_webhook_pricing' } }),
-      db.metaCostLog.aggregate({ _sum: { costUsd: true }, where: { tenantId, createdAt: { gte: start, lte: end }, source: 'send_accepted' } }),
-      db.metaCostLog.aggregate({ _sum: { costUsd: true }, _count: true, where: { tenantId, createdAt: { gte: start, lte: end } } }),
+      db.metaCostLog.aggregate({ _sum: { costUsd: true }, where: { tenantId, createdAt: { gte: start, lte: end }, source: 'meta_webhook_pricing', currency: 'USD' } }),
+      db.metaCostLog.aggregate({ _sum: { costUsd: true }, where: { tenantId, createdAt: { gte: start, lte: end }, source: 'send_accepted', currency: 'USD' } }),
+      db.metaCostLog.aggregate({ _sum: { costUsd: true }, _count: true, where: { tenantId, createdAt: { gte: start, lte: end }, currency: 'USD' } }),
     ]);
     const actualCost = authoritative._sum.costUsd ?? 0;
     const estimatedCost = estimated._sum.costUsd ?? 0;
@@ -360,7 +353,7 @@ export async function getMetaCostSavings(tenantId: string): Promise<{
       actualCost,
       estimatedCost,
       estimated: true,
-      costSourceNote: 'authoritative = billable Meta records; monetary amount may still be rate-card estimated when Meta status has no amount. Always inspect currency.',
+      costSourceNote: 'USD-only savings estimate; BRL records are excluded until a native multi-currency ledger exists.',
       messagesWithoutBundler,
       estimatedWithoutZella,
       savedByZella,
