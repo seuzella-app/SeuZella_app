@@ -1,18 +1,13 @@
 // ==============================================================================
 // ZÉLLA — Meta Events: Idempotência + Telemetria (Fase 5 / Fase 24)
 // ==============================================================================
-// Todo evento externo Meta é idempotente: message_id, status e webhook event
-// NUNCA são processados duas vezes.
-//
-// Mecanismo: tabela MetaWebhookEvent (Prisma) com unique(eventKey).
-// Telemetria: REUTILIZA o Telemetry Bridge existente (recordTelemetryEvent) —
-// NÃO criamos um segundo sistema de telemetria.
+// Eventos externos Meta são idempotentes, mas STATUS outbound precisa ser
+// idempotente por (wamid + status), porque a mesma mensagem recebe sent,
+// delivered, read e/ou failed em eventos distintos.
 // ==============================================================================
 
 import { db } from '@/lib/db';
 import { recordTelemetryEvent } from '@/lib/cerebro/telemetry-bridge';
-
-// ── Idempotência ─────────────────────────────────────────────────────────────
 
 export type MetaEventKind =
   | 'inbound_message'
@@ -20,24 +15,24 @@ export type MetaEventKind =
   | 'webhook_entry'
   | 'pricing_event';
 
-export function buildMetaEventKey(kind: MetaEventKind, externalEventId: string): string {
-  return `meta:${kind}:${externalEventId}`;
+export function buildMetaEventKey(kind: MetaEventKind, externalEventId: string, discriminator?: string): string {
+  return discriminator
+    ? `meta:${kind}:${externalEventId}:${discriminator}`
+    : `meta:${kind}:${externalEventId}`;
 }
 
 export interface MetaEventClaimResult {
-  /** true = este processo é o DONO do evento e deve processá-lo. */
   claimed: boolean;
-  /** true = evento já foi processado anteriormente (idempotência). */
   alreadyProcessed: boolean;
 }
 
 /**
- * Toma posse idempotente de um evento externo Meta.
- * - Primeira vez: cria registro e retorna claimed=true.
- * - Repetição: retorna claimed=false, alreadyProcessed=true.
- * - Erro de DB: fail-open CONTROLADO (claimed=true) para não bloquear o
- *   webhook — a Meta faz retry e o pipeline downstream é idempotente por
- *   messageId. O erro é logado com severidade critical via telemetria.
+ * Claim atômico por chave de evento.
+ * Para outbound_status, metadata.status faz parte da identidade do evento:
+ * um wamid pode legitimamente receber vários statuses diferentes.
+ * Em erro de DB NÃO processamos às cegas: falhar fechado deixa a Meta retryar
+ * o webhook, evitando duplicação silenciosa quando a idempotência não pôde
+ * ser garantida.
  */
 export async function claimMetaEvent(
   kind: MetaEventKind,
@@ -45,16 +40,17 @@ export async function claimMetaEvent(
   metadata: Record<string, unknown> = {}
 ): Promise<MetaEventClaimResult> {
   if (!externalEventId) return { claimed: false, alreadyProcessed: false };
-  const eventKey = buildMetaEventKey(kind, externalEventId);
+  const discriminator = kind === 'outbound_status' && typeof metadata.status === 'string'
+    ? metadata.status
+    : undefined;
+  const eventKey = buildMetaEventKey(kind, externalEventId, discriminator);
 
   try {
     const existing = await db.metaWebhookEvent.findUnique({
       where: { eventKey },
       select: { id: true, status: true },
     });
-    if (existing) {
-      return { claimed: false, alreadyProcessed: true };
-    }
+    if (existing) return { claimed: false, alreadyProcessed: true };
 
     await db.metaWebhookEvent.create({
       data: {
@@ -67,30 +63,28 @@ export async function claimMetaEvent(
     });
     return { claimed: true, alreadyProcessed: false };
   } catch (error) {
-    // Corrida benigna: outro worker criou primeiro (unique violation) → duplicado.
-    if (isUniqueViolation(error)) {
-      return { claimed: false, alreadyProcessed: true };
-    }
-    console.error('[meta-events] claimMetaEvent DB error (fail-open):', error);
+    if (isUniqueViolation(error)) return { claimed: false, alreadyProcessed: true };
+    console.error('[meta-events] claimMetaEvent DB error (fail-closed):', error);
     recordTelemetryEvent({
       type: 'error',
       name: 'meta.idempotency.db_error',
       module: 'meta',
       severity: 'critical',
-      message: 'MetaWebhookEvent claim falhou — fail-open controlado',
+      message: 'MetaWebhookEvent claim falhou — webhook deve ser retryado',
       context: { eventKey },
     });
-    return { claimed: true, alreadyProcessed: false };
+    return { claimed: false, alreadyProcessed: false };
   }
 }
 
-/** Marca evento como processado (outcome do pipeline). */
+/** Marca o evento como processado. Para status, fecha somente o status pedido. */
 export async function completeMetaEvent(
   kind: MetaEventKind,
   externalEventId: string,
-  outcome: 'processed' | 'skipped' | 'failed' = 'processed'
+  outcome: 'processed' | 'skipped' | 'failed' = 'processed',
+  discriminator?: string
 ): Promise<void> {
-  const eventKey = buildMetaEventKey(kind, externalEventId);
+  const eventKey = buildMetaEventKey(kind, externalEventId, discriminator);
   try {
     await db.metaWebhookEvent.updateMany({
       where: { eventKey },
@@ -111,8 +105,6 @@ function isUniqueViolation(error: unknown): boolean {
   );
 }
 
-// ── Telemetria (Fase 24 — reusa pipeline existente) ──────────────────────────
-
 export type MetaTelemetryEventName =
   | 'meta.connection.changed'
   | 'meta.webhook.received'
@@ -125,10 +117,6 @@ export type MetaTelemetryEventName =
   | 'meta.attribution.detected'
   | 'meta.learning.outcome';
 
-/**
- * Registra um evento meta.* no pipeline de telemetria EXISTENTE.
- * recordTelemetryEvent é síncrona (persistência interna fire-and-forget).
- */
 export function recordMetaTelemetry(input: {
   name: MetaTelemetryEventName;
   tenantId?: string;
