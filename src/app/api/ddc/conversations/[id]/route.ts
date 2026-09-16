@@ -4,6 +4,7 @@ import { resolveTenantId } from '@/lib/ddc/ddc-mapper';
 import { createError, apiSuccess } from '@/lib/error-handler';
 import { apiRatelimit } from '@/lib/rate-limit';
 import { learnFromConversation } from '@/lib/brain/conversation-learner';
+import { recordResolvedConversationMetaLearning } from '@/lib/meta/meta-learning-bridge';
 
 async function guard(): Promise<string | NextResponse> {
   const tenantId = await resolveTenantId();
@@ -64,11 +65,14 @@ export async function PATCH(
       },
     });
 
-    // Disparar aprendizado quando o dono marca conversa como 'resolved'
-    // Isso ativa o loop Recognize → Capture → Reuse do cérebro
-    if (status === 'resolved') {
+    // O ConversationLearner continua sendo o dono da extração/promoção.
+    // O bridge Meta apenas registra contexto/outcome explícito para o ZéLLM.
+    if (status === 'resolved' || status === 'escalated') {
       learnFromConversation(g, id).catch(err =>
-        console.error('[DDC PATCH] Background learning on resolved:', err)
+        console.error('[DDC PATCH] Background learning on status change:', err)
+      );
+      recordResolvedConversationMetaLearning(g, id, status).catch(err =>
+        console.error('[DDC PATCH] Meta/ZéLLM learning bridge failed:', err)
       );
     }
 
