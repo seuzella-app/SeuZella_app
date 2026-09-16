@@ -66,14 +66,16 @@ export async function claimMetaEvent(
       message: 'MetaWebhookEvent claim falhou — webhook deve ser retryado',
       context: { eventKey },
     });
-    return { claimed: false, alreadyProcessed: false };
+    // Não devolver 200 ao webhook depois de falhar o mecanismo de idempotência.
+    // Propagar o erro faz o handler responder 5xx e permite retry da Meta.
+    throw error;
   }
 }
 
 /**
  * Marca o evento como processado. O caller atual do webhook não passa o
  * discriminador; nesse caso, para outbound_status, atualizamos somente os
- * registros ainda em processing desse wamid. Isso evita deixar claims presos.
+ * registros ainda em processing desse wamid.
  */
 export async function completeMetaEvent(
   kind: MetaEventKind,
