@@ -19,9 +19,16 @@ describe('Meta Wave 4 — idempotência por status', () => {
     expect(source).toContain('return { claimed: false, alreadyProcessed: false }');
   });
 
-  it('completeMetaEvent fecha claims de status que ficaram em processing', () => {
+  it('claims travados podem ser recuperados somente após janela stale', () => {
+    expect(source).toContain('STALE_PROCESSING_MS');
+    expect(source).toContain('processing_reclaimed');
+    expect(source).toContain('createdAt: existing.createdAt');
+    expect(source).toContain('reclaimed.count === 1');
+  });
+
+  it('completeMetaEvent fecha claims de status em processing ou reclaimed', () => {
     expect(source).toContain("kind === 'outbound_status' && !discriminator");
-    expect(source).toContain("status: 'processing'");
+    expect(source).toContain("status: { in: ['processing', 'processing_reclaimed'] }");
   });
 });
 
