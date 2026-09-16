@@ -26,14 +26,7 @@ export interface MetaEventClaimResult {
   alreadyProcessed: boolean;
 }
 
-/**
- * Claim atômico por chave de evento.
- * Para outbound_status, metadata.status faz parte da identidade do evento:
- * um wamid pode legitimamente receber vários statuses diferentes.
- * Em erro de DB NÃO processamos às cegas: falhar fechado deixa a Meta retryar
- * o webhook, evitando duplicação silenciosa quando a idempotência não pôde
- * ser garantida.
- */
+/** Claim atômico por chave. Outbound status usa metadata.status como discriminador. */
 export async function claimMetaEvent(
   kind: MetaEventKind,
   externalEventId: string,
@@ -77,15 +70,27 @@ export async function claimMetaEvent(
   }
 }
 
-/** Marca o evento como processado. Para status, fecha somente o status pedido. */
+/**
+ * Marca o evento como processado. O caller atual do webhook não passa o
+ * discriminador; nesse caso, para outbound_status, atualizamos somente os
+ * registros ainda em processing desse wamid. Isso evita deixar claims presos.
+ */
 export async function completeMetaEvent(
   kind: MetaEventKind,
   externalEventId: string,
   outcome: 'processed' | 'skipped' | 'failed' = 'processed',
   discriminator?: string
 ): Promise<void> {
-  const eventKey = buildMetaEventKey(kind, externalEventId, discriminator);
   try {
+    if (kind === 'outbound_status' && !discriminator) {
+      await db.metaWebhookEvent.updateMany({
+        where: { kind, externalEventId, status: 'processing' },
+        data: { status: outcome, processedAt: new Date() },
+      });
+      return;
+    }
+
+    const eventKey = buildMetaEventKey(kind, externalEventId, discriminator);
     await db.metaWebhookEvent.updateMany({
       where: { eventKey },
       data: { status: outcome, processedAt: new Date() },
