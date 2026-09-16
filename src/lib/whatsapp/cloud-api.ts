@@ -39,16 +39,35 @@ function endpoint(): string {
   return `https://graph.facebook.com/${META_GRAPH_API_VERSION}/${META_PHONE_NUMBER_ID}/messages`;
 }
 
+// FASE 02B (FRENTE 23): timeout obrigatório — antes o fetch podia pendurar
+// indefinidamente (P2-6). Semântica idêntica ao meta-client (15s).
+const CLOUD_API_TIMEOUT_MS = 15_000;
+
 async function postMessage(payload: Record<string, unknown>): Promise<WhatsAppMessageResponse> {
   assertConfigured();
-  const response = await fetch(endpoint(), {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${META_ACCESS_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ messaging_product: 'whatsapp', ...payload }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CLOUD_API_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(endpoint(), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${META_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ messaging_product: 'whatsapp', ...payload }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    // SEM retry (POST pode ter chegado à Meta — retry ciego duplicaria mensagem).
+    // Erros de rede/timeout são distinguidos e NÃO ecoam credenciais.
+    if (controller.signal.aborted) {
+      throw new Error('WHATSAPP_SEND_TIMEOUT');
+    }
+    throw new Error('WHATSAPP_SEND_NETWORK_ERROR');
+  } finally {
+    clearTimeout(timer);
+  }
 
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(`WHATSAPP_SEND_FAILED_${response.status}`);

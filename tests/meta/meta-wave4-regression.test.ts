@@ -45,7 +45,11 @@ describe('Meta Wave 4 — moeda e legado costUsd', () => {
   });
 
   it('budget USD considera somente registros USD', () => {
-    expect(source).toContain(".filter((log) => (log.currency ?? 'USD').toUpperCase() === 'USD')");
+    // FASE 02B: o budget virou multi-moeda (for-loop por moeda). O gasto USD
+    // continua somando SOMENTE costUsd de registros USD — BRL nunca entra.
+    expect(source).toContain("if (currency === 'USD') currentSpendUsd += log.costUsd;");
+    expect(source).toContain("else if (currency === 'BRL') currentSpendBrl += log.rate ?? 0;");
+    expect(source).not.toContain('currentSpendUsd += log.rate');
   });
 
   it('savings não mistura BRL em cenário USD', () => {

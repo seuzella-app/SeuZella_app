@@ -710,7 +710,9 @@ export default function DDCDashboardContent() {
             <div className="lg:col-span-2 space-y-5">
               <motion.div variants={fadeIn} initial="hidden" animate="visible">
                 <RevenueMetrics
-                  metrics={adaptRevenueMetrics(metrics) || mockRevenueMetrics}
+                  // FASE 02B (FRENTE 34): períodos reais quando já carregados
+                  // (analytics fetch); sem dados = zeros honestos (nunca ×4.5/×18/×25).
+                  metrics={adaptRevenueMetrics(metrics, { week: analyticsData.week, month: analyticsData.month }) || mockRevenueMetrics}
                   deliveriesData={deliveries}
                   aiStatusData={aiStatus}
                   occupancyRate={metrics?.today ? undefined : undefined}

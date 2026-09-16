@@ -2,23 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
 
-// Cron: Snapshot performance metrics every 6 hours
-// Triggered by Vercel Cron: 0 */6 * * *
+// Cron: Snapshot performance metrics (daily, executed by Vercel Cron 0 6 * * *)
 //
-// Iterates over ALL active paid tenants and creates real performance snapshots
-// from actual DB data. Falls back to estimated values if no real data exists.
+// Semântica dos snapshots: INCREMENTO DIÁRIO (janela = hoje, 00:00 → agora).
+// Cada linha PerformanceSnapshot representa o dia dela — NUNCA um acumulado
+// month-to-date. Consumidores (ex.: /api/ddc/metrics) SOMAM os dias para obter
+// totais semanais/mensais; somar linhas cumulativas multiplicaria a receita
+// (P0 corrigido na FASE 02B: snapshot MTD somado N×).
 //
-// Schema: PerformanceSnapshot uses @@unique([tenantId, date]) so each tenant
-// gets its own daily snapshot.
+// Honestidade de dados: NENHUM valor padrão fabricado. Métrica sem dados
+// reais = 0 (FASE 02B — removeu 12 / 4.2 / 65 / 85 / 1.5 sintéticos).
+//
+// Receita: apenas reservas em status de receita real
+// (confirmed/checked_in/checked_out) — pending/cancelled NÃO são receita.
+
+const REVENUE_BOOKING_STATUSES = ['confirmed', 'checked_in', 'checked_out'] as const;
+
+function startOfToday(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 export async function GET(request: NextRequest) {
   const auth = await verifyCronAuth(request, 'reports:read');
   if (!auth.ok) return auth.response!;
 
   try {
     const today = new Date().toISOString().split('T')[0];
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    // Janela DIÁRIA (incremento do dia) — não month-to-date (ver header).
+    const windowStart = startOfToday();
 
     // Find ALL active paid tenants (not just the first one)
     const tenants = await db.tenant.findMany({
@@ -40,31 +52,31 @@ export async function GET(request: NextRequest) {
       try {
         // ── Gather real metrics for this tenant ──
         const [activityLogs, bookings, conversations, totalRooms] = await Promise.all([
-          // AI Activity logs for response time
+          // AI Activity logs for response time (today only — daily increment)
           db.aIActivityLog.findMany({
             where: {
               tenantId: tenant.id,
               type: 'message',
               duration: { not: null },
-              timestamp: { gte: startOfMonth },
+              timestamp: { gte: windowStart },
             },
             select: { duration: true },
           }),
 
-          // Bookings this month
+          // Bookings created today (daily increment)
           db.booking.findMany({
             where: {
               tenantId: tenant.id,
-              createdAt: { gte: startOfMonth },
+              createdAt: { gte: windowStart },
             },
             select: { totalValue: true, status: true },
           }),
 
-          // Conversations this month
+          // Conversations started today (daily increment)
           db.conversationLog.findMany({
             where: {
               tenantId: tenant.id,
-              createdAt: { gte: startOfMonth },
+              createdAt: { gte: windowStart },
             },
             select: { aiConfidence: true, status: true },
           }),
@@ -77,21 +89,25 @@ export async function GET(request: NextRequest) {
           }),
         ]);
 
-        // Calculate metrics from real data
+        // Calculate metrics from real data — SEM defaults fabricados
         const aiResponseTime = activityLogs.length > 0
           ? activityLogs.reduce((sum, log) => sum + (log.duration || 0), 0) / activityLogs.length / 1000
-          : 1.5;
+          : 0;
 
-        const totalRevenue = bookings.reduce((sum, b) => sum + b.totalValue, 0);
+        // Receita = apenas reservas em status de receita real (pending/cancelled
+        // NÃO são receita — corrige inflação persistida, FASE 02B P1-6/P2 do cron).
+        const totalRevenue = bookings
+          .filter(b => (REVENUE_BOOKING_STATUSES as readonly string[]).includes(b.status))
+          .reduce((sum, b) => sum + b.totalValue, 0);
         const totalBookings = bookings.filter(b =>
-          ['confirmed', 'checked_in', 'checked_out'].includes(b.status)
+          (REVENUE_BOOKING_STATUSES as readonly string[]).includes(b.status)
         ).length;
 
         const aiConversations = conversations.length;
         const resolvedByAi = conversations.filter(c => c.status === 'active').length;
         const aiAutonomy = conversations.length > 0
           ? Math.round((resolvedByAi / conversations.length) * 100)
-          : 85;
+          : 0;
 
         const conversionRate = conversations.length > 0 && totalBookings > 0
           ? Math.round((totalBookings / conversations.length) * 100 * 10) / 10
@@ -107,20 +123,21 @@ export async function GET(request: NextRequest) {
 
         const guestSatisfaction = avgConfidence > 0
           ? Math.round(Math.min(5, (avgConfidence / 100) * 5) * 10) / 10
-          : 4.2;
+          : 0;
 
         const metrics = {
           tenantId: tenant.id,
           date: today,
           aiResponseTime: Math.round(aiResponseTime * 10) / 10,
-          conversionRate: conversionRate || 12,
-          guestSatisfaction: guestSatisfaction || 4.2,
-          occupancyRate: occupancyRate || 65,
+          // FASE 02B: sem defaults sintéticos — sem dados reais = 0 (honesto).
+          conversionRate,
+          guestSatisfaction,
+          occupancyRate,
           revenueGrowth: 0,
-          aiAutonomy: aiAutonomy || 85,
-          totalRevenue: totalRevenue || 0,
-          totalBookings: totalBookings || 0,
-          aiConversations: aiConversations || 0,
+          aiAutonomy,
+          totalRevenue,
+          totalBookings,
+          aiConversations,
         };
 
         await db.performanceSnapshot.upsert({

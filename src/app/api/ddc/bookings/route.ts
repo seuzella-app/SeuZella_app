@@ -6,16 +6,14 @@ import { apiRatelimit } from '@/lib/rate-limit';
 import { bridgeReservationEvent } from '@/lib/notifications/bridges';
 import { withAdvisoryLock } from '@/lib/db/concurrency';
 
-const demoBookings = [
-  { id: 'demo-bk-1', guestId: 'demo-g-1', roomId: 'Suíte Vista Mar', checkIn: new Date(Date.now() + 86400000).toISOString(), checkOut: new Date(Date.now() + 3 * 86400000).toISOString(), total: 700.00, status: 'confirmed' as const, paymentStatus: 'paid' as const, propertyId: 'demo', guest: { id: 'demo-g-1', name: 'Carlos Mendes', phone: '5541988776655' }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'demo-bk-2', guestId: 'demo-g-2', roomId: 'Chalé Jardim', checkIn: new Date(Date.now() + 2 * 86400000).toISOString(), checkOut: new Date(Date.now() + 5 * 86400000).toISOString(), total: 1500.00, status: 'confirmed' as const, paymentStatus: 'paid' as const, propertyId: 'demo', guest: { id: 'demo-g-2', name: 'Maria Silva', phone: '5511977665544' }, createdAt: new Date(Date.now() - 3600000).toISOString(), updatedAt: new Date(Date.now() - 3600000).toISOString() },
-  { id: 'demo-bk-3', guestId: 'demo-g-3', roomId: 'Suíte Standard', checkIn: new Date(Date.now() + 5 * 86400000).toISOString(), checkOut: new Date(Date.now() + 7 * 86400000).toISOString(), total: 500.00, status: 'pending' as const, paymentStatus: 'pending' as const, propertyId: 'demo', guest: { id: 'demo-g-3', name: 'João Santos', phone: '5521966554433' }, createdAt: new Date(Date.now() - 7200000).toISOString(), updatedAt: new Date(Date.now() - 7200000).toISOString() },
-];
-
 export async function GET(request: NextRequest) {
   try {
     const dbAvailable = await isDatabaseAvailable();
-    if (!dbAvailable) return NextResponse.json({ success: true, data: { items: demoBookings, total: demoBookings.length, page: 1, limit: demoBookings.length, totalPages: 1 } });
+    if (!dbAvailable) {
+      // FASE 02B (FRENTE 10/55): DB indisponível = lista vazia honesta + flag
+      // (antes retornava demoBookings — reservas fictícias R$700/1500/500).
+      return NextResponse.json({ success: true, data: { items: [], total: 0, page: 1, limit: 0, totalPages: 0 }, meta: { source: 'database_unavailable', degraded: true } });
+    }
     const tenantId = await resolveTenantId();
     if (!tenantId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { success } = await apiRatelimit.limit(tenantId);

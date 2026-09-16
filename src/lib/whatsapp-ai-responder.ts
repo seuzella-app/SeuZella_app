@@ -10,6 +10,7 @@ import { detectUpsellIntent, generateUpsellMessage } from '@/lib/billing/upsell'
 import { detectCheckoutIntent, generateCheckoutConfirmation, handleCheckoutEvent } from '@/lib/housekeeping';
 import { extractGuestDataFromMessage, generateFNRHCollectionMessage } from '@/lib/fnrh';
 import { WhatsappPersonaLearner } from './brain/whatsapp-persona-learner';
+import { recordTelemetryEvent } from './cerebro/telemetry-bridge';
 
 /**
  * Global helper to notify active SSE DDC connections about new message events.
@@ -137,13 +138,18 @@ export async function processIncomingMessage(params: ProcessParams): Promise<Pro
     }
   }
 
-  // 2. Fetch or create an active ConversationLog
+  // 2. Fetch or create an active ConversationLog.
+  // FASE 02B (FRENTE 01): o lookup considera também conversas 'escalated'
+  // (latest-wins). Antes, conversa em handover ficava invisível → a próxima
+  // mensagem criava conversa nova 'active' e a IA voltava a responder em
+  // paralelo ao humano (P1-2 da FASE 02).
   let conversation = await db.conversationLog.findFirst({
     where: {
       tenantId,
       guestId: guest.id,
-      status: 'active',
+      status: { in: ['active', 'escalated'] },
     },
+    orderBy: { lastUpdate: 'desc' },
   });
 
   if (!conversation) {
@@ -213,6 +219,51 @@ export async function processIncomingMessage(params: ProcessParams): Promise<Pro
 
   // Notify DDC about the guest's message
   await broadcastConversationUpdate(tenantId, conversationId);
+
+  // 3.1. HUMAN HANDOVER GUARD (FASE 02B — FRENTE 01):
+  // Política explícita de handover: ACTIVE → ESCALATED → HUMAN CONTROL.
+  // Enquanto a conversa estiver ESCALATED, a IA NÃO RESPONDE.
+  // Ponto de inserção: APÓS salvar a mensagem (o humano a vê no DDC) e APÓS
+  // o intercept LGPD (opt-out continua válido durante handover), ANTES de
+  // qualquer custo (contexto/budget/quota/LLM/tarifa Meta).
+  if (conversation.status === 'escalated') {
+    console.log(`[Handover] Conversa ${conversation.id} em controle humano — IA suprimida (guest ${guest.id})`);
+    recordTelemetryEvent({
+      type: 'request',
+      name: 'handover.guest_message_suppressed',
+      module: 'whatsapp-handover',
+      severity: 'info',
+      message: 'Mensagem do hóspede recebida durante handover — IA suprimida',
+      tenantId,
+      context: { conversationId: conversation.id, guestId: guest.id },
+    });
+    await Promise.all([
+      db.notification.create({
+        data: {
+          tenantId,
+          title: `Hóspede respondeu durante handover — ${guest.name}`,
+          message: messageContent.length > 60 ? `${messageContent.substring(0, 60)}...` : messageContent,
+          type: 'escalation',
+          priority: 'high',
+          read: false,
+          actionLabel: 'Abrir conversa',
+          actionUrl: `/ddc?guest=${guest.id}`,
+        },
+      }),
+      db.aIActivityLog.create({
+        data: {
+          tenantId,
+          type: 'escalation',
+          message: 'Mensagem do hóspede durante handover — IA suprimida (controle humano ativo)',
+          status: 'success',
+          metadata: JSON.stringify({ conversationId: conversation.id, guestId: guest.id, suppressed: true }),
+        },
+      }),
+    ]);
+    // aiResponse vazio + metaCostRecord indefinido ⇒ o caller NÃO envia WhatsApp
+    // e NÃO registra custo Meta (route.ts envia apenas `if (result.aiResponse)`).
+    return { conversationId: conversation.id, aiResponse: '', guestId: guest.id, metaCostRecord: undefined };
+  }
 
   // 4. Load context dynamically from Prisma
   const [tenant, property, trainingPrompts, recentMessages] = await Promise.all([
@@ -637,6 +688,19 @@ Use estas expressões e tom naturalmente. NÃO mencione que isso foi aprendido.
       aiConfidence: confidencePct,
     },
   });
+
+  // FASE 02B (FRENTE 26): telemetria handover.started quando a IA transfere
+  if (nextStatus === 'escalated') {
+    recordTelemetryEvent({
+      type: 'request',
+      name: 'handover.started',
+      module: 'whatsapp-handover',
+      severity: 'warn',
+      message: 'IA transferiu a conversa para controle humano',
+      tenantId,
+      context: { conversationId, guestId: guest.id, confidencePct },
+    });
+  }
 
   // 9. Record activities and alerts
   const intentLog = cognitiveRes ? formatIntentLog({

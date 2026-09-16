@@ -9,6 +9,20 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  // FASE 02B (FRENTE 47): git-applier.ts usa process.cwd() (join(cwd, path),
+  // simpleGit(cwd)) — NFT não consegue restringir o traçado e inclui o projeto
+  // inteiro (.git, tests, docs, migrations) como dependência potencial da rota
+  // /api/zcc/ze-code/apply → infla o pico de memória do build (amplificador do
+  // OOM em runners pequenos). Exclusão limitada a ESTA rota (server-only).
+  outputFileTracingExcludes: {
+    '/api/zcc/ze-code/apply': [
+      './.git/**/*',
+      './tests/**/*',
+      './docs/**/*',
+      './prisma/migrations/**/*',
+      './coverage/**/*',
+    ],
+  },
   allowedDevOrigins: process.env.NODE_ENV === 'development' ? ['localhost', '127.0.0.1'] : undefined,
   typescript: {
     ignoreBuildErrors: false,

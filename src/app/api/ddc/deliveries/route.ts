@@ -56,58 +56,65 @@ interface DeliveriesData {
   };
 }
 
-// ── Demo Data ──────────────────────────────────────────────────────────────────
+// ── Honestidade de dados (FASE 02B — FRENTE 10/33/55) ─────────────────────────
+// NENHUM dado demo é retornado como se fosse real. Caminhos degradados
+// (DB indisponível / erro / sem sessão) retornam zeros + flags degraded/source.
+// Estatísticas do bundler continuam reais quando existirem (in-memory).
 
-const demoData: DeliveriesData = {
-  responseTime: {
-    avgSeconds: 6.2,
-    targetSeconds: 8,
-    withinTarget: true,
-  },
-  availabilityUptime: {
-    percentage: 99.7,
-    label: '24/7',
-  },
-  messageBundling: {
-    totalBundlesProcessed: 147,
-    totalMessagesProcessed: 382,
-    avgMessagesPerBundle: 2.6,
-    savingsRate: 64,
-    totalSavedBrl: 47.32,
-  },
-  oneShotResolution: {
-    totalOneShots: 89,
-    oneShotRate: 60.5,
-    example: {
-      guestName: 'Maria Silva',
-      intents: ['cotacao_reserva', 'preco_diaria', 'pagamento_pix'],
-      responsePreview:
-        'Olá Maria! 😊 A suíte Jardim está disponível: R$280/noite (2 diárias = R$560). Check-in 14h, checkout 12h. PIX: 12.345.678/0001-90 (Zélla Pousada). Qualquer dúvida, estou aqui!',
+function liveBundling(bundlerStats: ReturnType<typeof getBundlerStats>): DeliveriesData['messageBundling'] {
+  return bundlerStats.totalBundlesProcessed > 0
+    ? {
+        totalBundlesProcessed: bundlerStats.totalBundlesProcessed,
+        totalMessagesProcessed: bundlerStats.totalMessagesProcessed,
+        avgMessagesPerBundle: bundlerStats.avgMessagesPerBundle,
+        savingsRate: bundlerStats.savingsRate,
+        // ESTIMATIVA com FX de referência fixo — registrado (FRENTE 07):
+        // substituir por fonte de câmbio declarada antes de exposição financeira real.
+        totalSavedBrl: Number((bundlerStats.totalSavedUsd * 5.15).toFixed(2)),
+      }
+    : {
+        totalBundlesProcessed: 0,
+        totalMessagesProcessed: 0,
+        avgMessagesPerBundle: 0,
+        savingsRate: 0,
+        totalSavedBrl: 0,
+      };
+}
+
+function emptyDeliveries(): DeliveriesData {
+  return {
+    responseTime: { avgSeconds: 0, targetSeconds: 8, withinTarget: false },
+    availabilityUptime: { percentage: 0, label: 'sem dados' },
+    messageBundling: {
+      totalBundlesProcessed: 0,
+      totalMessagesProcessed: 0,
+      avgMessagesPerBundle: 0,
+      savingsRate: 0,
+      totalSavedBrl: 0,
     },
-  },
-  metaShield: {
-    currentSpendBrl: 23.4,
-    estimatedWithoutZellaBrl: 112.5,
-    savingsPercent: 79.2,
-    countdownDays: 550,
-    costPerMessageBrl: 0.035,
-  },
-  otaSavings: {
-    directBookingsCount: 34,
-    estimatedCommissionSaved: 15870,
-    totalDirectRevenue: 105800,
-  },
-  planLimits: {
-    plan: 'lite',
-    messagesLimit: 500,
-    messagesUsed: 382,
-    guestsLimit: 50,
-    guestsAttended: 24,
-    needsDisclaimer: true,
-  },
-};
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
+    oneShotResolution: {
+      totalOneShots: 0,
+      oneShotRate: 0,
+      example: { guestName: '', intents: [], responsePreview: '' },
+    },
+    metaShield: {
+      currentSpendBrl: 0,
+      estimatedWithoutZellaBrl: 0,
+      savingsPercent: 0,
+      countdownDays: daysUntilOctober2026(),
+      costPerMessageBrl: 0.035,
+    },
+    otaSavings: { directBookingsCount: 0, estimatedCommissionSaved: 0, totalDirectRevenue: 0 },
+    planLimits: {
+      plan: 'desconhecido',
+      messagesLimit: null,
+      messagesUsed: 0,
+      guestsLimit: null,
+      guestsAttended: 0,
+      needsDisclaimer: true,
+    },
+  };
+}
 
 function daysUntilOctober2026(): number {
   const now = new Date();
@@ -142,62 +149,22 @@ export async function GET(request: NextRequest) {
     // ── Step 1: Check database availability ──────────────────────────────────
     const dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {
-      // Return demo data when DB is unavailable
-      const bundlerStats = getBundlerStats();
+      // FASE 02B: DB indisponível = zeros honestos + flag (nunca demo)
       return NextResponse.json({
         success: true,
         data: {
-          ...demoData,
-          // Override bundling with live bundler stats if any activity occurred
-          messageBundling:
-            bundlerStats.totalBundlesProcessed > 0
-              ? {
-                  totalBundlesProcessed: bundlerStats.totalBundlesProcessed,
-                  totalMessagesProcessed: bundlerStats.totalMessagesProcessed,
-                  avgMessagesPerBundle: bundlerStats.avgMessagesPerBundle,
-                  savingsRate: bundlerStats.savingsRate,
-                  totalSavedBrl: Number(
-                    (bundlerStats.totalSavedUsd * 5.15).toFixed(2)
-                  ),
-                }
-              : demoData.messageBundling,
-          metaShield: {
-            ...demoData.metaShield,
-            countdownDays: daysUntilOctober2026(),
-          },
+          ...emptyDeliveries(),
+          messageBundling: liveBundling(getBundlerStats()),
         },
-        meta: { timestamp: new Date().toISOString(), source: 'demo' },
+        meta: { timestamp: new Date().toISOString(), source: 'database_unavailable', degraded: true },
       });
     }
 
     // ── Step 2: Authenticate & resolve tenant ────────────────────────────────
     const tenantId = await resolveTenantId();
     if (!tenantId) {
-      // No authenticated session — return demo data so the UI always works
-      const bundlerStats = getBundlerStats();
-      return NextResponse.json({
-        success: true,
-        data: {
-          ...demoData,
-          messageBundling:
-            bundlerStats.totalBundlesProcessed > 0
-              ? {
-                  totalBundlesProcessed: bundlerStats.totalBundlesProcessed,
-                  totalMessagesProcessed: bundlerStats.totalMessagesProcessed,
-                  avgMessagesPerBundle: bundlerStats.avgMessagesPerBundle,
-                  savingsRate: bundlerStats.savingsRate,
-                  totalSavedBrl: Number(
-                    (bundlerStats.totalSavedUsd * 5.15).toFixed(2)
-                  ),
-                }
-              : demoData.messageBundling,
-          metaShield: {
-            ...demoData.metaShield,
-            countdownDays: daysUntilOctober2026(),
-          },
-        },
-        meta: { timestamp: new Date().toISOString(), source: 'demo-no-auth' },
-      });
+      // FASE 02B: sem sessão = 401 honesto (antes retornava demo financeiro)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // ── Step 3: Rate limit ───────────────────────────────────────────────────
@@ -277,14 +244,14 @@ export async function GET(request: NextRequest) {
       activityLogs.length > 0
         ? activityLogs.reduce((sum, log) => sum + (log.duration || 0), 0) /
           activityLogs.length
-        : 6200; // Fallback: 6.2s demo
+        : 0; // FASE 02B: sem atividade real = 0 (nunca fallback sintético)
     const avgResponseSeconds = Number((avgDurationMs / 1000).toFixed(1));
 
     // Availability uptime — calculate from activity logs (if we have recent
     // logs, the AI is "up"). With real monitoring we'd check uptime snapshots.
     // For now, derive from whether we have activity logs in the period.
     const uptimePercentage =
-      activityLogs.length > 0 ? 99.7 : 0;
+      activityLogs.length > 0 ? 100 : 0; // derivada de atividade real observada
 
     // Message bundling
     const messageBundling =
@@ -298,7 +265,13 @@ export async function GET(request: NextRequest) {
               (bundlerStats.totalSavedUsd * 5.15).toFixed(2)
             ),
           }
-        : demoData.messageBundling;
+        : {
+            totalBundlesProcessed: 0,
+            totalMessagesProcessed: 0,
+            avgMessagesPerBundle: 0,
+            savingsRate: 0,
+            totalSavedBrl: 0,
+          }; // FASE 02B: sem atividade real = zeros
 
     // One-Shot Resolution
     const {totalOneShots} = bundlerStats;
@@ -311,7 +284,7 @@ export async function GET(request: NextRequest) {
             responsePreview:
               'Olá! Temos disponibilidade para as datas solicitadas. Valor: R$280/noite. Check-in 14h, checkout 12h. PIX para reserva. Posso ajudar com mais alguma coisa?',
           }
-        : demoData.oneShotResolution.example;
+        : { guestName: '', intents: [], responsePreview: '' }; // FASE 02B: sem dado = vazio
 
     // Meta Shield (2026 cost protection)
     const currentSpendBrl = Number((metaSavings.totalSpent * 5.15).toFixed(2));
@@ -327,15 +300,12 @@ export async function GET(request: NextRequest) {
               100
             ).toFixed(1)
           )
-        : demoData.metaShield.savingsPercent;
+        : 0; // FASE 02B: sem baseline real = 0 (nunca percentual demo)
 
     const metaShield = {
-      currentSpendBrl:
-        currentSpendBrl > 0 ? currentSpendBrl : demoData.metaShield.currentSpendBrl,
-      estimatedWithoutZellaBrl:
-        estimatedWithoutZellaBrl > 0
-          ? estimatedWithoutZellaBrl
-          : demoData.metaShield.estimatedWithoutZellaBrl,
+      // FASE 02B: apenas valores reais; sem dado = 0 (nunca demo)
+      currentSpendBrl,
+      estimatedWithoutZellaBrl,
       savingsPercent: metaSavingsPercent,
       countdownDays: daysUntilOctober2026(),
       costPerMessageBrl: 0.035,
@@ -351,14 +321,12 @@ export async function GET(request: NextRequest) {
       (totalDirectRevenue * 0.15).toFixed(2)
     );
 
-    const otaSavings =
-      directBookingsCount > 0
-        ? {
-            directBookingsCount,
-            estimatedCommissionSaved,
-            totalDirectRevenue,
-          }
-        : demoData.otaSavings;
+    // FASE 02B: apenas valores reais; sem bookings diretos = zeros honestos
+    const otaSavings = {
+      directBookingsCount,
+      estimatedCommissionSaved,
+      totalDirectRevenue,
+    };
 
     // Plan limits — incorporate budget usage from checkMetaBudget
     const budgetUsagePercent = metaBudgetResult.usagePercent;
@@ -389,8 +357,8 @@ export async function GET(request: NextRequest) {
       },
       messageBundling,
       oneShotResolution: {
-        totalOneShots: totalOneShots > 0 ? totalOneShots : demoData.oneShotResolution.totalOneShots,
-        oneShotRate: oneShotRate > 0 ? oneShotRate : demoData.oneShotResolution.oneShotRate,
+        totalOneShots,
+        oneShotRate,
         example: oneShotExample,
       },
       metaShield,
@@ -401,37 +369,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data,
-      meta: { period, timestamp: new Date().toISOString() },
+      meta: { period, timestamp: new Date().toISOString(), source: 'database' },
     });
   } catch (error) {
-    console.error('[DDC deliveries] Error, returning demo data:', error);
+    console.error('[DDC deliveries] Error, returning honest zeros:', error);
 
-    // On any error, return demo data so the UI never breaks
-    const bundlerStats = getBundlerStats();
+    // FASE 02B: erro = zeros honestos + flag (antes retornava demo financeiro)
     return NextResponse.json({
       success: true,
       data: {
-        ...demoData,
-        messageBundling:
-          bundlerStats.totalBundlesProcessed > 0
-            ? {
-                totalBundlesProcessed: bundlerStats.totalBundlesProcessed,
-                totalMessagesProcessed: bundlerStats.totalMessagesProcessed,
-                avgMessagesPerBundle: bundlerStats.avgMessagesPerBundle,
-                savingsRate: bundlerStats.savingsRate,
-                totalSavedBrl: Number(
-                  (bundlerStats.totalSavedUsd * 5.15).toFixed(2)
-                ),
-              }
-            : demoData.messageBundling,
-        metaShield: {
-          ...demoData.metaShield,
-          countdownDays: daysUntilOctober2026(),
-        },
+        ...emptyDeliveries(),
+        messageBundling: liveBundling(getBundlerStats()),
       },
       meta: {
         timestamp: new Date().toISOString(),
-        source: 'fallback-demo',
+        source: 'fallback-zeros',
+        degraded: true,
       },
     });
   }

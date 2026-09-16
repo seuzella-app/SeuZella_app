@@ -8,26 +8,28 @@ export async function GET(request: NextRequest) {
   try {
     const dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {
+      // FASE 02B (FRENTE 10/12): DB indisponível = estado honesto 'offline'
+      // com zeros — removeu demo (5 conversas, 24 hoje, patterns 87.3%).
       return NextResponse.json({
         success: true,
         data: {
-          status: 'online' as const,
+          status: 'offline' as const,
           isProcessing: false,
-          activeConversations: 5,
-          totalToday: 24,
-          averageResponseTime: 1.2,
+          activeConversations: 0,
+          totalToday: 0,
+          averageResponseTime: 0,
           lastActivity: new Date(),
           learning: {
-            totalPatterns: 12,
-            verifiedPatterns: 8,
-            activePatterns: 10,
-            deprecatedPatterns: 2,
-            overallConfidence: 87.3,
-            totalLearned: 45,
+            totalPatterns: 0,
+            verifiedPatterns: 0,
+            activePatterns: 0,
+            deprecatedPatterns: 0,
+            overallConfidence: 0,
+            totalLearned: 0,
             recentActivity: [],
           },
         },
-        meta: { timestamp: new Date().toISOString(), source: 'demo' },
+        meta: { timestamp: new Date().toISOString(), source: 'database_unavailable', degraded: true },
       });
     }
 
@@ -76,7 +78,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        status: 'online' as const,
+        // FASE 02B: erro = 'error' honesto (antes mantinha 'online' com zeros)
+        status: 'error' as const,
         isProcessing: false,
         activeConversations: 0,
         totalToday: 0,
@@ -92,7 +95,7 @@ export async function GET(request: NextRequest) {
           recentActivity: [],
         },
       },
-      meta: { timestamp: new Date().toISOString(), source: 'fallback-zeros' }
+      meta: { timestamp: new Date().toISOString(), source: 'fallback-zeros', degraded: true }
     });
   }
 }

@@ -189,40 +189,45 @@ export async function getMetaCostSummary(tenantId: string, startDate: Date, endD
     });
 
     const totalByCurrency: Record<string, number> = {};
-    const bySource: Record<string, number> = {};
     let totalUsd = 0;
     let totalBrl = 0;
+
+    // FASE 02B (FRENTE 06 — CRITICAL DATA MODEL ISSUE corrigido):
+    // TODOS os agregados agora são POR MOEDA. Antes, bySource/byIntent/
+    // authoritativeCost/estimatedCost somavam amounts em moedas distintas
+    // (BRL rate + USD costUsd) num único número — matematicamente inválido.
+    const bySourceByCurrency: Record<string, Record<string, number>> = {};
+    const byIntentByCurrency: Record<string, Record<string, number>> = {};
 
     for (const log of logs) {
       const currency = (log.currency ?? 'USD').toUpperCase();
       const amount = currency === 'USD' ? log.costUsd : (log.rate ?? 0);
       totalByCurrency[currency] = (totalByCurrency[currency] ?? 0) + amount;
-      bySource[log.source] = (bySource[log.source] ?? 0) + amount;
+      const sourceBucket = (bySourceByCurrency[log.source] ??= {});
+      sourceBucket[currency] = (sourceBucket[currency] ?? 0) + amount;
       if (currency === 'BRL') totalBrl += amount;
       else if (currency === 'USD') totalUsd += amount;
     }
 
-    const byIntent = logs.reduce((acc, log) => {
+    for (const log of logs) {
       const key = log.intent || 'desconhecido';
       const currency = (log.currency ?? 'USD').toUpperCase();
       const amount = currency === 'USD' ? log.costUsd : (log.rate ?? 0);
-      acc[key] = (acc[key] || 0) + amount;
-      return acc;
-    }, {} as Record<string, number>);
+      const intentBucket = (byIntentByCurrency[key] ??= {});
+      intentBucket[currency] = (intentBucket[currency] ?? 0) + amount;
+    }
 
     return {
       totalUsd,
       totalBrl,
       totalByCurrency,
-      bySource,
-      authoritativeCost: bySource.meta_webhook_pricing ?? 0,
-      estimatedCost: bySource.send_accepted ?? 0,
-      currencyNote: 'totals_are_per_recorded_currency_no_fixed_fx' as const,
+      bySourceByCurrency,
+      byIntentByCurrency,
+      authoritativeCostByCurrency: bySourceByCurrency.meta_webhook_pricing ?? {},
+      estimatedCostByCurrency: bySourceByCurrency.send_accepted ?? {},
+      currencyNote:
+        'aggregates_are_per_currency_no_fixed_fx_never_sum_across_currencies' as const,
       messageCount: logs.length,
-      // This is an arithmetic average of mixed recorded currencies and must not
-      // be treated as a monetary amount. Prefer totalByCurrency for finance.
-      avgCostPerMsg: logs.length ? (totalUsd + totalBrl) / logs.length : 0,
-      byIntent,
       period: { start: startDate, end: endDate },
     };
   } catch (error) {
@@ -231,13 +236,13 @@ export async function getMetaCostSummary(tenantId: string, startDate: Date, endD
       totalUsd: 0,
       totalBrl: 0,
       totalByCurrency: {},
-      bySource: {},
-      authoritativeCost: 0,
-      estimatedCost: 0,
-      currencyNote: 'totals_are_per_recorded_currency_no_fixed_fx' as const,
+      bySourceByCurrency: {},
+      byIntentByCurrency: {},
+      authoritativeCostByCurrency: {},
+      estimatedCostByCurrency: {},
+      currencyNote:
+        'aggregates_are_per_currency_no_fixed_fx_never_sum_across_currencies' as const,
       messageCount: 0,
-      avgCostPerMsg: 0,
-      byIntent: {},
       period: { start: startDate, end: endDate },
     };
   }
@@ -253,6 +258,27 @@ const BUDGET_LIMITS: Record<PlanKey, number> = {
   parceiro: Number(process.env.META_BUDGET_PARCEIRO_USD ?? '34.00'),
 };
 
+// FASE 02B (FRENTE 07): budget NATIVO em BRL (o rate card BR é 100% BRL —
+// P1-3: antes o gasto BR não era contado em lugar nenhum do enforcement).
+// NÃO há conversão automática USD↔BRL (nenhum FX inventado). O budget BRL
+// só fica ATIVO quando configurado via env; enquanto ausente, o gasto BRL é
+// REPORTADO (currentSpendByCurrency) mas NÃO enforced — limitação explícita
+// registrada no resultado, nunca enforcement incorreto silencioso.
+const BRL_BUDGET_ENV: Record<PlanKey, string> = {
+  gratuito: 'META_BUDGET_GRATUITO_BRL',
+  lite: 'META_BUDGET_LITE_BRL',
+  pro: 'META_BUDGET_PRO_BRL',
+  max: 'META_BUDGET_MAX_BRL',
+  parceiro: 'META_BUDGET_PARCEIRO_BRL',
+};
+
+function resolveBrlBudgetLimit(plan: PlanKey): number | null {
+  const raw = process.env[BRL_BUDGET_ENV[plan]];
+  if (raw === undefined || raw === '') return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 interface BudgetResult {
   allowed: boolean;
   reason?: string;
@@ -260,6 +286,10 @@ interface BudgetResult {
   budgetLimitUsd: number;
   usagePercent: number;
   budgetCurrency: 'USD';
+  // FASE 02B (FRENTE 07): visibilidade multi-moeda explícita
+  currentSpendByCurrency: Record<string, number>;
+  budgetLimitsByCurrency: Record<string, number>;
+  brlBudgetConfigured: boolean;
 }
 
 const budgetCache = new Map<string, { result: BudgetResult; expiresAt: number }>();
@@ -287,9 +317,9 @@ export function getServiceWindowRemaining(lastGuestMessageAt?: Date | null): num
   return getServiceWindowRemainingHours(lastGuestMessageAt);
 }
 
-/** O budget legado é em USD. BRL não é convertido nem somado ao budget USD. */
+/** Budget multi-moeda: USD nativo sempre; BRL nativo quando configurado via env. */
 export async function checkMetaBudget(tenantId: string): Promise<BudgetResult> {
-  if (BUDGET_OVERRIDE) return { allowed: true, currentSpendUsd: 0, budgetLimitUsd: Infinity, usagePercent: 0, budgetCurrency: 'USD' };
+  if (BUDGET_OVERRIDE) return { allowed: true, currentSpendUsd: 0, budgetLimitUsd: Infinity, usagePercent: 0, budgetCurrency: 'USD', currentSpendByCurrency: { USD: 0, BRL: 0 }, budgetLimitsByCurrency: {}, brlBudgetConfigured: false };
 
   const cacheKey = `${tenantId}:${new Date().toISOString().slice(0, 7)}`;
   const cached = budgetCache.get(cacheKey);
@@ -299,29 +329,64 @@ export async function checkMetaBudget(tenantId: string): Promise<BudgetResult> {
   try {
     const logs = await db.metaCostLog.findMany({
       where: { tenantId, createdAt: { gte: start, lte: end } },
-      select: { costUsd: true, currency: true },
+      select: { costUsd: true, rate: true, currency: true },
     });
-    const currentSpendUsd = logs
-      .filter((log) => (log.currency ?? 'USD').toUpperCase() === 'USD')
-      .reduce((sum, log) => sum + log.costUsd, 0);
+    // Gasto por moeda — NUNCA somado entre moedas (FRENTE 06/07).
+    let currentSpendUsd = 0;
+    let currentSpendBrl = 0;
+    for (const log of logs) {
+      const currency = (log.currency ?? 'USD').toUpperCase();
+      if (currency === 'USD') currentSpendUsd += log.costUsd;
+      else if (currency === 'BRL') currentSpendBrl += log.rate ?? 0;
+    }
     const plan: PlanKey = await getEffectivePlan(tenantId);
     const budgetLimitUsd = BUDGET_LIMITS[plan] ?? BUDGET_LIMITS.gratuito;
-    const usagePercent = budgetLimitUsd > 0 ? Math.round((currentSpendUsd / budgetLimitUsd) * 100) : 0;
-    const overBudget = currentSpendUsd >= budgetLimitUsd;
-    const result: BudgetResult = overBudget
-      ? { allowed: false, reason: 'ORÇAMENTO META USD EXCEDIDO', currentSpendUsd, budgetLimitUsd, usagePercent: 100, budgetCurrency: 'USD' }
-      : { allowed: true, currentSpendUsd, budgetLimitUsd, usagePercent, budgetCurrency: 'USD' };
+    const brlLimit = resolveBrlBudgetLimit(plan);
+    const brlBudgetConfigured = brlLimit !== null;
+    const budgetLimitsByCurrency: Record<string, number> = { USD: budgetLimitUsd };
+    if (brlLimit !== null) budgetLimitsByCurrency.BRL = brlLimit;
+
+    const usdOver = currentSpendUsd >= budgetLimitUsd;
+    const brlOver = brlLimit !== null && currentSpendBrl >= brlLimit;
+    const usagePercent = Math.max(
+      budgetLimitUsd > 0 ? Math.round((currentSpendUsd / budgetLimitUsd) * 100) : 0,
+      brlLimit && brlLimit > 0 ? Math.round((currentSpendBrl / brlLimit) * 100) : 0
+    );
+    const result: BudgetResult = usdOver || brlOver
+      ? {
+          allowed: false,
+          reason: usdOver ? 'ORÇAMENTO META USD EXCEDIDO' : 'ORÇAMENTO META BRL EXCEDIDO',
+          currentSpendUsd,
+          budgetLimitUsd,
+          usagePercent: 100,
+          budgetCurrency: 'USD',
+          currentSpendByCurrency: { USD: currentSpendUsd, BRL: currentSpendBrl },
+          budgetLimitsByCurrency,
+          brlBudgetConfigured,
+        }
+      : {
+          allowed: true,
+          currentSpendUsd,
+          budgetLimitUsd,
+          usagePercent,
+          budgetCurrency: 'USD',
+          currentSpendByCurrency: { USD: currentSpendUsd, BRL: currentSpendBrl },
+          budgetLimitsByCurrency,
+          brlBudgetConfigured,
+        };
     budgetCache.set(cacheKey, { result, expiresAt: Date.now() + CACHE_TTL_MS });
     return result;
   } catch (error) {
     console.error('[checkMetaBudget] DB error — fail-closed:', error);
-    const result: BudgetResult = { allowed: false, reason: 'BUDGET_CHECK_DB_ERROR_FAIL_CLOSED', currentSpendUsd: 0, budgetLimitUsd: 0, usagePercent: 0, budgetCurrency: 'USD' };
+    const result: BudgetResult = { allowed: false, reason: 'BUDGET_CHECK_DB_ERROR_FAIL_CLOSED', currentSpendUsd: 0, budgetLimitUsd: 0, usagePercent: 0, budgetCurrency: 'USD', currentSpendByCurrency: { USD: 0, BRL: 0 }, budgetLimitsByCurrency: {}, brlBudgetConfigured: false };
     budgetCache.set(cacheKey, { result, expiresAt: Date.now() + 5_000 });
     return result;
   }
 }
 
-// Estimativa de cenário, não verdade financeira.
+// NÃO é verdade financeira: estimativa de cenário — este multiplicador é
+// somente uma hipótese para comparar cenários de bundling. Nunca deve ser
+// usado como fatura Meta.
 const UNBUNDLED_MULTIPLIER = 2.5;
 
 export async function getMetaCostSavings(tenantId: string): Promise<{

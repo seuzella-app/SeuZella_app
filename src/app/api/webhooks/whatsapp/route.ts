@@ -435,6 +435,15 @@ async function resolveConversationIdForStatus(
 // GET — Meta Webhook Verification
 // ══
 
+
+// ── LGPD: minimização de PII em logs (FASE 02B — FRENTE 30) ──────────────────
+// Nunca logar número de hóspede completo nem conteúdo de mensagem.
+function maskPhone(phone: string | null | undefined): string {
+  if (!phone) return '(unknown)';
+  const raw = String(phone);
+  return raw.length <= 4 ? '****' : `****${raw.slice(-4)}`;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
@@ -576,7 +585,7 @@ export async function POST(request: NextRequest) {
   }> = [];
 
   for (const msg of messages) {
-    console.log(`[WhatsApp Webhook] 📨 Processing message from ${msg.from} → ${msg.destinationNumber} (type: ${msg.type})`);
+    console.log(`[WhatsApp Webhook] 📨 Processing message from ${maskPhone(msg.from)} → ${maskPhone(msg.destinationNumber)} (type: ${msg.type})`);
 
     // ── Tenant lookup via resolveTenantByPhone (v2 — match exato E.164) 
     const lookup = await resolveTenantByPhone(msg.destinationNumber, msg.wabaId);
@@ -584,7 +593,7 @@ export async function POST(request: NextRequest) {
     if (!lookup.found) {
       console.warn(
         `[WhatsApp Webhook] ⚠️ SILENT DISCARD — No tenant for number ${msg.destinationNumber}` +
-        ` | from: ${msg.from} | msgId: ${msg.messageId}` +
+        ` | from: ${maskPhone(msg.from)} | msgId: ${msg.messageId}` +
         ` | reason: ${lookup.reason || 'unknown'}`
       );
 
@@ -604,7 +613,7 @@ export async function POST(request: NextRequest) {
     if (lookup.tenantStatus === 'suspended' || lookup.tenantStatus === 'churned') {
       console.warn(
         `[WhatsApp Webhook] ⚠️ SILENT DISCARD — Tenant "${lookup.tenantName}" (${lookup.tenantId})` +
-        ` is ${lookup.tenantStatus} | from: ${msg.from} | msgId: ${msg.messageId}`
+        ` is ${lookup.tenantStatus} | from: ${maskPhone(msg.from)} | msgId: ${msg.messageId}`
       );
       processingResults.push({
         messageId: msg.messageId,
@@ -623,7 +632,7 @@ export async function POST(request: NextRequest) {
       console.warn(
         `[WhatsApp Webhook] ⚠️ SILENT DISCARD — Tenant "${lookup.tenantName}" (${lookup.tenantId})` +
         ` is on GRATUITO plan — real WhatsApp integration requires LITE+` +
-        ` | from: ${msg.from} | msgId: ${msg.messageId}`
+        ` | from: ${maskPhone(msg.from)} | msgId: ${msg.messageId}`
       );
       processingResults.push({
         messageId: msg.messageId,
@@ -638,12 +647,14 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Tenant OK → PROCESS 
+    // FASE 02B (FRENTE 30): sem conteúdo de mensagem e sem telefone completo
+    // em logs (LGPD — minimização). Tipo e tamanho bastam para triagem.
     console.log(
       `[WhatsApp Webhook] ✅ ACCEPTED — Tenant "${lookup.tenantName}" (${lookup.tenantId})` +
       ` | niche: ${lookup.niche} | plan: ${lookup.tenantPlan}` +
-      ` | from: ${msg.from} (${msg.contactName || 'unknown'})` +
+      ` | from: ${maskPhone(msg.from)}` +
       ` | type: ${msg.type}` +
-      ` | text: ${msg.textContent ? `"${msg.textContent.substring(0, 80)}${msg.textContent.length > 80 ? '...' : ''}"` : '(non-text)'}`
+      ` | textLength: ${msg.textContent ? msg.textContent.length : 0}`
     );
 
     const tenantId = lookup.tenantId!; // Guaranteed non-null após checks acima
@@ -710,7 +721,7 @@ export async function POST(request: NextRequest) {
       // verificamos se é um pedido de opt-out. Se for, processa imediatamente,
       // envia confirmação, e NÃO enfileira para IA.
       if (isOptOutMessage(messageContent)) {
-        console.log(`[WhatsApp Webhook] 🚫 LGPD Opt-Out detectado — processando síncrono (tenant ${tenantId}, guest ${guestPhone})`);
+        console.log(`[WhatsApp Webhook] 🚫 LGPD Opt-Out detectado — processando síncrono (tenant ${tenantId}, guest ${maskPhone(guestPhone)})`);
 
         // Fire-and-forget mas SEM bufferMessage — processa imediatamente
         (async () => {
@@ -725,9 +736,9 @@ export async function POST(request: NextRequest) {
             // Envia confirmação de opt-out para o hóspede
             const sendResult = await sendWhatsAppMessage(guestPhone, confirmationText);
             if (!sendResult.success) {
-              console.error(`[WhatsApp Webhook] ❌ Falha ao enviar confirmação opt-out para ${guestPhone}: ${sendResult.error}`);
+              console.error(`[WhatsApp Webhook] ❌ Falha ao enviar confirmação opt-out para ${maskPhone(guestPhone)}: ${sendResult.error}`);
             } else {
-              console.log(`[WhatsApp Webhook] ✅ Opt-out confirmado e enviado para ${guestPhone}`);
+              console.log(`[WhatsApp Webhook] ✅ Opt-out confirmado e enviado para ${maskPhone(guestPhone)}`);
 
               // Registra custo Meta (messageType = service_reply, dentro da service window)
               // PASSO 11.3: void explícito para fire-and-forget absoluto
@@ -875,14 +886,14 @@ export async function POST(request: NextRequest) {
             }
           } catch (err) {
             console.error(
-              `[WhatsApp Webhook] ❌ Error in AI pipeline for tenant ${tenantId}, guest ${guestPhone}:`,
+              `[WhatsApp Webhook] ❌ Error in AI pipeline for tenant ${tenantId}, guest ${maskPhone(guestPhone)}:`,
               err
             );
           }
         }
       ).catch((err) => {
         console.error(
-          `[WhatsApp Webhook] ❌ bufferMessage error for tenant ${tenantId}, guest ${guestPhone}:`,
+          `[WhatsApp Webhook] ❌ bufferMessage error for tenant ${tenantId}, guest ${maskPhone(guestPhone)}:`,
           err
         );
       });
@@ -890,7 +901,7 @@ export async function POST(request: NextRequest) {
       // ── Non-text message → registra mídia, sem IA 
       const mediaNote = `[Mídia recebida: ${msg.type}]`;
       console.log(
-        `[WhatsApp Webhook] 📎 Non-text message from ${msg.from} (type: ${msg.type}) — recording media entry`
+        `[WhatsApp Webhook] 📎 Non-text message from ${maskPhone(msg.from)} (type: ${msg.type}) — recording media entry`
       );
 
       (async () => {
@@ -900,12 +911,16 @@ export async function POST(request: NextRequest) {
             profileName: msg.contactName || undefined,
           });
 
+          // FASE 02B (FRENTE 01): lookup escalado-aware — mídia recebida durante
+          // handover vai para a conversa escalada existente, NUNCA cria conversa
+          // nova 'active' (que reabriria o canal para a IA).
           let conversation = await db.conversationLog.findFirst({
             where: {
               tenantId,
               guestId: guest.id,
-              status: 'active',
+              status: { in: ['active', 'escalated'] },
             },
+            orderBy: { lastUpdate: 'desc' },
           });
 
           if (!conversation) {
@@ -944,7 +959,7 @@ export async function POST(request: NextRequest) {
           }
         } catch (err) {
           console.error(
-            `[WhatsApp Webhook] ❌ Error recording non-text message from ${msg.from}:`,
+            `[WhatsApp Webhook] ❌ Error recording non-text message from ${maskPhone(msg.from)}:`,
             err
           );
         }

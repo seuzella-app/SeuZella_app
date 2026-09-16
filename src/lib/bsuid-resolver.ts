@@ -97,7 +97,8 @@ export async function resolveGuest(
       // Se o erro for constraint único em phone (raro: guest existe com mesmo phone mas bsuid diferente),
       // fazemos fallback para lookup por phone
       if (!isUniqueConstraintError(error)) throw error;
-      console.warn('[resolveGuest] BSUID conflict, tentando por phone:', { tenantId, effectiveBsuid });
+      // FASE 02B (FRENTE 30): identificadores mascarados em logs
+      console.warn('[resolveGuest] BSUID conflict, tentando por phone:', { tenantId, effectiveBsuid: effectiveBsuid ? `****${String(effectiveBsuid).slice(-4)}` : undefined });
     }
   }
 
@@ -127,7 +128,8 @@ export async function resolveGuest(
       return mapToResolved(guest);
     } catch (error) {
       if (!isUniqueConstraintError(error)) throw error;
-      console.warn('[resolveGuest] Phone conflict, tentando lookup direto:', { tenantId, normalizedPhone });
+      // FASE 02B (FRENTE 30): telefone mascarado em logs
+      console.warn('[resolveGuest] Phone conflict, tentando lookup direto:', { tenantId, normalizedPhone: normalizedPhone ? `****${String(normalizedPhone).slice(-4)}` : undefined });
     }
   }
 

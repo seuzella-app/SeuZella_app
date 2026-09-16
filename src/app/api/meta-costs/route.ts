@@ -19,6 +19,12 @@ export async function GET(req: NextRequest) {
     const startDate = startParam ? new Date(startParam) : new Date(Date.now() - 30 * 86400000);
     const endDate = endParam ? new Date(endParam) : new Date();
 
+    // FASE 02B: datas inválidas → 400 honesto (antes: Invalid Date propagava
+    // silenciosamente para o where do Prisma).
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || startDate > endDate) {
+      return NextResponse.json({ error: 'Invalid date range' }, { status: 400 });
+    }
+
     const summary = await getMetaCostSummary(
       session.user.tenantId,
       startDate,

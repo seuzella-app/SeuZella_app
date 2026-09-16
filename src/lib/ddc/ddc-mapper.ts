@@ -119,8 +119,15 @@ export function mapTraining(t: any): TrainingPrompt {
   };
 }
 
-export function adaptRevenueMetrics(apiMetrics: any): any {
+export function adaptRevenueMetrics(apiMetrics: any, periodMetrics?: { week?: any; month?: any }): any {
   if (!apiMetrics) return null;
+
+  // FASE 02B (FRENTE 34/55): NENHUMA multiplicação fabricada.
+  // Antes: week = today×4.5, month = today×18, projected = today×25 —
+  // receita INVENTADA exibida como real. Agora: valores reais dos períodos
+  // quando disponíveis (analytics fetch), zeros honestos caso contrário.
+  const week = periodMetrics?.week;
+  const month = periodMetrics?.month;
 
   return {
     today: {
@@ -130,15 +137,16 @@ export function adaptRevenueMetrics(apiMetrics: any): any {
       conversionRate: apiMetrics.conversion || 0
     },
     week: {
-      generated: (apiMetrics.revenue || 0) * 4.5,
-      reservations: (apiMetrics.bookingsClosed || 0) * 5,
-      growth: apiMetrics.revenueChange || 0
+      generated: week?.revenue || 0,
+      reservations: week?.bookingsClosed || 0,
+      growth: week?.revenueChange || 0
     },
     month: {
-      generated: (apiMetrics.revenue || 0) * 18,
-      reservations: (apiMetrics.bookingsClosed || 0) * 20,
-      growth: apiMetrics.revenueChange || 0,
-      projected: (apiMetrics.revenue || 0) * 25
+      generated: month?.revenue || 0,
+      reservations: month?.bookingsClosed || 0,
+      growth: month?.revenueChange || 0,
+      // Acumulado REAL do mês (não mais projeção inventada ×25).
+      projected: month?.revenue || 0
     }
   };
 }

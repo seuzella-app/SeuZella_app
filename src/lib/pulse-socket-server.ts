@@ -82,7 +82,10 @@ const VALID_COMMAND_TYPES: CommandPayload['type'][] = [
   'force_container_restart',
 ];
 
-const NUCLEAR_TOKEN = 'zella-nuclear-2026';
+// FASE 02B (FRENTE 30): credencial NUNCA hardcoded nem impressa em log.
+// Fonte: env ZELLA_NUCLEAR_TOKEN. Sem env, token efêmero por boot
+// (operação nuclear efetivamente desabilitada até o operador configurar).
+const NUCLEAR_TOKEN = process.env.ZELLA_NUCLEAR_TOKEN || require('crypto').randomBytes(24).toString('hex');
 const PORT = 3003;
 
 // ── Mock Data & Simulations ──────────────────────────────────────────────────────
@@ -286,7 +289,7 @@ export function initPulseSocketServer(): SocketIOServer | null {
           if (confirmToken !== NUCLEAR_TOKEN) {
             socket.emit('command:result', {
               success: false,
-              message: 'TOKEN INVÁLIDO. force_container_restart requer confirmToken="zella-nuclear-2026". Operação NUCLEAR bloqueada.',
+              message: 'TOKEN INVÁLIDO. force_container_restart requer confirmToken válido. Operação NUCLEAR bloqueada.',
               target, type,
             });
             console.log(`[PulseSocket] 🔒 NUCLEAR BLOCKED from ${socket.id}`);
@@ -418,7 +421,8 @@ export function initPulseSocketServer(): SocketIOServer | null {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('  ⚡ ZCC PULSE SOCKET — Zélla Central Control');
       console.log(`  🌐 Listening on port ${PORT}`);
-      console.log(`  🔒 Nuclear token: ${NUCLEAR_TOKEN}`);
+      // FASE 02B: token mascarado no boot (antes: impresso em texto puro)
+      console.log(`  🔒 Nuclear token: ${NUCLEAR_TOKEN.slice(0, 4)}**** (defina ZELLA_NUCLEAR_TOKEN; valor completo nunca é logado)`);
       console.log('  📊 Metrics: 3s | Alerts: 15-25s | Containers: 5s');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('');
