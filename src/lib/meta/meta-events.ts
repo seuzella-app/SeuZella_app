@@ -26,7 +26,16 @@ export interface MetaEventClaimResult {
   alreadyProcessed: boolean;
 }
 
-/** Claim atômico por chave. Outbound status usa metadata.status como discriminador. */
+const STALE_PROCESSING_MS = 2 * 60 * 1000;
+
+/**
+ * Claim atômico por chave.
+ * Outbound status usa metadata.status como discriminador.
+ *
+ * Se um worker morrer depois do claim, um retry posterior pode recuperar o
+ * claim somente após a janela de stale. Antes disso, concorrência/replay é
+ * tratado como duplicata para evitar processamento paralelo.
+ */
 export async function claimMetaEvent(
   kind: MetaEventKind,
   externalEventId: string,
@@ -41,9 +50,42 @@ export async function claimMetaEvent(
   try {
     const existing = await db.metaWebhookEvent.findUnique({
       where: { eventKey },
-      select: { id: true, status: true },
+      select: { id: true, status: true, createdAt: true },
     });
-    if (existing) return { claimed: false, alreadyProcessed: true };
+
+    if (existing) {
+      if (existing.status !== 'processing' && existing.status !== 'processing_reclaimed') {
+        return { claimed: false, alreadyProcessed: true };
+      }
+
+      const ageMs = Date.now() - existing.createdAt.getTime();
+      if (ageMs < STALE_PROCESSING_MS) {
+        return { claimed: false, alreadyProcessed: true };
+      }
+
+      // Reclaim stale work atomically. Only one concurrent retry can win.
+      const reclaimed = await db.metaWebhookEvent.updateMany({
+        where: {
+          id: existing.id,
+          status: existing.status,
+          createdAt: existing.createdAt,
+        },
+        data: {
+          status: 'processing_reclaimed',
+          metadata: JSON.stringify({
+            ...metadata,
+            reclaimedAt: new Date().toISOString(),
+            previousStatus: existing.status,
+          }),
+        },
+      });
+
+      if (reclaimed.count === 1) {
+        return { claimed: true, alreadyProcessed: false };
+      }
+
+      return { claimed: false, alreadyProcessed: true };
+    }
 
     await db.metaWebhookEvent.create({
       data: {
@@ -73,9 +115,10 @@ export async function claimMetaEvent(
 }
 
 /**
- * Marca o evento como processado. O caller atual do webhook não passa o
- * discriminador; nesse caso, para outbound_status, atualizamos somente os
- * registros ainda em processing desse wamid.
+ * Marca o evento como processado.
+ * Para outbound_status, o discriminador deve ser o status sempre que possível;
+ * sem ele, atualizamos apenas registros processing do mesmo wamid como fallback
+ * de compatibilidade com callers antigos.
  */
 export async function completeMetaEvent(
   kind: MetaEventKind,
@@ -86,7 +129,7 @@ export async function completeMetaEvent(
   try {
     if (kind === 'outbound_status' && !discriminator) {
       await db.metaWebhookEvent.updateMany({
-        where: { kind, externalEventId, status: 'processing' },
+        where: { kind, externalEventId, status: { in: ['processing', 'processing_reclaimed'] } },
         data: { status: outcome, processedAt: new Date() },
       });
       return;
@@ -94,11 +137,13 @@ export async function completeMetaEvent(
 
     const eventKey = buildMetaEventKey(kind, externalEventId, discriminator);
     await db.metaWebhookEvent.updateMany({
-      where: { eventKey },
+      where: { eventKey, status: { in: ['processing', 'processing_reclaimed'] } },
       data: { status: outcome, processedAt: new Date() },
     });
   } catch (error) {
-    console.error('[meta-events] completeMetaEvent error (non-fatal):', error);
+    // Completion failure is non-fatal to the current request; the stale-claim
+    // recovery above guarantees that a later Meta retry can reprocess the event.
+    console.error('[meta-events] completeMetaEvent error (recoverable):', error);
   }
 }
 
