@@ -22,58 +22,18 @@ function dateRange(period: string) {
   return { start, prevStart, today };
 }
 
-const emptyMetrics = (period: string) => ({
+const emptyMetrics = () => ({
   attendedToday: 0, attendedChange: 0,
   bookingsClosed: 0, bookingsChange: 0,
   revenue: 0, revenueChange: 0,
   occupancy: 0, occupancyChange: 0,
   conversion: 0, conversionChange: 0,
   aiScore: 0, aiScoreChange: 0,
-  lastUpdated: new Date()
+  lastUpdated: new Date(),
 });
-
-const demoMetrics: Record<string, any> = {
-  today: {
-    attendedToday: 24, attendedChange: 12.5,
-    bookingsClosed: 6, bookingsChange: 20.0,
-    revenue: 12450.00, revenueChange: 15.3,
-    occupancy: 82.0, occupancyChange: 5.0,
-    conversion: 38.5, conversionChange: 3.2,
-    aiScore: 94, aiScoreChange: 2,
-    lastUpdated: new Date(),
-  },
-  week: {
-    attendedToday: 156, attendedChange: 8.7,
-    bookingsClosed: 34, bookingsChange: 12.0,
-    revenue: 87230.00, revenueChange: 10.5,
-    occupancy: 78.5, occupancyChange: 3.2,
-    conversion: 35.2, conversionChange: 2.1,
-    aiScore: 92, aiScoreChange: 4,
-    lastUpdated: new Date(),
-  },
-  month: {
-    attendedToday: 620, attendedChange: 18.2,
-    bookingsClosed: 128, bookingsChange: 14.5,
-    revenue: 345670.00, revenueChange: 22.1,
-    occupancy: 75.8, occupancyChange: 6.3,
-    conversion: 33.7, conversionChange: 4.8,
-    aiScore: 91, aiScoreChange: 5,
-    lastUpdated: new Date(),
-  },
-};
 
 export async function GET(request: NextRequest) {
   try {
-    const dbAvailable = await isDatabaseAvailable();
-    if (!dbAvailable) {
-      const period = request.nextUrl.searchParams.get('period') || 'today';
-      return NextResponse.json({
-        success: true,
-        data: demoMetrics[period] || demoMetrics.today,
-        meta: { period, timestamp: new Date().toISOString(), source: 'demo' },
-      });
-    }
-
     const tenantId = await resolveTenantId();
     if (!tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -82,9 +42,17 @@ export async function GET(request: NextRequest) {
     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
     const period = request.nextUrl.searchParams.get('period') || 'today';
+    const dbAvailable = await isDatabaseAvailable();
+    if (!dbAvailable) {
+      return NextResponse.json({
+        success: true,
+        data: emptyMetrics(),
+        meta: { period, timestamp: new Date().toISOString(), source: 'database_unavailable', degraded: true },
+      });
+    }
+
     const { start, prevStart } = dateRange(period);
 
-    // Try PerformanceSnapshots first
     const snapshots = await db.performanceSnapshot.findMany({
       where: { tenantId, date: { gte: start.toISOString().split('T')[0] } },
       orderBy: { date: 'asc' },
@@ -95,41 +63,39 @@ export async function GET(request: NextRequest) {
     });
 
     if (snapshots.length > 0) {
-      const sum = (arr: any[], field: string) => arr.reduce((s: number, r: any) => s + (Number(r[field]) || 0), 0);
-      const avg = (arr: any[], field: string) => arr.length > 0 ? sum(arr, field) / arr.length : 0;
-
-      const prevSum = (field: string) => sum(prevSnapshots, field);
-      const prevAvg = (field: string) => avg(prevSnapshots, field);
+      const sum = (arr: Array<Record<string, unknown>>, field: string) =>
+        arr.reduce((s, r) => s + (Number(r[field]) || 0), 0);
+      const avg = (arr: Array<Record<string, unknown>>, field: string) => arr.length > 0 ? sum(arr, field) / arr.length : 0;
       const pctChange = (curr: number, prev: number) => prev > 0 ? Number(((curr - prev) / prev * 100).toFixed(1)) : 0;
+
+      const currentConversations = sum(snapshots, 'aiConversations');
+      const previousConversations = sum(prevSnapshots, 'aiConversations');
+      const currentBookings = sum(snapshots, 'totalBookings');
+      const previousBookings = sum(prevSnapshots, 'totalBookings');
+      const currentRevenue = sum(snapshots, 'totalRevenue');
+      const previousRevenue = sum(prevSnapshots, 'totalRevenue');
 
       return NextResponse.json({
         success: true,
         data: {
-          attendedToday: snapshots.reduce((s, r) => s + r.aiConversations, 0),
-          attendedChange: pctChange(
-            snapshots.reduce((s, r) => s + r.aiConversations, 0),
-            prevSnapshots.reduce((s, r) => s + r.aiConversations, 0)
-          ),
-          bookingsClosed: snapshots.reduce((s, r) => s + r.totalBookings, 0),
-          bookingsChange: pctChange(
-            snapshots.reduce((s, r) => s + r.totalBookings, 0),
-            prevSnapshots.reduce((s, r) => s + r.totalBookings, 0)
-          ),
-          revenue: sum(snapshots, 'totalRevenue'),
-          revenueChange: pctChange(sum(snapshots, 'totalRevenue'), prevSum('totalRevenue')),
+          attendedToday: currentConversations,
+          attendedChange: pctChange(currentConversations, previousConversations),
+          bookingsClosed: currentBookings,
+          bookingsChange: pctChange(currentBookings, previousBookings),
+          revenue: currentRevenue,
+          revenueChange: pctChange(currentRevenue, previousRevenue),
           occupancy: Number(avg(snapshots, 'occupancyRate').toFixed(1)),
-          occupancyChange: Number((avg(snapshots, 'occupancyRate') - prevAvg('occupancyRate')).toFixed(1)),
+          occupancyChange: Number((avg(snapshots, 'occupancyRate') - avg(prevSnapshots, 'occupancyRate')).toFixed(1)),
           conversion: Number(avg(snapshots, 'conversionRate').toFixed(1)),
-          conversionChange: Number((avg(snapshots, 'conversionRate') - prevAvg('conversionRate')).toFixed(1)),
+          conversionChange: Number((avg(snapshots, 'conversionRate') - avg(prevSnapshots, 'conversionRate')).toFixed(1)),
           aiScore: Number(avg(snapshots, 'aiAutonomy').toFixed(0)),
-          aiScoreChange: Number((avg(snapshots, 'aiAutonomy') - prevAvg('aiAutonomy')).toFixed(0)),
-          lastUpdated: new Date()
+          aiScoreChange: Number((avg(snapshots, 'aiAutonomy') - avg(prevSnapshots, 'aiAutonomy')).toFixed(0)),
+          lastUpdated: new Date(),
         },
-        meta: { period, timestamp: new Date().toISOString() }
+        meta: { period, timestamp: new Date().toISOString(), source: 'performance_snapshot' },
       });
     }
 
-    // Fallback: calculate from raw tables
     const [bookings, conversations, activityLogs, allBookings] = await Promise.all([
       db.booking.findMany({ where: { tenantId, createdAt: { gte: start } } }),
       db.conversationLog.findMany({ where: { tenantId, createdAt: { gte: start } } }),
@@ -137,40 +103,47 @@ export async function GET(request: NextRequest) {
       db.booking.findMany({ where: { tenantId } }),
     ]);
 
-    const revenue = bookings.reduce((s, b) => s + b.totalValue, 0);
+    const closedStatuses = ['confirmed', 'checked_in', 'checked_out'];
+    const revenueBookings = bookings.filter((booking) => closedStatuses.includes(booking.status));
+    const revenue = revenueBookings.reduce((s, b) => s + b.totalValue, 0);
     const prevBookings = await db.booking.findMany({ where: { tenantId, createdAt: { gte: prevStart, lt: start } } });
-    const prevRevenue = prevBookings.reduce((s, b) => s + b.totalValue, 0);
+    const prevRevenue = prevBookings
+      .filter((booking) => closedStatuses.includes(booking.status))
+      .reduce((s, b) => s + b.totalValue, 0);
     const pctChange = (curr: number, prev: number) => prev > 0 ? Number(((curr - prev) / prev * 100).toFixed(1)) : 0;
     const totalRooms = await db.room.count({ where: { property: { tenantId } } });
     const occupancy = totalRooms > 0 ? Number((bookings.filter(b => b.status === 'checked_in').length / totalRooms * 100).toFixed(1)) : 0;
     const avgResponse = activityLogs.length > 0 ? activityLogs.reduce((s, l) => s + (l.duration || 0), 0) / activityLogs.length / 1000 : 0;
+    const closedBookings = bookings.filter((booking) => closedStatuses.includes(booking.status)).length;
+    const conversion = conversations.length > 0 ? Number((closedBookings / conversations.length * 100).toFixed(1)) : 0;
+    void avgResponse;
 
     return NextResponse.json({
       success: true,
       data: {
         attendedToday: conversations.length,
         attendedChange: pctChange(conversations.length, prevBookings.length),
-        bookingsClosed: bookings.filter(b => ['confirmed', 'checked_in', 'checked_out'].includes(b.status)).length,
-        bookingsChange: pctChange(bookings.length, prevBookings.length),
+        bookingsClosed: closedBookings,
+        bookingsChange: pctChange(closedBookings, prevBookings.filter((booking) => closedStatuses.includes(booking.status)).length),
         revenue,
         revenueChange: pctChange(revenue, prevRevenue),
         occupancy,
         occupancyChange: 0,
-        conversion: allBookings.length > 0 ? Number((bookings.filter(b => ['confirmed', 'checked_in'].includes(b.status)).length / conversations.length * 100).toFixed(1)) : 0,
+        conversion,
         conversionChange: 0,
         aiScore: conversations.length > 0 ? Number(conversations.reduce((s, c) => s + c.aiConfidence, 0) / conversations.length) : 0,
         aiScoreChange: 0,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       },
-      meta: { period, timestamp: new Date().toISOString() }
+      meta: { period, timestamp: new Date().toISOString(), source: 'database' },
     });
   } catch (error) {
-    console.error('[DDC metrics] Prisma error, returning zeros:', error);
+    console.error('[DDC metrics] Database error:', error);
     const period = request.nextUrl.searchParams.get('period') || 'today';
     return NextResponse.json({
       success: true,
-      data: emptyMetrics(period),
-      meta: { period, timestamp: new Date().toISOString(), source: 'fallback-zeros' }
+      data: emptyMetrics(),
+      meta: { period, timestamp: new Date().toISOString(), source: 'database_error', degraded: true },
     });
   }
 }
