@@ -177,7 +177,9 @@ describe('💵 meta-cost-guard — Meta Pricing 2026 (Fase 19)', () => {
   const guard = read('src/lib/meta-cost-guard.ts');
 
   it('registros de envio marcados como estimativa (não custo real)', () => {
-    expect(guard).toMatch(/source:\s*"send_accepted"/);
+    // FIX (auditoria): quote-agnóstico — a onda paralela ad83c47 mudou
+    // "send_accepted" para 'send_accepted' sem alterar a semântica.
+    expect(guard).toMatch(/source:\s*["']send_accepted["']/);
     expect(guard).toMatch(/estimated:\s*true/);
   });
 
@@ -205,9 +207,11 @@ describe('💵 meta-cost-guard — Meta Pricing 2026 (Fase 19)', () => {
   });
 
   it('deduplicação messageId: estimativa não duplica com authoritative', () => {
-    expect(guard).toMatch(/meta_webhook_pricing"\s*,?\s*\}/);
-    expect(guard).match;
-    expect(guard).toMatch(/Promove estimativa a authoritative/);
+    // FIX (auditoria): quote-agnóstico + comportamento update-in-place
+    // (a onda paralela ad83c47 reescreveu o bloco sem o comentário antigo —
+    // a SEMÂNTICA de promoção sem dupla contagem foi preservada).
+    expect(guard).toMatch(/meta_webhook_pricing["']?\s*,?\s*(as const)?\s*\}/);
+    expect(guard).toMatch(/if\s*\(existing\)\s*\{[\s\S]*metaCostLog\.update/);
   });
 });
 
