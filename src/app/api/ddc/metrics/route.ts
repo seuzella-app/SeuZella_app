@@ -19,7 +19,7 @@ function dateRange(period: string) {
     start = today;
     prevStart = new Date(today); prevStart.setDate(prevStart.getDate() - 1);
   }
-  return { start, prevStart, today };
+  return { start, prevStart };
 }
 
 const emptyMetrics = () => ({
@@ -63,9 +63,9 @@ export async function GET(request: NextRequest) {
     });
 
     if (snapshots.length > 0) {
-      const sum = (arr: Array<Record<string, unknown>>, field: string) =>
+      const sum = (arr: typeof snapshots, field: keyof (typeof snapshots)[number]) =>
         arr.reduce((s, r) => s + (Number(r[field]) || 0), 0);
-      const avg = (arr: Array<Record<string, unknown>>, field: string) => arr.length > 0 ? sum(arr, field) / arr.length : 0;
+      const avg = (arr: typeof snapshots, field: keyof (typeof snapshots)[number]) => arr.length > 0 ? sum(arr, field) / arr.length : 0;
       const pctChange = (curr: number, prev: number) => prev > 0 ? Number(((curr - prev) / prev * 100).toFixed(1)) : 0;
 
       const currentConversations = sum(snapshots, 'aiConversations');
@@ -96,11 +96,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const [bookings, conversations, activityLogs, allBookings] = await Promise.all([
+    const [bookings, conversations] = await Promise.all([
       db.booking.findMany({ where: { tenantId, createdAt: { gte: start } } }),
       db.conversationLog.findMany({ where: { tenantId, createdAt: { gte: start } } }),
-      db.aIActivityLog.findMany({ where: { tenantId, timestamp: { gte: start }, type: 'message' } }),
-      db.booking.findMany({ where: { tenantId } }),
     ]);
 
     const closedStatuses = ['confirmed', 'checked_in', 'checked_out'];
@@ -113,10 +111,8 @@ export async function GET(request: NextRequest) {
     const pctChange = (curr: number, prev: number) => prev > 0 ? Number(((curr - prev) / prev * 100).toFixed(1)) : 0;
     const totalRooms = await db.room.count({ where: { property: { tenantId } } });
     const occupancy = totalRooms > 0 ? Number((bookings.filter(b => b.status === 'checked_in').length / totalRooms * 100).toFixed(1)) : 0;
-    const avgResponse = activityLogs.length > 0 ? activityLogs.reduce((s, l) => s + (l.duration || 0), 0) / activityLogs.length / 1000 : 0;
-    const closedBookings = bookings.filter((booking) => closedStatuses.includes(booking.status)).length;
+    const closedBookings = revenueBookings.length;
     const conversion = conversations.length > 0 ? Number((closedBookings / conversations.length * 100).toFixed(1)) : 0;
-    void avgResponse;
 
     return NextResponse.json({
       success: true,
