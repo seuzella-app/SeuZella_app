@@ -14,11 +14,6 @@
 //   authentication  R$ 0,0350
 //   service         R$ 0,0350 a partir de 01/10/2026
 //   marketing_lite  usa a tarifa de marketing
-//
-// IMPORTANTE:
-// - descontos por volume podem reduzir utility/authentication;
-// - a tarifa efetiva depende do mercado do destinatário e da conta;
-// - por isso o rate card nunca substitui a reconciliação com Meta.
 // ==============================================================================
 
 import { MetaPricingCategory } from './meta-types';
@@ -30,19 +25,11 @@ export interface MetaRateCardEntry {
   market: MetaMarket;
   currency: MetaCurrency;
   category: MetaPricingCategory;
-  /** Preço de lista por mensagem na moeda do rate card. */
   rate: number;
   effectiveFrom: string;
   effectiveUntil: string | null;
 }
 
-/**
- * Rate card brasileiro de referência.
- *
- * Os valores são usados SOMENTE para estimativa. O custo real deve ser
- * reconciliado pelo status da Meta (`pricing.billable`) e, quando disponível,
- * pelo valor retornado/fornecido pelo sistema de billing da Meta.
- */
 export const META_RATE_CARD_BR: MetaRateCardEntry[] = [
   {
     market: 'BR',
@@ -76,6 +63,16 @@ export const META_RATE_CARD_BR: MetaRateCardEntry[] = [
     effectiveFrom: '2026-07-01',
     effectiveUntil: null,
   },
+  // Mantida como entrada histórica para resolver corretamente a vigência;
+  // billable=false antes de outubro é decidido pela função de política abaixo.
+  {
+    market: 'BR',
+    currency: 'BRL',
+    category: 'service',
+    rate: 0.035,
+    effectiveFrom: '2026-07-01',
+    effectiveUntil: '2026-09-30',
+  },
   {
     market: 'BR',
     currency: 'BRL',
@@ -86,7 +83,6 @@ export const META_RATE_CARD_BR: MetaRateCardEntry[] = [
   },
 ];
 
-/** Janela de atendimento de 24h = regra de envio, não regra de gratuidade. */
 export function isCustomerServiceWindowOpen(
   lastGuestMessageAt?: Date | null,
   now: Date = new Date()
@@ -97,7 +93,6 @@ export function isCustomerServiceWindowOpen(
   return elapsed >= 0 && elapsed < WINDOW_MS;
 }
 
-/** Horas restantes na janela de 24h (0 = fechada). */
 export function getServiceWindowRemainingHours(
   lastGuestMessageAt?: Date | null,
   now: Date = new Date()
@@ -120,21 +115,15 @@ export function isMetaMessageBillable(params: {
   const { category, at = new Date() } = params;
 
   if (category === 'UNKNOWN') return false;
+  if (category === 'service') return at >= new Date('2026-10-01T00:00:00Z');
 
-  // Antes de 01/10/2026, respostas service dentro da janela eram gratuitas.
-  // A partir de 01/10/2026, service passa a ser cobrado por mensagem.
-  if (category === 'service') {
-    return at >= new Date('2026-10-01T00:00:00Z');
-  }
-
-  // Utility/authentication/marketing/marketing_lite são categorias billable
-  // quando a Meta marca o envio como cobrável. A janela de 24h não deve ser
-  // usada para inferir gratuidade.
+  // Utility/authentication/marketing/marketing_lite são billable quando a
+  // Meta marca o envio como cobrável. A janela de 24h não é uma prova de
+  // gratuidade.
   return true;
 }
 
-/** Entrada vigente para o mercado solicitado. Nunca faz fallback silencioso
- * para BR: mercado desconhecido = sem estimativa, evitando preço inventado. */
+/** Nunca faz fallback silencioso para BR: mercado desconhecido = sem estimativa. */
 export function resolveRateCardEntry(params: {
   market: MetaMarket;
   category: MetaPricingCategory;
@@ -155,10 +144,6 @@ export function resolveRateCardEntry(params: {
   return candidates[0] ?? null;
 }
 
-/**
- * Estimativa explícita. Sempre `estimated=true`.
- * O mercado precisa ser conhecido; sem mercado não precificamos por suposição.
- */
 export function estimateMetaCost(params: {
   market: MetaMarket;
   category: MetaPricingCategory;
@@ -170,16 +155,11 @@ export function estimateMetaCost(params: {
 
   const billable = isMetaMessageBillable({ category, withinServiceWindow, at });
   const entry = resolveRateCardEntry({ market, category, at });
-
   if (!entry) return null;
+
   if (!billable) {
     return { cost: 0, currency: entry.currency, estimated: true, billable: false };
   }
 
-  return {
-    cost: entry.rate,
-    currency: entry.currency,
-    estimated: true,
-    billable: true,
-  };
+  return { cost: entry.rate, currency: entry.currency, estimated: true, billable: true };
 }
