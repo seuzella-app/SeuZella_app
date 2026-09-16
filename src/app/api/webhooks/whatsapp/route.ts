@@ -398,7 +398,7 @@ async function processMetaStatuses(parsedBody: unknown): Promise<number> {
           });
         }
 
-        await completeMetaEvent('outbound_status', status.externalEventId, 'processed');
+        await completeMetaEvent('outbound_status', status.externalEventId, 'processed', status.status);
         processed += 1;
       } catch (err) {
         console.error('[WhatsApp Webhook] processMetaStatuses item error (non-fatal):', err);

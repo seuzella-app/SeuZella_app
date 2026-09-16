@@ -71,3 +71,21 @@ describe('Meta Wave 4 — attribution sem inferência', () => {
     expect(source).toContain('where: { id: target.id, tenantId, reservationId: null }');
   });
 });
+
+describe('Meta Wave 4 — webhook finaliza outbound_status com discriminator (stomp guard)', () => {
+  const webhook = read('src/app/api/webhooks/whatsapp/route.ts');
+
+  it('complete do outbound_status passa status.status (nunca o fallback sem discriminator)', () => {
+    expect(webhook).toMatch(
+      /completeMetaEvent\(\s*'outbound_status',\s*status\.externalEventId,\s*'processed',\s*status\.status\s*\)/
+    );
+  });
+
+  it('nenhuma chamada de outbound_status sem discriminator permanece no webhook principal', () => {
+    const calls = webhook.match(/completeMetaEvent\(\s*'outbound_status'[^)]*\)/g) ?? [];
+    expect(calls.length).toBeGreaterThan(0);
+    for (const call of calls) {
+      expect(call).toContain('status.status');
+    }
+  });
+});
