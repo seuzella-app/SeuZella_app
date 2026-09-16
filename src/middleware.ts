@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { wafMiddleware } from '@/lib/security/waf-middleware';
 
-const PUBLIC_API_PREFIXES = ['/api/health','/api/readiness','/api/auth','/api/webhook-whatsapp','/api/webhooks/asaas','/api/webhooks/mercadopago','/api/webhooks/payment','/api/checkout/webhook','/api/webhooks/booking-com'];
+// FIX (onda Meta Foundation — auditoria): '/api/webhooks/whatsapp' é o webhook
+// canônico da Meta Cloud API (HMAC fail-closed + idempotência + pricing). Ele
+// DEVE ser público como os demais webhooks (/api/webhook-whatsapp, asaas,
+// mercadopago): a autenticação aqui é a assinatura HMAC X-Hub-Signature-256,
+// verificada dentro do handler — não a sessão NextAuth.
+const PUBLIC_API_PREFIXES = ['/api/health','/api/readiness','/api/auth','/api/webhook-whatsapp','/api/webhooks/whatsapp','/api/webhooks/asaas','/api/webhooks/mercadopago','/api/webhooks/payment','/api/checkout/webhook','/api/webhooks/booking-com'];
 const BLOCKED_API_PREFIXES = ['/api/debug-agent','/api/proxy','/api/diagnose'];
 const PROTECTED_PAGE_PREFIXES = ['/zcc','/dashboard','/config','/tenants','/campaigns','/leads','/targets','/agents','/roi','/swipe-templates'];
 const REQUEST_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;

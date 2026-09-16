@@ -146,3 +146,105 @@ export async function isMetaAcquiredConversation(conversationId: string): Promis
     return false;
   }
 }
+
+// ── FASE 7 — Fechamento da cadeia: RESERVA → ATTRIBUTION ─────────────────────
+// A conversa Meta-acquired nasce com MetaAttributionEvent (conversationId +
+// guestPhone), mas a RESERVA costuma ser criada depois (ex.: /api/v1/reservations).
+// Sem o link explícito, reservationId/reservationValue ficam NULL para sempre e
+// a receita nunca é atribuível à campanha. Este helper fecha a ligação —
+// NUNCA inferindo: só linka attribution DETERMINISTIC com entry point vigente.
+
+export interface AttributionLinkCandidate {
+  id: string;
+  confidence: string;
+  entryPointType: string;
+  entryPointExpiresAt: Date;
+}
+
+/**
+ * Seleção PURA (unit-testável) do evento de atribuição a ser linkado à reserva:
+ *  - somente click_to_whatsapp (origem comprovada — DETERMINISTIC);
+ *  - entry point ainda dentro da janela vigente;
+ *  - ainda sem reserva linkada;
+ *  - mais recente primeiro.
+ */
+export function pickAttributionForLink(
+  events: AttributionLinkCandidate[],
+  now: Date = new Date()
+): AttributionLinkCandidate | null {
+  const eligible = events.filter(
+    (e) =>
+      e.entryPointType === 'click_to_whatsapp' &&
+      e.confidence === 'DETERMINISTIC' &&
+      e.entryPointExpiresAt.getTime() >= now.getTime()
+  );
+  if (eligible.length === 0) return null;
+  return eligible[0] ?? null;
+}
+
+/**
+ * Linka uma reserva ao evento de atribuição Meta do hóspede (FASE 7).
+ * Fire-and-forget seguro: retorna false em qualquer falha — a reserva JÁ foi
+ * persistida e NUNCA pode quebrar por causa de atribuição.
+ *
+ * Regras: sem inferência. Se não há referral Meta comprovado e vigente para o
+ * telefone do hóspede, a reserva permanece UNATTRIBUTED.
+ */
+export async function linkReservationToMetaAttribution(params: {
+  tenantId: string;
+  guestPhone: string;
+  reservationId: string;
+  reservationValue?: number | null;
+}): Promise<boolean> {
+  const { tenantId, guestPhone, reservationId, reservationValue } = params;
+  if (!tenantId || !guestPhone || !reservationId) return false;
+
+  try {
+    const candidates = await db.metaAttributionEvent.findMany({
+      where: {
+        tenantId,
+        guestPhone,
+        reservationId: null, // só eventos ainda não linkados
+        entryPointType: 'click_to_whatsapp',
+      },
+      orderBy: { entryPointStartedAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        confidence: true,
+        entryPointType: true,
+        entryPointExpiresAt: true,
+      },
+    });
+
+    const target = pickAttributionForLink(candidates);
+    if (!target) return false; // sem evidência Meta — permanece UNATTRIBUTED
+
+    await db.metaAttributionEvent.update({
+      where: { id: target.id },
+      data: {
+        reservationId,
+        reservationValue:
+          typeof reservationValue === 'number' && Number.isFinite(reservationValue)
+            ? reservationValue
+            : null,
+        metadata: JSON.stringify({
+          linkedAt: new Date().toISOString(),
+          linkedBy: 'reservation_pipeline',
+        }),
+      },
+    });
+
+    recordMetaTelemetry({
+      name: 'meta.attribution.detected',
+      tenantId,
+      message: 'Reserva linkada à attribution Click-to-WhatsApp',
+      context: { reservationId, reservationValue: reservationValue ?? null },
+    });
+
+    return true;
+  } catch (error) {
+    console.error('[meta-attribution] linkReservationToMetaAttribution failed (non-fatal):', error);
+    return false;
+  }
+}

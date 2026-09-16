@@ -8,6 +8,10 @@
       "maxDuration": 60,
       "memory": 1024
     },
+    "src/app/api/webhooks/whatsapp/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
     "src/app/api/brain/route.ts": {
       "maxDuration": 60,
       "memory": 1024

@@ -67,6 +67,26 @@ A área DDC → Configurações → Meta consome esta rota. Nesta onda a rota é
 fonte da verdade; UI completa (tela de conexão) entra na onda de ativação com
 `META_CONNECT_ENABLED=true`.
 
+## Webhook canônico (definição operacional — auditoria desta onda)
+
+**URL a configurar no painel da Meta (App Dashboard → WhatsApp → Webhooks):**
+
+```
+https://<domínio-de-produção>/api/webhooks/whatsapp
+```
+
+- Este é o webhook canônico: HMAC fail-closed, idempotência (`meta_webhook_events`),
+  pricing authoritative (`pricing.billable`), attribution (referral), heartbeat
+  (`MetaConnection.lastWebhookAt/lastDeliveryAt`) e telemetria `meta.*`.
+- A rota é pública no middleware (`PUBLIC_API_PREFIXES`) — a autenticação é a
+  assinatura `X-Hub-Signature-256` verificada dentro do handler, não sessão.
+  (`/api/webhooks/whatsapp` estava AUSENTE da lista e recebia 401 em produção —
+  corrigido nesta onda; `vercel.json` ganhou config de função equivalente ao legado.)
+- `/api/webhook-whatsapp` (rota antiga) permanece no ar por compatibilidade, mas
+  NÃO processa statuses/pricing/attribution/idempotência. Não deve ser usada em
+  novas configurações da Meta; remoção fica para onda futura com migração
+  explícita do callback URL.
+
 ## Como ativar futuramente
 
 1. `META_CONNECT_ENABLED=true`

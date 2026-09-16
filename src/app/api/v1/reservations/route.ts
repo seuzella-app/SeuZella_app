@@ -8,6 +8,7 @@ import { YieldProfitTracker } from '@/lib/ai/tools/yield-profit-tracker';
 import { withAdvisoryLock, mapConcurrencyError } from '@/lib/db/concurrency';
 import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
 import { calculateUpsell } from '@/lib/billing/upsell-calculator';
+import { linkReservationToMetaAttribution } from '@/lib/meta/meta-attribution';
 
 async function getHandler(_request: NextRequest, _ctx: any) {
   try {
@@ -120,6 +121,30 @@ async function postHandler(request: NextRequest, _ctx: any) {
       } catch (yieldErr) {
         console.warn('[RESERVATION_CREATE] Yield tracking falhou (reserva OK):', yieldErr);
       }
+    }
+
+    // FIX (auditoria Meta Foundation — FASE 7): fecha a cadeia
+    // CONVERSA → LEAD (Guest) → RESERVA → RECEITA atribuível. Se o hóspede veio
+    // de Click-to-WhatsApp (referral comprovado e vigente), a reserva é linkada
+    // ao MetaAttributionEvent — sem inferência, sem quebrar a criação.
+    try {
+      if (guestId && reservation?.id) {
+        const guestForAttr = await prisma.guest.findUnique({
+          where: { id: guestId },
+          select: { phone: true },
+        });
+        if (guestForAttr?.phone) {
+          const linked = await linkReservationToMetaAttribution({
+            tenantId,
+            guestPhone: guestForAttr.phone,
+            reservationId: reservation.id,
+            reservationValue: Number(reservation.totalPrice ?? 0) || null,
+          });
+          if (linked) console.log('[RESERVATION_CREATE] Meta attribution linked:', reservation.id);
+        }
+      }
+    } catch (attrErr) {
+      console.warn('[RESERVATION_CREATE] Meta attribution link failed (reservation persisted):', attrErr);
     }
 
     return NextResponse.json(reservation, { status: 201 });

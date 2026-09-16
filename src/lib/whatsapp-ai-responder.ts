@@ -683,10 +683,13 @@ Use estas expressões e tom naturalmente. NÃO mencione que isso foi aprendido.
     setTimeout(async () => {
       try {
         const { sendWhatsAppMessage } = await import('./whatsapp-send');
-        await sendWhatsAppMessage({
+        // FIX (auditoria Meta Foundation): a chamada anterior usava objeto
+        // {tenantId, to: from, message} com `from` INEXISTENTE no escopo —
+        // ReferenceError silencioso mascarado pelo @ts-nocheck: o feedback
+        // 👍/👎 nunca era enviado. Assinatura correta: (toPhone, text, options).
+        await sendWhatsAppMessage(guestPhone, feedbackMessage, {
           tenantId,
-          to: from,
-          message: feedbackMessage,
+          correlationId: `feedback-${conversationId}`,
         });
         console.log('[Feedback] 👍/👎 enviado para hóspede');
       } catch (err) {
