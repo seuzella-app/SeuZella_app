@@ -1,16 +1,5 @@
 -- Meta Foundation wave (Fase 3 / 5 / 9 / 23)
--- Additive-only migration:
---   1. meta_connections        — MetaConnection multi-tenant (Fase 3)
---   2. meta_webhook_events     — idempotência de eventos externos Meta (Fase 5)
---   3. meta_attribution_events — atribuição Click-to-WhatsApp (Fase 9)
---   4. meta_cost_logs          — colunas aditivas para Meta Pricing 2026 (Fase 6/7)
---
--- Regras respeitadas:
---   * Nenhuma migration histórica alterada ou apagada.
---   * Nenhuma coluna removida, nenhum tipo alterado, nenhum dado destruído.
---   * RLS existente intacta. Aplicação de RLS nas novas tabelas segue o
---     padrão wave13 (app.current_tenant_id()) e é feita em onda própria
---     de hardening, não aqui.
+-- Additive-only migration.
 
 -- ── 1. meta_connections ─────────────────────────────────────────────────────
 CREATE TABLE "meta_connections" (
@@ -38,6 +27,11 @@ CREATE UNIQUE INDEX "meta_connections_tenantId_wabaId_phoneNumberId_key"
   ON "meta_connections"("tenantId", "wabaId", "phoneNumberId");
 CREATE INDEX "meta_connections_tenantId_idx" ON "meta_connections"("tenantId");
 CREATE INDEX "meta_connections_connectionStatus_idx" ON "meta_connections"("connectionStatus");
+
+-- Integridade referencial explícita para impedir registros Meta órfãos.
+ALTER TABLE "meta_connections"
+  ADD CONSTRAINT "meta_connections_tenantId_fkey"
+  FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- ── 2. meta_webhook_events (idempotência) ───────────────────────────────────
 CREATE TABLE "meta_webhook_events" (
@@ -91,6 +85,10 @@ CREATE INDEX "meta_attribution_events_campaignId_idx"
   ON "meta_attribution_events"("campaignId");
 CREATE INDEX "meta_attribution_events_entryPointExpiresAt_idx"
   ON "meta_attribution_events"("entryPointExpiresAt");
+
+ALTER TABLE "meta_attribution_events"
+  ADD CONSTRAINT "meta_attribution_events_tenantId_fkey"
+  FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- ── 4. meta_cost_logs — colunas aditivas Meta Pricing 2026 ─────────────────
 ALTER TABLE "meta_cost_logs"
