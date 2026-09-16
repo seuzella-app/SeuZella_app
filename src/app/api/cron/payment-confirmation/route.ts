@@ -1,4 +1,3 @@
-// @ts-nocheck — to be fixed in dedicated type refactoring pass
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronSecret } from '@/lib/security/cron-secret';
@@ -32,9 +31,14 @@ export async function GET(request: NextRequest) {
     // Busca transações COMPLETED dos últimos 30 min que ainda não enviaram confirmação
     const ha30min = new Date(Date.now() - 30 * 60 * 1000);
 
+    // Onda correção/hardening (auditoria FASE 11): o filtro antigo usava o
+    // literal PAYMENT, que NENHUM código cria — nada nunca casava. Os tipos
+    // reais criados pelos gateways são RESERVATION_PAYMENT:<gateway>
+    // (process-reservation-webhook.ts). Refunds (RESERVATION_REFUND:*) NÃO
+    // casam com o startsWith abaixo.
     const transactions = await (db as any).transaction.findMany({
       where: {
-        type: 'PAYMENT',
+        type: { startsWith: 'RESERVATION_PAYMENT' },
         status: 'COMPLETED',
         createdAt: { gte: ha30min },
         // metadata.confirmacaoEnviada = false ou null
@@ -77,10 +81,11 @@ Em breve você receberá um lembrete com todas as informações. Qualquer dúvid
 
         try {
           const { sendWhatsAppMessage } = await import('@/lib/whatsapp-send');
-          await sendWhatsAppMessage({
+          // Onda correção/hardening: assinatura posicional correta
+          // (toPhone, text, options) — a forma objeto nunca existiu e falhava
+          // silenciosamente mascarada por @ts-nocheck.
+          await sendWhatsAppMessage(phone, mensagem, {
             tenantId: tx.tenant?.id,
-            to: phone,
-            message: mensagem,
           });
 
           meta.confirmacaoEnviada = true;

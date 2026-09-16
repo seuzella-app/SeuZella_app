@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { TENANT_MODELS } from '@/lib/db/tenant-prisma';
 
 describe('Tenant isolation matrix enforcement', () => {
-  it('enforces exactly the 68 approved tenant-scoped models', () => {
-    expect(TENANT_MODELS).toHaveLength(68);
-    expect(new Set(TENANT_MODELS).size).toBe(68);
+  // Onda correção/hardening: 68 → 70 — MetaConnection e MetaAttributionEvent
+  // passam a ter guard de tenant no Prisma extension (auditoria FASE 4).
+  it('enforces exactly the 70 approved tenant-scoped models', () => {
+    expect(TENANT_MODELS).toHaveLength(70);
+    expect(new Set(TENANT_MODELS).size).toBe(70);
   });
 
   it('includes newly classified operational tenant models', () => {
@@ -18,6 +20,9 @@ describe('Tenant isolation matrix enforcement', () => {
       'GraphEdge',
       'CerebroWorkflow',
       'PolicyAudit',
+      'MetaConnection',
+      'MetaAttributionEvent',
+      'MetaCostLog',
     ]) {
       expect(TENANT_MODELS).toContain(model);
     }

@@ -1,4 +1,3 @@
-// @ts-nocheck — to be fixed in dedicated type refactoring pass
 /**
  * Housekeeping Dispatch — Orquestrador de Limpeza
  *
@@ -69,11 +68,13 @@ export async function handleCheckoutEvent(params: {
   if (params.cleaningTeamPhone) {
     try {
       const { sendWhatsAppMessage } = await import('@/lib/whatsapp-send');
-      await sendWhatsAppMessage({
-        tenantId: params.tenantId,
-        to: params.cleaningTeamPhone,
-        message: `🧹 ${event.message}${params.guestName ? `\nHóspede: ${params.guestName}` : ''}`,
-      });
+      // Onda correção/hardening: assinatura posicional correta
+      // (toPhone, text, options) — a forma objeto nunca existiu.
+      await sendWhatsAppMessage(
+        params.cleaningTeamPhone,
+        `🧹 ${event.message}${params.guestName ? `\nHóspede: ${params.guestName}` : ''}`,
+        { tenantId: params.tenantId }
+      );
       console.log(`[Housekeeping] Mensagem enviada para equipe de limpeza (${params.cleaningTeamPhone})`);
     } catch (err) {
       console.warn('[Housekeeping] WhatsApp send failed:', err);

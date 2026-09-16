@@ -1,4 +1,3 @@
-// @ts-nocheck — to be fixed in dedicated type refactoring pass
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronSecret } from '@/lib/security/cron-secret';
@@ -80,10 +79,10 @@ Qualquer dúvida, é só responder aqui! 😊`;
         // Nota: usamos o número do tenant (WABA) para enviar
         try {
           const { sendWhatsAppMessage } = await import('@/lib/whatsapp-send');
-          await sendWhatsAppMessage({
+          // Onda correção/hardening: assinatura posicional correta
+          // (toPhone, text, options) — a forma objeto nunca existiu.
+          await sendWhatsAppMessage(phone, mensagem, {
             tenantId: reserva.tenant?.id,
-            to: phone,
-            message: mensagem,
           });
 
           // Marca como enviado

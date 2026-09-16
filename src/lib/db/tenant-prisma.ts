@@ -34,6 +34,7 @@ const TENANT_MODELS = [
   'GraphNode', 'GraphEdge', 'BrainHealthLog', 'CompiledPrompt',
   'AirbExpense', 'AirbOperationTask', 'AirbGoal', 'AirbCommission',
   'AirbReport', 'PolicyAudit', 'CerebroWorkflow',
+  'MetaConnection', 'MetaAttributionEvent',
 ] as const;
 
 const FILTERED_OPERATIONS = ['findMany', 'findFirst', 'findUnique', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy', 'upsert'];

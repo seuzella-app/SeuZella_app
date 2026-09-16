@@ -27,7 +27,8 @@ import { bridgeWhatsAppIncoming } from '@/lib/notifications/bridges';
 // ── Meta Foundation (Fase 5/6/9/24) — aditivo, não substitui o fluxo existente ──
 import { extractWebhookValues, normalizeMetaOutboundStatuses } from '@/lib/meta/meta-normalizer';
 import { claimMetaEvent, completeMetaEvent, recordMetaTelemetry } from '@/lib/meta/meta-events';
-import { recordMetaAttribution } from '@/lib/meta/meta-attribution';
+import { recordMetaAttribution, linkAttributionToConversation } from '@/lib/meta/meta-attribution';
+import { webhookRatelimit } from '@/lib/rate-limit';
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- Meta payload types kept as documentation */
 
@@ -505,8 +506,23 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
-  // ── Step 1: Verify HMAC Signature (fail-closed) 
+  // ── Step 0: Guardas de abuso (portados do webhook legado — auditoria FASE 5)
+  // O canônico é o webhook público da Meta; sem payload guard nem rate limit
+  // ele ficava exposto (o legado tinha os dois). 413/429 são semânticos e
+  // NÃO afetam a estratégia 200-de-rejeição-de-assinatura (anti-disable).
   const rawBody = await request.text();
+  if (Buffer.byteLength(rawBody, 'utf8') > 1024 * 1024) {
+    console.error('[WhatsApp Webhook] ❌ Payload too large (max 1MB)');
+    return NextResponse.json({ status: 'payload_too_large' }, { status: 413 });
+  }
+  const sourceIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const rate = await webhookRatelimit.limit(`webhook:whatsapp:${sourceIp}`);
+  if (!rate.success) {
+    console.error('[WhatsApp Webhook] ❌ Rate limited:', sourceIp);
+    return NextResponse.json({ status: 'rate_limited' }, { status: 429 });
+  }
+
+  // ── Step 1: Verify HMAC Signature (fail-closed)
   const signature = request.headers.get('x-hub-signature-256');
 
   const signatureCheck = verifyMetaSignature(rawBody, signature);
@@ -776,6 +792,19 @@ export async function POST(request: NextRequest) {
               messageFrom: payload.messageFrom,
             });
 
+            // ── Onda correção/hardening: fecha ATTRIBUTION → CONVERSATION.
+            // A attribution nasce antes da conversa (buffer); com o id em
+            // mãos, linkamos por (tenantId, messageId) — fire-and-forget.
+            if (result?.conversationId && msg.messageId) {
+              void linkAttributionToConversation({
+                tenantId,
+                messageId: msg.messageId,
+                conversationId: result.conversationId,
+              }).catch((linkErr) =>
+                console.error('[WhatsApp Webhook] linkAttributionToConversation error (non-fatal):', linkErr)
+              );
+            }
+
             // ── Phase 2: Bridge to DDC Notification Center 
             // Push "new lead" notification into the in-memory store so the
             // DDC mobile notification center sees it. Non-blocking — failures
@@ -904,6 +933,15 @@ export async function POST(request: NextRequest) {
               }),
             },
           });
+
+          // Onda correção/hardening: fecha ATTRIBUTION → CONVERSATION (mídia)
+          if (msg.messageId) {
+            await linkAttributionToConversation({
+              tenantId,
+              messageId: msg.messageId,
+              conversationId: conversation.id,
+            });
+          }
         } catch (err) {
           console.error(
             `[WhatsApp Webhook] ❌ Error recording non-text message from ${msg.from}:`,

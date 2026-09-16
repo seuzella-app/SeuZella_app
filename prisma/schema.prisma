@@ -101,6 +101,8 @@ model Tenant {
   lockEvents        LockEvent[]
   lockOAuthAccounts LockOAuthAccount[]
   upsellRecords     UpsellRecord[]
+  metaConnections   MetaConnection[]
+  metaAttributionEvents MetaAttributionEvent[]
   airbExpenses      AirbExpense[]
   airbOperationTasks AirbOperationTask[]
   airbGoals         AirbGoal[]
@@ -137,6 +139,12 @@ model Property {
   description     String  @default("")
   services        String  @default("[]")
   paymentMethods  String  @default("[]")
+  // Metadados arbitrários da propriedade (JSON stringificado) — contrato do
+  // onboarding-wizard, ddc/personality, housekeeping-dispatch e
+  // whatsapp-ai-responder (aiTone/aiExpressions/aiGreeting/onboardingSteps...).
+  // O código SEMPRE trata como string JSON (JSON.parse/JSON.stringify) —
+  // NÃO mudar para Json do Prisma sem atualizar todos os consumidores.
+  metadata        String?
   pixKey          String?
   pixKeyType      String  @default("cpf")
   bankName        String?
@@ -1193,6 +1201,9 @@ model MetaConnection {
   metadata             String   @default("{}")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+  // FK declarada no schema (paridade com o SQL idempotente da migration
+  // 20260916130000_meta_tenant_fk_idempotent — evita drift em migrate dev/diff).
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, wabaId, phoneNumberId])
   @@index([tenantId])
@@ -1241,6 +1252,9 @@ model MetaAttributionEvent {
   reservationValue      Float?
   metadata              String   @default("{}")
   createdAt             DateTime @default(now())
+  // FK declarada no schema (paridade com o SQL idempotente da migration
+  // 20260916130000_meta_tenant_fk_idempotent — evita drift em migrate dev/diff).
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, createdAt])
   @@index([conversationId])

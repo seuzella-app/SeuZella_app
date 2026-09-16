@@ -97,3 +97,35 @@ https://<domínio-de-produção>/api/webhooks/whatsapp
 ## Rollback
 
 Flags off + git revert. Nada destrutivo.
+
+## WhatsApp Cloud API ≠ Marketing Messages API (auditoria FASE 10)
+
+Estado real verificado no código (onda correção/hardening):
+
+- **WhatsApp Cloud API**: ativa no fluxo — envio de TEXTO LIVRE via
+  `sendWhatsAppMessage` (`whatsapp-send.ts`) e envio com TEMPLATE via
+  `sendWhatsAppTemplate` (`cloud-api.ts`).
+- **Marketing Messages API**: **NÃO IMPLEMENTADA** — status UNVERIFIED.
+  - `sendWhatsAppTemplate()` existe, porém com **zero callers** em `src/` e
+    `tests/` (capacidade morta; nenhuma mensagem de marketing é enviada hoje).
+  - Não há criação/listagem/gestão de templates, nem os endpoints/permissions
+    da Marketing Messages API. NADA foi inventado.
+- A infraestrutura de billing já está preparada para o dia em que marketing
+  existir: o rate card BR 2026 precifica `marketing` e `marketing_lite`
+  (`meta-rate-card.ts`) e o cost-guard mapeia `marketing_template` → categoria
+  `marketing` — mas nenhum envio desses acontece no código atual.
+
+**Regra**: qualquer implementação de Marketing Messages deve partir da
+documentação oficial da Meta (template approval, permissões, endpoint) em onda
+própria — Cloud API texto e Marketing Messages são produtos distintos.
+
+## Hardening do webhook canônico (onda correção/hardening)
+
+- Guard de payload de 1 MB → `413 payload_too_large` (portado do legado).
+- `webhookRatelimit` (100 req/60s por IP) → `429 rate_limited` (portado do legado).
+- A rejeição de assinatura continua devolvendo `200 {rejected}` (anti-disable
+  da Meta) — 413/429 são guardas de abuso e não afetam essa estratégia.
+- Attribution → Conversation: o id da conversa é vinculado ao evento de
+  attribution por `(tenantId, messageId)` assim que o pipeline o expõe
+  (`linkAttributionToConversation`) — fecha o elo ATTRIBUTION → CONVERSATION
+  sem inferência.

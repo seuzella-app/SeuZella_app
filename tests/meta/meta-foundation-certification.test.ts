@@ -112,7 +112,7 @@ describe('🌐 Graph API version — sem hardcoded (Fase 2)', () => {
 // ── 3. Feature flags (Fase 29) ───────────────────────────────────────────────
 
 describe('🚩 Feature flags Meta (Fase 29)', () => {
-  it('as 6 flags existem com defaults corretos', () => {
+  it('as 7 flags existem com defaults corretos (CAPI flag OFF — onda correção/hardening)', () => {
     const config = read('src/lib/meta/meta-config.ts');
     expect(config).toMatch(/META_CONNECT_ENABLED[^;]*false/);
     expect(config).toMatch(/META_INSTAGRAM_ENABLED[^;]*false/);
@@ -120,6 +120,7 @@ describe('🚩 Feature flags Meta (Fase 29)', () => {
     expect(config).toMatch(/META_ATTRIBUTION_ENABLED[^;]*true/);
     expect(config).toMatch(/META_COST_TRACKING_ENABLED[^;]*true/);
     expect(config).toMatch(/META_LEARNING_ENABLED[^;]*true/);
+    expect(config).toMatch(/META_CAPI_ENABLED[^;]*false/);
   });
 
   it('Business Agent: capability default desligado (Fase 13)', () => {

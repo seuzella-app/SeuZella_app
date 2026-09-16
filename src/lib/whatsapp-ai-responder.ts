@@ -1,4 +1,3 @@
-// @ts-nocheck — to be fixed in dedicated type refactoring pass
 import { db } from '@/lib/db';
 import { mapConversation } from '@/lib/ddc/ddc-mapper';
 import { executeCognitivePipeline } from './ai/cognitive-router';
@@ -387,6 +386,24 @@ export async function processIncomingMessage(params: ProcessParams): Promise<Pro
     }))
   );
 
+  // ── Personalidade da pousada (onda correção/hardening — bug real mascarado
+  // pela diretiva de supressão de tipos, hoje removida): Property.metadata é
+  // uma STRING JSON (contrato do schema — onboarding-wizard/personality/
+  // housekeeping-dispatch fazem JSON.parse). O código antigo tratava metadata
+  // como objeto, o que nunca existiria — a personalidade configurada NUNCA
+  // chegava ao prompt. Parse seguro: metadata null/corrupto → defaults.
+  let propertyMeta: {
+    aiTone?: string;
+    aiExpressions?: string[];
+    aiGreeting?: string;
+    aiAssistantName?: string;
+  } = {};
+  try {
+    propertyMeta = JSON.parse(property?.metadata || '{}') as typeof propertyMeta;
+  } catch {
+    propertyMeta = {};
+  }
+
   let systemPrompt = `Você é a ${assistantName}, uma assistente virtual de inteligência artificial ultra-atenciosa e hospitaleira da pousada "${property?.name || 'Pousada'}".
 Seu objetivo é sanar dúvidas, encantar o hóspede, sugerir acomodações e incentivar a reserva direta de forma natural, educada e calorosa.
 
@@ -398,9 +415,9 @@ Endereço/Localização: ${property?.city || ''}, ${property?.state || ''}
 Descrição/Tom: ${property?.description || 'Um refúgio tranquilo e acolhedor.'}
 
 === PERSONALIDADE DA IA ===
-Tom de voz: ${property?.metadata?.aiTone || 'descontraida'}
-${property?.metadata?.aiExpressions?.length ? `Expressões preferidas: ${property.metadata.aiExpressions.join(', ')}` : ''}
-${property?.metadata?.aiGreeting ? `Saudação inicial: ${property.metadata.aiGreeting}` : ''}
+Tom de voz: ${propertyMeta.aiTone || 'descontraida'}
+${propertyMeta.aiExpressions?.length ? `Expressões preferidas: ${propertyMeta.aiExpressions.join(', ')}` : ''}
+${propertyMeta.aiGreeting ? `Saudação inicial: ${propertyMeta.aiGreeting}` : ''}
 
 === ANÁLISE DE SENTIMENTO (adapte seu tom) ===
 Analise o sentimento da mensagem do hóspede e adapte seu tom:
@@ -685,7 +702,7 @@ Use estas expressões e tom naturalmente. NÃO mencione que isso foi aprendido.
         const { sendWhatsAppMessage } = await import('./whatsapp-send');
         // FIX (auditoria Meta Foundation): a chamada anterior usava objeto
         // {tenantId, to: from, message} com `from` INEXISTENTE no escopo —
-        // ReferenceError silencioso mascarado pelo @ts-nocheck: o feedback
+        // ReferenceError silencioso mascarado pela supressão de tipos (removida): o feedback
         // 👍/👎 nunca era enviado. Assinatura correta: (toPhone, text, options).
         await sendWhatsAppMessage(guestPhone, feedbackMessage, {
           tenantId,

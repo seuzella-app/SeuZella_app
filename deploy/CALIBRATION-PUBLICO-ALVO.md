@@ -149,9 +149,15 @@ O Seu Zélla **não oferece trial de 7 dias nem plano gratuito**. Todos os clien
 | Endpoint | Rate limit | Auth |
 |---|---|---|
 | `/api/auth/*` | 5 req / 15 min por IP | authRatelimit |
-| `/api/webhooks/whatsapp` | 100 req / 60s por tenant | webhookRatelimit |
+| `/api/webhook-whatsapp` (legado) | 100 req / 60s por IP | webhookRatelimit |
+| `/api/webhooks/whatsapp` (canônico) | 100 req / 60s por IP | webhookRatelimit + HMAC |
 | `/api/ddc/*` | 60 req / 60s por tenant | apiRatelimit |
 | `/api/cron/*` | Sem rate limit | Bearer CRON_SECRET |
+
+> Correção (onda correção/hardening): a tabela anterior atribuía o rate limit
+> apenas ao canônico; na verdade quem o tinha historicamente era o legado.
+> Ambos agora usam `webhookRatelimit` (100/60s por IP); o canônico adicionalmente
+> aplica guard de payload de 1 MB (413) e autenticação HMAC fail-closed.
 
 **Fail-closed:** Em produção sem Upstash Redis, rate-limit bloqueia TUDO até configurar (fail-safe).
 

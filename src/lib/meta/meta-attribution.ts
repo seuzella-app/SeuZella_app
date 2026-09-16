@@ -14,8 +14,24 @@ import { META_ATTRIBUTION_ENABLED } from './meta-config';
 import { MetaReferralEvent } from './meta-types';
 import { recordMetaTelemetry } from './meta-events';
 
-/** Janela padrão de entrada Click-to-Message (Meta) — 7 dias. */
-export const CTM_ENTRY_POINT_WINDOW_DAYS = 7;
+/**
+ * Janela padrão de entrada Click-to-Message (Meta) — 7 dias.
+ *
+ * HARDENING (auditoria FASE 7): o valor NÃO é mais um constante cego — é o
+ * DEFAULT configurável via env META_CTM_WINDOW_DAYS (1–30). A autoridade
+ * real da janela é a Meta (varia por placement/programação do anúncio);
+ * quando o payload/endpoint oficial passar a informação, ela deve sobrepor
+ * este default. O valor aplicado fica armazenado por evento em
+ * entryPointExpiresAt — nenhuma análise deve hardcodar 7 dias.
+ */
+function resolveCtmWindowDays(): number {
+  const raw = Number(process.env.META_CTM_WINDOW_DAYS);
+  if (Number.isInteger(raw) && raw >= 1 && raw <= 30) return raw;
+  return 7;
+}
+
+export const CTM_ENTRY_POINT_WINDOW_DAYS = 7; // default documentado (compat)
+const ctmWindowDays = resolveCtmWindowDays();
 
 export type MetaAttributionConfidence =
   | 'DETERMINISTIC' // referral presente no payload da Meta
@@ -38,7 +54,7 @@ export function buildEntryPointFromReferral(
   now: Date = new Date()
 ): MetaEntryPoint {
   const startedAt = now;
-  const expiresAt = new Date(now.getTime() + CTM_ENTRY_POINT_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(now.getTime() + ctmWindowDays * 24 * 60 * 60 * 1000);
 
   if (!referral || (!referral.source && !referral.sourceId)) {
     return {
@@ -220,8 +236,10 @@ export async function linkReservationToMetaAttribution(params: {
     const target = pickAttributionForLink(candidates);
     if (!target) return false; // sem evidência Meta — permanece UNATTRIBUTED
 
-    await db.metaAttributionEvent.update({
-      where: { id: target.id },
+    // HARDENING (auditoria FASE 4): update SEMPRE com guard de tenant —
+    // o id sozinho não prova pertencimento; tenantId vem do caller autenticado.
+    const linked = await db.metaAttributionEvent.updateMany({
+      where: { id: target.id, tenantId },
       data: {
         reservationId,
         reservationValue:
@@ -235,6 +253,8 @@ export async function linkReservationToMetaAttribution(params: {
       },
     });
 
+    if (linked.count === 0) return false; // tenant mismatch — não linka
+
     recordMetaTelemetry({
       name: 'meta.attribution.detected',
       tenantId,
@@ -245,6 +265,42 @@ export async function linkReservationToMetaAttribution(params: {
     return true;
   } catch (error) {
     console.error('[meta-attribution] linkReservationToMetaAttribution failed (non-fatal):', error);
+    return false;
+  }
+}
+
+// ── Onda correção/hardening — fechamento ATTRIBUTION → CONVERSATION ─────────
+// A auditoria confirmou: o webhook grava MetaAttributionEvent ANTES de criar
+// a ConversationLog (mensagem inbound é buffered → processada depois), então
+// conversationId ficava NULL para sempre. Assim que o pipeline expõe o id da
+// conversa, este helper fecha o vínculo por (tenantId, messageId) — sem
+// inferência: só o evento de atribuição do MESMO messageId da MESMA conversa.
+
+/**
+ * Linka a attribution registrada para `messageId` à conversa criada depois.
+ * Fire-and-forget seguro: false em qualquer falha — NUNCA quebra o pipeline.
+ * Não sobrescreve um conversationId já existente (idempotente).
+ */
+export async function linkAttributionToConversation(params: {
+  tenantId: string;
+  messageId: string;
+  conversationId: string;
+}): Promise<boolean> {
+  const { tenantId, messageId, conversationId } = params;
+  if (!tenantId || !messageId || !conversationId) return false;
+
+  try {
+    const linked = await db.metaAttributionEvent.updateMany({
+      where: {
+        tenantId,
+        messageId,
+        conversationId: null, // idempotente: não sobrescreve vínculo existente
+      },
+      data: { conversationId },
+    });
+    return linked.count > 0;
+  } catch (error) {
+    console.error('[meta-attribution] linkAttributionToConversation failed (non-fatal):', error);
     return false;
   }
 }

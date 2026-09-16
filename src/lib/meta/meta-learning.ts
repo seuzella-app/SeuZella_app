@@ -74,8 +74,11 @@ export async function recordConversationOutcome(ctx: ZellmLearningContext): Prom
 
     // Enriquece a conversa com o contexto Meta (sem duplicar pipeline):
     // usa metadata JSON do ConversationLog — campo existente, aditivo.
-    const existing = await db.conversationLog.findUnique({
-      where: { id: ctx.conversationId },
+    // HARDENING (onda correção/hardening): leitura e escrita SEMPRE com o
+    // guard de tenant — findUnique/update por id puro permitiria que um
+    // tenantId trocado tocasse conversa de outro tenant.
+    const existing = await db.conversationLog.findFirst({
+      where: { id: ctx.conversationId, tenantId: ctx.tenantId },
       select: { metadata: true },
     });
     if (!existing) return;
@@ -88,8 +91,10 @@ export async function recordConversationOutcome(ctx: ZellmLearningContext): Prom
     }
 
     const zellm = (meta.zellm as Record<string, unknown> | undefined) ?? {};
-    await db.conversationLog.update({
-      where: { id: ctx.conversationId },
+    // reservationValue entra no metadata (contrato do meta-learning-bridge,
+    // que lê zellm.reservationValue — antes era escrito como null para sempre).
+    await db.conversationLog.updateMany({
+      where: { id: ctx.conversationId, tenantId: ctx.tenantId },
       data: {
         metadata: JSON.stringify({
           ...meta,
@@ -100,6 +105,10 @@ export async function recordConversationOutcome(ctx: ZellmLearningContext): Prom
             metaCategory: ctx.metaCategory ?? zellm.metaCategory ?? null,
             entryPointType: ctx.entryPointType ?? zellm.entryPointType ?? null,
             campaignId: ctx.campaignId ?? zellm.campaignId ?? null,
+            reservationValue:
+              typeof ctx.reservationValue === 'number' && Number.isFinite(ctx.reservationValue)
+                ? ctx.reservationValue
+                : zellm.reservationValue ?? null,
             lastOutcome: ctx.outcome,
             outcomeUpdatedAt: new Date().toISOString(),
           },

@@ -68,6 +68,9 @@ const PUBLIC_ROUTES = [
   '/api/health',
   '/api/auth',
   '/api/webhook-whatsapp',
+  // Webhook canônico da Meta Cloud API (autenticado por HMAC X-Hub-Signature-256
+  // dentro do handler — auditoria onda correção/hardening: paridade com middleware).
+  '/api/webhooks/whatsapp',
   '/api/checkout/webhook',
 ];
 

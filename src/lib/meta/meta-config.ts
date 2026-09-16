@@ -19,6 +19,10 @@ export const META_BUSINESS_AGENT_ENABLED = envFlag('META_BUSINESS_AGENT_ENABLED'
 export const META_ATTRIBUTION_ENABLED = envFlag('META_ATTRIBUTION_ENABLED', true);
 export const META_COST_TRACKING_ENABLED = envFlag('META_COST_TRACKING_ENABLED', true);
 export const META_LEARNING_ENABLED = envFlag('META_LEARNING_ENABLED', true);
+// Conversions API (Business Messaging) — SEMPRE false até aprovação/credenciais
+// Meta reais (DEPENDÊNCIA EXTERNA). O módulo meta-capi.ts é apenas o contrato
+// interno; nada no pipeline de produção o chama.
+export const META_CAPI_ENABLED = envFlag('META_CAPI_ENABLED', false);
 
 export function getMetaFeatureFlags() {
   return {
@@ -28,6 +32,7 @@ export function getMetaFeatureFlags() {
     META_ATTRIBUTION_ENABLED,
     META_COST_TRACKING_ENABLED,
     META_LEARNING_ENABLED,
+    META_CAPI_ENABLED,
   };
 }
 
