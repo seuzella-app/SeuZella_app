@@ -1,20 +1,24 @@
 // ==============================================================================
 // ZÉLLA — Meta Rate Card 2026 (Fase 6 / Fase 7 / Fase 8)
 // ==============================================================================
-// PREÇOS META = DADOS DE CONFIGURAÇÃO VERSIONADOS, NÃO LÓGICA ESPALHADA.
+// RATE CARD = DADOS DE ESTIMATIVA, NÃO FONTE DE COBRANÇA.
 //
-// Regras implementadas:
-//  1. Meta aceitou o envio  ≠  Meta cobrou. O evento AUTHORITATIVE de billing
-//     é o status da Meta com pricing.billable=true (Fase 6).
-//  2. Rate card configurável por market / currency / category / effectiveFrom /
-//     effectiveUntil (Fase 7). Sem conversão USD→BRL com câmbio fixo: a
-//     currency é registrada junto com o custo, do jeito que a Meta reporta.
-//  3. Mudança de outubro/2026 (Fase 8): mensagens de serviço passam a ser
-//     cobradas a partir de 01/10/2026 e utility templates dentro da janela de
-//     atendimento passam a ser cobrados. A janela de 24h CONTINUA existindo
-//     como regra de envio — ela NÃO é sinônimo de "mensagem grátis".
-//  4. Categoria desconhecida → UNKNOWN: registrar, não descartar, não inventar
-//     preço.
+// Regra canônica:
+//   Meta status pricing.billable = autoridade de cobrança.
+//   O rate card abaixo só serve para estimativas quando a Meta não devolve
+//   um valor monetário no status. Nunca apresentar uma estimativa como fatura.
+//
+// Brasil — rate card publicado para 01/07/2026:
+//   marketing       R$ 0,3217
+//   utility         R$ 0,0350
+//   authentication  R$ 0,0350
+//   service         R$ 0,0350 a partir de 01/10/2026
+//   marketing_lite  usa a tarifa de marketing
+//
+// IMPORTANTE:
+// - descontos por volume podem reduzir utility/authentication;
+// - a tarifa efetiva depende do mercado do destinatário e da conta;
+// - por isso o rate card nunca substitui a reconciliação com Meta.
 // ==============================================================================
 
 import { MetaPricingCategory } from './meta-types';
@@ -26,139 +30,111 @@ export interface MetaRateCardEntry {
   market: MetaMarket;
   currency: MetaCurrency;
   category: MetaPricingCategory;
-  /** Preço por mensagem na moeda do rate card. */
+  /** Preço de lista por mensagem na moeda do rate card. */
   rate: number;
-  effectiveFrom: string; // ISO date
-  effectiveUntil: string | null; // ISO date (null = vigente)
+  effectiveFrom: string;
+  effectiveUntil: string | null;
 }
 
 /**
- * RATE CARD — Brasil (dados de configuração versionados).
+ * Rate card brasileiro de referência.
  *
- * Fonte: pricing público da Meta para marketing/utility/authentication/service.
- * Valores marcados como REFERENCE: são referências de configuração, o custo
- * AUTHORITATIVE sempre vem do webhook de status da Meta quando disponível
- * (source='meta_webhook_pricing').
- *
- * ⚠️ Os valores abaixo devem ser revisados contra o painel da Meta antes de
- * qualquer faturamento real de cliente. Eles existem para permitir ESTIMATIVA
- * explícita (estimated=true) — nunca para simular cobrança real.
+ * Os valores são usados SOMENTE para estimativa. O custo real deve ser
+ * reconciliado pelo status da Meta (`pricing.billable`) e, quando disponível,
+ * pelo valor retornado/fornecido pelo sistema de billing da Meta.
  */
 export const META_RATE_CARD_BR: MetaRateCardEntry[] = [
-  // ── Período pré 01/10/2026: service dentro da janela não é billable ──
-  {
-    market: 'BR',
-    currency: 'BRL',
-    category: 'service',
-    rate: 0.0315,
-    effectiveFrom: '2025-07-01',
-    effectiveUntil: '2026-09-30',
-  },
-  // ── Mudança de outubro 2026: service passa a ser cobrado ──
-  {
-    market: 'BR',
-    currency: 'BRL',
-    category: 'service',
-    rate: 0.0315,
-    effectiveFrom: '2026-10-01',
-    effectiveUntil: null,
-  },
-  {
-    market: 'BR',
-    currency: 'BRL',
-    category: 'utility',
-    rate: 0.0315,
-    effectiveFrom: '2025-07-01',
-    effectiveUntil: null,
-  },
-  {
-    market: 'BR',
-    currency: 'BRL',
-    category: 'authentication',
-    rate: 0.0315,
-    effectiveFrom: '2025-07-01',
-    effectiveUntil: null,
-  },
   {
     market: 'BR',
     currency: 'BRL',
     category: 'marketing',
-    rate: 0.1875,
-    effectiveFrom: '2025-07-01',
+    rate: 0.3217,
+    effectiveFrom: '2026-07-01',
     effectiveUntil: null,
   },
   {
     market: 'BR',
     currency: 'BRL',
     category: 'marketing_lite',
-    rate: 0.0938,
-    effectiveFrom: '2025-07-01',
+    rate: 0.3217,
+    effectiveFrom: '2026-07-01',
+    effectiveUntil: null,
+  },
+  {
+    market: 'BR',
+    currency: 'BRL',
+    category: 'utility',
+    rate: 0.035,
+    effectiveFrom: '2026-07-01',
+    effectiveUntil: null,
+  },
+  {
+    market: 'BR',
+    currency: 'BRL',
+    category: 'authentication',
+    rate: 0.035,
+    effectiveFrom: '2026-07-01',
+    effectiveUntil: null,
+  },
+  {
+    market: 'BR',
+    currency: 'BRL',
+    category: 'service',
+    rate: 0.035,
+    effectiveFrom: '2026-10-01',
     effectiveUntil: null,
   },
 ];
 
-// ── Janela de atendimento vs cobrança (Fase 8 — responsabilidades separadas) ─
-
-/**
- * A janela de 24h Customer Service Window é uma regra de ENVIO (quando o
- * negócio pode usar templates de utilidade/serviço). Ela NÃO determina
- * cobrança. Use isMetaMessageBillable() para cobrança.
- */
-export function isCustomerServiceWindowOpen(lastGuestMessageAt?: Date | null, now: Date = new Date()): boolean {
+/** Janela de atendimento de 24h = regra de envio, não regra de gratuidade. */
+export function isCustomerServiceWindowOpen(
+  lastGuestMessageAt?: Date | null,
+  now: Date = new Date()
+): boolean {
   if (!lastGuestMessageAt) return false;
-  const WINDOW_HOURS = 24;
+  const WINDOW_MS = 24 * 60 * 60 * 1000;
   const elapsed = now.getTime() - lastGuestMessageAt.getTime();
-  return elapsed >= 0 && elapsed < WINDOW_HOURS * 60 * 60 * 1000;
+  return elapsed >= 0 && elapsed < WINDOW_MS;
 }
 
 /** Horas restantes na janela de 24h (0 = fechada). */
-export function getServiceWindowRemainingHours(lastGuestMessageAt?: Date | null, now: Date = new Date()): number {
+export function getServiceWindowRemainingHours(
+  lastGuestMessageAt?: Date | null,
+  now: Date = new Date()
+): number {
   if (!lastGuestMessageAt) return 0;
-  const WINDOW_HOURS = 24;
-  const remainingMs =
-    WINDOW_HOURS * 60 * 60 * 1000 - (now.getTime() - lastGuestMessageAt.getTime());
+  const WINDOW_MS = 24 * 60 * 60 * 1000;
+  const remainingMs = WINDOW_MS - (now.getTime() - lastGuestMessageAt.getTime());
   return Math.max(0, Math.round((remainingMs / (60 * 60 * 1000)) * 10) / 10);
 }
 
 /**
- * Cobrança por categoria + vigência:
- *  - Antes de 01/10/2026: service dentro da janela de 24h NÃO é billable;
- *    utility template dentro da janela JÁ é billable conforme o pricing atual
- *    da Meta (utility responses fora de template são o que muda em 10/2026).
- *  - A partir de 01/10/2026: service passa a ser billable (nova regra Meta).
- *
- * ⚠️ Esta função expressa a política de COBRANÇA. A política de ENVIO continua
- * sendo a janela de 24h (isCustomerServiceWindowOpen). Nunca misturar.
+ * Política de cobrança usada apenas para estimativa.
+ * A decisão final é sempre o `pricing.billable` enviado pela Meta.
  */
 export function isMetaMessageBillable(params: {
   category: MetaPricingCategory;
   withinServiceWindow: boolean;
-  /** Data do evento de status da Meta (default: agora). */
   at?: Date;
 }): boolean {
-  const { category, withinServiceWindow, at = new Date() } = params;
+  const { category, at = new Date() } = params;
 
-  if (category === 'UNKNOWN') {
-    // Sem categoria conhecida não assumimos billable nem free — quem decide é
-    // o pricing.billable do status da Meta. Estimativa fica conservadora.
-    return false;
-  }
+  if (category === 'UNKNOWN') return false;
 
-  const SERVICE_PAID_FROM = new Date('2026-10-01T00:00:00Z');
-
+  // Antes de 01/10/2026, respostas service dentro da janela eram gratuitas.
+  // A partir de 01/10/2026, service passa a ser cobrado por mensagem.
   if (category === 'service') {
-    if (at < SERVICE_PAID_FROM) return false; // dentro da janela => free era regra pré-10/2026
-    return true; // 01/10/2026+: service é cobrado
+    return at >= new Date('2026-10-01T00:00:00Z');
   }
 
-  // marketing / utility / authentication / marketing_lite são billables por
-  // natureza quando enviados via template. Utility template DENTRO da janela
-  // passa a ser explicitamente cobrado conforme a mudança de outubro/2026
-  // (Fase 8) — a janela nunca foi sinônimo de "mensagem grátis" para templates.
+  // Utility/authentication/marketing/marketing_lite são categorias billable
+  // quando a Meta marca o envio como cobrável. A janela de 24h não deve ser
+  // usada para inferir gratuidade.
   return true;
 }
 
-/** Entrada vigente do rate card para market/categoria/data. */
+/** Entrada vigente para o mercado solicitado. Nunca faz fallback silencioso
+ * para BR: mercado desconhecido = sem estimativa, evitando preço inventado. */
 export function resolveRateCardEntry(params: {
   market: MetaMarket;
   category: MetaPricingCategory;
@@ -167,19 +143,21 @@ export function resolveRateCardEntry(params: {
   const { market, category, at = new Date() } = params;
   if (category === 'UNKNOWN') return null;
 
-  const cards = market.toUpperCase() === 'BR' ? META_RATE_CARD_BR : META_RATE_CARD_BR;
-  const candidates = cards
-    .filter((e) => e.category === category)
-    .filter((e) => new Date(e.effectiveFrom) <= at)
-    .filter((e) => e.effectiveUntil === null || new Date(e.effectiveUntil) >= at)
+  const marketCode = market.trim().toUpperCase();
+  if (marketCode !== 'BR') return null;
+
+  const candidates = META_RATE_CARD_BR
+    .filter((entry) => entry.market === marketCode && entry.category === category)
+    .filter((entry) => new Date(entry.effectiveFrom) <= at)
+    .filter((entry) => entry.effectiveUntil === null || new Date(entry.effectiveUntil) >= at)
     .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime());
 
   return candidates[0] ?? null;
 }
 
 /**
- * Estimativa de custo a partir do rate card.
- * SEMPRE retorna estimated=true — o custo real (authoritative) só vem da Meta.
+ * Estimativa explícita. Sempre `estimated=true`.
+ * O mercado precisa ser conhecido; sem mercado não precificamos por suposição.
  */
 export function estimateMetaCost(params: {
   market: MetaMarket;
@@ -188,14 +166,20 @@ export function estimateMetaCost(params: {
   at?: Date;
 }): { cost: number; currency: MetaCurrency; estimated: true; billable: boolean } | null {
   const { market, category, withinServiceWindow, at = new Date() } = params;
-  // UNKNOWN: sem estimativa possível — registrar evento sem preço inventado
-  // (a decisão de billing pertence ao pricing.billable do status da Meta).
   if (category === 'UNKNOWN') return null;
 
   const billable = isMetaMessageBillable({ category, withinServiceWindow, at });
-  if (!billable) return { cost: 0, currency: 'BRL', estimated: true, billable: false };
-
   const entry = resolveRateCardEntry({ market, category, at });
-  if (!entry) return null; // sem preço inventado
-  return { cost: entry.rate, currency: entry.currency, estimated: true, billable: true };
+
+  if (!entry) return null;
+  if (!billable) {
+    return { cost: 0, currency: entry.currency, estimated: true, billable: false };
+  }
+
+  return {
+    cost: entry.rate,
+    currency: entry.currency,
+    estimated: true,
+    billable: true,
+  };
 }
