@@ -92,6 +92,11 @@ const CANONICAL_CLASSIFICATION: FieldClassification[] = [
   { model: 'BudgetGuardState', field: 'monthlyBudgetUsd', category: 'MONEY_USD', scale: '(18,6)' },
   { model: 'CostLog', field: 'costUsd', category: 'MONEY_USD', scale: '(18,6)' },
   { model: 'MetaCostLog', field: 'costUsd', category: 'MONEY_USD', scale: '(18,6)' },
+  // Meta Foundation wave: rate = tarifa unitária por categoria (moeda registrada
+  // em MetaCostLog.currency — categoria MONETÁRIA, não câmbio fixo).
+  { model: 'MetaCostLog', field: 'rate', category: 'MONEY_USD', scale: '(18,6)' },
+  // Meta Attribution: valor da reserva atribuída (R$) — receita de aquisição Meta.
+  { model: 'MetaAttributionEvent', field: 'reservationValue', category: 'MONEY_BRL', scale: '(18,2)' },
   { model: 'AirBMessage', field: 'costUsd', category: 'MONEY_USD', scale: '(18,6)' },
   { model: 'WhatsAppMessageCost', field: 'costUsd', category: 'MONEY_USD', scale: '(18,6)' },
   { model: 'MessageBundle', field: 'savingsUsd', category: 'MONEY_USD', scale: '(18,6)' },
@@ -231,15 +236,15 @@ describe('🌊 WAVE R2 — F01.1: Monetary Field Inventory (Semantic Allowlist)'
       COORDINATE: CANONICAL_CLASSIFICATION.filter(c => c.category === 'COORDINATE').length,
     };
 
-    expect(counts.MONEY_BRL).toBe(39);
-    expect(counts.MONEY_USD).toBe(18);
+    expect(counts.MONEY_BRL).toBe(40);
+    expect(counts.MONEY_USD).toBe(19);
     expect(counts.RATE).toBe(27);
     expect(counts.METRIC).toBe(31);
     expect(counts.COORDINATE).toBe(6);
 
     const total = Object.values(counts).reduce((a, b) => a + b, 0);
-    expect(total).toBe(121);
-    expect(schemaFloats.length).toBe(121);
+    expect(total).toBe(123);
+    expect(schemaFloats.length).toBe(123);
   });
 
   it('MONEY_BRL fields use Decimal(18,2) scale', () => {

@@ -1,19 +1,71 @@
 /**
- * Utilitário de envio de mensagens via API oficial do WhatsApp Cloud (v21.0).
+ * Utilitário de envio de mensagens via WhatsApp Cloud API oficial (Meta).
  * ============================================================================
  *
- * ATUALIZAÇÃO: Meta Cloud API removido — apenas Meta Cloud API oficial.
- * Motivo: risco de banimento permanente com Meta Cloud API (15-30% em 6 meses).
- * Meta Cloud API oficial = ZERO risco de banimento.
- *
- * Suporta o modo "DB-only" caso as credenciais não estejam configuradas.
+ * CORREÇÕES — onda Meta Foundation (Fase 2 / Fase 20):
+ *  1. URL e VERSÃO da Graph API CENTRALIZADAS (meta-config.ts / env.ts).
+ *     Nenhuma versão hardcoded aqui. A v21.0 hardcoded foi removida
+ *     (encerramento da v21.0 pela Meta em janeiro/2027; v26.0 é a atual).
+ *  2. Timeout obrigatório (AbortController) — sem fetch pendente eterno.
+ *  3. SEM retry automático: um retry cego de /messages pode cobrar/entregar
+ *     mensagens duplicadas. Falha é retornada ao caller (que decide).
+ *  4. correlationId + tenantId opcionais para observabilidade (backward
+ *     compatible: assinatura antiga continua funcionando).
+ *  5. PRODUÇÃO SEM CREDENCIAIS = FALHA OPERACIONAL CLARA (success=false,
+ *     isMock=false). O mock DB-only só é permitido explicitamente em
+ *     desenvolvimento/teste — mock NUNCA passa como sucesso real em produção.
+ *  6. Nenhum token é logado nem retornado.
  * ============================================================================
  */
+import { metaGraphUrl, ACTIVE_META_GRAPH_API_VERSION } from '@/lib/meta/meta-config';
+
 export interface SendWhatsAppResponse {
   success: boolean;
   messageId?: string;
   isMock: boolean;
   error?: string;
+  correlationId?: string;
+  graphApiVersion?: string;
+}
+
+export interface SendWhatsAppOptions {
+  /** Tenant dono da conexão (observabilidade multi-tenant). */
+  tenantId?: string;
+  /** Correlation id para rastrear o envio nos logs/telemetria. */
+  correlationId?: string;
+  /** Timeout por chunk (ms). Default 15000. */
+  timeoutMs?: number;
+}
+
+const SEND_TIMEOUT_MS = 15_000;
+
+/** Resultado do modo de envio — exposto para testes. */
+export type SendMode =
+  | { mode: 'live' }
+  | { mode: 'mock'; reason: 'missing_credentials_in_dev_or_test' }
+  | { mode: 'fail'; reason: 'missing_credentials_in_production' };
+
+/**
+ * Resolve o modo de envio (Fase 20.10):
+ *  - Produção sem credenciais → FALHA OPERACIONAL (nunca mock, nunca sucesso falso).
+ *  - Dev/teste sem credenciais → mock permitido explicitamente.
+ *  - Mock forçado em produção exige env explícita (não recomendado; apenas
+ *    para ambientes de demonstração isolados com ZELLA_ALLOW_WHATSAPP_MOCK=true).
+ */
+export function resolveSendMode(
+  env: Record<string, string | undefined> = process.env
+): SendMode {
+  const hasCredentials = Boolean(env.WHATSAPP_ACCESS_TOKEN && env.WHATSAPP_PHONE_NUMBER_ID);
+  if (hasCredentials) return { mode: 'live' };
+
+  if (env.NODE_ENV === 'production' && env.ZELLA_ALLOW_WHATSAPP_MOCK !== 'true') {
+    return { mode: 'fail', reason: 'missing_credentials_in_production' };
+  }
+  return { mode: 'mock', reason: 'missing_credentials_in_dev_or_test' };
+}
+
+function newCorrelationId(): string {
+  return `wa-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 /**
@@ -22,15 +74,22 @@ export interface SendWhatsAppResponse {
  *
  * @param toPhone - Número de telefone do destinatário com DDI (ex: 5511988888888)
  * @param text - Conteúdo da mensagem
+ * @param options - tenantId/correlationId/timeoutMs opcionais (observabilidade)
  * @returns Promessa com o resultado do envio
  */
-export async function sendWhatsAppMessage(toPhone: string, text: string): Promise<SendWhatsAppResponse> {
-  const token = process.env.WHATSAPP_ACCESS_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+export async function sendWhatsAppMessage(
+  toPhone: string,
+  text: string,
+  options: SendWhatsAppOptions = {}
+): Promise<SendWhatsAppResponse> {
+  const correlationId = options.correlationId || newCorrelationId();
+  const sendMode = resolveSendMode();
 
-  // Modo DB-only / Mockup (graceful degradation) — quando credenciais Meta não configuradas
-  if (!token || !phoneNumberId) {
-    console.log(`[whatsapp-send] [MOCK] Envio de mensagem para ${toPhone} em modo DB-only.`);
+  // ── Modo DB-only / Mock (dev/teste explicitamente permitido) ──
+  if (sendMode.mode === 'mock') {
+    console.log(
+      `[whatsapp-send] [MOCK] Envio de mensagem para ${toPhone} em modo DB-only (motivo: ${sendMode.reason}).`
+    );
     console.log(`[whatsapp-send] [MOCK] Conteúdo: "${text.substring(0, 80)}${text.length > 80 ? '...' : ''}"`);
 
     // Simula atraso de rede
@@ -40,8 +99,28 @@ export async function sendWhatsAppMessage(toPhone: string, text: string): Promis
       success: true,
       messageId: `mock-wamid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       isMock: true,
+      correlationId,
+      graphApiVersion: ACTIVE_META_GRAPH_API_VERSION,
     };
   }
+
+  // ── Produção sem credenciais: FALHA OPERACIONAL CLARA (Fase 20) ──
+  if (sendMode.mode === 'fail') {
+    console.error(
+      `[whatsapp-send] ❌ PRODUÇÃO SEM CREDENCIAIS WHATSAPP (WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID). ` +
+      `Envio bloqueado — mock NÃO é permitido em produção. correlationId=${correlationId}`
+    );
+    return {
+      success: false,
+      isMock: false,
+      error: 'WHATSAPP_CREDENTIALS_MISSING_IN_PRODUCTION',
+      correlationId,
+      graphApiVersion: ACTIVE_META_GRAPH_API_VERSION,
+    };
+  }
+
+  const token = process.env.WHATSAPP_ACCESS_TOKEN as string;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID as string;
 
   try {
     // Dividir a mensagem em blocos de no máximo 4000 caracteres para segurança
@@ -72,49 +151,80 @@ export async function sendWhatsAppMessage(toPhone: string, text: string): Promis
     let lastMessageId = '';
 
     for (const chunk of messageChunks) {
-      const response = await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to: toPhone,
-          type: 'text',
-          text: {
-            preview_url: true,
-            body: chunk,
-          },
-        }),
-      });
+      // URL com versão CENTRALIZADA da Graph API (sem hardcoded — Fase 2)
+      const endpoint = metaGraphUrl(`${phoneNumberId}/messages`);
 
-      const data = await response.json();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? SEND_TIMEOUT_MS);
+
+      let response: Response;
+      try {
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: toPhone,
+            type: 'text',
+            text: {
+              preview_url: true,
+              body: chunk,
+            },
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        console.error('[whatsapp-send-error] Falha ao enviar mensagem no WhatsApp Cloud API:', data);
+        console.error(
+          '[whatsapp-send-error] Falha ao enviar mensagem no WhatsApp Cloud API:',
+          data,
+          `correlationId=${correlationId}`,
+          options.tenantId ? `tenantId=${options.tenantId}` : ''
+        );
+        // SEM retry automático: reenvio cego pode duplicar cobrança/entrega.
         return {
           success: false,
           isMock: false,
-          error: data.error?.message || 'Error from Meta WhatsApp API',
+          error:
+            (data as { error?: { message?: string } })?.error?.message ||
+            `META_WHATSAPP_SEND_FAILED_${response.status}`,
+          correlationId,
+          graphApiVersion: ACTIVE_META_GRAPH_API_VERSION,
         };
       }
 
-      lastMessageId = data.messages?.[0]?.id || '';
+      lastMessageId = (data as { messages?: Array<{ id?: string }> }).messages?.[0]?.id || '';
     }
 
     return {
       success: true,
       messageId: lastMessageId,
       isMock: false,
+      correlationId,
+      graphApiVersion: ACTIVE_META_GRAPH_API_VERSION,
     };
   } catch (error) {
-    console.error('[whatsapp-send-error] Erro inesperado ao disparar fetch para API do WhatsApp:', error);
+    const isTimeout = error instanceof Error && error.name === 'AbortError';
+    console.error(
+      '[whatsapp-send-error] Erro inesperado ao disparar fetch para API do WhatsApp:',
+      error,
+      `correlationId=${correlationId}`
+    );
     return {
       success: false,
       isMock: false,
-      error: error instanceof Error ? error.message : 'Unknown network error',
+      error: isTimeout ? 'META_WHATSAPP_SEND_TIMEOUT' : 'META_WHATSAPP_SEND_NETWORK_ERROR',
+      correlationId,
+      graphApiVersion: ACTIVE_META_GRAPH_API_VERSION,
     };
   }
 }

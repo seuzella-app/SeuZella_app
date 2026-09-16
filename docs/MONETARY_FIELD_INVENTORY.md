@@ -27,6 +27,15 @@
 
 ## 2. MONEY_BRL — Must Migrate to Decimal(18,2) — 39 fields
 
+> **Meta Foundation (2026-09-16):** +1 campo classificado —
+> `MetaAttributionEvent.reservationValue` (MONEY_BRL, target `(18,2)`, atual Float).
+> Receita de reserva atribuída à aquisição Meta (Click-to-WhatsApp).
+
+### Acquisition (Meta Foundation — P1):
+| # | Model | Field | Default | Used In |
+|---|-------|-------|---------|---------|
+| 40a | MetaAttributionEvent | reservationValue | — | Meta attribution → Growth OS (receita de reserva atribuída a campanha Click-to-WhatsApp) |
+
 ### Billing-Critical (P0):
 | # | Model | Field | Default | Used In |
 |---|-------|-------|---------|---------|
@@ -103,6 +112,7 @@
 | 8 | BudgetGuardState | monthlyBudgetUsd | 1500 | Budget guard |
 | 9 | CostLog | costUsd | — | Cost logging |
 | 10 | MetaCostLog | costUsd | — | Meta cost tracking |
+| 10a | MetaCostLog | rate | — | Meta Foundation: tarifa unitária da categoria (moeda registrada em `currency`; authoritative via `source='meta_webhook_pricing'`) |
 | 11 | CerebroAnalysis | costUsd | 0 | Cérebro cost |
 | 12 | CodeReview | costUsd | 0 | Code review cost |
 | 13 | NightAuditReport | llmCostUsd | 0 | Night audit |
@@ -320,6 +330,8 @@ BudgetGuardState.monthlySpendUsd
 BudgetGuardState.monthlyBudgetUsd
 CostLog.costUsd
 MetaCostLog.costUsd
+MetaCostLog.rate
+MetaAttributionEvent.reservationValue
 AirBMessage.costUsd
 WhatsAppMessageCost.costUsd
 MessageBundle.savingsUsd

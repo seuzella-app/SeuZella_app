@@ -1,10 +1,48 @@
 import { db } from "@/lib/db";
 import { getEffectivePlan } from "@/lib/plan-resolver";
+import {
+  estimateMetaCost,
+  isCustomerServiceWindowOpen as isServiceWindowOpen,
+  getServiceWindowRemainingHours,
+} from "@/lib/meta/meta-rate-card";
+import { MetaPricingCategory, normalizeMetaPricingCategory } from "@/lib/meta/meta-types";
 
-const META_COST_PER_MSG = parseFloat(
+// ==============================================================================
+// ZÉLLA — Meta Cost Guard (CORRIGIDO — Meta Pricing 2026)
+// ==============================================================================
+// CORREÇÃO CIRÚRGICA (onda Meta Foundation — Fase 6/7/8/19):
+//
+//  1. "Meta aceitou o envio" ≠ "Meta cobrou". O evento AUTHORITATIVE de
+//     billing é o status da Meta com pricing.billable=true, registrado via
+//     recordMetaPricingFromStatus() (source='meta_webhook_pricing').
+//     registros criados no aceite do envio são ESTIMATIVAS
+//     (source='send_accepted', estimated=true) — nunca mais tratados como
+//     custo real.
+//  2. Custos derivados de RATE CARD configurável (meta-rate-card.ts), não de
+//     META_COST_PER_MSG × multiplicadores inventados (ex.: 0.5 para utility).
+//  3. Categoria UNKNOWN: registrada, não descartada, NUNCA precificada.
+//  4. Sem câmbio fixo USD→BRL: a moeda reportada pela Meta é registrada junto
+//     com o custo (campo currency). O campo legado costUsd mantém o valor na
+//     moeda registrada (nome preservado para compatibilidade de schema/calls).
+//  5. Janela de 24h ≠ mensagem grátis (Fase 8). isCustomerServiceWindowOpen()
+//     é regra de ENVIO; isMetaMessageBillable() é regra de COBRANÇA.
+//  6. Deduplicação: se um custo authoritative já existe para o messageId, a
+//     estimativa não é criada; quando o status chega, a estimativa é
+//     PROMOVIDA a authoritative (update in place) — orçamento nunca conta
+//     duas vezes.
+// ==============================================================================
+
+// Flag única de capacidade (reutiliza META_COST_ENABLED como alias legado —
+// nunca duas flags para a mesma capacidade).
+const META_COST_ENABLED =
+  (process.env.META_COST_TRACKING_ENABLED ?? process.env.META_COST_ENABLED ?? "true")
+    .toLowerCase() !== "false";
+
+// Mantido apenas como fallback documentado para UNKNOWN-free fluxos legados.
+// NÃO é mais a fonte principal de custo (rate card é).
+const LEGACY_META_COST_PER_MSG = parseFloat(
   process.env.META_COST_PER_SERVICE_MSG || "0.0068"
 );
-const META_COST_ENABLED = process.env.META_COST_ENABLED !== "false";
 
 interface MetaCostEntry {
   tenantId: string;
@@ -16,37 +54,197 @@ interface MetaCostEntry {
   metadata?: Record<string, unknown>;
   /** Whether the message was sent inside the 24h Customer Service Window */
   withinServiceWindow?: boolean;
+  /** Override explícito da categoria Meta (quando conhecida a montante). */
+  category?: MetaPricingCategory;
+  /** Moeda da WABA (ex.: 'USD' | 'BRL'). Default 'USD'. */
+  currency?: string;
 }
 
+/** Mapeia o messageType legado para a categoria oficial Meta. */
+function mapMessageTypeToCategory(
+  messageType: MetaCostEntry["messageType"],
+  override?: MetaPricingCategory
+): MetaPricingCategory {
+  if (override) return normalizeMetaPricingCategory(override);
+  switch (messageType) {
+    case "utility_template":
+      return "utility";
+    case "marketing_template":
+      return "marketing";
+    case "service_reply":
+    default:
+      return "service";
+  }
+}
+
+/**
+ * Registra ESTIMATIVA de custo no aceite do envio (source='send_accepted').
+ *
+ * ATENÇÃO (Fase 6): isto NÃO é o custo real. O custo real vem do webhook de
+ * status da Meta (recordMetaPricingFromStatus). Esta função existe para
+ * observabilidade imediata e enforcement de orçamento em tempo real.
+ */
 export async function recordMetaCost(entry: MetaCostEntry): Promise<void> {
   if (!META_COST_ENABLED) return;
 
-  // Messages inside the 24h Customer Service Window may have different
-  // cost treatment per Meta 2026 rules. Track window status for analytics.
-  const costUsd =
-    entry.messageType === "service_reply"
-      ? META_COST_PER_MSG
-      : entry.messageType === "utility_template"
-        ? META_COST_PER_MSG * 0.5 // Utility templates typically cost less
-        : 0; // Marketing templates have their own cost tracking
-
-  if (costUsd === 0) return;
-
   try {
+    const category = mapMessageTypeToCategory(entry.messageType, entry.category);
+    const withinServiceWindow = entry.withinServiceWindow ?? true;
+    const currency = entry.currency ?? "USD";
+
+    // Dedupe: se já existe custo AUTHORITATIVE para este messageId, não criar
+    // estimativa duplicada (o orçamento nunca deve contar duas vezes).
+    if (entry.messageId) {
+      const authoritative = await db.metaCostLog.findFirst({
+        where: { messageId: entry.messageId, source: "meta_webhook_pricing" },
+        select: { id: true },
+      });
+      if (authoritative) return;
+    }
+
+    const estimate = estimateMetaCost({
+      market: "BR",
+      category,
+      withinServiceWindow,
+    });
+
+    let cost = 0;
+    let rate: number | null = null;
+
+    if (category === "UNKNOWN") {
+      // Registrar sem inventar preço (Fase 6).
+      cost = 0;
+      rate = null;
+    } else if (estimate && estimate.billable) {
+      cost = estimate.cost;
+      rate = estimate.cost;
+    }
+
     await db.metaCostLog.create({
       data: {
         tenantId: entry.tenantId,
         conversationId: entry.conversationId,
         messageId: entry.messageId || null,
         guestId: entry.guestId || null,
-        costUsd,
+        costUsd: cost,
         messageType: entry.messageType,
         intent: entry.intent || null,
-        metadata: entry.metadata ? JSON.stringify(entry.metadata) : "{}",
+        category,
+        billable: category === "UNKNOWN" ? null : (estimate?.billable ?? false),
+        currency,
+        rate,
+        source: "send_accepted",
+        metadata: JSON.stringify({
+          estimated: true,
+          pricingSource: "rate_card",
+          withinServiceWindow,
+          ...(estimate === null && category !== "UNKNOWN" ? { noRateCardEntry: true } : {}),
+          ...(entry.metadata ?? {}),
+        }),
       },
     });
   } catch (error) {
     console.error("Failed to record Meta Cost Log:", error);
+  }
+}
+
+export interface MetaPricingStatusInput {
+  tenantId: string;
+  conversationId: string;
+  guestId?: string;
+  /** wamid da mensagem enviada (vindo do status da Meta). */
+  messageId: string;
+  /** pricing.billable do status — autoridade de cobrança. */
+  billable: boolean;
+  /** pricing.category do status (pode ser categoria desconhecida). */
+  category: string;
+  pricingModel?: string;
+  /** Custo reportado pela Meta (quando presente no payload). */
+  cost?: number | null;
+  currency?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * REGISTRA O CUSTO AUTHORITATIVE a partir do STATUS da Meta (Fase 6).
+ *
+ * Regras:
+ *  - billable=false → registra com custo 0 (observabilidade, sem cobrança).
+ *  - category desconhecida → registra como UNKNOWN, sem preço inventado.
+ *  - Se já existe estimativa (send_accepted) para o messageId, ela é
+ *    promovida a authoritative (update in place — sem dupla contagem).
+ *  - custo = pricing.cost da Meta quando presente; senão rate card.
+ */
+export async function recordMetaPricingFromStatus(input: MetaPricingStatusInput): Promise<void> {
+  if (!META_COST_ENABLED) return;
+
+  try {
+    const category = normalizeMetaPricingCategory(input.category);
+    const currency = input.currency ?? "USD";
+
+    let cost = 0;
+    let rate: number | null = null;
+
+    if (input.billable && category !== "UNKNOWN") {
+      if (typeof input.cost === "number" && Number.isFinite(input.cost) && input.cost >= 0) {
+        // Custo reportado pela Meta — authoritative.
+        cost = input.cost;
+        rate = input.cost;
+      } else {
+        const estimate = estimateMetaCost({
+          market: "BR",
+          category,
+          withinServiceWindow: true,
+        });
+        if (estimate) {
+          cost = estimate.cost;
+          rate = estimate.cost;
+        }
+      }
+    }
+
+    const data = {
+      category,
+      billable: input.billable,
+      currency,
+      rate,
+      source: "meta_webhook_pricing" as const,
+      metadata: JSON.stringify({
+        estimated: false,
+        pricingSource: "meta_webhook_pricing",
+        pricingModel: input.pricingModel ?? null,
+        ...(input.metadata ?? {}),
+      }),
+    };
+
+    const existing = await db.metaCostLog.findFirst({
+      where: { messageId: input.messageId, tenantId: input.tenantId },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, source: true, costUsd: true },
+    });
+
+    if (existing) {
+      // Promove estimativa a authoritative (não cria segunda linha).
+      await db.metaCostLog.update({
+        where: { id: existing.id },
+        data: { ...data, costUsd: cost },
+      });
+    } else {
+      await db.metaCostLog.create({
+        data: {
+          tenantId: input.tenantId,
+          conversationId: input.conversationId,
+          messageId: input.messageId,
+          guestId: input.guestId ?? null,
+          costUsd: cost,
+          messageType: category === "UNKNOWN" ? "unknown_category" : `${category}_template`,
+          intent: null,
+          ...data,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Failed to record authoritative Meta pricing:", error);
   }
 }
 
@@ -65,12 +263,28 @@ export async function getMetaCostSummary(
         costUsd: true,
         messageType: true,
         intent: true,
+        currency: true,
+        category: true,
+        source: true,
         createdAt: true,
       },
       orderBy: { createdAt: "asc" },
     });
 
-    const totalUsd = logs.reduce((sum, l) => sum + l.costUsd, 0);
+    // SEM câmbio fixo: totais por moeda, na moeda registrada.
+    const totalByCurrency: Record<string, number> = {};
+    const bySource: Record<string, number> = {};
+    let totalUsd = 0; // rows legadas (sem currency) + currency=USD
+    let totalBrl = 0; // apenas currency=BRL (sem conversão inventada)
+
+    for (const l of logs) {
+      const cur = (l.currency ?? "USD").toUpperCase();
+      totalByCurrency[cur] = (totalByCurrency[cur] ?? 0) + l.costUsd;
+      bySource[l.source] = (bySource[l.source] ?? 0) + l.costUsd;
+      if (cur === "BRL") totalBrl += l.costUsd;
+      else totalUsd += l.costUsd;
+    }
+
     const byIntent = logs.reduce((acc, l) => {
       const key = l.intent || "desconhecido";
       acc[key] = (acc[key] || 0) + l.costUsd;
@@ -79,9 +293,15 @@ export async function getMetaCostSummary(
 
     return {
       totalUsd,
-      totalBrl: totalUsd * 5.15, // cotacao aproximada
+      totalBrl,
+      totalByCurrency,
+      bySource,
+      authoritativeCost: bySource["meta_webhook_pricing"] ?? 0,
+      estimatedCost: bySource["send_accepted"] ?? 0,
+      /** Totais são por moeda registrada — nunca misturadas por câmbio fixo. */
+      currencyNote: "totals_are_per_recorded_currency_no_fixed_fx" as const,
       messageCount: logs.length,
-      avgCostPerMsg: logs.length > 0 ? totalUsd / logs.length : 0,
+      avgCostPerMsg: logs.length > 0 ? (totalUsd + totalBrl) / logs.length : 0,
       byIntent,
       period: { start: startDate, end: endDate },
     };
@@ -90,6 +310,11 @@ export async function getMetaCostSummary(
     return {
       totalUsd: 0,
       totalBrl: 0,
+      totalByCurrency: {},
+      bySource: {},
+      authoritativeCost: 0,
+      estimatedCost: 0,
+      currencyNote: "totals_are_per_recorded_currency_no_fixed_fx" as const,
       messageCount: 0,
       avgCostPerMsg: 0,
       byIntent: {},
@@ -145,10 +370,8 @@ function getCurrentMonthRange(): { start: Date; end: Date } {
 
 /**
  * Classifies the message type based on content and intent.
- * Meta 2026 charges differently per category:
- *   - utility: confirmations, status updates, policy info (lowest cost)
- *   - service: answers to guest questions, support (standard cost)
- *   - marketing: promotions, offers (highest cost, requires opt-in)
+ * (Mantido para compatibilidade — NÃO decide preço. O preço vem do rate card
+ * + pricing.billable do status da Meta.)
  */
 export function classifyMessageType(intent?: string): "service_reply" | "marketing_template" | "utility_template" {
   if (!intent) return "service_reply";
@@ -160,26 +383,19 @@ export function classifyMessageType(intent?: string): "service_reply" | "marketi
 }
 
 /**
- * Checks the 24h Customer Service Window for a conversation.
- * Meta allows free/cheaper service messages within 24h of the
- * guest's last message. Returns true if the window is still open.
+ * Janela de atendimento de 24h — regra de ENVIO (Fase 8).
+ * NÃO usar como sinônimo de "mensagem grátis": para cobrança use
+ * isMetaMessageBillable() em meta-rate-card.ts.
  */
 export function isWithinServiceWindow(lastGuestMessageAt?: Date | null): boolean {
-  if (!lastGuestMessageAt) return false;
-  const WINDOW_HOURS = 24;
-  const elapsed = Date.now() - lastGuestMessageAt.getTime();
-  return elapsed < WINDOW_HOURS * 60 * 60 * 1000;
+  return isServiceWindowOpen(lastGuestMessageAt);
 }
 
 /**
  * Returns remaining hours in the 24h service window, or 0 if closed.
  */
 export function getServiceWindowRemaining(lastGuestMessageAt?: Date | null): number {
-  if (!lastGuestMessageAt) return 0;
-  const WINDOW_HOURS = 24;
-  const elapsedMs = Date.now() - lastGuestMessageAt.getTime();
-  const remainingMs = WINDOW_HOURS * 60 * 60 * 1000 - elapsedMs;
-  return Math.max(0, Math.round(remainingMs / (60 * 60 * 1000) * 10) / 10);
+  return getServiceWindowRemainingHours(lastGuestMessageAt);
 }
 
 export async function checkMetaBudget(tenantId: string): Promise<{
@@ -269,12 +485,23 @@ export async function checkMetaBudget(tenantId: string): Promise<{
   return result;
 }
 
-// ─── Cost Savings Estimator ───────────────────────────────────────────────────
+// ─── Cost Savings Estimator (Fase 19 — CORRIGIDO) ────────────────────────────
 
+/**
+ * MULTIPLICADOR DE ESTIMATIVA — NÃO é verdade financeira (Fase 19).
+ * Sem o bundling single-shot do Zélla, uma conversa exigiria ~2.5 mensagens.
+ * Todo retorno desta função é ESTIMATIVA (estimated=true), exceto
+ * actualCost, que soma apenas registros authoritative da Meta
+ * (source='meta_webhook_pricing').
+ */
 const UNBUNDLED_MULTIPLIER = 2.5;
 
 export async function getMetaCostSavings(tenantId: string): Promise<{
   totalSpent: number;
+  actualCost: number;
+  estimatedCost: number;
+  estimated: true;
+  costSourceNote: string;
   messagesWithoutBundler: number;
   estimatedWithoutZella: number;
   savedByZella: number;
@@ -282,26 +509,51 @@ export async function getMetaCostSavings(tenantId: string): Promise<{
   try {
     const { start, end } = getCurrentMonthRange();
 
-    const aggregate = await db.metaCostLog.aggregate({
-      _sum: { costUsd: true },
-      _count: true,
-      where: {
-        tenantId,
-        createdAt: { gte: start, lte: end },
-      },
-    });
+    const [authoritative, estimated, allRows] = await Promise.all([
+      db.metaCostLog.aggregate({
+        _sum: { costUsd: true },
+        where: {
+          tenantId,
+          createdAt: { gte: start, lte: end },
+          source: "meta_webhook_pricing",
+        },
+      }),
+      db.metaCostLog.aggregate({
+        _sum: { costUsd: true },
+        where: {
+          tenantId,
+          createdAt: { gte: start, lte: end },
+          source: "send_accepted",
+        },
+      }),
+      db.metaCostLog.aggregate({
+        _sum: { costUsd: true },
+        _count: true,
+        where: {
+          tenantId,
+          createdAt: { gte: start, lte: end },
+        },
+      }),
+    ]);
 
-    const totalSpent = aggregate._sum.costUsd ?? 0;
-    const actualMessageCount = aggregate._count;
+    const actualCost = authoritative._sum.costUsd ?? 0;
+    const estimatedCost = estimated._sum.costUsd ?? 0;
+    const totalSpent = allRows._sum.costUsd ?? 0;
+    const actualMessageCount = allRows._count;
 
-    // Without Zélla's single-shot bundling, each conversation would require
-    // ~2.5 messages on average (greeting + follow-up + answer).
+    // ESTIMATIVA (Fase 19): marcada como estimated — nunca apresentada como
+    // custo real da Meta.
     const messagesWithoutBundler = Math.round(actualMessageCount * UNBUNDLED_MULTIPLIER);
-    const estimatedWithoutZella = messagesWithoutBundler * META_COST_PER_MSG;
+    const estimatedWithoutZella = messagesWithoutBundler * LEGACY_META_COST_PER_MSG;
     const savedByZella = Math.max(0, estimatedWithoutZella - totalSpent);
 
     return {
       totalSpent,
+      actualCost,
+      estimatedCost,
+      estimated: true,
+      costSourceNote:
+        "actualCost = source meta_webhook_pricing (authoritative); estimatedCost = source send_accepted (estimativa)",
       messagesWithoutBundler,
       estimatedWithoutZella,
       savedByZella,
@@ -310,6 +562,11 @@ export async function getMetaCostSavings(tenantId: string): Promise<{
     console.error("[getMetaCostSavings] Failed to calculate savings:", error);
     return {
       totalSpent: 0,
+      actualCost: 0,
+      estimatedCost: 0,
+      estimated: true,
+      costSourceNote:
+        "actualCost = source meta_webhook_pricing (authoritative); estimatedCost = source send_accepted (estimativa)",
       messagesWithoutBundler: 0,
       estimatedWithoutZella: 0,
       savedByZella: 0,

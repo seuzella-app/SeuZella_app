@@ -21,9 +21,13 @@ import { sendWhatsAppMessage } from '@/lib/whatsapp-send';
 import { resolveTenantByPhone } from '@/lib/resolve-tenant-by-phone';
 import { isOptOutMessage, handleOptOut } from '@/lib/lgpd-consent';
 import { resolveGuest } from '@/lib/bsuid-resolver';
-import { recordMetaCost } from '@/lib/meta-cost-guard';
+import { recordMetaCost, recordMetaPricingFromStatus } from '@/lib/meta-cost-guard';
 // Notification bridge — Phase 2: pushes guest/lead notifications into DDC
 import { bridgeWhatsAppIncoming } from '@/lib/notifications/bridges';
+// ── Meta Foundation (Fase 5/6/9/24) — aditivo, não substitui o fluxo existente ──
+import { extractWebhookValues, normalizeMetaOutboundStatuses } from '@/lib/meta/meta-normalizer';
+import { claimMetaEvent, completeMetaEvent, recordMetaTelemetry } from '@/lib/meta/meta-events';
+import { recordMetaAttribution } from '@/lib/meta/meta-attribution';
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- Meta payload types kept as documentation */
 
@@ -113,6 +117,14 @@ interface ParsedIncomingMessage {
   destinationNumber: string;
   phoneNumberId: string;
   wabaId: string;
+  /** Click-to-WhatsApp referral (Fase 9) — capturado sem alterar o fluxo. */
+  referral: {
+    source_url?: string;
+    source_id?: string;
+    source_type?: string;
+    headline?: string;
+    body?: string;
+  } | null;
 }
 
 // ── HMAC Signature Verification (fail-closed em produção) 
@@ -245,12 +257,177 @@ function parseIncomingMessages(rawBody: unknown): ParsedIncomingMessage[] {
           destinationNumber,
           phoneNumberId,
           wabaId,
+          referral: (m.referral as ParsedIncomingMessage['referral']) || null,
         });
       }
     }
   }
 
   return results;
+}
+
+// ══
+// Meta Foundation — Fase 6/11/24: STATUS OUTBOUND (authoritative pricing)
+// ══
+// "Meta aceitou o envio" ≠ "Meta cobrou". O status da Meta com
+// pricing.billable=true é o evento AUTHORITATIVE de billing.
+// Este handler é fire-and-forget seguro: falha aqui NUNCA derruba o webhook.
+
+async function touchMetaConnection(params: {
+  tenantId: string;
+  wabaId: string;
+  phoneNumberId: string;
+  displayPhoneNumber: string;
+  kind: 'webhook' | 'delivery';
+}): Promise<void> {
+  try {
+    const now = new Date();
+    const data =
+      params.kind === 'delivery'
+        ? { lastWebhookAt: now, lastDeliveryAt: now }
+        : { lastWebhookAt: now };
+    const existing = await db.metaConnection.findFirst({
+      where: { tenantId: params.tenantId, wabaId: params.wabaId, phoneNumberId: params.phoneNumberId },
+      select: { id: true },
+    });
+    if (existing) {
+      await db.metaConnection.update({ where: { id: existing.id }, data });
+    } else {
+      await db.metaConnection.create({
+        data: {
+          tenantId: params.tenantId,
+          wabaId: params.wabaId || null,
+          phoneNumberId: params.phoneNumberId || null,
+          displayPhoneNumber: params.displayPhoneNumber || null,
+          // Estado honesto: PENDING até haver verificação real (nunca "verde"
+          // fabricado — Fase 10).
+          connectionStatus: 'PENDING',
+        },
+      });
+    }
+  } catch (error) {
+    console.error('[WhatsApp Webhook] touchMetaConnection failed (non-fatal):', error);
+  }
+}
+
+async function processMetaStatuses(parsedBody: unknown): Promise<number> {
+  const values = extractWebhookValues(parsedBody);
+  let processed = 0;
+
+  for (const { wabaId, value } of values) {
+    const metadata = value.metadata as Record<string, unknown> | null;
+    const displayPhoneNumber = (metadata?.display_phone_number as string) || '';
+    const phoneNumberId = (metadata?.phone_number_id) as string || '';
+
+    const statuses = normalizeMetaOutboundStatuses(value);
+    if (statuses.length === 0) continue;
+
+    // Tenant lookup (mesma política do fluxo de mensagens).
+    const lookup = await resolveTenantByPhone(displayPhoneNumber, wabaId);
+    const tenantId = lookup.found ? lookup.tenantId! : null;
+
+    for (const status of statuses) {
+      // ── Idempotência (Fase 5): status NUNCA processado duas vezes ──
+      const claim = await claimMetaEvent('outbound_status', status.externalEventId, {
+        status: status.status,
+      });
+      if (!claim.claimed) continue;
+
+      try {
+        // ── Authoritative pricing (Fase 6) ──
+        if (status.pricing) {
+          const conversationId = await resolveConversationIdForStatus(tenantId, status.recipientId);
+          await recordMetaPricingFromStatus({
+            tenantId: tenantId ?? 'shared',
+            conversationId: conversationId ?? 'unresolved',
+            guestId: undefined,
+            messageId: status.pricing.messageId,
+            billable: status.pricing.billable,
+            category: status.pricing.category,
+            pricingModel: status.pricing.pricingModel ?? undefined,
+            cost: status.pricing.cost ?? undefined,
+            currency: status.pricing.currency ?? undefined,
+            metadata: {
+              status: status.status,
+              wabaId,
+              phoneNumberId,
+              displayPhoneNumber,
+            },
+          });
+
+          recordMetaTelemetry({
+            name: 'meta.pricing.recorded',
+            tenantId: tenantId ?? undefined,
+            message: `Pricing authoritative registrado (billable=${status.pricing.billable}, category=${status.pricing.category})`,
+            context: { messageId: status.pricing.messageId, status: status.status },
+          });
+        }
+
+        // ── Telemetria de entrega (Fase 24) ──
+        const telemetryName =
+          status.status === 'delivered'
+            ? 'meta.message.delivered'
+            : status.status === 'read'
+              ? 'meta.message.read'
+              : status.status === 'failed'
+                ? 'meta.message.failed'
+                : null;
+        if (telemetryName) {
+          recordMetaTelemetry({
+            name: telemetryName,
+            tenantId: tenantId ?? undefined,
+            message: `Status ${status.status} da Meta`,
+            severity: status.status === 'failed' ? 'warn' : 'info',
+            context: {
+              messageId: status.externalEventId,
+              error: status.errorMessage,
+              conversationOriginType: status.conversationOriginType,
+            },
+          });
+        }
+
+        // ── Heartbeat de conexão (Fase 11 — evidência real de vida) ──
+        if (tenantId) {
+          await touchMetaConnection({
+            tenantId,
+            wabaId,
+            phoneNumberId,
+            displayPhoneNumber,
+            kind: 'delivery',
+          });
+        }
+
+        await completeMetaEvent('outbound_status', status.externalEventId, 'processed');
+        processed += 1;
+      } catch (err) {
+        console.error('[WhatsApp Webhook] processMetaStatuses item error (non-fatal):', err);
+      }
+    }
+  }
+
+  return processed;
+}
+
+/** Encontra a conversa ativa do guest para anexar o pricing (best-effort). */
+async function resolveConversationIdForStatus(
+  tenantId: string | null,
+  recipientId: string
+): Promise<string | null> {
+  if (!tenantId) return null;
+  try {
+    const guest = await db.guest.findFirst({
+      where: { tenantId, phone: recipientId },
+      select: { id: true },
+    });
+    if (!guest) return null;
+    const conversation = await db.conversationLog.findFirst({
+      where: { tenantId, guestId: guest.id, status: 'active' },
+      select: { id: true },
+    });
+    return conversation?.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // ══
@@ -355,7 +532,15 @@ export async function POST(request: NextRequest) {
   // ── Step 3: Extract incoming messages 
   const messages = parseIncomingMessages(parsedBody);
 
+  // ── Meta Foundation (Fase 6): processa STATUS OUTBOUND mesmo sem mensagens
+  // inbound — é aqui que chega o pricing authoritative da Meta.
   if (messages.length === 0) {
+    const statusesProcessed = await processMetaStatuses(parsedBody);
+    if (statusesProcessed > 0) {
+      const processingTime = Date.now() - startTime;
+      console.log(`[WhatsApp Webhook] 📊 Status events processed: ${statusesProcessed} (${processingTime}ms)`);
+      return NextResponse.json({ status: 'statuses_processed' }, { status: 200 });
+    }
     const processingTime = Date.now() - startTime;
     console.log(`[WhatsApp Webhook] 📋 Non-message event acknowledged (${processingTime}ms)`);
     return NextResponse.json({ status: 'acknowledged' }, { status: 200 });
@@ -446,6 +631,58 @@ export async function POST(request: NextRequest) {
     );
 
     const tenantId = lookup.tenantId!; // Guaranteed non-null após checks acima
+
+    // ── Meta Foundation (Fase 5): IDEMPOTÊNCIA de mensagem inbound ──
+    // Meta faz retry do webhook em timeout/5xx; sem idempotência a mensagem
+    // seria processada (e respondida/cobrada) duas vezes.
+    const inboundClaim = await claimMetaEvent('inbound_message', msg.messageId, {
+      destination: msg.destinationNumber,
+      from: msg.from,
+      wabaId: msg.wabaId,
+    });
+    if (!inboundClaim.claimed) {
+      console.log(`[WhatsApp Webhook] ♻️ Duplicate message ignored (idempotency): ${msg.messageId}`);
+      processingResults.push({
+        messageId: msg.messageId,
+        from: msg.from,
+        destination: msg.destinationNumber,
+        tenantFound: true,
+        tenantId,
+        accepted: false,
+        reason: 'DUPLICATE_MESSAGE_IDEMPOTENCY',
+      });
+      continue;
+    }
+
+    // ── Meta Foundation (Fase 9): captura de ATTRIBUTION (referral) ──
+    // Fire-and-forget: falha de atribuição NUNCA quebra a conversa.
+    // Referral cru → MetaReferralEvent normalizado (campos null, não undefined).
+    void recordMetaAttribution({
+      tenantId,
+      guestPhone: msg.from,
+      messageId: msg.messageId,
+      referral: msg.referral
+        ? {
+            source: msg.referral.source_type ?? null,
+            sourceId: msg.referral.source_id ?? null,
+            sourceUrl: msg.referral.source_url ?? null,
+            sourceType: msg.referral.source_type ?? null,
+            headline: msg.referral.headline ?? null,
+            body: msg.referral.body ?? null,
+          }
+        : null,
+    }).catch((err) =>
+      console.error('[WhatsApp Webhook] recordMetaAttribution error (non-fatal):', err)
+    );
+
+    // ── Meta Foundation (Fase 11): heartbeat real de webhook ──
+    void touchMetaConnection({
+      tenantId,
+      wabaId: msg.wabaId,
+      phoneNumberId: msg.phoneNumberId,
+      displayPhoneNumber: msg.destinationNumber,
+      kind: 'webhook',
+    });
 
     if (msg.type === 'text' && msg.textContent) {
       const guestPhone = msg.from;
@@ -684,6 +921,10 @@ export async function POST(request: NextRequest) {
       tenantId: lookup.tenantId,
       accepted: true,
     });
+
+    // ── Meta Foundation (Fase 5): evento aceito → marca como processado
+    // para retries da Meta serem ignorados com segurança.
+    void completeMetaEvent('inbound_message', msg.messageId, 'processed');
   }
 
   // ── Summary Logging 
