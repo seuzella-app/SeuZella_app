@@ -284,7 +284,10 @@ export async function exportarDadosHospede(
 }> {
   try {
     const [guest, reservations, conversations, reviews, consents, upsells] = await Promise.all([
-      db ? (db as any).guest.findUnique({ where: { id: guestId } }) : null,
+      // RUN 6 — tenant authority: a linha do Guest é escopada ao tenant do
+      // principal. `findUnique({ where: { id } } )` permitia exportar PII
+      // (nome/email/telefone/documento) de hóspede de OUTRO tenant.
+      db ? (db as any).guest.findFirst({ where: { id: guestId, tenantId } }) : null,
       db ? (db as any).reservation.findMany({ where: { tenantId, guestId } }) : [],
       db ? (db as any).conversation.findMany({ where: { tenantId, guestId } }) : [],
       db ? (db as any).review.findMany({ where: { tenantId, guestId } }) : [],

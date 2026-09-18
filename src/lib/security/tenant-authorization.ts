@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -34,7 +35,13 @@ export async function requireTenantAccess(request: NextRequest, options?: Tenant
   const authHeader = request.headers.get('authorization');
   if (!session && authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
-    if (process.env.ZCC_ADMIN_TOKEN && token === process.env.ZCC_ADMIN_TOKEN) {
+    // RUN 6 — hardening: comparação timing-safe (antes: `===`).
+    const expectedToken = process.env.ZCC_ADMIN_TOKEN;
+    const tokenMatches =
+      !!expectedToken &&
+      token.length === expectedToken.length &&
+      crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expectedToken));
+    if (tokenMatches) {
       return { allowed: true, context: createAuthenticatedContext({ userId: 'zcc-admin-system', tenantId: 'system', role: 'owner', authType: 'zcc-admin', clientIp, userAgent, requestId }) };
     }
   }

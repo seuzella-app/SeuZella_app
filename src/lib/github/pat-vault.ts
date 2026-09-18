@@ -22,24 +22,36 @@ import crypto from 'crypto';
 import { db } from '@/lib/db';
 
 // ============================================================
-// MASTER KEY — validação rigorosa
+// MASTER KEY — fail-closed (P0)
 // ============================================================
+// SEGURANÇA (RUN 4 — Wave 4B):
+//  - NÃO existe chave determinística embutida (o antigo fallback de
+//    chave all-zero permitia descriptografar todo o vault com chave
+//    conhecida — eliminado).
+//  - A chave é resolvida LAZILY por operação, direto de
+//    GITHUB_PAT_MASTER_KEY (base64, exatamente 32 bytes após decode).
+//  - Sem chave válida → ERRO (fail-closed), em qualquer ambiente.
+//    Testes configuram a chave explicitamente (ex.: crypto.randomBytes(32)).
+//  - Mensagens de erro citam apenas o NOME da env — nunca o valor.
 
-const MASTER_KEY_B64 = process.env.GITHUB_PAT_MASTER_KEY;
+const MASTER_KEY_ENV = 'GITHUB_PAT_MASTER_KEY';
 
-if (!MASTER_KEY_B64 && process.env.NODE_ENV !== 'test') {
-  // Em produção, falta master key = erro fatal
-  // Em testes, permitimos pular (mocks)
-  console.warn('[PAT Vault] GITHUB_PAT_MASTER_KEY não configurada — Vault indisponível');
-}
-
-const MASTER_KEY = MASTER_KEY_B64 ? Buffer.from(MASTER_KEY_B64, 'base64') : Buffer.alloc(32, 0);
-
-if (MASTER_KEY_B64 && MASTER_KEY.length !== 32) {
-  throw new Error(
-    `GITHUB_PAT_MASTER_KEY inválida: esperado 32 bytes após base64-decode, recebido ${MASTER_KEY.length}. ` +
-    `Gere com: openssl rand -base64 32`
-  );
+function getMasterKey(): Buffer {
+  const masterKeyB64 = process.env[MASTER_KEY_ENV];
+  if (!masterKeyB64) {
+    throw new Error(
+      `[PAT Vault] ${MASTER_KEY_ENV} não configurada — Vault indisponível (fail-closed). ` +
+      `Gere com: openssl rand -base64 32`
+    );
+  }
+  const masterKey = Buffer.from(masterKeyB64, 'base64');
+  if (masterKey.length !== 32) {
+    throw new Error(
+      `[PAT Vault] ${MASTER_KEY_ENV} inválida: esperado 32 bytes após base64-decode, recebido ${masterKey.length}. ` +
+      `Gere com: openssl rand -base64 32`
+    );
+  }
+  return masterKey;
 }
 
 // ============================================================
@@ -115,7 +127,7 @@ export function encryptPat(plaintext: string): EncryptedPayload {
     throw new Error('Cannot encrypt empty plaintext');
   }
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGO, MASTER_KEY, iv);
+  const cipher = crypto.createCipheriv(ALGO, getMasterKey(), iv);
   const ciphertext = Buffer.concat([
     cipher.update(plaintext, 'utf8'),
     cipher.final(),
@@ -144,7 +156,7 @@ export function decryptPat(payload: EncryptedPayload): string {
     throw new Error(`Auth tag inválida: esperado ${TAG_LENGTH} bytes, recebido ${tag.length}`);
   }
 
-  const decipher = crypto.createDecipheriv(ALGO, MASTER_KEY, iv);
+  const decipher = crypto.createDecipheriv(ALGO, getMasterKey(), iv);
   decipher.setAuthTag(tag);
   try {
     const plaintext = Buffer.concat([

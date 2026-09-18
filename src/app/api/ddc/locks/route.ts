@@ -74,6 +74,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: device }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
+    // RUN 6 — propriedade não pertence ao tenant (resource ownership):
+    // 404 indistinguível, em vez de 503 genérico.
+    if ((error as Error)?.message === 'LOCK_PROPERTY_NOT_OWNED') {
+      return NextResponse.json({ success: false, error: 'LOCK_PROPERTY_NOT_OWNED' }, { status: 404 });
+    }
     console.error('[LOCKS] Error creating device:', error);
     return NextResponse.json({ success: false, error: 'LOCK_DEVICE_CREATE_FAILED' }, { status: 503 });
   }

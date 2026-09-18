@@ -6,6 +6,11 @@ import { generateWelcomeEmailHtml } from '../src/lib/email-templates/welcome-ema
 import { validateCheckoutInput } from '../src/lib/checkout/checkout-validator';
 import { generateCheckoutSignature, verifyCheckoutSignature } from '../src/lib/checkout/checkout-security';
 
+// P0 (RUN 4 — Wave 4A): assinaturas de checkout são fail-closed e exigem segredo
+// de configuração ≥32 chars. Esta suíte dependia implicitamente do fallback
+// inseguro removido; agora define explicitamente um segredo de teste.
+process.env.NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET ?? 'integration-suite-test-secret-0123456789abcdef';
+
 describe('🌐 Ecossistema Seu Zélla — Integration & Ready-to-Replace Data Suite', () => {
   it('should validate Pousada mock data bank with TODO(REAL) integrity', () => {
     expect(MOCK_POUSADA_OVERVIEW.occupancyRate).toBeGreaterThan(0);

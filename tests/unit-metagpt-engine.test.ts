@@ -67,12 +67,14 @@ describe('MetaGPT Multi-Agent Engine — Seu Zélla', () => {
         messageText: 'Boa tarde, qual a senha do Wi-Fi?',
         guestName: 'Lucas',
         propertyName: 'Pousada Solar das Marés',
-        wifiPassword: 'marés_vip2026',
+        // TEST_FIXTURE (RUN 4 — Wave 4C): valor neutro — sem credencial real no repositório
+        wifiSsid: 'wifi-sobre-hospedagem',
+        wifiPassword: 'senha-teste-fixture-123',
       });
 
       expect(res.success).toBe(true);
       expect(res.result.isSafe).toBe(true);
-      expect(res.result.finalMessage).toContain('marés_vip2026');
+      expect(res.result.finalMessage).toContain('senha-teste-fixture-123');
       expect(res.result.finalMessage).toContain('Lucas');
       expect(res.result.deliriumZeroScore).toBe(100);
     });

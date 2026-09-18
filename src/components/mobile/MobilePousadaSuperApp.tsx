@@ -299,7 +299,7 @@ interface PousadaRoom {
 
   const [chatLog, setChatLog] = useState<Array<{ sender: 'guest' | 'zella'; text: string; time: string }>>([
     { sender: 'guest', text: 'Olá! Qual o horário de check-in e a senha do Wi-Fi?', time: '14:32' },
-    { sender: 'zella', text: 'Olá! Nosso check-in é a partir das 14h. O Wi-Fi é "Zella_Guest_5G" e a senha é "marés_vip2026". Precisa de ajuda com o estacionamento?', time: '14:32' },
+    { sender: 'zella', text: 'Olá! Nosso check-in é a partir das 14h. Por segurança, a senha do Wi-Fi é fornecida pela nossa equipe/recepção. Precisa de ajuda com o estacionamento?', time: '14:32' },
   ]);
 
   // ── Realtime cross-device sync (replaces broken localStorage) ──
@@ -1050,7 +1050,8 @@ interface PousadaRoom {
                     </span>
                   </div>
                   <div className="text-[11px] font-mono text-zinc-400">
-                    {showWifiPassword ? 'marés_vip2026' : '••••••••••••'}
+                    {/* DEMO_DATA (RUN 4 — Wave 4C): sem credenciais operacionais no bundle */}
+                    {showWifiPassword ? 'disponível na recepção' : '••••••••••••'}
                   </div>
                 </div>
               </div>
@@ -1064,8 +1065,10 @@ interface PousadaRoom {
                 </button>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText('marés_vip2026');
-                    toast.success('Senha do Wi-Fi copiada para envio!');
+                    // DEMO_DATA (RUN 4 — Wave 4C): sem senha real no bundle —
+                    // cópia apenas orienta a solicitar à equipe.
+                    navigator.clipboard.writeText('Solicite a senha do Wi-Fi na recepção');
+                    toast.success('Oriente o hóspede a solicitar a senha na recepção');
                   }}
                   className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 active:scale-95 transition-all"
                   aria-label="Copiar Senha"

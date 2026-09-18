@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireTenant } from '@/lib/auth';
 import { withSecurity } from '@/lib/security/api-shield';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 import { PartnerProgramService } from '@/lib/partner-program/partner-service';
 
-async function postHandler(_request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
-    const tenantId = await requireTenant();
-    // Verify admin / ZCC authorization
-    if (tenantId !== 'zcc-admin' && tenantId !== 'master' && !tenantId.startsWith('zcc_')) {
-      // In development / internal ZCC operations, allowed with authorized tenant
-    }
+    // RUN 6 — tenant authority: ANTES o "check de admin" era um `if` com
+    // corpo vazio (no-op) — qualquer usuário de qualquer tenant autenticado
+    // reabria o lote GLOBAL do Programa Parceiro (partnerProgramConfig
+    // id 'default'). AGORA: gate ZCC canônico (allowlist de e-mails + role).
+    const zcc = await verifyZCCAccessOrReject(request);
+    if (!zcc.allowed) return zcc.response!;
 
     const result = await PartnerProgramService.reopenSecondBatch();
     return NextResponse.json(result, { status: 200 });

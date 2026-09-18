@@ -28,12 +28,17 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 async function getHandler(_request: NextRequest, _ctx: SecurityContext) {
-  let tenantId = await requireTenantId();
-  if (!tenantId) {
-    const dbTenant = await prisma.tenant.findFirst({
-      select: { id: true }
-    });
-    tenantId = dbTenant?.id || 'demo-tenant';
+  // RUN 6 — tenant authority: a sessão é a única autoridade. O fallback para
+  // o primeiro tenant do DB / 'demo-tenant' era código morto perigoso
+  // (requireTenantId throws antes) — agora sem sessão → 401 explícito.
+  let tenantId: string;
+  try {
+    tenantId = await requireTenantId();
+  } catch {
+    return NextResponse.json(
+      { error: 'unauthorized', reason: 'tenant_context_missing' },
+      { status: 401 }
+    );
   }
 
   // ---------------------------------------------------------

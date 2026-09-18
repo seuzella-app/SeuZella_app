@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withSecurity } from '@/lib/security/api-shield';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 
-async function getHandler(_request: NextRequest, _ctx: any) {
+async function getHandler(request: NextRequest, _ctx: any) {
   try {
+    // RUN 6B (R6B-01): SecurityAlert é dado do PLANO PLATAFORMA (alertas de
+    // todos os tenants — modelo tem tenantId). Antes: qualquer request com
+    // cookie presente lia alertas cross-tenant (withSecurity não impõe auth
+    // por padrão; AUTH_REQUIRED_ROUTES é decorativo). Gate canônico do plano
+    // ZCC agora é obrigatório; rejeição = 404 indistinguível.
+    const security = await verifyZCCAccessOrReject(request);
+    if (!security.allowed) return security.response!;
+
     const alerts = await db.securityAlert.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,

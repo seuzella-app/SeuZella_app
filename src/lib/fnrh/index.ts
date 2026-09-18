@@ -87,12 +87,16 @@ export async function createFNRHRecord(params: {
 
 /**
  * Atualiza FNRH com dados coletados via WhatsApp.
+ * RUN 6 — tenant authority: `tenantId` é obrigatório e a busca do registro é
+ * sempre escopada ao tenant (fail-closed: sem tenantId → null). Sem isso, um
+ * fnrhId conhecido permitia sobrescrever a FNRH de outro tenant.
  */
-export async function updateFNRHData(fnrhId: string, data: Partial<FNRHData>): Promise<FNRHData | null> {
+export async function updateFNRHData(fnrhId: string, data: Partial<FNRHData>, tenantId: string): Promise<FNRHData | null> {
+  if (!tenantId) return null;
   try {
     if (db && (db as any).guestRegistration) {
       const record = await (db as any).guestRegistration.findFirst({
-        where: { id: fnrhId },
+        where: { id: fnrhId, tenantId },
       });
       if (!record) return null;
 

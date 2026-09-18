@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -13,8 +15,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // RUN 6B (R6B-02): SwipeTemplate é recurso TENANT-SCOPED (model tem
+    // tenantId FK + cascade). Antes: findMany({ isActive: true }) SEM escopo
+    // devolvia templates de TODOS os tenants (conteúdo comercial sensível)
+    // para qualquer request com cookie presente. Escopo = sessão.
+    const session = await getServerSession(authOptions);
+    const tenantId = (session?.user as { tenantId?: unknown })?.tenantId;
+    if (!session?.user || typeof tenantId !== 'string' || !tenantId) {
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+    }
+
     const templates = await db.swipeTemplate.findMany({
-      where: { isActive: true },
+      where: { tenantId, isActive: true },
       orderBy: { createdAt: 'desc' },
     });
 

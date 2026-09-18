@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withSecurity } from '@/lib/security/api-shield';
+import { verifyRobotToken } from '@/lib/auth';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+
+// RUN 6 — autoridade de escrita global: POST acumula custo no BudgetGuard
+// (pode levar a criticalLevel 'critical' e travar o gasto de IA da PLATAFORMA
+// inteira). Sem gate, qualquer chamador podia forjar o bloqueio. Escrita
+// exige token de máquina (loop interno) OU administrador ZCC.
 
 function getTodayString(): string {
   const now = new Date();
@@ -59,6 +66,11 @@ async function getHandler(_request: NextRequest, _ctx: any) {
 
 async function postHandler(request: NextRequest, _ctx: any) {
   try {
+    const robotOk = await verifyRobotToken(request);
+    if (!robotOk) {
+      const zcc = await verifyZCCAccessOrReject(request);
+      if (!zcc.allowed) return zcc.response!;
+    }
     const body = await request.json();
     const { costUsd } = body;
 

@@ -261,7 +261,13 @@ export async function DELETE(request: NextRequest) {
     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     const body = await request.json();
     if (!body.conversationId) return NextResponse.json({ success: false, error: { code: '400', message: 'Missing conversationId' } }, { status: 400 });
-    await db.conversationLog.delete({ where: { id: body.conversationId } });
+    // RUN 6 — tenant authority: a mutação é executada APENAS sobre conversas
+    // pertencentes ao tenant da sessão. `id` sozinho permitiria deletar
+    // conversas de outros tenants (resource IDOR — delete cross-tenant).
+    const deleted = await db.conversationLog.deleteMany({ where: { id: body.conversationId, tenantId } });
+    if (deleted.count === 0) {
+      return NextResponse.json({ success: false, error: { code: '404', message: 'Conversation not found' } }, { status: 404 });
+    }
     return NextResponse.json({ success: true, data: null });
   } catch (error) {
     return NextResponse.json({ success: false, error: { code: '500', message: 'Failed to delete conversation' } }, { status: 500 });

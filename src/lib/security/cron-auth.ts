@@ -45,7 +45,12 @@ export async function verifyCronM2MToken(
   req: NextRequest,
   requiredScope: CronScope,
 ): Promise<{ ok: true; principal: VerifiedCronPrincipal } | { ok: false; response: NextResponse }> {
-  const devBypassAllowed = process.env.NODE_ENV === 'development' || process.env.ZELLA_ALLOW_M2M_DEV_BYPASS === 'true';
+  // RUN 6 — hardening: o flag ZELLA_ALLOW_M2M_DEV_BYPASS NUNCA é honrado em
+  // produção (antes: `=== 'development' || flag` — o flag setado em prod sem
+  // chave M2M abria TODAS as rotas de cron via header x-zella-m2m-dev-bypass).
+  // NODE_ENV=development mantém o bypass padrão (fluxo local inalterado).
+  const devBypassAllowed = process.env.NODE_ENV === 'development'
+    || (process.env.NODE_ENV !== 'production' && process.env.ZELLA_ALLOW_M2M_DEV_BYPASS === 'true');
   if (devBypassAllowed && !getPublicKeyPem()) {
     const bypass = req.headers.get('x-zella-m2m-dev-bypass');
     if (bypass === requiredScope) {

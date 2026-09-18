@@ -19,6 +19,26 @@ import { authOptions } from '@/lib/auth';
  */
 export async function POST(request: NextRequest) {
   try {
+    // RUN 6 — tenant authority (P1): ANTES o POST era anônimo e o tenantId
+    // vinha do body — qualquer chamador envenenava os pares DPO e o grafo
+    // Semantica de qualquer tenant. AGORA: sessão obrigatória e o tenant da
+    // sessão é a autoridade; o tenantId do cliente é aceito apenas se
+    // coincidir (consistency check, mesmo padrão RUN 4B/lgpd).
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: 'UNAUTHORIZED', message: 'Sessão não encontrada.' },
+        { status: 401 }
+      );
+    }
+    const sessionTenantId = (session.user as { tenantId?: string }).tenantId;
+    if (!sessionTenantId) {
+      return NextResponse.json(
+        { success: false, error: 'TENANT_CONTEXT_MISSING' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { tenantId, prompt, rejected, chosen, conversationId } = body;
 
@@ -28,8 +48,15 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (tenantId !== sessionTenantId) {
+      return NextResponse.json(
+        { success: false, error: 'TENANT_MISMATCH', message: 'Acesso negado: tenant informado não corresponde à sessão autenticada.' },
+        { status: 403 }
+      );
+    }
 
-    // 1. Captura DPO pair (filtra similaridade 0.15-0.85)
+    // 1. Captura DPO pair (filtra similaridade 0.15-0.85) — tenantId já
+    // comprovado igual ao da sessão (TENANT_MISMATCH 403 acima).
     const dpoResult = await captureDpoPair({ tenantId, prompt, rejected, chosen });
 
     if (!dpoResult.saved) {

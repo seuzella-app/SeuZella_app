@@ -20,6 +20,10 @@ function requireProductionSecret(key: string, minimumLength = 32): string {
   return value;
 }
 
+// Exportado (RUN 4 — Wave 4A) para reuso canônico fail-closed por módulos que
+// precisam resolver segredos de configuração (ex.: checkout-security).
+export { requireProductionSecret };
+
 export const DATABASE_URL = getEnv('DATABASE_URL', 'file:./db/custom.db');
 export const NEXTAUTH_URL = getEnv('NEXTAUTH_URL', 'http://localhost:3000');
 

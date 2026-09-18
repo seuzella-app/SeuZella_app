@@ -24,6 +24,9 @@ const IntentOutputSchema = z.object({
 const KnowledgeInputSchema = z.object({
   intent: z.string(),
   propertyName: z.string(),
+  // SEGURANÇA (RUN 4 — Wave 4C): credenciais Wi-Fi somente via contexto
+  // autorizado (ex.: registro da propriedade). NÃO existe fallback hardcoded.
+  wifiSsid: z.string().optional(),
   wifiPassword: z.string().optional(),
   checkInTime: z.string().optional(),
   breakfastTime: z.string().optional(),
@@ -91,7 +94,11 @@ export class RetrieveKnowledgeAction extends MetaAction<z.infer<typeof Knowledge
   public readonly outputSchema = KnowledgeOutputSchema;
 
   protected async execute(input: z.infer<typeof KnowledgeInputSchema>) {
-    const wifi = input.wifiPassword || 'marés_vip2026';
+    // SEGURANÇA (RUN 4 — Wave 4C): sem credencial no contexto autorizado, o
+    // hóspede é orientado a solicitar à equipe — nunca inventamos credencial.
+    const hasWifiCredential = Boolean(input.wifiPassword);
+    const wifi = input.wifiPassword as string; // validado via hasWifiCredential
+    const wifiSsid = input.wifiSsid; // SSID também somente de contexto autorizado
     const checkin = input.checkInTime || '14:00';
     const breakfast = input.breakfastTime || '07:30 às 10:30';
 
@@ -100,8 +107,18 @@ export class RetrieveKnowledgeAction extends MetaAction<z.infer<typeof Knowledge
 
     switch (input.intent) {
       case 'WIFI':
-        draft = `Nossa rede Wi-Fi é "Zella_Guest_5G" e a senha de acesso é "${wifi}". O sinal pega em todas as acomodações e áreas sociais! 📶`;
-        facts.push(`Rede: Zella_Guest_5G`, `Senha: ${wifi}`);
+        if (hasWifiCredential) {
+          // Divulgação SOMENTE quando a credencial veio de contexto autorizado.
+          // SSID incluído apenas se fornecido no contexto (nunca fixado no código).
+          draft = wifiSsid
+            ? `Nossa rede Wi-Fi é "${wifiSsid}" e a senha de acesso é "${wifi}". O sinal pega em todas as acomodações e áreas sociais! 📶`
+            : `A senha de acesso do nosso Wi-Fi é "${wifi}". O sinal pega em todas as acomodações e áreas sociais! 📶`;
+          // Fatos/auditoria NÃO registram a senha em claro (nada de segredo em logs).
+          facts.push(wifiSsid ? `Rede: ${wifiSsid}` : 'Rede Wi-Fi: fornecida pela propriedade', 'Senha Wi-Fi: divulgada via canal seguro ao hóspede autenticado');
+        } else {
+          draft = `Claro! Por segurança, as credenciais do Wi-Fi desta propriedade são fornecidas pela nossa equipe. Por favor, solicite à recepção/anfitrião que te enviará em instantes. 📶`;
+          facts.push('Credenciais Wi-Fi: não disponíveis no contexto — hóspede orientado a solicitar à equipe (fail-safe, sem inventar credencial)');
+        }
         break;
       case 'BREAKFAST':
         draft = `Nosso delicioso café da manhã é servido diariamente das ${breakfast} no salão principal com vista para a natureza! ☕🥐`;
@@ -236,6 +253,7 @@ export function createGuestConciergeSOP(): SOPDefinition {
         inputTransformer: (ctx) => ({
           intent: ctx.classifiedIntent,
           propertyName: ctx.propertyName || 'Pousada Solar das Marés',
+          wifiSsid: ctx.wifiSsid,
           wifiPassword: ctx.wifiPassword,
           checkInTime: ctx.checkInTime,
           breakfastTime: ctx.breakfastTime,
@@ -265,6 +283,9 @@ export async function runGuestConcierge(params: {
   messageText: string;
   guestName?: string;
   propertyName: string;
+  /** SSID Wi-Fi da propriedade — somente de contexto/configuração autorizada. */
+  wifiSsid?: string;
+  /** Senha Wi-Fi da propriedade — somente de contexto/configuração autorizada. */
   wifiPassword?: string;
   checkInTime?: string;
   breakfastTime?: string;

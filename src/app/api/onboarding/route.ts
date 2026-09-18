@@ -7,6 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -62,29 +64,36 @@ export async function POST(request: NextRequest) {
     // Check if email already exists
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {
-      // Update existing user's tenant
+      const cleanEmail = email.trim().toLowerCase();
+
+      // RUN 6 — tenant authority (P0):
+      // ANTES: um POST anônimo com o email de uma vítima reescrevia o tenant
+      // dela (name/niche/plan — escalada de plano gratuita) ou conectava a
+      // conta da vítima a um tenant novo criado pelo atacante (squatting).
+      // AGORA: (1) usuário que já possui tenant → conflito, sem mutação;
+      // (2) usuário sem tenant → somente o próprio principal autenticado
+      // (fluxo pós-Google-signup, que carrega a sessão recém-criada) pode
+      // criar e conectar um novo tenant.
       const existingTenant = await db.tenant.findFirst({
         where: { users: { some: { id: existingUser.id } } },
       });
       if (existingTenant) {
-        // Update tenant
-        await db.tenant.update({
-          where: { id: existingTenant.id },
-          data: {
-            name,
-            niche: mode,
-            plan: planSlug,
-          },
-        });
-
-        return NextResponse.json({
-          success: true,
-          tenant: { id: existingTenant.id, name, mode, planSlug },
-          message: 'Onboarding atualizado com sucesso!',
-        });
+        return NextResponse.json(
+          { error: 'ONBOARDING_ALREADY_COMPLETED', message: 'Onboarding já concluído para esta conta.' },
+          { status: 409 }
+        );
       }
 
-      // Create tenant for existing user
+      const session = await getServerSession(authOptions);
+      const sessionEmail = session?.user?.email?.trim().toLowerCase() || null;
+      if (!session || sessionEmail !== cleanEmail) {
+        return NextResponse.json(
+          { error: 'USER_EXISTS_AUTH_REQUIRED', message: 'Conta existente: autentique-se para concluir o onboarding.' },
+          { status: 403 }
+        );
+      }
+
+      // Create tenant for the authenticated existing user
       const tenant = await db.tenant.create({
         data: {
           name,

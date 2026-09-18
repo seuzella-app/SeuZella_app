@@ -6,6 +6,7 @@
 
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
+import { randomBytes } from 'crypto';
 
 // ── Types ────────────────────────────────────────────────────────────────────────
 
@@ -85,7 +86,7 @@ const VALID_COMMAND_TYPES: CommandPayload['type'][] = [
 // FASE 02B (FRENTE 30): credencial NUNCA hardcoded nem impressa em log.
 // Fonte: env ZELLA_NUCLEAR_TOKEN. Sem env, token efêmero por boot
 // (operação nuclear efetivamente desabilitada até o operador configurar).
-const NUCLEAR_TOKEN = process.env.ZELLA_NUCLEAR_TOKEN || require('crypto').randomBytes(24).toString('hex');
+const NUCLEAR_TOKEN = process.env.ZELLA_NUCLEAR_TOKEN || randomBytes(24).toString('hex');
 const PORT = 3003;
 
 // ── Mock Data & Simulations ──────────────────────────────────────────────────────

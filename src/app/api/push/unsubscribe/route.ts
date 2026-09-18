@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'MISSING_ENDPOINT' }, { status: 400 });
     }
 
-    const result = await removePushSubscription(body.endpoint);
+    const result = await removePushSubscription(body.endpoint, tenantId);
     if (!result.success) {
       return NextResponse.json({ error: 'DB_UNAVAILABLE' }, { status: 503 });
     }

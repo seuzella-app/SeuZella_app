@@ -22,7 +22,30 @@ const schema = z.object({
 
 const postWrapped = withApiGuard(
   { schema, routeLabel: 'lgpd-delete', allowGlobalAccess: true },
-  async ({ req, body }) => {
+  async ({ req, session, tenantId, body }) => {
+    // RUN 4 — Wave 4F (fix de autoridade de tenant):
+    // ANTES: body.tenantId era autoridade para registrar pedido de exclusão
+    // (direito ao esquecimento) em qualquer tenant — escrita cross-tenant.
+    // AGORA: o tenant do principal autenticado é a autoridade; o tenantId do
+    // cliente só é aceito se coincidir. Principais globais (sem tenant) só
+    // podem agir se forem administradores (workflow DPO).
+    const sessionTenantId = tenantId;
+    if (sessionTenantId && sessionTenantId !== body.tenantId) {
+      return NextResponse.json(
+        { error: 'TENANT_MISMATCH', message: 'Acesso negado: tenant informado não corresponde à sessão autenticada.' },
+        { status: 403 }
+      );
+    }
+    if (!sessionTenantId) {
+      const role = String(((session as { user?: { role?: string } }).user?.role) || '');
+      if (!['ADMIN', 'owner', 'system_admin'].includes(role)) {
+        return NextResponse.json(
+          { error: 'FORBIDDEN', message: 'Apenas administradores podem registrar exclusão para outro tenant.' },
+          { status: 403 }
+        );
+      }
+    }
+
     // Rate limit: 3 pedidos/hora por IP (evita abuso)
     const ip = req.headers.get('x-forwarded-for') || 'unknown';
     const limit = await enforceRateLimit('password-reset', ip); // reusa config 3/hora

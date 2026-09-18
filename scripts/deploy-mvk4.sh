@@ -31,9 +31,17 @@ echo "📦 [3/6] Instalando dependências e gerando Prisma Client..."
 npm ci --legacy-peer-deps
 npx prisma generate
 
-# 4. Aplica migrações pendentes no banco
+# 4. Aplica migrações pendentes no banco (FAIL-CLOSED — RUN 4 Wave 4D)
+#    Regra: migração falhou = DEPLOY FALHOU.
+#    O padrão destrutivo `|| npx prisma db push --accept-data-loss` foi
+#    REMOVIDO — nunca há recuperação automática destrutiva em produção.
 echo "🛢️ [4/6] Executando migrações de banco de dados (Prisma Migrate)..."
-npx prisma migrate deploy || npx prisma db push --accept-data-loss
+if ! npx prisma migrate deploy; then
+  echo "❌ CRÍTICO: prisma migrate deploy FALHOU — deploy ABORTADO."
+  echo "🛑 Nenhum fallback destrutivo (db push --accept-data-loss) será executado."
+  echo "   Diagnóstico: verifique o erro do Prisma acima e corrija as migrações."
+  exit 1
+fi
 
 # 5. Build de Produção Next.js
 echo "🏗️ [5/6] Gerando build de produção Next.js..."

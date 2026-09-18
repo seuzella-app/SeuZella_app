@@ -289,6 +289,19 @@ export async function createLockDevice(
   const info = getBrandInfo(input.brand);
   if (!info) throw new Error(`Unknown brand: ${input.brand}`);
 
+  // RUN 6 — resource ownership (P1): a propriedade informada precisa
+  // pertencer ao tenant da sessão. Sem este check, um lock device podia ser
+  // anexado a property de OUTRO tenant (integridade + cadeia para
+  // guest-guide/PINs). Fail-closed se o registro não existir no tenant.
+  const propertyTable = input.propertyType === 'airbnb'
+    ? (db as unknown as Record<string, { findFirst: (args: unknown) => Promise<unknown> }>).airBProperty
+    : (db as unknown as Record<string, { findFirst: (args: unknown) => Promise<unknown> }>).property;
+  const ownedProperty = await propertyTable?.findFirst({
+    where: { id: input.propertyId, tenantId },
+    select: { id: true },
+  });
+  if (!ownedProperty) throw new Error('LOCK_PROPERTY_NOT_OWNED');
+
   const providerType = input.providerType ?? (info.apiAvailable ? 'api' : 'manual');
 
   const device = await db.lockDevice.create({

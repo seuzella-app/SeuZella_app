@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withSecurity } from '@/lib/security/api-shield';
+import { verifyRobotToken } from '@/lib/auth';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+
+// RUN 6 — autoridade de escrita global: POST registra feedback de circuito
+// (abre/fecha circuit breaker, altera estatísticas do bandit) para a
+// PLATAFORMA INTEIRA. Sem gate, qualquer chamador podia derrubar a IA de
+// todos os tenants com 5 falhas forjadas. Escrita exige token de máquina
+// (loop interno) OU administrador ZCC. GET permanece para o dashboard.
 
 async function getHandler(_request: NextRequest, _ctx: any) {
   try {
@@ -27,6 +35,11 @@ async function getHandler(_request: NextRequest, _ctx: any) {
 
 async function postHandler(request: NextRequest, _ctx: any) {
   try {
+    const robotOk = await verifyRobotToken(request);
+    if (!robotOk) {
+      const zcc = await verifyZCCAccessOrReject(request);
+      if (!zcc.allowed) return zcc.response!;
+    }
     const body = await request.json();
     const { providerId, success, latencyMs } = body;
 

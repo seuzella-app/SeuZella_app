@@ -4,8 +4,19 @@
 // ============================================================================
 
 import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { ZellaGrowthStrategy } from '@/domain/strategy';
 import { getAdapters } from '@/adapters';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+
+// RUN 6 — tenant/authority hardening: o plano ZCC exige o gate canônico.
+// ANTES: GET/PATCH sem nenhuma autenticação — qualquer chamador listava e
+// alterava o status de decisões estratégicas (approve/reject/execute).
+async function guard(request: NextRequest): Promise<NextResponse | null> {
+  const zcc = await verifyZCCAccessOrReject(request);
+  if (!zcc.allowed) return zcc.response!;
+  return null;
+}
 
 let _zgs: ZellaGrowthStrategy | undefined;
 function getInstance(): ZellaGrowthStrategy {
@@ -14,6 +25,8 @@ function getInstance(): ZellaGrowthStrategy {
 }
 
 export async function GET(req: Request) {
+  const denied = await guard(req as NextRequest);
+  if (denied) return denied;
   const url = new URL(req.url);
   const status = url.searchParams.get('status') as ZellaGrowthStrategy extends never ? never : any;
   const kind = url.searchParams.get('kind') as any;
@@ -27,6 +40,8 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
+    const denied = await guard(req as NextRequest);
+    if (denied) return denied;
     const body = await req.json();
     const { decisionId, status } = body as { decisionId: string; status: 'proposed' | 'approved' | 'rejected' | 'executed' | 'failed' };
     if (!decisionId || !status) {

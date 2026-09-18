@@ -55,7 +55,10 @@ export function SOPTimelineVisualizer() {
           messageText: 'Olá! Qual a senha do Wi-Fi e como funciona a fechadura?',
           guestName: 'Mariana Duarte',
           propertyName: 'Pousada Solar das Marés',
-          wifiPassword: 'marés_vip2026',
+          // DEMO_DATA: visualização de timeline — valores claramente fictícios,
+          // jamais credenciais operacionais (RUN 4 — Wave 4C).
+          wifiSsid: 'DEMO_WIFI_SSID',
+          wifiPassword: 'demo-apenas-visualizacao',
         });
       } else if (selectedSOP === 'hitl') {
         res = await runHITLArbitration({

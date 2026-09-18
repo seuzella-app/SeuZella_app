@@ -4,6 +4,13 @@
 # ==============================================================================
 # Uso:  chmod +x deploy-vps.sh && ./deploy-vps.sh
 # Pré:  Docker + Docker Compose instalados na VPS
+#
+# NOTA (RUN 5 — Migration Gate): script LEGADO de bring-up Docker (bootstrap).
+# Fluxo OFICIAL de produção: deploy/deploy-vps.sh (migrate deploy) e
+# scripts/deploy-mvk4.sh (migrate deploy fail-closed). A inicialização de banco
+# abaixo é BOOTSTRAP-ONLY: deve rodar apenas contra banco VAZIO. O passo db
+# push é fail-closed (sem --accept-data-loss): em banco não-vazio com drift ele
+# FALHA e o script aborta — nunca destrói dados silenciosamente.
 # ==============================================================================
 
 set -euo pipefail
@@ -83,9 +90,17 @@ echo -e "${BOLD}${CYAN}═══ Inicializando Banco de Dados ═══${RESET}\
 docker compose up -d app
 sleep 5
 
-# Rodar prisma db push dentro do container
-docker compose exec app npx prisma db push --accept-data-loss 2>/dev/null || {
-  echo -e "${YELLOW}⚠ prisma db push falhou — o banco pode já estar inicializado${RESET}"
+# Rodar prisma db push dentro do container (RUN 5: fail-closed, bootstrap-only)
+# Em banco VAZIO: cria o schema — comportamento idêntico ao anterior.
+# Em banco NÃO-vazio (rerun com drift): o Prisma FALHA em vez de destruir dados
+# (--accept-data-loss REMOVIDO; stderr NÃO é mais silenciado) e o script
+# aborta antes de qualquer operação potencialmente destrutiva.
+docker compose exec app npx prisma db push || {
+  echo -e "${RED}❌ CRÍTICO: prisma db push FALHOU — bootstrap ABORTADO (fail-closed, RUN 5).${RESET}"
+  echo -e "${RED}   Causas prováveis: banco não-vazio com drift de schema, ou erro real de conexão.${RESET}"
+  echo -e "${RED}   NUNCA contorne com --accept-data-loss: isso pode destruir dados em produção.${RESET}"
+  echo -e "${RED}   Fluxo oficial para banco já inicializado: scripts/deploy-mvk4.sh (migrate deploy).${RESET}"
+  exit 1
 }
 
 # Rodar seed se existir

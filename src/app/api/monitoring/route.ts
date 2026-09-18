@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getSystemMetrics, getCounters, getTimers, getRequestStats, getHealthChecks } from '@/lib/monitoring';
 import { withSecurity } from '@/lib/security/api-shield';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 
-async function getHandler(_request: NextRequest, _ctx: any) {
+async function getHandler(request: NextRequest, _ctx: any) {
   const startTime = Date.now();
   const reqLogger = logger.withRequest();
+
+  // RUN 6B (R6B-03): telemetria operacional GLOBAL (métricas de sistema,
+  // request stats, timers, logBuffer) é dado do plano plataforma. Antes:
+  // qualquer request com cookie presente lia telemetria global (o shield
+  // não impõe auth por padrão). Gate canônico do plano ZCC obrigatório.
+  const zcc = await verifyZCCAccessOrReject(request);
+  if (!zcc.allowed) return zcc.response!;
 
   if (process.env.NODE_ENV === 'production') {
     reqLogger.info('Monitoring endpoint accessed', { environment: 'production' });

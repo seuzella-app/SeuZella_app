@@ -14,24 +14,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 import { calcularBehavioralMetrics } from '@/lib/upsell/upsell-analytics';
 import { db } from '@/lib/db';
 
-async function getHandler(_req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  }
-
-  const userRole = (session.user as any).role;
-  if (userRole !== 'ADMIN') {
-    return NextResponse.json(
-      { error: 'FORBIDDEN', message: 'Acesso restrito a administradores.' },
-      { status: 403 },
-    );
-  }
+async function getHandler(req: NextRequest) {
+  // RUN 6B (R6B-05b): antes comparava role a 'ADMIN' (uppercase, nunca
+  // ocorre) — deny-all com role string morta. Gate canônico do plano ZCC
+  // agora autoriza de fato o admin da plataforma.
+  const zcc = await verifyZCCAccessOrReject(req);
+  if (!zcc.allowed) return zcc.response!;
 
   try {
     // Lista todos os tipos distintos de UPSELL

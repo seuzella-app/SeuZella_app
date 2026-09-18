@@ -108,13 +108,34 @@ export async function savePushSubscription(
   }
 }
 
-export async function removePushSubscription(endpoint: string): Promise<{ success: boolean }> {
+/**
+ * RUN 6B — tenantId é OBRIGATÓRIO (fail-closed).
+ *
+ * RUN 6 aceitava `tenantId?` com fallback `{ endpoint }` sem escopo para
+ * preservar compatibilidade. A auditoria RUN 6B não encontrou NENHUM caller
+ * legítimo sem tenant (único caller: POST /api/push/unsubscribe, que resolve
+ * o tenant pela sessão via resolveTenantId). O fallback sem escopo permitia
+ * desativar a subscription de OUTRO tenant quando chamado sem tenant.
+ *
+ * Sem tenant → { success: false } e NENHUMA escrita no banco.
+ */
+export async function removePushSubscription(
+  endpoint: string,
+  tenantId: string,
+): Promise<{ success: boolean }> {
   if (!(await isDatabaseAvailable())) {
+    return { success: false };
+  }
+  if (!tenantId || typeof tenantId !== 'string') {
+    // FAIL CLOSED — operação tenant-scoped não pode executar sem autoridade de tenant.
+    logger.error('[PUSH] removePushSubscription called WITHOUT tenantId — refused', {
+      endpoint,
+    });
     return { success: false };
   }
   try {
     await db.pushSubscription.updateMany({
-      where: { endpoint },
+      where: { endpoint, tenantId },
       data: { isActive: false },
     });
     return { success: true };

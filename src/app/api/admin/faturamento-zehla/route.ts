@@ -14,8 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 import {
   calcularFaturamentoMensalZehla,
   gerarCobrancasMensais,
@@ -23,19 +22,13 @@ import {
 } from '@/lib/upsell/faturamento-zehla';
 
 async function getHandler(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  }
-
-  // RBAC: somente ADMIN global pode ver faturamento de todas as pousadas
-  const userRole = (session.user as any).role;
-  if (userRole !== 'ADMIN') {
-    return NextResponse.json(
-      { error: 'FORBIDDEN', message: 'Acesso restrito a administradores da seuzella.com.' },
-      { status: 403 },
-    );
-  }
+  // RUN 6B (R6B-05a): antes comparava role a 'ADMIN' (uppercase) — string que
+  // NUNCA ocorre na sessão (roles reais: owner/admin/staff/client/system_admin,
+  // lowercase). Resultado: rota NEGADA para todos, inclusive admins legítimos
+  // (fail-closed, mas função morta + role string morta). Gate canônico do
+  // plano ZCC agora autoriza de fato o admin da plataforma.
+  const zcc = await verifyZCCAccessOrReject(req);
+  if (!zcc.allowed) return zcc.response!;
 
   const { searchParams } = new URL(req.url);
   const now = new Date();

@@ -13,10 +13,8 @@
  *
  * Contract:
  *   GET /api/v1/guest/ddc/overview
- *   Headers:
- *     X-Tenant-Id  — injected by Edge Middleware (X-Zella-Tenant-Id
- *                    is the canonical name; we accept both for
- *                    backward compat with the legacy middleware).
+ *   Auth: NextAuth session (cookie) — o tenant vem SEMPRE da sessão.
+ *   (RUN 6: X-Tenant-Id não é mais aceito; sem sessão → 401.)
  *
  * Response (200, < 50 KB p95):
  *   {
@@ -71,34 +69,25 @@ export const revalidate = 0;
 // ---------------------------------------------------------------
 async function getHandler(_request: NextRequest, _ctx: SecurityContext) {
   // ---------------------------------------------------------
-  // 1) Tenant resolution — defense in depth.
-  //    a) requireTenantId() resolves via NextAuth session
-  //    b) Cross-check against X-Tenant-Id header (when present)
-  //    Any mismatch → 401 (do not leak which check failed).
+  // 1) Tenant resolution — RUN 6 (tenant authority):
+  //    A sessão NextAuth é a ÚNICA autoridade de tenant.
+  //    ANTES: aceitava X-Tenant-Id como autoridade quando não havia sessão e
+  //    fazia fallback para o primeiro tenant do DB / 'demo-tenant' — um
+  //    primitivo de leitura cross-tenant anônima (reservas + telefones de
+  //    hóspedes + faturas). O header era um contrato de um middleware legado
+  //    que não existe mais; o fallback nunca era alcançado (requireTenantId
+  //    throws) e virou armadilha latente. Agora: sem sessão → 401.
   // ---------------------------------------------------------
-  const sessionTenantId = await requireTenantId();
-  
-  // Header resolution
-  const headerTenantId = _request.headers.get('x-tenant-id')
-    || _request.headers.get('x-zella-tenant-id')
-    || null;
-
-  if (sessionTenantId && headerTenantId && headerTenantId !== sessionTenantId) {
+  let sessionTenantId: string;
+  try {
+    sessionTenantId = await requireTenantId();
+  } catch {
     return NextResponse.json(
-      { error: 'unauthorized', reason: 'tenant_mismatch' },
+      { error: 'unauthorized', reason: 'tenant_context_missing' },
       { status: 401 }
     );
   }
-
-  // Se houver sessão ou header, usa o tenant especificado.
-  // Se não houver sessão nem header (acesso público mobile/demo), busca o primeiro tenant ativo ou usa fallback demo.
-  let tenantId = sessionTenantId || headerTenantId;
-  if (!tenantId) {
-    const dbTenant = await prisma.tenant.findFirst({
-      select: { id: true }
-    });
-    tenantId = dbTenant?.id || 'demo-tenant';
-  }
+  const tenantId = sessionTenantId;
 
   // ---------------------------------------------------------
   // 2) Parallel data fetching.

@@ -102,6 +102,14 @@ vi.mock('@/lib/security/api-shield', () => ({
   withSecurity: (handler: any) => handler,
 }));
 
+// RUN 6: a rota reopen agora usa o gate ZCC canônico (verifyZCCAccessOrReject)
+// em vez do antigo check `requireTenant()` com if vazio. Este arquivo testa o
+// ciclo de negócio do Programa Parceiro; o gate ZCC em si é coberto por
+// tests/security/run6-platform-plane.test.ts — aqui ele é permitido.
+vi.mock('@/lib/zcc-security', () => ({
+  verifyZCCAccessOrReject: vi.fn(async () => ({ allowed: true, response: undefined })),
+}));
+
 import { PartnerProgramService } from '@/lib/partner-program/partner-service';
 import { tierLevel, hasAccess, PLAN_DISPLAY, PLAN_HIGHLIGHTS } from '@/lib/plan-features';
 import { PLAN_CONFIG, getMaxProperties, hasFeature } from '@/lib/features';
