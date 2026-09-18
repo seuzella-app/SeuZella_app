@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-09-18T00:11:46",
+  "head": "0cbc984c7a6c98bbc32360f09a2b8faf73789295",
+  "routesScanned": 320,
+  "authUnknown": 146,
+  "reviewAuth": 146,
+  "reviewTenantSource": 14,
+  "residuals": {
+    "RES-14": "P3 reassign por endpoint (documentado RUN6B, frente 7E)",
+    "middleware": "38 linhas matcher largo (frente 7A, W2)",
+    "asAny": "backlog FASE 8"
+  },
+  "matrixFile": "99_AUDITS/RUN7_W1_20260918_000121/RUN7_TENANT_MATRIX.json"
+}

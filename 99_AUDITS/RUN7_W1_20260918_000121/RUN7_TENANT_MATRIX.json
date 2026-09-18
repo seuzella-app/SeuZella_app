@@ -1,0 +1,641 @@
+[
+{"route":"/api/admin/faturamento-zehla","file":"src/app/api/admin/faturamento-zehla/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/admin/upsell-analytics","file":"src/app/api/admin/upsell-analytics/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/agent-logs","file":"src/app/api/agent-logs/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/agents","file":"src/app/api/agents/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"PATH_PARAM","scopeEvidence":"PRESENT(11)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/airb-pro/comparativo","file":"src/app/api/airb-pro/comparativo/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/airb-pro/rentabilidade","file":"src/app/api/airb-pro/rentabilidade/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/airb-pro/yield-suggestion","file":"src/app/api/airb-pro/yield-suggestion/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/airb-test","file":"src/app/api/airb-test/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/alexa/smart-home","file":"src/app/api/alexa/smart-home/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/auth/[...nextauth]","file":"src/app/api/auth/[...nextauth]/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/auth/forgot-password","file":"src/app/api/auth/forgot-password/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/auth/m2m/token","file":"src/app/api/auth/m2m/token/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/auth/magic-link","file":"src/app/api/auth/magic-link/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/auth/register","file":"src/app/api/auth/register/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/auth/reset-password","file":"src/app/api/auth/reset-password/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/bim-vision","file":"src/app/api/bim-vision/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"BODY_PRESENT","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH+REVIEW_TENANT_SRC"}
+,
+{"route":"/api/brain/health","file":"src/app/api/brain/health/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/brain/intents","file":"src/app/api/brain/intents/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/brain","file":"src/app/api/brain/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/bulk-whatsapp","file":"src/app/api/bulk-whatsapp/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/campaigns/[id]","file":"src/app/api/campaigns/[id]/route.ts","methods":"DELETE, GET, PUT","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/campaigns","file":"src/app/api/campaigns/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/channel-manager","file":"src/app/api/channel-manager/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/checkout/cancel","file":"src/app/api/checkout/cancel/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/checkout/create","file":"src/app/api/checkout/create/route.ts","methods":"POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(14)","roleCheck":false,"mutation":true,"idempotency":true,"audit":false,"risk":"OK"}
+,
+{"route":"/api/checkout/downgrade","file":"src/app/api/checkout/downgrade/route.ts","methods":"POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/checkout/pix-status","file":"src/app/api/checkout/pix-status/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/checkout/success","file":"src/app/api/checkout/success/route.ts","methods":"GET","auth":"SESSION+WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/checkout/upgrade","file":"src/app/api/checkout/upgrade/route.ts","methods":"POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(12)","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/checkout/webhook","file":"src/app/api/checkout/webhook/route.ts","methods":"POST","auth":"WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":true,"audit":false,"risk":"OK"}
+,
+{"route":"/api/config/keys","file":"src/app/api/config/keys/route.ts","methods":"GET, PATCH, POST, PUT","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(13)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/conversations","file":"src/app/api/conversations/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/achievements-check","file":"src/app/api/cron/achievements-check/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/backup-restore-drill","file":"src/app/api/cron/backup-restore-drill/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/booking-daily","file":"src/app/api/cron/booking-daily/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/budget-reset","file":"src/app/api/cron/budget-reset/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/cerebro-analyze","file":"src/app/api/cron/cerebro-analyze/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/cron/cerebro-budget-forecast","file":"src/app/api/cron/cerebro-budget-forecast/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(11)","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/cron/cerebro-churn-predict","file":"src/app/api/cron/cerebro-churn-predict/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/cerebro-cleanup","file":"src/app/api/cron/cerebro-cleanup/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/cerebro-distill","file":"src/app/api/cron/cerebro-distill/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/cerebro-learning","file":"src/app/api/cron/cerebro-learning/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/cerebro-night-audit","file":"src/app/api/cron/cerebro-night-audit/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":true,"audit":true,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/cerebro-night-pentest","file":"src/app/api/cron/cerebro-night-pentest/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/cerebro-night-pulse","file":"src/app/api/cron/cerebro-night-pulse/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/cerebro-orchestrator","file":"src/app/api/cron/cerebro-orchestrator/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/cerebro-refactor-check","file":"src/app/api/cron/cerebro-refactor-check/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/cerebro-watchdog","file":"src/app/api/cron/cerebro-watchdog/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/dlq-drain","file":"src/app/api/cron/dlq-drain/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/housekeeping-dispatch","file":"src/app/api/cron/housekeeping-dispatch/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/ical-sync","file":"src/app/api/cron/ical-sync/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/learning-cycle","file":"src/app/api/cron/learning-cycle/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"QUERY_PRESENT","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_TENANT_SRC"}
+,
+{"route":"/api/cron/lembrete-checkin","file":"src/app/api/cron/lembrete-checkin/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/linkinbio-expiry-check","file":"src/app/api/cron/linkinbio-expiry-check/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/locks-maintenance","file":"src/app/api/cron/locks-maintenance/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/metrics-snapshot","file":"src/app/api/cron/metrics-snapshot/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(9)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/monthly-billing","file":"src/app/api/cron/monthly-billing/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":true,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/nps-checkout","file":"src/app/api/cron/nps-checkout/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/ota-token-expiry","file":"src/app/api/cron/ota-token-expiry/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/payment-confirmation","file":"src/app/api/cron/payment-confirmation/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/payment-overdue","file":"src/app/api/cron/payment-overdue/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/plan-expiry","file":"src/app/api/cron/plan-expiry/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/plan-limits-check","file":"src/app/api/cron/plan-limits-check/route.ts","methods":"GET, POST","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/cron/security-scan","file":"src/app/api/cron/security-scan/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/sre-alerts","file":"src/app/api/cron/sre-alerts/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/cron/weekly-report","file":"src/app/api/cron/weekly-report/route.ts","methods":"GET","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(17)","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/dashboard/bookings","file":"src/app/api/dashboard/bookings/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/dashboard/overview","file":"src/app/api/dashboard/overview/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/dashboard","file":"src/app/api/dashboard/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(13)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/ai-status","file":"src/app/api/ddc/ai-status/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb-pro/commissions/[id]","file":"src/app/api/ddc/airb-pro/commissions/[id]/route.ts","methods":"DELETE, PATCH","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb-pro/commissions","file":"src/app/api/ddc/airb-pro/commissions/route.ts","methods":"GET, POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(12)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/airb-pro/expenses/[id]","file":"src/app/api/ddc/airb-pro/expenses/[id]/route.ts","methods":"DELETE, PATCH","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb-pro/expenses","file":"src/app/api/ddc/airb-pro/expenses/route.ts","methods":"GET, POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(13)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/airb-pro/goals/[id]","file":"src/app/api/ddc/airb-pro/goals/[id]/route.ts","methods":"DELETE, PATCH","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb-pro/goals","file":"src/app/api/ddc/airb-pro/goals/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(18)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb-pro/operations/[id]","file":"src/app/api/ddc/airb-pro/operations/[id]/route.ts","methods":"DELETE, PATCH","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb-pro/operations","file":"src/app/api/ddc/airb-pro/operations/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(12)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb-pro/reports","file":"src/app/api/ddc/airb-pro/reports/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(37)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb/conversations","file":"src/app/api/ddc/airb/conversations/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(11)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb/notifications","file":"src/app/api/ddc/airb/notifications/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb/onboarding","file":"src/app/api/ddc/airb/onboarding/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb/properties","file":"src/app/api/ddc/airb/properties/route.ts","methods":"DELETE, GET, PATCH, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(16)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb/regional","file":"src/app/api/ddc/airb/regional/route.ts","methods":"DELETE, GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(10)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/airb/scrape","file":"src/app/api/ddc/airb/scrape/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":true,"idempotency":true,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/billing/invoices","file":"src/app/api/ddc/billing/invoices/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/booking-sync","file":"src/app/api/ddc/booking-sync/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(14)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/bookings","file":"src/app/api/ddc/bookings/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(13)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/cerebro/feedback","file":"src/app/api/ddc/cerebro/feedback/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/cerebro/learning","file":"src/app/api/ddc/cerebro/learning/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/conversations/[id]/escalate","file":"src/app/api/ddc/conversations/[id]/escalate/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/conversations/[id]/messages","file":"src/app/api/ddc/conversations/[id]/messages/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/conversations/[id]","file":"src/app/api/ddc/conversations/[id]/route.ts","methods":"GET, PATCH","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/conversations","file":"src/app/api/ddc/conversations/route.ts","methods":"DELETE, GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(21)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/credits/balance","file":"src/app/api/ddc/credits/balance/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/credits/codes","file":"src/app/api/ddc/credits/codes/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/credits/create-code","file":"src/app/api/ddc/credits/create-code/route.ts","methods":"POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/credits/lite-milestone","file":"src/app/api/ddc/credits/lite-milestone/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/credits/referrals","file":"src/app/api/ddc/credits/referrals/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/credits/track-click","file":"src/app/api/ddc/credits/track-click/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/deliveries","file":"src/app/api/ddc/deliveries/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(9)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/dpo-capture","file":"src/app/api/ddc/dpo-capture/route.ts","methods":"POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(15)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/dynamic-pricing/calculate","file":"src/app/api/ddc/dynamic-pricing/calculate/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/dynamic-pricing","file":"src/app/api/ddc/dynamic-pricing/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(13)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/gerente-ia","file":"src/app/api/ddc/gerente-ia/route.ts","methods":"POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(13)","roleCheck":true,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/ddc/guest-guide","file":"src/app/api/ddc/guest-guide/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(13)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/guest-registration","file":"src/app/api/ddc/guest-registration/route.ts","methods":"GET, PATCH, POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(15)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/guests/[id]","file":"src/app/api/ddc/guests/[id]/route.ts","methods":"DELETE, GET, PUT","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/guests","file":"src/app/api/ddc/guests/route.ts","methods":"GET, POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(9)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/housekeeping","file":"src/app/api/ddc/housekeeping/route.ts","methods":"GET, PATCH, POST","auth":"UNKNOWN","tenantSource":"BODY_PRESENT","scopeEvidence":"PRESENT(14)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH+REVIEW_TENANT_SRC"}
+,
+{"route":"/api/ddc/learning-stats","file":"src/app/api/ddc/learning-stats/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/linkinbio/activate-standalone","file":"src/app/api/ddc/linkinbio/activate-standalone/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/linkinbio/purchase-addon","file":"src/app/api/ddc/linkinbio/purchase-addon/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/linkinbio","file":"src/app/api/ddc/linkinbio/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/linkinbio/stats","file":"src/app/api/ddc/linkinbio/stats/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/live-feed","file":"src/app/api/ddc/live-feed/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(9)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks/[id]/panic-revoke","file":"src/app/api/ddc/locks/[id]/panic-revoke/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks/[id]/pins/[pinId]","file":"src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts","methods":"DELETE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks/[id]/pins","file":"src/app/api/ddc/locks/[id]/pins/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks/[id]","file":"src/app/api/ddc/locks/[id]/route.ts","methods":"DELETE, GET, PATCH","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks/[id]/unlock","file":"src/app/api/ddc/locks/[id]/unlock/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks/events","file":"src/app/api/ddc/locks/events/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/ddc/locks/oauth/[provider]/callback","file":"src/app/api/ddc/locks/oauth/[provider]/callback/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks/oauth/[provider]/devices","file":"src/app/api/ddc/locks/oauth/[provider]/devices/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks/oauth/[provider]/start","file":"src/app/api/ddc/locks/oauth/[provider]/start/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/locks","file":"src/app/api/ddc/locks/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/magic-link","file":"src/app/api/ddc/magic-link/route.ts","methods":"POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/meta-connect","file":"src/app/api/ddc/meta-connect/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/metrics","file":"src/app/api/ddc/metrics/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(12)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/mobile/state","file":"src/app/api/ddc/mobile/state/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/notifications/read-all","file":"src/app/api/ddc/notifications/read-all/route.ts","methods":"PUT","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/notifications","file":"src/app/api/ddc/notifications/route.ts","methods":"GET, PUT","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/notifications/v2","file":"src/app/api/ddc/notifications/v2/route.ts","methods":"GET, POST, PUT","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/onboarding-wizard","file":"src/app/api/ddc/onboarding-wizard/route.ts","methods":"GET, POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(9)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/partner-program/badge","file":"src/app/api/ddc/partner-program/badge/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)+QUERY_PRESENT","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/partner-program/claim","file":"src/app/api/ddc/partner-program/claim/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/partner-program/status","file":"src/app/api/ddc/partner-program/status/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/partner-program/waitlist","file":"src/app/api/ddc/partner-program/waitlist/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/personality","file":"src/app/api/ddc/personality/route.ts","methods":"GET, POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/property-name","file":"src/app/api/ddc/property-name/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(12)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/realtime/tenant-state","file":"src/app/api/ddc/realtime/tenant-state/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(16)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/revenue-details","file":"src/app/api/ddc/revenue-details/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/ddc/runtime-version","file":"src/app/api/ddc/runtime-version/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/simulate-message","file":"src/app/api/ddc/simulate-message/route.ts","methods":"POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/special-dates/overrides","file":"src/app/api/ddc/special-dates/overrides/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/special-dates","file":"src/app/api/ddc/special-dates/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/special-dates/suggestions/[id]/approve","file":"src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts","methods":"POST","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/special-dates/suggestions/[id]/reject","file":"src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts","methods":"POST","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/training/[id]","file":"src/app/api/ddc/training/[id]/route.ts","methods":"DELETE, POST, PUT","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(9)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/training","file":"src/app/api/ddc/training/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/ddc/upsell/charge","file":"src/app/api/ddc/upsell/charge/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/upsell/metrics","file":"src/app/api/ddc/upsell/metrics/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/upsell/payment-method","file":"src/app/api/ddc/upsell/payment-method/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ddc/upsell","file":"src/app/api/ddc/upsell/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/debug-agent/github","file":"src/app/api/debug-agent/github/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/debug-agent/knowledge","file":"src/app/api/debug-agent/knowledge/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/debug-agent","file":"src/app/api/debug-agent/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/diagnose","file":"src/app/api/diagnose/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/download/[filename]","file":"src/app/api/download/[filename]/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/export/leads","file":"src/app/api/export/leads/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/feedback","file":"src/app/api/feedback/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/feedback/stats","file":"src/app/api/feedback/stats/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/guide/[slug]","file":"src/app/api/guide/[slug]/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/health","file":"src/app/api/health/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/hunt-stream","file":"src/app/api/hunt-stream/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/hunt","file":"src/app/api/hunt/route.ts","methods":"POST","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/ical/[syncToken]","file":"src/app/api/ical/[syncToken]/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/integrations/ical/[roomId]","file":"src/app/api/integrations/ical/[roomId]/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/integrations/sync","file":"src/app/api/integrations/sync/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/internal/flush-buffer","file":"src/app/api/internal/flush-buffer/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/knowledge/generate-embeddings","file":"src/app/api/knowledge/generate-embeddings/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/landing/chat","file":"src/app/api/landing/chat/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/landing/contact","file":"src/app/api/landing/contact/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":true,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/leads/[id]","file":"src/app/api/leads/[id]/route.ts","methods":"DELETE, GET, PUT","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/leads/analytics","file":"src/app/api/leads/analytics/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/leads/converted-pousadas","file":"src/app/api/leads/converted-pousadas/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/leads","file":"src/app/api/leads/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/leads/seed","file":"src/app/api/leads/seed/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/lgpd/consent","file":"src/app/api/lgpd/consent/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"BODY_PRESENT","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH+REVIEW_TENANT_SRC"}
+,
+{"route":"/api/lgpd/delete-my-data","file":"src/app/api/lgpd/delete-my-data/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"BODY_PRESENT","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH+REVIEW_TENANT_SRC"}
+,
+{"route":"/api/lgpd/dpa","file":"src/app/api/lgpd/dpa/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/lgpd/export-my-data","file":"src/app/api/lgpd/export-my-data/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/lgpd/forget-guest","file":"src/app/api/lgpd/forget-guest/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(9)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/meta-costs","file":"src/app/api/meta-costs/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/mobile/devices-tracking-v2","file":"src/app/api/mobile/devices-tracking-v2/route.ts","methods":"POST","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/mobile/devices-tracking","file":"src/app/api/mobile/devices-tracking/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/monitoring","file":"src/app/api/monitoring/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/onboarding","file":"src/app/api/onboarding/route.ts","methods":"GET, POST","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/pinns-clifford","file":"src/app/api/pinns-clifford/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"BODY_PRESENT","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH+REVIEW_TENANT_SRC"}
+,
+{"route":"/api/properties/[id]","file":"src/app/api/properties/[id]/route.ts","methods":"DELETE, GET, PUT","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/properties","file":"src/app/api/properties/route.ts","methods":"GET, POST","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/proxy/[...path]","file":"src/app/api/proxy/[...path]/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/pulse/io","file":"src/app/api/pulse/io/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/push/subscribe","file":"src/app/api/push/subscribe/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/push/unsubscribe","file":"src/app/api/push/unsubscribe/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/push/vapid-public-key","file":"src/app/api/push/vapid-public-key/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/readiness","file":"src/app/api/readiness/route.ts","methods":"GET","auth":"WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/roi","file":"src/app/api/roi/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/route.ts","file":"src/app/api/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/router/budget","file":"src/app/api/router/budget/route.ts","methods":"NONE","auth":"ZCC_PLATFORM+M2M_ROBOT","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/router/providers","file":"src/app/api/router/providers/route.ts","methods":"NONE","auth":"ZCC_PLATFORM+M2M_ROBOT","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/scraping","file":"src/app/api/scraping/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/security","file":"src/app/api/security/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/swipe-templates","file":"src/app/api/swipe-templates/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/targets/[id]","file":"src/app/api/targets/[id]/route.ts","methods":"DELETE, GET, PUT","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/targets","file":"src/app/api/targets/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/telemetry/ingest","file":"src/app/api/telemetry/ingest/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"BODY_PRESENT","scopeEvidence":"PRESENT(9)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH+REVIEW_TENANT_SRC"}
+,
+{"route":"/api/telemetry/landing","file":"src/app/api/telemetry/landing/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/telemetry/query","file":"src/app/api/telemetry/query/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"QUERY_PRESENT","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_TENANT_SRC"}
+,
+{"route":"/api/tenants","file":"src/app/api/tenants/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/v1/guest/ddc/notifications","file":"src/app/api/v1/guest/ddc/notifications/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/v1/guest/ddc/overview","file":"src/app/api/v1/guest/ddc/overview/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)+HEADER_PRESENT","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/v1/latency","file":"src/app/api/v1/latency/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/v1/loops","file":"src/app/api/v1/loops/route.ts","methods":"NONE","auth":"M2M_ROBOT","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/v1/metrics","file":"src/app/api/v1/metrics/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/v1/reservations/[id]/payment","file":"src/app/api/v1/reservations/[id]/payment/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/v1/reservations","file":"src/app/api/v1/reservations/route.ts","methods":"NONE","auth":"SESSION","tenantSource":"SESSION(requireTenant)","scopeEvidence":"PRESENT(18)","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/webgl-bridge","file":"src/app/api/webgl-bridge/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"BODY_PRESENT","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH+REVIEW_TENANT_SRC"}
+,
+{"route":"/api/webhook-whatsapp","file":"src/app/api/webhook-whatsapp/route.ts","methods":"GET, POST","auth":"WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":true,"audit":false,"risk":"OK"}
+,
+{"route":"/api/webhooks/asaas","file":"src/app/api/webhooks/asaas/route.ts","methods":"POST","auth":"WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/webhooks/booking-com/reviews","file":"src/app/api/webhooks/booking-com/reviews/route.ts","methods":"GET, POST","auth":"WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/webhooks/mercadopago","file":"src/app/api/webhooks/mercadopago/route.ts","methods":"GET, POST","auth":"WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/webhooks/payment","file":"src/app/api/webhooks/payment/route.ts","methods":"GET, POST","auth":"WEBHOOK_HMAC","tenantSource":"PATH_PARAM","scopeEvidence":"PRESENT(18)","roleCheck":false,"mutation":true,"idempotency":true,"audit":false,"risk":"OK"}
+,
+{"route":"/api/webhooks/whatsapp","file":"src/app/api/webhooks/whatsapp/route.ts","methods":"GET, POST","auth":"WEBHOOK_HMAC","tenantSource":"PATH_PARAM","scopeEvidence":"PRESENT(45)","roleCheck":false,"mutation":true,"idempotency":true,"audit":true,"risk":"OK"}
+,
+{"route":"/api/yield/calculate","file":"src/app/api/yield/calculate/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/yield/profit-summary","file":"src/app/api/yield/profit-summary/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/adapters","file":"src/app/api/zcc/adapters/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/agents/[id]/run","file":"src/app/api/zcc/agents/[id]/run/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/agents","file":"src/app/api/zcc/agents/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/airbnb/oauth","file":"src/app/api/zcc/airbnb/oauth/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/airbnb/webhook","file":"src/app/api/zcc/airbnb/webhook/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(6)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/backup-drill","file":"src/app/api/zcc/backup-drill/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/brain","file":"src/app/api/zcc/brain/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/burn-rate","file":"src/app/api/zcc/burn-rate/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(4)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/campaigns","file":"src/app/api/zcc/campaigns/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/analyses","file":"src/app/api/zcc/cerebro/analyses/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/anomalies","file":"src/app/api/zcc/cerebro/anomalies/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/ask","file":"src/app/api/zcc/cerebro/ask/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/llmops","file":"src/app/api/zcc/cerebro/llmops/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/ml-stats","file":"src/app/api/zcc/cerebro/ml-stats/route.ts","methods":"GET","auth":"SESSION","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/prompt-ide","file":"src/app/api/zcc/cerebro/prompt-ide/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/refactors","file":"src/app/api/zcc/cerebro/refactors/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/runbook","file":"src/app/api/zcc/cerebro/runbook/route.ts","methods":"GET","auth":"ZCC_PLATFORM+CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/status","file":"src/app/api/zcc/cerebro/status/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/stream","file":"src/app/api/zcc/cerebro/stream/route.ts","methods":"NONE","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/cerebro/test-alert","file":"src/app/api/zcc/cerebro/test-alert/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cerebro/workflows","file":"src/app/api/zcc/cerebro/workflows/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/code-reviewer/apply","file":"src/app/api/zcc/code-reviewer/apply/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/code-reviewer/config","file":"src/app/api/zcc/code-reviewer/config/route.ts","methods":"GET, PUT","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/code-reviewer/review","file":"src/app/api/zcc/code-reviewer/review/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/code-reviewer/reviews/[id]","file":"src/app/api/zcc/code-reviewer/reviews/[id]/route.ts","methods":"GET, PATCH","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/code-reviewer/reviews","file":"src/app/api/zcc/code-reviewer/reviews/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/code-reviewer/stats","file":"src/app/api/zcc/code-reviewer/stats/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/cognitive-bus","file":"src/app/api/zcc/cognitive-bus/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/cognitive-memory","file":"src/app/api/zcc/cognitive-memory/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/conductor","file":"src/app/api/zcc/conductor/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/consent","file":"src/app/api/zcc/consent/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"QUERY_PRESENT","scopeEvidence":"PRESENT(16)","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"REVIEW_TENANT_SRC"}
+,
+{"route":"/api/zcc/cortex/growth","file":"src/app/api/zcc/cortex/growth/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/cortex","file":"src/app/api/zcc/cortex/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/dashboard-stats","file":"src/app/api/zcc/dashboard-stats/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/digital-twin","file":"src/app/api/zcc/digital-twin/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/dspy-compiler","file":"src/app/api/zcc/dspy-compiler/route.ts","methods":"GET, POST","auth":"WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/export","file":"src/app/api/zcc/export/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/finance/expenses","file":"src/app/api/zcc/finance/expenses/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/github/apply-pr","file":"src/app/api/zcc/github/apply-pr/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/github/credentials/[id]/revoke","file":"src/app/api/zcc/github/credentials/[id]/revoke/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/github/credentials/[id]/rotate","file":"src/app/api/zcc/github/credentials/[id]/rotate/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/github/credentials/audit","file":"src/app/api/zcc/github/credentials/audit/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/github/credentials","file":"src/app/api/zcc/github/credentials/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/github/credentials/validate","file":"src/app/api/zcc/github/credentials/validate/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/github/expiry-check","file":"src/app/api/zcc/github/expiry-check/route.ts","methods":"GET","auth":"CRON_SECRET","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/github/webhook","file":"src/app/api/zcc/github/webhook/route.ts","methods":"GET, POST","auth":"WEBHOOK_HMAC","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/health","file":"src/app/api/zcc/health/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/inference-simulation","file":"src/app/api/zcc/inference-simulation/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/infra/scaling-ruler","file":"src/app/api/zcc/infra/scaling-ruler/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/infrastructure","file":"src/app/api/zcc/infrastructure/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/leads/brain-analyze","file":"src/app/api/zcc/leads/brain-analyze/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/metrics/financial","file":"src/app/api/zcc/metrics/financial/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/metrics/geographic","file":"src/app/api/zcc/metrics/geographic/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/metrics/periods","file":"src/app/api/zcc/metrics/periods/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/metrics","file":"src/app/api/zcc/metrics/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(2)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/national-simulator/compare","file":"src/app/api/zcc/national-simulator/compare/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/national-simulator","file":"src/app/api/zcc/national-simulator/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/night-audit","file":"src/app/api/zcc/night-audit/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/night-audit/vulns","file":"src/app/api/zcc/night-audit/vulns/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/observability","file":"src/app/api/zcc/observability/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/onboarding-tracker","file":"src/app/api/zcc/onboarding-tracker/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/partner-program/reopen","file":"src/app/api/zcc/partner-program/reopen/route.ts","methods":"NONE","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/personas","file":"src/app/api/zcc/personas/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/pulse/analyze","file":"src/app/api/zcc/pulse/analyze/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/pulse/capture","file":"src/app/api/zcc/pulse/capture/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/sales-funnel","file":"src/app/api/zcc/sales-funnel/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/sandbox","file":"src/app/api/zcc/sandbox/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/security","file":"src/app/api/zcc/security/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/semantica/conflicts","file":"src/app/api/zcc/semantica/conflicts/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"QUERY_PRESENT","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_TENANT_SRC"}
+,
+{"route":"/api/zcc/semantica/decisions","file":"src/app/api/zcc/semantica/decisions/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"QUERY_PRESENT","scopeEvidence":"PRESENT(11)","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"REVIEW_TENANT_SRC"}
+,
+{"route":"/api/zcc/semantica/export","file":"src/app/api/zcc/semantica/export/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"QUERY_PRESENT","scopeEvidence":"PRESENT(13)","roleCheck":false,"mutation":false,"idempotency":false,"audit":true,"risk":"REVIEW_TENANT_SRC"}
+,
+{"route":"/api/zcc/semantica/graph","file":"src/app/api/zcc/semantica/graph/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"QUERY_PRESENT","scopeEvidence":"PRESENT(5)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_TENANT_SRC"}
+,
+{"route":"/api/zcc/semantica/ingest","file":"src/app/api/zcc/semantica/ingest/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(7)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/simulation-lab","file":"src/app/api/zcc/simulation-lab/route.ts","methods":"GET, POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/stats","file":"src/app/api/zcc/stats/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/synthetic-brazil/generate","file":"src/app/api/zcc/synthetic-brazil/generate/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/synthetic-brazil","file":"src/app/api/zcc/synthetic-brazil/route.ts","methods":"GET","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zcc/targets","file":"src/app/api/zcc/targets/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/tenants/[id]/status","file":"src/app/api/zcc/tenants/[id]/status/route.ts","methods":"PATCH","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(1)","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/tenants","file":"src/app/api/zcc/tenants/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(3)","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/vps-preflight","file":"src/app/api/zcc/vps-preflight/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/whatsapp/simulate","file":"src/app/api/zcc/whatsapp/simulate/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"PRESENT(8)","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/ze-code/apply","file":"src/app/api/zcc/ze-code/apply/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/ze-code/bottlenecks","file":"src/app/api/zcc/ze-code/bottlenecks/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/ze-code/evolve","file":"src/app/api/zcc/ze-code/evolve/route.ts","methods":"POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/ze-code/gaps","file":"src/app/api/zcc/ze-code/gaps/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/ze-code/refactors","file":"src/app/api/zcc/ze-code/refactors/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/ze-code/review","file":"src/app/api/zcc/ze-code/review/route.ts","methods":"GET, POST","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":true,"risk":"OK"}
+,
+{"route":"/api/zcc/ze-code/stats","file":"src/app/api/zcc/ze-code/stats/route.ts","methods":"GET","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":false,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zcc/zgs/decisions","file":"src/app/api/zcc/zgs/decisions/route.ts","methods":"GET, PATCH","auth":"ZCC_PLATFORM","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"OK"}
+,
+{"route":"/api/zelador-suporte/chat","file":"src/app/api/zelador-suporte/chat/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zelador-suporte/consultoria","file":"src/app/api/zelador-suporte/consultoria/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zelador-suporte/ticket","file":"src/app/api/zelador-suporte/ticket/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+,
+{"route":"/api/zella/simulate","file":"src/app/api/zella/simulate/route.ts","methods":"POST","auth":"UNKNOWN","tenantSource":"NONE_VISIBLE","scopeEvidence":"ABSENT","roleCheck":false,"mutation":true,"idempotency":false,"audit":false,"risk":"REVIEW_AUTH"}
+]

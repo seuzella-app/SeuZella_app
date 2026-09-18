@@ -1,0 +1,32 @@
+{
+ "run": "RUN7-W3 — REVIEW 7D/7H (rotas pendentes da triagem W2)",
+ "generatedAt": "2026-09-18T11:26:08.090Z",
+ "matrixInput": "99_AUDITS/RUN7_W2_20260918_005448/RUN7_TENANT_MATRIX_FINAL.json",
+ "blocking": false,
+ "perimeterNote": "RES-01 fechado no W2: todo /api/* não-público exige JWT válido — autenticação garantida no perímetro independente desta revisão",
+ "items": [
+  {
+   "route": "/api/mobile/devices-tracking",
+   "file": "src/app/api/mobile/devices-tracking/route.ts",
+   "methods": "GET, POST",
+   "previous": "UNSAFE_CLIENT_AUTHORITY",
+   "w3_disposition": "RESIDUAL_DOCUMENTED",
+   "w3_evidence": "RES-14 (P3): push reatribuição por endpoint — documentado no RUN6B; perímetro cobre autenticação; correção de capability fica para onda posterior",
+   "blocking": false
+  },
+  {
+   "route": "/api/proxy/[...path]",
+   "file": "src/app/api/proxy/[...path]/route.ts",
+   "methods": "GET, POST",
+   "previous": "NEEDS_W3_REVIEW",
+   "w3_disposition": "SAFE_DEMO",
+   "w3_evidence": "sem acesso a DB detectado no código (W3) | fonte: arquivo da rota",
+   "blocking": false
+  }
+ ],
+ "totals": {
+  "reviewed": 2,
+  "w3Remaining": 0,
+  "res14Documented": 1
+ }
+}

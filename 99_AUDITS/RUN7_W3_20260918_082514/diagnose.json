@@ -1,0 +1,20 @@
+{
+ "logPath": "/tmp/run7w2_vitest-full.log",
+ "generatedAt": "2026-09-18T11:25:14.843Z",
+ "parsed": true,
+ "totalFailed": 1,
+ "totalPassed": 729,
+ "totalSkipped": 16,
+ "failing": [
+  {
+   "file": "tests/security/run4-wave4a-checkout-adversarial.test.ts",
+   "test": "WAVE 4A — checkout-security fail-closed > 7. timestamp futuro (fora da tolerância) → false",
+   "error": "expected true to be false // Object.is equality",
+   "line": 115,
+   "col": 73,
+   "received": "true",
+   "expected": "false",
+   "notVariant": false
+  }
+ ]
+}
