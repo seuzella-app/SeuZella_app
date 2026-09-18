@@ -1,0 +1,25 @@
+{
+ "run": "RUN8-W2 patches 8B",
+ "timestamp": "2026-09-18T12:01:37.102Z",
+ "evidenceUsed": "99_AUDITS/RUN8_W1_20260918_083232/RUN8_PRISMA_INVENTORY.json",
+ "patched": [
+  {
+   "key": "db:push",
+   "before": "prisma db push",
+   "after": "prisma migrate deploy"
+  }
+ ],
+ "skipped": [],
+ "p2": {
+  "status": "RESOLVED_FALSE_POSITIVE",
+  "scannedEnvFiles": [
+   ".env.example",
+   ".env.local"
+  ],
+  "databaseUrlFoundIn": [
+   ".env.example"
+  ]
+ },
+ "packageJsonValid": true,
+ "backup": "package.json.bak"
+}

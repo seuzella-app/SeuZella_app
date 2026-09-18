@@ -1,0 +1,1546 @@
+{
+ "run": "RUN8-W1 — PRISMA/POSTGRESQL/RESERVAS INVENTORY (read-only)",
+ "generatedAt": "2026-09-18T11:32:32.641Z",
+ "datasource": {
+  "provider": "postgresql",
+  "urlConfigured": false
+ },
+ "totals": {
+  "models": 127,
+  "enums": 2,
+  "reservationModels": 3,
+  "migrations": 22
+ },
+ "reservationModelNames": [
+  "Reservation",
+  "Booking",
+  "BookingSyncConfig"
+ ],
+ "models": [
+  {
+   "name": "User",
+   "fieldCount": 12,
+   "relations": 1,
+   "relationsWithoutOnDelete": [
+    "tenant"
+   ],
+   "missingFkIndex": [
+    "tenant"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Post",
+   "fieldCount": 8,
+   "relations": 1,
+   "relationsWithoutOnDelete": [
+    "author"
+   ],
+   "missingFkIndex": [
+    "author"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Tenant",
+   "fieldCount": 67,
+   "relations": 1,
+   "relationsWithoutOnDelete": [
+    "users"
+   ],
+   "missingFkIndex": [
+    "users"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Property",
+   "fieldCount": 43,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "tenant"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Room",
+   "fieldCount": 15,
+   "relations": 2,
+   "relationsWithoutOnDelete": [
+    "tenant"
+   ],
+   "missingFkIndex": [
+    "property",
+    "tenant"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "price"
+   ]
+  },
+  {
+   "name": "ApiConfig",
+   "fieldCount": 14,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AgentConfig",
+   "fieldCount": 14,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AuditLog",
+   "fieldCount": 4,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Lead",
+   "fieldCount": 12,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "EmailTracking",
+   "fieldCount": 7,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Target",
+   "fieldCount": 12,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 1,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AgentLog",
+   "fieldCount": 13,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "tenant"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "costUsd"
+   ]
+  },
+  {
+   "name": "SecurityAlert",
+   "fieldCount": 11,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "SwipeTemplate",
+   "fieldCount": 26,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 1,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "successRate",
+    "convRate"
+   ]
+  },
+  {
+   "name": "SwipeUsage",
+   "fieldCount": 11,
+   "relations": 2,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Campaign",
+   "fieldCount": 17,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "tenant"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "TrendKeyword",
+   "fieldCount": 14,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "TrendDataPoint",
+   "fieldCount": 11,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 1,
+   "moneyFloatFields": [
+    "value"
+   ]
+  },
+  {
+   "name": "TrendSignal",
+   "fieldCount": 15,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "FunnelEvent",
+   "fieldCount": 10,
+   "relations": 2,
+   "relationsWithoutOnDelete": [
+    "campaign"
+   ],
+   "missingFkIndex": [],
+   "indexes": 5,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "FunnelScore",
+   "fieldCount": 14,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "lead"
+   ],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "WebhookLog",
+   "fieldCount": 11,
+   "relations": 1,
+   "relationsWithoutOnDelete": [
+    "campaign"
+   ],
+   "missingFkIndex": [
+    "campaign"
+   ],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Guest",
+   "fieldCount": 18,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "value"
+   ]
+  },
+  {
+   "name": "Reservation",
+   "fieldCount": 15,
+   "relations": 3,
+   "relationsWithoutOnDelete": [
+    "guest",
+    "room"
+   ],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "totalPrice"
+   ]
+  },
+  {
+   "name": "Transaction",
+   "fieldCount": 10,
+   "relations": 2,
+   "relationsWithoutOnDelete": [
+    "reservation"
+   ],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "amount"
+   ]
+  },
+  {
+   "name": "RouterProvider",
+   "fieldCount": 19,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "costPer1kInput",
+    "costPer1kOutput"
+   ]
+  },
+  {
+   "name": "BudgetGuardState",
+   "fieldCount": 9,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CostLog",
+   "fieldCount": 14,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "costUsd"
+   ]
+  },
+  {
+   "name": "Message",
+   "fieldCount": 5,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Subscription",
+   "fieldCount": 15,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "amount",
+    "lastProrateAmount"
+   ]
+  },
+  {
+   "name": "PaymentTransaction",
+   "fieldCount": 8,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "amount"
+   ]
+  },
+  {
+   "name": "GuestMessage",
+   "fieldCount": 9,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Booking",
+   "fieldCount": 19,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "totalValue"
+   ]
+  },
+  {
+   "name": "AIActivityLog",
+   "fieldCount": 10,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "ConversationLog",
+   "fieldCount": 9,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "ConversationMessage",
+   "fieldCount": 7,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "KnowledgeEntry",
+   "fieldCount": 12,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "TrainingPrompt",
+   "fieldCount": 11,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "successRate"
+   ]
+  },
+  {
+   "name": "Notification",
+   "fieldCount": 10,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "PerformanceSnapshot",
+   "fieldCount": 13,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "conversionRate",
+    "occupancyRate",
+    "totalRevenue"
+   ]
+  },
+  {
+   "name": "QuickAction",
+   "fieldCount": 12,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Feedback",
+   "fieldCount": 8,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "ZelladorMessage",
+   "fieldCount": 8,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CalendarSync",
+   "fieldCount": 11,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "BsuidMapping",
+   "fieldCount": 5,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 1,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "ConsentLog",
+   "fieldCount": 8,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "LgpdDeleteRequest",
+   "fieldCount": 16,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "LgpdIncident",
+   "fieldCount": 15,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "PushSubscription",
+   "fieldCount": 12,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "SecurityFinding",
+   "fieldCount": 17,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "MetaCostLog",
+   "fieldCount": 9,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "costUsd"
+   ]
+  },
+  {
+   "name": "MetaConnection",
+   "fieldCount": 14,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "MetaWebhookEvent",
+   "fieldCount": 6,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "MetaAttributionEvent",
+   "fieldCount": 18,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "reservationValue"
+   ]
+  },
+  {
+   "name": "LinkInBioLink",
+   "fieldCount": 11,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 1,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AirBProperty",
+   "fieldCount": 39,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "pricePerNight"
+   ]
+  },
+  {
+   "name": "AirBConversation",
+   "fieldCount": 16,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AirBMessage",
+   "fieldCount": 9,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "costUsd"
+   ]
+  },
+  {
+   "name": "AirBRegionalKnowledge",
+   "fieldCount": 16,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AirBScrapingJob",
+   "fieldCount": 17,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "property"
+   ],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AirBSubscription",
+   "fieldCount": 15,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "amount"
+   ]
+  },
+  {
+   "name": "AirBTransaction",
+   "fieldCount": 11,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "amount"
+   ]
+  },
+  {
+   "name": "ZCCAccessLog",
+   "fieldCount": 8,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "WhatsAppMessageCost",
+   "fieldCount": 13,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "costUsd",
+    "costBrl"
+   ]
+  },
+  {
+   "name": "MessageBundle",
+   "fieldCount": 9,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "ConsentRecord",
+   "fieldCount": 12,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AirbnbWebhookEvent",
+   "fieldCount": 10,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AirbnbOAuthToken",
+   "fieldCount": 11,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "DynamicPricingRule",
+   "fieldCount": 21,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "modifierValue",
+    "minPrice",
+    "maxPrice"
+   ]
+  },
+  {
+   "name": "PricingCalculation",
+   "fieldCount": 13,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 1,
+   "moneyFloatFields": [
+    "basePrice",
+    "calculatedPrice"
+   ]
+  },
+  {
+   "name": "SpecialDate",
+   "fieldCount": 13,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 1,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "SpecialDateSuggestion",
+   "fieldCount": 19,
+   "relations": 2,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "currentPrice",
+    "suggestedPrice"
+   ]
+  },
+  {
+   "name": "PriceOverride",
+   "fieldCount": 16,
+   "relations": 2,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "suggestion"
+   ],
+   "indexes": 1,
+   "uniques": 1,
+   "moneyFloatFields": [
+    "price",
+    "basePrice"
+   ]
+  },
+  {
+   "name": "PartnerProgramConfig",
+   "fieldCount": 10,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "monthlyPrice"
+   ]
+  },
+  {
+   "name": "PartnerClaim",
+   "fieldCount": 19,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "monthlyPrice"
+   ]
+  },
+  {
+   "name": "PartnerWaitlist",
+   "fieldCount": 15,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 1,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "GuestGuide",
+   "fieldCount": 17,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "BookingSyncConfig",
+   "fieldCount": 15,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Account",
+   "fieldCount": 13,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "user"
+   ],
+   "indexes": 0,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "Session",
+   "fieldCount": 5,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "user"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "VerificationToken",
+   "fieldCount": 4,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "RevokedSession",
+   "fieldCount": 6,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CerebroAnalysis",
+   "fieldCount": 5,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AnomalyEvent",
+   "fieldCount": 13,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "RefactorSuggestion",
+   "fieldCount": 14,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CodeReview",
+   "fieldCount": 6,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CodeReviewComment",
+   "fieldCount": 19,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "GapFinding",
+   "fieldCount": 22,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "BottleneckFinding",
+   "fieldCount": 23,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AlertDelivery",
+   "fieldCount": 13,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "analysis"
+   ],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "KnowledgeChunk",
+   "fieldCount": 7,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "GitHubCredential",
+   "fieldCount": 20,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "PatAuditLog",
+   "fieldCount": 14,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "ZccAuditLog",
+   "fieldCount": 9,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CerebroTelemetryEvent",
+   "fieldCount": 7,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "DpoPreferencePair",
+   "fieldCount": 8,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 1,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "GraphNode",
+   "fieldCount": 9,
+   "relations": 2,
+   "relationsWithoutOnDelete": [
+    "sourceEdges",
+    "targetEdges"
+   ],
+   "missingFkIndex": [
+    "sourceEdges",
+    "targetEdges"
+   ],
+   "indexes": 1,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "GraphEdge",
+   "fieldCount": 9,
+   "relations": 2,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "BrainHealthLog",
+   "fieldCount": 5,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 1,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "conversionRate",
+    "humanTakeoverRate"
+   ]
+  },
+  {
+   "name": "CompiledPrompt",
+   "fieldCount": 10,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "successRate"
+   ]
+  },
+  {
+   "name": "ReferralCode",
+   "fieldCount": 14,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "ReferralClick",
+   "fieldCount": 15,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "ReferralConversion",
+   "fieldCount": 15,
+   "relations": 2,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "click"
+   ],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "paymentAmount"
+   ]
+  },
+  {
+   "name": "AmortizationCredit",
+   "fieldCount": 12,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "LiteMilestone",
+   "fieldCount": 9,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [
+    "tenant"
+   ],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "LockDevice",
+   "fieldCount": 17,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "LockCode",
+   "fieldCount": 23,
+   "relations": 2,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 6,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "LockEvent",
+   "fieldCount": 6,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "LockOAuthAccount",
+   "fieldCount": 13,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 1,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "UpsellRecord",
+   "fieldCount": 47,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 9,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "unitPrice",
+    "totalPrice",
+    "comissionRate",
+    "comissionAmount",
+    "totalSalesAmount"
+   ]
+  },
+  {
+   "name": "AirbExpense",
+   "fieldCount": 11,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "amount"
+   ]
+  },
+  {
+   "name": "AirbOperationTask",
+   "fieldCount": 17,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "cost"
+   ]
+  },
+  {
+   "name": "AirbGoal",
+   "fieldCount": 14,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "targetValue",
+    "currentValue"
+   ]
+  },
+  {
+   "name": "AirbCommission",
+   "fieldCount": 15,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "rate",
+    "basisAmount"
+   ]
+  },
+  {
+   "name": "AirbTrialSignup",
+   "fieldCount": 18,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "AirbReport",
+   "fieldCount": 10,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "PolicyAudit",
+   "fieldCount": 14,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 3,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "YieldProfitRecord",
+   "fieldCount": 22,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "baseRate",
+    "yieldRate",
+    "bonusShareRate"
+   ]
+  },
+  {
+   "name": "DevicePing",
+   "fieldCount": 14,
+   "relations": 1,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 5,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "NightAuditReport",
+   "fieldCount": 16,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CodeVulnerability",
+   "fieldCount": 22,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 5,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "NightPulseLog",
+   "fieldCount": 6,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "NightActivityEvent",
+   "fieldCount": 5,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CerebroKnowledgeFact",
+   "fieldCount": 6,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "CerebroWorkflow",
+   "fieldCount": 9,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 2,
+   "uniques": 0,
+   "moneyFloatFields": []
+  },
+  {
+   "name": "LLMCallLog",
+   "fieldCount": 16,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 4,
+   "uniques": 0,
+   "moneyFloatFields": [
+    "costUsd"
+   ]
+  },
+  {
+   "name": "BillingIdempotency",
+   "fieldCount": 7,
+   "relations": 0,
+   "relationsWithoutOnDelete": [],
+   "missingFkIndex": [],
+   "indexes": 0,
+   "uniques": 0,
+   "moneyFloatFields": []
+  }
+ ],
+ "statusEnums": [
+  {
+   "name": "LeadStatus",
+   "values": [
+    "PROSPECT",
+    "QUALIFIED",
+    "TRIAL_STARTED",
+    "CONVERTED",
+    "BLACKLISTED"
+   ]
+  }
+ ],
+ "migrations": {
+  "exists": true,
+  "count": 22,
+  "latest": "20260916140000_meta_tables_rls_wave13_pattern",
+  "lockProvider": "postgresql"
+ },
+ "dbPush": [
+  {
+   "where": "package.json#db:push",
+   "cmd": "prisma db push"
+  }
+ ],
+ "transactions": {
+  "files": 11,
+  "totalOccurrences": 17,
+  "top": [
+   {
+    "file": "src/lib/cerebro/best-practices.ts",
+    "count": 3
+   },
+   {
+    "file": "src/lib/db/concurrency.ts",
+    "count": 3
+   },
+   {
+    "file": "src/lib/lgpd-consent.ts",
+    "count": 2
+   },
+   {
+    "file": "src/lib/payments/idempotency.ts",
+    "count": 2
+   },
+   {
+    "file": "src/app/api/auth/register/route.ts",
+    "count": 1
+   },
+   {
+    "file": "src/app/api/auth/reset-password/route.ts",
+    "count": 1
+   },
+   {
+    "file": "src/lib/cerebro/zella-skills.ts",
+    "count": 1
+   },
+   {
+    "file": "src/lib/credits/engine.ts",
+    "count": 1
+   },
+   {
+    "file": "src/lib/db/tenant-context.ts",
+    "count": 1
+   },
+   {
+    "file": "src/lib/payments/process-reservation-webhook.ts",
+    "count": 1
+   },
+   {
+    "file": "src/lib/payments/process-webhook.ts",
+    "count": 1
+   }
+  ]
+ },
+ "overlapExcludeConstraint": true,
+ "stateMachineCandidates": [
+  "src/__tests__/webhooks/booking-com-reviews.test.ts",
+  "src/app/api/ddc/booking-sync/route.ts",
+  "src/app/api/webhooks/booking-com/reviews/route.ts",
+  "src/lib/payments/process-reservation-webhook.ts"
+ ],
+ "envChecked": [
+  {
+   "file": ".env.local",
+   "hasDatabaseUrl": false,
+   "hasConnectionLimit": false,
+   "hasShadowDatabaseUrl": false
+  }
+ ],
+ "findings": [
+  {
+   "id": "R8-1",
+   "area": "8B",
+   "sev": "P1",
+   "title": "prisma db push presente em scripts npm (8B: migrar para migrate deploy)",
+   "evidence": "package.json#db:push"
+  },
+  {
+   "id": "R8-2",
+   "area": "8B",
+   "sev": "P2",
+   "title": "DATABASE_URL ausente nos .env verificados (nomes apenas)",
+   "evidence": ""
+  }
+ ]
+}
