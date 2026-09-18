@@ -3,6 +3,15 @@ import { db } from '@/lib/db';
 import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 
 export async function POST(request: NextRequest) {
+  // [RUN9-W2 9C] fail-closed webhook token guard (patch RUN9_W2 V2)
+  {
+    const __wbToken = request.headers.get('x-airbnb-webhook-token');
+    const __wbSecret = process.env.AIRBNB_WEBHOOK_SECRET;
+    if (!__wbSecret || !__wbToken || __wbToken !== __wbSecret) {
+      return new Response(JSON.stringify({ error: 'UNAUTHORIZED_WEBHOOK' }), { status: 401, headers: { 'content-type': 'application/json' } });
+    }
+  }
+
   // ── Security Gate V3 — 6-Layer Protection ──
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response!;

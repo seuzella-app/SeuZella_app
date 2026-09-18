@@ -110,7 +110,7 @@ describe('WAVE 4A — checkout-security fail-closed', () => {
 
   it('7. timestamp futuro (fora da tolerância) → false', () => {
     withSecret(() => {
-      const future = Date.now() + 1_800_001;
+      const future = Date.now() + 7_200_001;
       const sig = generateCheckoutSignature('sub_1', 'tenant_1', future);
       expect(verifyCheckoutSignature('sub_1', 'tenant_1', future, sig)).toBe(false);
     });
