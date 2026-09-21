@@ -1,9 +1,16 @@
+import { checkRateLimit, rateLimitResponse } from '../../../../../lib/cerebro/rate-limit';
 import { NextRequest, NextResponse } from 'next/server';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 
 // GET /api/ddc/airb/regional?propertyId=xxx — Get regional knowledge for a property
 export async function GET(request: NextRequest) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(request, 'api/ddc/airb/regional#GET');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   try {
     const dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {
@@ -44,6 +51,12 @@ export async function GET(request: NextRequest) {
 
 // POST /api/ddc/airb/regional — Create or update regional knowledge
 export async function POST(request: NextRequest) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(request, 'api/ddc/airb/regional#POST');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   try {
     const dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {
@@ -108,6 +121,12 @@ export async function POST(request: NextRequest) {
 
 // DELETE /api/ddc/airb/regional?propertyId=xxx — Delete all regional knowledge for a property
 export async function DELETE(request: NextRequest) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(request, 'api/ddc/airb/regional#DELETE');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   try {
     const dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {

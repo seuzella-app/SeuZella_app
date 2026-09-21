@@ -1,7 +1,14 @@
+import { checkRateLimit, rateLimitResponse } from '../../../../lib/cerebro/rate-limit';
 import { NextResponse } from 'next/server';
 import { ZellaSalesBrain, ZellaSalesChatMessage } from '@/lib/cerebro/zella-sales-brain';
 
 export async function POST(req: Request) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(req, 'api/landing/chat#POST');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   try {
     const body = await req.json();
     const { message, history } = body as { message?: string; history?: ZellaSalesChatMessage[] };

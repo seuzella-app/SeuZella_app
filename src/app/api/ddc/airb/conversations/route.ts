@@ -1,3 +1,4 @@
+import { checkRateLimit, rateLimitResponse } from '../../../../../lib/cerebro/rate-limit';
 import { NextResponse } from 'next/server';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
@@ -122,6 +123,12 @@ export async function GET() {
 
 // POST /api/ddc/airb/conversations — Simulate sending/receiving a message in an Airbnb conversation
 export async function POST(request: Request) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(request, 'api/ddc/airb/conversations#POST');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   try {
     const dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {

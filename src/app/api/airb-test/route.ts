@@ -1,3 +1,4 @@
+import { checkRateLimit, rateLimitResponse } from '../../../lib/cerebro/rate-limit';
 import { NextRequest, NextResponse } from 'next/server';
 import { processAirBMessage, SAMPLE_AIRBNB_CONTEXT, classifyAirBIntent, ZellaAirBStrategy, type OperatingMode } from '@/lib/strategies/ZellaAirBStrategy';
 
@@ -8,6 +9,12 @@ function unavailableInProduction() {
 }
 
 export async function POST(request: NextRequest) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(request, 'api/airb-test#POST');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   const blocked = unavailableInProduction();
   if (blocked) return blocked;
   try {

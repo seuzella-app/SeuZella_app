@@ -1,3 +1,4 @@
+import { checkRateLimit, rateLimitResponse } from '../../../../../lib/cerebro/rate-limit';
 import { NextRequest, NextResponse } from 'next/server';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
@@ -14,6 +15,12 @@ import type { NotificationType, NotificationFormatData } from '@/lib/airb/closin
 // ═══════════════════════════════════════════════════════════════
 
 export async function POST(request: NextRequest) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(request, 'api/ddc/airb/notifications#POST');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   try {
     const tenantId = await resolveTenantId();
     if (!tenantId) {
@@ -180,6 +187,12 @@ export async function POST(request: NextRequest) {
 // ═══════════════════════════════════════════════════════════════
 
 export async function GET(request: NextRequest) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(request, 'api/ddc/airb/notifications#GET');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   try {
     const tenantId = await resolveTenantId();
     if (!tenantId) {

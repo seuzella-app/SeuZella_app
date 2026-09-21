@@ -1,3 +1,4 @@
+import { checkRateLimit, rateLimitResponse } from '../../../../../../lib/cerebro/rate-limit';
 // =============================================================================
 // /api/zcc/agents/[id]/run — Executa um agente específico
 // =============================================================================
@@ -10,6 +11,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  // [RUN10-W2 10B] rate-limit fail-closed (in-memory; Redis opcional no RUN11)
+  {
+    const __rl = checkRateLimit(request, 'api/zcc/agents/[id]/run#POST');
+    if (!__rl.ok) return rateLimitResponse(__rl);
+  }
+
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response;
 
