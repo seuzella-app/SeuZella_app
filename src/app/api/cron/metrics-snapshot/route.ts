@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
@@ -154,7 +155,7 @@ export async function GET(request: NextRequest) {
     }
 
     const successCount = results.filter(r => r.success).length;
-    console.log(`[Cron:metrics] Snapshots saved for ${today}: ${successCount}/${tenants.length} tenants`);
+    logger.info(`[Cron:metrics] Snapshots saved for ${today}: ${successCount}/${tenants.length} tenants`);
 
     return NextResponse.json({
       ok: true,

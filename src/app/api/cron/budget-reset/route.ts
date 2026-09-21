@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 import { NextRequest, NextResponse } from 'next/server';  
 import { db } from '@/lib/db';
 // Notification bridge — Phase 2: mock ad budget check after reset
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
      },  
    });
 
-   console.log(`[Cron:budget-reset] Budget reset for ${today}`);
+   logger.info(`[Cron:budget-reset] Budget reset for ${today}`);
 
    // ── Notification bridge: check ad budgets after reset ──
    // In mock mode, we don't have real ad campaigns — but if any tenant has

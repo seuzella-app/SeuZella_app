@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
@@ -376,7 +377,7 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
     },
   });
 
-  console.log(`[webhooks/payment] ✅ PROVISIONED: tenant=${tenant.id} plan=${planTier} niche=${niche} user=${adminUser.id}`);
+  logger.info(`[webhooks/payment] ✅ PROVISIONED: tenant=${tenant.id} plan=${planTier} niche=${niche} user=${adminUser.id}`);
 
   // 6. Dispara email de boas-vindas pós-compra com link direto ao DDC
   if (customerEmail) {
@@ -390,7 +391,7 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
         magicLoginUrl: `https://smart-hotel-zehla.vercel.app/ddc/${niche}`,
       });
       await sendEmail(customerEmail, `🚀 Bem-vindo ao Seu Zélla SmartHotel — Acesse seu Painel ${niche.toUpperCase()}`, emailHtml);
-      console.log(`[webhooks/payment] 📧 WELCOME EMAIL DISPATCHED to ${customerEmail}`);
+      logger.info(`[webhooks/payment] 📧 WELCOME EMAIL DISPATCHED to ${customerEmail}`);
     } catch (emailErr) {
       console.error('[webhooks/payment] Failed to send welcome email:', emailErr);
     }
@@ -493,7 +494,7 @@ async function notifyZCCConversion(result: ProvisioningResult, payload: WebhookP
       // Silencioso — nunca bloquear o fluxo principal por telemetria
     });
 
-    console.log(`[webhooks/payment] 📊 ZCC NOTIFIED: initials=${lgpdInitials} region=${region} mrr=R$${mrrContribution} plan=${result.planTier}`);
+    logger.info(`[webhooks/payment] 📊 ZCC NOTIFIED: initials=${lgpdInitials} region=${region} mrr=R$${mrrContribution} plan=${result.planTier}`);
   } catch (error) {
     // Telemetria nunca deve quebrar o fluxo principal
     console.error('[webhooks/payment] ZCC notification failed (non-critical):', error);
@@ -576,7 +577,7 @@ export async function POST(request: NextRequest) {
       );
 
       const durationMs = Date.now() - startTime;
-      console.log(`[webhooks/payment] ✅ ${eventType} processed in ${durationMs}ms — tenant=${idempotencyResult.data?.tenantId || 'cached'} (deduplicated=${idempotencyResult.deduplicated})`);
+      logger.info(`[webhooks/payment] ✅ ${eventType} processed in ${durationMs}ms — tenant=${idempotencyResult.data?.tenantId || 'cached'} (deduplicated=${idempotencyResult.deduplicated})`);
 
       return NextResponse.json({
         received: true,
@@ -740,7 +741,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Evento não reconhecido — ack silencioso 
-    console.log(`[webhooks/payment] Unhandled event: ${eventType} — acknowledging silently`);
+    logger.info(`[webhooks/payment] Unhandled event: ${eventType} — acknowledging silently`);
     return NextResponse.json(
       { received: true, event: eventType },
       { headers: { 'X-Security-Shield': 'zero-trust-v2' } },

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronSecret } from '@/lib/security/cron-secret';
@@ -81,7 +82,7 @@ Seu feedback ajuda a melhorar! 🙏`;
           });
 
           npsEnviados++;
-          console.log(`[NPS] Enviado para ${reserva.guest?.name} (${phone}) - reserva ${reserva.id}`);
+          logger.info(`[NPS] Enviado para ${reserva.guest?.name} (${phone}) - reserva ${reserva.id}`);
         } catch (sendErr) {
           console.error(`[NPS] Erro ao enviar:`, sendErr);
           erros++;

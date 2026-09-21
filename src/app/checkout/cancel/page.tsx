@@ -1,4 +1,5 @@
 'use client';
+import { logger } from '@/lib/infra/logger';
 
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -7,7 +8,7 @@ import Link from 'next/link';
 
 export default function CheckoutCancelPage() {
   useEffect(() => {
-    console.log('Checkout cancelado pelo usuário');
+    logger.info('Checkout cancelado pelo usuário');
   }, []);
 
   return (

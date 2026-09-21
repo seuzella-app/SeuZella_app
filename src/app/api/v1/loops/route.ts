@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyRobotToken } from '../../../../lib/auth';
 import { withSecurity } from '@/lib/security/api-shield';
@@ -18,7 +19,7 @@ async function postHandler(request: NextRequest, _ctx: any) {
     const body = await request.json();
     const { loopName, tenantId, payload, generatedAt } = body;
 
-    console.log(`[LOOP RECEIVED] ${loopName} for Tenant ${tenantId} at ${generatedAt}`);
+    logger.info(`[LOOP RECEIVED] ${loopName} for Tenant ${tenantId} at ${generatedAt}`);
     
     // Aqui podemos injetar a lógica de salvar os insights do robô no banco de dados
     // ex: se loopName == 'competitor_monitor', salva em uma tabela de MarketInsights

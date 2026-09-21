@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 // ==============================================================================
 // ZÉLLA — Meta WhatsApp Cloud API Webhook (Multi-Tenant Safe)
 // ==============================================================================
@@ -451,7 +452,7 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('hub.verify_token');
   const challenge = searchParams.get('hub.challenge');
 
-  console.log('[WhatsApp Webhook] GET verification request:', {
+  logger.info('[WhatsApp Webhook] GET verification request:', {
     mode,
     token: token ? '***present***' : '***missing***',
     challenge: challenge ? '***present***' : '***missing***',
@@ -500,7 +501,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  console.log('[WhatsApp Webhook] ✅ Webhook verified successfully');
+  logger.info('[WhatsApp Webhook] ✅ Webhook verified successfully');
 
   return new NextResponse(challenge, {
     status: 200,
@@ -563,15 +564,15 @@ export async function POST(request: NextRequest) {
     const statusesProcessed = await processMetaStatuses(parsedBody);
     if (statusesProcessed > 0) {
       const processingTime = Date.now() - startTime;
-      console.log(`[WhatsApp Webhook] 📊 Status events processed: ${statusesProcessed} (${processingTime}ms)`);
+      logger.info(`[WhatsApp Webhook] 📊 Status events processed: ${statusesProcessed} (${processingTime}ms)`);
       return NextResponse.json({ status: 'statuses_processed' }, { status: 200 });
     }
     const processingTime = Date.now() - startTime;
-    console.log(`[WhatsApp Webhook] 📋 Non-message event acknowledged (${processingTime}ms)`);
+    logger.info(`[WhatsApp Webhook] 📋 Non-message event acknowledged (${processingTime}ms)`);
     return NextResponse.json({ status: 'acknowledged' }, { status: 200 });
   }
 
-  console.log(`[WhatsApp Webhook] 📨 Received ${messages.length} message(s)`);
+  logger.info(`[WhatsApp Webhook] 📨 Received ${messages.length} message(s)`);
 
   // ── Step 4: Multi-Tenant Isolation + Message Processing 
   const processingResults: Array<{
@@ -585,7 +586,7 @@ export async function POST(request: NextRequest) {
   }> = [];
 
   for (const msg of messages) {
-    console.log(`[WhatsApp Webhook] 📨 Processing message from ${maskPhone(msg.from)} → ${maskPhone(msg.destinationNumber)} (type: ${msg.type})`);
+    logger.info(`[WhatsApp Webhook] 📨 Processing message from ${maskPhone(msg.from)} → ${maskPhone(msg.destinationNumber)} (type: ${msg.type})`);
 
     // ── Tenant lookup via resolveTenantByPhone (v2 — match exato E.164) 
     const lookup = await resolveTenantByPhone(msg.destinationNumber, msg.wabaId);
@@ -649,7 +650,7 @@ export async function POST(request: NextRequest) {
     // ── Tenant OK → PROCESS 
     // FASE 02B (FRENTE 30): sem conteúdo de mensagem e sem telefone completo
     // em logs (LGPD — minimização). Tipo e tamanho bastam para triagem.
-    console.log(
+    logger.info(
       `[WhatsApp Webhook] ✅ ACCEPTED — Tenant "${lookup.tenantName}" (${lookup.tenantId})` +
       ` | niche: ${lookup.niche} | plan: ${lookup.tenantPlan}` +
       ` | from: ${maskPhone(msg.from)}` +
@@ -668,7 +669,7 @@ export async function POST(request: NextRequest) {
       wabaId: msg.wabaId,
     });
     if (!inboundClaim.claimed) {
-      console.log(`[WhatsApp Webhook] ♻️ Duplicate message ignored (idempotency): ${msg.messageId}`);
+      logger.info(`[WhatsApp Webhook] ♻️ Duplicate message ignored (idempotency): ${msg.messageId}`);
       processingResults.push({
         messageId: msg.messageId,
         from: msg.from,
@@ -721,7 +722,7 @@ export async function POST(request: NextRequest) {
       // verificamos se é um pedido de opt-out. Se for, processa imediatamente,
       // envia confirmação, e NÃO enfileira para IA.
       if (isOptOutMessage(messageContent)) {
-        console.log(`[WhatsApp Webhook] 🚫 LGPD Opt-Out detectado — processando síncrono (tenant ${tenantId}, guest ${maskPhone(guestPhone)})`);
+        logger.info(`[WhatsApp Webhook] 🚫 LGPD Opt-Out detectado — processando síncrono (tenant ${tenantId}, guest ${maskPhone(guestPhone)})`);
 
         // Fire-and-forget mas SEM bufferMessage — processa imediatamente
         (async () => {
@@ -738,7 +739,7 @@ export async function POST(request: NextRequest) {
             if (!sendResult.success) {
               console.error(`[WhatsApp Webhook] ❌ Falha ao enviar confirmação opt-out para ${maskPhone(guestPhone)}: ${sendResult.error}`);
             } else {
-              console.log(`[WhatsApp Webhook] ✅ Opt-out confirmado e enviado para ${maskPhone(guestPhone)}`);
+              logger.info(`[WhatsApp Webhook] ✅ Opt-out confirmado e enviado para ${maskPhone(guestPhone)}`);
 
               // Registra custo Meta (messageType = service_reply, dentro da service window)
               // PASSO 11.3: void explícito para fire-and-forget absoluto
@@ -900,7 +901,7 @@ export async function POST(request: NextRequest) {
     } else {
       // ── Non-text message → registra mídia, sem IA 
       const mediaNote = `[Mídia recebida: ${msg.type}]`;
-      console.log(
+      logger.info(
         `[WhatsApp Webhook] 📎 Non-text message from ${maskPhone(msg.from)} (type: ${msg.type}) — recording media entry`
       );
 
@@ -985,7 +986,7 @@ export async function POST(request: NextRequest) {
   const discarded = processingResults.filter((r) => !r.accepted).length;
   const processingTime = Date.now() - startTime;
 
-  console.log(
+  logger.info(
     `[WhatsApp Webhook] 📊 Batch complete: ${accepted} accepted, ${discarded} discarded` +
     ` | ${processingTime}ms | ${messages.length} total messages`
   );

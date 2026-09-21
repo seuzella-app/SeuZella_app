@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 // ═══════════════════════════════════════════════════════════════════════════════
 // ZCC Pulse Check — Error Capture Endpoint
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Queue for AI analysis
     errorQueue.push(errorCapture);
 
-    console.log(`[Pulse Capture] Error queued: ${body.container} — ${body.errorMessage.slice(0, 80)}`);
+    logger.info(`[Pulse Capture] Error queued: ${body.container} — ${body.errorMessage.slice(0, 80)}`);
 
     return NextResponse.json({
       success: true,

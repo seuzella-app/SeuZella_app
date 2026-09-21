@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 // ==============================================================================
 // SEUZÉLLA — Landing Page Contact Form (REAL endpoint, not setTimeout)
 // ==============================================================================
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 5. Log to stdout (for Vercel log drain / monitoring) ──────────────
-    console.log(JSON.stringify({
+    logger.info(JSON.stringify({
       type: 'landing_contact_lead',
       name: body.name,
       email: body.email,

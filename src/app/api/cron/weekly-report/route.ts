@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 // =============================================================================
 // ZÉLLA — Cron: Weekly Email Report
 // =============================================================================
@@ -590,7 +591,7 @@ export async function GET(request: NextRequest) {
   }
 
   const startTime = Date.now();
-  console.log('[Cron:weekly-report] Starting weekly email report batch...');
+  logger.info('[Cron:weekly-report] Starting weekly email report batch...');
 
   // ── Step 1: Authorization M2M EdDSA (V11-P0) 
   const auth = await verifyCronM2MToken(request, 'reports:read');
@@ -628,7 +629,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  console.log(
+  logger.info(
     `[Cron:weekly-report] Found ${tenants.length} active paying tenants`
   );
 
@@ -647,7 +648,7 @@ export async function GET(request: NextRequest) {
     const tenantEmail = tenant.email;
 
     if (!tenantEmail) {
-      console.log(
+      logger.info(
         `[Cron:weekly-report] Tenant ${tenant.name} (${tenant.id}) has no email — skipping`
       );
       results.push({
@@ -686,7 +687,7 @@ export async function GET(request: NextRequest) {
         sent,
       });
 
-      console.log(
+      logger.info(
         `[Cron:weekly-report] ${sent ? '✓' : '✗'} ${tenant.name} → ${tenantEmail}`
       );
     } catch (error) {
@@ -711,7 +712,7 @@ export async function GET(request: NextRequest) {
   const noEmailCount = results.filter((r) => r.email === null).length;
   const elapsedMs = Date.now() - startTime;
 
-  console.log(
+  logger.info(
     `[Cron:weekly-report] Batch complete: ${sentCount} sent, ${failedCount} failed, ${noEmailCount} no email — ${elapsedMs}ms`
   );
 
@@ -773,7 +774,7 @@ export async function GET(request: NextRequest) {
         analysesCreated: forecasts.length,
       };
 
-      console.log(
+      logger.info(
         `[Cron:weekly-report] Cérebro: ${forecasts.length} tenants em risco de estourar cota Meta (mode: ${mode})`
       );
     }

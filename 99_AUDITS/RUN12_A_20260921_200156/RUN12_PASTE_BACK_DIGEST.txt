@@ -1,0 +1,448 @@
+================================================================
+ SEUZELLA — RUN12_PASTE_BACK_DIGEST (Lote 1 do WIRING_BACKLOG + /api/health)
+================================================================
+Gerado em : 2026-09-21T23:02:25.741Z
+Backlog   : /Users/marciocau/SeuZella_project/99_AUDITS/RUN11_W3_20260921_184259/WIRING_BACKLOG.json
+Candidatos BACKLOG: 78 -> LOTE 1 (amostras): 12 | pendentes p/ lotes seguintes: 66
+Regra: cole este digest INTEIRO no chat. A fiação do Lote 1 só acontece
+na próxima onda, com âncoras extraídas daqui (nada de patch cego).
+
+----------------------------- A) LOTE 1 -----------------------------
+
+>>> src/app/api/airb-pro/comparativo/route.ts (75 linhas)
+   1| /**
+   2|  * GET /api/airb-pro/comparativo
+   3|  *
+   4|  * Retorna comparativo de performance entre imóveis: receita, despesas,
+   5|  * lucro, ocupação, ADR e RevPAR. Usado pelo ComparativoPanel no DDC.
+   6|  */
+   7| 
+   8| import { NextRequest, NextResponse } from 'next/server';
+   9| import { getServerSession } from 'next-auth';
+  10| import { authOptions } from '@/lib/auth';
+  11| import { db } from '@/lib/db';
+  12| 
+  70|     return NextResponse.json({ success: false, error: 'FETCH_FAILED' }, { status: 500 });
+  71|   }
+  72| }
+  73| 
+  74| export const GET = getHandler;
+  75| 
+(... amostra truncada: 75 linhas no total)
+
+>>> src/app/api/airb-pro/rentabilidade/route.ts (100 linhas)
+   1| /**
+   2|  * GET /api/airb-pro/rentabilidade?periodo=mes|trimestre|ano
+   3|  *
+   4|  * Retorna dados de rentabilidade por imóvel: receita, despesas, lucro,
+   5|  * margem, ocupação e ADR. Usado pelo RentabilidadePanel no DDC anfitrião.
+   6|  */
+   7| 
+   8| import { NextRequest, NextResponse } from 'next/server';
+   9| import { getServerSession } from 'next-auth';
+  10| import { authOptions } from '@/lib/auth';
+  11| import { db } from '@/lib/db';
+  12| 
+  95|     return NextResponse.json({ success: false, error: 'FETCH_FAILED' }, { status: 500 });
+  96|   }
+  97| }
+  98| 
+  99| export const GET = getHandler;
+ 100| 
+(... amostra truncada: 100 linhas no total)
+
+>>> src/app/api/airb-pro/yield-suggestion/route.ts (67 linhas)
+   1| /**
+   2|  * GET /api/airb-pro/yield-suggestion
+   3|  *
+   4|  * Sugere preço de diária para imóvel Airbnb com base em:
+   5|  *   - Sazonalidade (alta/baixa temporada)
+   6|  *   - Feriados brasileiros (Réveillon, Carnaval, Natal, etc)
+   7|  *   - Ocupação histórica do imóvel
+   8|  *   - Preço base cadastrado
+   9|  *
+  10|  * Query: ?basePrice=350&dates=2026-12-30,2026-12-31,2027-01-01&totalRooms=1&occupiedRooms=0
+  11|  */
+  12| 
+  62|     },
+  63|   });
+  64| }
+  65| 
+  66| export const GET = getHandler;
+  67| 
+(... amostra truncada: 67 linhas no total)
+
+>>> src/app/api/auth/[...nextauth]/route.ts (6 linhas)
+   1| import NextAuth from 'next-auth';
+   2| import { authOptions } from '@/lib/auth';
+   3| 
+   4| const handler = NextAuth(authOptions);
+   5| export { handler as GET, handler as POST };
+   6| 
+
+>>> src/app/api/checkout/cancel/route.ts (34 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db } from '@/lib/db';
+   3| import { getServerSession } from 'next-auth';
+   4| import { authOptions } from '@/lib/auth';
+   5| import { createError } from '@/lib/error-handler';
+   6| import { authRatelimit } from '@/lib/rate-limit';
+   7| 
+   8| export async function GET(request: NextRequest) {
+   9|   try {
+  10|     const {searchParams} = request.nextUrl;
+  11|     const subscriptionId = searchParams.get('subscription_id');
+  12| 
+  13|     const session = await getServerSession(authOptions);
+  14|     if (!session?.user?.tenantId) return createError(401, 'UNAUTHORIZED', 'Faça login primeiro');
+  15|     const { success: allowed } = await authRatelimit.limit(session.user.tenantId);
+  16|     if (!allowed) return createError(429, 'RATE_LIMITED', 'Muitas requisições');
+  17| 
+  18|     if (subscriptionId) {
+  19|       const subscription = await db.subscription.findUnique({
+  20|         where: { id: subscriptionId },
+  21|       });
+  22|       if (subscription && subscription.tenantId !== session.user.tenantId) {
+  23|         return createError(403, 'FORBIDDEN', 'Esta assinatura não pertence à sua conta');
+  24|       }
+  25|     }
+  26| 
+  27|     return NextResponse.redirect(
+  28|       new URL('/?payment=cancelled', request.url)
+  29|     );
+  30|   } catch (error) {
+
+>>> src/app/api/checkout/create/route.ts (265 linhas)
+   1| import { createHash } from 'crypto';
+   2| import { NextRequest, NextResponse } from 'next/server';
+   3| import { db } from '@/lib/db';
+   4| import { getServerSession } from 'next-auth';
+   5| import { authOptions } from '@/lib/auth';
+   6| import { createError } from '@/lib/error-handler';
+   7| import { authRatelimit } from '@/lib/rate-limit';
+   8| import { type PlanTier } from '@/lib/plan-features';
+   9| import { isMethodAllowed, getPrice } from '@/lib/payments/pricing';
+  10| import { getDefaultGateway, getGateway } from '@/lib/payments/gateway-factory';
+  11| import { PaymentGatewayError, type GatewayId, type PaymentMethod } from '@/lib/payments/types';
+  12| import { measureLatency } from '@/lib/observability/latency-tracker';
+  64|     this.name = 'CheckoutError';
+  65|   }
+  66| }
+  67| 
+  68| export async function POST(request: NextRequest) {
+  69|   return measureLatency('checkout.create', async () => {
+  70|     try {
+  71|       const contentLength = Number(request.headers.get('content-length') || '0');
+  72|       if (contentLength > 64 * 1024) return createError(413, 'PAYLOAD_TOO_LARGE', 'Payload excede o limite permitido.');
+  73| 
+  74|       const body = await request.json();
+  75|       const name = cleanString(body?.name, 120);
+  76|       const requestedEmail = cleanString(body?.email, 254).toLowerCase();
+  77|       const phone = cleanString(body?.phone, 32);
+  78|       const document = cleanString(body?.document, 32);
+  79|       const propertyName = cleanString(body?.propertyName, 120);
+  80|       const niche = cleanString(body?.niche, 20) as (typeof VALID_NICHES)[number];
+  81|       const planType = cleanString(body?.planType, 20) as PlanTier;
+  82|       const paymentMethod = cleanString(body?.paymentMethod, 20) as PaymentMethod;
+  83|       const requestedGateway = cleanString(body?.gateway, 20) as GatewayId;
+  84| 
+  85|       if (!name || !requestedEmail || !planType || !paymentMethod || !niche) return createError(400, 'MISSING_FIELDS', 'Campos obrigatórios ausentes.');
+  86|       if (!validEmail(requestedEmail)) return createError(400, 'INVALID_EMAIL', 'E-mail inválido.');
+  87|       if (!VALID_PLANS.includes(planType)) return createError(400, 'INVALID_PLAN', 'Plano inválido.');
+  88|       if (!VALID_METHODS.includes(paymentMethod)) return createError(400, 'INVALID_PAYMENT_METHOD', 'Método de pagamento inválido.');
+  89|       if (!VALID_NICHES.includes(niche)) return createError(400, 'INVALID_NICHE', 'Nicho inválido.');
+  90|       if (!isMethodAllowed(planType, paymentMethod)) return createError(400, 'INVALID_PAYMENT_METHOD', 'Combinação plano/método não permitida.');
+(... amostra truncada: 265 linhas no total)
+
+>>> src/app/api/checkout/downgrade/route.ts (89 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db } from '@/lib/db';
+   3| import { getServerSession } from 'next-auth';
+   4| import { authOptions } from '@/lib/auth';
+   5| import { createError } from '@/lib/error-handler';
+   6| import { authRatelimit } from '@/lib/rate-limit';
+   7| import { migratePlanLegacy, type PlanTier } from '@/lib/plan-features';
+   8| 
+   9| const PLAN_ORDER: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
+  10| 
+  11| export async function POST(request: NextRequest) {
+  12|   try {
+  13|     const session = await getServerSession(authOptions);
+  14|     if (!session?.user?.tenantId) return createError(401, 'UNAUTHORIZED', 'Faça login primeiro');
+  15|     const { success: allowed } = await authRatelimit.limit(session.user.tenantId);
+  16|     if (!allowed) return createError(429, 'RATE_LIMITED', 'Muitas requisições');
+  17| 
+  18|     const body = await request.json();
+  19|     const { tenantId, newPlanType } = body as {
+  20|       tenantId?: string;
+  21|       newPlanType?: string;
+  22|     };
+  23| 
+  24|     if (!tenantId || !newPlanType) {
+  25|       return createError(400, 'MISSING_FIELDS', 'Missing tenantId or newPlanType');
+  26|     }
+  27| 
+  28|     if (tenantId !== session.user.tenantId) {
+  29|       return createError(403, 'FORBIDDEN', 'Cannot perform downgrade for another tenant');
+  30|     }
+  31| 
+  32|     if (!PLAN_ORDER.includes(newPlanType as PlanTier)) {
+  33|       return createError(400, 'INVALID_PLAN', `Invalid plan: ${newPlanType}. Valid: ${PLAN_ORDER.join(', ')}`);
+(... amostra truncada: 89 linhas no total)
+
+>>> src/app/api/checkout/pix-status/route.ts (81 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db } from '@/lib/db';
+   3| import { getServerSession } from 'next-auth';
+   4| import { authOptions } from '@/lib/auth';
+   5| import { createError } from '@/lib/error-handler';
+   6| import { authRatelimit } from '@/lib/rate-limit';
+   7| 
+   8| const MP_TIMEOUT_MS = 8000;
+   9| const PAYMENT_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
+  10| 
+  11| export async function GET(request: NextRequest) {
+  12|   try {
+  13|     const paymentId = new URL(request.url).searchParams.get('payment_id');
+  14|     if (!paymentId || !PAYMENT_ID_RE.test(paymentId)) return createError(400, 'INVALID_PAYMENT_ID', 'payment_id inválido');
+  15| 
+  16|     const session = await getServerSession(authOptions);
+  17|     const tenantId = session?.user?.tenantId;
+  18|     if (!tenantId) return createError(401, 'UNAUTHORIZED', 'Faça login primeiro');
+  19| 
+  20|     const { success: allowed } = await authRatelimit.limit(tenantId);
+  21|     if (!allowed) return createError(429, 'RATE_LIMITED', 'Muitas requisições');
+  22| 
+  23|     // Bind the externally supplied payment id to the authenticated tenant before calling Mercado Pago.
+  24|     const transaction = await db.paymentTransaction.findFirst({ where: { externalId: paymentId } });
+  25|     if (!transaction) return createError(404, 'TRANSACTION_NOT_FOUND', 'Transação não encontrada');
+  26| 
+  27|     const subscription = await db.subscription.findUnique({ where: { id: transaction.subscriptionId } });
+  28|     if (!subscription || subscription.tenantId !== tenantId) return createError(403, 'FORBIDDEN', 'Esta transação não pertence à sua conta');
+  29| 
+  30|     const token = process.env.MP_ACCESS_TOKEN;
+  31|     if (!token) return createError(503, 'MP_NOT_CONFIGURED', 'Serviço de pagamento indisponível');
+  32| 
+  33|     const controller = new AbortController();
+(... amostra truncada: 81 linhas no total)
+
+>>> src/app/api/checkout/success/route.ts (114 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db } from '@/lib/db';
+   3| import crypto from 'crypto';
+   4| import { getServerSession } from 'next-auth';
+   5| import { authOptions } from '@/lib/auth';
+   6| import { getNextAuthSecret } from '@/lib/env';
+   7| import { registerConversion } from '@/lib/credits/engine';
+   8| import type { PlanTier } from '@/lib/plan-features';
+   9| 
+  10| export async function GET(request: NextRequest) {
+  11|   try {
+  12|     const {searchParams} = request.nextUrl;
+  13|     const subscriptionId = searchParams.get('subscription_id');
+  14|     const sig = searchParams.get('sig');
+  15| 
+  16|     if (!subscriptionId) {
+  17|       return NextResponse.redirect(new URL('/?error=missing_subscription', request.url));
+  18|     }
+  19| 
+  20|     if (!sig) {
+  21|       return NextResponse.redirect(new URL('/?error=invalid_signature', request.url));
+  22|     }
+  23| 
+  24|     const session = await getServerSession(authOptions);
+  25|     if (!session?.user?.tenantId) {
+  26|       return NextResponse.redirect(new URL('/?error=unauthorized', request.url));
+  27|     }
+  28| 
+  29|     const secret = getNextAuthSecret();
+  30|     const expectedSig = crypto
+  31|       .createHmac('sha256', secret)
+  32|       .update(subscriptionId)
+(... amostra truncada: 114 linhas no total)
+
+>>> src/app/api/checkout/success/route.ts (114 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db } from '@/lib/db';
+   3| import crypto from 'crypto';
+   4| import { getServerSession } from 'next-auth';
+   5| import { authOptions } from '@/lib/auth';
+   6| import { getNextAuthSecret } from '@/lib/env';
+   7| import { registerConversion } from '@/lib/credits/engine';
+   8| import type { PlanTier } from '@/lib/plan-features';
+   9| 
+  10| export async function GET(request: NextRequest) {
+  11|   try {
+  12|     const {searchParams} = request.nextUrl;
+  13|     const subscriptionId = searchParams.get('subscription_id');
+  14|     const sig = searchParams.get('sig');
+  15| 
+  16|     if (!subscriptionId) {
+  17|       return NextResponse.redirect(new URL('/?error=missing_subscription', request.url));
+  18|     }
+  19| 
+  20|     if (!sig) {
+  21|       return NextResponse.redirect(new URL('/?error=invalid_signature', request.url));
+  22|     }
+  23| 
+  24|     const session = await getServerSession(authOptions);
+  25|     if (!session?.user?.tenantId) {
+  26|       return NextResponse.redirect(new URL('/?error=unauthorized', request.url));
+  27|     }
+  28| 
+  29|     const secret = getNextAuthSecret();
+  30|     const expectedSig = crypto
+  31|       .createHmac('sha256', secret)
+  32|       .update(subscriptionId)
+(... amostra truncada: 114 linhas no total)
+
+>>> src/app/api/checkout/webhook/route.ts (120 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db } from '@/lib/db';
+   3| import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
+   4| import { bridgePaymentEvent, bridgeSecurityAlert } from '@/lib/notifications/bridges';
+   5| import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+   6| import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
+   7| 
+   8| const MAX_WEBHOOK_BYTES = 1024 * 1024;
+   9| 
+  10| export async function POST(request: NextRequest) {
+  11|   try {
+  12|     const rawBody = await request.text();
+  13|     if (Buffer.byteLength(rawBody, 'utf8') > MAX_WEBHOOK_BYTES) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+  14|     // RUN11-W3 (11B): anti-flood fail-closed por IP — 120 req/min.
+  15|     const rlDeny = guardRequest(request, 'checkout.webhook', { points: 120, windowMs: 60000 });
+  16|     if (rlDeny) return rlDeny;
+  17|     // RUN11-W3 (11D): trilha de auditoria da ENTRADA do webhook (sem payload).
+  18|     auditRouteEvent({ who: 'webhook:mercadopago', what: 'checkout.webhook.received', resource: 'payment', result: 'ALLOW' });
+  19|     const signature = request.headers.get('x-signature');
+  20|     const requestId = request.headers.get('x-request-id') || undefined;
+  21|     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  22| 
+  23|     // ── M-PAY-011: Fail-closed em produção se webhook secret não estiver configurado ──
+  24|     if (process.env.NODE_ENV === 'production' && !webhookSecret) {
+  25|       console.error('[checkout-webhook] FAIL-CLOSED: MP_WEBHOOK_SECRET is not configured in production');
+  26|       return NextResponse.json(
+  27|         { error: 'WEBHOOK_SECRET_NOT_CONFIGURED' },
+  28|         { status: 500, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
+  29|       );
+  30|     }
+  31| 
+  32|     if (webhookSecret || process.env.NODE_ENV === 'production') {
+(... amostra truncada: 120 linhas no total)
+
+>>> src/app/api/cron/payment-confirmation/route.ts (122 linhas)
+   1| import { logger } from '@/lib/infra/logger';
+   2| import { NextRequest, NextResponse } from 'next/server';
+   3| import { db } from '@/lib/db';
+   4| import { verifyCronSecret } from '@/lib/security/cron-secret';
+   5| import { verifyCronAuth } from '@/lib/security/cron-auth-unified';
+   6| 
+   7| /**
+   8|  * GET /api/cron/payment-confirmation
+   9|  *
+  10|  * Roda a cada 5 minutos via Vercel Cron.
+  11|  * Verifica pagamentos PIX confirmados (via webhook do MP/Payment Gateway) que ainda
+  12|  * não enviaram confirmação automática ao hóspede via WhatsApp.
+  16|  *   → Este cron envia confirmação automática via WhatsApp
+  17|  *   → "Pagamento confirmado! Sua reserva está garantida ✅"
+  18|  */
+  19| 
+  20| export async function GET(request: NextRequest) {
+  21|   const auth = verifyCronSecret(request);
+  22|   if (!auth.ok) return auth.response!;
+  23| 
+  24|   let confirmacoesEnviadas = 0;
+  25|   let erros = 0;
+  26| 
+  27|   try {
+  28|     if (!db) {
+  29|       return NextResponse.json({ success: true, data: { confirmacoesEnviadas: 0 } });
+  30|     }
+  31| 
+  32|     // Busca transações COMPLETED dos últimos 30 min que ainda não enviaram confirmação
+  33|     const ha30min = new Date(Date.now() - 30 * 60 * 1000);
+  34| 
+  35|     // Onda correção/hardening (auditoria FASE 11): o filtro antigo usava o
+  36|     // literal PAYMENT, que NENHUM código cria — nada nunca casava. Os tipos
+  37|     // reais criados pelos gateways são RESERVATION_PAYMENT:<gateway>
+  38|     // (process-reservation-webhook.ts). Refunds (RESERVATION_REFUND:*) NÃO
+  39|     // casam com o startsWith abaixo.
+  40|     const transactions = await (db as any).transaction.findMany({
+  41|       where: {
+  42|         type: { startsWith: 'RESERVATION_PAYMENT' },
+(... amostra truncada: 122 linhas no total)
+
+--------------------------- B) /api/health --------------------------
+
+>>> src/app/api/health/route.ts (68 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { isDatabaseAvailable, db } from '@/lib/db';
+   3| import { isPushEnabled } from '@/lib/push/push-service';
+   4| import { getActiveTransport } from '@/lib/realtime/tenant-pubsub';
+   5| import { isBullMQAvailable } from '@/lib/queue/queue-bridge';
+   6| import { resolveTraceId, withTraceHeaders } from '@/lib/observability/trace-context';
+   7| 
+   8| export const dynamic = 'force-dynamic';
+   9| export const runtime = 'nodejs';
+  10| 
+  11| /** Operational liveness endpoint. HTTP 503 is reserved for DB-down state.
+  12|  *  F07: Now also returns X-Request-Id response header for correlation. */
+  13| export async function GET(request: NextRequest) {
+  14|   const traceId = resolveTraceId(request);
+  15|   const startedAt = Date.now();
+  16|   const timestamp = new Date().toISOString();
+  17| 
+  18|   let databaseAvailable = false;
+  19|   let dbLatencyMs: number | undefined;
+  20|   try {
+  21|     const dbStartedAt = Date.now();
+  22|     databaseAvailable = await isDatabaseAvailable();
+  23|     if (databaseAvailable) {
+  24|       await db.tenant.count({ take: 1 });
+  25|       dbLatencyMs = Date.now() - dbStartedAt;
+  26|     }
+  27|   } catch {
+  28|     databaseAvailable = false;
+  29|   }
+  30| 
+  31|   const transport = getActiveTransport();
+  32|   const redisConfigured = transport === 'redis';
+  33|   const bullmqAvailable = isBullMQAvailable();
+  34|   const pushEnabled = isPushEnabled();
+  35| 
+  36|   // Database is the critical dependency for request processing. Redis/BullMQ
+  37|   // and push can degrade functionality but must not make the app unreachable.
+  38|   const status: 'ok' | 'degraded' | 'down' = !databaseAvailable
+  39|     ? 'down'
+  40|     : redisConfigured && bullmqAvailable && pushEnabled
+  41|       ? 'ok'
+  42|       : 'degraded';
+  43| 
+  44|   const httpStatus = status === 'down' ? 503 : 200;
+  45|   const response = NextResponse.json({
+  46|     status,
+  47|     timestamp,
+  48|     requestId: traceId,
+  49|     version: {
+  50|       sw: 'seuzella-pwa-v4',
+  51|       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || 'unknown',
+  52|     },
+  53|     services: {
+  54|       database: { available: databaseAvailable, latencyMs: dbLatencyMs },
+  55|       redis: { configured: redisConfigured, transport },
+  56|       push: { enabled: pushEnabled, vapidConfigured: pushEnabled },
+  57|       bullmq: { available: bullmqAvailable },
+  58|     },
+  59|     uptime: process.uptime(),
+  60|     responseTimeMs: Date.now() - startedAt,
+  61|   }, {
+  62|     status: httpStatus,
+  63|     headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate' },
+  64|   });
+  65| 
+  66|   return withTraceHeaders(response, traceId);
+  67| }
+  68| 
+
+----------------------------- FIM DO DIGEST -------------------------

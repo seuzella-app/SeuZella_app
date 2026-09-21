@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 /**
  * Webhook Listener — Recebe eventos do GitHub em tempo real.
  *
@@ -193,7 +194,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // 6. Idempotência — se já processamos esse delivery, retorna OK
   if (deliveryId && processedDeliveries.has(deliveryId)) {
-    console.log(`[GitHub Webhook] Delivery duplicado ignorado: ${deliveryId}`);
+    logger.info(`[GitHub Webhook] Delivery duplicado ignorado: ${deliveryId}`);
     return NextResponse.json({ received: true, duplicate: true, deliveryId });
   }
   if (deliveryId) {
@@ -210,7 +211,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const repo = payload.repository?.full_name || 'unknown';
-  console.log(
+  logger.info(
     `[GitHub Webhook] ${eventType} [${deliveryId}] from ${repo} (IP: ${clientIP || 'unknown'})`
   );
 
@@ -247,7 +248,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
       default:
         // Eventos não tratados — loga e retorna OK (não falha)
-        console.log(`[GitHub Webhook] Evento não tratado: ${eventType}`);
+        logger.info(`[GitHub Webhook] Evento não tratado: ${eventType}`);
     }
 
     return NextResponse.json({
@@ -283,7 +284,7 @@ async function handlePush(payload: any): Promise<void> {
   const branch = ref.replace('refs/heads/', '');
   const commits = payload.commits || [];
 
-  console.log(`[GitHub Webhook] Push em ${repo}:${branch} (${commits.length} commits)`);
+  logger.info(`[GitHub Webhook] Push em ${repo}:${branch} (${commits.length} commits)`);
 
   // Coleta arquivos modificados
   const modifiedFiles = new Set<string>();
@@ -293,7 +294,7 @@ async function handlePush(payload: any): Promise<void> {
     for (const f of commit.removed || []) modifiedFiles.add(f);
   }
 
-  console.log(
+  logger.info(
     `[GitHub Webhook] ${modifiedFiles.size} arquivos modificados em ${repo}:${branch}`
   );
 
@@ -303,7 +304,7 @@ async function handlePush(payload: any): Promise<void> {
   // Se commit message contém [ze-code-automated], marca suggestion correspondente
   const headCommit = payload.head_commit;
   if (headCommit?.message?.includes('[ze-code-automated]')) {
-    console.log('[GitHub Webhook] Commit do ZéCode detectado — atualizando suggestion');
+    logger.info('[GitHub Webhook] Commit do ZéCode detectado — atualizando suggestion');
     // O ZéCode já marca a suggestion ao criar o PR. Nada a fazer aqui.
   }
 }
@@ -318,7 +319,7 @@ async function handlePullRequest(payload: any): Promise<void> {
   const repo = payload.repository.full_name;
   const prNumber = pr.number;
 
-  console.log(
+  logger.info(
     `[GitHub Webhook] PR #${prNumber} ${action} em ${repo} (merged: ${pr.merged || false})`
   );
 
@@ -333,7 +334,7 @@ async function handlePullRequest(payload: any): Promise<void> {
       });
       if (suggestion && suggestion.status === 'applied') {
         // Já está como "applied" — apenas loga
-        console.log(
+        logger.info(
           `[GitHub Webhook] Suggestion ${suggestion.id} já estava como applied — PR merged confirmado`
         );
         // Atualiza reviewNotes com info de merge
@@ -350,14 +351,14 @@ async function handlePullRequest(payload: any): Promise<void> {
     // (GitHub já faz isso nativamente, mas podemos logar)
     const fixesMatch = (pr.body || '').match(/Fixes\s+#(\d+)/i);
     if (fixesMatch) {
-      console.log(`[GitHub Webhook] PR merged fecha issue #${fixesMatch[1]} automaticamente`);
+      logger.info(`[GitHub Webhook] PR merged fecha issue #${fixesMatch[1]} automaticamente`);
     }
   }
 
   // Se PR foi aberto por humano, o GitHub Action ze-code-review.yml vai chamar ZéCode
   // (não fazemos isso aqui no webhook para evitar duplicação)
   if (action === 'opened' && !pr.head?.ref?.startsWith('feat/ze-code/')) {
-    console.log(
+    logger.info(
       `[GitHub Webhook] PR #${prNumber} aberto por humano — GitHub Action vai acionar ZéCode`
     );
   }
@@ -376,7 +377,7 @@ async function handleCheckSuite(payload: any): Promise<void> {
     const headSha = suite.head_sha;
     const headBranch = suite.head_branch;
 
-    console.log(
+    logger.info(
       `[GitHub Webhook] Check suite ${conclusion} em ${headBranch} (sha: ${headSha.substring(0, 7)})`
     );
 
@@ -401,7 +402,7 @@ async function handleCheckRun(payload: any): Promise<void> {
   const {action} = payload;
   const checkRun = payload.check_run;
   if (action === 'completed') {
-    console.log(
+    logger.info(
       `[GitHub Webhook] Check run "${checkRun.name}" ${checkRun.conclusion} em ${checkRun.head_sha.substring(0, 7)}`
     );
   }
@@ -417,11 +418,11 @@ async function handleIssue(payload: any): Promise<void> {
 
   if (action === 'labeled' || action === 'unlabeled') {
     const label = payload.label?.name;
-    console.log(
+    logger.info(
       `[GitHub Webhook] Issue #${issue.number} ${action} com label: ${label}`
     );
   } else if (action === 'closed' || action === 'reopened') {
-    console.log(`[GitHub Webhook] Issue #${issue.number} ${action}`);
+    logger.info(`[GitHub Webhook] Issue #${issue.number} ${action}`);
   }
 }
 

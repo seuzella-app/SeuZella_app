@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 import { NextRequest } from 'next/server';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { subscribeTenantEvents, type TenantStateEvent } from '@/lib/realtime/tenant-pubsub';
@@ -208,7 +209,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     },
     cancel(reason) {
       // Called when the consumer (client) cancels the stream.
-      console.log('[tenant-state SSE] Stream cancelled:', reason);
+      logger.info('[tenant-state SSE] Stream cancelled:', reason);
     },
   });
 

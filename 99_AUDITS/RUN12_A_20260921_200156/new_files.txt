@@ -1,0 +1,3 @@
+src/lib/infra/logger.ts
+tests/security/run12-hygiene.test.ts
+tests/security/run12-i8-files.json

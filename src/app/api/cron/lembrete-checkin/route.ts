@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronSecret } from '@/lib/security/cron-secret';
@@ -94,7 +95,7 @@ Qualquer dúvida, é só responder aqui! 😊`;
           });
 
           lembretesEnviados++;
-          console.log(`[LembreteCheckIn] Enviado para ${reserva.guest?.name} (${phone}) - reserva ${reserva.id}`);
+          logger.info(`[LembreteCheckIn] Enviado para ${reserva.guest?.name} (${phone}) - reserva ${reserva.id}`);
         } catch (sendErr) {
           console.error(`[LembreteCheckIn] Erro ao enviar para ${phone}:`, sendErr);
           erros++;

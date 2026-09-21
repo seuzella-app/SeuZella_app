@@ -1,3 +1,4 @@
+import { logger } from '@/lib/infra/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyCronSecret } from '@/lib/security/cron-secret';
@@ -96,7 +97,7 @@ Em breve você receberá um lembrete com todas as informações. Qualquer dúvid
           });
 
           confirmacoesEnviadas++;
-          console.log(`[PaymentConfirmation] Enviado para ${tx.reservation?.guest?.name} (${phone})`);
+          logger.info(`[PaymentConfirmation] Enviado para ${tx.reservation?.guest?.name} (${phone})`);
         } catch (sendErr) {
           console.error(`[PaymentConfirmation] Erro ao enviar:`, sendErr);
           erros++;

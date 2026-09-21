@@ -1,0 +1,31 @@
+{
+  "schema": "RUN12_I8_FILES/v1",
+  "at": "2026-09-21T23:02:25.471Z",
+  "generatedAt": "2026-09-21T23:02:25.468Z",
+  "converted": [
+    "src/app/api/cron/budget-reset/route.ts",
+    "src/app/api/cron/lembrete-checkin/route.ts",
+    "src/app/api/cron/metrics-snapshot/route.ts",
+    "src/app/api/cron/nps-checkout/route.ts",
+    "src/app/api/cron/payment-confirmation/route.ts",
+    "src/app/api/cron/weekly-report/route.ts",
+    "src/app/api/ddc/realtime/tenant-state/route.ts",
+    "src/app/api/landing/contact/route.ts",
+    "src/app/api/v1/loops/route.ts",
+    "src/app/api/webhooks/payment/route.ts",
+    "src/app/api/webhooks/whatsapp/route.ts",
+    "src/app/api/zcc/github/webhook/route.ts",
+    "src/app/api/zcc/pulse/capture/route.ts",
+    "src/app/checkout/cancel/page.tsx"
+  ],
+  "deferred": [
+    {
+      "file": "src/app/api/v1/reservations/route.ts",
+      "lines": [
+        144
+      ],
+      "reason": "string-literal-or-unsafe-position"
+    }
+  ],
+  "totalReplacements": 47
+}

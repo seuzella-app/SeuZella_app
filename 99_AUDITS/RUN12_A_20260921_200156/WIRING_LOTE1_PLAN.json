@@ -1,0 +1,106 @@
+{
+  "schema": "RUN12_WIRING_LOTE1_PLAN/v1",
+  "generatedAt": "2026-09-21T23:02:25.738Z",
+  "basedOnBacklog": "/Users/marciocau/SeuZella_project/99_AUDITS/RUN11_W3_20260921_184259/WIRING_BACKLOG.json",
+  "candidatesTotal": 78,
+  "lote1Files": 12,
+  "pendingForNextLotes": 66,
+  "items": [
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/comparativo/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/rentabilidade/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/yield-suggestion/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/auth/[...nextauth]/route.ts",
+      "confidence": "high",
+      "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+      "handlerExportFound": false,
+      "filePresent": true
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/cancel/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/create/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/downgrade/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/pix-status/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/success/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/success/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/checkout/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "handlerExportFound": true,
+      "filePresent": true
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/cron/payment-confirmation/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "handlerExportFound": true,
+      "filePresent": true
+    }
+  ]
+}
