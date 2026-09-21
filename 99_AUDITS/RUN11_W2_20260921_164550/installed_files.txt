@@ -1,0 +1,12 @@
+src/lib/infra/cache.ts
+src/lib/infra/queue.ts
+src/lib/infra/rate-limit.ts
+src/lib/infra/audit.ts
+src/lib/infra/health.ts
+src/lib/infra/optional-require.ts
+tests/security/run11-w2-cache.test.ts
+tests/security/run11-w2-queue.test.ts
+tests/security/run11-w2-ratelimit.test.ts
+tests/security/run11-w2-audit.test.ts
+tests/security/run11-w2-health.test.ts
+tests/security/run11-w2-invariants.test.ts
