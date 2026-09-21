@@ -1,0 +1,18 @@
+{
+  "schema": "RUN11_W3_WIRING_APPLIED/v1",
+  "at": "2026-09-21T21:43:05.759Z",
+  "results": [
+    {
+      "file": "src/app/api/readiness/route.ts",
+      "status": "WIRED"
+    },
+    {
+      "file": "src/app/api/brain/route.ts",
+      "status": "WIRED"
+    },
+    {
+      "file": "src/app/api/checkout/webhook/route.ts",
+      "status": "WIRED"
+    }
+  ]
+}

@@ -1,0 +1,889 @@
+{
+  "schema": "RUN11_W3_WIRING_BACKLOG/v1",
+  "generatedAt": "2026-09-21T21:43:06.004Z",
+  "basedOnPlan": "/Users/marciocau/SeuZella_project/99_AUDITS/RUN11_W3_HARNESS_20260921_165432/WIRING_PLAN.json",
+  "totalUnique": 122,
+  "counts": {
+    "WIRED": 3,
+    "ALREADY_PROTECTED": 41,
+    "BACKLOG": 78
+  },
+  "byModuleCounts": {
+    "audit": {
+      "WIRED": 1,
+      "ALREADY_PROTECTED": 2,
+      "BACKLOG": 28
+    },
+    "rate-limit": {
+      "WIRED": 2,
+      "ALREADY_PROTECTED": 35,
+      "BACKLOG": 23
+    },
+    "queue": {
+      "WIRED": 0,
+      "ALREADY_PROTECTED": 1,
+      "BACKLOG": 12
+    },
+    "cache": {
+      "WIRED": 0,
+      "ALREADY_PROTECTED": 3,
+      "BACKLOG": 15
+    }
+  },
+  "items": [
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/upgrade/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+      "confidence": "high",
+      "rationale": "entrada externa — trilha obrigatória",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/ddc/airb-pro/reports/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/metrics/periods/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/metrics/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhook-whatsapp/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-test/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/auth/forgot-password/route.ts",
+      "confidence": "high",
+      "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/auth/m2m/token/route.ts",
+      "confidence": "high",
+      "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/auth/magic-link/route.ts",
+      "confidence": "high",
+      "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/auth/register/route.ts",
+      "confidence": "high",
+      "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/auth/reset-password/route.ts",
+      "confidence": "high",
+      "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/brain/health/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/brain/intents/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/cancel/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/create/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/downgrade/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/pix-status/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/upgrade/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/ai-status/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/commissions/[id]/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/commissions/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/expenses/[id]/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/expenses/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/goals/[id]/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/goals/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/operations/[id]/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/operations/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb-pro/reports/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb/conversations/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb/notifications/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb/onboarding/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb/regional/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/meta-connect/route.ts",
+      "confidence": "medium",
+      "rationale": "envio de mensagem — quota externa",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/knowledge/generate-embeddings/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/landing/chat/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/v1/reservations/[id]/payment/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/webhook-whatsapp/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — proteção contra replay/flood",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/webhooks/mercadopago/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — proteção contra replay/flood",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — proteção contra replay/flood",
+      "status": "ALREADY_PROTECTED"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/admin/faturamento-zehla/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de identidade/RBAC",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/admin/upsell-analytics/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de identidade/RBAC",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/cancel/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/create/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/downgrade/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/pix-status/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/success/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/cron/booking-daily/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de reserva — auditoria",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/cron/payment-confirmation/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/cron/payment-overdue/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/dashboard/bookings/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de reserva — auditoria",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/booking-sync/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de reserva — auditoria",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/bookings/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de reserva — auditoria",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/realtime/tenant-state/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de identidade/RBAC",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/upsell/payment-method/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/tenants/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de identidade/RBAC",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/v1/reservations/[id]/payment/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/v1/reservations/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de reserva — auditoria",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhook-whatsapp/route.ts",
+      "confidence": "high",
+      "rationale": "entrada externa — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/mercadopago/route.ts",
+      "confidence": "high",
+      "rationale": "entrada externa — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/payment/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+      "confidence": "high",
+      "rationale": "entrada externa — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "entrada externa — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "entrada externa — trilha obrigatória",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/zcc/tenants/[id]/status/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de identidade/RBAC",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/zcc/tenants/route.ts",
+      "confidence": "medium",
+      "rationale": "mutação de identidade/RBAC",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/cron/metrics-snapshot/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/dashboard/bookings/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/dashboard/overview/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/dashboard/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/ddc/linkinbio/stats/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/ddc/metrics/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/ddc/upsell/metrics/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/feedback/stats/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/v1/metrics/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/code-reviewer/stats/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/dashboard-stats/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/metrics/financial/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/metrics/geographic/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/stats/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/ze-code/stats/route.ts",
+      "confidence": "medium",
+      "rationale": "agregação de leitura — cache curto",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/checkout/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+      "confidence": "medium",
+      "rationale": "cobrança — fila de jobs",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/ddc/conversations/[id]/messages/route.ts",
+      "confidence": "medium",
+      "rationale": "envio — fila com retry/backoff",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/ddc/upsell/charge/route.ts",
+      "confidence": "medium",
+      "rationale": "cobrança — fila de jobs",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/mercadopago/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/payment/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — processar async para resposta rápida",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/zcc/whatsapp/simulate/route.ts",
+      "confidence": "medium",
+      "rationale": "envio — fila com retry/backoff",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/comparativo/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/rentabilidade/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/yield-suggestion/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/auth/[...nextauth]/route.ts",
+      "confidence": "high",
+      "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/success/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/cron/payment-confirmation/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/cron/payment-overdue/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb/properties/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb/scrape/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/upsell/payment-method/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/meta-costs/route.ts",
+      "confidence": "medium",
+      "rationale": "envio de mensagem — quota externa",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — proteção contra replay/flood",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/webhooks/payment/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/airbnb/oauth/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — proteção contra replay/flood",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/brain/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/cerebro/llmops/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "webhook — proteção contra replay/flood",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/leads/brain-analyze/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/synthetic-brazil/generate/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/whatsapp/simulate/route.ts",
+      "confidence": "medium",
+      "rationale": "envio de mensagem — quota externa",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zelador-suporte/chat/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "BACKLOG"
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "mutação financeira — trilha obrigatória",
+      "status": "WIRED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/brain/route.ts",
+      "confidence": "high",
+      "rationale": "rota de IA — custo por chamada",
+      "status": "WIRED"
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/webhook/route.ts",
+      "confidence": "high",
+      "rationale": "rota financeira — proteção contra repetição",
+      "status": "WIRED"
+    }
+  ]
+}

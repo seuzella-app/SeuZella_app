@@ -5,6 +5,7 @@ import { getActiveTransport } from '@/lib/realtime/tenant-pubsub';
 import { isBullMQAvailable } from '@/lib/queue/queue-bridge';
 import { assertProductionSecurityEnv } from '@/lib/env';
 import { resolveTraceId, withTraceHeaders } from '@/lib/observability/trace-context';
+import { readinessPayload as infraReadinessPayload } from '@/lib/infra/health';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -78,6 +79,7 @@ export async function GET(request: NextRequest) {
       summary: { total: checks.length, passed: checks.filter(c => c.passed).length, failed: checks.filter(c => !c.passed).length, requiredFailed: failedRequired.length },
       checks,
       timestamp: new Date().toISOString(),
+      infra: await infraReadinessPayload(),
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
       requestId: traceId,
     }, { status: allPassed ? 200 : 503, headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate' } }),

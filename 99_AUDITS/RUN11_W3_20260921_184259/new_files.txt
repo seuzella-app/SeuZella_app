@@ -1,0 +1,2 @@
+src/lib/infra/wiring.ts
+tests/security/run11-w3-wiring.test.ts

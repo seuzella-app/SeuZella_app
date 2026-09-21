@@ -7,9 +7,13 @@ import { executeCognitivePipeline } from '@/lib/ai/cognitive-router';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { getLearningStats } from '@/lib/brain/conversation-learner';
 import { withSecurity } from '@/lib/security/api-shield';
+import { guardRequest } from '@/lib/infra/wiring';
 
 async function postHandler(request: NextRequest) {
   try {
+  // RUN11-W3 (11B): rate-limit fail-closed por IP — 30 req/min.
+  const rlDeny = guardRequest(request, 'brain.post', { points: 30, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
     const tenantId = await resolveTenantId();
     if (!tenantId) return NextResponse.json({ error: 'TENANT_AUTH_REQUIRED' }, { status: 401 });
     const body = await request.json();

@@ -28,11 +28,11 @@ export interface AuditEvent {
 
 const SENSITIVE_KEY_RE = /pass(word)?|pwd|secret|token|authorization|api[-_]?key|apikey|cookie|session/i;
 const SECRET_VALUE_PATTERNS: Array<{ re: RegExp; label: string }> = [
-  { re: /sk-[A-Za-z0-9_-]{16,}/g, label: 'vendor-key' },
-  { re: /eyJ[A-Za-z0-9_-]{10,}/g, label: 'jwt-like' },
-  { re: /AIza[0-9A-Za-z_-]{20,}/g, label: 'google-key' },
-  { re: /gsk_[A-Za-z0-9_-]{10,}/g, label: 'groq-key' },
-  { re: /Bearer\s+[A-Za-z0-9._-]{8,}/g, label: 'bearer' },
+  { re: /\bsk-[A-Za-z0-9_-]{16,}/g, label: 'vendor-key' },
+  { re: /\beyJ[A-Za-z0-9_-]{10,}/g, label: 'jwt-like' },
+  { re: /\bAIza[0-9A-Za-z_-]{20,}/g, label: 'google-key' },
+  { re: /\bgsk_[A-Za-z0-9_-]{10,}/g, label: 'groq-key' },
+  { re: /\bBearer\s+[A-Za-z0-9._-]{8,}/g, label: 'bearer' },
 ];
 const MAX_STRING_LEN = 4096;
 const MAX_DEPTH = 6;

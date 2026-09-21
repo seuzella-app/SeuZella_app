@@ -1,0 +1,63 @@
+{
+  "schema": "RUN11_W3_I7_ALLOWLIST/v1",
+  "generatedAt": "2026-09-21T21:43:05.509Z",
+  "rule": "toda ocorrência de \"prisma db push --accept-data-loss\" deve estar classificada aqui; invocations são proibidas (neutralizadas para migrate deploy)",
+  "occurrences": [
+    {
+      "file": ".zscripts/zcc-battery/03-full-regression-suite.sh",
+      "line": 42,
+      "cls": "quote",
+      "fixed": false,
+      "snippet": "if DATABASE_URL=\"file:./test-integration.db\" npx prisma db push --accept-data-loss > /tmp/locks-db-setup.log 2>&1; then"
+    },
+    {
+      "file": "graft/.cache/extract.496c9d83e6eb3668.json",
+      "line": 1,
+      "cls": "quote",
+      "fixed": false,
+      "snippet": "{\"version\":1,\"extractor\":\"496c9d83e6eb3668\",\"files\":{\"ddc-login-test.mjs\":{\"size\":16267,\"mtimeMs\":1784209773544.3909,\"hash\":\"601df8b27d86125c5cb223e5e9d59a9ea36"
+    },
+    {
+      "file": "scripts/deploy-mvk4.sh",
+      "line": 36,
+      "cls": "quote",
+      "fixed": false,
+      "snippet": "#    O padrão destrutivo `|| npx prisma db push --accept-data-loss` foi"
+    },
+    {
+      "file": "src/lib/cerebro/vulnerability-scanner.ts",
+      "line": 198,
+      "cls": "pattern",
+      "fixed": false,
+      "snippet": "name: 'prisma db push --accept-data-loss',"
+    },
+    {
+      "file": "src/lib/cerebro/vulnerability-scanner.ts",
+      "line": 201,
+      "cls": "pattern",
+      "fixed": false,
+      "snippet": "description: 'Script usando prisma db push --accept-data-loss (pode destruir dados)',"
+    },
+    {
+      "file": "tests/cerebro-ml-anti-hacker.test.ts",
+      "line": 147,
+      "cls": "quote",
+      "fixed": false,
+      "snippet": "it('detecta prisma db push --accept-data-loss', () => {"
+    },
+    {
+      "file": "tests/cerebro-ml-anti-hacker.test.ts",
+      "line": 150,
+      "cls": "quote",
+      "fixed": false,
+      "snippet": "expect(p.regex.test('prisma db push --accept-data-loss')).toBe(true);"
+    },
+    {
+      "file": "tests/locks-db-integration.test.ts",
+      "line": 37,
+      "cls": "quote",
+      "fixed": false,
+      "snippet": "execSync(`npx prisma db push --accept-data-loss`, {"
+    }
+  ]
+}

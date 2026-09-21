@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
 import { bridgePaymentEvent, bridgeSecurityAlert } from '@/lib/notifications/bridges';
 import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
 
@@ -10,6 +11,11 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
     if (Buffer.byteLength(rawBody, 'utf8') > MAX_WEBHOOK_BYTES) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+    // RUN11-W3 (11B): anti-flood fail-closed por IP — 120 req/min.
+    const rlDeny = guardRequest(request, 'checkout.webhook', { points: 120, windowMs: 60000 });
+    if (rlDeny) return rlDeny;
+    // RUN11-W3 (11D): trilha de auditoria da ENTRADA do webhook (sem payload).
+    auditRouteEvent({ who: 'webhook:mercadopago', what: 'checkout.webhook.received', resource: 'payment', result: 'ALLOW' });
     const signature = request.headers.get('x-signature');
     const requestId = request.headers.get('x-request-id') || undefined;
     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.MERCADOPAGO_WEBHOOK_SECRET;
