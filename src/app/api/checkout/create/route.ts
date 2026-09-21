@@ -12,6 +12,7 @@ import { PaymentGatewayError, type GatewayId, type PaymentMethod } from '@/lib/p
 import { measureLatency } from '@/lib/observability/latency-tracker';
 import { withAdvisoryLock } from '@/lib/db/concurrency';
 import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 const VALID_PLANS: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
 const VALID_METHODS: PaymentMethod[] = ['pix', 'cartao'];
@@ -66,6 +67,11 @@ class CheckoutError extends Error {
 }
 
 export async function POST(request: NextRequest) {
+  // RUN13-A (W2): anti-flood fail-closed por IP — 20 req/1min.
+  const rlDeny = guardRequest(request, 'checkout.create', { points: 20, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN13-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:checkout.create', what: 'checkout.create.entry', resource: 'api', result: 'ALLOW' });
   return measureLatency('checkout.create', async () => {
     try {
       const contentLength = Number(request.headers.get('content-length') || '0');

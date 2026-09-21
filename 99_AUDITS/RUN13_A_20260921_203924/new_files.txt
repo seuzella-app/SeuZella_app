@@ -1,0 +1,2 @@
+tests/security/run13-wiring-lote1.test.ts
+src/lib/infra/wiring-registry.ts

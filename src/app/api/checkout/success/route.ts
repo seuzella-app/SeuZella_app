@@ -6,8 +6,14 @@ import { authOptions } from '@/lib/auth';
 import { getNextAuthSecret } from '@/lib/env';
 import { registerConversion } from '@/lib/credits/engine';
 import type { PlanTier } from '@/lib/plan-features';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function GET(request: NextRequest) {
+  // RUN13-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'checkout.success', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN13-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:checkout.success', what: 'checkout.success.entry', resource: 'api', result: 'ALLOW' });
   try {
     const {searchParams} = request.nextUrl;
     const subscriptionId = searchParams.get('subscription_id');

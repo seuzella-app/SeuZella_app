@@ -1,0 +1,14 @@
+   [WIRED] src/app/api/airb-pro/comparativo/route.ts
+   [WIRED] src/app/api/airb-pro/rentabilidade/route.ts
+   [WIRED] src/app/api/airb-pro/yield-suggestion/route.ts
+   [SKIP_JUSTIFIED] src/app/api/auth/[...nextauth]/route.ts — NextAuth: protecao propia (CSRF/throttle interno); guard cru pode quebrar login
+   [WIRED] src/app/api/checkout/cancel/route.ts
+   [WIRED] src/app/api/checkout/create/route.ts
+   [WIRED] src/app/api/checkout/downgrade/route.ts
+   [WIRED] src/app/api/checkout/pix-status/route.ts
+   [WIRED] src/app/api/checkout/success/route.ts
+   [ALREADY_WIRED] src/app/api/checkout/webhook/route.ts — import de @/lib/infra/wiring ja presente (onda anterior)
+   [SKIP_JUSTIFIED] src/app/api/cron/payment-confirmation/route.ts — cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron
+
+   resumo: {"WIRED":8,"SKIP_JUSTIFIED":2,"ALREADY_WIRED":1,"DEFERRED_TSC":1}
+   itens do Lote 1: 12 (11 arquivos únicos) | pendentes p/ Lote 2/3: 66

@@ -1,0 +1,245 @@
+{
+  "schema": "RUN13_WIRING_LOTE1_APPLIED/v1",
+  "generatedAt": "2026-09-21T23:40:17.287Z",
+  "basedOnBacklog": "/Users/marciocau/SeuZella_project/99_AUDITS/RUN11_W3_20260921_184259/WIRING_BACKLOG.json",
+  "lote1Items": 12,
+  "uniqueFiles": 11,
+  "digestDupNote": "o recon do RUN12 amostrou checkout/success 2x (dedup aplicado aqui)",
+  "files": {
+    "src/app/api/airb-pro/comparativo/route.ts": {
+      "status": "WIRED",
+      "routeId": "airb-pro.comparativo",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 13,
+      "param": "_req"
+    },
+    "src/app/api/airb-pro/rentabilidade/route.ts": {
+      "status": "WIRED",
+      "routeId": "airb-pro.rentabilidade",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 13,
+      "param": "req"
+    },
+    "src/app/api/airb-pro/yield-suggestion/route.ts": {
+      "status": "WIRED",
+      "routeId": "airb-pro.yield-suggestion",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 18,
+      "param": "req"
+    },
+    "src/app/api/auth/[...nextauth]/route.ts": {
+      "status": "SKIP_JUSTIFIED",
+      "reason": "NextAuth: protecao propia (CSRF/throttle interno); guard cru pode quebrar login"
+    },
+    "src/app/api/checkout/cancel/route.ts": {
+      "status": "WIRED",
+      "routeId": "checkout.cancel",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 8,
+      "param": "request"
+    },
+    "src/app/api/checkout/create/route.ts": {
+      "status": "WIRED",
+      "routeId": "checkout.create",
+      "policy": {
+        "points": 20,
+        "windowMs": 60000
+      },
+      "anchorLine": 68,
+      "param": "request"
+    },
+    "src/app/api/checkout/downgrade/route.ts": {
+      "status": "WIRED",
+      "routeId": "checkout.downgrade",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 11,
+      "param": "request"
+    },
+    "src/app/api/checkout/pix-status/route.ts": {
+      "status": "WIRED",
+      "routeId": "checkout.pix-status",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 11,
+      "param": "request"
+    },
+    "src/app/api/checkout/success/route.ts": {
+      "status": "WIRED",
+      "routeId": "checkout.success",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 10,
+      "param": "request"
+    },
+    "src/app/api/checkout/webhook/route.ts": {
+      "status": "ALREADY_WIRED",
+      "reason": "import de @/lib/infra/wiring ja presente (onda anterior)"
+    },
+    "src/app/api/cron/payment-confirmation/route.ts": {
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron"
+    },
+    "src/app/api/health/route.ts": {
+      "status": "DEFERRED_TSC",
+      "reason": "revertido no rollback fino por tsc (rodada 1) — ver RECON_DEFERRED.txt"
+    }
+  },
+  "items": [
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/comparativo/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "airb-pro.comparativo",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/rentabilidade/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "airb-pro.rentabilidade",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/airb-pro/yield-suggestion/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "airb-pro.yield-suggestion",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/auth/[...nextauth]/route.ts",
+      "confidence": "high",
+      "status": "SKIP_JUSTIFIED",
+      "reason": "NextAuth: protecao propia (CSRF/throttle interno); guard cru pode quebrar login",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/cancel/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "checkout.cancel",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/create/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "checkout.create",
+      "policy": {
+        "points": 20,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/downgrade/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "checkout.downgrade",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/pix-status/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "checkout.pix-status",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/checkout/success/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "checkout.success",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/checkout/success/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "checkout.success",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/checkout/webhook/route.ts",
+      "confidence": "high",
+      "status": "ALREADY_WIRED",
+      "reason": "import de @/lib/infra/wiring ja presente (onda anterior)",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/cron/payment-confirmation/route.ts",
+      "confidence": "high",
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron",
+      "routeId": null,
+      "policy": null
+    }
+  ],
+  "tscRounds": 2,
+  "registryPath": "src/lib/infra/wiring-registry.ts"
+}

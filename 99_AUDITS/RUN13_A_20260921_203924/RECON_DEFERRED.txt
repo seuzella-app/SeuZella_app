@@ -1,0 +1,74 @@
+================================================================
+ SEUZELLA — RUN13 RECON_DEFERRED (âncoras não casaram — próxima onda)
+================================================================
+
+>>> src/app/api/health/route.ts — motivo: revertido no rollback fino por tsc (rodada 1) — ver RECON_DEFERRED.txt
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { isDatabaseAvailable, db } from '@/lib/db';
+   3| import { isPushEnabled } from '@/lib/push/push-service';
+   4| import { getActiveTransport } from '@/lib/realtime/tenant-pubsub';
+   5| import { isBullMQAvailable } from '@/lib/queue/queue-bridge';
+   6| import { resolveTraceId, withTraceHeaders } from '@/lib/observability/trace-context';
+   7| 
+   8| export const dynamic = 'force-dynamic';
+   9| export const runtime = 'nodejs';
+  10| 
+  11| /** Operational liveness endpoint. HTTP 503 is reserved for DB-down state.
+  12|  *  F07: Now also returns X-Request-Id response header for correlation. */
+  13| export async function GET(request: NextRequest) {
+  14|   const traceId = resolveTraceId(request);
+  15|   const startedAt = Date.now();
+  16|   const timestamp = new Date().toISOString();
+  17| 
+  18|   let databaseAvailable = false;
+  19|   let dbLatencyMs: number | undefined;
+  20|   try {
+  21|     const dbStartedAt = Date.now();
+  22|     databaseAvailable = await isDatabaseAvailable();
+  23|     if (databaseAvailable) {
+  24|       await db.tenant.count({ take: 1 });
+  25|       dbLatencyMs = Date.now() - dbStartedAt;
+  26|     }
+  27|   } catch {
+  28|     databaseAvailable = false;
+  29|   }
+  30| 
+  31|   const transport = getActiveTransport();
+  32|   const redisConfigured = transport === 'redis';
+  33|   const bullmqAvailable = isBullMQAvailable();
+  34|   const pushEnabled = isPushEnabled();
+  35| 
+  36|   // Database is the critical dependency for request processing. Redis/BullMQ
+  37|   // and push can degrade functionality but must not make the app unreachable.
+  38|   const status: 'ok' | 'degraded' | 'down' = !databaseAvailable
+  39|     ? 'down'
+  40|     : redisConfigured && bullmqAvailable && pushEnabled
+  41|       ? 'ok'
+  42|       : 'degraded';
+  43| 
+  44|   const httpStatus = status === 'down' ? 503 : 200;
+  45|   const response = NextResponse.json({
+  46|     status,
+  47|     timestamp,
+  48|     requestId: traceId,
+  49|     version: {
+  50|       sw: 'seuzella-pwa-v4',
+  51|       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || 'unknown',
+  52|     },
+  53|     services: {
+  54|       database: { available: databaseAvailable, latencyMs: dbLatencyMs },
+  55|       redis: { configured: redisConfigured, transport },
+  56|       push: { enabled: pushEnabled, vapidConfigured: pushEnabled },
+  57|       bullmq: { available: bullmqAvailable },
+  58|     },
+  59|     uptime: process.uptime(),
+  60|     responseTimeMs: Date.now() - startedAt,
+  61|   }, {
+  62|     status: httpStatus,
+  63|     headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate' },
+  64|   });
+  65| 
+  66|   return withTraceHeaders(response, traceId);
+  67| }
+  68| 
+(total: 68 linhas)

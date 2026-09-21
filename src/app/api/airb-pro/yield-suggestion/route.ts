@@ -14,8 +14,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { computeYieldCitationForStay } from '@/lib/cerebro/yield-citation-hook';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 async function getHandler(req: NextRequest) {
+  // RUN13-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'airb-pro.yield-suggestion', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN13-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:airb-pro.yield-suggestion', what: 'airb-pro.yield-suggestion.entry', resource: 'api', result: 'ALLOW' });
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });

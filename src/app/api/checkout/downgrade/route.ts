@@ -5,10 +5,16 @@ import { authOptions } from '@/lib/auth';
 import { createError } from '@/lib/error-handler';
 import { authRatelimit } from '@/lib/rate-limit';
 import { migratePlanLegacy, type PlanTier } from '@/lib/plan-features';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 const PLAN_ORDER: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
 
 export async function POST(request: NextRequest) {
+  // RUN13-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'checkout.downgrade', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN13-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:checkout.downgrade', what: 'checkout.downgrade.entry', resource: 'api', result: 'ALLOW' });
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId) return createError(401, 'UNAUTHORIZED', 'Faça login primeiro');

@@ -4,8 +4,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createError } from '@/lib/error-handler';
 import { authRatelimit } from '@/lib/rate-limit';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function GET(request: NextRequest) {
+  // RUN13-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'checkout.cancel', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN13-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:checkout.cancel', what: 'checkout.cancel.entry', resource: 'api', result: 'ALLOW' });
   try {
     const {searchParams} = request.nextUrl;
     const subscriptionId = searchParams.get('subscription_id');
