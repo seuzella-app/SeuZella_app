@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getGateway } from '@/lib/payments';
 import { processPaymentWebhookEvent } from '@/lib/payments/process-webhook';
 import { webhookRatelimit } from '@/lib/rate-limit';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 120 req/1min.
+  const rlDeny = guardRequest(request, 'webhooks.mercadopago', { points: 120, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:webhooks.mercadopago', what: 'webhooks.mercadopago.entry', resource: 'api', result: 'ALLOW' });
   try {
     const rawBody = await request.text();
     if (Buffer.byteLength(rawBody, 'utf8') > 1024 * 1024) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });

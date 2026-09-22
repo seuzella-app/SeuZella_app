@@ -4,6 +4,7 @@ import { isPushEnabled } from '@/lib/push/push-service';
 import { getActiveTransport } from '@/lib/realtime/tenant-pubsub';
 import { isBullMQAvailable } from '@/lib/queue/queue-bridge';
 import { resolveTraceId, withTraceHeaders } from '@/lib/observability/trace-context';
+import { w2Status } from '@/lib/infra/wiring-registry';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || 'unknown',
     },
     services: {
+      security: w2Status(), // RUN14-A: payload W2 explicito (mop-up do DEFERRED_TSC do RUN13)
       database: { available: databaseAvailable, latencyMs: dbLatencyMs },
       redis: { configured: redisConfigured, transport },
       push: { enabled: pushEnabled, vapidConfigured: pushEnabled },

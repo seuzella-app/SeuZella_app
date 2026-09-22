@@ -5,8 +5,14 @@ import { resolveTenantId, mapBooking } from '@/lib/ddc/ddc-mapper';
 import { apiRatelimit } from '@/lib/rate-limit';
 import { bridgeReservationEvent } from '@/lib/notifications/bridges';
 import { withAdvisoryLock } from '@/lib/db/concurrency';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function GET(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'ddc.bookings', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.bookings', what: 'ddc.bookings.entry', resource: 'api', result: 'ALLOW' });
   try {
     const dbAvailable = await isDatabaseAvailable();
     if (!dbAvailable) {

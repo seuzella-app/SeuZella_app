@@ -8,10 +8,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDDCTenantId } from '@/lib/ddc/auth-utils';
 import { getLinkInBioStats60Days, getLinkInBioStatus } from '@/lib/notifications/linkinbio-addon';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(_req: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(_req, 'ddc.linkinbio.stats', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.linkinbio.stats', what: 'ddc.linkinbio.stats.entry', resource: 'api', result: 'ALLOW' });
   try {
     const tenantId = await requireDDCTenantId();
     const [stats, status] = await Promise.all([

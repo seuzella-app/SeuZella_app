@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function GET(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'feedback.stats', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:feedback.stats', what: 'feedback.stats.entry', resource: 'api', result: 'ALLOW' });
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   const rl = await apiRatelimit.limit(`api:${clientIp}:${new URL(request.url).pathname}`);
   if (!rl.success) {

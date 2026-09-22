@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db as prisma } from '@/lib/db';
 import { requireTenant } from '../../../../lib/auth';
 import { withSecurity } from '@/lib/security/api-shield';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 async function getHandler(_request: NextRequest, _ctx: any) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(_request, 'v1.metrics', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:v1.metrics', what: 'v1.metrics.entry', resource: 'api', result: 'ALLOW' });
   try {
     const tenantId = await requireTenant();
     

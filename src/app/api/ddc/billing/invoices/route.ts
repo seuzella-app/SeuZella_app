@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { AsaasBillingService } from '@/lib/billing/asaas';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 /**
  * GET /api/ddc/billing/invoices
@@ -13,6 +14,11 @@ import { authOptions } from '@/lib/auth';
  * Wave B IDOR fix: tenantId now derived from session, NOT from query param.
  */
 export async function GET(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'ddc.billing.invoices', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.billing.invoices', what: 'ddc.billing.invoices.entry', resource: 'api', result: 'ALLOW' });
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 });
   const tenantId = (session.user as any).tenantId;

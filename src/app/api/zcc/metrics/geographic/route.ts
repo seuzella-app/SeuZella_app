@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
 import { leads as mockLeads, computeStats } from '@/lib/zcc/mock-data';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 // ═══════════════════════════════════════════════════════════════
 // ZCC GEOGRAPHIC METRICS — Distribuição geográfica dos leads
@@ -38,6 +39,11 @@ function estimateMrrByScore(score: number): number {
 }
 
 export async function GET(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'zcc.metrics.geographic', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.metrics.geographic', what: 'zcc.metrics.geographic.entry', resource: 'api', result: 'ALLOW' });
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response!;
 

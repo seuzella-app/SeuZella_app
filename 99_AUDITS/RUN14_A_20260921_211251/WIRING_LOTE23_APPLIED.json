@@ -1,0 +1,1218 @@
+{
+  "schema": "RUN14_WIRING_LOTE23_APPLIED/v1",
+  "generatedAt": "2026-09-22T00:13:23.992Z",
+  "basedOnBacklog": "/Users/marciocau/SeuZella_project/99_AUDITS/RUN11_W3_20260921_184259/WIRING_BACKLOG.json",
+  "run13Evidence": {
+    "path": "/Users/marciocau/SeuZella_project/99_AUDITS/RUN13_A_20260921_203924/WIRING_LOTE1_APPLIED.json",
+    "wiredRouteIds": [
+      "airb-pro.comparativo",
+      "airb-pro.rentabilidade",
+      "airb-pro.yield-suggestion",
+      "checkout.cancel",
+      "checkout.create",
+      "checkout.downgrade",
+      "checkout.pix-status",
+      "checkout.success"
+    ]
+  },
+  "lote1Excluded": 13,
+  "pendingItems": 65,
+  "uniqueFiles": 49,
+  "run13TestPatched": true,
+  "run13TestAlreadyPatched": false,
+  "files": {
+    "src/app/api/cron/payment-overdue/route.ts": {
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron"
+    },
+    "src/app/api/ddc/airb/properties/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.airb.properties",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 152,
+      "param": "request"
+    },
+    "src/app/api/ddc/airb/scrape/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.airb.scrape",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 86,
+      "param": "request"
+    },
+    "src/app/api/ddc/billing/invoices/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.billing.invoices",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 15,
+      "param": "request"
+    },
+    "src/app/api/ddc/upsell/payment-method/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/v1/reservations/[id]/payment/route.ts": {
+      "status": "WIRED",
+      "routeId": "v1.reservations.[id].payment",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 17,
+      "param": "request"
+    },
+    "src/app/api/webhook-whatsapp/route.ts": {
+      "status": "WIRED",
+      "routeId": "webhook-whatsapp",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "anchorLine": 10,
+      "param": "request"
+    },
+    "src/app/api/webhooks/asaas/route.ts": {
+      "status": "WIRED",
+      "routeId": "webhooks.asaas",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "anchorLine": 10,
+      "param": "request"
+    },
+    "src/app/api/webhooks/booking-com/reviews/route.ts": {
+      "status": "WIRED",
+      "routeId": "webhooks.booking-com.reviews",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "anchorLine": 49,
+      "param": "request"
+    },
+    "src/app/api/webhooks/mercadopago/route.ts": {
+      "status": "WIRED",
+      "routeId": "webhooks.mercadopago",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "anchorLine": 9,
+      "param": "request"
+    },
+    "src/app/api/webhooks/payment/route.ts": {
+      "status": "WIRED",
+      "routeId": "webhooks.payment",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "anchorLine": 506,
+      "param": "request"
+    },
+    "src/app/api/webhooks/whatsapp/route.ts": {
+      "status": "WIRED",
+      "routeId": "webhooks.whatsapp",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "anchorLine": 448,
+      "param": "request"
+    },
+    "src/app/api/zcc/airbnb/oauth/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.airbnb.oauth",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 41,
+      "param": "request"
+    },
+    "src/app/api/zcc/airbnb/webhook/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.airbnb.webhook",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "anchorLine": 5,
+      "param": "request"
+    },
+    "src/app/api/zcc/brain/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/cerebro/llmops/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.cerebro.llmops",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 14,
+      "param": "request"
+    },
+    "src/app/api/zcc/github/webhook/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.github.webhook",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "anchorLine": 161,
+      "param": "req"
+    },
+    "src/app/api/zcc/leads/brain-analyze/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.leads.brain-analyze",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 6,
+      "param": "request"
+    },
+    "src/app/api/zcc/synthetic-brazil/generate/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.synthetic-brazil.generate",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 9,
+      "param": "req"
+    },
+    "src/app/api/zelador-suporte/chat/route.ts": {
+      "status": "WIRED",
+      "routeId": "zelador-suporte.chat",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 9,
+      "param": "request"
+    },
+    "src/app/api/admin/faturamento-zehla/route.ts": {
+      "status": "WIRED",
+      "routeId": "admin.faturamento-zehla",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 24,
+      "param": "req"
+    },
+    "src/app/api/admin/upsell-analytics/route.ts": {
+      "status": "WIRED",
+      "routeId": "admin.upsell-analytics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 21,
+      "param": "req"
+    },
+    "src/app/api/cron/booking-daily/route.ts": {
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron"
+    },
+    "src/app/api/cron/metrics-snapshot/route.ts": {
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron"
+    },
+    "src/app/api/dashboard/bookings/route.ts": {
+      "status": "WIRED",
+      "routeId": "dashboard.bookings",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 5,
+      "param": "_request"
+    },
+    "src/app/api/dashboard/overview/route.ts": {
+      "status": "WIRED",
+      "routeId": "dashboard.overview",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 5,
+      "param": "_request"
+    },
+    "src/app/api/dashboard/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/ddc/booking-sync/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.booking-sync",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 9,
+      "param": "request"
+    },
+    "src/app/api/ddc/bookings/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.bookings",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 9,
+      "param": "request"
+    },
+    "src/app/api/ddc/conversations/[id]/messages/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/ddc/linkinbio/stats/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.linkinbio.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 14,
+      "param": "_req"
+    },
+    "src/app/api/ddc/metrics/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.metrics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 42,
+      "param": "request"
+    },
+    "src/app/api/ddc/realtime/tenant-state/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.realtime.tenant-state",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 120,
+      "param": "request"
+    },
+    "src/app/api/ddc/upsell/charge/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/ddc/upsell/metrics/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.upsell.metrics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 19,
+      "param": "req"
+    },
+    "src/app/api/feedback/stats/route.ts": {
+      "status": "WIRED",
+      "routeId": "feedback.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 6,
+      "param": "request"
+    },
+    "src/app/api/meta-costs/route.ts": {
+      "status": "WIRED",
+      "routeId": "meta-costs",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 6,
+      "param": "req"
+    },
+    "src/app/api/tenants/route.ts": {
+      "status": "WIRED",
+      "routeId": "tenants",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 6,
+      "param": "request"
+    },
+    "src/app/api/v1/metrics/route.ts": {
+      "status": "WIRED",
+      "routeId": "v1.metrics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 6,
+      "param": "_request"
+    },
+    "src/app/api/v1/reservations/route.ts": {
+      "status": "WIRED",
+      "routeId": "v1.reservations",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 13,
+      "param": "_request"
+    },
+    "src/app/api/zcc/code-reviewer/stats/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.code-reviewer.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 16,
+      "param": "request"
+    },
+    "src/app/api/zcc/dashboard-stats/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.dashboard-stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 5,
+      "param": "request"
+    },
+    "src/app/api/zcc/metrics/financial/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.metrics.financial",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 72,
+      "param": "request"
+    },
+    "src/app/api/zcc/metrics/geographic/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.metrics.geographic",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 40,
+      "param": "request"
+    },
+    "src/app/api/zcc/stats/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 5,
+      "param": "request"
+    },
+    "src/app/api/zcc/tenants/[id]/status/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/tenants/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.tenants",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 31,
+      "param": "request"
+    },
+    "src/app/api/zcc/whatsapp/simulate/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.whatsapp.simulate",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 8,
+      "param": "request"
+    },
+    "src/app/api/zcc/ze-code/stats/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.ze-code.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "anchorLine": 15,
+      "param": "request"
+    },
+    "src/app/api/health/route.ts": {
+      "status": "WIRED",
+      "routeId": "health",
+      "kind": "w2-payload",
+      "anchorLine": 53
+    }
+  },
+  "items": [
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/cron/payment-overdue/route.ts",
+      "confidence": "high",
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/cron/payment-overdue/route.ts",
+      "confidence": "high",
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb/properties/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.airb.properties",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/airb/scrape/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.airb.scrape",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.billing.invoices",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.billing.invoices",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/upsell/payment-method/route.ts",
+      "confidence": "high",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/ddc/upsell/payment-method/route.ts",
+      "confidence": "high",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/v1/reservations/[id]/payment/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "v1.reservations.[id].payment",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhook-whatsapp/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhook-whatsapp",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.asaas",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.asaas",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.booking-com.reviews",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.booking-com.reviews",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/mercadopago/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.mercadopago",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/mercadopago/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.mercadopago",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/payment/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.payment",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/payment/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.payment",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/webhooks/payment/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.payment",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.whatsapp",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "webhooks.whatsapp",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/airbnb/oauth/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.airbnb.oauth",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.airbnb.webhook",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.airbnb.webhook",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.airbnb.webhook",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/brain/route.ts",
+      "confidence": "high",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/cerebro/llmops/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.cerebro.llmops",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.github.webhook",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.github.webhook",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.github.webhook",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/leads/brain-analyze/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.leads.brain-analyze",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/synthetic-brazil/generate/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.synthetic-brazil.generate",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zelador-suporte/chat/route.ts",
+      "confidence": "high",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zelador-suporte.chat",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/admin/faturamento-zehla/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "admin.faturamento-zehla",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/admin/upsell-analytics/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "admin.upsell-analytics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/cron/booking-daily/route.ts",
+      "confidence": "medium",
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/cron/metrics-snapshot/route.ts",
+      "confidence": "medium",
+      "status": "SKIP_JUSTIFIED",
+      "reason": "cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/dashboard/bookings/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "dashboard.bookings",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/dashboard/bookings/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "dashboard.bookings",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/dashboard/overview/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "dashboard.overview",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/dashboard/route.ts",
+      "confidence": "medium",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.billing.invoices",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/booking-sync/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.booking-sync",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/bookings/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.bookings",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/ddc/conversations/[id]/messages/route.ts",
+      "confidence": "medium",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/ddc/linkinbio/stats/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.linkinbio.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/ddc/metrics/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.metrics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/ddc/realtime/tenant-state/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.realtime.tenant-state",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/ddc/upsell/charge/route.ts",
+      "confidence": "medium",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/ddc/upsell/metrics/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.upsell.metrics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/feedback/stats/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "feedback.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/meta-costs/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "meta-costs",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/tenants/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "tenants",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/v1/metrics/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "v1.metrics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/v1/reservations/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "v1.reservations",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/code-reviewer/stats/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.code-reviewer.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/dashboard-stats/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.dashboard-stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/metrics/financial/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.metrics.financial",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/metrics/geographic/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.metrics.geographic",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/stats/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/zcc/tenants/[id]/status/route.ts",
+      "confidence": "medium",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "module": "audit",
+      "targetRoute": "src/app/api/zcc/tenants/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.tenants",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "queue",
+      "targetRoute": "src/app/api/zcc/whatsapp/simulate/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.whatsapp.simulate",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "rate-limit",
+      "targetRoute": "src/app/api/zcc/whatsapp/simulate/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.whatsapp.simulate",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "module": "cache",
+      "targetRoute": "src/app/api/zcc/ze-code/stats/route.ts",
+      "confidence": "medium",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.ze-code.stats",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    }
+  ],
+  "tscRounds": 1,
+  "registryPath": "src/lib/infra/wiring-registry.ts"
+}

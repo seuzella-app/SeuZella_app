@@ -54,7 +54,8 @@ describe('RUN13-A: fiação do Lote 1 (W2 guard+audit) e payload W2 no /api/heal
     const regPath = path.join(root, evid.registryPath);
     expect(fs.existsSync(regPath), `${evid.registryPath} ausente`).toBe(true);
     const reg = fs.readFileSync(regPath, 'utf8');
-    expect(reg).toContain("version: 'RUN13-A'");
+    expect(reg).toMatch(/version: 'RUN1\d-A'/); // registry evolui por onda (RUN14+)
+    expect(reg).toContain("{ wave: 'RUN13-A'");
     expect(reg).toContain('export function w2Status()');
     expect(reg).toContain('RUN11-W3');
   });

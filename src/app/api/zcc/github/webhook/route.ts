@@ -1,4 +1,5 @@
 import { logger } from '@/lib/infra/logger';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 /**
  * Webhook Listener — Recebe eventos do GitHub em tempo real.
  *
@@ -159,6 +160,11 @@ function cleanupDeliveryCache(): void {
 // ============================================================
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 120 req/1min.
+  const rlDeny = guardRequest(req, 'zcc.github.webhook', { points: 120, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.github.webhook', what: 'zcc.github.webhook.entry', resource: 'api', result: 'ALLOW' });
   const startTime = Date.now();
 
   // 1. Verifica que secret está configurado

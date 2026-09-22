@@ -5,8 +5,14 @@
 
 import { NextResponse } from 'next/server';
 import { generateSyntheticBrazil } from '@/simulation';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function POST(req: Request) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'zcc.synthetic-brazil.generate', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.synthetic-brazil.generate', what: 'zcc.synthetic-brazil.generate.entry', resource: 'api', result: 'ALLOW' });
   try {
     const body = await req.json().catch(() => ({}));
     const snapshot = generateSyntheticBrazil({

@@ -15,6 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 import {
   calcularFaturamentoMensalZehla,
   gerarCobrancasMensais,
@@ -22,6 +23,11 @@ import {
 } from '@/lib/upsell/faturamento-zehla';
 
 async function getHandler(req: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'admin.faturamento-zehla', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:admin.faturamento-zehla', what: 'admin.faturamento-zehla.entry', resource: 'api', result: 'ALLOW' });
   // RUN 6B (R6B-05a): antes comparava role a 'ADMIN' (uppercase) — string que
   // NUNCA ocorre na sessão (roles reais: owner/admin/staff/client/system_admin,
   // lowercase). Resultado: rota NEGADA para todos, inclusive admins legítimos

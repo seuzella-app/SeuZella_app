@@ -2,8 +2,14 @@ import { NextResponse } from 'next/server';
 import { llmRouter } from '@/lib/ai/llm-router';
 import { ZehlaFortressBrain } from '@/lib/security/zehla-fortress-brain';
 import type { LiveLead } from '@/lib/live-leads-mock-data';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function POST(request: Request) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'zcc.leads.brain-analyze', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.leads.brain-analyze', what: 'zcc.leads.brain-analyze.entry', resource: 'api', result: 'ALLOW' });
   try {
     const lead: LiveLead = await request.json();
 

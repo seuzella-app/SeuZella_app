@@ -15,8 +15,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { calcularMetricasUpsell } from '@/lib/upsell/upsell-engine';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 async function getHandler(req: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'ddc.upsell.metrics', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.upsell.metrics', what: 'ddc.upsell.metrics.entry', resource: 'api', result: 'ALLOW' });
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });

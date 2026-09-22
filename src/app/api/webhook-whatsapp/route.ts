@@ -4,10 +4,16 @@ import { resolveTenantByPhone } from '@/lib/resolve-tenant-by-phone';
 import { verifyWhatsAppWebhook, validateWebhookTenant } from '@/lib/security/webhook-verify';
 import { normalizeWhatsAppInboundMessage } from '@/lib/whatsapp/inbound-message';
 import { webhookRatelimit } from '@/lib/rate-limit';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export const maxDuration = 30;
 
 export async function GET(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 120 req/1min.
+  const rlDeny = guardRequest(request, 'webhook-whatsapp', { points: 120, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:webhook-whatsapp', what: 'webhook-whatsapp.entry', resource: 'api', result: 'ALLOW' });
   try {
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get('hub.mode');

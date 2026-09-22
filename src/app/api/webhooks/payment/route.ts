@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { sendEmail } from '@/lib/email-sender';
 import { generateWelcomeEmailHtml } from '@/lib/email-templates/welcome-email';
 import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 // ══
 // SEUZÉLLA — Webhook de Provisionamento (PASSO 2 + PASSO 3)
@@ -504,6 +505,11 @@ async function notifyZCCConversion(result: ProvisioningResult, payload: WebhookP
 // ── Main Handler 
 
 export async function POST(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 120 req/1min.
+  const rlDeny = guardRequest(request, 'webhooks.payment', { points: 120, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:webhooks.payment', what: 'webhooks.payment.entry', resource: 'api', result: 'ALLOW' });
   const startTime = Date.now();
 
   try {

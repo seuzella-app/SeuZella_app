@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getMetaCostSummary } from "@/lib/meta-cost-guard";
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function GET(req: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'meta-costs', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:meta-costs', what: 'meta-costs.entry', resource: 'api', result: 'ALLOW' });
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId) {

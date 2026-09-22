@@ -3,6 +3,7 @@ import { requireTenant } from '@/lib/auth';
 import { withSecurity } from '@/lib/security/api-shield';
 import { createReservationPayment } from '@/lib/payments/reservation-payment-service';
 import type { GatewayId, PaymentMethod } from '@/lib/payments/types';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 const METHODS: PaymentMethod[] = ['pix', 'cartao', 'boleto'];
 const GATEWAYS: GatewayId[] = ['asaas', 'mercadopago', 'mock'];
@@ -15,6 +16,11 @@ function reservationIdFromPath(request: NextRequest): string | null {
 }
 
 async function postHandler(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'v1.reservations.[id].payment', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:v1.reservations.[id].payment', what: 'v1.reservations.[id].payment.entry', resource: 'api', result: 'ALLOW' });
   try {
     const tenantId = await requireTenant();
     const id = reservationIdFromPath(request);

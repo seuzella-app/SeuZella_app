@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { subscribeTenantEvents, type TenantStateEvent } from '@/lib/realtime/tenant-pubsub';
 import { db, isDatabaseAvailable } from '@/lib/db';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -118,6 +119,11 @@ function sendError(controller: SSEController, message: string): void {
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'ddc.realtime.tenant-state', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.realtime.tenant-state', what: 'ddc.realtime.tenant-state.entry', resource: 'api', result: 'ALLOW' });
   // ── Auth: resolve tenantId from session ──
   const tenantId = await resolveTenantId();
   if (!tenantId) {

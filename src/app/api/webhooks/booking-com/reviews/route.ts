@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { bridgeReviewNegative, bridgeSecurityAlert } from '@/lib/notifications/bridges';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,11 @@ function verifyBookingSignature(
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 120 req/1min.
+  const rlDeny = guardRequest(request, 'webhooks.booking-com.reviews', { points: 120, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:webhooks.booking-com.reviews', what: 'webhooks.booking-com.reviews.entry', resource: 'api', result: 'ALLOW' });
   const startTime = Date.now();
   const rawBody = await request.text();
   const signature = request.headers.get('x-booking-signature') ?? '';

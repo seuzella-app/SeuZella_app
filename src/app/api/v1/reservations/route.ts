@@ -9,8 +9,14 @@ import { withAdvisoryLock, mapConcurrencyError } from '@/lib/db/concurrency';
 import { SpecialDatesHitlService } from '@/lib/ai/special-dates/hitl-service';
 import { calculateUpsell } from '@/lib/billing/upsell-calculator';
 import { linkReservationToMetaAttribution } from '@/lib/meta/meta-attribution';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 async function getHandler(_request: NextRequest, _ctx: any) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(_request, 'v1.reservations', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:v1.reservations', what: 'v1.reservations.entry', resource: 'api', result: 'ALLOW' });
   try {
     const tenantId = await requireTenant();
     const reservations = await prisma.reservation.findMany({ where: { tenantId }, include: { guest: true, room: true }, orderBy: { checkIn: 'asc' } });

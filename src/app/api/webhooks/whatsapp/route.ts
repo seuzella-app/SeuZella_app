@@ -1,4 +1,5 @@
 import { logger } from '@/lib/infra/logger';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 // ==============================================================================
 // ZÉLLA — Meta WhatsApp Cloud API Webhook (Multi-Tenant Safe)
 // ==============================================================================
@@ -446,6 +447,11 @@ function maskPhone(phone: string | null | undefined): string {
 }
 
 export async function GET(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 120 req/1min.
+  const rlDeny = guardRequest(request, 'webhooks.whatsapp', { points: 120, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:webhooks.whatsapp', what: 'webhooks.whatsapp.entry', resource: 'api', result: 'ALLOW' });
   const { searchParams } = new URL(request.url);
 
   const mode = searchParams.get('hub.mode');

@@ -1,0 +1,53 @@
+   [SKIP_JUSTIFIED] src/app/api/cron/payment-overdue/route.ts — cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron
+   [WIRED] src/app/api/ddc/airb/properties/route.ts
+   [WIRED] src/app/api/ddc/airb/scrape/route.ts
+   [WIRED] src/app/api/ddc/billing/invoices/route.ts
+   [DEFERRED] src/app/api/ddc/upsell/payment-method/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/v1/reservations/[id]/payment/route.ts
+   [WIRED] src/app/api/webhook-whatsapp/route.ts
+   [WIRED] src/app/api/webhooks/asaas/route.ts
+   [WIRED] src/app/api/webhooks/booking-com/reviews/route.ts
+   [WIRED] src/app/api/webhooks/mercadopago/route.ts
+   [WIRED] src/app/api/webhooks/payment/route.ts
+   [WIRED] src/app/api/webhooks/whatsapp/route.ts
+   [WIRED] src/app/api/zcc/airbnb/oauth/route.ts
+   [WIRED] src/app/api/zcc/airbnb/webhook/route.ts
+   [DEFERRED] src/app/api/zcc/brain/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/zcc/cerebro/llmops/route.ts
+   [WIRED] src/app/api/zcc/github/webhook/route.ts
+   [WIRED] src/app/api/zcc/leads/brain-analyze/route.ts
+   [WIRED] src/app/api/zcc/synthetic-brazil/generate/route.ts
+   [WIRED] src/app/api/zelador-suporte/chat/route.ts
+   [WIRED] src/app/api/admin/faturamento-zehla/route.ts
+   [WIRED] src/app/api/admin/upsell-analytics/route.ts
+   [SKIP_JUSTIFIED] src/app/api/cron/booking-daily/route.ts — cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron
+   [SKIP_JUSTIFIED] src/app/api/cron/metrics-snapshot/route.ts — cron ja fiado com cron-auth-unified (FRENTE05); flood por IP nao se aplica a Vercel Cron
+   [WIRED] src/app/api/dashboard/bookings/route.ts
+   [WIRED] src/app/api/dashboard/overview/route.ts
+   [DEFERRED] src/app/api/dashboard/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/ddc/booking-sync/route.ts
+   [WIRED] src/app/api/ddc/bookings/route.ts
+   [DEFERRED] src/app/api/ddc/conversations/[id]/messages/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/ddc/linkinbio/stats/route.ts
+   [WIRED] src/app/api/ddc/metrics/route.ts
+   [WIRED] src/app/api/ddc/realtime/tenant-state/route.ts
+   [DEFERRED] src/app/api/ddc/upsell/charge/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/ddc/upsell/metrics/route.ts
+   [WIRED] src/app/api/feedback/stats/route.ts
+   [WIRED] src/app/api/meta-costs/route.ts
+   [WIRED] src/app/api/tenants/route.ts
+   [WIRED] src/app/api/v1/metrics/route.ts
+   [WIRED] src/app/api/v1/reservations/route.ts
+   [WIRED] src/app/api/zcc/code-reviewer/stats/route.ts
+   [WIRED] src/app/api/zcc/dashboard-stats/route.ts
+   [WIRED] src/app/api/zcc/metrics/financial/route.ts
+   [WIRED] src/app/api/zcc/metrics/geographic/route.ts
+   [WIRED] src/app/api/zcc/stats/route.ts
+   [DEFERRED] src/app/api/zcc/tenants/[id]/status/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/zcc/tenants/route.ts
+   [WIRED] src/app/api/zcc/whatsapp/simulate/route.ts
+   [WIRED] src/app/api/zcc/ze-code/stats/route.ts
+   [WIRED] src/app/api/health/route.ts — payload W2 (mop-up do DEFERRED_TSC do RUN13)
+
+   resumo: {"SKIP_JUSTIFIED":3,"WIRED":41,"DEFERRED":6}
+   itens do Lote 2/3: 65 (49 arquivos únicos) | excluídos (Lote 1 RUN13): 13 | residuais p/ próxima onda: 6

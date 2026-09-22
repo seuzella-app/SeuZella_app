@@ -12,8 +12,14 @@ import { getCodeReviewer } from '@/lib/cerebro/code-reviewer/reviewer-service';
 import { getBudgetStats, getRateLimitStats, QUALITY_GATE_LIMITS } from '@/lib/cerebro/code-reviewer/quality-gates';
 import { listModifiedFiles } from '@/lib/cerebro/code-reviewer/diff-extractor';
 import { CODE_READER_LIMITS } from '@/lib/cerebro/code-reviewer/code-reader';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'zcc.code-reviewer.stats', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.code-reviewer.stats', what: 'zcc.code-reviewer.stats.entry', resource: 'api', result: 'ALLOW' });
   const security = await verifyZCCAccessOrReject(request);
   if (!security.allowed) return security.response!;
 

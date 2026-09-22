@@ -4,9 +4,15 @@ import { requireTenantAccess } from '@/lib/security/tenant-authorization';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
 import { bridgeIcalSync } from '@/lib/notifications/bridges';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 // GET /api/ddc/booking-sync — Get Booking.com sync status
 async function getHandler(request: NextRequest) {
+  // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'ddc.booking-sync', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN14-A (W2): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.booking-sync', what: 'ddc.booking-sync.entry', resource: 'api', result: 'ALLOW' });
   try {
     const auth = await requireTenantAccess(request);
     if (!auth.allowed) {
