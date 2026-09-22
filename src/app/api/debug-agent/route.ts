@@ -3,12 +3,18 @@ import { db } from '@/lib/db';
 import { createError, apiSuccess } from '@/lib/error-handler';
 import { withSecurity } from '@/lib/security/api-shield';
 import { withAuth, AuthSession } from '@/lib/auth-guard';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 /**
  * POST /api/debug-agent
  * SECURITY: authenticated and tenant-scoped; api-shield blocks production debug routes.
  */
 async function handler(request: NextRequest, session: AuthSession) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'debug-agent', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:debug-agent', what: 'debug-agent.entry', resource: 'api', result: 'ALLOW' });
   try {
     const body = await request.json();
     const { agentId, startDate, endDate, limit = 50 } = body;

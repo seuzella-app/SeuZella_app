@@ -1,0 +1,400 @@
+{
+  "schema": "RUN18_MOPUP_DECISIONS/v1",
+  "generatedAt": "2026-09-22T13:28:00.911Z",
+  "basedOn": {
+    "run17Evidence": "99_AUDITS/RUN17_A_20260922_092412",
+    "confronto": "IDÊNTICO (56/56)"
+  },
+  "counts": {
+    "P1": 29,
+    "P2": 14,
+    "P3": 7,
+    "P4": 6,
+    "total": 56
+  },
+  "wire": [
+    {
+      "rel": "src/app/api/bim-vision/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/channel-manager/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/cerebro/feedback/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/credits/track-click/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/linkinbio/activate-standalone/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/linkinbio/purchase-addon/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/linkinbio/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/notifications/v2/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/partner-program/waitlist/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/debug-agent/github/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/debug-agent/knowledge/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/debug-agent/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/diagnose/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/leads/seed/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/pinns-clifford/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/proxy/[...path]/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/pulse/io/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/scraping/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/telemetry/ingest/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 120,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/v1/loops/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/webgl-bridge/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/digital-twin/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/dspy-compiler/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/national-simulator/compare/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/national-simulator/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/simulation-lab/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zelador-suporte/consultoria/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zelador-suporte/ticket/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zella/simulate/route.ts",
+      "prioridade": "P1",
+      "verdict": "MOPUP_PRIORITARIA",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/cerebro/learning/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/ddc/runtime-version/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/hunt-stream/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/leads/analytics/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/adapters/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/brain/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/cerebro/stream/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/cognitive-bus/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/cognitive-memory/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/cortex/growth/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/cortex/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/infra/scaling-ruler/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/personas/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    },
+    {
+      "rel": "src/app/api/zcc/synthetic-brazil/route.ts",
+      "prioridade": "P2",
+      "verdict": "A_REVISAR",
+      "points": 60,
+      "windowMs": 60000
+    }
+  ],
+  "document": [
+    {
+      "rel": "src/app/api/ddc/partner-program/status/route.ts",
+      "prioridade": "P3",
+      "verdict": "PUBLICA_PROVAVEL",
+      "just": "programa de parceiros público (só leitura)"
+    },
+    {
+      "rel": "src/app/api/guide/[slug]/route.ts",
+      "prioridade": "P3",
+      "verdict": "PUBLICA_PROVAVEL",
+      "just": "conteúdo público do site"
+    },
+    {
+      "rel": "src/app/api/ical/[syncToken]/route.ts",
+      "prioridade": "P3",
+      "verdict": "PUBLICA_PROVAVEL",
+      "just": "feed iCal: o token/syncToken NA URL é a credencial (checar força no mop-up)"
+    },
+    {
+      "rel": "src/app/api/lgpd/dpa/route.ts",
+      "prioridade": "P3",
+      "verdict": "PUBLICA_PROVAVEL",
+      "just": "documento público LGPD"
+    },
+    {
+      "rel": "src/app/api/push/vapid-public-key/route.ts",
+      "prioridade": "P3",
+      "verdict": "PUBLICA_PROVAVEL",
+      "just": "chave pública VAPID por design"
+    },
+    {
+      "rel": "src/app/api/route.ts",
+      "prioridade": "P3",
+      "verdict": "PUBLICA_PROVAVEL",
+      "just": "raiz da API (só leitura)"
+    },
+    {
+      "rel": "src/app/api/zcc/health/route.ts",
+      "prioridade": "P3",
+      "verdict": "PUBLICA_PROVAVEL",
+      "just": "healthcheck interno público provável"
+    }
+  ],
+  "nochange": [
+    {
+      "rel": "src/app/api/alexa/smart-home/route.ts",
+      "prioridade": "P4",
+      "verdict": "PROTEGIDA_EM_HANDLER",
+      "markers": "HEADER_AUTH@L8"
+    },
+    {
+      "rel": "src/app/api/integrations/ical/[roomId]/route.ts",
+      "prioridade": "P4",
+      "verdict": "PROTEGIDA_EM_HANDLER",
+      "markers": "TOKEN_NA_URL@L18"
+    },
+    {
+      "rel": "src/app/api/integrations/sync/route.ts",
+      "prioridade": "P4",
+      "verdict": "PROTEGIDA_EM_HANDLER",
+      "markers": "ENV_SECRET@L20"
+    },
+    {
+      "rel": "src/app/api/internal/flush-buffer/route.ts",
+      "prioridade": "P4",
+      "verdict": "PROTEGIDA_EM_HANDLER",
+      "markers": "SEGREDO_CRON@L7, ENV_SECRET@L6"
+    },
+    {
+      "rel": "src/app/api/telemetry/landing/route.ts",
+      "prioridade": "P4",
+      "verdict": "PROTEGIDA_EM_HANDLER",
+      "markers": "ENV_SECRET@L52"
+    },
+    {
+      "rel": "src/app/api/zcc/github/expiry-check/route.ts",
+      "prioridade": "P4",
+      "verdict": "PROTEGIDA_EM_HANDLER",
+      "markers": "SEGREDO_CRON@L19, TOKEN_NA_URL@L18, ENV_SECRET@L19"
+    }
+  ]
+}

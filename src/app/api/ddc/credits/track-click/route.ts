@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { registerClick } from '@/lib/credits/engine';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,11 @@ function getClientIp(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'ddc.credits.track-click', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.credits.track-click', what: 'ddc.credits.track-click.entry', resource: 'api', result: 'ALLOW' });
   try {
     const body = await req.json().catch(() => ({}));
     const code = body?.code as string;

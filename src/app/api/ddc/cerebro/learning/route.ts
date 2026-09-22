@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDDCTenantId } from '@/lib/ddc/auth-utils';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 import {
   getLearningTelemetry,
   getBrainAge,
@@ -23,6 +24,11 @@ import {
 export const dynamic = 'force-dynamic';
 
 export async function GET(_req: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(_req, 'ddc.cerebro.learning', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.cerebro.learning', what: 'ddc.cerebro.learning.entry', resource: 'api', result: 'ALLOW' });
   try {
     const tenantId = await requireDDCTenantId();
 

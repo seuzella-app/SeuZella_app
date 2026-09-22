@@ -6,8 +6,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getScrapingEngine, extractPropertyCode } from '@/lib/scraping/PropertyScrapingEngine';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function POST(request: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'scraping', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:scraping', what: 'scraping.entry', resource: 'api', result: 'ALLOW' });
   try {
     const body = await request.json();
     const { input } = body as { input: string };

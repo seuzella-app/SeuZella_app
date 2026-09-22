@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email-sender';
 import { PlanTier } from '@/lib/plan-features';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 /**
  * POST `/api/zelador-suporte/ticket`
  * Envia um chamado de suporte/escalonamento do Zelador Zélla para o e-mail corporativo.
  */
 export async function POST(request: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'zelador-suporte.ticket', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zelador-suporte.ticket', what: 'zelador-suporte.ticket.entry', resource: 'api', result: 'ALLOW' });
   try {
     const body = await request.json();
     const { 

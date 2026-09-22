@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthSession } from '@/lib/auth-guard';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 /**
  * POST /api/leads/seed
@@ -7,6 +8,11 @@ import { getAuthSession } from '@/lib/auth-guard';
  * controlled server-side seed workflow, never a public HTTP route.
  */
 export async function POST(req: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'leads.seed', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:leads.seed', what: 'leads.seed.entry', resource: 'api', result: 'ALLOW' });
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'NOT_AVAILABLE_IN_PRODUCTION' }, { status: 404 });
   }

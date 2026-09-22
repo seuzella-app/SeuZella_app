@@ -1,0 +1,46 @@
+   [DEFERRED] src/app/api/bim-vision/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/channel-manager/route.ts
+   [WIRED] src/app/api/ddc/cerebro/feedback/route.ts
+   [WIRED] src/app/api/ddc/credits/track-click/route.ts
+   [WIRED] src/app/api/ddc/linkinbio/activate-standalone/route.ts
+   [WIRED] src/app/api/ddc/linkinbio/purchase-addon/route.ts
+   [WIRED] src/app/api/ddc/linkinbio/route.ts
+   [WIRED] src/app/api/ddc/notifications/v2/route.ts
+   [WIRED] src/app/api/ddc/partner-program/waitlist/route.ts
+   [WIRED] src/app/api/debug-agent/github/route.ts
+   [WIRED] src/app/api/debug-agent/knowledge/route.ts
+   [WIRED] src/app/api/debug-agent/route.ts
+   [WIRED] src/app/api/diagnose/route.ts
+   [WIRED] src/app/api/leads/seed/route.ts
+   [DEFERRED] src/app/api/pinns-clifford/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [DEFERRED] src/app/api/proxy/[...path]/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/pulse/io/route.ts
+   [WIRED] src/app/api/scraping/route.ts
+   [WIRED] src/app/api/telemetry/ingest/route.ts
+   [WIRED] src/app/api/v1/loops/route.ts
+   [DEFERRED] src/app/api/webgl-bridge/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/zcc/digital-twin/route.ts
+   [WIRED] src/app/api/zcc/dspy-compiler/route.ts
+   [WIRED] src/app/api/zcc/national-simulator/compare/route.ts
+   [WIRED] src/app/api/zcc/national-simulator/route.ts
+   [WIRED] src/app/api/zcc/simulation-lab/route.ts
+   [WIRED] src/app/api/zelador-suporte/consultoria/route.ts
+   [WIRED] src/app/api/zelador-suporte/ticket/route.ts
+   [WIRED] src/app/api/zella/simulate/route.ts
+   [WIRED] src/app/api/ddc/cerebro/learning/route.ts
+   [DEFERRED] src/app/api/ddc/runtime-version/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [DEFERRED] src/app/api/hunt-stream/route.ts — bloco de imports nao encontrado
+   [DEFERRED] src/app/api/leads/analytics/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [DEFERRED] src/app/api/zcc/adapters/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [DEFERRED] src/app/api/zcc/brain/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/zcc/cerebro/stream/route.ts
+   [WIRED] src/app/api/zcc/cognitive-bus/route.ts
+   [WIRED] src/app/api/zcc/cognitive-memory/route.ts
+   [DEFERRED] src/app/api/zcc/cortex/growth/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [DEFERRED] src/app/api/zcc/cortex/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [WIRED] src/app/api/zcc/infra/scaling-ruler/route.ts
+   [DEFERRED] src/app/api/zcc/personas/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   [DEFERRED] src/app/api/zcc/synthetic-brazil/route.ts — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+
+   resumo: {"DEFERRED":13,"WIRED":30}
+   itens WIRE: 43 (43 arquivos únicos) | P3 documentadas: 7 (sem código) | P4 intactas: 6

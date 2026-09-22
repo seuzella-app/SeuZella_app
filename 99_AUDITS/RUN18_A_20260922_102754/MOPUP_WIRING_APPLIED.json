@@ -1,0 +1,849 @@
+{
+  "schema": "RUN18_MOPUP_WIRING_APPLIED/v1",
+  "generatedAt": "2026-09-22T13:28:27.892Z",
+  "basedOnDecisions": "MOPUP_DECISIONS.json",
+  "run14TestPatched": true,
+  "run14TestAlreadyPatched": false,
+  "registryPrevVersion": "RUN14-A",
+  "registryPath": "src/lib/infra/wiring-registry.ts",
+  "wireItems": 43,
+  "uniqueFiles": 43,
+  "files": {
+    "src/app/api/bim-vision/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/channel-manager/route.ts": {
+      "status": "WIRED",
+      "routeId": "channel-manager",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 5,
+      "param": "request"
+    },
+    "src/app/api/ddc/cerebro/feedback/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.cerebro.feedback",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 15,
+      "param": "req"
+    },
+    "src/app/api/ddc/credits/track-click/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.credits.track-click",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 14,
+      "param": "req"
+    },
+    "src/app/api/ddc/linkinbio/activate-standalone/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.linkinbio.activate-standalone",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 17,
+      "param": "req"
+    },
+    "src/app/api/ddc/linkinbio/purchase-addon/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.linkinbio.purchase-addon",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 18,
+      "param": "req"
+    },
+    "src/app/api/ddc/linkinbio/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.linkinbio",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 60,
+      "param": "req"
+    },
+    "src/app/api/ddc/notifications/v2/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.notifications.v2",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 45,
+      "param": "request"
+    },
+    "src/app/api/ddc/partner-program/waitlist/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.partner-program.waitlist",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 5,
+      "param": "request"
+    },
+    "src/app/api/debug-agent/github/route.ts": {
+      "status": "WIRED",
+      "routeId": "debug-agent.github",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 5,
+      "param": "request"
+    },
+    "src/app/api/debug-agent/knowledge/route.ts": {
+      "status": "WIRED",
+      "routeId": "debug-agent.knowledge",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 6,
+      "param": "request"
+    },
+    "src/app/api/debug-agent/route.ts": {
+      "status": "WIRED",
+      "routeId": "debug-agent",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 11,
+      "param": "request"
+    },
+    "src/app/api/diagnose/route.ts": {
+      "status": "WIRED",
+      "routeId": "diagnose",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 33,
+      "param": "request"
+    },
+    "src/app/api/leads/seed/route.ts": {
+      "status": "WIRED",
+      "routeId": "leads.seed",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 9,
+      "param": "req"
+    },
+    "src/app/api/pinns-clifford/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/proxy/[...path]/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/pulse/io/route.ts": {
+      "status": "WIRED",
+      "routeId": "pulse.io",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 11,
+      "param": "request"
+    },
+    "src/app/api/scraping/route.ts": {
+      "status": "WIRED",
+      "routeId": "scraping",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 10,
+      "param": "request"
+    },
+    "src/app/api/telemetry/ingest/route.ts": {
+      "status": "WIRED",
+      "routeId": "telemetry.ingest",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 42,
+      "param": "request"
+    },
+    "src/app/api/v1/loops/route.ts": {
+      "status": "WIRED",
+      "routeId": "v1.loops",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 12,
+      "param": "request"
+    },
+    "src/app/api/webgl-bridge/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/digital-twin/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.digital-twin",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 19,
+      "param": "req"
+    },
+    "src/app/api/zcc/dspy-compiler/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.dspy-compiler",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 39,
+      "param": "request"
+    },
+    "src/app/api/zcc/national-simulator/compare/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.national-simulator.compare",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 9,
+      "param": "req"
+    },
+    "src/app/api/zcc/national-simulator/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.national-simulator",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 23,
+      "param": "req"
+    },
+    "src/app/api/zcc/simulation-lab/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.simulation-lab",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 16,
+      "param": "req"
+    },
+    "src/app/api/zelador-suporte/consultoria/route.ts": {
+      "status": "WIRED",
+      "routeId": "zelador-suporte.consultoria",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 9,
+      "param": "request"
+    },
+    "src/app/api/zelador-suporte/ticket/route.ts": {
+      "status": "WIRED",
+      "routeId": "zelador-suporte.ticket",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 9,
+      "param": "request"
+    },
+    "src/app/api/zella/simulate/route.ts": {
+      "status": "WIRED",
+      "routeId": "zella.simulate",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "anchorLine": 216,
+      "param": "request"
+    },
+    "src/app/api/ddc/cerebro/learning/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.cerebro.learning",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "anchorLine": 25,
+      "param": "_req"
+    },
+    "src/app/api/ddc/runtime-version/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/hunt-stream/route.ts": {
+      "status": "DEFERRED",
+      "reason": "bloco de imports nao encontrado"
+    },
+    "src/app/api/leads/analytics/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/adapters/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/brain/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/cerebro/stream/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.cerebro.stream",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "anchorLine": 53,
+      "param": "request"
+    },
+    "src/app/api/zcc/cognitive-bus/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.cognitive-bus",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "anchorLine": 9,
+      "param": "req"
+    },
+    "src/app/api/zcc/cognitive-memory/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.cognitive-memory",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "anchorLine": 9,
+      "param": "req"
+    },
+    "src/app/api/zcc/cortex/growth/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/cortex/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/infra/scaling-ruler/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.infra.scaling-ruler",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "anchorLine": 5,
+      "param": "req"
+    },
+    "src/app/api/zcc/personas/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    },
+    "src/app/api/zcc/synthetic-brazil/route.ts": {
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt"
+    }
+  },
+  "items": [
+    {
+      "rel": "src/app/api/bim-vision/route.ts",
+      "prioridade": "P1",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/channel-manager/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "channel-manager",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/cerebro/feedback/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.cerebro.feedback",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/credits/track-click/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.credits.track-click",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/linkinbio/activate-standalone/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.linkinbio.activate-standalone",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/linkinbio/purchase-addon/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.linkinbio.purchase-addon",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/linkinbio/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.linkinbio",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/notifications/v2/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.notifications.v2",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/partner-program/waitlist/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.partner-program.waitlist",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/debug-agent/github/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "debug-agent.github",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/debug-agent/knowledge/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "debug-agent.knowledge",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/debug-agent/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "debug-agent",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/diagnose/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "diagnose",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/leads/seed/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "leads.seed",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/pinns-clifford/route.ts",
+      "prioridade": "P1",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/proxy/[...path]/route.ts",
+      "prioridade": "P1",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/pulse/io/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "pulse.io",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/scraping/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "scraping",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/telemetry/ingest/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "telemetry.ingest",
+      "policy": {
+        "points": 120,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/v1/loops/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "v1.loops",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/webgl-bridge/route.ts",
+      "prioridade": "P1",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/zcc/digital-twin/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.digital-twin",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zcc/dspy-compiler/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.dspy-compiler",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zcc/national-simulator/compare/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.national-simulator.compare",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zcc/national-simulator/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.national-simulator",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zcc/simulation-lab/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.simulation-lab",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zelador-suporte/consultoria/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zelador-suporte.consultoria",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zelador-suporte/ticket/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zelador-suporte.ticket",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zella/simulate/route.ts",
+      "prioridade": "P1",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zella.simulate",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/cerebro/learning/route.ts",
+      "prioridade": "P2",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "ddc.cerebro.learning",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/ddc/runtime-version/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/hunt-stream/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "bloco de imports nao encontrado",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/leads/analytics/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/zcc/adapters/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/zcc/brain/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/zcc/cerebro/stream/route.ts",
+      "prioridade": "P2",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.cerebro.stream",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zcc/cognitive-bus/route.ts",
+      "prioridade": "P2",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.cognitive-bus",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zcc/cognitive-memory/route.ts",
+      "prioridade": "P2",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.cognitive-memory",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zcc/cortex/growth/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/zcc/cortex/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/zcc/infra/scaling-ruler/route.ts",
+      "prioridade": "P2",
+      "status": "WIRED",
+      "reason": null,
+      "routeId": "zcc.infra.scaling-ruler",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      }
+    },
+    {
+      "rel": "src/app/api/zcc/personas/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    },
+    {
+      "rel": "src/app/api/zcc/synthetic-brazil/route.ts",
+      "prioridade": "P2",
+      "status": "DEFERRED",
+      "reason": "ancora do handler nao encontrada — ver RECON_DEFERRED.txt",
+      "routeId": null,
+      "policy": null
+    }
+  ],
+  "tscRounds": 1,
+  "documentP3": [
+    "src/app/api/ddc/partner-program/status/route.ts",
+    "src/app/api/guide/[slug]/route.ts",
+    "src/app/api/ical/[syncToken]/route.ts",
+    "src/app/api/lgpd/dpa/route.ts",
+    "src/app/api/push/vapid-public-key/route.ts",
+    "src/app/api/route.ts",
+    "src/app/api/zcc/health/route.ts"
+  ],
+  "nochangeP4": [
+    "src/app/api/alexa/smart-home/route.ts",
+    "src/app/api/integrations/ical/[roomId]/route.ts",
+    "src/app/api/integrations/sync/route.ts",
+    "src/app/api/internal/flush-buffer/route.ts",
+    "src/app/api/telemetry/landing/route.ts",
+    "src/app/api/zcc/github/expiry-check/route.ts"
+  ]
+}

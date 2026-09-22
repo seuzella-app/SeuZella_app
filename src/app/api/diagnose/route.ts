@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withSecurity } from '@/lib/security/api-shield';
 import { getAuthSession } from '@/lib/auth-guard';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 interface RevenueDiagnosis {
   hotelName: string; idp: number; idpLabel: string;
@@ -31,6 +32,11 @@ function generateDiagnosis(lead: { empresa: string; decisor: string; validationS
 }
 
 async function postHandler(request: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'diagnose', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:diagnose', what: 'diagnose.entry', resource: 'api', result: 'ALLOW' });
   const { session, errorResponse } = await getAuthSession(request);
   if (errorResponse) return errorResponse;
   try {

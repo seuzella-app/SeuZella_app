@@ -5,8 +5,14 @@
 
 import { NextResponse } from 'next/server';
 import { zcb } from '@/domain/zcc';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function GET(req: Request) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'zcc.cognitive-bus', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.cognitive-bus', what: 'zcc.cognitive-bus.entry', resource: 'api', result: 'ALLOW' });
   const url = new URL(req.url);
   const prefix = url.searchParams.get('prefix') ?? undefined;
   const source = url.searchParams.get('source') as any;

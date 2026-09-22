@@ -1,0 +1,19 @@
+================================================================
+ SEUZELLA — RUN18 MOP-UP: GAPS REGISTRADOS (decisão do dono / HYGIENE)
+================================================================
+1) DUAS CAMADAS DE GUARD: ambas=0 — NENHUMA rota tem withApiGuard E W2
+   simultaneamente (sóAG=19, sóW2=52, nenhuma=209, menos 40 SKIP).
+   Recomendação: na HYGIENE, estudar unificação (um só contrato de guard).
+2) MIDDLEWARE auth=false: o middleware NÃO autentica (headers/redirect).
+   A proteção real vive nos handlers/guards — manter assim e documentar.
+3) cron 17/34 com guard — as 17 restantes precisam de withCronGuard/
+   CRON_SECRET (FRENTE05) na HYGIENE, rota a rota, com o dono.
+4) webhook 6/9 com guard/assinatura — as 3 restantes idem.
+5) P1 INTERNAS (debug-agent x3, diagnose, leads/seed, scraping, proxy,
+   webgl-bridge, pinns-clifford): ganham rate-limit+audit NESTA onda,
+   mas recomendamos SEGREDO DE AMBIENTE ou admin-guard na HYGIENE se o
+   dono confirmar que são ferramentas internas (não quebramos sem aval).
+6) proxy/[...path] é SSRF-prone por natureza: rate-limit NÃO elimina o
+   risco — pedir allowlist de destinos ao dono na HYGIENE.
+7) providers reais: GLM glm-4.7-flash/glm-5.2 | Kimi kimi-k2-6 — snapshot
+   contava 5.3/k3 (versões não usadas). JEV=0 = gap de PLANO, não bug.

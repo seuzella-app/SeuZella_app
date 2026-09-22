@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ZeladorSuporteBrain } from '@/lib/cerebro/zelador-suporte-brain';
 import { PlanTier } from '@/lib/plan-features';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 /**
  * POST `/api/zelador-suporte/consultoria`
  * Gerador de Relatório Consultivo VIP Zélla em 1 Clique (Exclusivo Plano MAX).
  */
 export async function POST(request: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'zelador-suporte.consultoria', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zelador-suporte.consultoria', what: 'zelador-suporte.consultoria.entry', resource: 'api', result: 'ALLOW' });
   try {
     const body = await request.json();
     const { propertyName = 'Minha Hospedagem', userName = 'Anfitrião', tier = 'max' } = body;

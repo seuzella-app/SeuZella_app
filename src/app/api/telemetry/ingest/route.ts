@@ -10,6 +10,7 @@ import { addEvent } from '@/lib/telemetry-store';
 import { VALID_EVENT_TYPES } from '@/lib/telemetry-types';
 import { requireDDCTenantId } from '@/lib/ddc/auth-utils';
 import type { TelemetryEventType, TelemetryIngestRequest } from '@/lib/telemetry-types';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 const tenantCache = new Map<string, { exists: boolean; checkedAt: number }>();
 const TENANT_CACHE_TTL = 5 * 60 * 1000;
@@ -40,6 +41,11 @@ function cleanupTenantCache() {
 }
 
 export async function POST(request: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 120 req/1min.
+  const rlDeny = guardRequest(request, 'telemetry.ingest', { points: 120, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:telemetry.ingest', what: 'telemetry.ingest.entry', resource: 'api', result: 'ALLOW' });
   try {
     const tenantId = await requireDDCTenantId();
     const declaredLength = Number(request.headers.get('content-length') || '0');

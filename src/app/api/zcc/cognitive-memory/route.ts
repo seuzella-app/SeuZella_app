@@ -5,8 +5,14 @@
 
 import { NextResponse } from 'next/server';
 import { sharedMemory } from '@/domain/zcc';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export async function GET(req: Request) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'zcc.cognitive-memory', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.cognitive-memory', what: 'zcc.cognitive-memory.entry', resource: 'api', result: 'ALLOW' });
   const url = new URL(req.url);
   const type = url.searchParams.get('type') ?? undefined;
   const publisher = url.searchParams.get('publisher') as any;

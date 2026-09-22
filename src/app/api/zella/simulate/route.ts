@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 // ══
 // ZELLA SIMULATOR — Message Bundler + One-Shot Resolution
@@ -214,6 +215,11 @@ function generateSingleResponse(message: string, propertyData: SimulateRequest['
 // ── POST Handler 
 
 export async function POST(request: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'zella.simulate', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zella.simulate', what: 'zella.simulate.entry', resource: 'api', result: 'ALLOW' });
   let body: SimulateRequest;
   try {
     body = await request.json();

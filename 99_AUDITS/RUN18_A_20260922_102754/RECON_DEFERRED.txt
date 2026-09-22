@@ -1,0 +1,801 @@
+================================================================
+ SEUZELLA — RUN18 RECON_DEFERRED (não fiados nesta onda — próxima onda)
+================================================================
+
+>>> src/app/api/bim-vision/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| /**
+   2|  * ZEHLA — BIM Vision Biologica Extraction API Route
+   3|  *
+   4|  * POST /api/bim-vision
+   5|  * Extracts structural and spatial data from BIM models (IFC/RVT)
+   6|  * conforming to ISO 19650 CDE specifications.
+   7|  *
+   8|  * Security: Protected by Zero Trust API Shield (rate limit, sanitization, payload size).
+   9|  */
+  10| 
+  11| import { NextResponse } from 'next/server';
+  12| import { withSecurity } from '@/lib/security/api-shield';
+  13| import { extractBIMVision, extractTelemetry, type BIMExtractionInput, type BIMFormat } from '@/lib/bim-vision';
+  14| 
+  15| export const POST = withSecurity(
+  16|   async (request, ctx) => {
+  17|     const body = ctx.sanitizedBody;
+  18| 
+  19|     if (!body?.tenantId || !body?.traceId) {
+  20|       return NextResponse.json(
+  21|         {
+  22|           error: 'VALIDATION_ERROR',
+  23|           message: 'Campos obrigatorios: tenantId, traceId, container, format',
+  24|           requestId: ctx.requestId,
+  25|         },
+  26|         { status: 400 }
+  27|       );
+  28|     }
+  29| 
+  30|     const validFormats: string[] = ['IFC4', 'IFC4x3', 'RVT', 'IFC2x3'];
+  31|     const format = body?.format as string | undefined;
+  32|     if (!format || !validFormats.includes(format)) {
+  33|       return NextResponse.json(
+  34|         {
+  35|           error: 'VALIDATION_ERROR',
+  36|           message: `format deve ser um de: ${validFormats.join(', ')}`,
+  37|           requestId: ctx.requestId,
+  38|         },
+  39|         { status: 400 }
+  40|       );
+  41|     }
+  42| 
+  43|     if (!body?.container) {
+  44|       return NextResponse.json(
+  45|         {
+  46|           error: 'VALIDATION_ERROR',
+  47|           message: 'container (ISO 19650) e obrigatorio',
+  48|           requestId: ctx.requestId,
+  49|         },
+  50|         { status: 400 }
+  51|       );
+  52|     }
+  53| 
+  54|     try {
+  55|       const pinnsData = body?.spatialDataFromPINNs as Record<string, unknown> | undefined;
+  56|       const pinnsCoords = pinnsData?.coordinates as unknown[] | undefined;
+  57|       const pinnsIntegrated = !!pinnsCoords?.length;
+  58| 
+  59|       const result = await extractBIMVision({
+  60|         tenantId: body.tenantId as string,
+  61|         traceId: body.traceId as string,
+  62|         container: body.container as BIMExtractionInput['container'],
+  63|         format: format as BIMFormat,
+  64|         fileContent: body.fileContent as string | undefined,
+  65|         spatialDataFromPINNs: body.spatialDataFromPINNs as BIMExtractionInput['spatialDataFromPINNs'],
+  66|       });
+  67| 
+  68|       const telemetry = extractTelemetry(result, pinnsIntegrated);
+  69| 
+  70|       return NextResponse.json({
+  71|         success: true,
+  72|         requestId: ctx.requestId,
+  73|         data: result,
+  74|         telemetry,
+  75|       });
+  76|     } catch (error) {
+  77|       const message = error instanceof Error ? error.message : 'Erro desconhecido';
+  78| 
+  79|       if (message.includes('ISO19650')) {
+  80|         return NextResponse.json(
+  81|           { error: 'BIM_ISO19650_VIOLATION', message, requestId: ctx.requestId },
+  82|           { status: 422 }
+  83|         );
+  84|       }
+  85| 
+  86|       return NextResponse.json(
+  87|         { error: 'BIM_EXTRACTION_ERROR', message, requestId: ctx.requestId },
+  88|         { status: 500 }
+  89|       );
+  90|     }
+(total: 96 linhas)
+
+>>> src/app/api/pinns-clifford/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| /**
+   2|  * ZEHLA — PINNs / Clifford Algebra Processing API Route
+   3|  *
+   4|  * POST /api/pinns-clifford
+   5|  * Processes spatial data through Physics-Informed Neural Networks
+   6|  * with Clifford Algebra geometric layer.
+   7|  *
+   8|  * Security: Protected by Zero Trust API Shield (rate limit, sanitization, payload size).
+   9|  */
+  10| 
+  11| import { NextResponse } from 'next/server';
+  12| import { withSecurity } from '@/lib/security/api-shield';
+  13| import { processWithPINNsClifford, extractTelemetry, type PINNsProcessingInput } from '@/lib/pinns-clifford';
+  14| 
+  15| export const POST = withSecurity(
+  16|   async (request, ctx) => {
+  17|     const body = ctx.sanitizedBody;
+  18| 
+  19|     if (!body?.tenantId || !body?.traceId) {
+  20|       return NextResponse.json(
+  21|         {
+  22|           error: 'VALIDATION_ERROR',
+  23|           message: 'Campos obrigatorios: tenantId, traceId, spatialData.coordinates',
+  24|           requestId: ctx.requestId,
+  25|         },
+  26|         { status: 400 }
+  27|       );
+  28|     }
+  29| 
+  30|     const spatialData = body?.spatialData as Record<string, unknown> | undefined;
+  31|     if (!spatialData?.coordinates || !(spatialData.coordinates as unknown[]).length) {
+  32|       return NextResponse.json(
+  33|         {
+  34|           error: 'VALIDATION_ERROR',
+  35|           message: 'spatialData.coordinates deve conter ao menos um ponto [x, y, z]',
+  36|           requestId: ctx.requestId,
+  37|         },
+  38|         { status: 400 }
+  39|       );
+  40|     }
+  41| 
+  42|     const coords = spatialData!.coordinates as number[][];
+  43|     for (const coord of coords) {
+  44|       if (!Array.isArray(coord) || coord.length < 3 || coord.some(c => typeof c !== 'number')) {
+  45|         return NextResponse.json(
+  46|           {
+  47|             error: 'VALIDATION_ERROR',
+  48|             message: 'Cada coordenada deve ser [x, y, z] com valores numericos',
+  49|             requestId: ctx.requestId,
+  50|           },
+  51|           { status: 400 }
+  52|         );
+  53|       }
+  54|     }
+  55| 
+  56|     try {
+  57|       const input: PINNsProcessingInput = {
+  58|         tenantId: body.tenantId as string,
+  59|         traceId: body.traceId as string,
+  60|         spatialData: {
+  61|           coordinates: coords,
+  62|           properties: spatialData.properties as Record<string, number[]> | undefined,
+  63|         },
+  64|         physicsConfig: body.physicsConfig as PINNsProcessingInput['physicsConfig'],
+  65|       };
+  66| 
+  67|       const result = await processWithPINNsClifford(input);
+  68| 
+  69|       const telemetry = extractTelemetry(result);
+  70| 
+  71|       return NextResponse.json({
+  72|         success: true,
+  73|         requestId: ctx.requestId,
+  74|         data: result,
+  75|         telemetry,
+  76|       });
+  77|     } catch (error) {
+  78|       const message = error instanceof Error ? error.message : 'Erro desconhecido';
+  79|       return NextResponse.json(
+  80|         {
+  81|           error: 'PINNS_PROCESSING_ERROR',
+  82|           message,
+  83|           requestId: ctx.requestId,
+  84|         },
+  85|         { status: 500 }
+  86|       );
+  87|     }
+  88|   },
+  89|   {
+  90|     maxPayloadBytes: 2_000_000, // 2MB for coordinate data
+(total: 93 linhas)
+
+>>> src/app/api/proxy/[...path]/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| 
+   3| /**
+   4|  * ZEHLA — Local Dev Proxy (SSRF-protected)
+   5|  *
+   6|  * SECURITY: This proxy is DISABLED in production.
+   7|  * In development, it forwards requests to a local FastAPI backend on port 8000.
+   8|  * In production, all backend communication must go through direct API calls.
+   9|  *
+  10|  * ALLOWED_PATHS restricts which backend endpoints can be proxied even in dev.
+  11|  */
+  12| 
+  13| const ALLOWED_PATHS: string[] = [
+  14|   // Add specific dev-only paths here if needed
+  15|   // Example: 'health', 'metrics'
+  16| ];
+  17| 
+  18| const PROXY_ENABLED = process.env.NODE_ENV !== 'production' && process.env.ENABLE_DEV_PROXY === 'true';
+  19| 
+  20| function isPathAllowed(urlPath: string): boolean {
+  21|   if (ALLOWED_PATHS.length === 0) return true; // Dev mode: allow all when explicitly enabled
+  22|   return ALLOWED_PATHS.some((p) => urlPath.startsWith(p));
+  23| }
+  24| 
+  25| export async function GET(
+  26|   request: NextRequest,
+  27|   { params }: { params: Promise<{ path: string[] }> }
+  28| ) {
+  29|   if (!PROXY_ENABLED) {
+  30|     return NextResponse.json({ error: 'Proxy disabled in this environment.' }, { status: 403 });
+  31|   }
+  32| 
+  33|   const { path } = await params;
+  34|   const urlPath = path.join('/');
+  35| 
+  36|   if (!isPathAllowed(urlPath)) {
+  37|     return NextResponse.json({ error: 'Path not allowed.' }, { status: 403 });
+  38|   }
+  39| 
+  40|   const searchParams = request.nextUrl.searchParams.toString();
+  41|   const queryString = searchParams ? `?${searchParams}` : '';
+  42| 
+  43|   // Only allow localhost targets — prevent SSRF
+  44|   const targetUrl = `http://127.0.0.1:8000/${urlPath}${queryString}`;
+  45| 
+  46|   try {
+  47|     const response = await fetch(targetUrl, {
+  48|       headers: {
+  49|         'Content-Type': 'application/json',
+  50|       },
+  51|     });
+  52| 
+  53|     if (!response.ok) {
+  54|       return NextResponse.json(
+  55|         { error: `Upstream error: ${response.status}` },
+  56|         { status: response.status }
+  57|       );
+  58|     }
+  59| 
+  60|     const data = await response.json();
+  61|     return NextResponse.json(data);
+  62|   } catch {
+  63|     return NextResponse.json(
+  64|       { error: 'Back-end indisponivel na porta 8000.' },
+  65|       { status: 502 }
+  66|     );
+  67|   }
+  68| }
+  69| 
+  70| export async function POST(
+  71|   request: NextRequest,
+  72|   { params }: { params: Promise<{ path: string[] }> }
+  73| ) {
+  74|   if (!PROXY_ENABLED) {
+  75|     return NextResponse.json({ error: 'Proxy disabled in this environment.' }, { status: 403 });
+  76|   }
+  77| 
+  78|   const { path } = await params;
+  79|   const urlPath = path.join('/');
+  80| 
+  81|   if (!isPathAllowed(urlPath)) {
+  82|     return NextResponse.json({ error: 'Path not allowed.' }, { status: 403 });
+  83|   }
+  84| 
+  85|   const searchParams = request.nextUrl.searchParams.toString();
+  86|   const queryString = searchParams ? `?${searchParams}` : '';
+  87| 
+  88|   const targetUrl = `http://127.0.0.1:8000/${urlPath}${queryString}`;
+  89| 
+  90|   try {
+(total: 136 linhas)
+
+>>> src/app/api/webgl-bridge/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| /**
+   2|  * ZEHLA — WebGL Bridge 3D Rendering API Route
+   3|  *
+   4|  * POST /api/webgl-bridge
+   5|  * Bridges BIM Vision extraction data to WebGL 3D scene representation
+   6|  * with PBR materials, scene graph, and volumetric mesh data.
+   7|  *
+   8|  * Security: Protected by Zero Trust API Shield (rate limit, sanitization, payload size).
+   9|  */
+  10| 
+  11| import { NextResponse } from 'next/server';
+  12| import { withSecurity } from '@/lib/security/api-shield';
+  13| import { bridgeToWebGL, extractTelemetry, type WebGLBridgeInput } from '@/lib/webgl-bridge';
+  14| import type { BIMExtractionResult } from '@/lib/bim-vision';
+  15| 
+  16| export const POST = withSecurity(
+  17|   async (request, ctx) => {
+  18|     const body = ctx.sanitizedBody;
+  19| 
+  20|     if (!body?.tenantId || !body?.traceId) {
+  21|       return NextResponse.json(
+  22|         {
+  23|           error: 'VALIDATION_ERROR',
+  24|           message: 'Campos obrigatorios: tenantId, traceId, bimResult',
+  25|           requestId: ctx.requestId,
+  26|         },
+  27|         { status: 400 }
+  28|       );
+  29|     }
+  30| 
+  31|     if (!body?.bimResult) {
+  32|       return NextResponse.json(
+  33|         {
+  34|           error: 'VALIDATION_ERROR',
+  35|           message: 'bimResult (saida do modulo BIM Vision) e obrigatorio',
+  36|           requestId: ctx.requestId,
+  37|         },
+  38|         { status: 400 }
+  39|       );
+  40|     }
+  41| 
+  42|     // Validate bimResult has required structure
+  43|     const bim = body.bimResult as Record<string, unknown>;
+  44|     const bimElements = bim.elements as unknown[] | undefined;
+  45|     if (!bimElements?.length || !bim.projectExtent || !bim.spatialZones) {
+  46|       return NextResponse.json(
+  47|         {
+  48|           error: 'VALIDATION_ERROR',
+  49|           message: 'bimResult deve conter elements, projectExtent e spatialZones',
+  50|           requestId: ctx.requestId,
+  51|         },
+  52|         { status: 400 }
+  53|       );
+  54|     }
+  55| 
+  56|     try {
+  57|       const input: WebGLBridgeInput = {
+  58|         tenantId: body.tenantId as string,
+  59|         traceId: body.traceId as string,
+  60|         bimResult: bim as unknown as BIMExtractionResult,
+  61|         renderConfig: body.renderConfig as WebGLBridgeInput['renderConfig'],
+  62|       };
+  63| 
+  64|       const result = await bridgeToWebGL(input);
+  65| 
+  66|       const telemetry = extractTelemetry(result);
+  67| 
+  68|       return NextResponse.json({
+  69|         success: true,
+  70|         requestId: ctx.requestId,
+  71|         data: result,
+  72|         telemetry,
+  73|       });
+  74|     } catch (error) {
+  75|       const message = error instanceof Error ? error.message : 'Erro desconhecido';
+  76|       return NextResponse.json(
+  77|         { error: 'WEBGL_BRIDGE_ERROR', message, requestId: ctx.requestId },
+  78|         { status: 500 }
+  79|       );
+  80|     }
+  81|   },
+  82|   {
+  83|     maxPayloadBytes: 3_000_000, // 3MB for BIM data + mesh output
+  84|     routeLabel: 'WEBGL_BRIDGE',
+  85|   }
+  86| );
+(total: 86 linhas)
+
+>>> src/app/api/ddc/runtime-version/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| import { NextResponse } from 'next/server';
+   2| 
+   3| export const dynamic = 'force-dynamic';
+   4| export const revalidate = 0;
+   5| export const fetchCache = 'force-no-store';
+   6| 
+   7| /**
+   8|  * Runtime build identity used by the DDC iPad stale-shell guard.
+   9|  *
+  10|  * This endpoint is deliberately outside the Service Worker cache allowlist
+  11|  * and explicitly returns no-store so an installed iPad PWA can prove which
+  12|  * deployment is currently serving production.
+  13|  */
+  14| export async function GET() {
+  15|   const buildId =
+  16|     process.env.VERCEL_GIT_COMMIT_SHA ||
+  17|     process.env.GIT_COMMIT_SHA ||
+  18|     process.env.npm_package_version ||
+  19|     'development';
+  20| 
+  21|   return NextResponse.json(
+  22|     { buildId },
+  23|     {
+  24|       headers: {
+  25|         'Cache-Control': 'private, no-store, max-age=0, must-revalidate',
+  26|         'CDN-Cache-Control': 'no-store',
+  27|         'Vercel-CDN-Cache-Control': 'no-store',
+  28|       },
+  29|     },
+  30|   );
+  31| }
+  32| 
+(total: 32 linhas)
+
+>>> src/app/api/hunt-stream/route.ts — motivo: bloco de imports nao encontrado
+   1| export const dynamic = 'force-dynamic';
+   2| 
+   3| const HUNT_STEPS = [
+   4|   {
+   5|     event: 'search_started',
+   6|     message: (target: string) => `Buscando domínios registrados para "${target}"...`,
+   7|     progress: 10,
+   8|   },
+   9|   {
+  10|     event: 'social_scan',
+  11|     message: (target: string) => `Escaneando perfis sociais de "${target}" no Instagram e Google...`,
+  12|     progress: 25,
+  13|   },
+  14|   {
+  15|     event: 'contact_extraction',
+  16|     message: (target: string) => `Extraindo contatos e decisores de "${target}"...`,
+  17|     progress: 40,
+  18|   },
+  19|   {
+  20|     event: 'enrichment',
+  21|     message: (target: string) => `Enriquecendo dados com informações de mercado para "${target}"...`,
+  22|     progress: 55,
+  23|   },
+  24|   {
+  25|     event: 'scoring',
+  26|     message: (_target: string) => 'Calculando score de validação para leads encontrados...',
+  27|     progress: 70,
+  28|   },
+  29|   {
+  30|     event: 'leads_generated',
+  31|     message: (_target: string) => 'Leads gerados e armazenados com sucesso!',
+  32|     progress: 90,
+  33|   },
+  34|   {
+  35|     event: 'hunt_complete',
+  36|     message: (target: string) => `Prospecção de "${target}" finalizada com sucesso.`,
+  37|     progress: 100,
+  38|   },
+  39| ];
+  40| 
+  41| function sleep(ms: number): Promise<void> {
+  42|   return new Promise((resolve) => setTimeout(resolve, ms));
+  43| }
+  44| 
+  45| function formatSSE(event: string, data: unknown): string {
+  46|   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  47| }
+  48| 
+  49| export async function GET(request: Request) {
+  50|   const { searchParams } = new URL(request.url);
+  51|   const target = searchParams.get('target') || 'pousada-desconhecida';
+  52| 
+  53|   const encoder = new TextEncoder();
+  54| 
+  55|   const stream = new ReadableStream({
+  56|     async start(controller) {
+  57|       try {
+  58|         for (let i = 0; i < HUNT_STEPS.length; i++) {
+  59|           const step = HUNT_STEPS[i];
+  60| 
+  61|           const payload = {
+  62|             event: step.event,
+  63|             message: step.message(target),
+  64|             timestamp: Date.now(),
+  65|             progress: step.progress,
+  66|             step: i + 1,
+  67|             totalSteps: HUNT_STEPS.length,
+  68|           };
+  69| 
+  70|           controller.enqueue(encoder.encode(formatSSE('hunt_progress', payload)));
+  71|           await sleep(800 + Math.random() * 600);
+  72|         }
+  73| 
+  74|         // Send a final done event
+  75|         const donePayload = {
+  76|           event: 'done',
+  77|           message: `Prospecção concluída para "${target}".`,
+  78|           timestamp: Date.now(),
+  79|           progress: 100,
+  80|         };
+  81|         controller.enqueue(encoder.encode(formatSSE('hunt_done', donePayload)));
+  82|         controller.close();
+  83|       } catch (err) {
+  84|         const errorPayload = {
+  85|           event: 'error',
+  86|           message: 'Erro durante a prospecção.',
+  87|           timestamp: Date.now(),
+  88|           progress: 0,
+  89|         };
+  90|         controller.enqueue(encoder.encode(formatSSE('hunt_error', errorPayload)));
+(total: 103 linhas)
+
+>>> src/app/api/leads/analytics/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| // @ts-nocheck — to be fixed in dedicated type refactoring pass
+   2| import { NextResponse } from "next/server";
+   3| import { leads as mockLeads, computeStats } from "@/lib/zcc/mock-data";
+   4| 
+   5| /**
+   6|  * GET /api/leads/analytics
+   7|  * Analytics detalhados: distribuição por UF/região/status, score distribution.
+   8|  */
+   9| export async function GET() {
+  10|   const stats = computeStats(mockLeads);
+  11| 
+  12|   // Score distribution (buckets)
+  13|   const scoreBuckets = [
+  14|     { range: "0-50", count: 0 },
+  15|     { range: "51-70", count: 0 },
+  16|     { range: "71-85", count: 0 },
+  17|     { range: "86-100", count: 0 },
+  18|   ];
+  19|   for (const l of mockLeads) {
+  20|     if (l.scoreQual <= 50) scoreBuckets[0].count++;
+  21|     else if (l.scoreQual <= 70) scoreBuckets[1].count++;
+  22|     else if (l.scoreQual <= 85) scoreBuckets[2].count++;
+  23|     else scoreBuckets[3].count++;
+  24|   }
+  25| 
+  26|   // Comportamento de compra
+  27|   const porComportamento = new Map<string, number>();
+  28|   for (const l of mockLeads) {
+  29|     const c = l.comportamentoCompra ?? "—";
+  30|     porComportamento.set(c, (porComportamento.get(c) ?? 0) + 1);
+  31|   }
+  32| 
+  33|   // Validação
+  34|   const porValidacao = new Map<string, number>();
+  35|   for (const l of mockLeads) {
+  36|     porValidacao.set(l.validacao, (porValidacao.get(l.validacao) ?? 0) + 1);
+  37|   }
+  38| 
+  39|   return NextResponse.json({
+  40|     stats,
+  41|     scoreBuckets,
+  42|     porComportamento: [...porComportamento.entries()].map(([k, v]) => ({
+  43|       comportamento: k,
+  44|       count: v,
+  45|     })),
+  46|     porValidacao: [...porValidacao.entries()].map(([k, v]) => ({
+  47|       validacao: k,
+  48|       count: v,
+  49|     })),
+  50|   });
+  51| }
+  52| 
+(total: 52 linhas)
+
+>>> src/app/api/zcc/adapters/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| // ============================================================================
+   2| // GET /api/zcc/adapters — show the current adapter mode map
+   3| // ============================================================================
+   4| 
+   5| import { NextResponse } from 'next/server';
+   6| import { resolveModeMap, getAdapters } from '@/adapters';
+   7| 
+   8| export async function GET() {
+   9|   const modeMap = resolveModeMap();
+  10|   const adapters = getAdapters();
+  11|   return NextResponse.json({
+  12|     modeMap,
+  13|     adapters: {
+  14|       googleAds: { isDigitalTwin: adapters.googleAds.isDigitalTwin() },
+  15|       metaAds: { isDigitalTwin: adapters.metaAds.isDigitalTwin() },
+  16|       payment: { isDigitalTwin: adapters.payment.isDigitalTwin() },
+  17|       crm: { isDigitalTwin: adapters.crm.isDigitalTwin() },
+  18|       whatsapp: { isDigitalTwin: adapters.whatsapp.isDigitalTwin() },
+  19|       analytics: { isDigitalTwin: adapters.analytics.isDigitalTwin() },
+  20|       email: { isDigitalTwin: adapters.email.isDigitalTwin() },
+  21|       maps: { isDigitalTwin: adapters.maps.isDigitalTwin() },
+  22|     },
+  23|   });
+  24| }
+  25| 
+(total: 25 linhas)
+
+>>> src/app/api/zcc/brain/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| import { NextResponse } from "next/server";
+   2| import type { BrainHealthResponse, RouterProvider } from "@/lib/zcc/types";
+   3| 
+   4| /**
+   5|  * GET /api/zcc/brain
+   6|  *
+   7|  * Em produção: query Prisma real
+   8|  *   const providers = await db.routerProvider.findMany({ where: { isActive: true } });
+   9|  *   const budget = await db.budgetGuardState.findFirst({ orderBy: { date: 'desc' } });
+  10|  *   const costLogs = await db.costLog.findMany({ where: { createdAt: { gte: today } } });
+  11|  *
+  12|  * Retorna dados para o Cérebro Zélla:
+  13|  *   - RouterProviders com Thompson Sampling (alpha/beta/circuitStatus)
+  14|  *   - BudgetGuardState (daily/monthly spend vs budget)
+  15|  *   - Learning metrics (patterns, anti-patterns, sentiment)
+  16|  */
+  17| 
+  18| const MOCK_PROVIDERS: RouterProvider[] = [
+  19|   {
+  20|     id: "p1", provider: "zai_sdk", modelName: "GLM-4.7-Flash", tier: "1",
+  21|     alpha: 847, beta: 23, circuitStatus: "closed",
+  22|     lastFailureAt: null, failureCount: 2, successCount: 845,
+  23|     avgLatencyMs: 124, costPer1kInput: 0.10, costPer1kOutput: 0.20,
+  24|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 32768,
+  25|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  26|   },
+  27|   {
+  28|     id: "p2", provider: "zai_sdk", modelName: "GLM-4.7", tier: "2",
+  29|     alpha: 412, beta: 18, circuitStatus: "closed",
+  30|     lastFailureAt: null, failureCount: 5, successCount: 407,
+  31|     avgLatencyMs: 342, costPer1kInput: 0.50, costPer1kOutput: 1.00,
+  32|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 65536,
+  33|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  34|   },
+  35|   {
+  36|     id: "p3", provider: "groq", modelName: "Groq Llama 3 70B", tier: "1",
+  37|     alpha: 623, beta: 31, circuitStatus: "closed",
+  38|     lastFailureAt: null, failureCount: 8, successCount: 615,
+  39|     avgLatencyMs: 89, costPer1kInput: 0.10, costPer1kOutput: 0.20,
+  40|     isActive: true, supportsJson: true, supportsTools: false, maxContextTokens: 8192,
+  41|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  42|   },
+  43|   {
+  44|     id: "p4", provider: "gemini", modelName: "Gemini 1.5 Flash", tier: "1",
+  45|     alpha: 389, beta: 27, circuitStatus: "closed",
+  46|     lastFailureAt: null, failureCount: 12, successCount: 377,
+  47|     avgLatencyMs: 156, costPer1kInput: 0.15, costPer1kOutput: 0.30,
+  48|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 1000000,
+  49|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  50|   },
+  51|   {
+  52|     id: "p5", provider: "openrouter", modelName: "DeepSeek V3", tier: "2",
+  53|     alpha: 187, beta: 21, circuitStatus: "half_open",
+  54|     lastFailureAt: new Date(Date.now() - 3600000).toISOString(),
+  55|     failureCount: 18, successCount: 169,
+  56|     avgLatencyMs: 412, costPer1kInput: 0.27, costPer1kOutput: 1.10,
+  57|     isActive: true, supportsJson: true, supportsTools: false, maxContextTokens: 16384,
+  58|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  59|   },
+  60|   {
+  61|     id: "p6", provider: "openrouter", modelName: "OpenAI GPT-4o-mini", tier: "1",
+  62|     alpha: 298, beta: 15, circuitStatus: "closed",
+  63|     lastFailureAt: null, failureCount: 3, successCount: 295,
+  64|     avgLatencyMs: 287, costPer1kInput: 0.15, costPer1kOutput: 0.60,
+  65|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 16384,
+  66|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  67|   },
+  68|   {
+  69|     id: "p7", provider: "anthropic", modelName: "Claude 3.5 Sonnet", tier: "3",
+  70|     alpha: 145, beta: 9, circuitStatus: "closed",
+  71|     lastFailureAt: null, failureCount: 1, successCount: 144,
+  72|     avgLatencyMs: 567, costPer1kInput: 3.00, costPer1kOutput: 15.00,
+  73|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 200000,
+  74|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  75|   },
+  76| ];
+  77| 
+  78| const MOCK_RESPONSE: BrainHealthResponse = {
+  79|   status: "ok",
+  80|   service: "ZaosNeuroRouter",
+  81|   version: "2.0.1",
+  82|   engine: "Thompson + Pareto + SemanticCache",
+  83|   budget: {
+  84|     spentToday: 2.47,
+  85|     dailyLimit: 10.0,
+  86|     monthlySpend: 48.32,
+  87|     monthlyLimit: 300.0,
+  88|     criticalLevel: "nominal",
+  89|   },
+  90|   cache: {
+(total: 119 linhas)
+
+>>> src/app/api/zcc/cortex/growth/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| // ============================================================================
+   2| // GET /api/zcc/cortex/growth — Growth Cortex snapshot
+   3| // ============================================================================
+   4| 
+   5| import { NextResponse } from 'next/server';
+   6| import { GrowthCortex } from '@/domain/cortex';
+   7| import { getAdapters } from '@/adapters';
+   8| 
+   9| // Singleton Growth Cortex instance for the API.
+  10| let _instance: GrowthCortex | undefined;
+  11| function getInstance(): GrowthCortex {
+  12|   if (!_instance) _instance = new GrowthCortex(getAdapters());
+  13|   return _instance;
+  14| }
+  15| 
+  16| export async function GET() {
+  17|   const c = getInstance();
+  18|   return NextResponse.json({
+  19|     id: c.id,
+  20|     running: c.isRunning(),
+  21|     snapshot: c.snapshot(),
+  22|   });
+  23| }
+  24| 
+(total: 24 linhas)
+
+>>> src/app/api/zcc/cortex/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| // ============================================================================
+   2| // GET /api/zcc/cortex — list all cortexes with their snapshot
+   3| // ============================================================================
+   4| 
+   5| import { NextResponse } from 'next/server';
+   6| import {
+   7|   GrowthCortex,
+   8|   MarketIntelligenceCortex,
+   9|   SalesCortex,
+  10|   RevenueCortex,
+  11|   SuccessCortex,
+  12|   LearningCortex,
+  13|   ExecutiveCortex,
+  14| } from '@/domain/cortex';
+  15| import { ZellaGrowthStrategy } from '@/domain/strategy';
+  16| import { getAdapters } from '@/adapters';
+  17| import { zcc } from '@/domain/zcc';
+  18| 
+  19| // Singletons for the API.
+  20| let _growth: GrowthCortex | undefined;
+  21| let _market: MarketIntelligenceCortex | undefined;
+  22| let _sales: SalesCortex | undefined;
+  23| let _revenue: RevenueCortex | undefined;
+  24| let _success: SuccessCortex | undefined;
+  25| let _learning: LearningCortex | undefined;
+  26| let _executive: ExecutiveCortex | undefined;
+  27| let _zgs: ZellaGrowthStrategy | undefined;
+  28| 
+  29| function getInstances() {
+  30|   const adapters = getAdapters();
+  31|   if (!_growth) _growth = new GrowthCortex(adapters);
+  32|   if (!_market) _market = new MarketIntelligenceCortex(adapters);
+  33|   if (!_sales) _sales = new SalesCortex(adapters);
+  34|   if (!_revenue) _revenue = new RevenueCortex(adapters);
+  35|   if (!_success) _success = new SuccessCortex(adapters);
+  36|   if (!_learning) _learning = new LearningCortex(adapters);
+  37|   if (!_executive) _executive = new ExecutiveCortex(adapters);
+  38|   if (!_zgs) _zgs = new ZellaGrowthStrategy(adapters);
+  39|   return { _growth, _market, _sales, _revenue, _success, _learning, _executive, _zgs };
+  40| }
+  41| 
+  42| export async function GET() {
+  43|   const c = getInstances();
+  44|   return NextResponse.json({
+  45|     bootOrder: ['zcc', 'growth', 'market-intelligence', 'sales', 'revenue', 'success', 'learning', 'executive', 'zgs'],
+  46|     zccHealth: zcc.health(),
+  47|     cortexes: [
+  48|       { id: c._growth.id, running: c._growth.isRunning(), snapshot: c._growth.snapshot() },
+  49|       { id: c._market.id, running: c._market.isRunning(), snapshot: c._market.snapshot() },
+  50|       { id: c._sales.id, running: c._sales.isRunning(), snapshot: c._sales.snapshot() },
+  51|       { id: c._revenue.id, running: c._revenue.isRunning(), snapshot: c._revenue.snapshot() },
+  52|       { id: c._success.id, running: c._success.isRunning(), snapshot: c._success.snapshot() },
+  53|       { id: c._learning.id, running: c._learning.isRunning(), snapshot: c._learning.snapshot() },
+  54|       { id: c._executive.id, running: c._executive.isRunning(), snapshot: c._executive.snapshot() },
+  55|       { id: c._zgs.id, running: c._zgs.isRunning(), snapshot: c._zgs.snapshot() },
+  56|     ],
+  57|   });
+  58| }
+  59| 
+(total: 59 linhas)
+
+>>> src/app/api/zcc/personas/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| // ============================================================================
+   2| // GET /api/zcc/personas — list available Behavioral Engine personas
+   3| // ============================================================================
+   4| 
+   5| import { NextResponse } from 'next/server';
+   6| import { PERSONAS } from '@/simulation';
+   7| 
+   8| export async function GET() {
+   9|   return NextResponse.json({
+  10|     personas: PERSONAS,
+  11|     count: PERSONAS.length,
+  12|   });
+  13| }
+  14| 
+(total: 14 linhas)
+
+>>> src/app/api/zcc/synthetic-brazil/route.ts — motivo: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+   1| // ============================================================================
+   2| // GET /api/zcc/synthetic-brazil — list anchor cities
+   3| // POST /api/zcc/synthetic-brazil/generate — generate a Synthetic Brazil slice
+   4| // ============================================================================
+   5| 
+   6| import { NextResponse } from 'next/server';
+   7| import { ANCHOR_CITIES, BRAZILIAN_STATES, generateSyntheticBrazil } from '@/simulation';
+   8| 
+   9| export async function GET() {
+  10|   return NextResponse.json({
+  11|     states: BRAZILIAN_STATES,
+  12|     anchorCities: ANCHOR_CITIES,
+  13|     anchorCityCount: ANCHOR_CITIES.length,
+  14|     stateCount: BRAZILIAN_STATES.length,
+  15|   });
+  16| }
+  17| 
+(total: 17 linhas)

@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { memoryStore } from '@/lib/notifications/store';
 import { seedNotifications, isSeeded, resetSeed } from '@/lib/notifications/seed';
 import { BRIDGES } from '@/lib/notifications/bridges';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 import type {
   NotificationNiche,
   NotificationCategory,
@@ -43,6 +44,11 @@ function parseQuery(request: NextRequest) {
 
 // ─── GET: List notifications ───────────────────────────────────────────────
 export async function GET(request: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'ddc.notifications.v2', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.notifications.v2', what: 'ddc.notifications.v2.entry', resource: 'api', result: 'ALLOW' });
   try {
     // Auto-seed if store is empty (mock mode behavior)
     if (!isSeeded() || memoryStore.size() === 0) {

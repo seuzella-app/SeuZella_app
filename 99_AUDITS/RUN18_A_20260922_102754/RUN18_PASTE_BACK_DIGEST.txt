@@ -1,0 +1,79 @@
+================================================================
+ SEUZELLA — RUN18_PASTE_BACK_DIGEST (MOP-UP — fiação P1+P2)
+ Gerado em: 2026-09-22T13:28:27.903Z
+ Insumo: RUN17 (veredicto 56 rotas) — confronto tabela do kit: IDÊNTICO
+================================================================
+
+--- A) SUMÁRIO ---
+decisões: WIRE=43 (P1+P2) | DOC=P3 x7 (sem código) | KEEP=P4 x6 (intactas)
+fiação desta onda: WIRED=30 | ALREADY_WIRED=0 | SKIP_JUSTIFIED=0 | DEFERRED=13 | DEFERRED_TSC=0 | MISSING=0 | tscRounds=1
+registry: RUN14-A -> RUN18-A | ondas preservadas: RUN11-W3, RUN13-A, RUN14-A + RUN18-A (30 rotas novas)
+
+--- B) ROTAS FIADAS NESTA ONDA (guardRequest + auditRouteEvent, 2 âncoras) ---
+[P1] DEFERRED src/app/api/bim-vision/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P1] WIRED src/app/api/channel-manager/route.ts (60/1min)
+[P1] WIRED src/app/api/ddc/cerebro/feedback/route.ts (60/1min)
+[P1] WIRED src/app/api/ddc/credits/track-click/route.ts (60/1min)
+[P1] WIRED src/app/api/ddc/linkinbio/activate-standalone/route.ts (60/1min)
+[P1] WIRED src/app/api/ddc/linkinbio/purchase-addon/route.ts (60/1min)
+[P1] WIRED src/app/api/ddc/linkinbio/route.ts (60/1min)
+[P1] WIRED src/app/api/ddc/notifications/v2/route.ts (60/1min)
+[P1] WIRED src/app/api/ddc/partner-program/waitlist/route.ts (60/1min)
+[P1] WIRED src/app/api/debug-agent/github/route.ts (60/1min)
+[P1] WIRED src/app/api/debug-agent/knowledge/route.ts (60/1min)
+[P1] WIRED src/app/api/debug-agent/route.ts (60/1min)
+[P1] WIRED src/app/api/diagnose/route.ts (60/1min)
+[P1] WIRED src/app/api/leads/seed/route.ts (60/1min)
+[P1] DEFERRED src/app/api/pinns-clifford/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P1] DEFERRED src/app/api/proxy/[...path]/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P1] WIRED src/app/api/pulse/io/route.ts (60/1min)
+[P1] WIRED src/app/api/scraping/route.ts (60/1min)
+[P1] WIRED src/app/api/telemetry/ingest/route.ts (120/1min)
+[P1] WIRED src/app/api/v1/loops/route.ts (60/1min)
+[P1] DEFERRED src/app/api/webgl-bridge/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P1] WIRED src/app/api/zcc/digital-twin/route.ts (60/1min)
+[P1] WIRED src/app/api/zcc/dspy-compiler/route.ts (60/1min)
+[P1] WIRED src/app/api/zcc/national-simulator/compare/route.ts (60/1min)
+[P1] WIRED src/app/api/zcc/national-simulator/route.ts (60/1min)
+[P1] WIRED src/app/api/zcc/simulation-lab/route.ts (60/1min)
+[P1] WIRED src/app/api/zelador-suporte/consultoria/route.ts (60/1min)
+[P1] WIRED src/app/api/zelador-suporte/ticket/route.ts (60/1min)
+[P1] WIRED src/app/api/zella/simulate/route.ts (60/1min)
+[P2] WIRED src/app/api/ddc/cerebro/learning/route.ts (60/1min)
+[P2] DEFERRED src/app/api/ddc/runtime-version/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P2] DEFERRED src/app/api/hunt-stream/route.ts (-) — bloco de imports nao encontrado
+[P2] DEFERRED src/app/api/leads/analytics/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P2] DEFERRED src/app/api/zcc/adapters/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P2] DEFERRED src/app/api/zcc/brain/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P2] WIRED src/app/api/zcc/cerebro/stream/route.ts (60/1min)
+[P2] WIRED src/app/api/zcc/cognitive-bus/route.ts (60/1min)
+[P2] WIRED src/app/api/zcc/cognitive-memory/route.ts (60/1min)
+[P2] DEFERRED src/app/api/zcc/cortex/growth/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P2] DEFERRED src/app/api/zcc/cortex/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P2] WIRED src/app/api/zcc/infra/scaling-ruler/route.ts (60/1min)
+[P2] DEFERRED src/app/api/zcc/personas/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+[P2] DEFERRED src/app/api/zcc/synthetic-brazil/route.ts (-) — ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+
+--- C) P3 PÚBLICAS DOCUMENTADAS (zero código) ---
+[P3] src/app/api/ddc/partner-program/status/route.ts — programa de parceiros público (só leitura)
+[P3] src/app/api/guide/[slug]/route.ts — conteúdo público do site
+[P3] src/app/api/ical/[syncToken]/route.ts — feed iCal: o token/syncToken NA URL é a credencial (checar força no mop-up)
+[P3] src/app/api/lgpd/dpa/route.ts — documento público LGPD
+[P3] src/app/api/push/vapid-public-key/route.ts — chave pública VAPID por design
+[P3] src/app/api/route.ts — raiz da API (só leitura)
+[P3] src/app/api/zcc/health/route.ts — healthcheck interno público provável
+
+--- D) P4 PROTEGIDAS (intactas) ---
+[P4] src/app/api/alexa/smart-home/route.ts — HEADER_AUTH@L8
+[P4] src/app/api/integrations/ical/[roomId]/route.ts — TOKEN_NA_URL@L18
+[P4] src/app/api/integrations/sync/route.ts — ENV_SECRET@L20
+[P4] src/app/api/internal/flush-buffer/route.ts — SEGREDO_CRON@L7, ENV_SECRET@L6
+[P4] src/app/api/telemetry/landing/route.ts — ENV_SECRET@L52
+[P4] src/app/api/zcc/github/expiry-check/route.ts — SEGREDO_CRON@L19, TOKEN_NA_URL@L18, ENV_SECRET@L19
+
+--- E) GAPS PARA A HYGIENE (decisão do dono) ---
+ambas as camadas=0 (nenhuma rota tem withApiGuard E W2); middleware auth=false;
+cron 17/34 com guard; webhook 6/9; P1 internas -> segredo/admin; proxy -> allowlist.
+
+--- F) PRÓXIMA ONDA ---
+HYGIENE (gaps + residuais + força do token iCal) -> DOCS -> MASTER GATE -> VPS.

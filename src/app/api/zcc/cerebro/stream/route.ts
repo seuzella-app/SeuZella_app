@@ -26,6 +26,7 @@ import { withSecurity, type SecurityContext } from '@/lib/security/api-shield';
 import { getGlmCerebroService } from '@/lib/cerebro/glm-service';
 import { logSink } from '@/lib/cerebro/log-sink';
 import { getCerebroMode } from '@/lib/cerebro/types';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -51,6 +52,11 @@ function sendHeartbeat(controller: SSEStreamController): void {
 // V11-P0.7: auth consolidada via withSecurity({ auth: 'zcc-admin' })
 
 async function streamHandler(request: NextRequest, _ctx: SecurityContext): Promise<Response> {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(request, 'zcc.cerebro.stream', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.cerebro.stream', what: 'zcc.cerebro.stream.entry', resource: 'api', result: 'ALLOW' });
   // (auth já validada pelo withSecurity)
 
   const mode = getCerebroMode();

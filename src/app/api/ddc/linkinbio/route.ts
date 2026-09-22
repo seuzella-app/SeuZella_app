@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDDCTenantId } from '@/lib/ddc/auth-utils';
 import { db } from '@/lib/db';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 // ── GET: Load Link-in-Bio config for the current tenant ──────────────────────
 
@@ -58,6 +59,11 @@ export async function GET() {
 // ── POST: Save Link-in-Bio config (profile + links) ─────────────────────────
 
 export async function POST(req: NextRequest) {
+  // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
+  const rlDeny = guardRequest(req, 'ddc.linkinbio', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN18-A (W2/MOP-UP): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:ddc.linkinbio', what: 'ddc.linkinbio.entry', resource: 'api', result: 'ALLOW' });
   try {
     const tenantId = await requireDDCTenantId();
     const body = await req.json();

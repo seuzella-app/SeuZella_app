@@ -1,0 +1,31 @@
+================================================================
+ SEUZELLA — RUN18 MOP-UP: ROTAS PÚBLICAS DOCUMENTADAS (P3, sem código)
+================================================================
+Estas rotas permanecem públicas POR DECISÃO DOCUMENTADA do MOP-UP:
+são GET + allowlist no veredito RUN17. Nenhuma linha de código mudou.
+
+  src/app/api/ddc/partner-program/status/route.ts
+    justificativa: programa de parceiros público (só leitura)
+  src/app/api/guide/[slug]/route.ts
+    justificativa: conteúdo público do site
+  src/app/api/ical/[syncToken]/route.ts
+    justificativa: feed iCal: o token/syncToken NA URL é a credencial (checar força no mop-up)
+  src/app/api/lgpd/dpa/route.ts
+    justificativa: documento público LGPD
+  src/app/api/push/vapid-public-key/route.ts
+    justificativa: chave pública VAPID por design
+  src/app/api/route.ts
+    justificativa: raiz da API (só leitura)
+  src/app/api/zcc/health/route.ts
+    justificativa: healthcheck interno público provável
+
+-- CHECAGEM DE FORÇA DO TOKEN (ical/[syncToken], report-only) --
+arquivo: src/app/api/ical/[syncToken]/route.ts (30 linhas)
+identificadores de token encontrados: syncToken
+amostra das linhas que tratam o token (scrubbed):
+   7| { params }: { params: Promise<{ syncToken: string }> },
+  10| const { syncToken } = await params;
+  12| const icalContent = await generateICalExport(syncToken);
+
+Se o syncToken for curto/previsível, a HYGIENE deve migrar para token de
+alta entropia com rotação — decisão do dono (quebra clientes iCal antigos).

@@ -1,0 +1,70 @@
+================================================================
+ SEUZELLA — RUN18 MOP-UP: DECISÕES POR ROTA (56 do veredito RUN17)
+================================================================
+insumo: 99_AUDITS/RUN17_A_20260922_092412 — confronto tabela embutida: IDÊNTICO
+ficção: P1+P2 => fiação W2 (guardRequest+auditRouteEvent, mecânica RUN13/14);
+        P3 => documentação pública (zero linhas de código); P4 => nada a fazer.
+
+-- FIAÇÃO W2 (P1 mutantes + P2 só-leitura) --
+  [P1] WIRE 60/1min  src/app/api/bim-vision/route.ts
+  [P1] WIRE 60/1min  src/app/api/channel-manager/route.ts
+  [P1] WIRE 60/1min  src/app/api/ddc/cerebro/feedback/route.ts
+  [P1] WIRE 60/1min  src/app/api/ddc/credits/track-click/route.ts
+  [P1] WIRE 60/1min  src/app/api/ddc/linkinbio/activate-standalone/route.ts
+  [P1] WIRE 60/1min  src/app/api/ddc/linkinbio/purchase-addon/route.ts
+  [P1] WIRE 60/1min  src/app/api/ddc/linkinbio/route.ts
+  [P1] WIRE 60/1min  src/app/api/ddc/notifications/v2/route.ts
+  [P1] WIRE 60/1min  src/app/api/ddc/partner-program/waitlist/route.ts
+  [P1] WIRE 60/1min  src/app/api/debug-agent/github/route.ts
+  [P1] WIRE 60/1min  src/app/api/debug-agent/knowledge/route.ts
+  [P1] WIRE 60/1min  src/app/api/debug-agent/route.ts
+  [P1] WIRE 60/1min  src/app/api/diagnose/route.ts
+  [P1] WIRE 60/1min  src/app/api/leads/seed/route.ts
+  [P1] WIRE 60/1min  src/app/api/pinns-clifford/route.ts
+  [P1] WIRE 60/1min  src/app/api/proxy/[...path]/route.ts
+  [P1] WIRE 60/1min  src/app/api/pulse/io/route.ts
+  [P1] WIRE 60/1min  src/app/api/scraping/route.ts
+  [P1] WIRE 120/1min  src/app/api/telemetry/ingest/route.ts
+  [P1] WIRE 60/1min  src/app/api/v1/loops/route.ts
+  [P1] WIRE 60/1min  src/app/api/webgl-bridge/route.ts
+  [P1] WIRE 60/1min  src/app/api/zcc/digital-twin/route.ts
+  [P1] WIRE 60/1min  src/app/api/zcc/dspy-compiler/route.ts
+  [P1] WIRE 60/1min  src/app/api/zcc/national-simulator/compare/route.ts
+  [P1] WIRE 60/1min  src/app/api/zcc/national-simulator/route.ts
+  [P1] WIRE 60/1min  src/app/api/zcc/simulation-lab/route.ts
+  [P1] WIRE 60/1min  src/app/api/zelador-suporte/consultoria/route.ts
+  [P1] WIRE 60/1min  src/app/api/zelador-suporte/ticket/route.ts
+  [P1] WIRE 60/1min  src/app/api/zella/simulate/route.ts
+  [P2] WIRE 60/1min  src/app/api/ddc/cerebro/learning/route.ts
+  [P2] WIRE 60/1min  src/app/api/ddc/runtime-version/route.ts
+  [P2] WIRE 60/1min  src/app/api/hunt-stream/route.ts
+  [P2] WIRE 60/1min  src/app/api/leads/analytics/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/adapters/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/brain/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/cerebro/stream/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/cognitive-bus/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/cognitive-memory/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/cortex/growth/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/cortex/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/infra/scaling-ruler/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/personas/route.ts
+  [P2] WIRE 60/1min  src/app/api/zcc/synthetic-brazil/route.ts
+
+-- DOCUMENTAÇÃO PÚBLICA (P3, zero código) --
+  [P3] DOC   src/app/api/ddc/partner-program/status/route.ts — programa de parceiros público (só leitura)
+  [P3] DOC   src/app/api/guide/[slug]/route.ts — conteúdo público do site
+  [P3] DOC   src/app/api/ical/[syncToken]/route.ts — feed iCal: o token/syncToken NA URL é a credencial (checar força no mop-up)
+  [P3] DOC   src/app/api/lgpd/dpa/route.ts — documento público LGPD
+  [P3] DOC   src/app/api/push/vapid-public-key/route.ts — chave pública VAPID por design
+  [P3] DOC   src/app/api/route.ts — raiz da API (só leitura)
+  [P3] DOC   src/app/api/zcc/health/route.ts — healthcheck interno público provável
+
+-- NADA A FAZER (P4 já protegidas em handler) --
+  [P4] KEEP  src/app/api/alexa/smart-home/route.ts — marcadores: HEADER_AUTH@L8
+  [P4] KEEP  src/app/api/integrations/ical/[roomId]/route.ts — marcadores: TOKEN_NA_URL@L18
+  [P4] KEEP  src/app/api/integrations/sync/route.ts — marcadores: ENV_SECRET@L20
+  [P4] KEEP  src/app/api/internal/flush-buffer/route.ts — marcadores: SEGREDO_CRON@L7, ENV_SECRET@L6
+  [P4] KEEP  src/app/api/telemetry/landing/route.ts — marcadores: ENV_SECRET@L52
+  [P4] KEEP  src/app/api/zcc/github/expiry-check/route.ts — marcadores: SEGREDO_CRON@L19, TOKEN_NA_URL@L18, ENV_SECRET@L19
+
+resumo: WIRE=43 DOC=7 KEEP=6 total=56
