@@ -1,0 +1,329 @@
+================================================================
+ SEUZELLA — RUN15 ROUTE_INVENTORY (cobertura W2 de src/app/api/**/route.ts)
+================================================================
+total de rotas: 320 | {"WIRED_W2":15,"SKIP_JUSTIFIED":40,"DEFERRED_RUN14":6,"SEM_REGISTRO_W2":259}
+
+[WIRED_W2 (onda RUN13-A)] src/app/api/airb-pro/comparativo/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/airb-pro/rentabilidade/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/airb-pro/yield-suggestion/route.ts
+[WIRED_W2 (onda RUN11-W3)] src/app/api/brain/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/cancel/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/create/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/downgrade/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/pix-status/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/success/route.ts
+[WIRED_W2 (onda RUN11-W3)] src/app/api/checkout/webhook/route.ts
+[WIRED_W2 (onda RUN14-A)] src/app/api/ddc/airb/properties/route.ts
+[WIRED_W2 (onda RUN14-A)] src/app/api/ddc/airb/scrape/route.ts
+[WIRED_W2 (onda RUN14-A)] src/app/api/ddc/billing/invoices/route.ts
+[WIRED_W2 (payload health)] src/app/api/health/route.ts
+[WIRED_W2 (onda RUN11-W3)] src/app/api/readiness/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/[...nextauth]/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/forgot-password/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/m2m/token/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/magic-link/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/register/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/reset-password/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/achievements-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/backup-restore-drill/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/booking-daily/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/budget-reset/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-analyze/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-budget-forecast/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-churn-predict/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-cleanup/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-distill/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-learning/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-audit/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-pentest/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-pulse/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-orchestrator/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-refactor-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-watchdog/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/dlq-drain/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/housekeeping-dispatch/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/ical-sync/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/learning-cycle/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/lembrete-checkin/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/linkinbio-expiry-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/locks-maintenance/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/metrics-snapshot/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/monthly-billing/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/nps-checkout/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/ota-token-expiry/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/payment-confirmation/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/payment-overdue/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/plan-expiry/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/plan-limits-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/security-scan/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/sre-alerts/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/weekly-report/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/dashboard/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/ddc/conversations/[id]/messages/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/ddc/upsell/charge/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/ddc/upsell/payment-method/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/zcc/brain/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/zcc/tenants/[id]/status/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/admin/faturamento-zehla/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/admin/upsell-analytics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/agent-logs/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/agents/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/airb-test/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/alexa/smart-home/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/bim-vision/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/brain/health/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/brain/intents/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/bulk-whatsapp/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/campaigns/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/campaigns/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/channel-manager/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/checkout/upgrade/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/config/keys/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/conversations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/dashboard/bookings/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/dashboard/overview/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/ai-status/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/commissions/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/commissions/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/expenses/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/expenses/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/goals/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/goals/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/operations/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/operations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/reports/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb/conversations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb/notifications/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb/onboarding/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb/regional/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/booking-sync/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/bookings/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/cerebro/feedback/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/cerebro/learning/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/conversations/[id]/escalate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/conversations/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/conversations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/balance/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/codes/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/create-code/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/lite-milestone/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/referrals/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/track-click/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/deliveries/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/dpo-capture/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/dynamic-pricing/calculate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/dynamic-pricing/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/gerente-ia/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/guest-guide/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/guest-registration/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/guests/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/guests/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/housekeeping/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/learning-stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/linkinbio/activate-standalone/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/linkinbio/purchase-addon/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/linkinbio/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/linkinbio/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/live-feed/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/panic-revoke/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/pins/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/unlock/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/events/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/oauth/[provider]/callback/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/oauth/[provider]/devices/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/oauth/[provider]/start/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/magic-link/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/meta-connect/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/metrics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/mobile/state/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/notifications/read-all/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/notifications/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/notifications/v2/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/onboarding-wizard/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/partner-program/badge/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/partner-program/claim/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/partner-program/status/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/partner-program/waitlist/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/personality/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/property-name/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/realtime/tenant-state/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/revenue-details/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/runtime-version/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/simulate-message/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/special-dates/overrides/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/special-dates/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/training/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/training/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/upsell/metrics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/upsell/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/debug-agent/github/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/debug-agent/knowledge/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/debug-agent/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/diagnose/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/download/[filename]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/export/leads/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/feedback/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/feedback/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/guide/[slug]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/hunt-stream/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/hunt/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ical/[syncToken]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/integrations/ical/[roomId]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/integrations/sync/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/internal/flush-buffer/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/knowledge/generate-embeddings/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/landing/chat/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/landing/contact/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/analytics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/converted-pousadas/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/seed/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/consent/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/delete-my-data/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/dpa/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/export-my-data/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/forget-guest/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/meta-costs/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/mobile/devices-tracking-v2/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/mobile/devices-tracking/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/monitoring/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/onboarding/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/pinns-clifford/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/properties/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/properties/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/proxy/[...path]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/pulse/io/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/push/subscribe/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/push/unsubscribe/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/push/vapid-public-key/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/roi/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/router/budget/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/router/providers/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/scraping/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/security/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/swipe-templates/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/targets/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/targets/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/telemetry/ingest/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/telemetry/landing/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/telemetry/query/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/tenants/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/guest/ddc/notifications/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/guest/ddc/overview/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/latency/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/loops/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/metrics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/reservations/[id]/payment/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/reservations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webgl-bridge/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhook-whatsapp/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/asaas/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/booking-com/reviews/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/mercadopago/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/payment/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/whatsapp/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/yield/calculate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/yield/profit-summary/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/adapters/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/agents/[id]/run/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/agents/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/airbnb/oauth/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/airbnb/webhook/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/backup-drill/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/burn-rate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/campaigns/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/analyses/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/anomalies/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/ask/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/llmops/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/ml-stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/prompt-ide/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/refactors/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/runbook/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/status/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/stream/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/test-alert/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/workflows/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/apply/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/config/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/review/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/reviews/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/reviews/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cognitive-bus/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cognitive-memory/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/conductor/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/consent/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cortex/growth/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cortex/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/dashboard-stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/digital-twin/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/dspy-compiler/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/export/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/finance/expenses/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/apply-pr/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/[id]/revoke/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/[id]/rotate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/audit/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/validate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/expiry-check/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/webhook/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/health/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/inference-simulation/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/infra/scaling-ruler/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/infrastructure/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/leads/brain-analyze/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/metrics/financial/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/metrics/geographic/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/metrics/periods/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/metrics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/national-simulator/compare/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/national-simulator/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/night-audit/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/night-audit/vulns/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/observability/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/onboarding-tracker/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/partner-program/reopen/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/personas/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/pulse/analyze/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/pulse/capture/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/sales-funnel/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/sandbox/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/security/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/conflicts/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/decisions/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/export/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/graph/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/ingest/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/simulation-lab/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/synthetic-brazil/generate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/synthetic-brazil/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/targets/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/tenants/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/vps-preflight/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/whatsapp/simulate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/apply/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/bottlenecks/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/evolve/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/gaps/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/refactors/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/review/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/zgs/decisions/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zelador-suporte/chat/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zelador-suporte/consultoria/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zelador-suporte/ticket/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zella/simulate/route.ts
+
+Nota: SEM_REGISTRO_W2 = rota sem entrada no registry W2 (RUN11-W3/RUN13-A/RUN14-A).
+Não implica rota desprotegida — pode ter proteção própria (ex.: requireAdmin/sessão
+própria) fora do registry. Cabe ao RED TEAM classificar cada caso.

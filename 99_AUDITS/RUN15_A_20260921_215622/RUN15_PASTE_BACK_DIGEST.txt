@@ -1,0 +1,987 @@
+================================================================
+ SEUZELLA — RUN15_PASTE_BACK_DIGEST (recon dos residuais + inventário W2)
+ Gerado em: 2026-09-22T00:56:46.151Z
+ Origem: 99_AUDITS/RUN14_A_*/RECON_DEFERRED.txt (evidência committed)
+================================================================
+
+--- A) SUMÁRIO DOS RESIDUAIS ---
+residuais declarados pelo RUN14: 6 (presentes: 6, ausentes: 0)
+  - src/app/api/ddc/upsell/payment-method/route.ts | PRESENTE 43 linhas | export const POST = postWrapped;
+  - src/app/api/zcc/brain/route.ts | PRESENTE 119 linhas | handler SEM parâmetro (request não é usado)
+  - src/app/api/dashboard/route.ts | PRESENTE 136 linhas | handler SEM parâmetro (request não é usado)
+  - src/app/api/ddc/conversations/[id]/messages/route.ts | PRESENTE 85 linhas | assinatura em múltiplas linhas (âncora de 1 linha não casa)
+  - src/app/api/ddc/upsell/charge/route.ts | PRESENTE 55 linhas | export const POST = postWrapped;
+  - src/app/api/zcc/tenants/[id]/status/route.ts | PRESENTE 139 linhas | assinatura em múltiplas linhas (âncora de 1 linha não casa)
+
+--- B) INVENTÁRIO DE COBERTURA W2 ---
+================================================================
+ SEUZELLA — RUN15 ROUTE_INVENTORY (cobertura W2 de src/app/api/**/route.ts)
+================================================================
+total de rotas: 320 | {"WIRED_W2":15,"SKIP_JUSTIFIED":40,"DEFERRED_RUN14":6,"SEM_REGISTRO_W2":259}
+
+[WIRED_W2 (onda RUN13-A)] src/app/api/airb-pro/comparativo/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/airb-pro/rentabilidade/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/airb-pro/yield-suggestion/route.ts
+[WIRED_W2 (onda RUN11-W3)] src/app/api/brain/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/cancel/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/create/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/downgrade/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/pix-status/route.ts
+[WIRED_W2 (onda RUN13-A)] src/app/api/checkout/success/route.ts
+[WIRED_W2 (onda RUN11-W3)] src/app/api/checkout/webhook/route.ts
+[WIRED_W2 (onda RUN14-A)] src/app/api/ddc/airb/properties/route.ts
+[WIRED_W2 (onda RUN14-A)] src/app/api/ddc/airb/scrape/route.ts
+[WIRED_W2 (onda RUN14-A)] src/app/api/ddc/billing/invoices/route.ts
+[WIRED_W2 (payload health)] src/app/api/health/route.ts
+[WIRED_W2 (onda RUN11-W3)] src/app/api/readiness/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/[...nextauth]/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/forgot-password/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/m2m/token/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/magic-link/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/register/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle próprio)] src/app/api/auth/reset-password/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/achievements-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/backup-restore-drill/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/booking-daily/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/budget-reset/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-analyze/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-budget-forecast/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-churn-predict/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-cleanup/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-distill/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-learning/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-audit/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-pentest/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-pulse/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-orchestrator/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-refactor-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-watchdog/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/dlq-drain/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/housekeeping-dispatch/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/ical-sync/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/learning-cycle/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/lembrete-checkin/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/linkinbio-expiry-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/locks-maintenance/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/metrics-snapshot/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/monthly-billing/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/nps-checkout/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/ota-token-expiry/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/payment-confirmation/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/payment-overdue/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/plan-expiry/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/plan-limits-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/security-scan/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/sre-alerts/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/weekly-report/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/dashboard/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/ddc/conversations/[id]/messages/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/ddc/upsell/charge/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/ddc/upsell/payment-method/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/zcc/brain/route.ts
+[DEFERRED_RUN14 (recon nesta onda)] src/app/api/zcc/tenants/[id]/status/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/admin/faturamento-zehla/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/admin/upsell-analytics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/agent-logs/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/agents/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/airb-test/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/alexa/smart-home/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/bim-vision/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/brain/health/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/brain/intents/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/bulk-whatsapp/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/campaigns/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/campaigns/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/channel-manager/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/checkout/upgrade/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/config/keys/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/conversations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/dashboard/bookings/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/dashboard/overview/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/ai-status/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/commissions/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/commissions/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/expenses/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/expenses/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/goals/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/goals/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/operations/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/operations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb-pro/reports/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb/conversations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb/notifications/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb/onboarding/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/airb/regional/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/booking-sync/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/bookings/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/cerebro/feedback/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/cerebro/learning/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/conversations/[id]/escalate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/conversations/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/conversations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/balance/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/codes/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/create-code/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/lite-milestone/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/referrals/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/credits/track-click/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/deliveries/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/dpo-capture/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/dynamic-pricing/calculate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/dynamic-pricing/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/gerente-ia/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/guest-guide/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/guest-registration/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/guests/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/guests/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/housekeeping/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/learning-stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/linkinbio/activate-standalone/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/linkinbio/purchase-addon/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/linkinbio/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/linkinbio/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/live-feed/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/panic-revoke/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/pins/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/[id]/unlock/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/events/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/oauth/[provider]/callback/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/oauth/[provider]/devices/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/oauth/[provider]/start/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/locks/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/magic-link/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/meta-connect/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/metrics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/mobile/state/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/notifications/read-all/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/notifications/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/notifications/v2/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/onboarding-wizard/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/partner-program/badge/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/partner-program/claim/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/partner-program/status/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/partner-program/waitlist/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/personality/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/property-name/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/realtime/tenant-state/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/revenue-details/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/runtime-version/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/simulate-message/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/special-dates/overrides/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/special-dates/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/training/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/training/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/upsell/metrics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ddc/upsell/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/debug-agent/github/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/debug-agent/knowledge/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/debug-agent/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/diagnose/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/download/[filename]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/export/leads/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/feedback/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/feedback/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/guide/[slug]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/hunt-stream/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/hunt/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/ical/[syncToken]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/integrations/ical/[roomId]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/integrations/sync/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/internal/flush-buffer/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/knowledge/generate-embeddings/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/landing/chat/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/landing/contact/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/analytics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/converted-pousadas/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/leads/seed/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/consent/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/delete-my-data/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/dpa/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/export-my-data/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/lgpd/forget-guest/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/meta-costs/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/mobile/devices-tracking-v2/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/mobile/devices-tracking/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/monitoring/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/onboarding/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/pinns-clifford/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/properties/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/properties/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/proxy/[...path]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/pulse/io/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/push/subscribe/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/push/unsubscribe/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/push/vapid-public-key/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/roi/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/router/budget/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/router/providers/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/scraping/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/security/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/swipe-templates/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/targets/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/targets/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/telemetry/ingest/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/telemetry/landing/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/telemetry/query/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/tenants/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/guest/ddc/notifications/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/guest/ddc/overview/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/latency/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/loops/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/metrics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/reservations/[id]/payment/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/v1/reservations/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webgl-bridge/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhook-whatsapp/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/asaas/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/booking-com/reviews/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/mercadopago/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/payment/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/webhooks/whatsapp/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/yield/calculate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/yield/profit-summary/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/adapters/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/agents/[id]/run/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/agents/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/airbnb/oauth/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/airbnb/webhook/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/backup-drill/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/burn-rate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/campaigns/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/analyses/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/anomalies/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/ask/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/llmops/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/ml-stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/prompt-ide/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/refactors/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/runbook/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/status/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/stream/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/test-alert/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cerebro/workflows/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/apply/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/config/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/review/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/reviews/[id]/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/reviews/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/code-reviewer/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cognitive-bus/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cognitive-memory/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/conductor/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/consent/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cortex/growth/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/cortex/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/dashboard-stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/digital-twin/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/dspy-compiler/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/export/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/finance/expenses/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/apply-pr/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/[id]/revoke/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/[id]/rotate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/audit/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/credentials/validate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/expiry-check/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/github/webhook/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/health/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/inference-simulation/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/infra/scaling-ruler/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/infrastructure/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/leads/brain-analyze/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/metrics/financial/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/metrics/geographic/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/metrics/periods/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/metrics/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/national-simulator/compare/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/national-simulator/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/night-audit/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/night-audit/vulns/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/observability/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/onboarding-tracker/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/partner-program/reopen/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/personas/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/pulse/analyze/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/pulse/capture/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/sales-funnel/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/sandbox/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/security/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/conflicts/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/decisions/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/export/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/graph/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/semantica/ingest/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/simulation-lab/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/synthetic-brazil/generate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/synthetic-brazil/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/targets/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/tenants/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/vps-preflight/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/whatsapp/simulate/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/apply/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/bottlenecks/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/evolve/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/gaps/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/refactors/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/review/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/ze-code/stats/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zcc/zgs/decisions/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zelador-suporte/chat/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zelador-suporte/consultoria/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zelador-suporte/ticket/route.ts
+[SEM_REGISTRO_W2 (avaliar no RED TEAM — pode ter proteção própria)] src/app/api/zella/simulate/route.ts
+
+Nota: SEM_REGISTRO_W2 = rota sem entrada no registry W2 (RUN11-W3/RUN13-A/RUN14-A).
+Não implica rota desprotegida — pode ter proteção própria (ex.: requireAdmin/sessão
+própria) fora do registry. Cabe ao RED TEAM classificar cada caso.
+
+--- C) RECON COMPLETO (scrubbed) DOS RESIDUAIS PRESENTES ---
+================================================================
+ SEUZELLA — RUN15 RECON_MOPUP (residuais do RUN14 — insumo RED TEAM/mop-up)
+================================================================
+
+>>> src/app/api/ddc/upsell/payment-method/route.ts — motivo original: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+status atual: PRESENTE (43 linhas) | handler na linha 42
+diagnóstico: export const POST = postWrapped;
+   1| /**
+   2|  * POST /api/ddc/upsell/payment-method
+   3|  *
+   4|  * Cria Customer no Mercado Pago + anexa cartão (token gerado pelo SDK MP no frontend).
+   5|  * O dono da pousada cadastra o cartão uma única vez — depois a cobrança é automática.
+   6|  *
+   7|  * Body: { cardToken }  (token gerado pelo SDK MercadoPago.js no browser)
+   8|  * Retorna: { success, card }
+   9|  */
+  10| 
+  11| import { NextRequest, NextResponse } from 'next/server';
+  12| import { z } from 'zod';
+  13| import { getServerSession } from 'next-auth';
+  14| import { authOptions } from '@/lib/auth';
+  15| import { attachCard } from '@/lib/payments/mercadopago-service';
+  16| import { withApiGuard } from '@/lib/security/api-guard';
+  17| 
+  18| const schema = z.object({
+  19|   cardToken: z.string().min(10),
+  20| });
+  21| 
+  22| const postWrapped = withApiGuard(
+  23|   { schema, routeLabel: 'upsell-payment-method' },
+  24|   async ({ tenantId, body }) => {
+  25|     if (!tenantId) {
+  26|       return NextResponse.json({ error: 'TENANT_CONTEXT_MISSING' }, { status: 400 });
+  27|     }
+  28| 
+  29|     const result = await attachCard(tenantId, body.cardToken);
+  30| 
+  31|     if (!result.success) {
+  32|       return NextResponse.json(
+  33|         { success: false, error: 'MP_CARD_ERROR', message: result.error },
+  34|         { status: 400 },
+  35|       );
+  36|     }
+  37| 
+  38|     return NextResponse.json({ success: true, data: result.card });
+  39|   }
+  40| );
+  41| 
+  42| export const POST = postWrapped;
+  43| 
+
+>>> src/app/api/zcc/brain/route.ts — motivo original: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+status atual: PRESENTE (119 linhas) | handler na linha 108
+diagnóstico: handler SEM parâmetro (request não é usado)
+   1| import { NextResponse } from "next/server";
+   2| import type { BrainHealthResponse, RouterProvider } from "@/lib/zcc/types";
+   3| 
+   4| /**
+   5|  * GET /api/zcc/brain
+   6|  *
+   7|  * Em produção: query Prisma real
+   8|  *   const providers = await db.routerProvider.findMany({ where: { isActive: true } });
+   9|  *   const budget = await db.budgetGuardState.findFirst({ orderBy: { date: 'desc' } });
+  10|  *   const costLogs = await db.costLog.findMany({ where: { createdAt: { gte: today } } });
+  11|  *
+  12|  * Retorna dados para o Cérebro Zélla:
+  13|  *   - RouterProviders com Thompson Sampling (alpha/beta/circuitStatus)
+  14|  *   - BudgetGuardState (daily/monthly spend vs budget)
+  15|  *   - Learning metrics (patterns, anti-patterns, sentiment)
+  16|  */
+  17| 
+  18| const MOCK_PROVIDERS: RouterProvider[] = [
+  19|   {
+  20|     id: "p1", provider: "zai_sdk", modelName: "GLM-4.7-Flash", tier: "1",
+  21|     alpha: 847, beta: 23, circuitStatus: "closed",
+  22|     lastFailureAt: null, failureCount: 2, successCount: 845,
+  23|     avgLatencyMs: 124, costPer1kInput: 0.10, costPer1kOutput: 0.20,
+  24|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 32768,
+  25|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  26|   },
+  27|   {
+  28|     id: "p2", provider: "zai_sdk", modelName: "GLM-4.7", tier: "2",
+  29|     alpha: 412, beta: 18, circuitStatus: "closed",
+  30|     lastFailureAt: null, failureCount: 5, successCount: 407,
+  31|     avgLatencyMs: 342, costPer1kInput: 0.50, costPer1kOutput: 1.00,
+  32|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 65536,
+  33|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  34|   },
+  35|   {
+  36|     id: "p3", provider: "groq", modelName: "Groq Llama 3 70B", tier: "1",
+  37|     alpha: 623, beta: 31, circuitStatus: "closed",
+  38|     lastFailureAt: null, failureCount: 8, successCount: 615,
+  39|     avgLatencyMs: 89, costPer1kInput: 0.10, costPer1kOutput: 0.20,
+  40|     isActive: true, supportsJson: true, supportsTools: false, maxContextTokens: 8192,
+  41|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  42|   },
+  43|   {
+  44|     id: "p4", provider: "gemini", modelName: "Gemini 1.5 Flash", tier: "1",
+  45|     alpha: 389, beta: 27, circuitStatus: "closed",
+  46|     lastFailureAt: null, failureCount: 12, successCount: 377,
+  47|     avgLatencyMs: 156, costPer1kInput: 0.15, costPer1kOutput: 0.30,
+  48|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 1000000,
+  49|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  50|   },
+  51|   {
+  52|     id: "p5", provider: "openrouter", modelName: "DeepSeek V3", tier: "2",
+  53|     alpha: 187, beta: 21, circuitStatus: "half_open",
+  54|     lastFailureAt: new Date(Date.now() - 3600000).toISOString(),
+  55|     failureCount: 18, successCount: 169,
+  56|     avgLatencyMs: 412, costPer1kInput: 0.27, costPer1kOutput: 1.10,
+  57|     isActive: true, supportsJson: true, supportsTools: false, maxContextTokens: 16384,
+  58|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  59|   },
+  60|   {
+  61|     id: "p6", provider: "openrouter", modelName: "OpenAI GPT-4o-mini", tier: "1",
+  62|     alpha: 298, beta: 15, circuitStatus: "closed",
+  63|     lastFailureAt: null, failureCount: 3, successCount: 295,
+  64|     avgLatencyMs: 287, costPer1kInput: 0.15, costPer1kOutput: 0.60,
+  65|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 16384,
+  66|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  67|   },
+  68|   {
+  69|     id: "p7", provider: "anthropic", modelName: "Claude 3.5 Sonnet", tier: "3",
+  70|     alpha: 145, beta: 9, circuitStatus: "closed",
+  71|     lastFailureAt: null, failureCount: 1, successCount: 144,
+  72|     avgLatencyMs: 567, costPer1kInput: 3.00, costPer1kOutput: 15.00,
+  73|     isActive: true, supportsJson: true, supportsTools: true, maxContextTokens: 200000,
+  74|     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  75|   },
+  76| ];
+  77| 
+  78| const MOCK_RESPONSE: BrainHealthResponse = {
+  79|   status: "ok",
+  80|   service: "ZaosNeuroRouter",
+  81|   version: "2.0.1",
+  82|   engine: "Thompson + Pareto + SemanticCache",
+  83|   budget: {
+  84|     spentToday: 2.47,
+  85|     dailyLimit: 10.0,
+  86|     monthlySpend: 48.32,
+  87|     monthlyLimit: 300.0,
+  88|     criticalLevel: "nominal",
+  89|   },
+  90|   cache: {
+  91|     hitRate: 78.3,
+  92|     totalEntries: 247,
+  93|     avgTtlMinutes: 45.2,
+  94|   },
+  95|   circuitBreakers: Object.fromEntries(
+  96|     MOCK_PROVIDERS.map((p) => [p.modelName, p.circuitStatus])
+  97|   ),
+  98|   providers: MOCK_PROVIDERS,
+  99|   learning: {
+ 100|     totalPatterns: 1247,
+ 101|     verifiedPatterns: 892,
+ 102|     antiPatternsCount: 73,
+ 103|     learningVelocity: 12,
+ 104|     avgSentimentScore: 0.34,
+ 105|   },
+ 106| };
+ 107| 
+ 108| export async function GET() {
+ 109|   return NextResponse.json({
+ 110|     success: true,
+ 111|     data: MOCK_RESPONSE,
+ 112|     meta: {
+ 113|       source: "demo",
+ 114|       timestamp: new Date().toISOString(),
+ 115|       note: "RouterProvider + BudgetGuardState alinhado com Prisma schema.",
+ 116|     },
+ 117|   });
+ 118| }
+ 119| 
+
+>>> src/app/api/dashboard/route.ts — motivo original: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+status atual: PRESENTE (136 linhas) | handler na linha 12
+diagnóstico: handler SEM parâmetro (request não é usado)
+   1| // =============================================================================
+   2| // API — Dashboard Stats
+   3| // =============================================================================
+   4| // GET /api/dashboard — Retorna estatísticas do dashboard
+   5| // =============================================================================
+   6| 
+   7| import { NextRequest, NextResponse } from 'next/server';
+   8| import { db } from '@/lib/db';
+   9| import { PLAN_CONFIG, formatPrice, type PlanSlug } from '@/lib/features';
+  10| import { resolveTenantId } from '@/lib/ddc/auth-utils';
+  11| 
+  12| export async function GET() {
+  13|   try {
+  14|     const tenantId = await resolveTenantId();
+  15| 
+  16|     let tenant = tenantId
+  17|       ? await db.tenant.findUnique({
+  18|           where: { id: tenantId },
+  19|         })
+  20|       : null;
+  21| 
+  22|     if (!tenant) {
+  23|       tenant = await db.tenant.findFirst({
+  24|         where: { status: 'active' },
+  25|       });
+  26|     }
+  27| 
+  28|     if (!tenant) {
+  29|       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
+  30|     }
+  31| 
+  32|     // Get property stats
+  33|     const [
+  34|       totalProperties,
+  35|       completeProperties,
+  36|       pendingProperties,
+  37|       totalConversations,
+  38|       activeConversations,
+  39|       preBookingConversations,
+  40|       postBookingConversations,
+  41|       totalMessages,
+  42|       aiMessages,
+  43|       recentConversations,
+  44|     ] = await Promise.all([
+  45|       db.airBProperty.count({ where: { tenantId: tenant.id, status: 'active' } }),
+  46|       db.airBProperty.count({ where: { tenantId: tenant.id, status: 'active' } }),
+  47|       db.airBProperty.count({ where: { tenantId: tenant.id, status: 'inactive' } }),
+  48|       db.airBConversation.count({ where: { tenantId: tenant.id } }),
+  49|       db.airBConversation.count({ where: { tenantId: tenant.id, status: 'active' } }),
+  50|       db.airBConversation.count({ where: { tenantId: tenant.id, mode: 'pre_booking' } }),
+  51|       db.airBConversation.count({ where: { tenantId: tenant.id, mode: 'post_booking' } }),
+  52|       db.airBMessage.count({
+  53|         where: {
+  54|           conversation: { tenantId: tenant.id },
+  55|         },
+  56|       }),
+  57|       db.airBMessage.count({
+  58|         where: {
+  59|           conversation: { tenantId: tenant.id },
+  60|           isAiGenerated: true,
+  61|         },
+  62|       }),
+  63|       db.airBConversation.findMany({
+  64|         where: { tenantId: tenant.id },
+  65|         orderBy: { updatedAt: 'desc' },
+  66|         take: 5,
+  67|         include: {
+  68|           property: { select: { name: true, city: true } },
+  69|           messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+  70|         },
+  71|       }),
+  72|     ]);
+  73| 
+  74|     // Calculate estimated costs
+  75|     const avgMessagesPerConversation = totalConversations > 0 ? totalMessages / totalConversations : 0;
+  76|     const estimatedWhatsappCost = totalMessages * 0.035; // R$0.035 per message
+  77|     const estimatedLLMCost = aiMessages * 0.005; // Rough estimate
+  78| 
+  79|     // Plan info
+  80|     const planConfig = PLAN_CONFIG[tenant.plan as PlanSlug];
+  81|     const planInfo = planConfig ? {
+  82|       slug: planConfig.slug,
+  83|       name: planConfig.name,
+  84|       priceFormatted: formatPrice(planConfig.priceCents),
+  85|       maxProperties: planConfig.maxProperties,
+  86|       currentProperties: totalProperties,
+  87|       usagePercent: Math.round((totalProperties / planConfig.maxProperties) * 100),
+  88|     } : null;
+  89| 
+  90|     return NextResponse.json({
+  91|       tenant: {
+  92|         id: tenant.id,
+  93|         name: tenant.name,
+  94|         mode: tenant.niche,
+  95|         onboardingComplete: true,
+  96|       },
+  97|       plan: planInfo,
+  98|       properties: {
+  99|         total: totalProperties,
+ 100|         complete: completeProperties,
+ 101|         pending: pendingProperties,
+ 102|       },
+ 103|       conversations: {
+ 104|         total: totalConversations,
+ 105|         active: activeConversations,
+ 106|         preBooking: preBookingConversations,
+ 107|         postBooking: postBookingConversations,
+ 108|         avgMessagesPerConversation: Math.round(avgMessagesPerConversation * 10) / 10,
+ 109|       },
+ 110|       messages: {
+ 111|         total: totalMessages,
+ 112|         aiGenerated: aiMessages,
+ 113|         humanGenerated: totalMessages - aiMessages,
+ 114|       },
+ 115|       costs: {
+ 116|         estimatedWhatsappCost: Math.round(estimatedWhatsappCost * 100) / 100,
+ 117|         estimatedLLMCost: Math.round(estimatedLLMCost * 100) / 100,
+ 118|         totalEstimated: Math.round((estimatedWhatsappCost + estimatedLLMCost) * 100) / 100,
+ 119|       },
+ 120|       recentConversations: recentConversations.map((c) => ({
+ 121|         id: c.id,
+ 122|         guestName: c.guestName,
+ 123|         guestPhone: c.guestPhone,
+ 124|         mode: c.mode,
+ 125|         status: c.status,
+ 126|         property: c.property?.name ?? 'Sem imóvel',
+ 127|         lastMessage: c.messages[0]?.content?.substring(0, 80) ?? '',
+ 128|         updatedAt: c.updatedAt,
+ 129|       })),
+ 130|     });
+ 131|   } catch (error) {
+ 132|     console.error('[api/dashboard] GET Error:', error);
+ 133|     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+ 134|   }
+ 135| }
+ 136| 
+
+>>> src/app/api/ddc/conversations/[id]/messages/route.ts — motivo original: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+status atual: PRESENTE (85 linhas) | handler na linha 15
+diagnóstico: assinatura em múltiplas linhas (âncora de 1 linha não casa)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db } from '@/lib/db';
+   3| import { resolveTenantId } from '@/lib/ddc/ddc-mapper';
+   4| import { createError, apiSuccess } from '@/lib/error-handler';
+   5| import { apiRatelimit } from '@/lib/rate-limit';
+   6| 
+   7| async function guard(): Promise<string | NextResponse> {
+   8|   const tenantId = await resolveTenantId();
+   9|   if (!tenantId) return createError(401, 'UNAUTHORIZED', 'Não autorizado');
+  10|   const { success } = await apiRatelimit.limit(tenantId);
+  11|   if (!success) return createError(429, 'RATE_LIMITED', 'Muitas requisições');
+  12|   return tenantId;
+  13| }
+  14| 
+  15| export async function GET(
+  16|   request: NextRequest,
+  17|   { params }: { params: Promise<{ id: string }> }
+  18| ) {
+  19|   try {
+  20|     const g = await guard();
+  21|     if (g instanceof NextResponse) return g;
+  22|     const tenantId = g as string;
+  23|     const { id: conversationId } = await params;
+  24| 
+  25|     const conversation = await db.conversationLog.findFirst({
+  26|       where: { id: conversationId, tenantId },
+  27|     });
+  28|     if (!conversation) {
+  29|       return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
+  30|     }
+  31| 
+  32|     const messages = await db.conversationMessage.findMany({
+  33|       where: { conversationId },
+  34|       orderBy: { timestamp: 'asc' },
+  35|     });
+  36|     return apiSuccess(messages);
+  37|   } catch {
+  38|     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
+  39|   }
+  40| }
+  41| 
+  42| export async function POST(
+  43|   request: NextRequest,
+  44|   { params }: { params: Promise<{ id: string }> }
+  45| ) {
+  46|   try {
+  47|     const g = await guard();
+  48|     if (g instanceof NextResponse) return g;
+  49|     const tenantId = g as string;
+  50|     const { id: conversationId } = await params;
+  51| 
+  52|     const conversation = await db.conversationLog.findFirst({
+  53|       where: { id: conversationId, tenantId },
+  54|     });
+  55|     if (!conversation) {
+  56|       return createError(404, 'NOT_FOUND', 'Conversa não encontrada');
+  57|     }
+  58| 
+  59|     const body = await request.json();
+  60|     const { from, content, metadata = {} } = body;
+  61| 
+  62|     if (!from || !content) {
+  63|       return createError(400, 'MISSING_FIELDS', 'from e content são obrigatórios');
+  64|     }
+  65| 
+  66|     const message = await db.conversationMessage.create({
+  67|       data: {
+  68|         conversationId,
+  69|         from,
+  70|         content,
+  71|         metadata: JSON.stringify(metadata),
+  72|       },
+  73|     });
+  74| 
+  75|     await db.conversationLog.update({
+  76|       where: { id: conversationId },
+  77|       data: { lastUpdate: new Date() },
+  78|     });
+  79| 
+  80|     return apiSuccess(message, { status: 201 });
+  81|   } catch {
+  82|     return createError(500, 'INTERNAL_ERROR', 'Erro interno');
+  83|   }
+  84| }
+  85| 
+
+>>> src/app/api/ddc/upsell/charge/route.ts — motivo original: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+status atual: PRESENTE (55 linhas) | handler na linha 54
+diagnóstico: export const POST = postWrapped;
+   1| /**
+   2|  * POST /api/ddc/upsell/charge
+   3|  *
+   4|  * Dispara cobrança via cartão de crédito (Mercado Pago) da comissão Zélla (7%)
+   5|  * dos UPSELLs confirmados no período especificado.
+   6|  *
+   7|  * Em produção, é chamada automaticamente por um cron job no fim de cada mês.
+   8|  * Pode ser chamada manualmente pelo dono da pousada.
+   9|  *
+  10|  * Body: { month, year } (default mês atual)
+  11|  * Retorna: { success, payment_id?, status?, amount_charged, upsell_ids }
+  12|  */
+  13| 
+  14| import { NextRequest, NextResponse } from 'next/server';
+  15| import { z } from 'zod';
+  16| import { getServerSession } from 'next-auth';
+  17| import { authOptions } from '@/lib/auth';
+  18| import { cobrarComissaoMensal } from '@/lib/payments/mercadopago-service';
+  19| import { withApiGuard } from '@/lib/security/api-guard';
+  20| 
+  21| const chargeSchema = z.object({
+  22|   month: z.number().int().min(1).max(12).optional(),
+  23|   year: z.number().int().min(2020).max(2100).optional(),
+  24| });
+  25| 
+  26| const postWrapped = withApiGuard(
+  27|   { schema: chargeSchema, routeLabel: 'upsell-charge' },
+  28|   async ({ tenantId, body }) => {
+  29|     if (!tenantId) {
+  30|       return NextResponse.json({ error: 'TENANT_CONTEXT_MISSING' }, { status: 400 });
+  31|     }
+  32| 
+  33|     const now = new Date();
+  34|     const mes = body.month ?? now.getMonth() + 1;
+  35|     const ano = body.year ?? now.getFullYear();
+  36| 
+  37|     const result = await cobrarComissaoMensal(tenantId, mes, ano);
+  38| 
+  39|     if (!result.success) {
+  40|       return NextResponse.json(
+  41|         { success: false, error: 'CHARGE_FAILED', message: result.error, status: result.status },
+  42|         { status: 402 },
+  43|       );
+  44|     }
+  45| 
+  46|     return NextResponse.json({
+  47|       success: true,
+  48|       data: result,
+  49|       period: { mes, ano },
+  50|     });
+  51|   }
+  52| );
+  53| 
+  54| export const POST = postWrapped;
+  55| 
+
+>>> src/app/api/zcc/tenants/[id]/status/route.ts — motivo original: ancora do handler nao encontrada — ver RECON_DEFERRED.txt
+status atual: PRESENTE (139 linhas) | handler na linha 17
+diagnóstico: assinatura em múltiplas linhas (âncora de 1 linha não casa)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db, isDatabaseAvailable } from '@/lib/db';
+   3| import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+   4| 
+   5| /**
+   6|  * PATCH /api/zcc/tenants/[id]/status
+   7|  *
+   8|  * Kill switch / Reactivate tenant.
+   9|  * Body: { status: 'active' | 'suspended' }
+  10|  *
+  11|  * Conexões Prisma:
+  12|  *  - Tenant.status (active | suspended | churned)
+  13|  *  - AuditLog (registra ação do operador ZCC)
+  14|  *  - Cérebro: SelfDefenseAgent escuta mudança para 'suspended'
+  15|  *      → pausa webhooks + IA do tenant
+  16|  */
+  17| export async function PATCH(
+  18|   request: NextRequest,
+  19|   { params }: { params: Promise<{ id: string }> }
+  20| ) {
+  21|   const security = await verifyZCCAccessOrReject(request);
+  22|   if (!security.allowed) return security.response!;
+  23| 
+  24|   const { id } = await params;
+  25| 
+  26|   if (!id) {
+  27|     return NextResponse.json(
+  28|       { success: false, error: 'MISSING_ID', message: 'Tenant ID é obrigatório.' },
+  29|       { status: 400 }
+  30|     );
+  31|   }
+  32| 
+  33|   let body: { status?: string };
+  34|   try {
+  35|     body = await request.json();
+  36|   } catch {
+  37|     return NextResponse.json(
+  38|       { success: false, error: 'INVALID_BODY', message: 'JSON inválido.' },
+  39|       { status: 400 }
+  40|     );
+  41|   }
+  42| 
+  43|   const newStatus = body.status;
+  44|   if (newStatus !== 'active' && newStatus !== 'suspended') {
+  45|     return NextResponse.json(
+  46|       {
+  47|         success: false,
+  48|         error: 'INVALID_STATUS',
+  49|         message: 'status deve ser "active" ou "suspended".',
+  50|       },
+  51|       { status: 400 }
+  52|     );
+  53|   }
+  54| 
+  55|   const dbOk = await isDatabaseAvailable();
+  56|   if (!dbOk) {
+  57|     // Mock mode (Vercel serverless sem DB)
+  58|     return NextResponse.json({
+  59|       success: true,
+  60|       data: {
+  61|         id,
+  62|         status: newStatus,
+  63|         mock: true,
+  64|         message: `Tenant ${id} ${newStatus === 'suspended' ? 'suspenso' : 'reativado'} (mock)`,
+  65|       },
+  66|       meta: { source: 'demo' },
+  67|     });
+  68|   }
+  69| 
+  70|   try {
+  71|     // Verifica se o tenant existe
+  72|     const existing = await db.tenant.findUnique({
+  73|       where: { id },
+  74|       select: { id: true, name: true, status: true, plan: true },
+  75|     });
+  76| 
+  77|     if (!existing) {
+  78|       return NextResponse.json(
+  79|         { success: false, error: 'NOT_FOUND', message: `Tenant ${id} não encontrado.` },
+  80|         { status: 404 }
+  81|       );
+  82|     }
+  83| 
+  84|     // Atualiza status
+  85|     const updated = await db.tenant.update({
+  86|       where: { id },
+  87|       data: { status: newStatus },
+  88|       select: {
+  89|         id: true,
+  90|         name: true,
+  91|         status: true,
+  92|         plan: true,
+  93|         updatedAt: true,
+  94|       },
+  95|     });
+  96| 
+  97|     // Registra no AuditLog
+  98|     try {
+  99|       await db.auditLog.create({
+ 100|         data: {
+ 101|           tenantId: id,
+ 102|           action: newStatus === 'suspended' ? 'TENANT_SUSPENDED' : 'TENANT_REACTIVATED',
+ 103|           details: JSON.stringify({
+ 104|             previousStatus: existing.status,
+ 105|             newStatus,
+ 106|             source: 'zcc-kill-switch',
+ 107|             ip: security.ip,
+ 108|           }),
+ 109|         },
+ 110|       });
+ 111|     } catch {
+ 112|       // AuditLog pode não existir em todos ambientes — não bloqueante
+ 113|     }
+ 114| 
+ 115|     return NextResponse.json({
+ 116|       success: true,
+ 117|       data: {
+ 118|         id: updated.id,
+ 119|         name: updated.name,
+ 120|         status: updated.status,
+ 121|         plan: updated.plan,
+ 122|         updatedAt: updated.updatedAt.toISOString(),
+ 123|         message: `Tenant ${updated.name} ${newStatus === 'suspended' ? 'suspenso' : 'reativado'} com sucesso`,
+ 124|       },
+ 125|       meta: { source: 'db' },
+ 126|     });
+ 127|   } catch (error) {
+ 128|     console.error('[ZCC Tenants Status] Error:', error);
+ 129|     return NextResponse.json(
+ 130|       {
+ 131|         success: false,
+ 132|         error: 'INTERNAL_ERROR',
+ 133|         message: 'Erro ao atualizar status do tenant.',
+ 134|       },
+ 135|       { status: 500 }
+ 136|     );
+ 137|   }
+ 138| }
+ 139| 
+
+--- D) WIRING-REGISTRY ATUAL ---
+/**
+ * SEUZELLA — wiring-registry.ts (gerado pelo kit RUN14-A; NÃO editar à mão)
+ *
+ * Registro real das rotas com a camada W2 aplicada (guardRequest +
+ * auditRouteEvent) por onda, e payload de saúde consumido pelo /api/health.
+ */
+export const WIRING_REGISTRY = {
+  version: 'RUN14-A',
+  generatedAt: '2026-09-22T00:13:23.990Z',
+  waves: [
+    { wave: 'RUN11-W3', wired: ["readiness","brain","checkout.webhook"] },
+    { wave: 'RUN13-A', wired: ["airb-pro.comparativo","airb-pro.rentabilidade","airb-pro.yield-suggestion","checkout.cancel","checkout.create","checkout.downgrade","checkout.pix-status","checkout.success"] },
+    { wave: 'RUN14-A', wired: ["ddc.airb.properties","ddc.airb.scrape","ddc.billing.invoices","v1.reservations.[id].payment","webhook-whatsapp","webhooks.asaas","webhooks.booking-com.reviews","webhooks.mercadopago","webhooks.payment","webhooks.whatsapp","zcc.airbnb.oauth","zcc.airbnb.webhook","zcc.cerebro.llmops","zcc.github.webhook","zcc.leads.brain-analyze","zcc.synthetic-brazil.generate","zelador-suporte.chat","admin.faturamento-zehla","admin.upsell-analytics","dashboard.bookings","dashboard.overview","ddc.booking-sync","ddc.bookings","ddc.linkinbio.stats","ddc.metrics","ddc.realtime.tenant-state","ddc.upsell.metrics","feedback.stats","meta-costs","tenants","v1.metrics","v1.reservations","zcc.code-reviewer.stats","zcc.dashboard-stats","zcc.metrics.financial","zcc.metrics.geographic","zcc.stats","zcc.tenants","zcc.whatsapp.simulate","zcc.ze-code.stats"] },
+  ],
+  healthPayload: true,
+} as const;
+
+export function w2Status(): {
+  wiring: string;
+  wiredRoutes: number;
+  guards: string;
+  audit: string;
+  healthPayload: boolean;
+} {
+  const total = WIRING_REGISTRY.waves.reduce((n, w) => n + w.wired.length, 0);
+  return {
+    wiring: WIRING_REGISTRY.version,
+    wiredRoutes: total,
+    guards: 'guardRequest',
+    audit: 'auditRouteEvent',
+    healthPayload: WIRING_REGISTRY.healthPayload,
+  };
+}
+
