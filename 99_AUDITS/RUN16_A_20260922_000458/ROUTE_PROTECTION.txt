@@ -1,0 +1,327 @@
+================================================================
+ SEUZELLA — RUN16 ROUTE_PROTECTION (camadas por rota, registry corrigido)
+================================================================
+total de rotas: 320 | {"WIRED_W2":52,"PROTECAO_PROPRIA":172,"SEM_PROTECAO_DETECTADA":56,"SKIP_JUSTIFIED":40}
+Nota: SEM_PROTECAO_DETECTADA = nenhuma camada conhecida no ARQUIVO da rota;
+não prova rota aberta — pode haver proteção global (middleware.ts: PRESENTE (src/middleware.ts)) ou fora destes padrões. Cabe ao RED TEAM.
+
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/admin/faturamento-zehla/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/admin/upsell-analytics/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/agent-logs/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/agents/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO] src/app/api/airb-pro/comparativo/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO] src/app/api/airb-pro/rentabilidade/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO] src/app/api/airb-pro/yield-suggestion/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/airb-test/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/alexa/smart-home/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio)] src/app/api/auth/[...nextauth]/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio) | RATELIMIT] src/app/api/auth/forgot-password/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio)] src/app/api/auth/m2m/token/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio) | RATELIMIT] src/app/api/auth/magic-link/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio) | RATELIMIT] src/app/api/auth/register/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio) | RATELIMIT] src/app/api/auth/reset-password/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/bim-vision/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/brain/health/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/brain/intents/route.ts
+[WIRED_W2 (onda RUN11-W3) | W2_WIRING+TENANT+RATELIMIT] src/app/api/brain/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/bulk-whatsapp/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/campaigns/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/campaigns/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/channel-manager/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO+RATELIMIT] src/app/api/checkout/cancel/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO+RATELIMIT] src/app/api/checkout/create/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO+RATELIMIT] src/app/api/checkout/downgrade/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO+RATELIMIT] src/app/api/checkout/pix-status/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO] src/app/api/checkout/success/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/checkout/upgrade/route.ts
+[WIRED_W2 (onda RUN11-W3) | W2_WIRING] src/app/api/checkout/webhook/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/config/keys/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/conversations/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/achievements-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/backup-restore-drill/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/booking-daily/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/budget-reset/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-analyze/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-budget-forecast/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-churn-predict/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-cleanup/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-distill/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-learning/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-audit/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-pentest/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-pulse/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-orchestrator/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-refactor-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-watchdog/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/dlq-drain/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/housekeeping-dispatch/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/ical-sync/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/learning-cycle/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/lembrete-checkin/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/linkinbio-expiry-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/locks-maintenance/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/metrics-snapshot/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/monthly-billing/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/nps-checkout/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/ota-token-expiry/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/payment-confirmation/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/payment-overdue/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/plan-expiry/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/plan-limits-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/security-scan/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/sre-alerts/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/weekly-report/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/dashboard/bookings/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/dashboard/overview/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/dashboard/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/ai-status/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/commissions/[id]/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT+RATELIMIT] src/app/api/ddc/airb-pro/commissions/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/expenses/[id]/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT+RATELIMIT] src/app/api/ddc/airb-pro/expenses/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/goals/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/goals/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/operations/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/operations/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/reports/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb/conversations/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb/notifications/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb/onboarding/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/ddc/airb/properties/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb/regional/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/ddc/airb/scrape/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+SESSAO] src/app/api/ddc/billing/invoices/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/ddc/booking-sync/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT+RATELIMIT] src/app/api/ddc/bookings/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/cerebro/feedback/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/cerebro/learning/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/conversations/[id]/escalate/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/conversations/[id]/messages/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/conversations/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/conversations/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT] src/app/api/ddc/credits/balance/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT] src/app/api/ddc/credits/codes/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT] src/app/api/ddc/credits/create-code/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/credits/lite-milestone/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/credits/referrals/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/credits/track-click/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/deliveries/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/dpo-capture/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/dynamic-pricing/calculate/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/dynamic-pricing/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/ddc/gerente-ia/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/guest-guide/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/guest-registration/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/guests/[id]/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT+RATELIMIT] src/app/api/ddc/guests/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+TENANT] src/app/api/ddc/housekeeping/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/learning-stats/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/linkinbio/activate-standalone/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/linkinbio/purchase-addon/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/linkinbio/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/ddc/linkinbio/stats/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/live-feed/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/locks/[id]/panic-revoke/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/[id]/pins/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/locks/[id]/unlock/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT] src/app/api/ddc/locks/events/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/oauth/[provider]/callback/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/oauth/[provider]/devices/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/oauth/[provider]/start/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/ddc/magic-link/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/meta-connect/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT+RATELIMIT] src/app/api/ddc/metrics/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/mobile/state/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/notifications/read-all/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/notifications/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/notifications/v2/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/ddc/onboarding-wizard/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/partner-program/badge/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/partner-program/claim/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/partner-program/status/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/partner-program/waitlist/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/personality/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/property-name/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+SESSAO+TENANT] src/app/api/ddc/realtime/tenant-state/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT+RATELIMIT] src/app/api/ddc/revenue-details/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/runtime-version/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/ddc/simulate-message/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/special-dates/overrides/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/special-dates/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/training/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/training/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/upsell/charge/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+SESSAO] src/app/api/ddc/upsell/metrics/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/upsell/payment-method/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/upsell/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/debug-agent/github/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/debug-agent/knowledge/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/debug-agent/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/diagnose/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/download/[filename]/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/export/leads/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/feedback/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT+RATELIMIT] src/app/api/feedback/stats/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/guide/[slug]/route.ts
+[WIRED_W2 (payload health) | W2_WIRING] src/app/api/health/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/hunt-stream/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/hunt/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ical/[syncToken]/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/integrations/ical/[roomId]/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/integrations/sync/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/internal/flush-buffer/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/knowledge/generate-embeddings/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/landing/chat/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/landing/contact/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/leads/[id]/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/leads/analytics/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/leads/converted-pousadas/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/leads/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/leads/seed/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD] src/app/api/lgpd/consent/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+RATELIMIT] src/app/api/lgpd/delete-my-data/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/lgpd/dpa/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/lgpd/export-my-data/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/lgpd/forget-guest/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+SESSAO] src/app/api/meta-costs/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/mobile/devices-tracking-v2/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/mobile/devices-tracking/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/monitoring/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/onboarding/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/pinns-clifford/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/properties/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/properties/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/proxy/[...path]/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/pulse/io/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/push/subscribe/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/push/unsubscribe/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/push/vapid-public-key/route.ts
+[WIRED_W2 (onda RUN11-W3)] src/app/api/readiness/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/roi/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/router/budget/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/router/providers/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/scraping/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/security/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/swipe-templates/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/targets/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/targets/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/telemetry/ingest/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/telemetry/landing/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/telemetry/query/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/tenants/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/v1/guest/ddc/notifications/route.ts
+[PROTECAO_PROPRIA | SESSAO+TENANT+RATELIMIT] src/app/api/v1/guest/ddc/overview/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/v1/latency/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/v1/loops/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/v1/metrics/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/v1/reservations/[id]/payment/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/v1/reservations/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/webgl-bridge/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+RATELIMIT] src/app/api/webhook-whatsapp/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+RATELIMIT] src/app/api/webhooks/asaas/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/webhooks/booking-com/reviews/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+RATELIMIT] src/app/api/webhooks/mercadopago/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/webhooks/payment/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+RATELIMIT] src/app/api/webhooks/whatsapp/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD] src/app/api/yield/calculate/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+TENANT] src/app/api/yield/profit-summary/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/adapters/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC+TENANT+RATELIMIT] src/app/api/zcc/agents/[id]/run/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/agents/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/airbnb/oauth/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/airbnb/webhook/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/backup-drill/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/brain/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/burn-rate/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/campaigns/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/analyses/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/anomalies/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/ask/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/cerebro/llmops/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/zcc/cerebro/ml-stats/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/prompt-ide/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/refactors/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC+RATELIMIT] src/app/api/zcc/cerebro/runbook/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/status/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cerebro/stream/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/test-alert/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/workflows/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/apply/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/config/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/review/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/reviews/[id]/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/reviews/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC+RATELIMIT] src/app/api/zcc/code-reviewer/stats/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cognitive-bus/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cognitive-memory/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC+TENANT] src/app/api/zcc/conductor/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/consent/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cortex/growth/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cortex/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/dashboard-stats/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/digital-twin/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/dspy-compiler/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/export/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/finance/expenses/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/apply-pr/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/credentials/[id]/revoke/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/credentials/[id]/rotate/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/credentials/audit/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/credentials/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC+RATELIMIT] src/app/api/zcc/github/credentials/validate/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/github/expiry-check/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/zcc/github/webhook/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/health/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/inference-simulation/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/infra/scaling-ruler/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/infrastructure/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/zcc/leads/brain-analyze/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/metrics/financial/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/metrics/geographic/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/metrics/periods/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/metrics/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/national-simulator/compare/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/national-simulator/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/night-audit/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/night-audit/vulns/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/observability/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/onboarding-tracker/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/partner-program/reopen/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/personas/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/pulse/analyze/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/pulse/capture/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/sales-funnel/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/sandbox/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/security/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/conflicts/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/decisions/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/export/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/graph/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/ingest/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/simulation-lab/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/stats/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/zcc/synthetic-brazil/generate/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/synthetic-brazil/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/targets/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/tenants/[id]/status/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/tenants/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/vps-preflight/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/whatsapp/simulate/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/apply/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/bottlenecks/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/evolve/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/gaps/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/refactors/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/review/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/ze-code/stats/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/zgs/decisions/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/zelador-suporte/chat/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zelador-suporte/consultoria/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zelador-suporte/ticket/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zella/simulate/route.ts

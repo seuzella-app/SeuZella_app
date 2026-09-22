@@ -1,0 +1,123 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { z } from 'zod';
+
+export interface GuardOptions<T = unknown> {
+  role?: 'ADMIN' | 'TENANT_USER';
+  schema?: z.ZodSchema<T>;
+  allowGlobalAccess?: boolean;
+  routeLabel?: string;
+}
+
+export interface GuardContext<T = unknown> {
+  req: NextRequest;
+  session: NonNullable<Awaited<ReturnType<typeof getServerSession>>>;
+  tenantId: string | null;
+  body: T;
+  requestId: string;
+}
+
+type GuardedHandler<T> = (context: GuardContext<T>) => Promise<NextResponse | Response>;
+
+function response(error: string, status: number, requestId: string, message?: string): NextResponse {
+  return NextResponse.json({ error, ...(message ? { message } : {}), requestId }, { status, headers: { 'X-Request-ID': requestId } });
+}
+
+export function withApiGuard<T = unknown>(options: GuardOptions<T>, handler: GuardedHandler<T>): (req: NextRequest) => Promise<NextResponse | Response> {
+  return async (req) => {
+    const requestId = req.headers.get('x-request-id')?.match(/^[A-Za-z0-9_-]{1,64}$/)?.[0]
+      || req.headers.get('x-vercel-id')?.match(/^[A-Za-z0-9_-]{1,64}$/)?.[0]
+      || `guard-${crypto.randomUUID()}`;
+
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) return response('UNAUTHORIZED', 401, requestId, 'Sessão não encontrada.');
+
+      const role = String((session.user as { role?: string }).role || '');
+      if (options.role === 'ADMIN' && role !== 'ADMIN' && role !== 'owner') {
+        return response('FORBIDDEN', 403, requestId, 'Acesso restrito a administradores.');
+      }
+      if (options.role === 'TENANT_USER' && !['TENANT_USER', 'owner', 'admin', 'staff'].includes(role)) {
+        return response('FORBIDDEN', 403, requestId, 'Permissão insuficiente.');
+      }
+
+      const tenantIdRaw = (session.user as { tenantId?: unknown }).tenantId;
+      const tenantId = typeof tenantIdRaw === 'string' && tenantIdRaw.trim() ? tenantIdRaw : null;
+      if (!tenantId && !options.allowGlobalAccess) return response('TENANT_CONTEXT_MISSING', 403, requestId, 'Contexto de tenant ausente.');
+
+      let parsedBody = {} as T;
+      if (options.schema) {
+        let rawBody: unknown;
+        try { rawBody = await req.json(); } catch { return response('INVALID_JSON', 400, requestId, 'Corpo inválido.'); }
+        const result = options.schema.safeParse(rawBody);
+        if (!result.success) return NextResponse.json({ error: 'VALIDATION_ERROR', details: result.error.format(), requestId }, { status: 422, headers: { 'X-Request-ID': requestId } });
+        parsedBody = result.data;
+      }
+
+      return await handler({ req, session, tenantId, body: parsedBody, requestId });
+    } catch (error) {
+      console.error(`[API_GUARD${options.routeLabel ? `:${options.routeLabel}` : ''}]`, error);
+      return response('INTERNAL_ERROR', 500, requestId);
+    }
+  };
+}
+
+export function withAdminGuard<T = unknown>(options: Omit<GuardOptions<T>, 'role'> = {}, handler: GuardedHandler<T>) {
+  return withApiGuard({ ...options, role: 'ADMIN' }, handler);
+}
+
+export function withTenantGuard<T = unknown>(options: Omit<GuardOptions<T>, 'role'> = {}, handler: GuardedHandler<T>) {
+  return withApiGuard({ ...options, role: 'TENANT_USER' }, handler);
+}
+
+export function withCronGuard(handler: (context: { requestId: string }) => Promise<NextResponse | Response>): (req: NextRequest) => Promise<NextResponse | Response> {
+  return async (req) => {
+    const requestId = req.headers.get('x-request-id') || `cron-${crypto.randomUUID()}`;
+    const secret = process.env.CRON_SECRET;
+    if (!secret) return response('SERVICE_UNAVAILABLE', 503, requestId, 'Cron authentication is not configured.');
+
+    const authHeader = req.headers.get('authorization');
+    const internalToken = req.headers.get('x-internal-token');
+    if (authHeader !== `Bearer ${secret}` && internalToken !== secret) return response('UNAUTHORIZED', 401, requestId);
+
+    try { return await handler({ requestId }); } catch (error) {
+      console.error('[CRON_GUARD]', error);
+      return response('INTERNAL_ERROR', 500, requestId);
+    }
+  };
+}
+
+export function withWebhookGuard(
+  options: { secretEnv: string; headerName?: string; format?: 'sha256=' | 'v1=' | 'raw' },
+  handler: (context: { req: NextRequest; requestId: string }) => Promise<NextResponse | Response>,
+): (req: NextRequest) => Promise<NextResponse | Response> {
+  return async (req) => {
+    const requestId = req.headers.get('x-request-id') || `webhook-${crypto.randomUUID()}`;
+    const secret = process.env[options.secretEnv];
+    if (!secret) return response('SERVICE_UNAVAILABLE', 503, requestId, 'Webhook secret is not configured.');
+
+    const signature = req.headers.get(options.headerName || 'x-hub-signature-256');
+    if (!signature) return response('MISSING_SIGNATURE', 401, requestId);
+
+    try {
+      const rawBody = await req.text();
+      const { verifyWhatsAppWebhook, verifyMercadoPagoWebhook } = await import('./webhook-verify');
+      let valid = false;
+      if ((options.format || 'sha256=') === 'sha256=') valid = verifyWhatsAppWebhook(rawBody, signature, secret).valid;
+      else if (options.format === 'v1=') valid = verifyMercadoPagoWebhook(rawBody, signature, secret).valid;
+      else {
+        const expected = (await import('crypto')).createHmac('sha256', secret).update(rawBody).digest('hex');
+        const received = signature.replace(/^sha256=/, '');
+        const a = Buffer.from(received, 'hex'); const b = Buffer.from(expected, 'hex');
+        valid = a.length === b.length && (await import('crypto')).timingSafeEqual(a, b);
+      }
+      if (!valid) return response('INVALID_SIGNATURE', 401, requestId);
+      return await handler({ req: new NextRequest(req.url, { method: req.method, headers: req.headers, body: rawBody }), requestId });
+    } catch (error) {
+      console.error('[WEBHOOK_GUARD]', error);
+      return response('INTERNAL_ERROR', 500, requestId);
+    }
+  };
+}
+

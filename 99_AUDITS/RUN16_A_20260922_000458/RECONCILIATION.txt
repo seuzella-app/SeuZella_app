@@ -1,0 +1,105 @@
+================================================================
+ SEUZELLA — RUN16 RECONCILIATION (tags + providers + guards + registry)
+================================================================
+branch: feat/meta-zella-foundation
+HEAD: 2b53b8e9a2c64bd7b7062b2413a2fef72815bd42 (2b53b8e9)
+arquivos com mudança não commitada: 13
+
+-- LOG (últimos 14) --
+2b53b8e9 RUN15-A: recon dos residuais do WIRING_BACKLOG (scrubbed) + inventário de cobertura W2 + fechamento do RUN12 (tag)
+aff5ca01 RUN14-A: fiação do Lote 2/3 do WIRING_BACKLOG (guard+audit W2) + mop-up do payload W2 no /api/health + registry RUN14-A
+480281d2 RUN13-A: fiação do Lote 1 do WIRING_BACKLOG (guard+audit W2) + payload W2 no /api/health
+bede7de3 RUN12-A: logger estruturado + higiene I8 (console.* -> logger) + recon do Lote 1 do WIRING_BACKLOG
+5273a482 RUN11-W3: fiação seletiva da infra (brain/readiness/checkout-webhook) + wiring.ts + backlog 133 propostas + invariantes refinados
+3c266298 RUN11-W2: camada de infra local (cache/queue/rate-limit/audit/health) + invariantes AST
+8ff08f47 test: adota suites de invariantes orfas run9-w1 e run10-w1 (instaladas por kits W1 de sabado, GREEN no vitest-full de hoje; higiene aprovada pelo agente para liberar o PASSO 2)
+7c15a3c7 run10: fecha RUN10-W2 V3 - suite 10A AST-aligned ao patcher (causa raiz template literal provada) + baseline pin anti-crescimento + R10-8 reclassificado com evidencia AST (RES-10A-2) + rate-limit fail-closed rotas IA (10B) + ai-env central fail-closed (10E) + residuais/plano W3
+e362e931 run9: fecha RUN9-W2 - guard fail-closed webhook airbnb (9C) + fix flake temporal run4-wave4a (9F) + invariantes 9C/9D/9F + residuais documentados
+819bb567 run8: fecha RUN8-W2 - disciplina migrate deploy (8B) + invariantes 8A/8B/8D
+d70a7cd2 run7: fecha RUN7-W3 - invariantes RES-01 alinhados em tests/security
+0cbc984c fase0: consolidacao RUN4B+RUN5+RUN6+RUN6B - SEUZELLA_BASELINE_CLOSURE_01
+ce6ffd53 feat(meta): integrate GLM 02B hardening
+50c00280 fix(ddc): tighten metrics types and remove unused activity query
+
+-- TAGS (9) --
+TAG SEUZELLA_BASELINE_CLOSURE_01 -> 0cbc984c7a6c98bbc32360f09a2b8faf73789295 | 0cbc984c | fase0: consolidacao RUN4B+RUN5+RUN6+RUN6B - SEUZELLA_BASELINE_CLOSURE_01
+TAG SEUZELLA_RUN10_MASTER_CLOSURE_01 -> 7c15a3c734cb657a0dce74ae9e8bc8049c746771 | 7c15a3c7 | run10: fecha RUN10-W2 V3 - suite 10A AST-aligned ao patcher (causa raiz template literal provada) + baseline pin anti-crescimento + R10-8 reclassificado com evidencia AST (RES-10A-2) + rate-limit fail-closed rotas IA (10B) + ai-env central fail-closed (10E) + residuais/plano W3
+TAG SEUZELLA_RUN11_MASTER_CLOSURE_01 -> 5273a482f7ca190c48c4771f7aa25b23ba73b455 | 5273a482 | RUN11-W3: fiação seletiva da infra (brain/readiness/checkout-webhook) + wiring.ts + backlog 133 propostas + invariantes refinados
+TAG SEUZELLA_RUN12_MASTER_CLOSURE_01 -> 2b53b8e9a2c64bd7b7062b2413a2fef72815bd42 | 2b53b8e9 | RUN15-A: recon dos residuais do WIRING_BACKLOG (scrubbed) + inventário de cobertura W2 + fechamento do RUN12 (tag)
+TAG SEUZELLA_RUN7_MASTER_CLOSURE_01 -> d70a7cd2a3a489494550d3c52693adfc454b6102 | d70a7cd2 | run7: fecha RUN7-W3 - invariantes RES-01 alinhados em tests/security
+TAG SEUZELLA_RUN8_MASTER_CLOSURE_01 -> 819bb5671fc4ea82fb92a3af2f73b4f2599ea230 | 819bb567 | run8: fecha RUN8-W2 - disciplina migrate deploy (8B) + invariantes 8A/8B/8D
+TAG SEUZELLA_RUN9_MASTER_CLOSURE_01 -> e362e931b5160daabf1902337ea8d899f38ff00c | e362e931 | run9: fecha RUN9-W2 - guard fail-closed webhook airbnb (9C) + fix flake temporal run4-wave4a (9F) + invariantes 9C/9D/9F + residuais documentados
+TAG backup-pre-reorg -> 870dafaa7c633e00da92bb5569c1f8534737064a | 870dafaa | refactor(types): Fase 10 hardening — as const, type cleanup, dead code removal
+TAG v2026.06.18-antigravity-local -> cbc1abbde3eb7f616df1fbb6e22bdead5100e885 | cbc1abbd | feat: complete integration and coupling of ZEHLA modules (Checkout, missing ZCC & Landing components, MCP config absolute path)
+
+-- ÂNCORAS (hash exato) --
+ANCORA RUN12-A (bede7de3) -> bede7de39b13d243dcabcb8d8ac0e3b6f9312422 | ancestral-do-HEAD: SIM
+ANCORA RUN13-A (480281d2) -> 480281d25412db930c5dc2ddc32175cb4c7f4430 | ancestral-do-HEAD: SIM
+ANCORA RUN14-A (aff5ca01) -> aff5ca018e5b0986264022142ccff1464b113010 | ancestral-do-HEAD: SIM
+ANCORA RUN15-A (2b53b8e9) -> 2b53b8e9a2c64bd7b7062b2413a2fef72815bd42 | ancestral-do-HEAD: SIM
+
+-- PROVIDER_RECOUNT (padrões largos vs estreitos) --
+arquivos varridos: 4374 (src/tests/config/docs; excluídos .git/node_modules/.next/99_AUDITS)
+[PATTERN] GLM_ESTREITO (glm53|glm-5.3) — o contador do snapshot .md — matches: 0 | arquivos-amostra: 0
+[PATTERN] GLM_LARGO (glm) — matches: 1000 | arquivos-amostra: 8
+    .claude/AGENTS.md:62: entryPoint: 'glm_cerebro',
+    .env.example:158: # CÉREBRO ZÉLLA — Entidade Autônoma (GLM 5.2 Supervisor)
+    .github/workflows/zecode-pr-review.yml:10: # 4. Live mode: GLM 5.2 for deeper analysis
+    00_MASTER_CONTROL/WAVE_2_3_MASTER_FORENSIC_RECONCILIATION_V2.md:4: **AUDITOR:** GLM 5.2 — Super Z (Cérebro de Supervisão Forense)
+    ANTIGRAVITY_CURRENT_STATE_RECONCILIATION.md:1: # RECONCILIAÇÃO FORENSE INTEGRAL DO ESTADO ATUAL — GLM 5.2 vs ANTIGRAVITY (V2)
+    C4_IMPLEMENTATION_STATE_REPORT.md:86: ## 6. DIFERENÇAS ENTRE O RELATÓRIO GLM E O CÓDIGO REAL
+    CANONICAL_GLM_ANTIGRAVITY_RECONCILIATION.md:1: # CANONICAL_GLM_ANTIGRAVITY_RECONCILIATION
+    CLAUDE.md:45: - ❌ `GlmCerebroService` (bypassa guardrails — migração em P0)
+[PATTERN] GLM_MODELID (glm-<numero>) — matches: 175 | arquivos-amostra: 8
+    .env.example:318: GLM_MODEL=glm-5.2
+    .github/workflows/zecode-pr-review.yml:84: GLM_MODEL: ${{ vars.GLM_MODEL || 'glm-5.2' }}
+    deploy/.env.example:77: GLM_MODEL="glm-5.2"
+    graft/src/lib/zcc/agents/types.md:6: - LlmModel · type · L37-L37 — type LlmModel = 'glm-4.7-flash' | 'glm-4.7' | 'glm-5.2';
+    graft/src/lib/zcc/types.md:18: - LlmModel · type · L252-L252 — type LlmModel = "glm-4.7-flash" | "glm-4.7" | "glm-5.2";
+    src/app/api/zcc/brain/route.ts:20: id: "p1", provider: "zai_sdk", modelName: "GLM-4.7-Flash", tier: "1",
+    src/app/api/zcc/burn-rate/route.ts:329: label: 'LLM Tokens (GLM-4.7-flash)',
+    src/app/api/zcc/cerebro/prompt-ide/route.ts:18: models: z.array(z.string()).optional().default(['glm-4.7-flash', 'glm-5.2']),
+[PATTERN] ZAI_SDK (zai_sdk) — matches: 7 | arquivos-amostra: 6
+    graft/src/lib/zcc/types.md:20: - IntegrationId · type · L273-L273 — type IntegrationId = "whatsapp" | "booking" | "airbnb" | "meta" | "openai" | "groq" | "mercad
+    prisma/schema_ddc.prisma:106: provider String // gemini | openai | groq | huggingface | anthropic | zai_sdk
+    src/app/api/zcc/brain/route.ts:20: id: "p1", provider: "zai_sdk", modelName: "GLM-4.7-Flash", tier: "1",
+    src/app/api/zcc/burn-rate/route.ts:565: provider: 'zai-sdk',
+    src/components/zcc/panels/operator-console-panel.tsx:198: id: "zai-sdk",
+    src/lib/zcc/types.ts:273: export type IntegrationId = "whatsapp" | "booking" | "airbnb" | "meta" | "openai" | "groq" | "mercadopago" | "asaas" | "tuya" | "a
+[PATTERN] ZHIPU_BIGMODEL (zhipu|bigmodel) — matches: 88 | arquivos-amostra: 8
+    .env.example:174: ZHIPU_API_KEY=
+    .github/workflows/zecode-pr-review.yml:83: GLM_BASE_URL: ${{ vars.GLM_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4' }}
+    DOCUMENTO_MASTER_PRE_PRODUCAO.md:3315: Zhipu
+    deploy/.env.example:75: ZHIPU_API_KEY=""
+    docs/SUPER_DOCUMENTO_DE_CONCLUSAO.md:63: | **Provedores LLM** | 7 cloud + 1 local | Anthropic, Groq, Gemini, OpenAI, DeepSeek, Zhipu, OpenRouter + Ollama |
+    graft/src/lib/ai/llm-router.md:4: - CloudProvider · type · L29-L29 — type CloudProvider = 'anthropic' | 'groq' | 'gemini' | 'openai' | 'deepseek' | 'zhipu' | 'openr
+    src/app/api/zcc/cerebro/prompt-ide/route.ts:36: const apiKey = process.env.GLM_5_2_API_KEY || process.env.ZHIPU_API_KEY || '';
+    src/app/api/zcc/cerebro/runbook/route.ts:46: ZHIPU_API_KEY: process.env.ZHIPU_API_KEY ? '✓ configured' : '✗ not set',
+[PATTERN] ZAI_DOMINIO (z.ai|z-ai) — matches: 41 | arquivos-amostra: 8
+    .env.example:169: # ── LLM Provider (GLM 5.2 via Chat.z.ai) ──────────────────────────
+    docs/PLANO-DE-IMPLEMENTACAO-ZELLA-AIRB.md:1320: > **Autor:** Agente Z.ai
+    docs/PLANO-IMPLEMENTACAO-ZELLA-AIRB.md:6: > **Autor:** Z.ai Code + Decisões do Dono do Produto
+    mini-services/discord-bot/README.md:43: # IA (z-ai-web-dev-sdk) — opcional mas recomendado
+    mini-services/discord-bot/index.ts:6: // 1. IA Assistente — responde perguntas via z-ai-web-dev-sdk (LLM)
+    mini-services/discord-bot/package.json:12: "z-ai-web-dev-sdk": "^0.0.17"
+    package-lock.json:100: "z-ai-web-dev-sdk": "^0.0.17",
+    package.json:76: "@next-auth/prisma-adapter": "^1.0.7", "@octokit/rest": "^22.0.1", "@prisma/client": "^6.11.1", "@radix-ui/react-accordion": "^1.2
+[PATTERN] KIMI_ESTREITO (kimik3|kimi-k3) — o contador do snapshot .md — matches: 0 | arquivos-amostra: 0
+[PATTERN] KIMI_LARGO (kimi|moonshot) — matches: 92 | arquivos-amostra: 8
+    .agents/skills/rtk/README.md:123: rtk init --agent kimi # Kimi AI
+    .env.example:392: KIMI_K2_6_API_KEY=
+    DOCUMENTO_MASTER_PRE_PRODUCAO.md:3316: Moonshot
+    src/components/zcc/panels/live-agents-panel.tsx:307: Zhipu GLM-4, Moonshot Kimi, Ollama). O Conductor roteia via Thompson Sampling.
+    src/lib/ai/batch-queue.ts:6: provider: 'deepseek' | 'gemini' | 'zhipu' | 'moonshot';
+    src/lib/ai/cost-knowledge.ts:42: { providerId: 'moonshot-kimi-k2-6', inputPer1M: 0.95, outputPer1M: 4.00, cachePer1M: 0.16, contextTokens: 262_144, tier: 2 },
+    src/lib/ai/llm-adapters.ts:63: * OpenAI-Compatible Providers (OpenAI, OpenRouter, Groq, DeepSeek, Moonshot/Kimi, Zhipu/GLM)
+    src/lib/ai/llm-router.ts:83: model: 'moonshotai/kimi-k2-6',
+[PATTERN] JEV (\bjev\b) — matches: 0 | arquivos-amostra: 0
+
+-- CAMADA DE GUARDS --
+api-guard (src/lib/security/api-guard.ts): 123 linhas | guardRequest: false | auditRouteEvent: false | rateLimit: false | sessão: true | zod: true
+wiring.ts: {"presente":true,"guardRequest":true,"auditRouteEvent":true,"exports":["export type GuardPolicy = RateLimitPolicy;","export function clientIp(req: Request): string {","export function hashIp(ip: string): string {","export function guardRequest(","export function auditRouteEvent(event: AuditEvent): string {"]}
+middleware: {"presente":true,"rel":"src/middleware.ts","linhas":39}
+
+-- REGISTRY (parser corrigido) --
+rotas fiadas por onda: {"RUN11-W3":3,"RUN13-A":8,"RUN14-A":40} | total fiadas: 51 | healthPayload: true

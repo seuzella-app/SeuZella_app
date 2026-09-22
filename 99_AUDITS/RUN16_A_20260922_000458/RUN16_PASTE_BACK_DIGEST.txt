@@ -1,0 +1,613 @@
+================================================================
+ SEUZELLA — RUN16_PASTE_BACK_DIGEST (reconciliação de evidências)
+ Gerado em: 2026-09-22T03:05:18.256Z
+ Responde ao parecer externo: tags RUN13/14/15 + GLM53/KIMIK3/JEV=0
+================================================================
+
+--- A) SUMÁRIO EXECUTIVO ---
+branch: feat/meta-zella-foundation | HEAD: 2b53b8e9 (2b53b8e9a2c64bd7...) | sujo: 13
+tags: SEUZELLA_BASELINE_CLOSURE_01, SEUZELLA_RUN10_MASTER_CLOSURE_01, SEUZELLA_RUN11_MASTER_CLOSURE_01, SEUZELLA_RUN12_MASTER_CLOSURE_01, SEUZELLA_RUN7_MASTER_CLOSURE_01, SEUZELLA_RUN8_MASTER_CLOSURE_01, SEUZELLA_RUN9_MASTER_CLOSURE_01, backup-pre-reorg, v2026.06.18-antigravity-local
+âncoras: RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9
+registry (parser corrigido): fiadas por onda {"RUN11-W3":3,"RUN13-A":8,"RUN14-A":40} = 51 + health
+rotas: total 320 | {"WIRED_W2":52,"PROTECAO_PROPRIA":172,"SEM_PROTECAO_DETECTADA":56,"SKIP_JUSTIFIED":40}
+api-guard: guardRequest=false auditRouteEvent=false rateLimit=false sessão=true (123 linhas — arquivo completo em API_GUARD.txt)
+middleware.ts: PRESENTE (src/middleware.ts, 39 linhas)
+
+--- B) TAXONOMIA DE TAGS (por que RUN13/14/15 não têm tag) ---
+As tags MASTER_CLOSURE marcam FECHAMENTO DE CICLO, não ondas:
+  RUN10_MASTER_CLOSURE_01 fecha o ciclo RUN10;
+  RUN11_MASTER_CLOSURE_01 fecha o ciclo RUN11;
+  RUN12_MASTER_CLOSURE_01 (criada no commit 2b53b8e9 da onda RUN15-A)
+    fecha TODO o ciclo da campanha logger+I8+WIRING_BACKLOG, que contém
+    as ondas RUN12-A bede7de3, RUN13-A 480281d2, RUN14-A aff5ca01 e
+    RUN15-A 2b53b8e9 — cada uma ancorada em SEU commit de evidência.
+Portanto RUN13/14/15 não têm tag e NUNCA terão: são ondas dentro do
+ciclo fechado pela tag RUN12. A PRÓXIMA tag de fechamento só nasce no
+MASTER GATE (fim da campanha RED TEAM -> HYGIENE -> DOCS).
+O snapshot .md listava RUN13/14/15 como ABSENT sem essa taxonomia —
+era esperado e correto estar ABSENT.
+
+-- MANIFEST REAL (git) --
+TAG SEUZELLA_BASELINE_CLOSURE_01 -> 0cbc984c (0cbc984c7a6c...) | fase0: consolidacao RUN4B+RUN5+RUN6+RUN6B - SEUZELLA_BASELINE_CLOSURE_01
+TAG SEUZELLA_RUN10_MASTER_CLOSURE_01 -> 7c15a3c7 (7c15a3c734cb...) | run10: fecha RUN10-W2 V3 - suite 10A AST-aligned ao patcher (causa raiz template literal provada) + baseline pin anti-crescimento + R10-8 reclassificado com evidencia AST (RES-10A-2) + rate-limit fail-closed rotas IA (10B) + ai-env central fail-closed (10E) + residuais/plano W3
+TAG SEUZELLA_RUN11_MASTER_CLOSURE_01 -> 5273a482 (5273a482f7ca...) | RUN11-W3: fiação seletiva da infra (brain/readiness/checkout-webhook) + wiring.ts + backlog 133 propostas + invariantes refinados
+TAG SEUZELLA_RUN12_MASTER_CLOSURE_01 -> 2b53b8e9 (2b53b8e9a2c6...) | RUN15-A: recon dos residuais do WIRING_BACKLOG (scrubbed) + inventário de cobertura W2 + fechamento do RUN12 (tag)
+TAG SEUZELLA_RUN7_MASTER_CLOSURE_01 -> d70a7cd2 (d70a7cd2a3a4...) | run7: fecha RUN7-W3 - invariantes RES-01 alinhados em tests/security
+TAG SEUZELLA_RUN8_MASTER_CLOSURE_01 -> 819bb567 (819bb5671fc4...) | run8: fecha RUN8-W2 - disciplina migrate deploy (8B) + invariantes 8A/8B/8D
+TAG SEUZELLA_RUN9_MASTER_CLOSURE_01 -> e362e931 (e362e931b516...) | run9: fecha RUN9-W2 - guard fail-closed webhook airbnb (9C) + fix flake temporal run4-wave4a (9F) + invariantes 9C/9D/9F + residuais documentados
+TAG backup-pre-reorg -> 870dafaa (870dafaa7c63...) | refactor(types): Fase 10 hardening — as const, type cleanup, dead code removal
+TAG v2026.06.18-antigravity-local -> cbc1abbd (cbc1abbde3eb...) | feat: complete integration and coupling of ZEHLA modules (Checkout, missing ZCC & Landing components, MCP config absolute path)
+ANCORA RUN12-A (bede7de3) -> bede7de39b13... | ancestral-do-HEAD: SIM
+ANCORA RUN13-A (480281d2) -> 480281d25412... | ancestral-do-HEAD: SIM
+ANCORA RUN14-A (aff5ca01) -> aff5ca018e5b... | ancestral-do-HEAD: SIM
+ANCORA RUN15-A (2b53b8e9) -> 2b53b8e9a2c6... | ancestral-do-HEAD: SIM
+
+-- LOG (últimos 14) --
+2b53b8e9 RUN15-A: recon dos residuais do WIRING_BACKLOG (scrubbed) + inventário de cobertura W2 + fechamento do RUN12 (tag)
+aff5ca01 RUN14-A: fiação do Lote 2/3 do WIRING_BACKLOG (guard+audit W2) + mop-up do payload W2 no /api/health + registry RUN14-A
+480281d2 RUN13-A: fiação do Lote 1 do WIRING_BACKLOG (guard+audit W2) + payload W2 no /api/health
+bede7de3 RUN12-A: logger estruturado + higiene I8 (console.* -> logger) + recon do Lote 1 do WIRING_BACKLOG
+5273a482 RUN11-W3: fiação seletiva da infra (brain/readiness/checkout-webhook) + wiring.ts + backlog 133 propostas + invariantes refinados
+3c266298 RUN11-W2: camada de infra local (cache/queue/rate-limit/audit/health) + invariantes AST
+8ff08f47 test: adota suites de invariantes orfas run9-w1 e run10-w1 (instaladas por kits W1 de sabado, GREEN no vitest-full de hoje; higiene aprovada pelo agente para liberar o PASSO 2)
+7c15a3c7 run10: fecha RUN10-W2 V3 - suite 10A AST-aligned ao patcher (causa raiz template literal provada) + baseline pin anti-crescimento + R10-8 reclassificado com evidencia AST (RES-10A-2) + rate-limit fail-closed rotas IA (10B) + ai-env central fail-closed (10E) + residuais/plano W3
+e362e931 run9: fecha RUN9-W2 - guard fail-closed webhook airbnb (9C) + fix flake temporal run4-wave4a (9F) + invariantes 9C/9D/9F + residuais documentados
+819bb567 run8: fecha RUN8-W2 - disciplina migrate deploy (8B) + invariantes 8A/8B/8D
+d70a7cd2 run7: fecha RUN7-W3 - invariantes RES-01 alinhados em tests/security
+0cbc984c fase0: consolidacao RUN4B+RUN5+RUN6+RUN6B - SEUZELLA_BASELINE_CLOSURE_01
+ce6ffd53 feat(meta): integrate GLM 02B hardening
+50c00280 fix(ddc): tighten metrics types and remove unused activity query
+
+--- C) PROVIDER_RECOUNT: ESTREITO (snapshot .md) vs LARGO (real) ---
+Princípio: 0 referências PELO PADRÃO ≠ integração inexistente.
+arquivos varridos: 4374 (excluídos .git/node_modules/.next/99_AUDITS)
+[GLM] GLM_ESTREITO (glm53|glm-5.3) — o contador do snapshot .md — matches: 0
+[GLM] GLM_LARGO (glm) — matches: 1000
+    .claude/AGENTS.md:62: entryPoint: 'glm_cerebro',
+    .env.example:158: # CÉREBRO ZÉLLA — Entidade Autônoma (GLM 5.2 Supervisor)
+    .github/workflows/zecode-pr-review.yml:10: # 4. Live mode: GLM 5.2 for deeper analysis
+    00_MASTER_CONTROL/WAVE_2_3_MASTER_FORENSIC_RECONCILIATION_V2.md:4: **AUDITOR:** GLM 5.2 — Super Z (Cérebro de Supervisão Forense)
+    ANTIGRAVITY_CURRENT_STATE_RECONCILIATION.md:1: # RECONCILIAÇÃO FORENSE INTEGRAL DO ESTADO ATUAL — GLM 5.2 vs ANTIGRAVITY (V2)
+    C4_IMPLEMENTATION_STATE_REPORT.md:86: ## 6. DIFERENÇAS ENTRE O RELATÓRIO GLM E O CÓDIGO REAL
+    CANONICAL_GLM_ANTIGRAVITY_RECONCILIATION.md:1: # CANONICAL_GLM_ANTIGRAVITY_RECONCILIATION
+    CLAUDE.md:45: - ❌ `GlmCerebroService` (bypassa guardrails — migração em P0)
+[GLM] GLM_MODELID (glm-<numero>) — matches: 175
+    .env.example:318: GLM_MODEL=glm-5.2
+    .github/workflows/zecode-pr-review.yml:84: GLM_MODEL: ${{ vars.GLM_MODEL || 'glm-5.2' }}
+    deploy/.env.example:77: GLM_MODEL="glm-5.2"
+    graft/src/lib/zcc/agents/types.md:6: - LlmModel · type · L37-L37 — type LlmModel = 'glm-4.7-flash' | 'glm-4.7' | 'glm-5.2';
+    graft/src/lib/zcc/types.md:18: - LlmModel · type · L252-L252 — type LlmModel = "glm-4.7-flash" | "glm-4.7" | "glm-5.2";
+    src/app/api/zcc/brain/route.ts:20: id: "p1", provider: "zai_sdk", modelName: "GLM-4.7-Flash", tier: "1",
+    src/app/api/zcc/burn-rate/route.ts:329: label: 'LLM Tokens (GLM-4.7-flash)',
+    src/app/api/zcc/cerebro/prompt-ide/route.ts:18: models: z.array(z.string()).optional().default(['glm-4.7-flash', 'glm-5.2']),
+[GLM] ZAI_SDK (zai_sdk) — matches: 7
+    graft/src/lib/zcc/types.md:20: - IntegrationId · type · L273-L273 — type IntegrationId = "whatsapp" | "booking" | "airbnb" | "meta" | "openai" | "groq" | "mercad
+    prisma/schema_ddc.prisma:106: provider String // gemini | openai | groq | huggingface | anthropic | zai_sdk
+    src/app/api/zcc/brain/route.ts:20: id: "p1", provider: "zai_sdk", modelName: "GLM-4.7-Flash", tier: "1",
+    src/app/api/zcc/burn-rate/route.ts:565: provider: 'zai-sdk',
+    src/components/zcc/panels/operator-console-panel.tsx:198: id: "zai-sdk",
+    src/lib/zcc/types.ts:273: export type IntegrationId = "whatsapp" | "booking" | "airbnb" | "meta" | "openai" | "groq" | "mercadopago" | "asaas" | "tuya" | "a
+[GLM] ZHIPU_BIGMODEL (zhipu|bigmodel) — matches: 88
+    .env.example:174: ZHIPU_API_KEY=
+    .github/workflows/zecode-pr-review.yml:83: GLM_BASE_URL: ${{ vars.GLM_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4' }}
+    DOCUMENTO_MASTER_PRE_PRODUCAO.md:3315: Zhipu
+    deploy/.env.example:75: ZHIPU_API_KEY=""
+    docs/SUPER_DOCUMENTO_DE_CONCLUSAO.md:63: | **Provedores LLM** | 7 cloud + 1 local | Anthropic, Groq, Gemini, OpenAI, DeepSeek, Zhipu, OpenRouter + Ollama |
+    graft/src/lib/ai/llm-router.md:4: - CloudProvider · type · L29-L29 — type CloudProvider = 'anthropic' | 'groq' | 'gemini' | 'openai' | 'deepseek' | 'zhipu' | 'openr
+    src/app/api/zcc/cerebro/prompt-ide/route.ts:36: const apiKey = process.env.GLM_5_2_API_KEY || process.env.ZHIPU_API_KEY || '';
+    src/app/api/zcc/cerebro/runbook/route.ts:46: ZHIPU_API_KEY: process.env.ZHIPU_API_KEY ? '✓ configured' : '✗ not set',
+[GLM] ZAI_DOMINIO (z.ai|z-ai) — matches: 41
+    .env.example:169: # ── LLM Provider (GLM 5.2 via Chat.z.ai) ──────────────────────────
+    docs/PLANO-DE-IMPLEMENTACAO-ZELLA-AIRB.md:1320: > **Autor:** Agente Z.ai
+    docs/PLANO-IMPLEMENTACAO-ZELLA-AIRB.md:6: > **Autor:** Z.ai Code + Decisões do Dono do Produto
+    mini-services/discord-bot/README.md:43: # IA (z-ai-web-dev-sdk) — opcional mas recomendado
+    mini-services/discord-bot/index.ts:6: // 1. IA Assistente — responde perguntas via z-ai-web-dev-sdk (LLM)
+    mini-services/discord-bot/package.json:12: "z-ai-web-dev-sdk": "^0.0.17"
+    package-lock.json:100: "z-ai-web-dev-sdk": "^0.0.17",
+    package.json:76: "@next-auth/prisma-adapter": "^1.0.7", "@octokit/rest": "^22.0.1", "@prisma/client": "^6.11.1", "@radix-ui/react-accordion": "^1.2
+[KIMI] KIMI_ESTREITO (kimik3|kimi-k3) — o contador do snapshot .md — matches: 0
+[KIMI] KIMI_LARGO (kimi|moonshot) — matches: 92
+    .agents/skills/rtk/README.md:123: rtk init --agent kimi # Kimi AI
+    .env.example:392: KIMI_K2_6_API_KEY=
+    DOCUMENTO_MASTER_PRE_PRODUCAO.md:3316: Moonshot
+    src/components/zcc/panels/live-agents-panel.tsx:307: Zhipu GLM-4, Moonshot Kimi, Ollama). O Conductor roteia via Thompson Sampling.
+    src/lib/ai/batch-queue.ts:6: provider: 'deepseek' | 'gemini' | 'zhipu' | 'moonshot';
+    src/lib/ai/cost-knowledge.ts:42: { providerId: 'moonshot-kimi-k2-6', inputPer1M: 0.95, outputPer1M: 4.00, cachePer1M: 0.16, contextTokens: 262_144, tier: 2 },
+    src/lib/ai/llm-adapters.ts:63: * OpenAI-Compatible Providers (OpenAI, OpenRouter, Groq, DeepSeek, Moonshot/Kimi, Zhipu/GLM)
+    src/lib/ai/llm-router.ts:83: model: 'moonshotai/kimi-k2-6',
+[JEV] JEV (\bjev\b) — matches: 0
+
+--- D) CAMADA DE GUARDS (cobertura do withApiGuard) ---
+NOTA: flags medidos sobre o código SEM comentários (comentário que só
+menciona guardRequest não conta como chamada).
+api-guard (src/lib/security/api-guard.ts, 123 linhas):
+  chama guardRequest (camada W2)?      NAO
+  chama auditRouteEvent (camada W2)?   NAO
+  rate-limit próprio?                  NAO
+  resolve sessão?                      SIM
+  usa zod?                             SIM
+wiring.ts: guardRequest=true auditRouteEvent=true
+middleware: src/middleware.ts (39 linhas)
+-- primeiras 140 linhas do api-guard.ts (scrubbed; completo na evidência) --
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { z } from 'zod';
+
+export interface GuardOptions<T = unknown> {
+  role?: 'ADMIN' | 'TENANT_USER';
+  schema?: z.ZodSchema<T>;
+  allowGlobalAccess?: boolean;
+  routeLabel?: string;
+}
+
+export interface GuardContext<T = unknown> {
+  req: NextRequest;
+  session: NonNullable<Awaited<ReturnType<typeof getServerSession>>>;
+  tenantId: string | null;
+  body: T;
+  requestId: string;
+}
+
+type GuardedHandler<T> = (context: GuardContext<T>) => Promise<NextResponse | Response>;
+
+function response(error: string, status: number, requestId: string, message?: string): NextResponse {
+  return NextResponse.json({ error, ...(message ? { message } : {}), requestId }, { status, headers: { 'X-Request-ID': requestId } });
+}
+
+export function withApiGuard<T = unknown>(options: GuardOptions<T>, handler: GuardedHandler<T>): (req: NextRequest) => Promise<NextResponse | Response> {
+  return async (req) => {
+    const requestId = req.headers.get('x-request-id')?.match(/^[A-Za-z0-9_-]{1,64}$/)?.[0]
+      || req.headers.get('x-vercel-id')?.match(/^[A-Za-z0-9_-]{1,64}$/)?.[0]
+      || `guard-${crypto.randomUUID()}`;
+
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) return response('UNAUTHORIZED', 401, requestId, 'Sessão não encontrada.');
+
+      const role = String((session.user as { role?: string }).role || '');
+      if (options.role === 'ADMIN' && role !== 'ADMIN' && role !== 'owner') {
+        return response('FORBIDDEN', 403, requestId, 'Acesso restrito a administradores.');
+      }
+      if (options.role === 'TENANT_USER' && !['TENANT_USER', 'owner', 'admin', 'staff'].includes(role)) {
+        return response('FORBIDDEN', 403, requestId, 'Permissão insuficiente.');
+      }
+
+      const tenantIdRaw = (session.user as { tenantId?: unknown }).tenantId;
+      const tenantId = typeof tenantIdRaw === 'string' && tenantIdRaw.trim() ? tenantIdRaw : null;
+      if (!tenantId && !options.allowGlobalAccess) return response('TENANT_CONTEXT_MISSING', 403, requestId, 'Contexto de tenant ausente.');
+
+      let parsedBody = {} as T;
+      if (options.schema) {
+        let rawBody: unknown;
+        try { rawBody = await req.json(); } catch { return response('INVALID_JSON', 400, requestId, 'Corpo inválido.'); }
+        const result = options.schema.safeParse(rawBody);
+        if (!result.success) return NextResponse.json({ error: 'VALIDATION_ERROR', details: result.error.format(), requestId }, { status: 422, headers: { 'X-Request-ID': requestId } });
+        parsedBody = result.data;
+      }
+
+      return await handler({ req, session, tenantId, body: parsedBody, requestId });
+    } catch (error) {
+      console.error(`[API_GUARD${options.routeLabel ? `:${options.routeLabel}` : ''}]`, error);
+      return response('INTERNAL_ERROR', 500, requestId);
+    }
+  };
+}
+
+export function withAdminGuard<T = unknown>(options: Omit<GuardOptions<T>, 'role'> = {}, handler: GuardedHandler<T>) {
+  return withApiGuard({ ...options, role: 'ADMIN' }, handler);
+}
+
+export function withTenantGuard<T = unknown>(options: Omit<GuardOptions<T>, 'role'> = {}, handler: GuardedHandler<T>) {
+  return withApiGuard({ ...options, role: 'TENANT_USER' }, handler);
+}
+
+export function withCronGuard(handler: (context: { requestId: string }) => Promise<NextResponse | Response>): (req: NextRequest) => Promise<NextResponse | Response> {
+  return async (req) => {
+    const requestId = req.headers.get('x-request-id') || `cron-${crypto.randomUUID()}`;
+    const secret = process.env.CRON_SECRET;
+    if (!secret) return response('SERVICE_UNAVAILABLE', 503, requestId, 'Cron authentication is not configured.');
+
+    const authHeader = req.headers.get('authorization');
+    const internalToken = req.headers.get('x-internal-token');
+    if (authHeader !== `Bearer ${secret}` && internalToken !== secret) return response('UNAUTHORIZED', 401, requestId);
+
+    try { return await handler({ requestId }); } catch (error) {
+      console.error('[CRON_GUARD]', error);
+      return response('INTERNAL_ERROR', 500, requestId);
+    }
+  };
+}
+
+export function withWebhookGuard(
+  options: { secretEnv: string; headerName?: string; format?: 'sha256=' | 'v1=' | 'raw' },
+  handler: (context: { req: NextRequest; requestId: string }) => Promise<NextResponse | Response>,
+): (req: NextRequest) => Promise<NextResponse | Response> {
+  return async (req) => {
+    const requestId = req.headers.get('x-request-id') || `webhook-${crypto.randomUUID()}`;
+    const secret = process.env[options.secretEnv];
+    if (!secret) return response('SERVICE_UNAVAILABLE', 503, requestId, 'Webhook secret is not configured.');
+
+    const signature = req.headers.get(options.headerName || 'x-hub-signature-256');
+    if (!signature) return response('MISSING_SIGNATURE', 401, requestId);
+
+    try {
+      const rawBody = await req.text();
+      const { verifyWhatsAppWebhook, verifyMercadoPagoWebhook } = await import('./webhook-verify');
+      let valid = false;
+      if ((options.format || 'sha256=') === 'sha256=') valid = verifyWhatsAppWebhook(rawBody, signature, secret).valid;
+      else if (options.format === 'v1=') valid = verifyMercadoPagoWebhook(rawBody, signature, secret).valid;
+      else {
+        const expected = (await import('crypto')).createHmac('sha256', secret).update(rawBody).digest('hex');
+        const received = signature.replace(/^sha256=/, '');
+        const a = Buffer.from(received, 'hex'); const b = Buffer.from(expected, 'hex');
+        valid = a.length === b.length && (await import('crypto')).timingSafeEqual(a, b);
+      }
+      if (!valid) return response('INVALID_SIGNATURE', 401, requestId);
+      return await handler({ req: new NextRequest(req.url, { method: req.method, headers: req.headers, body: rawBody }), requestId });
+    } catch (error) {
+      console.error('[WEBHOOK_GUARD]', error);
+      return response('INTERNAL_ERROR', 500, requestId);
+    }
+  };
+}
+
+
+--- E) ROUTE_PROTECTION (320 rotas, 1 linha cada) ---
+total: 320 | {"WIRED_W2":52,"PROTECAO_PROPRIA":172,"SEM_PROTECAO_DETECTADA":56,"SKIP_JUSTIFIED":40} | middleware: presente
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/admin/faturamento-zehla/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/admin/upsell-analytics/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/agent-logs/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/agents/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO] src/app/api/airb-pro/comparativo/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO] src/app/api/airb-pro/rentabilidade/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO] src/app/api/airb-pro/yield-suggestion/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/airb-test/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/alexa/smart-home/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio)] src/app/api/auth/[...nextauth]/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio) | RATELIMIT] src/app/api/auth/forgot-password/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio)] src/app/api/auth/m2m/token/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio) | RATELIMIT] src/app/api/auth/magic-link/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio) | RATELIMIT] src/app/api/auth/register/route.ts
+[SKIP_JUSTIFIED (NextAuth: CSRF/throttle proprio) | RATELIMIT] src/app/api/auth/reset-password/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/bim-vision/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/brain/health/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/brain/intents/route.ts
+[WIRED_W2 (onda RUN11-W3) | W2_WIRING+TENANT+RATELIMIT] src/app/api/brain/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/bulk-whatsapp/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/campaigns/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/campaigns/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/channel-manager/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO+RATELIMIT] src/app/api/checkout/cancel/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO+RATELIMIT] src/app/api/checkout/create/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO+RATELIMIT] src/app/api/checkout/downgrade/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO+RATELIMIT] src/app/api/checkout/pix-status/route.ts
+[WIRED_W2 (onda RUN13-A) | W2_WIRING+SESSAO] src/app/api/checkout/success/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/checkout/upgrade/route.ts
+[WIRED_W2 (onda RUN11-W3) | W2_WIRING] src/app/api/checkout/webhook/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/config/keys/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/conversations/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/achievements-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/backup-restore-drill/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/booking-daily/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/budget-reset/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-analyze/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-budget-forecast/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-churn-predict/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-cleanup/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-distill/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-learning/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-audit/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-pentest/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-night-pulse/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-orchestrator/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-refactor-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/cerebro-watchdog/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/dlq-drain/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/housekeeping-dispatch/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/ical-sync/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/learning-cycle/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/lembrete-checkin/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/linkinbio-expiry-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/locks-maintenance/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/metrics-snapshot/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/monthly-billing/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/nps-checkout/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/ota-token-expiry/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/payment-confirmation/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/payment-overdue/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/plan-expiry/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/plan-limits-check/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/security-scan/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/sre-alerts/route.ts
+[SKIP_JUSTIFIED (cron-auth-unified FRENTE05)] src/app/api/cron/weekly-report/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/dashboard/bookings/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/dashboard/overview/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/dashboard/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/ai-status/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/commissions/[id]/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT+RATELIMIT] src/app/api/ddc/airb-pro/commissions/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/expenses/[id]/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT+RATELIMIT] src/app/api/ddc/airb-pro/expenses/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/goals/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/goals/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/operations/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/operations/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb-pro/reports/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb/conversations/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb/notifications/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb/onboarding/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/ddc/airb/properties/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/airb/regional/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/ddc/airb/scrape/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+SESSAO] src/app/api/ddc/billing/invoices/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/ddc/booking-sync/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT+RATELIMIT] src/app/api/ddc/bookings/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/cerebro/feedback/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/cerebro/learning/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/conversations/[id]/escalate/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/conversations/[id]/messages/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/conversations/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/conversations/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT] src/app/api/ddc/credits/balance/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT] src/app/api/ddc/credits/codes/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT] src/app/api/ddc/credits/create-code/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/credits/lite-milestone/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/credits/referrals/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/credits/track-click/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/deliveries/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/dpo-capture/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/dynamic-pricing/calculate/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/dynamic-pricing/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/ddc/gerente-ia/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/guest-guide/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/guest-registration/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/guests/[id]/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT+RATELIMIT] src/app/api/ddc/guests/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+TENANT] src/app/api/ddc/housekeeping/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/learning-stats/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/linkinbio/activate-standalone/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/linkinbio/purchase-addon/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/linkinbio/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/ddc/linkinbio/stats/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/live-feed/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/locks/[id]/panic-revoke/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/[id]/pins/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/locks/[id]/unlock/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT] src/app/api/ddc/locks/events/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/oauth/[provider]/callback/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/oauth/[provider]/devices/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/oauth/[provider]/start/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/locks/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/ddc/magic-link/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/meta-connect/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT+RATELIMIT] src/app/api/ddc/metrics/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/mobile/state/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/notifications/read-all/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/notifications/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/notifications/v2/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/ddc/onboarding-wizard/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/partner-program/badge/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/partner-program/claim/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/partner-program/status/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/partner-program/waitlist/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/personality/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/property-name/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+SESSAO+TENANT] src/app/api/ddc/realtime/tenant-state/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO+TENANT+RATELIMIT] src/app/api/ddc/revenue-details/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ddc/runtime-version/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/ddc/simulate-message/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/special-dates/overrides/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/special-dates/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/training/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/ddc/training/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/upsell/charge/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+SESSAO] src/app/api/ddc/upsell/metrics/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/upsell/payment-method/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+SESSAO] src/app/api/ddc/upsell/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/debug-agent/github/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/debug-agent/knowledge/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/debug-agent/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/diagnose/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/download/[filename]/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/export/leads/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/feedback/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT+RATELIMIT] src/app/api/feedback/stats/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/guide/[slug]/route.ts
+[WIRED_W2 (payload health) | W2_WIRING] src/app/api/health/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/hunt-stream/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/hunt/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/ical/[syncToken]/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/integrations/ical/[roomId]/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/integrations/sync/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/internal/flush-buffer/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/knowledge/generate-embeddings/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/landing/chat/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/landing/contact/route.ts
+[PROTECAO_PROPRIA | TENANT+RATELIMIT] src/app/api/leads/[id]/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/leads/analytics/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/leads/converted-pousadas/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/leads/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/leads/seed/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD] src/app/api/lgpd/consent/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+RATELIMIT] src/app/api/lgpd/delete-my-data/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/lgpd/dpa/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/lgpd/export-my-data/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/lgpd/forget-guest/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+SESSAO] src/app/api/meta-costs/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/mobile/devices-tracking-v2/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/mobile/devices-tracking/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/monitoring/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/onboarding/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/pinns-clifford/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/properties/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/properties/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/proxy/[...path]/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/pulse/io/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/push/subscribe/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/push/unsubscribe/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/push/vapid-public-key/route.ts
+[WIRED_W2 (onda RUN11-W3)] src/app/api/readiness/route.ts
+[PROTECAO_PROPRIA | RATELIMIT] src/app/api/roi/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/router/budget/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/router/providers/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/scraping/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/security/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/swipe-templates/route.ts
+[PROTECAO_PROPRIA | SESSAO+RATELIMIT] src/app/api/targets/[id]/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/targets/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/telemetry/ingest/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/telemetry/landing/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/telemetry/query/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/tenants/route.ts
+[PROTECAO_PROPRIA | TENANT] src/app/api/v1/guest/ddc/notifications/route.ts
+[PROTECAO_PROPRIA | SESSAO+TENANT+RATELIMIT] src/app/api/v1/guest/ddc/overview/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/v1/latency/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/v1/loops/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/v1/metrics/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/v1/reservations/[id]/payment/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+TENANT] src/app/api/v1/reservations/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/webgl-bridge/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+RATELIMIT] src/app/api/webhook-whatsapp/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+RATELIMIT] src/app/api/webhooks/asaas/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/webhooks/booking-com/reviews/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+RATELIMIT] src/app/api/webhooks/mercadopago/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/webhooks/payment/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+RATELIMIT] src/app/api/webhooks/whatsapp/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD] src/app/api/yield/calculate/route.ts
+[PROTECAO_PROPRIA | WITHAPIGUARD+TENANT] src/app/api/yield/profit-summary/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/adapters/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC+TENANT+RATELIMIT] src/app/api/zcc/agents/[id]/run/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/agents/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/airbnb/oauth/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/airbnb/webhook/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/backup-drill/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/brain/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/burn-rate/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/campaigns/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/analyses/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/anomalies/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/ask/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/cerebro/llmops/route.ts
+[PROTECAO_PROPRIA | SESSAO] src/app/api/zcc/cerebro/ml-stats/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/prompt-ide/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/refactors/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC+RATELIMIT] src/app/api/zcc/cerebro/runbook/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/status/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cerebro/stream/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/test-alert/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/cerebro/workflows/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/apply/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/config/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/review/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/reviews/[id]/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/code-reviewer/reviews/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC+RATELIMIT] src/app/api/zcc/code-reviewer/stats/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cognitive-bus/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cognitive-memory/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC+TENANT] src/app/api/zcc/conductor/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/consent/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cortex/growth/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/cortex/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/dashboard-stats/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/digital-twin/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/dspy-compiler/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/export/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/finance/expenses/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/apply-pr/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/credentials/[id]/revoke/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/credentials/[id]/rotate/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/credentials/audit/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/github/credentials/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC+RATELIMIT] src/app/api/zcc/github/credentials/validate/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/github/expiry-check/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/zcc/github/webhook/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/health/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/inference-simulation/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/infra/scaling-ruler/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/infrastructure/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/zcc/leads/brain-analyze/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/metrics/financial/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/metrics/geographic/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/metrics/periods/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/metrics/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/national-simulator/compare/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/national-simulator/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/night-audit/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/night-audit/vulns/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/observability/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/onboarding-tracker/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/partner-program/reopen/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/personas/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/pulse/analyze/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/pulse/capture/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/sales-funnel/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/sandbox/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/security/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/conflicts/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/decisions/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/export/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/graph/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/semantica/ingest/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/simulation-lab/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/stats/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/zcc/synthetic-brazil/generate/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zcc/synthetic-brazil/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/targets/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/tenants/[id]/status/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/tenants/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/vps-preflight/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/whatsapp/simulate/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/apply/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/bottlenecks/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/evolve/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/gaps/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/refactors/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/ze-code/review/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING+ZCC_SEC] src/app/api/zcc/ze-code/stats/route.ts
+[PROTECAO_PROPRIA | ZCC_SEC] src/app/api/zcc/zgs/decisions/route.ts
+[WIRED_W2 (onda RUN14-A) | W2_WIRING] src/app/api/zelador-suporte/chat/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zelador-suporte/consultoria/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zelador-suporte/ticket/route.ts
+[SEM_PROTECAO_DETECTADA (prioridade RED TEAM)] src/app/api/zella/simulate/route.ts
+
+--- F) WIRING-REGISTRY (cópia; parser corrigido) ---
+/**
+ * SEUZELLA — wiring-registry.ts (gerado pelo kit RUN14-A; NÃO editar à mão)
+ *
+ * Registro real das rotas com a camada W2 aplicada (guardRequest +
+ * auditRouteEvent) por onda, e payload de saúde consumido pelo /api/health.
+ */
+export const WIRING_REGISTRY = {
+  version: 'RUN14-A',
+  generatedAt: '2026-09-22T00:13:23.990Z',
+  waves: [
+    { wave: 'RUN11-W3', wired: ["readiness","brain","checkout.webhook"] },
+    { wave: 'RUN13-A', wired: ["airb-pro.comparativo","airb-pro.rentabilidade","airb-pro.yield-suggestion","checkout.cancel","checkout.create","checkout.downgrade","checkout.pix-status","checkout.success"] },
+    { wave: 'RUN14-A', wired: ["ddc.airb.properties","ddc.airb.scrape","ddc.billing.invoices","v1.reservations.[id].payment","webhook-whatsapp","webhooks.asaas","webhooks.booking-com.reviews","webhooks.mercadopago","webhooks.payment","webhooks.whatsapp","zcc.airbnb.oauth","zcc.airbnb.webhook","zcc.cerebro.llmops","zcc.github.webhook","zcc.leads.brain-analyze","zcc.synthetic-brazil.generate","zelador-suporte.chat","admin.faturamento-zehla","admin.upsell-analytics","dashboard.bookings","dashboard.overview","ddc.booking-sync","ddc.bookings","ddc.linkinbio.stats","ddc.metrics","ddc.realtime.tenant-state","ddc.upsell.metrics","feedback.stats","meta-costs","tenants","v1.metrics","v1.reservations","zcc.code-reviewer.stats","zcc.dashboard-stats","zcc.metrics.financial","zcc.metrics.geographic","zcc.stats","zcc.tenants","zcc.whatsapp.simulate","zcc.ze-code.stats"] },
+  ],
+  healthPayload: true,
+} as const;
+
+export function w2Status(): {
+  wiring: string;
+  wiredRoutes: number;
+  guards: string;
+  audit: string;
+  healthPayload: boolean;
+} {
+  const total = WIRING_REGISTRY.waves.reduce((n, w) => n + w.wired.length, 0);
+  return {
+    wiring: WIRING_REGISTRY.version,
+    wiredRoutes: total,
+    guards: 'guardRequest',
+    audit: 'auditRouteEvent',
+    healthPayload: WIRING_REGISTRY.healthPayload,
+  };
+}
+
