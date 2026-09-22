@@ -1,0 +1,146 @@
+================================================================
+ SEUZELLA — RUN17_PASTE_BACK_DIGEST (RED TEAM — veredicto)
+ Gerado em: 2026-09-22T12:24:21.141Z
+ Insumo: RUN16 (56 SEM_PROTECAO) — confronto: IDÊNTICO
+================================================================
+
+--- A) SUMÁRIO ---
+branch: feat/meta-zella-foundation | HEAD: 7d7f28f1 (7d7f28f1ad29e129...) | sujo: 13
+âncoras: RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9 RUN16-A=7d7f28f1
+rotas totais: 320 | SEM_PROTECAO re-derivadas: 56 = lista do RUN16 (SIM)
+
+--- B) MIDDLEWARE (o que ele realmente faz) ---
+src/middleware.ts (39 linhas) | auth=false headers=true redirect=true rewrite=false
+matcher: ["/((?!_next/static|_next/image|favicon\\\\.ico|.*\\\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2)$).*)"] | COMPLEXO — cobertura por rota INDETERMINADA
+
+--- C) VEREDICTO DAS 56 ROTAS SEM_PROTECAO ---
+por veredito: {"PROTEGIDA_EM_HANDLER":6,"MOPUP_PRIORITARIA":29,"A_REVISAR":14,"PUBLICA_PROVAVEL":7}
+por prioridade: {"P4":6,"P1":29,"P2":14,"P3":7}
+P1=mutante sem proteção | P2=só-leitura a revisar | P3=pública provável | P4=protegida com evidência
+
+[P1] MOPUP_PRIORITARIA src/app/api/bim-vision/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/channel-manager/route.ts
+     métodos: POST,GET | middleware: INDETERMINADO | método(s) POST/GET SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/ddc/cerebro/feedback/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/ddc/credits/track-click/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/ddc/linkinbio/activate-standalone/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/ddc/linkinbio/purchase-addon/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/ddc/linkinbio/route.ts
+     métodos: GET,POST | middleware: INDETERMINADO | método(s) GET/POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/ddc/notifications/v2/route.ts
+     métodos: GET,PUT,POST | middleware: INDETERMINADO | método(s) GET/PUT/POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/ddc/partner-program/waitlist/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/debug-agent/github/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/debug-agent/knowledge/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/debug-agent/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/diagnose/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/leads/seed/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/pinns-clifford/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/proxy/[...path]/route.ts
+     métodos: GET,POST | middleware: INDETERMINADO | método(s) GET/POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/pulse/io/route.ts
+     métodos: GET,POST | middleware: INDETERMINADO | método(s) GET/POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/scraping/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/telemetry/ingest/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/v1/loops/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/webgl-bridge/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/zcc/digital-twin/route.ts
+     métodos: GET,POST | middleware: INDETERMINADO | método(s) GET/POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/zcc/dspy-compiler/route.ts
+     métodos: GET,POST | middleware: INDETERMINADO | método(s) GET/POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/zcc/national-simulator/compare/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/zcc/national-simulator/route.ts
+     métodos: GET,POST | middleware: INDETERMINADO | método(s) GET/POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/zcc/simulation-lab/route.ts
+     métodos: GET,POST | middleware: INDETERMINADO | método(s) GET/POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/zelador-suporte/consultoria/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/zelador-suporte/ticket/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P1] MOPUP_PRIORITARIA src/app/api/zella/simulate/route.ts
+     métodos: POST | middleware: INDETERMINADO | método(s) POST SEM marcador de auth e SEM middleware de auth
+[P2] A_REVISAR src/app/api/ddc/cerebro/learning/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/ddc/runtime-version/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/hunt-stream/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/leads/analytics/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/adapters/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/brain/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/cerebro/stream/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/cognitive-bus/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/cognitive-memory/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/cortex/growth/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/cortex/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/infra/scaling-ruler/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/personas/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P2] A_REVISAR src/app/api/zcc/synthetic-brazil/route.ts
+     métodos: GET | middleware: INDETERMINADO | só leitura, sem marcador e fora da allowlist
+[P3] PUBLICA_PROVAVEL src/app/api/ddc/partner-program/status/route.ts
+     métodos: GET | middleware: INDETERMINADO | GET + allowlist (programa público (só leitura))
+[P3] PUBLICA_PROVAVEL src/app/api/guide/[slug]/route.ts
+     métodos: GET | middleware: INDETERMINADO | GET + allowlist (conteúdo público do site)
+[P3] PUBLICA_PROVAVEL src/app/api/ical/[syncToken]/route.ts
+     métodos: GET | middleware: INDETERMINADO | GET + allowlist (feed iCal: o token/syncToken NA URL é a credencial (verificar força no mop-up))
+[P3] PUBLICA_PROVAVEL src/app/api/lgpd/dpa/route.ts
+     métodos: GET | middleware: INDETERMINADO | GET + allowlist (documento público LGPD)
+[P3] PUBLICA_PROVAVEL src/app/api/push/vapid-public-key/route.ts
+     métodos: GET | middleware: INDETERMINADO | GET + allowlist (chave pública VAPID por design)
+[P3] PUBLICA_PROVAVEL src/app/api/route.ts
+     métodos: GET | middleware: INDETERMINADO | GET + allowlist (raiz da API (só leitura))
+[P3] PUBLICA_PROVAVEL src/app/api/zcc/health/route.ts
+     métodos: GET | middleware: INDETERMINADO | GET + allowlist (healthcheck interno público provável)
+[P4] PROTEGIDA_EM_HANDLER src/app/api/alexa/smart-home/route.ts
+     métodos: POST | middleware: INDETERMINADO | marcador: HEADER_AUTH@L8
+[P4] PROTEGIDA_EM_HANDLER src/app/api/integrations/ical/[roomId]/route.ts
+     métodos: GET | middleware: INDETERMINADO | marcador: TOKEN_NA_URL@L18
+[P4] PROTEGIDA_EM_HANDLER src/app/api/integrations/sync/route.ts
+     métodos: POST | middleware: INDETERMINADO | marcador: ENV_SECRET@L20
+[P4] PROTEGIDA_EM_HANDLER src/app/api/internal/flush-buffer/route.ts
+     métodos: POST,GET | middleware: INDETERMINADO | marcador: SEGREDO_CRON@L7, ENV_SECRET@L6
+[P4] PROTEGIDA_EM_HANDLER src/app/api/telemetry/landing/route.ts
+     métodos: POST,GET | middleware: INDETERMINADO | marcador: ENV_SECRET@L52
+[P4] PROTEGIDA_EM_HANDLER src/app/api/zcc/github/expiry-check/route.ts
+     métodos: GET | middleware: INDETERMINADO | marcador: SEGREDO_CRON@L19, TOKEN_NA_URL@L18, ENV_SECRET@L19
+
+--- D) DUAS CAMADAS DE GUARD (menos SKIP_JUSTIFIED) ---
+W2 E withApiGuard: 0 | só withApiGuard: 19 | só W2: 52 | NENHUMA: 209
+cron com guard: 17/34 | webhook com guard/assinatura: 6/9
+
+--- E) PROVIDERS REAIS (model IDs) ---
+arquivos: src/lib/ai/llm-router.ts, src/lib/ai/llm-adapters.ts, src/lib/ai/batch-queue.ts, src/lib/ai/cost-knowledge.ts
+GLM ids: ["glm-4.7-flash","glm-5.2"]
+Kimi ids: ["moonshotai/kimi-k2-6","kimi-k2-6"]
+snapshot contava glm-5.3/kimi-k3 — versões que o projeto NÃO usa. Integração real = ids acima.
+JEV=0 em código: componente de PLANO não implementado (gap/roadmap — não inconsistência).
+
+--- F) PRÓXIMA ONDA ---
+MOP-UP (RUN18): fiação/decisão por rota nas P1; revisão das P2; rate-limit/documentação das P3.
