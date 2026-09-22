@@ -3,8 +3,12 @@ import { db } from '@/lib/db';
 import { createError, apiSuccess } from '@/lib/error-handler';
 import { withSecurity } from '@/lib/security/api-shield';
 import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
+import { requireInternalSecret } from '@/lib/infra/internal-secret';
 
 async function handler(request: NextRequest) {
+  // RUN19-A (HYGIENE): segredo interno em modo sombra — defina INTERNAL_SECRET e SZ_ENFORCE_INTERNAL=1 para cobrar.
+  const internalDeny = requireInternalSecret(request);
+  if (internalDeny) return internalDeny;
   // RUN18-A (W2/MOP-UP): anti-flood fail-closed por IP — 60 req/1min.
   const rlDeny = guardRequest(request, 'debug-agent.knowledge', { points: 60, windowMs: 60000 });
   if (rlDeny) return rlDeny;

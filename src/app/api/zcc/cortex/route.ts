@@ -15,6 +15,7 @@ import {
 import { ZellaGrowthStrategy } from '@/domain/strategy';
 import { getAdapters } from '@/adapters';
 import { zcc } from '@/domain/zcc';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 // Singletons for the API.
 let _growth: GrowthCortex | undefined;
@@ -39,7 +40,12 @@ function getInstances() {
   return { _growth, _market, _sales, _revenue, _success, _learning, _executive, _zgs };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // RUN19-A (HYGIENE): anti-flood fail-closed por IP — 60 req/1min (retry com âncoras expandidas).
+  const rlDeny = guardRequest(request, 'zcc.cortex', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN19-A (HYGIENE): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.cortex', what: 'zcc.cortex.entry', resource: 'api', result: 'ALLOW' });
   const c = getInstances();
   return NextResponse.json({
     bootOrder: ['zcc', 'growth', 'market-intelligence', 'sales', 'revenue', 'success', 'learning', 'executive', 'zgs'],

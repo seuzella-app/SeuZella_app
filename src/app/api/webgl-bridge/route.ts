@@ -12,9 +12,15 @@ import { NextResponse } from 'next/server';
 import { withSecurity } from '@/lib/security/api-shield';
 import { bridgeToWebGL, extractTelemetry, type WebGLBridgeInput } from '@/lib/webgl-bridge';
 import type { BIMExtractionResult } from '@/lib/bim-vision';
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 export const POST = withSecurity(
   async (request, ctx) => {
+    // RUN19-A (HYGIENE): anti-flood fail-closed por IP — 60 req/1min (retry com âncoras expandidas).
+    const rlDeny = guardRequest(request, 'webgl-bridge', { points: 60, windowMs: 60000 });
+    if (rlDeny) return rlDeny;
+    // RUN19-A (HYGIENE): trilha de auditoria da entrada da rota (sem payload).
+    auditRouteEvent({ who: 'route:webgl-bridge', what: 'webgl-bridge.entry', resource: 'api', result: 'ALLOW' });
     const body = ctx.sanitizedBody;
 
     if (!body?.tenantId || !body?.traceId) {

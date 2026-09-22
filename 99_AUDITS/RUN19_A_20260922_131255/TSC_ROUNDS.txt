@@ -1,0 +1,15 @@
+================================================================
+ SEUZELLA — RUN19 TSC_ROUNDS (rollback fino por tsc — diagnóstico)
+================================================================
+
+--- rodada 1 ---
+arquivos com erro: src/app/api/debug-agent/route.ts, src/app/api/proxy/[...path]/route.ts
+src/app/api/debug-agent/route.ts(84,43): error TS2345: Argument of type '(request: NextRequest, session: AuthSession) => Promise<Response>' is not assignable to parameter of type '(request: NextRequest, session: AuthSession) => Promise<NextResponse<unknown>>'.
+  Type 'Promise<Response>' is not assignable to type 'Promise<NextResponse<unknown>>'.
+    Type 'Response' is missing the following properties from type 'NextResponse<unknown>': cookies, [INTERNALS]
+src/app/api/proxy/[...path]/route.ts(37,30): error TS2448: Block-scoped variable 'targetUrl' used before its declaration.
+src/app/api/proxy/[...path]/route.ts(37,30): error TS2454: Variable 'targetUrl' is used before being assigned.
+
+
+--- rodada 2 ---
+(sem erros — rollback fino concluído)

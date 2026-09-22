@@ -1,0 +1,74 @@
+================================================================
+ SEUZELLA — RUN19 HYGIENE: RECON (read-only, para decisão do dono)
+================================================================
+
+1) CRON: 0/38 com guard | 38/38 com segredo verificado
+   (referência RUN17: 17/34 com guard — números podem divergir por heurística de caminho/marcador)
+   [SEGREDO_OK|SEM_GUARD] src/app/api/auth/m2m/token/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/achievements-check/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/backup-restore-drill/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/booking-daily/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/budget-reset/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-analyze/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-budget-forecast/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-churn-predict/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-cleanup/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-distill/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-learning/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-night-audit/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-night-pentest/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-night-pulse/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-orchestrator/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-refactor-check/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/cerebro-watchdog/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/dlq-drain/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/housekeeping-dispatch/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/ical-sync/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/learning-cycle/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/lembrete-checkin/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/linkinbio-expiry-check/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/locks-maintenance/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/metrics-snapshot/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/monthly-billing/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/nps-checkout/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/ota-token-expiry/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/payment-confirmation/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/payment-overdue/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/plan-expiry/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/plan-limits-check/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/security-scan/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/sre-alerts/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/cron/weekly-report/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/integrations/sync/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/zcc/cerebro/runbook/route.ts
+   [SEGREDO_OK|SEM_GUARD] src/app/api/zcc/github/expiry-check/route.ts
+
+2) WEBHOOK: 9/9 com assinatura/segredo | 9/9 com guard
+   (referência RUN17: 6/9 com guard/assinatura)
+   [ASSINATURA_OK|GUARD_OK] src/app/api/checkout/webhook/route.ts
+   [ASSINATURA_OK|GUARD_OK] src/app/api/webhook-whatsapp/route.ts
+   [ASSINATURA_OK|GUARD_OK] src/app/api/webhooks/asaas/route.ts
+   [ASSINATURA_OK|GUARD_OK] src/app/api/webhooks/booking-com/reviews/route.ts
+   [ASSINATURA_OK|GUARD_OK] src/app/api/webhooks/mercadopago/route.ts
+   [ASSINATURA_OK|GUARD_OK] src/app/api/webhooks/payment/route.ts
+   [ASSINATURA_OK|GUARD_OK] src/app/api/webhooks/whatsapp/route.ts
+   [ASSINATURA_OK|GUARD_OK] src/app/api/zcc/airbnb/webhook/route.ts
+   [ASSINATURA_OK|GUARD_OK] src/app/api/zcc/github/webhook/route.ts
+
+3) SYNCTOKEN (feed iCal — token na URL é a credencial):
+   arquivo: src/app/api/ddc/booking-sync/route.ts
+   arquivo: src/app/api/ical/[syncToken]/route.ts
+   arquivo: src/app/api/integrations/ical/[roomId]/route.ts
+   arquivo: src/components/ddc/BookingSyncPanel.tsx
+   arquivo: src/lib/ical-import-engine.ts
+   arquivo: src/lib/integrations/ical-service.ts
+   geração: src/app/api/ddc/booking-sync/route.ts@L118 — randomBytes(24) = 48 chars hex (alta entropia se >= 32)
+   geração: src/lib/integrations/ical-service.ts@L37 — randomBytes(24) = 48 chars hex (alta entropia se >= 32)
+   rota: src/lib/ical-import-engine.ts — checagem de comprimento no handler: NÃO
+   recomendação: manter token de alta entropia com rotação; se a geração usar menos de 32 chars hex, migrar (quebra clientes iCal antigos — decisão do dono).
+
+4) AMBAS AS CAMADAS (withApiGuard E guardRequest na mesma rota): 0
+   recomendação: camadas são ALTERNATIVAS por design (RUN17 ambas=0); unificar contrato só no DOCS/MASTER GATE se o dono quiser.
+
+5) MIDDLEWARE: presente=true | linhas=39 | autentica=true
+   recomendação: manter auth=false (proteção real nos handlers/guards) e DOCUMENTAR — matcher complexo dificultaria cobertura por rota.

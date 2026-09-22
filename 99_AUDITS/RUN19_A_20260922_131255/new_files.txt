@@ -1,0 +1,3 @@
+tests/security/run19-hygiene.test.ts
+src/lib/infra/ssrf-guard.ts
+src/lib/infra/internal-secret.ts

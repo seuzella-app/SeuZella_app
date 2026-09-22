@@ -1,0 +1,50 @@
+================================================================
+ SEUZELLA — RUN19_PASTE_BACK_DIGEST (HYGIENE — retry + transform + shadow + recon)
+ Gerado em: 2026-09-22T16:13:57.939Z
+ Tentativa: 2 (tentativas anteriores: RED com rollback íntegral — sem commit)
+ Insumo: RUN18 (MOP-UP 30 WIRED + 13 DEFERRED) — confronto: IDÊNTICO
+================================================================
+
+--- A) SUMÁRIO ---
+retry desta onda: WIRED=12 | ALREADY_WIRED=0 | DEFERRED=0 | DEFERRED_TSC=1 | MISSING=0 | tscRounds=2
+fiação por forma: via âncora=4 | via TRANSFORM (request: Request adicionado)=8
+shadow interno: SHADOW_WIRED=3 | ALREADY_SHADOW=0 | SHADOW_DEFERRED=0 | SHADOW_TSC=1 (modo sombra: só cobra com INTERNAL_SECRET + SZ_ENFORCE_INTERNAL=1)
+módulos novos: src/lib/infra/ssrf-guard.ts + src/lib/infra/internal-secret.ts (sombra; PROXY_ALLOWLIST / SZ_SSRF_ENFORCE=1 para o SSRF)
+ssrf no proxy: não fiado — proxy não ficou fiado nesta onda (DEFERRED_TSC) — ssrfGuard fica para a próxima onda/decisão do dono
+registry: RUN18-A -> RUN19-A | ondas: RUN11-W3, RUN13-A, RUN14-A, RUN18-A + RUN19-A (12 rotas novas)
+
+--- B) RETRY DE FIAÇÃO (âncoras expandidas + transform, guardRequest + auditRouteEvent) ---
+[P1] WIRED src/app/api/bim-vision/route.ts (60/1min)
+[P1] WIRED src/app/api/pinns-clifford/route.ts (60/1min)
+[P1] DEFERRED_TSC src/app/api/proxy/[...path]/route.ts (-) — revertido no rollback fino por tsc (rodada 1) — ver RECON_DEFERRED2.txt
+       tsc src/app/api/proxy/[...path]/route.ts → L37: error TS2448: Block-scoped variable 'targetUrl' used before its declaration.
+       tsc src/app/api/proxy/[...path]/route.ts → L37: error TS2454: Variable 'targetUrl' is used before being assigned.
+[P1] WIRED src/app/api/webgl-bridge/route.ts (60/1min)
+[P2] WIRED src/app/api/ddc/runtime-version/route.ts (60/1min) (via TRANSFORM: request: Request)
+[P2] WIRED src/app/api/hunt-stream/route.ts (60/1min)
+[P2] WIRED src/app/api/leads/analytics/route.ts (60/1min) (via TRANSFORM: request: Request)
+[P2] WIRED src/app/api/zcc/adapters/route.ts (60/1min) (via TRANSFORM: request: Request)
+[P2] WIRED src/app/api/zcc/brain/route.ts (60/1min) (via TRANSFORM: request: Request)
+[P2] WIRED src/app/api/zcc/cortex/growth/route.ts (60/1min) (via TRANSFORM: request: Request)
+[P2] WIRED src/app/api/zcc/cortex/route.ts (60/1min) (via TRANSFORM: request: Request)
+[P2] WIRED src/app/api/zcc/personas/route.ts (60/1min) (via TRANSFORM: request: Request)
+[P2] WIRED src/app/api/zcc/synthetic-brazil/route.ts (60/1min) (via TRANSFORM: request: Request)
+
+--- C) SEGREDO INTERNO EM MODO SOMBRA (4 internas fiadas no RUN18) ---
+[SHADOW] SHADOW_WIRED src/app/api/debug-agent/github/route.ts
+[SHADOW] SHADOW_WIRED src/app/api/debug-agent/knowledge/route.ts
+[SHADOW] SHADOW_TSC src/app/api/debug-agent/route.ts — revertido no rollback fino por tsc (rodada 1)
+       tsc src/app/api/debug-agent/route.ts → L84: error TS2345: Argument of type '(request: NextRequest, session: AuthSession) => Promise<Response>' is not assignable to parameter of type '(request: NextRequest
+[SHADOW] SHADOW_WIRED src/app/api/leads/seed/route.ts
+   ativação (quando o dono quiser): INTERNAL_SECRET=<valor alto> + SZ_ENFORCE_INTERNAL=1 no ambiente.
+
+--- D) RECON (read-only, decisão do dono) ---
+   cron: 0/38 com guard | 38/38 com segredo verificado (heurística desta onda; referência RUN17: 17/34)
+   webhook: 9/9 com assinatura/segredo | 9/9 com guard
+   syncToken iCal: 6 arquivo(s), 2 sítio(s) de geração (token na URL é a credencial)
+   ambas as camadas (withApiGuard E guardRequest): 0
+   middleware: autentica=true (proteção real fica nos handlers/guards) — ver HYGIENE_RECON.txt
+   detalhes e recomendações por item: HYGIENE_RECON.txt (read-only; nada de código tocado aqui — decisão do dono).
+
+--- E) PRÓXIMA ONDA ---
+DOCS (glossary; JEV definido pelo dono) -> MASTER GATE -> VPS Hostinger.

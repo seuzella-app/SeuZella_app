@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { BrainHealthResponse, RouterProvider } from "@/lib/zcc/types";
+import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 /**
  * GET /api/zcc/brain
@@ -105,7 +106,12 @@ const MOCK_RESPONSE: BrainHealthResponse = {
   },
 };
 
-export async function GET() {
+export async function GET(request: Request) {
+  // RUN19-A (HYGIENE): anti-flood fail-closed por IP — 60 req/1min (retry com âncoras expandidas).
+  const rlDeny = guardRequest(request, 'zcc.brain', { points: 60, windowMs: 60000 });
+  if (rlDeny) return rlDeny;
+  // RUN19-A (HYGIENE): trilha de auditoria da entrada da rota (sem payload).
+  auditRouteEvent({ who: 'route:zcc.brain', what: 'zcc.brain.entry', resource: 'api', result: 'ALLOW' });
   return NextResponse.json({
     success: true,
     data: MOCK_RESPONSE,

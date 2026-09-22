@@ -1,0 +1,98 @@
+================================================================
+ SEUZELLA — RUN19 RECON_DEFERRED2 (ainda não fiados — decisão do dono)
+================================================================
+
+>>> src/app/api/proxy/[...path]/route.ts — motivo: revertido no rollback fino por tsc (rodada 1) — ver RECON_DEFERRED2.txt
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| 
+   3| /**
+   4|  * ZEHLA — Local Dev Proxy (SSRF-protected)
+   5|  *
+   6|  * SECURITY: This proxy is DISABLED in production.
+   7|  * In development, it forwards requests to a local FastAPI backend on port 8000.
+   8|  * In production, all backend communication must go through direct API calls.
+   9|  *
+  10|  * ALLOWED_PATHS restricts which backend endpoints can be proxied even in dev.
+  11|  */
+  12| 
+  13| const ALLOWED_PATHS: string[] = [
+  14|   // Add specific dev-only paths here if needed
+  15|   // Example: 'health', 'metrics'
+  16| ];
+  17| 
+  18| const PROXY_ENABLED = process.env.NODE_ENV !== 'production' && process.env.ENABLE_DEV_PROXY === 'true';
+  19| 
+  20| function isPathAllowed(urlPath: string): boolean {
+  21|   if (ALLOWED_PATHS.length === 0) return true; // Dev mode: allow all when explicitly enabled
+  22|   return ALLOWED_PATHS.some((p) => urlPath.startsWith(p));
+  23| }
+  24| 
+  25| export async function GET(
+  26|   request: NextRequest,
+  27|   { params }: { params: Promise<{ path: string[] }> }
+  28| ) {
+  29|   if (!PROXY_ENABLED) {
+  30|     return NextResponse.json({ error: 'Proxy disabled in this environment.' }, { status: 403 });
+  31|   }
+  32| 
+  33|   const { path } = await params;
+  34|   const urlPath = path.join('/');
+  35| 
+  36|   if (!isPathAllowed(urlPath)) {
+  37|     return NextResponse.json({ error: 'Path not allowed.' }, { status: 403 });
+  38|   }
+  39| 
+  40|   const searchParams = request.nextUrl.searchParams.toString();
+  41|   const queryString = searchParams ? `?${searchParams}` : '';
+  42| 
+  43|   // Only allow localhost targets — prevent SSRF
+  44|   const targetUrl = `http://127.0.0.1:8000/${urlPath}${queryString}`;
+  45| 
+  46|   try {
+  47|     const response = await fetch(targetUrl, {
+  48|       headers: {
+  49|         'Content-Type': 'application/json',
+  50|       },
+  51|     });
+  52| 
+  53|     if (!response.ok) {
+  54|       return NextResponse.json(
+  55|         { error: `Upstream error: ${response.status}` },
+  56|         { status: response.status }
+  57|       );
+  58|     }
+  59| 
+  60|     const data = await response.json();
+  61|     return NextResponse.json(data);
+  62|   } catch {
+  63|     return NextResponse.json(
+  64|       { error: 'Back-end indisponivel na porta 8000.' },
+  65|       { status: 502 }
+  66|     );
+  67|   }
+  68| }
+  69| 
+  70| export async function POST(
+  71|   request: NextRequest,
+  72|   { params }: { params: Promise<{ path: string[] }> }
+  73| ) {
+  74|   if (!PROXY_ENABLED) {
+  75|     return NextResponse.json({ error: 'Proxy disabled in this environment.' }, { status: 403 });
+  76|   }
+  77| 
+  78|   const { path } = await params;
+  79|   const urlPath = path.join('/');
+  80| 
+  81|   if (!isPathAllowed(urlPath)) {
+  82|     return NextResponse.json({ error: 'Path not allowed.' }, { status: 403 });
+  83|   }
+  84| 
+  85|   const searchParams = request.nextUrl.searchParams.toString();
+  86|   const queryString = searchParams ? `?${searchParams}` : '';
+  87| 
+  88|   const targetUrl = `http://127.0.0.1:8000/${urlPath}${queryString}`;
+  89| 
+  90|   try {
+(total: 136 linhas)
+
+>>> [SHADOW] src/app/api/debug-agent/route.ts — motivo: revertido no rollback fino por tsc (rodada 1)

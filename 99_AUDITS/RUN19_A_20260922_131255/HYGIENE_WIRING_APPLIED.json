@@ -1,0 +1,227 @@
+{
+  "schema": "RUN19_HYGIENE_WIRING_APPLIED/v1",
+  "generatedAt": "2026-09-22T16:13:57.924Z",
+  "attempt": 2,
+  "basedOnDecisions": "HYGIENE_DECISIONS.json",
+  "run18TestPatched": true,
+  "run18TestAlreadyPatched": false,
+  "registryPrevVersion": "RUN18-A",
+  "registryPath": "src/lib/infra/wiring-registry.ts",
+  "retryItems": 13,
+  "uniqueRetryFiles": 13,
+  "wireFiles": {
+    "src/app/api/bim-vision/route.ts": {
+      "status": "WIRED",
+      "routeId": "bim-vision",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "param": "request",
+      "kind": "const",
+      "via": "anchor",
+      "ssrf": null
+    },
+    "src/app/api/pinns-clifford/route.ts": {
+      "status": "WIRED",
+      "routeId": "pinns-clifford",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "param": "request",
+      "kind": "const",
+      "via": "anchor",
+      "ssrf": null
+    },
+    "src/app/api/proxy/[...path]/route.ts": {
+      "status": "DEFERRED_TSC",
+      "reason": "revertido no rollback fino por tsc (rodada 1) — ver RECON_DEFERRED2.txt"
+    },
+    "src/app/api/webgl-bridge/route.ts": {
+      "status": "WIRED",
+      "routeId": "webgl-bridge",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "param": "request",
+      "kind": "const",
+      "via": "anchor",
+      "ssrf": null
+    },
+    "src/app/api/ddc/runtime-version/route.ts": {
+      "status": "WIRED",
+      "routeId": "ddc.runtime-version",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "transform",
+      "ssrf": null
+    },
+    "src/app/api/hunt-stream/route.ts": {
+      "status": "WIRED",
+      "routeId": "hunt-stream",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "anchor",
+      "ssrf": null
+    },
+    "src/app/api/leads/analytics/route.ts": {
+      "status": "WIRED",
+      "routeId": "leads.analytics",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "transform",
+      "ssrf": null
+    },
+    "src/app/api/zcc/adapters/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.adapters",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "transform",
+      "ssrf": null
+    },
+    "src/app/api/zcc/brain/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.brain",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "transform",
+      "ssrf": null
+    },
+    "src/app/api/zcc/cortex/growth/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.cortex.growth",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "transform",
+      "ssrf": null
+    },
+    "src/app/api/zcc/cortex/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.cortex",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "transform",
+      "ssrf": null
+    },
+    "src/app/api/zcc/personas/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.personas",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "transform",
+      "ssrf": null
+    },
+    "src/app/api/zcc/synthetic-brazil/route.ts": {
+      "status": "WIRED",
+      "routeId": "zcc.synthetic-brazil",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "via": "transform",
+      "ssrf": null
+    }
+  },
+  "shadowFiles": {
+    "src/app/api/debug-agent/github/route.ts": {
+      "status": "SHADOW_WIRED",
+      "param": "request",
+      "just": "ferramenta interna de depuração — segredo em modo sombra"
+    },
+    "src/app/api/debug-agent/knowledge/route.ts": {
+      "status": "SHADOW_WIRED",
+      "param": "request",
+      "just": "ferramenta interna de depuração — segredo em modo sombra"
+    },
+    "src/app/api/debug-agent/route.ts": {
+      "status": "SHADOW_TSC",
+      "reason": "revertido no rollback fino por tsc (rodada 1)"
+    },
+    "src/app/api/leads/seed/route.ts": {
+      "status": "SHADOW_WIRED",
+      "param": "req",
+      "just": "semeadura de dados — nunca pública; segredo em modo sombra"
+    }
+  },
+  "shadowSummary": {
+    "SHADOW_WIRED": 3,
+    "SHADOW_TSC": 1
+  },
+  "viaSummary": {
+    "anchor": 4,
+    "transform": 8
+  },
+  "modulesInstalled": [
+    "src/lib/infra/ssrf-guard.ts",
+    "src/lib/infra/internal-secret.ts"
+  ],
+  "ssrf": {
+    "wired": false,
+    "targetVar": null,
+    "note": "proxy não ficou fiado nesta onda (DEFERRED_TSC) — ssrfGuard fica para a próxima onda/decisão do dono"
+  },
+  "wiredRouteIds": [
+    "bim-vision",
+    "pinns-clifford",
+    "webgl-bridge",
+    "ddc.runtime-version",
+    "hunt-stream",
+    "leads.analytics",
+    "zcc.adapters",
+    "zcc.brain",
+    "zcc.cortex.growth",
+    "zcc.cortex",
+    "zcc.personas",
+    "zcc.synthetic-brazil"
+  ],
+  "tscRounds": 2
+}
