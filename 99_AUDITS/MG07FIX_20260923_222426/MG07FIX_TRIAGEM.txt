@@ -1,0 +1,58 @@
+=== MG07FIX TRIAGEM — engine auto exaurido (V6) ===
+HEAD base : f749f190b83358c1b4607d82ec49d4c4ef59a7c8
+Analise   : exprs=2 (criacao|requestedEmail antes-ancora@135|customerEmail) idioma=idioma-3args json=json-idioma tsc=presente specs=7
+Tentativas: 7 (cap 8) — nenhuma zerou os erros novos
+
+--- TENTATIVA 1 — ERROS NOVOS/PRIMEIRAS LINHAS (mascarado) ---
+src/app/api/checkout/create/route.ts(157,215): error TS2345: Argument of type '() => Promise<NextResponse<unknown> | Record<string, unknown>>' is not assignable to parameter of type '() => Promise<Record<string, unknown>>'.
+
+--- TENTATIVA 2 — ERROS NOVOS/PRIMEIRAS LINHAS (mascarado) ---
+src/app/api/checkout/create/route.ts(159,215): error TS2345: Argument of type '() => Promise<NextResponse<unknown> | Record<string, unknown>>' is not assignable to parameter of type '() => Promise<Record<string, unknown>>'.
+
+--- TENTATIVA 3 — ERROS NOVOS/PRIMEIRAS LINHAS (mascarado) ---
+src/app/api/checkout/create/route.ts(159,215): error TS2345: Argument of type '() => Promise<NextResponse<unknown> | Record<string, unknown>>' is not assignable to parameter of type '() => Promise<Record<string, unknown>>'.
+
+--- TENTATIVA 4 — ERROS NOVOS/PRIMEIRAS LINHAS (mascarado) ---
+src/app/api/checkout/create/route.ts(129,15): error TS7023: 'executeCheckout' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+src/app/api/checkout/create/route.ts(142,103): error TS2304: Cannot find name 'result'.
+src/app/api/checkout/create/route.ts(166,15): error TS7022: 'data' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+--- TENTATIVA 5 — ERROS NOVOS/PRIMEIRAS LINHAS (mascarado) ---
+src/app/api/checkout/create/route.ts(159,215): error TS2345: Argument of type '() => Promise<NextResponse<unknown> | Record<string, unknown>>' is not assignable to parameter of type '() => Promise<Record<string, unknown>>'.
+
+--- TENTATIVA 6 — ERROS NOVOS/PRIMEIRAS LINHAS (mascarado) ---
+src/app/api/checkout/create/route.ts(159,215): error TS2345: Argument of type '() => Promise<NextResponse<unknown> | Record<string, unknown>>' is not assignable to parameter of type '() => Promise<Record<string, unknown>>'.
+
+--- TENTATIVA 7 — ERROS NOVOS/PRIMEIRAS LINHAS (mascarado) ---
+src/app/api/checkout/create/route.ts(129,15): error TS7023: 'executeCheckout' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+src/app/api/checkout/create/route.ts(142,103): error TS2304: Cannot find name 'result'.
+src/app/api/checkout/create/route.ts(166,15): error TS7022: 'data' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+=== JANELA DO ROUTE (ancora linha 138, -8/+14) — SEM patch aplicado ===
+130:           let resolvedTenantId = tenantId;
+131:           if (!resolvedTenantId) {
+132:             const existingTenant = await db.tenant.findUnique({ where: { email: requestedEmail } });
+133:             if (existingTenant) {
+134:               resolvedTenantId = existingTenant.id;
+135:               customerEmail = cleanString(existingTenant.email, 254).toLowerCase();
+136:             } else {
+137:               try {
+138:                 const newTenant = await db.tenant.create({ data: { name: propertyName || name, email: requestedEmail, phone: phone || null, niche, plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(), status: 'pending', role: 'owner' } });
+139:                 resolvedTenantId = newTenant.id;
+140:                 if (propertyName) {
+141:                   const slugBase = propertyName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70);
+142:                   await db.property.create({ data: { tenantId: resolvedTenantId, name: propertyName, type: niche, slug: `${slugBase || 'propriedade'}-${resolvedTenantId.slice(-6)}` } });
+143:                 }
+144:               } catch {
+145:                 throw new CheckoutError(409, 'ACCOUNT_CREATION_CONFLICT', 'Não foi possível iniciar esta conta. Verifique o e-mail e tente novamente.');
+146:               }
+147:             }
+148:           }
+149:           return doCheckoutCreate(resolvedTenantId, planType, paymentMethod, amount, name, customerEmail, phone, document, requestedGateway, baseUrl, idempotencyKey);
+150:         };
+151: 
+152:         if (idempotencyKey) {
+
+=== INSTRUCAO ===
+A engine aplicou, julgou pelo SEU tsc e reverteu cada candidato. Nada commitado.
+Cole este arquivo INTEIRO no chat — o V7 sai cirurgico com o erro real.

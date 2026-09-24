@@ -1,0 +1,58 @@
+# MG02_ACHADOS.md — achados da varredura forense MG-02 (Build)
+
+- Onda: MG-02 (MASTER GATE FINAL — campanha pré-RELEASE)
+- Modo: READ-ONLY estático — next build NÃO executado, sem rede, sem banco,
+  sem credenciais (NUNCA push)
+- Execução: 20260923_121212
+- Escopo: next.config, tsconfig, scripts, toolchain, lockfile, artefato .next,
+  superfície de rotas (contagens), superfície de env de build (nomes apenas) —
+  valores NUNCA exibidos
+
+## ACHADOS DA VARREDURA
+
+- [INFO] next.config: presente (next.config.ts)
+- [INFO] next.config: chaves canônicas detectadas (NOMES): reactStrictMode output typescript headers redirects
+- [INFO] tsconfig: strict=true (TypeScript estrito ativo no build)
+- [INFO] tsconfig: noEmit=true (a emissão de saída fica por conta do Next)
+- [INFO] scripts.build: presente (prisma generate && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/)
+- [INFO] scripts.typecheck: presente (tsc --noEmit)
+- [INFO] scripts.start: presente (NODE_ENV=production node .next/standalone/server.js 2>&1 | tee server.log)
+- [INFO] engines.node: não declarado (node instalado: v24.13.1)
+- [INFO] next declarado no package.json: ^16.2.7
+- [INFO] node_modules: presente
+- [INFO] toolchain instalado: next@16.2.10
+- [INFO] toolchain instalado: react@19.2.7
+- [INFO] toolchain instalado: react-dom@19.2.7
+- [INFO] toolchain instalado: typescript@5.9.3
+- [INFO] client prisma gerado (node_modules/.prisma/client presente)
+- [INFO] lockfile: package-lock.json ("lockfileVersion":3)
+- [INFO] .gitignore: artefato .next ignorado pelo git
+- **[ATENÇÃO]** artefato .next STALE: código em src/ mais novo que o último build (exemplo: src/app/checkout/cancel/page.tsx) — a próxima compilação oficial pertence à janela de deploy (MG-07)
+- [INFO] next build NÃO foi executado nesta onda (escreveria artefatos e poderia tocar banco na prerender) — execução oficial de build pertence à janela de deploy (MG-07), por decisão do dono
+- [INFO] superfície de rotas: route=322 page=28 layout=3 (contagens — caminhos NUNCA enumerados nesta onda)
+- [INFO] diretivas: use client em 77 arquivo(s) | force-dynamic em 71 | maxDuration em 33 (contagens)
+- [INFO] middleware: presente (src/middleware.ts)
+- [INFO] superfície de env em src/: 244 nome(s) de chave referenciado(s) (NOMES apenas; lista completa na evidência MG02_ENV_NAMES.txt; valores NUNCA lidos)
+- [INFO] NEXT_PUBLIC_* (nomes inlined no bundle do cliente): 5 — lista na evidência
+- **[ATENÇÃO]** nome(s) NEXT_PUBLIC_* com padrão de segredo (seriam inlined no cliente): NEXT_PUBLIC_PIX_KEY— valor NUNCA lido; revisar antes do RELEASE
+- **[ATENÇÃO]** token de domínio proibido em config de build: next.config.ts (1 ocorrência(s) — conteúdo NUNCA exibido; profundidade no MG-05)
+- **[ATENÇÃO]** token de domínio proibido em config de build: src/middleware.ts (3 ocorrência(s) — conteúdo NUNCA exibido; profundidade no MG-05)
+- [INFO] configs de build: 0 padrão de segredo literal
+- [INFO] BLOQUEIOS=0 ATENÇÃO=4 INFO=24
+
+## RESUMO
+
+- BLOQUEIOS: 0
+- ATENÇÃO: 4
+- INFO: 24
+
+## LEITURA
+
+Achados BLOQUEIO não bloqueiam esta onda (a onda forense é GREEN quando a
+varredura conclui e a fundação está íntegra): eles ALIMENTAM a decisão de
+RELEASE do dono. Correções nascem em ondas próprias da campanha
+MASTER GATE FINAL (fail-closed, NUNCA push).
+
+## PRÓXIMO PASSO
+
+MG-03 — CI forense (pipeline e verificações automáticas).

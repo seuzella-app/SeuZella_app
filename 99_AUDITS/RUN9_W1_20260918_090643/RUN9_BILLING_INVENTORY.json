@@ -1,0 +1,312 @@
+{
+ "run": "RUN9-W1 — BILLING/REVENUE/ASAAS INVENTORY (read-only)",
+ "generatedAt": "2026-09-18T12:06:43.929Z",
+ "totals": {
+  "allApiRoutes": 311,
+  "billingRoutes": 30,
+  "webhookRoutes": 9,
+  "asaasFiles": 43,
+  "billingModels": 8,
+  "refundWriteFiles": 0
+ },
+ "asaas": {
+  "pathFiles": [
+   "src/app/api/webhooks/asaas/route.ts",
+   "src/lib/billing/asaas.ts",
+   "src/lib/fiscal/providers/asaas.ts",
+   "src/lib/payments/providers/asaas/index.ts"
+  ],
+  "contentFiles": [
+   "src/adapters/interfaces/IPaymentGatewayAdapter.ts",
+   "src/adapters/mock/PaymentMock.ts",
+   "src/adapters/real/index.ts",
+   "src/app/api/checkout/create/route.ts",
+   "src/app/api/config/keys/route.ts",
+   "src/app/api/cron/monthly-billing/route.ts",
+   "src/app/api/ddc/billing/invoices/route.ts",
+   "src/app/api/readiness/route.ts",
+   "src/app/api/v1/reservations/[id]/payment/route.ts",
+   "src/app/api/webhooks/payment/route.ts",
+   "src/app/api/zcc/infrastructure/route.ts",
+   "src/app/ddc/DDCDashboardContent.tsx",
+   "src/app/ddc/pousada/DDCPousadaContent.tsx",
+   "src/app/legal/politica-privacidade/page.tsx",
+   "src/app/legal/termos-uso/page.tsx",
+   "src/components/ddc/DDCBillingTab.tsx",
+   "src/components/landing/Footer.tsx",
+   "src/components/landing/HeroSection.tsx",
+   "src/components/landing/PaymentTrustBadges.tsx",
+   "src/components/zcc/panels/sandbox-panel.tsx",
+   "src/lib/cerebro/cerebro-learning-service.ts",
+   "src/lib/cerebro/night-pulse-service.ts",
+   "src/lib/env.ts",
+   "src/lib/finance/tax-calculator.ts",
+   "src/lib/fiscal/fiscal-engine.ts",
+   "src/lib/fiscal/types.ts",
+   "src/lib/ops/provider-evidence.ts",
+   "src/lib/payments/gateway-factory.ts",
+   "src/lib/payments/idempotency.ts",
+   "src/lib/payments/index.ts",
+   "src/lib/payments/process-webhook.ts",
+   "src/lib/payments/types.ts",
+   "src/lib/production/release-gate.ts",
+   "src/lib/queue/queue-bridge.ts",
+   "src/lib/queue/queue-service.ts",
+   "src/lib/security/security-scan-service.ts",
+   "src/lib/security/webhook-verify.ts",
+   "src/lib/zcc/types.ts",
+   "src/middleware.ts"
+  ],
+  "providerPathFiles": [
+   "src/lib/fiscal/providers/asaas.ts",
+   "src/lib/payments/providers/asaas/index.ts",
+   "src/lib/payments/providers/mercadopago/index.ts"
+  ],
+  "envKeyNames": [
+   "ASAAS_ACCESS_TOKEN",
+   "ASAAS_ENVIRONMENT",
+   "ASAAS_WEBHOOK_SECRET",
+   "ASAAS_API_KEY",
+   "ASAAS_ALLOW_LEGACY_TOKEN"
+  ],
+  "envFilesScanned": [
+   ".env.example",
+   ".env.local"
+  ]
+ },
+ "billingRoutes": [
+  "src/app/api/checkout/cancel/route.ts",
+  "src/app/api/checkout/create/route.ts",
+  "src/app/api/checkout/downgrade/route.ts",
+  "src/app/api/checkout/pix-status/route.ts",
+  "src/app/api/checkout/success/route.ts",
+  "src/app/api/checkout/upgrade/route.ts",
+  "src/app/api/checkout/webhook/route.ts",
+  "src/app/api/cron/monthly-billing/route.ts",
+  "src/app/api/cron/nps-checkout/route.ts",
+  "src/app/api/cron/payment-confirmation/route.ts",
+  "src/app/api/cron/payment-overdue/route.ts",
+  "src/app/api/ddc/billing/invoices/route.ts",
+  "src/app/api/ddc/credits/balance/route.ts",
+  "src/app/api/ddc/credits/codes/route.ts",
+  "src/app/api/ddc/credits/create-code/route.ts",
+  "src/app/api/ddc/credits/lite-milestone/route.ts",
+  "src/app/api/ddc/credits/referrals/route.ts",
+  "src/app/api/ddc/credits/track-click/route.ts",
+  "src/app/api/ddc/revenue-details/route.ts",
+  "src/app/api/ddc/upsell/charge/route.ts",
+  "src/app/api/ddc/upsell/payment-method/route.ts",
+  "src/app/api/v1/reservations/[id]/payment/route.ts",
+  "src/app/api/webhook-whatsapp/route.ts",
+  "src/app/api/webhooks/asaas/route.ts",
+  "src/app/api/webhooks/booking-com/reviews/route.ts",
+  "src/app/api/webhooks/mercadopago/route.ts",
+  "src/app/api/webhooks/payment/route.ts",
+  "src/app/api/webhooks/whatsapp/route.ts",
+  "src/app/api/zcc/airbnb/webhook/route.ts",
+  "src/app/api/zcc/github/webhook/route.ts"
+ ],
+ "webhookAnalysis": [
+  {
+   "file": "src/app/api/checkout/webhook/route.ts",
+   "signature": true,
+   "idempotency": true,
+   "transaction": false,
+   "rawBody": true
+  },
+  {
+   "file": "src/app/api/webhook-whatsapp/route.ts",
+   "signature": true,
+   "idempotency": true,
+   "transaction": false,
+   "rawBody": true
+  },
+  {
+   "file": "src/app/api/webhooks/asaas/route.ts",
+   "signature": true,
+   "idempotency": true,
+   "transaction": false,
+   "rawBody": true
+  },
+  {
+   "file": "src/app/api/webhooks/booking-com/reviews/route.ts",
+   "signature": true,
+   "idempotency": false,
+   "transaction": false,
+   "rawBody": true
+  },
+  {
+   "file": "src/app/api/webhooks/mercadopago/route.ts",
+   "signature": true,
+   "idempotency": true,
+   "transaction": false,
+   "rawBody": true
+  },
+  {
+   "file": "src/app/api/webhooks/payment/route.ts",
+   "signature": true,
+   "idempotency": true,
+   "transaction": false,
+   "rawBody": true
+  },
+  {
+   "file": "src/app/api/webhooks/whatsapp/route.ts",
+   "signature": true,
+   "idempotency": true,
+   "transaction": false,
+   "rawBody": true
+  },
+  {
+   "file": "src/app/api/zcc/airbnb/webhook/route.ts",
+   "signature": false,
+   "idempotency": false,
+   "transaction": false,
+   "rawBody": false
+  },
+  {
+   "file": "src/app/api/zcc/github/webhook/route.ts",
+   "signature": true,
+   "idempotency": true,
+   "transaction": false,
+   "rawBody": true
+  }
+ ],
+ "billingModels": [
+  {
+   "name": "Transaction",
+   "moneyFloatFields": [
+    "amount"
+   ],
+   "fieldCount": 10
+  },
+  {
+   "name": "Subscription",
+   "moneyFloatFields": [
+    "amount",
+    "lastProrateAmount"
+   ],
+   "fieldCount": 15
+  },
+  {
+   "name": "PaymentTransaction",
+   "moneyFloatFields": [
+    "amount"
+   ],
+   "fieldCount": 8
+  },
+  {
+   "name": "PushSubscription",
+   "moneyFloatFields": [],
+   "fieldCount": 12
+  },
+  {
+   "name": "AirBSubscription",
+   "moneyFloatFields": [
+    "amount"
+   ],
+   "fieldCount": 15
+  },
+  {
+   "name": "AirBTransaction",
+   "moneyFloatFields": [
+    "amount"
+   ],
+   "fieldCount": 11
+  },
+  {
+   "name": "AmortizationCredit",
+   "moneyFloatFields": [],
+   "fieldCount": 12
+  },
+  {
+   "name": "BillingIdempotency",
+   "moneyFloatFields": [],
+   "fieldCount": 7
+  }
+ ],
+ "moneyCodeHits": [
+  {
+   "file": "src/app/api/webhooks/payment/route.ts",
+   "occurrences": 2
+  },
+  {
+   "file": "src/lib/payments/mercadopago-service.ts",
+   "occurrences": 2
+  },
+  {
+   "file": "src/app/api/checkout/webhook/route.ts",
+   "occurrences": 1
+  },
+  {
+   "file": "src/app/api/cron/monthly-billing/route.ts",
+   "occurrences": 1
+  },
+  {
+   "file": "src/app/api/cron/payment-overdue/route.ts",
+   "occurrences": 1
+  },
+  {
+   "file": "src/lib/billing/asaas.ts",
+   "occurrences": 1
+  }
+ ],
+ "refundFiles": [],
+ "findings": [
+  {
+   "id": "R9-1",
+   "area": "9C",
+   "sev": "P2",
+   "title": "webhook com assinatura mas sem sinal de idempotência (externalId/eventId/upsert)",
+   "evidence": "src/app/api/webhooks/booking-com/reviews/route.ts"
+  },
+  {
+   "id": "R9-2",
+   "area": "9C",
+   "sev": "P1",
+   "title": "webhook sem sinal de verificação de assinatura/token",
+   "evidence": "src/app/api/zcc/airbnb/webhook/route.ts"
+  },
+  {
+   "id": "R9-3",
+   "area": "9D",
+   "sev": "P1",
+   "title": "campo monetário como Float em model de billing (Transaction)",
+   "evidence": "Transaction: amount"
+  },
+  {
+   "id": "R9-4",
+   "area": "9D",
+   "sev": "P1",
+   "title": "campo monetário como Float em model de billing (Subscription)",
+   "evidence": "Subscription: amount, lastProrateAmount"
+  },
+  {
+   "id": "R9-5",
+   "area": "9D",
+   "sev": "P1",
+   "title": "campo monetário como Float em model de billing (PaymentTransaction)",
+   "evidence": "PaymentTransaction: amount"
+  },
+  {
+   "id": "R9-6",
+   "area": "9D",
+   "sev": "P1",
+   "title": "campo monetário como Float em model de billing (AirBSubscription)",
+   "evidence": "AirBSubscription: amount"
+  },
+  {
+   "id": "R9-7",
+   "area": "9D",
+   "sev": "P1",
+   "title": "campo monetário como Float em model de billing (AirBTransaction)",
+   "evidence": "AirBTransaction: amount"
+  },
+  {
+   "id": "R9-8",
+   "area": "9D",
+   "sev": "P3",
+   "title": "parseFloat/Number() sobre valores monetários em código de billing (revisar arredondamento em centavos)",
+   "evidence": "src/app/api/webhooks/payment/route.ts(2), src/lib/payments/mercadopago-service.ts(2), src/app/api/checkout/webhook/route.ts(1), src/app/api/cron/monthly-billing/route.ts(1), src/app/api/cron/payment-overdue/route.ts(1)"
+  }
+ ]
+}

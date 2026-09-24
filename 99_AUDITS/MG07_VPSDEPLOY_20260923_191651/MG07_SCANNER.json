@@ -1,0 +1,183 @@
+{
+  "kit": "MG07_VPSDEPLOY_V3",
+  "ts": "2026-09-23T22:17:04.583Z",
+  "proj": "/Users/marciocau/SeuZella_project",
+  "inventory": {
+    "total": 28,
+    "presente": 21,
+    "ausente": 7
+  },
+  "signals": {
+    "total": 28,
+    "soma": 961
+  },
+  "hits": {
+    "bloqueio": 0,
+    "atencao": 23,
+    "info": 12,
+    "list": [
+      {
+        "sev": "ATENCAO",
+        "tag": "URL postgres com senha literal",
+        "file": "Dockerfile",
+        "line": 26
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "atribuicao de segredo literal",
+        "file": "Dockerfile",
+        "line": 27
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "atribuicao de segredo literal",
+        "file": "docker-compose.semantica.yml",
+        "line": 54
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "URL postgres com senha literal",
+        "file": "docker-compose.semantica.yml",
+        "line": 56
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "IP hardcode (nao-loopback)",
+        "file": "temp_openwa/.env.example",
+        "line": 62
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "--force em deploy",
+        "file": "temp_openwa/Dockerfile",
+        "line": 118
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "--force em deploy",
+        "file": "temp_openwa/Dockerfile",
+        "line": 127
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "prisma db push (bypass de migration)",
+        "file": "scripts/deploy-mvk4.sh",
+        "line": 36
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "--force em deploy",
+        "file": "scripts/github/migrate-to-corporate.sh",
+        "line": 141
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "URL postgres com senha literal",
+        "file": "scripts/production/backup-postgres.sh",
+        "line": 21
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "migrate reset (destrutivo)",
+        "file": "scripts/production/backup-pre-migration.sh",
+        "line": 13
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "prisma db push (bypass de migration)",
+        "file": "scripts/production/migrate-to-postgres.sh",
+        "line": 89
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "echo de variavel sensivel",
+        "file": "scripts/production/pentest-checklist.sh",
+        "line": 88
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "--force em deploy",
+        "file": "deploy/README-VPS-DEPLOY.md",
+        "line": 48
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "atribuicao de segredo literal",
+        "file": "deploy/README-VPS-DEPLOY.md",
+        "line": 235
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "URL postgres com senha literal",
+        "file": "deploy/semantica-sidecar/RUNBOOK.md",
+        "line": 95
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "URL postgres com senha literal",
+        "file": "deploy/semantica-sidecar/app/core/config.py",
+        "line": 37
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "echo de variavel sensivel",
+        "file": "deploy/semantica-sidecar/start.sh",
+        "line": 35
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "--force em deploy",
+        "file": "deploy/setup-vps.sh",
+        "line": 54
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "--force em deploy",
+        "file": "deploy/setup-vps.sh",
+        "line": 60
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "echo de variavel sensivel",
+        "file": "deploy/setup-vps.sh",
+        "line": 117
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "atribuicao de segredo literal",
+        "file": "deploy/vps-crontab",
+        "line": 22
+      },
+      {
+        "sev": "ATENCAO",
+        "tag": "migrate reset (destrutivo)",
+        "file": "package.json",
+        "line": 66
+      }
+    ],
+    "infoList": [
+      "migrations: 22 migrations",
+      "migration_lock.toml: AUSENTE (achado MG-06 mantido — decisao do dono antes do RELEASE)",
+      ".env.example chaves: 209",
+      ".env: presente, modo 600 (valor NUNCA lido)",
+      "vercel.json: presente — NUNCA EDITAR (regra permanente), conteudo nao lido",
+      "rotas api/health: 1",
+      "REDIS_URL refs em src/lib: 13",
+      "CRON_SECRET refs em src: 57",
+      "Dockerfile estagios: 3",
+      "next.config standalone: sim",
+      "scripts operacionais: 18 arquivos em scripts/",
+      "superficie analisada: 65 arquivos, 10791 linhas (deploy surface apenas)"
+    ]
+  },
+  "surface": {
+    "arquivos": 65,
+    "linhas": 10791
+  },
+  "verdict": {
+    "bloqueio": 0,
+    "atencao": 23,
+    "info": 12,
+    "ok": true
+  }
+}

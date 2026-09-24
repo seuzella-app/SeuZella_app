@@ -1,0 +1,7 @@
+#1 FALHA [route.ts:TS2345] q=findUnique ret=statusFirst expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+#2 FALHA [route.ts:TS2345] q=findFirst ret=statusFirst expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+#3 FALHA [route.ts:TS2345] q=findUnique ret=statusFirst expr=customerEmail wrap=0 inline=0 var=existingTenantMG07
+#4 FALHA [route.ts:TS7023 route.ts:TS2304 route.ts:TS7022] q=findUnique ret=json expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+#5 FALHA [route.ts:TS2345] q=findFirst ret=statusFirst expr=requestedEmail wrap=1 inline=0 var=existingTenantMG07
+#6 FALHA [route.ts:TS2345] q=findUnique ret=idiom expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+#7 FALHA [route.ts:TS7023 route.ts:TS2304 route.ts:TS7022] q=findFirst ret=json expr=requestedEmail wrap=1 inline=0 var=existingTenantMG07

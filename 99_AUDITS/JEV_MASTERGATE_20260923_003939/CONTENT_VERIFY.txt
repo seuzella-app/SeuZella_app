@@ -1,0 +1,40 @@
+OK   docs/JEV_CERTIFICACAO.md :: bede7de3
+OK   docs/JEV_CERTIFICACAO.md :: 480281d2
+OK   docs/JEV_CERTIFICACAO.md :: aff5ca01
+OK   docs/JEV_CERTIFICACAO.md :: 2b53b8e9
+OK   docs/JEV_CERTIFICACAO.md :: 7d7f28f1
+OK   docs/JEV_CERTIFICACAO.md :: 1828090e
+OK   docs/JEV_CERTIFICACAO.md :: e5eeb65d
+OK   docs/JEV_CERTIFICACAO.md :: ffa3902b
+OK   docs/JEV_CERTIFICACAO.md :: c6c07044
+OK   docs/JEV_CERTIFICACAO.md :: 7b3f9810
+OK   docs/JEV_CERTIFICACAO.md :: de734569
+OK   docs/JEV_CERTIFICACAO.md :: c6275fd8
+OK   docs/JEV_CERTIFICACAO.md :: 371a96cd
+OK   docs/JEV_CERTIFICACAO.md :: 5e19649b
+OK   docs/JEV_CERTIFICACAO.md :: 6261e3a5
+OK   docs/JEV_CERTIFICACAO.md :: RUN22-A
+OK   docs/JEV_CERTIFICACAO.md :: RUN23-A
+OK   docs/JEV_CERTIFICACAO.md :: RUN24-A
+OK   docs/JEV_CERTIFICACAO.md :: RUN25-A
+OK   docs/JEV_CERTIFICACAO.md :: RUN26-A
+OK   docs/JEV_CERTIFICACAO.md :: RUN27-A
+OK   docs/JEV_CERTIFICACAO.md :: RUN28-A
+OK   docs/JEV_CERTIFICACAO.md :: jev-contract
+OK   docs/JEV_CERTIFICACAO.md :: jev-registry
+OK   docs/JEV_CERTIFICACAO.md :: jev-shadow
+OK   docs/JEV_CERTIFICACAO.md :: jev-harness
+OK   docs/JEV_CERTIFICACAO.md :: jev-ledger
+OK   docs/JEV_CERTIFICACAO.md :: jev-integration
+OK   docs/JEV_CERTIFICACAO.md :: jev-wiring
+OK   docs/JEV_CERTIFICACAO.md :: jev-cron
+OK   docs/JEV_CERTIFICACAO.md :: SHADOW_ONLY
+OK   docs/JEV_CERTIFICACAO.md :: fail-closed
+OK   docs/JEV_CERTIFICACAO.md :: NUNCA push
+OK   docs/JEV_CERTIFICACAO.md :: 29 provas
+OK   docs/JEV_CERTIFICACAO.md :: MASTER GATE
+OK   docs/JEV_CERTIFICACAO.md :: VPS
+OK   docs/JEV_CERTIFICACAO.md :: SEUZELLA_JEV_MASTER_CLOSURE_01
+OK   docs/JEV_CERTIFICACAO.md :: ?src=
+OK   docs/JEV_CERTIFICACAO.md :: 5 MB
+OK   docs/JEV_CERTIFICACAO.md :: 10.000 linhas

@@ -1,0 +1,554 @@
+=== A) AST_INVARIANTS (segurança estrutural) ===
+verdict=RED | GREEN=4 YELLOW=3 RED=1
+GREEN  I1_NO_STATIC_IOREDIS_IN_INFRA          count=0 | 0 imports estaticos de ioredis em src/lib/infra/*
+GREEN  I2_NO_REDIS_URL_LITERAL_IN_INFRA_CODE  count=0 | 0 literais redis:// em src/lib/infra/*
+GREEN  I3_NO_VENDOR_KEY_LITERALS_IN_INFRA     count=0 | 0 literais vendor em src/lib/infra/*
+YELLOW I4_AUDIT_HAS_REDACTION_PATTERNS        count=0 | audit.ts parcial: keyRe=true valuePatterns=true sk=false jwt=false
+GREEN  I5_HEALTH_ENV_CONFIGURED_BOOLEAN_ONLY  count=1 | health.ts so reporta configured:boolean com allowlist
+YELLOW I6_NO_REDIS_URL_HARDCODED_IN_CODEBASE  count=1 | 1 literais em temp_openwa/src/core/plugins/plugin-loader.service.spec.ts
+RED    I7_NO_DB_PUSH_ACCEPT_DATA_LOSS         count=6 | 6 scripts: .zscripts/zcc-battery/03-full-regression-suite.sh, graft/.cache/extract.496c9d83e6eb3668.json, scripts/deploy-mvk4.sh, src/lib/cerebro/vuln
+YELLOW I8_NO_CONSOLE_LOG_IN_PROD_CODE         count=48 | 48 ocorrências em 15 arquivos (top: src/app/api/cron/budget-reset/route.ts, src/app/api/cron/lembrete-checkin/route.ts, src/app/api/cron/metrics-snaps
+
+=== B) WIRING_PLAN — todas as propostas (modulo|confianca|rota) ===
+total=133 | inventario base: 2026-09-21T19:54:34.353Z
+-- rate-limit (65)
+rate-limit|high|src/app/api/airb-pro/comparativo/route.ts
+rate-limit|high|src/app/api/airb-pro/rentabilidade/route.ts
+rate-limit|high|src/app/api/airb-pro/yield-suggestion/route.ts
+rate-limit|high|src/app/api/airb-test/route.ts
+rate-limit|high|src/app/api/auth/[...nextauth]/route.ts
+rate-limit|high|src/app/api/auth/forgot-password/route.ts
+rate-limit|high|src/app/api/auth/m2m/token/route.ts
+rate-limit|high|src/app/api/auth/magic-link/route.ts
+rate-limit|high|src/app/api/auth/register/route.ts
+rate-limit|high|src/app/api/auth/reset-password/route.ts
+rate-limit|high|src/app/api/brain/health/route.ts
+rate-limit|high|src/app/api/brain/intents/route.ts
+rate-limit|high|src/app/api/brain/route.ts
+rate-limit|high|src/app/api/checkout/cancel/route.ts
+rate-limit|high|src/app/api/checkout/create/route.ts
+rate-limit|high|src/app/api/checkout/downgrade/route.ts
+rate-limit|high|src/app/api/checkout/pix-status/route.ts
+rate-limit|high|src/app/api/checkout/success/route.ts
+rate-limit|high|src/app/api/checkout/upgrade/route.ts
+rate-limit|high|src/app/api/checkout/webhook/route.ts
+rate-limit|high|src/app/api/checkout/webhook/route.ts
+rate-limit|high|src/app/api/cron/payment-confirmation/route.ts
+rate-limit|high|src/app/api/cron/payment-overdue/route.ts
+rate-limit|high|src/app/api/ddc/ai-status/route.ts
+rate-limit|high|src/app/api/ddc/airb/conversations/route.ts
+rate-limit|high|src/app/api/ddc/airb/notifications/route.ts
+rate-limit|high|src/app/api/ddc/airb/onboarding/route.ts
+rate-limit|high|src/app/api/ddc/airb/properties/route.ts
+rate-limit|high|src/app/api/ddc/airb/regional/route.ts
+rate-limit|high|src/app/api/ddc/airb/scrape/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/commissions/[id]/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/commissions/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/expenses/[id]/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/expenses/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/goals/[id]/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/goals/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/operations/[id]/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/operations/route.ts
+rate-limit|high|src/app/api/ddc/airb-pro/reports/route.ts
+rate-limit|high|src/app/api/ddc/billing/invoices/route.ts
+rate-limit|medium|src/app/api/ddc/meta-connect/route.ts
+rate-limit|high|src/app/api/ddc/upsell/payment-method/route.ts
+rate-limit|high|src/app/api/knowledge/generate-embeddings/route.ts
+rate-limit|high|src/app/api/landing/chat/route.ts
+rate-limit|medium|src/app/api/meta-costs/route.ts
+rate-limit|high|src/app/api/v1/reservations/[id]/payment/route.ts
+rate-limit|high|src/app/api/webhook-whatsapp/route.ts
+rate-limit|high|src/app/api/webhooks/asaas/route.ts
+rate-limit|high|src/app/api/webhooks/asaas/route.ts
+rate-limit|high|src/app/api/webhooks/booking-com/reviews/route.ts
+rate-limit|high|src/app/api/webhooks/mercadopago/route.ts
+rate-limit|high|src/app/api/webhooks/payment/route.ts
+rate-limit|high|src/app/api/webhooks/payment/route.ts
+rate-limit|high|src/app/api/webhooks/whatsapp/route.ts
+rate-limit|medium|src/app/api/webhooks/whatsapp/route.ts
+rate-limit|high|src/app/api/zcc/airbnb/oauth/route.ts
+rate-limit|high|src/app/api/zcc/airbnb/webhook/route.ts
+rate-limit|high|src/app/api/zcc/airbnb/webhook/route.ts
+rate-limit|high|src/app/api/zcc/brain/route.ts
+rate-limit|high|src/app/api/zcc/cerebro/llmops/route.ts
+rate-limit|high|src/app/api/zcc/github/webhook/route.ts
+rate-limit|high|src/app/api/zcc/leads/brain-analyze/route.ts
+rate-limit|high|src/app/api/zcc/synthetic-brazil/generate/route.ts
+rate-limit|medium|src/app/api/zcc/whatsapp/simulate/route.ts
+rate-limit|high|src/app/api/zelador-suporte/chat/route.ts
+-- audit (36)
+audit|medium|src/app/api/admin/faturamento-zehla/route.ts
+audit|medium|src/app/api/admin/upsell-analytics/route.ts
+audit|high|src/app/api/checkout/cancel/route.ts
+audit|high|src/app/api/checkout/create/route.ts
+audit|high|src/app/api/checkout/downgrade/route.ts
+audit|high|src/app/api/checkout/pix-status/route.ts
+audit|high|src/app/api/checkout/success/route.ts
+audit|high|src/app/api/checkout/upgrade/route.ts
+audit|high|src/app/api/checkout/webhook/route.ts
+audit|high|src/app/api/checkout/webhook/route.ts
+audit|medium|src/app/api/cron/booking-daily/route.ts
+audit|high|src/app/api/cron/payment-confirmation/route.ts
+audit|high|src/app/api/cron/payment-overdue/route.ts
+audit|medium|src/app/api/dashboard/bookings/route.ts
+audit|high|src/app/api/ddc/billing/invoices/route.ts
+audit|medium|src/app/api/ddc/booking-sync/route.ts
+audit|medium|src/app/api/ddc/bookings/route.ts
+audit|medium|src/app/api/ddc/realtime/tenant-state/route.ts
+audit|high|src/app/api/ddc/upsell/payment-method/route.ts
+audit|medium|src/app/api/tenants/route.ts
+audit|high|src/app/api/v1/reservations/[id]/payment/route.ts
+audit|medium|src/app/api/v1/reservations/[id]/payment/route.ts
+audit|medium|src/app/api/v1/reservations/route.ts
+audit|high|src/app/api/webhook-whatsapp/route.ts
+audit|high|src/app/api/webhooks/asaas/route.ts
+audit|high|src/app/api/webhooks/asaas/route.ts
+audit|high|src/app/api/webhooks/booking-com/reviews/route.ts
+audit|medium|src/app/api/webhooks/booking-com/reviews/route.ts
+audit|high|src/app/api/webhooks/mercadopago/route.ts
+audit|high|src/app/api/webhooks/payment/route.ts
+audit|high|src/app/api/webhooks/payment/route.ts
+audit|high|src/app/api/webhooks/whatsapp/route.ts
+audit|high|src/app/api/zcc/airbnb/webhook/route.ts
+audit|high|src/app/api/zcc/github/webhook/route.ts
+audit|medium|src/app/api/zcc/tenants/[id]/status/route.ts
+audit|medium|src/app/api/zcc/tenants/route.ts
+-- cache (18)
+cache|medium|src/app/api/cron/metrics-snapshot/route.ts
+cache|medium|src/app/api/dashboard/bookings/route.ts
+cache|medium|src/app/api/dashboard/overview/route.ts
+cache|medium|src/app/api/dashboard/route.ts
+cache|medium|src/app/api/ddc/airb-pro/reports/route.ts
+cache|medium|src/app/api/ddc/linkinbio/stats/route.ts
+cache|medium|src/app/api/ddc/metrics/route.ts
+cache|medium|src/app/api/ddc/upsell/metrics/route.ts
+cache|medium|src/app/api/feedback/stats/route.ts
+cache|medium|src/app/api/v1/metrics/route.ts
+cache|medium|src/app/api/zcc/code-reviewer/stats/route.ts
+cache|medium|src/app/api/zcc/dashboard-stats/route.ts
+cache|medium|src/app/api/zcc/metrics/financial/route.ts
+cache|medium|src/app/api/zcc/metrics/geographic/route.ts
+cache|medium|src/app/api/zcc/metrics/periods/route.ts
+cache|medium|src/app/api/zcc/metrics/route.ts
+cache|medium|src/app/api/zcc/stats/route.ts
+cache|medium|src/app/api/zcc/ze-code/stats/route.ts
+-- queue (14)
+queue|high|src/app/api/checkout/webhook/route.ts
+queue|medium|src/app/api/ddc/billing/invoices/route.ts
+queue|medium|src/app/api/ddc/conversations/[id]/messages/route.ts
+queue|medium|src/app/api/ddc/upsell/charge/route.ts
+queue|high|src/app/api/webhook-whatsapp/route.ts
+queue|high|src/app/api/webhooks/asaas/route.ts
+queue|high|src/app/api/webhooks/booking-com/reviews/route.ts
+queue|high|src/app/api/webhooks/mercadopago/route.ts
+queue|high|src/app/api/webhooks/payment/route.ts
+queue|high|src/app/api/webhooks/whatsapp/route.ts
+queue|medium|src/app/api/webhooks/whatsapp/route.ts
+queue|high|src/app/api/zcc/airbnb/webhook/route.ts
+queue|high|src/app/api/zcc/github/webhook/route.ts
+queue|medium|src/app/api/zcc/whatsapp/simulate/route.ts
+-- health (0)
+
+=== C) RESUMO DO INVENTARIO ===
+rotas REST=320 | handlers=376 | routers tRPC=0
+dominios (61): zcc=90, ddc=85, cron=34, checkout=7, v1=7, auth=6, leads=5, lgpd=5, webhooks=5, airb-pro=3, brain=3, dashboard=3, debug-agent=3, push=3, telemetry=3, zelador-suporte=3, admin=2, campaigns=2, feedback=2, integrations=2, landing=2, mobile=2, properties=2, router=2, targets=2
+rotas com imports de infra W2 ja presentes: 0
+riscos agregados: {'console.log': 14}
+
+=== D) ROTAS health|readiness|brain|status (residuais 11E) ===
+GET                      src/app/api/brain/health/route.ts
+GET                      src/app/api/brain/intents/route.ts
+-                        src/app/api/brain/route.ts
+GET                      src/app/api/checkout/pix-status/route.ts
+GET                      src/app/api/ddc/ai-status/route.ts
+-                        src/app/api/ddc/partner-program/status/route.ts
+GET                      src/app/api/health/route.ts
+GET                      src/app/api/readiness/route.ts
+GET                      src/app/api/zcc/brain/route.ts
+GET                      src/app/api/zcc/cerebro/status/route.ts
+GET                      src/app/api/zcc/health/route.ts
+POST                     src/app/api/zcc/leads/brain-analyze/route.ts
+PATCH                    src/app/api/zcc/tenants/[id]/status/route.ts
+
+=== E) AMOSTRAS DE CODIGO (scrubbed, capped) ===
+---- src/app/api/auth/forgot-password/route.ts ----
+(62 linhas)
+   1| import { NextResponse } from 'next/server';
+   2| import crypto from 'crypto';
+   3| import { db, isDatabaseAvailable } from '@/lib/db';
+   4| import { sendEmail } from '@/lib/email/email-service';
+   5| import { authRatelimit } from '@/lib/rate-limit';
+   6| 
+   7| export const runtime = 'nodejs';
+   8| export const dynamic = 'force-dynamic';
+   9| 
+  10| const GENERIC_RESPONSE = { ok: true, message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.' };
+  11| function baseUrl(request: Request): string { return (process.env.NEXTAUTH_URL || new URL(request.url).origin).replace(/\/$/, ''); }
+  12| function getClientIp(request: Request): string { return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'; }
+  13| 
+  14| async function ensureResetTable() {
+  15|   await db.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "password_reset_tokens" ("id" TEXT NOT NULL PRIMARY KEY, "tenant_id" TEXT NOT NULL, "token_hash" TEXT NOT NULL UNIQUE, "expires_at" TIMESTAMP(3
+  16|   await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "password_reset_tokens_tenant_id_idx" ON "password_reset_tokens"("tenant_id")`);
+  17|   await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "password_reset_tokens_expires_at_idx" ON "password_reset_tokens"("expires_at")`);
+  18| }
+  19| 
+  20| export async function POST(request: Request) {
+  21|   try {
+  22|     // F12: Rate limit — prevent email bombing (5 requests per 15 min per IP)
+  23|     const clientIp = getClientIp(request);
+  24|     const { success: rateOk } = await authRatelimit.limit(`forgot-password:${clientIp}`);
+  25|     if (!rateOk) {
+  26|       return NextResponse.json(
+  27|         { error: 'RATE_LIMITED', message: 'Muitas solicitações. Tente novamente em alguns minutos.' },
+  28|         { status: 429 }
+  29|       );
+  30|     }
+  31| 
+  32|     const body = await request.json().catch(() => ({}));
+  33|     const email = String(body.email || '').trim().toLowerCase();
+  34|     if (!email || !email.includes('@') || email.length > 254) return NextResponse.json(GENERIC_RESPONSE);
+  35|     if (!(await isDatabaseAvailable())) return NextResponse.json(GENERIC_RESPONSE);
+  36|     await ensureResetTable();
+  37| 
+  38|     const tenant = await db.tenant.findUnique({ where: { email } });
+  39|     if (!tenant || tenant.status !== 'active') return NextResponse.json(GENERIC_RESPONSE);
+  40| 
+  41|     await db.$executeRaw`UPDATE "password_reset_tokens" SET "used_at" = CURRENT_TIMESTAMP WHERE "tenant_id" = ${tenant.id} AND "used_at" IS NULL`;
+  42|     const token = crypto.randomBytes(32).toString('base64url');
+  43|     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  44|     const tokenId = crypto.randomUUID();
+  45|     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+  46|     await db.$executeRaw`INSERT INTO "password_reset_tokens" ("id", "tenant_id", "token_hash", "expires_at") VALUES (${tokenId}, ${tenant.id}, ${tokenHash}, ${expiresAt})`;
+  47| 
+  48|     const resetUrl = `${baseUrl(request)}/reset-password?token=${encodeURIComponent(token)}`;
+  49|     const result = await sendEmail({
+  50|       to: email,
+  51|       subject: 'Redefina sua senha — Zélla',
+  52|       html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#111827"><h1 style="color:#047857">Redefinição de senha</h1><p>Recebemos uma solicitação para cri
+  53|       text: `Redefina sua senha Zélla: ${resetUrl}\n\nO link expira em 30 minutos e pode ser usado uma única vez.`,
+  54|       tags: ['auth', 'password-reset'],
+  55|     });
+  56|     if (!result.success && process.env.NODE_ENV === 'production') console.error('[auth] password reset email failed', result.error);
+  57|     return NextResponse.json(GENERIC_RESPONSE);
+  58|   } catch (error) {
+  59|     console.error('[auth] forgot-password failure', error);
+  60|     return NextResponse.json(GENERIC_RESPONSE);
+  61|   }
+  62| }
+
+---- src/app/api/checkout/webhook/route.ts ----
+(113 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { db } from '@/lib/db';
+   3| import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
+   4| import { bridgePaymentEvent, bridgeSecurityAlert } from '@/lib/notifications/bridges';
+   5| import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+   6| 
+   7| const MAX_WEBHOOK_BYTES = 1024 * 1024;
+   8| 
+   9| export async function POST(request: NextRequest) {
+  10|   try {
+  11|     const rawBody = await request.text();
+  12|     if (Buffer.byteLength(rawBody, 'utf8') > MAX_WEBHOOK_BYTES) return NextResponse.json({ error: 'PAYLOAD_TOO_LARGE' }, { status: 413 });
+  13|     const signature = request.headers.get('x-signature');
+  14|     const requestId = request.headers.get('x-request-id') || undefined;
+  15|     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  16| 
+  17|     // ── M-PAY-011: Fail-closed em produção se webhook secret não estiver configurado ──
+  18|     if (process.env.NODE_ENV === 'production' && !webhookSecret) {
+  19|       console.error('[checkout-webhook] FAIL-CLOSED: MP_WEBHOOK_SECRET is not configured in production');
+  20|       return NextResponse.json(
+  21|         { error: 'WEBHOOK_SECRET_NOT_CONFIGURED' },
+  22|         { status: 500, headers: { 'X-Security-Shield': 'zero-trust-v2' } }
+  23|       );
+  24|     }
+  25| 
+  26|     if (webhookSecret || process.env.NODE_ENV === 'production') {
+  27|       if (!signature) return NextResponse.json({ error: 'SIGNATURE_REQUIRED' }, { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+  28|       const bodyForSignature = (() => {
+  29|         try { return JSON.parse(rawBody) as Record<string, unknown>; } catch { return null; }
+  30|       })();
+  31|       if (!bodyForSignature) return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 });
+  32|       const paymentId = typeof bodyForSignature.data === 'object' && bodyForSignature.data !== null && typeof (bodyForSignature.data as Record<string, unknown>).id === 'string'
+  33|         ? String((bodyForSignature.data as Record<string, unknown>).id)
+  34|         : typeof bodyForSignature.id === 'string' ? bodyForSignature.id : '';
+  35|       if (!paymentId) return NextResponse.json({ error: 'MISSING_PAYMENT_ID' }, { status: 400 });
+  36|       const verification = verifyMercadoPagoWebhook(rawBody, signature, webhookSecret || '', paymentId, requestId);
+  37|       if (!verification.valid) {
+  38|         console.warn(`[checkout-webhook] REJECTED: ${verification.reason}`);
+  39|         try {
+  40|           bridgeSecurityAlert({ niche: 'all', ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown', reason: `Webhook checkout assinatura inválida: ${verification.reason}` });
+  41|         } catch (notifErr) { console.error('[checkout-webhook] security bridge error:', notifErr); }
+  42|         return NextResponse.json({ error: 'SIGNATURE_INVALID' }, { status: 401, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+  43|       }
+  44|     }
+  45| 
+  46|     let body: Record<string, unknown>;
+  47|     try { body = JSON.parse(rawBody) as Record<string, unknown>; } catch { return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 }); }
+  48| 
+  49|     if (body.action === 'payment.updated' || body.type === 'payment') {
+  50|       const paymentId = typeof (body.data as Record<string, unknown> | undefined)?.id === 'string' ? String((body.data as Record<string, unknown>).id) : '';
+  51|       if (!paymentId) return NextResponse.json({ error: 'MISSING_PAYMENT_ID' }, { status: 400 });
+  52| 
+  53|       const transaction = await db.paymentTransaction.findFirst({ where: { externalId: paymentId } });
+  54|       if (!transaction) return NextResponse.json({ received: true, ignored: true });
+  55| 
+  56|       const token = process.env.MP_ACCESS_TOKEN;
+  57|       if (process.env.NODE_ENV === 'production' && !token) {
+  58|         console.error('[checkout-webhook] FAIL-CLOSED: MP_ACCESS_TOKEN is not configured in production');
+  59|         return NextResponse.json(
+  60|           { error: 'PAYMENT_PROVIDER_NOT_CONFIGURED' },
+  61|           { status: 503, headers: { 'X-Security-Shield': 'zero-trust-v2' } },
+  62|         );
+  63|       }
+  64| 
+  65|       if (token) {
+  66|         try {
+  67|           const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`, { headers: { Authorization: `Bearer ${token}` } });
+  68|           if (!mpResponse.ok) return NextResponse.json({ error: 'PAYMENT_STATUS_UNAVAILABLE' }, { status: 503 });
+  69|           const mpData = await mpResponse.json();
+  70|           const newStatus = typeof mpData.status === 'string' ? mpData.status : 'unknown';
+  71| 
+  72|           const idempotencyResult = await executeWithBillingIdempotency(
+  73|             {
+  74|               provider: 'mercadopago',
+  75|               eventId: paymentId,
+  76|               eventType: String(body.action || body.type || 'payment.updated'),
+  77|               status: newStatus,
+  78|             },
+  79|             async () => {
+  80|               await db.paymentTransaction.update({ where: { id: transaction.id }, data: { status: newStatus } });
+  81| 
+  82|               if (newStatus === 'approved') {
+  83|                 const subscription = await db.subscription.findUnique({ where: { id: transaction.subscriptionId } });
+  84|                 if (subscription) {
+  85|                   const now = new Date();
+  86|                   const periodEnd = new Date(now); periodEnd.setMonth(periodEnd.getMonth() + 1);
+  87|                   await db.subscription.update({ where: { id: subscription.id }, data: { status: 'active', paymentStatus: 'approved', paymentId, currentPeriodStart: now, currentPeriodEnd: periodEnd } 
+  88|                   await db.tenant.update({ where: { id: subscription.tenantId }, data: { plan: subscription.planType, subscriptionAt: now, status: 'active' } });
+  89|                   try { bridgePaymentEvent({ niche: 'all', paymentId, amount: Number(transaction.amount ?? 0), guestName: subscription.tenantId, method: 'pix', status: 'received', tenantId: subscripti
+  90|                 }
+... (+23 linhas truncadas)
+
+---- src/app/api/brain/health/route.ts ----
+(27 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { getBrainHealth } from '@/lib/brain-health';
+   3| import { apiRatelimit } from '@/lib/rate-limit';
+   4| import { getServerSession } from 'next-auth';
+   5| import { authOptions } from '@/lib/auth';
+   6| 
+   7| export async function GET(request: NextRequest) {
+   8|   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+   9|   const rl = await apiRatelimit.limit(`api:${clientIp}:${new URL(request.url).pathname}`);
+  10|   if (!rl.success) {
+  11|     return NextResponse.json(
+  12|       { error: 'RATE_LIMITED', message: 'Muitas requisições.', retryAfter: Math.ceil((rl.reset - Date.now()) / 1000) },
+  13|       { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)), 'X-RateLimit-Remaining': '0' } }
+  14|     );
+  15|   }
+  16| 
+  17|   try {
+  18|     // Wave B IDOR fix: tenantId from session, not query param
+  19|     const session = await getServerSession(authOptions);
+  20|     if (!session?.user) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  21|     const tenantId = (session.user as any).tenantId;
+  22|     const data = await getBrainHealth(tenantId);
+  23|     return NextResponse.json(data, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+  24|   } catch (error) {
+  25|     return NextResponse.json({ success: false, error: 'Failed to fetch brain health' }, { status: 500, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+  26|   }
+  27| }
+
+---- src/app/api/brain/intents/route.ts ----
+(27 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { getIntentStats } from '@/lib/brain-health';
+   3| import { apiRatelimit } from '@/lib/rate-limit';
+   4| import { getServerSession } from 'next-auth';
+   5| import { authOptions } from '@/lib/auth';
+   6| 
+   7| export async function GET(request: NextRequest) {
+   8|   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+   9|   const rl = await apiRatelimit.limit(`api:${clientIp}:${new URL(request.url).pathname}`);
+  10|   if (!rl.success) {
+  11|     return NextResponse.json(
+  12|       { error: 'RATE_LIMITED', message: 'Muitas requisições.', retryAfter: Math.ceil((rl.reset - Date.now()) / 1000) },
+  13|       { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)), 'X-RateLimit-Remaining': '0' } }
+  14|     );
+  15|   }
+  16| 
+  17|   try {
+  18|     // Wave B IDOR fix: tenantId from session, not query param
+  19|     const session = await getServerSession(authOptions);
+  20|     if (!session?.user) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  21|     const tenantId = (session.user as any).tenantId;
+  22|     const data = await getIntentStats(tenantId);
+  23|     return NextResponse.json(data, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+  24|   } catch (error) {
+  25|     return NextResponse.json({ error: 'Failed to fetch intent stats' }, { status: 500, headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+  26|   }
+  27| }
+
+---- src/app/api/brain/route.ts ----
+(51 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { getNeuroRouter } from '@/lib/ai/zaos-neuro-router';
+   3| import { guardWhatsAppMessage } from '@/lib/ai/whatsapp-guardrails';
+   4| import { classifyIntent } from '@/lib/ai/intent-router';
+   5| import { retrieveRelevantKnowledge, formatRAGContext } from '@/lib/ai/semantic-rag';
+   6| import { executeCognitivePipeline } from '@/lib/ai/cognitive-router';
+   7| import { resolveTenantId } from '@/lib/ddc/auth-utils';
+   8| import { getLearningStats } from '@/lib/brain/conversation-learner';
+   9| import { withSecurity } from '@/lib/security/api-shield';
+  10| 
+  11| async function postHandler(request: NextRequest) {
+  12|   try {
+  13|     const tenantId = await resolveTenantId();
+  14|     if (!tenantId) return NextResponse.json({ error: 'TENANT_AUTH_REQUIRED' }, { status: 401 });
+  15|     const body = await request.json();
+  16|     const { message, sessionId, systemPrompt = '' } = body;
+  17|     if (typeof message !== 'string' || !message.trim()) return NextResponse.json({ error: 'INVALID_MESSAGE' }, { status: 400 });
+  18|     if (message.length > 50000) return NextResponse.json({ error: 'MESSAGE_TOO_LARGE' }, { status: 400 });
+  19|     const { searchParams } = new URL(request.url);
+  20|     if (searchParams.get('guard') === 'true') return NextResponse.json({ ok: true, guardResult: guardWhatsAppMessage(message) });
+  21|     if (searchParams.get('intent') === 'true') return NextResponse.json({ ok: true, intentResult: await classifyIntent(message) });
+  22|     if (searchParams.get('rag') === 'true') {
+  23|       const ragResult = await retrieveRelevantKnowledge(tenantId, message);
+  24|       return NextResponse.json({ ok: true, ragResult, contextText: formatRAGContext(ragResult) }, { headers: { 'Cache-Control': 'private, no-store' } });
+  25|     }
+  26|     const result = await executeCognitivePipeline({ message, tenantId, sessionId, systemPrompt });
+  27|     return NextResponse.json({ success: result.success, provider: result.providerId, intent: result.intent, confidence: result.confidence, tier: result.tierUsed, latencyMs: 0, isMock: result.isMock, r
+  28|   } catch (error) {
+  29|     console.error('[BRAIN_ROUTE_ERROR]', error);
+  30|     return NextResponse.json({ error: 'BRAIN_REQUEST_FAILED' }, { status: 500 });
+  31|   }
+  32| }
+  33| 
+  34| async function getHandler() {
+  35|   try {
+  36|     const tenantId = await resolveTenantId();
+  37|     const router = await getNeuroRouter();
+  38|     let learning;
+  39|     if (tenantId) {
+  40|       const stats = await getLearningStats(tenantId);
+  41|       learning = { totalPatterns: stats.totalPatterns, verifiedPatterns: stats.verifiedPatterns, antiPatternsCount: stats.antiPatternsCount || 0, learningVelocity: stats.learningVelocity || 0, avgSent
+  42|     }
+  43|     return NextResponse.json({ status: 'online', service: 'ZaosNeuroRouter', version: '5.1.0', engine: 'Thompson Sampling + Circuit Breakers + Budget Guard + Semantic Cache + Self-Learning v2.0', budg
+  44|   } catch (error) {
+  45|     console.error('[BRAIN_GET_ERROR]', error);
+  46|     return NextResponse.json({ error: 'BRAIN_STATUS_UNAVAILABLE' }, { status: 503 });
+  47|   }
+  48| }
+  49| 
+  50| export const POST = withSecurity(postHandler, { routeLabel: 'brain', maxPayloadBytes: 500_000 });
+  51| export const GET = withSecurity(getHandler, { routeLabel: 'brain-status' });
+
+---- src/app/api/readiness/route.ts ----
+(86 linhas)
+   1| import { NextRequest, NextResponse } from 'next/server';
+   2| import { isDatabaseAvailable, db } from '@/lib/db';
+   3| import { isPushEnabled } from '@/lib/push/push-service';
+   4| import { getActiveTransport } from '@/lib/realtime/tenant-pubsub';
+   5| import { isBullMQAvailable } from '@/lib/queue/queue-bridge';
+   6| import { assertProductionSecurityEnv } from '@/lib/env';
+   7| import { resolveTraceId, withTraceHeaders } from '@/lib/observability/trace-context';
+   8| 
+   9| export const dynamic = 'force-dynamic';
+  10| export const runtime = 'nodejs';
+  11| 
+  12| /** Readiness probe — verifies all config + infrastructure dependencies.
+  13|  *  F07: Now also returns X-Request-Id response header for correlation. */
+  14| export async function GET(request: NextRequest) {
+  15|   const traceId = resolveTraceId(request);
+  16|   const checks: Array<{ name: string; passed: boolean; required: boolean; hint: string }> = [];
+  17| 
+  18|   checks.push({ name: 'NEXTAUTH_SECRET', passed: !!process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_SECRET.length >= 32, required: true, hint: 'Generate: openssl rand -base64 32 (≥32 chars)' });
+  19|   checks.push({ name: 'NEXTAUTH_URL', passed: !!process.env.NEXTAUTH_URL, required: true, hint: 'Set to production URL' });
+  20|   checks.push({ name: 'DATABASE_URL', passed: !!process.env.DATABASE_URL, required: true, hint: 'PostgreSQL connection string' });
+  21|   checks.push({ name: 'ZEHLA_MASTER_ADMIN_EMAIL', passed: !!process.env.ZEHLA_MASTER_ADMIN_EMAIL, required: true, hint: 'Corporate admin email' });
+  22|   checks.push({ name: 'ZEHLA_MASTER_ADMIN_PASSWORD', passed: !!process.env.ZEHLA_MASTER_ADMIN_PASSWORD && process.env.ZEHLA_MASTER_ADMIN_PASSWORD.length >= 12, required: true, hint: '≥12 chars' });
+  23|   checks.push({ name: 'ZCC_ADMIN_EMAILS', passed: !!process.env.ZCC_ADMIN_EMAILS, required: true, hint: 'CSV of admin emails' });
+  24|   checks.push({ name: 'ALEXA_JWT_SECRET', passed: !!process.env.ALEXA_JWT_SECRET && process.env.ALEXA_JWT_SECRET.length >= 32, required: true, hint: 'HS256 secret' });
+  25|   checks.push({ name: 'ENCRYPTION_SECRET', passed: !!process.env.ENCRYPTION_SECRET, required: true, hint: 'AES-256-GCM secret' });
+  26|   checks.push({ name: 'REDIS_URL', passed: !!process.env.REDIS_URL, required: false, hint: 'Upstash Redis for multi-instance sync' });
+  27|   checks.push({ name: 'Realtime transport', passed: getActiveTransport() === 'redis', required: false, hint: 'Set REDIS_URL for multi-instance transport' });
+  28|   checks.push({ name: 'VAPID_PUBLIC_KEY', passed: !!process.env.VAPID_PUBLIC_KEY, required: false, hint: 'Generate web-push VAPID keys' });
+  29|   checks.push({ name: 'VAPID_PRIVATE_KEY', passed: !!process.env.VAPID_PRIVATE_KEY, required: false, hint: 'Private VAPID key' });
+  30|   checks.push({ name: 'Push enabled', passed: isPushEnabled(), required: false, hint: 'Both VAPID keys must be set' });
+  31| 
+  32|   const hasAsaas = !!process.env.ASAAS_API_KEY || !!process.env.ASAAS_ACCESS_TOKEN;
+  33|   const hasMP = !!process.env.MERCADOPAGO_ACCESS_TOKEN || !!process.env.MP_ACCESS_TOKEN;
+  34|   checks.push({ name: 'Payment gateway (Asaas|Mercado Pago)', passed: hasAsaas || hasMP, required: true, hint: 'Configure at least one: ASAAS_ACCESS_TOKEN or MP_ACCESS_TOKEN' });
+  35|   checks.push({ name: 'Asaas webhook secret', passed: !hasAsaas || !!process.env.ASAAS_WEBHOOK_SECRET, required: hasAsaas, hint: 'Required when Asaas is configured' });
+  36|   checks.push({ name: 'Mercado Pago webhook secret', passed: !hasMP || !!(process.env.PAYMENT_WEBHOOK_SECRET || process.env.MP_WEBHOOK_SECRET), required: hasMP, hint: 'Required when Mercado Pago is co
+  37| 
+  38|   let prodSecurityPassed = true;
+  39|   let prodSecurityHint = 'Production security environment assertion passed';
+  40|   try {
+  41|     assertProductionSecurityEnv();
+  42|   } catch (err: unknown) {
+  43|     prodSecurityPassed = false;
+  44|     prodSecurityHint = err instanceof Error ? err.message : 'Failed production security env assertion';
+  45|   }
+  46|   checks.push({
+  47|     name: 'assertProductionSecurityEnv',
+  48|     passed: prodSecurityPassed,
+  49|     required: process.env.NODE_ENV === 'production',
+  50|     hint: prodSecurityHint,
+  51|   });
+  52| 
+  53|   checks.push({ name: 'WHATSAPP_TOKEN', passed: !!process.env.WHATSAPP_TOKEN, required: false, hint: 'Meta WhatsApp Business API token' });
+  54|   checks.push({ name: 'META_APP_SECRET', passed: !!process.env.META_APP_SECRET, required: false, hint: 'Meta app secret for webhook HMAC verification' });
+  55| 
+  56|   let dbAvailable = false;
+  57|   let dbLatency: number | undefined;
+  58|   try {
+  59|     const start = Date.now();
+  60|     dbAvailable = await isDatabaseAvailable();
+  61|     if (dbAvailable) {
+  62|       await db.tenant.count({ take: 1 }).catch(() => {});
+  63|       dbLatency = Date.now() - start;
+  64|     }
+  65|   } catch {
+  66|     dbAvailable = false;
+  67|   }
+  68|   checks.push({ name: 'Database connection', passed: dbAvailable, required: true, hint: dbAvailable ? `Connected (${dbLatency}ms)` : 'Cannot connect to DATABASE_URL' });
+  69|   checks.push({ name: 'BullMQ (Redis)', passed: isBullMQAvailable(), required: false, hint: 'Requires REDIS_URL' });
+  70| 
+  71|   const requiredChecks = checks.filter(c => c.required);
+  72|   const failedRequired = requiredChecks.filter(c => !c.passed);
+  73|   const allPassed = failedRequired.length === 0;
+  74| 
+  75|   return withTraceHeaders(
+  76|     NextResponse.json({
+  77|       status: allPassed ? 'ready' : 'not_ready',
+  78|       summary: { total: checks.length, passed: checks.filter(c => c.passed).length, failed: checks.filter(c => !c.passed).length, requiredFailed: failedRequired.length },
+  79|       checks,
+  80|       timestamp: new Date().toISOString(),
+  81|       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
+  82|       requestId: traceId,
+  83|     }, { status: allPassed ? 200 : 503, headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate' } }),
+  84|     traceId
+  85|   );
+  86| }
+
+=== F) CADEIA GIT ===
+3c266298 RUN11-W2: camada de infra local (cache/queue/rate-limit/audit/health) + invariantes AST
+8ff08f47 test: adota suites de invariantes orfas run9-w1 e run10-w1 (instaladas por kits W1 de sabado, GREEN no vitest-full de hoje; higiene aprovada pelo agente para liberar o PASSO 2)
+7c15a3c7 run10: fecha RUN10-W2 V3 - suite 10A AST-aligned ao patcher (causa raiz template literal provada) + baseline pin anti-crescimento + R10-8 reclassificado com evidencia AST (RES-10A-2) + rate-limit fail-closed rotas IA (10B) + ai-env central fail-closed (10E) + residuais/plano W3
+e362e931 run9: fecha RUN9-W2 - guard fail-closed webhook airbnb (9C) + fix flake temporal run4-wave4a (9F) + invariantes 9C/9D/9F + residuais documentados
+819bb567 run8: fecha RUN8-W2 - disciplina migrate deploy (8B) + invariantes 8A/8B/8D
+git status: 13 entradas
+  ?? 99_AUDITS/RUN10_W1_20260918_171152/
+  ?? 99_AUDITS/RUN10_W2_20260918_182821/
+  ?? 99_AUDITS/RUN10_W2_20260918_185334/
+  ?? 99_AUDITS/RUN10_W2_20260921_122910/
+  ?? 99_AUDITS/RUN11_W1_20260921_123423/
+  ?? 99_AUDITS/RUN11_W1_20260921_163930/
+  ?? 99_AUDITS/RUN11_W3_HARNESS_20260921_165432/
+  ?? 99_AUDITS/RUN7_W3_20260918_082514/RUN7_W3_REPORT.md
+pastas RUN11 em 99_AUDITS: RUN11_W1_20260921_123423, RUN11_W1_20260921_163930, RUN11_W2_20260921_164550, RUN11_W3_HARNESS_20260921_165432
+
+=== FIM DO DIGEST ===

@@ -1,0 +1,50 @@
+{
+  "wave": "RUN25-A",
+  "generatedAt": "2026-09-23T01:01:29.498Z",
+  "limiter": {
+    "maxPerWindow": 5,
+    "windowMs": 60000,
+    "cooldownMs": 60000,
+    "admitted": 6,
+    "deniedByLimiter": 2,
+    "limitedResponses": 1,
+    "cooldownHonored": true,
+    "retryAfterHintHonored": true
+  },
+  "m2m": {
+    "bearerSent": true,
+    "contentTypeJson": true,
+    "keyInBodySent": false,
+    "minimizedPayloadOnly": true,
+    "keyInResponse": false,
+    "keyInError": false,
+    "keyMissingBlocksFetch": true,
+    "ssrfBlockedOutsideAllowlist": true,
+    "requestCount": 2
+  },
+  "fuzz": {
+    "seed": 20260922,
+    "iterations": 240,
+    "validAccepted": 96,
+    "invalidRejected": 96,
+    "garbageHandled": 48,
+    "allTyped": true,
+    "noThrow": true
+  },
+  "wiring": {
+    "factoryNullWhenDisabled": true,
+    "factoryNullWithoutKey": true,
+    "factoryActiveWhenEnabled": true,
+    "runnerLocalWhenDisabled": true,
+    "runnerRemoteWhenEnabled": true,
+    "statusHasNoSecret": true
+  },
+  "invariants": {
+    "limiterFailClosed": true,
+    "decoratorNeverCallsInnerWhenDenied": true,
+    "ssrfGuardHonored": true,
+    "keyNeverSerialized": true,
+    "remoteAlwaysShadowOnly": true,
+    "networkOnlyMocked": true
+  }
+}

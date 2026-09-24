@@ -1,0 +1,131 @@
+================================================================
+ SEUZELLA — JEV_PASTE_BACK_DIGEST (JEV MASTER GATE — RUN29-A, CERTIFICAÇÃO FINAL)
+ Gerado em: 2026-09-23T03:40:29.672Z
+ Objetivo: CERTIFICAR a fundação JEV (varredura completa) e selar a trilha
+ com a tag LOCAL SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push. Próximo: VPS.
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: fc07fc8fbd7822dda2d186981e21a218a6bfd642
+árvore: modified=0 untracked=27 | FORA de 99_AUDITS: 0
+
+--- B) CERTIFICADO INSTALADO (1, ADITIVO em docs/ — nenhum existente editado, zero código de produção) ---
+docs/JEV_CERTIFICACAO.md | 188 linhas | sha256=a0e9abbc198b567f6a806bb2663a203442df633ef3525755792d184cdce4bb84
+
+
+--- C) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- D) VITEST (8 suítes JEV — a varredura final antes do selo) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (RUN27-A)
+LEITURA: a fundação está INTEGRA no momento do selo — 8 suítes GREEN e tsc
+sem erros novos.
+
+--- E) MASTER SWEEP (a fundação inteira re-verificada num único passe) ---
+  ÂNCORAS: 15/15 ancestrais do HEAD por hash exato (RUN12..RUN19 + RUN22..RUN28)
+    RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9
+    RUN16-A=7d7f28f1 RUN17-A=1828090e RUN18-A=e5eeb65d RUN19-A=ffa3902b
+    RUN22-A=c6c07044 RUN23-A=7b3f9810 RUN24-A=de734569 RUN25-A=c6275fd8
+    RUN26-A=371a96cd RUN27-A=5e19649b RUN28-A=6261e3a5
+  ARQUIVOS: 32/32 presentes (29 de código RUN22..RUN27 + 3 documentos RUN28)
+  SHAPES-3 RE-VERIFY: 9 OK / 0 FALHA (exigido 9/9 — as mesmas
+    assinaturas do RUN27-A re-conferidas nos arquivos reais: requireInternalSecret,
+    tenantBudgetGuard, canUseTier, CircuitBreaker, allow, recordSuccess,
+    recordFailure, runCerebroShadowCycle, createFileSampleSource)
+  CONTENT VERIFY: 40 OK / 0 FALHA (exigido 40/40 — 15 âncoras +
+    7 ondas + 8 suítes + 10 garantias canônicas conferidas no certificado)
+  CONTENT RE-VERIFY (pós-instalação): 20/20 re-checagens no certificado instalado
+  TSC: 0 erros novos | VITEST: 8/8 GREEN
+RESULTADO DO SWEEP: FUNDAÇÃO CERTIFICADA — nada divergiu.
+
+--- F) A TAG DE FECHAMENTO (nasceu LOCAL — NUNCA push) ---
+nome: SEUZELLA_JEV_MASTER_CLOSURE_01
+alvo: fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== HEAD pós-onda: SIM ✓)
+mensagem anotada: SEUZELLA JEV MASTER CLOSURE 01 — fundação JEV certificada:
+  15 âncoras (RUN12..RUN19 + RUN22..RUN28), 32 arquivos aditivos, 8 suítes
+  GREEN, 29 provas de segurança, SHADOW_ONLY, NUNCA push. Onda RUN29-A (MASTER GATE).
+tags SEUZELLA_* presentes no iMac:
+  - SEUZELLA_BASELINE_CLOSURE_01
+  - SEUZELLA_JEV_MASTER_CLOSURE_01
+  - SEUZELLA_RUN10_MASTER_CLOSURE_01
+  - SEUZELLA_RUN11_MASTER_CLOSURE_01
+  - SEUZELLA_RUN12_MASTER_CLOSURE_01
+  - SEUZELLA_RUN7_MASTER_CLOSURE_01
+  - SEUZELLA_RUN8_MASTER_CLOSURE_01
+  - SEUZELLA_RUN9_MASTER_CLOSURE_01
+A tag é o selo de fechamento da fundação — mesmo padrão das fechamentos
+RUN7/RUN8/RUN9. Ela permanece NO iMAC: enviar ao GitHub é decisão 100% manual
+do dono e não faz parte de nenhum kit.
+
+--- G) SEGURANÇA ---
+tokens de domínio proibido no certificado: 0 | padrões de segredo literal: 0
+leituras de env no certificado da onda: 0 (carrega NOMES de chaves, nunca valores)
+rede REAL: NENHUMA (suítes com fetch injetado/mocked) | edição em arquivo existente: NENHUMA
+banco: NÃO LIDO | tenant puro: NUNCA aparece no certificado (só conceitos e hashes de âncora)
+push: NENHUM (commit + tag apenas locais)
+
+--- H) COMMIT LOCAL ---
+fc07fc8fbd7822dda2d186981e21a218a6bfd642
+mensagem: RUN29-A (JEV MASTER GATE): certificação final da fundação JEV (varredura completa: 15 âncoras de cadeia + 32 arquivos RUN22..RUN28 + 9 assinaturas SHAPES-3 re-verificadas + 8 suítes GREEN + tsc 0 novos + 29 provas) com 1 certificado aditivo em docs/ e nascimento da tag LOCAL SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, SHADOW_ONLY, sem domínio financeiro
+
+--- I) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (certificado não expõe tenant)
+secret handling ✓ (só NOMES de chaves; scrub duplo nos textos de evidência) | migração destrutiva: NENHUMA ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ | rede real: NENHUMA ✓ | banco: NÃO LIDO nesta onda ✓
+vercel.json: NÃO EDITADO ✓ (agendamento é decisão do dono)
+
+--- K) CONTENT VERIFY (40 termos — lição RUN25-A/RUN28-A aplicada ao certificado) ---
+  OK   docs/JEV_CERTIFICACAO.md :: bede7de3
+  OK   docs/JEV_CERTIFICACAO.md :: 480281d2
+  OK   docs/JEV_CERTIFICACAO.md :: aff5ca01
+  OK   docs/JEV_CERTIFICACAO.md :: 2b53b8e9
+  OK   docs/JEV_CERTIFICACAO.md :: 7d7f28f1
+  OK   docs/JEV_CERTIFICACAO.md :: 1828090e
+  OK   docs/JEV_CERTIFICACAO.md :: e5eeb65d
+  OK   docs/JEV_CERTIFICACAO.md :: ffa3902b
+  OK   docs/JEV_CERTIFICACAO.md :: c6c07044
+  OK   docs/JEV_CERTIFICACAO.md :: 7b3f9810
+  OK   docs/JEV_CERTIFICACAO.md :: de734569
+  OK   docs/JEV_CERTIFICACAO.md :: c6275fd8
+  OK   docs/JEV_CERTIFICACAO.md :: 371a96cd
+  OK   docs/JEV_CERTIFICACAO.md :: 5e19649b
+  OK   docs/JEV_CERTIFICACAO.md :: 6261e3a5
+  OK   docs/JEV_CERTIFICACAO.md :: RUN22-A
+  OK   docs/JEV_CERTIFICACAO.md :: RUN23-A
+  OK   docs/JEV_CERTIFICACAO.md :: RUN24-A
+  OK   docs/JEV_CERTIFICACAO.md :: RUN25-A
+  OK   docs/JEV_CERTIFICACAO.md :: RUN26-A
+  OK   docs/JEV_CERTIFICACAO.md :: RUN27-A
+  OK   docs/JEV_CERTIFICACAO.md :: RUN28-A
+  OK   docs/JEV_CERTIFICACAO.md :: jev-contract
+  OK   docs/JEV_CERTIFICACAO.md :: jev-registry
+  OK   docs/JEV_CERTIFICACAO.md :: jev-shadow
+  OK   docs/JEV_CERTIFICACAO.md :: jev-harness
+  OK   docs/JEV_CERTIFICACAO.md :: jev-ledger
+  OK   docs/JEV_CERTIFICACAO.md :: jev-integration
+  OK   docs/JEV_CERTIFICACAO.md :: jev-wiring
+  OK   docs/JEV_CERTIFICACAO.md :: jev-cron
+  OK   docs/JEV_CERTIFICACAO.md :: SHADOW_ONLY
+  OK   docs/JEV_CERTIFICACAO.md :: fail-closed
+  OK   docs/JEV_CERTIFICACAO.md :: NUNCA push
+  OK   docs/JEV_CERTIFICACAO.md :: 29 provas
+  OK   docs/JEV_CERTIFICACAO.md :: MASTER GATE
+  OK   docs/JEV_CERTIFICACAO.md :: VPS
+  OK   docs/JEV_CERTIFICACAO.md :: SEUZELLA_JEV_MASTER_CLOSURE_01
+  OK   docs/JEV_CERTIFICACAO.md :: ?src=
+  OK   docs/JEV_CERTIFICACAO.md :: 5 MB
+  OK   docs/JEV_CERTIFICACAO.md :: 10.000 linhas
+RESULTADO: 40 termo(s) obrigatório(s) OK | 0 falha(s) (exigido 40/40)
+DOUTRINA: o certificado só entra — e a tag só nasce — se conferir com a
+realidade da trilha: mesmas disciplinas do SHAPES-3 VERIFY (rc=87) sobre
+código e do CONTENT VERIFY (rc=88) sobre documentação. O que está escrito em
+docs/JEV_CERTIFICACAO.md corresponde exatamente às âncoras, arquivos, suítes
+e provas da fundação.
+
+FUNDAÇÃO SELADA — PRÓXIMO PASSO: VPS (decisão do dono, sempre depois do
+MASTER GATE). Uso do pulso é DECISÃO DO DONO (export JSONL + ?src= +
+agendamento externo opcional). Nada de Asaas/refund/parcela. NUNCA push.
+================================================================

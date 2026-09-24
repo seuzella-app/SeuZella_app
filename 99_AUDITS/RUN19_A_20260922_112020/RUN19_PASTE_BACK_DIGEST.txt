@@ -1,0 +1,40 @@
+================================================================
+ SEUZELLA — RUN19_PASTE_BACK_DIGEST (HYGIENE — retry + shadow + recon)
+ Gerado em: 2026-09-22T14:21:15.994Z
+ Insumo: RUN18 (MOP-UP 30 WIRED + 13 DEFERRED) — confronto: IDÊNTICO
+================================================================
+
+--- A) SUMÁRIO ---
+retry desta onda: WIRED=4 | ALREADY_WIRED=0 | DEFERRED=8 | DEFERRED_TSC=1 | MISSING=0 | tscRounds=2
+shadow interno: SHADOW_WIRED=3 | ALREADY_SHADOW=0 | SHADOW_DEFERRED=0 | SHADOW_TSC=1 (modo sombra: só cobra com INTERNAL_SECRET + SZ_ENFORCE_INTERNAL=1)
+módulos novos: src/lib/infra/ssrf-guard.ts + src/lib/infra/internal-secret.ts (sombra; PROXY_ALLOWLIST / SZ_SSRF_ENFORCE=1 para o SSRF)
+ssrf no proxy: FIADO (alvo: targetUrl)
+registry: RUN18-A -> RUN19-A | ondas: RUN11-W3, RUN13-A, RUN14-A, RUN18-A + RUN19-A (4 rotas novas)
+
+--- B) RETRY DE FIAÇÃO (âncoras expandidas, guardRequest + auditRouteEvent) ---
+[P1] WIRED src/app/api/bim-vision/route.ts (60/1min)
+[P1] WIRED src/app/api/pinns-clifford/route.ts (60/1min)
+[P1] DEFERRED_TSC src/app/api/proxy/[...path]/route.ts (-) — revertido no rollback fino por tsc (rodada 1) — ver RECON_DEFERRED2.txt
+[P1] WIRED src/app/api/webgl-bridge/route.ts (60/1min)
+[P2] DEFERRED src/app/api/ddc/runtime-version/route.ts (-) — handler sem parâmetro de request — fiação manual
+[P2] WIRED src/app/api/hunt-stream/route.ts (60/1min)
+[P2] DEFERRED src/app/api/leads/analytics/route.ts (-) — handler sem parâmetro de request — fiação manual
+[P2] DEFERRED src/app/api/zcc/adapters/route.ts (-) — handler sem parâmetro de request — fiação manual
+[P2] DEFERRED src/app/api/zcc/brain/route.ts (-) — handler sem parâmetro de request — fiação manual
+[P2] DEFERRED src/app/api/zcc/cortex/growth/route.ts (-) — handler sem parâmetro de request — fiação manual
+[P2] DEFERRED src/app/api/zcc/cortex/route.ts (-) — handler sem parâmetro de request — fiação manual
+[P2] DEFERRED src/app/api/zcc/personas/route.ts (-) — handler sem parâmetro de request — fiação manual
+[P2] DEFERRED src/app/api/zcc/synthetic-brazil/route.ts (-) — handler sem parâmetro de request — fiação manual
+
+--- C) SEGREDO INTERNO EM MODO SOMBRA (4 internas fiadas no RUN18) ---
+[SHADOW] SHADOW_WIRED src/app/api/debug-agent/github/route.ts
+[SHADOW] SHADOW_WIRED src/app/api/debug-agent/knowledge/route.ts
+[SHADOW] SHADOW_TSC src/app/api/debug-agent/route.ts — revertido no rollback fino por tsc (rodada 1)
+[SHADOW] SHADOW_WIRED src/app/api/leads/seed/route.ts
+   ativação (quando o dono quiser): INTERNAL_SECRET=<valor alto> + SZ_ENFORCE_INTERNAL=1 no ambiente.
+
+--- D) RECON (read-only, decisão do dono) ---
+   ver HYGIENE_RECON.txt: cron X/Y, webhook A/B, syncToken iCal, ambas=N, middleware auth=false.
+
+--- E) PRÓXIMA ONDA ---
+DOCS (glossary; JEV definido pelo dono) -> MASTER GATE -> VPS Hostinger.

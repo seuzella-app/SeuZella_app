@@ -1,0 +1,167 @@
+================================================================
+ SEUZELLA — MG02_PASTE_BACK_DIGEST (MG-02 — MASTER GATE FINAL: FORENSE BUILD)
+ Gerado em: 2026-09-23T15:13:05.896Z
+ Objetivo: varredura forense ESTÁTICA READ-ONLY do domínio de BUILD — 2ª onda
+ da campanha MASTER GATE FINAL (pré-RELEASE). Selo da fundação intocado.
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: 52b18b32eae78d7a77f6664ac8df23d6d3f2c01e
+árvore: modified=0 untracked=29 | FORA de 99_AUDITS: 0
+
+--- B) DOCUMENTOS INSTALADOS (2, ADITIVOS em docs/ — nenhum existente editado, zero código de produção) ---
+docs/MG02_RELATORIO.md | 145 linhas | sha256=e4d9e8b9626686dd044813bdeb949fcb920afb959ded6cecfd35ad8c93de03df
+docs/MG02_ACHADOS.md | 58 linhas | sha256=c74ed0d4a72abec4dcc6b1f347ff886ba0c05a30bf4cfd95b6b0fdecee694a0b
+
+
+--- C) FORENSE MG-02 (Build — READ-ONLY: next build NÃO executado, sem rede, sem banco, sem credenciais) ---
+resumo: BLOQUEIOS=0 ATENÇÃO=4 INFO=24
+achados (contagens/versões/arquivo:linha/nomes de chaves — valores NUNCA exibidos):
+  [INFO] next.config: presente (next.config.ts)
+  [INFO] next.config: chaves canônicas detectadas (NOMES): reactStrictMode output typescript headers redirects
+  [INFO] tsconfig: strict=true (TypeScript estrito ativo no build)
+  [INFO] tsconfig: noEmit=true (a emissão de saída fica por conta do Next)
+  [INFO] scripts.build: presente (prisma generate && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/)
+  [INFO] scripts.typecheck: presente (tsc --noEmit)
+  [INFO] scripts.start: presente (NODE_ENV=production node .next/standalone/server.js 2>&1 | tee server.log)
+  [INFO] engines.node: não declarado (node instalado: v24.13.1)
+  [INFO] next declarado no package.json: ^16.2.7
+  [INFO] node_modules: presente
+  [INFO] toolchain instalado: next@16.2.10
+  [INFO] toolchain instalado: react@19.2.7
+  [INFO] toolchain instalado: react-dom@19.2.7
+  [INFO] toolchain instalado: typescript@5.9.3
+  [INFO] client prisma gerado (node_modules/.prisma/client presente)
+  [INFO] lockfile: package-lock.json ("lockfileVersion":3)
+  [INFO] .gitignore: artefato .next ignorado pelo git
+  **[ATENÇÃO]** artefato .next STALE: código em src/ mais novo que o último build (exemplo: src/app/checkout/cancel/page.tsx) — a próxima compilação oficial pertence à janela de deploy (MG-07)
+  [INFO] next build NÃO foi executado nesta onda (escreveria artefatos e poderia tocar banco na prerender) — execução oficial de build pertence à janela de deploy (MG-07), por decisão do dono
+  [INFO] superfície de rotas: route=322 page=28 layout=3 (contagens — caminhos NUNCA enumerados nesta onda)
+  [INFO] diretivas: use client em 77 arquivo(s) | force-dynamic em 71 | maxDuration em 33 (contagens)
+  [INFO] middleware: presente (src/middleware.ts)
+  [INFO] superfície de env em src/: 244 nome(s) de chave referenciado(s) (NOMES apenas; lista completa na evidência MG02_ENV_NAMES.txt; valores NUNCA lidos)
+  [INFO] NEXT_PUBLIC_* (nomes inlined no bundle do cliente): 5 — lista na evidência
+  **[ATENÇÃO]** nome(s) NEXT_PUBLIC_* com padrão de segredo (seriam inlined no cliente): NEXT_PUBLIC_PIX_KEY— valor NUNCA lido; revisar antes do RELEASE
+  **[ATENÇÃO]** token de domínio proibido em config de build: next.config.ts (1 ocorrência(s) — conteúdo NUNCA exibido; profundidade no MG-05)
+  **[ATENÇÃO]** token de domínio proibido em config de build: src/middleware.ts (3 ocorrência(s) — conteúdo NUNCA exibido; profundidade no MG-05)
+  [INFO] configs de build: 0 padrão de segredo literal
+
+superfície de env de build: 244 nome(s) referenciado(s) em src/
+(NOMES apenas — lista completa em MG02_ENV_NAMES.txt na evidência), sendo
+5 NEXT_PUBLIC_* (inlined no bundle cliente). Valores NUNCA lidos.
+
+LEITURA: achados BLOQUEIO alimentam a decisão de RELEASE do dono (correções
+nascem em ondas próprias); a onda forense é GREEN quando conclui com a
+fundação íntegra. O next build NÃO foi executado nesta onda (escreveria
+artefatos e poderia tocar banco na prerender) — a execução oficial de build
+pertence à janela de deploy (MG-07), por decisão do dono.
+
+--- D) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- E) VITEST (8 suítes JEV — a fundação continua íntegra durante a campanha) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (RUN27-A)
+
+--- F) MASTER SWEEP (a fundação re-verificada antes da onda instalar) ---
+  SELO: SEUZELLA_JEV_MASTER_CLOSURE_01 -> fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== commit do RUN29-A: SIM ✓)
+  ÂNCORAS: 16/16 ancestrais do HEAD por hash exato (RUN12..RUN19 + RUN22..RUN29)
+    RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9
+    RUN16-A=7d7f28f1 RUN17-A=1828090e RUN18-A=e5eeb65d RUN19-A=ffa3902b
+    RUN22-A=c6c07044 RUN23-A=7b3f9810 RUN24-A=de734569 RUN25-A=c6275fd8
+    RUN26-A=371a96cd RUN27-A=5e19649b RUN28-A=6261e3a5 RUN29-A=fc07fc8f
+  ARQUIVOS: 35/35 presentes (32 da fundação + certificado RUN29-A + 2 docs MG-01)
+  SHAPES-3 RE-VERIFY: 9 OK / 0 FALHA (exigido 9/9)
+  CONTENT VERIFY: 40 OK / 0 FALHA (exigido 40/40 — 16 âncoras +
+    9 ondas MG + 15 garantias canônicas conferidas no relatório do payload)
+  CONTENT RE-VERIFY (pós-instalação): 28/28 re-checagens nos documentos instalados
+  TSC: 0 erros novos | VITEST: 8/8 GREEN
+RESULTADO DO SWEEP: FUNDAÇÃO ÍNTEGRA SOBRE O SELO — onda MG-02 concluída.
+
+--- G) O SELO DA FUNDAÇÃO (permanece LOCAL — NUNCA push; NUNCA alterado pela campanha) ---
+nome: SEUZELLA_JEV_MASTER_CLOSURE_01
+alvo: fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== fc07fc8f: SIM ✓)
+mensagem anotada: (verificar)
+tags SEUZELLA_* presentes no iMac:
+  - SEUZELLA_BASELINE_CLOSURE_01
+  - SEUZELLA_JEV_MASTER_CLOSURE_01
+  - SEUZELLA_RUN10_MASTER_CLOSURE_01
+  - SEUZELLA_RUN11_MASTER_CLOSURE_01
+  - SEUZELLA_RUN12_MASTER_CLOSURE_01
+  - SEUZELLA_RUN7_MASTER_CLOSURE_01
+  - SEUZELLA_RUN8_MASTER_CLOSURE_01
+  - SEUZELLA_RUN9_MASTER_CLOSURE_01
+A campanha MASTER GATE FINAL não nasce tag nenhuma: o selo é ÚNICO (RUN29-A).
+
+--- H) SEGURANÇA ---
+tokens de domínio proibido nos documentos: 0 | padrões de segredo literal: 0
+leituras de env nos documentos da onda: 0 (carrega NOMES de chaves, nunca valores)
+rede REAL: NENHUMA (sem npm install, sem fetch) | banco: NÃO CONECTADO
+next build: NÃO EXECUTADO (esta onda não escreve artefatos nem toca banco na prerender)
+credenciais: NENHUMA pedida/lida | edição em arquivo existente: NENHUMA
+push: NENHUM (commit apenas local)
+
+--- I) COMMIT LOCAL ---
+52b18b32eae78d7a77f6664ac8df23d6d3f2c01e
+mensagem: MG-02 (MASTER GATE FINAL — Build): varredura forense estática READ-ONLY do domínio de build (next.config, tsconfig, scripts, toolchain, lockfile, artefato .next, superfície de rotas, superfície de env de build por NOMES — next build NÃO executado, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG02_RELATORIO + MG02_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed, sem domínio financeiro
+
+--- J) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (nada exposto nesta onda)
+secret handling ✓ (só NOMES de chaves; scrub duplo nos textos de evidência) | build EXECUTADO: NÃO ✓ (só inventariado/relatado)
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ (checagem própria fica no MG-05) | rede real: NENHUMA ✓ | banco: NÃO CONECTADO nesta onda ✓
+vercel.json: NÃO EDITADO ✓ (agendamento é decisão do dono)
+
+--- K) CONTENT VERIFY (40 termos — lição RUN25-A/RUN28-A aplicada ao relatório) ---
+  OK   docs/MG02_RELATORIO.md :: bede7de3
+  OK   docs/MG02_RELATORIO.md :: 480281d2
+  OK   docs/MG02_RELATORIO.md :: aff5ca01
+  OK   docs/MG02_RELATORIO.md :: 2b53b8e9
+  OK   docs/MG02_RELATORIO.md :: 7d7f28f1
+  OK   docs/MG02_RELATORIO.md :: 1828090e
+  OK   docs/MG02_RELATORIO.md :: e5eeb65d
+  OK   docs/MG02_RELATORIO.md :: ffa3902b
+  OK   docs/MG02_RELATORIO.md :: c6c07044
+  OK   docs/MG02_RELATORIO.md :: 7b3f9810
+  OK   docs/MG02_RELATORIO.md :: de734569
+  OK   docs/MG02_RELATORIO.md :: c6275fd8
+  OK   docs/MG02_RELATORIO.md :: 371a96cd
+  OK   docs/MG02_RELATORIO.md :: 5e19649b
+  OK   docs/MG02_RELATORIO.md :: 6261e3a5
+  OK   docs/MG02_RELATORIO.md :: fc07fc8f
+  OK   docs/MG02_RELATORIO.md :: MG-01
+  OK   docs/MG02_RELATORIO.md :: MG-02
+  OK   docs/MG02_RELATORIO.md :: MG-03
+  OK   docs/MG02_RELATORIO.md :: MG-04
+  OK   docs/MG02_RELATORIO.md :: MG-05
+  OK   docs/MG02_RELATORIO.md :: MG-06
+  OK   docs/MG02_RELATORIO.md :: MG-07
+  OK   docs/MG02_RELATORIO.md :: MG-08
+  OK   docs/MG02_RELATORIO.md :: MG-09
+  OK   docs/MG02_RELATORIO.md :: READ-ONLY
+  OK   docs/MG02_RELATORIO.md :: NUNCA push
+  OK   docs/MG02_RELATORIO.md :: fail-closed
+  OK   docs/MG02_RELATORIO.md :: sem banco
+  OK   docs/MG02_RELATORIO.md :: sem rede
+  OK   docs/MG02_RELATORIO.md :: sem credenciais
+  OK   docs/MG02_RELATORIO.md :: MASTER GATE FINAL
+  OK   docs/MG02_RELATORIO.md :: RELEASE
+  OK   docs/MG02_RELATORIO.md :: SEUZELLA_JEV_MASTER_CLOSURE_01
+  OK   docs/MG02_RELATORIO.md :: next build
+  OK   docs/MG02_RELATORIO.md :: next.config
+  OK   docs/MG02_RELATORIO.md :: tsconfig
+  OK   docs/MG02_RELATORIO.md :: toolchain
+  OK   docs/MG02_RELATORIO.md :: SHAPES-3
+  OK   docs/MG02_RELATORIO.md :: valor NUNCA exibido
+RESULTADO: 40 termo(s) obrigatório(s) OK | 0 falha(s) (exigido 40/40)
+DOUTRINA: o relatório só entra — e o commit só nasce — se conferir com a
+realidade da campanha: mesmas disciplinas do SHAPES-3 VERIFY (rc=87) sobre
+código e do CONTENT VERIFY (rc=88) sobre documentação.
+
+CAMPAÑHA: MG-02/9 (Build) concluída — PRÓXIMO: MG-03 (CI forense). Sua
+janela de fechamento segue mapeada: MG-03 CI, MG-04 tenant isolation,
+MG-05 billing (só ausência do domínio proibido), MG-06 migration profunda,
+MG-07 VPS/deploy (com o next build oficial, se você quiser), MG-08 testes,
+MG-09 wiring residual -> RELEASE. Nada do domínio proibido. NUNCA push.
+================================================================

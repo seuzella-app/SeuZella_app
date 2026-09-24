@@ -1,0 +1,156 @@
+================================================================
+ SEUZELLA — MG03_PASTE_BACK_DIGEST (MG-03 — MASTER GATE FINAL: FORENSE CI)
+ Gerado em: 2026-09-23T16:33:43.389Z
+ Objetivo: varredura forense ESTÁTICA READ-ONLY do domínio de CI — 3ª onda
+ da campanha MASTER GATE FINAL (pré-RELEASE). Selo da fundação intocado.
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: 5d30e63ec2ba874149f5bf60a653242e6daac07f
+árvore: modified=0 untracked=30 | FORA de 99_AUDITS: 0
+
+--- B) DOCUMENTOS INSTALADOS (2, ADITIVOS em docs/ — nenhum existente editado, zero código de produção) ---
+docs/MG03_RELATORIO.md | 151 linhas | sha256=40968f5e4010a7b1c51a8e31bd8bb5cebdce00a04cc64b955ed07db4321d86d8
+docs/MG03_ACHADOS.md | 47 linhas | sha256=24ddf898d7882f9631524787c82074af50b3fd0885488aaf07eeaba026c4c293
+
+
+--- C) FORENSE MG-03 (CI — READ-ONLY: nenhum workflow disparado, sem rede, sem banco, sem credenciais) ---
+resumo: BLOQUEIOS=0 ATENÇÃO=0 INFO=16
+achados (contagens/versões/arquivo:linha/nomes de chaves — valores NUNCA exibidos):
+  [INFO] workflows: 30 arquivo(s) em .github/workflows (nomes na evidência MG03_WORKFLOWS.txt)
+  [INFO] triggers (contagens de arquivos): push=4 pull_request=7 schedule=13 workflow_dispatch=27 workflow_call=0
+  [INFO] trigger schedule (cron) presente em 13 workflow(s) — expressões NUNCA exibidas (agendamento é decisão do dono)
+  [INFO] permissions explícitas em 30/30 workflow(s) (GITHUB_TOKEN sem permissão explícita herda default do repo)
+  [INFO] nenhum workflow com permissions: write-all (privilégio mínimo preservado)
+  [INFO] secrets referenciados em workflows: 8 NOME(s) (lista na evidência MG03_SECRET_NAMES.txt; valores NUNCA lidos — não existem no repositório)
+  [INFO] steps uses: (actions referenciadas): 41 ocorrência(s) — nomes/versões públicos (contagens)
+  [INFO] referências a deploy em CI: 1 arquivo(s) (.github/workflows/deploy.yml
+  [INFO] workflows: 0 padrão de segredo literal
+  [INFO] dependabot.yml: presente (higiene de dependências versionada)
+  [INFO] CODEOWNERS: ausente (revisão de PR não é obrigada por arquivo — GitHub congelado, inerte)
+  [INFO] vercel.json: presente (SÓ LEITURA nesta onda — NUNCA editado pela campanha)
+  [INFO] vercel.json: chaves canônicas detectadas (NOMES): framework regions rewrites headers crons functions
+  [INFO] vercel.json: crons declarados = 34 (expressões/caminhos NUNCA exibidos — agendamento é decisão do dono)
+  [INFO] vercel.json: 0 padrão de segredo literal
+  [INFO] NENHUM workflow foi disparado nesta onda (GitHub congelado; a onda não toca em git remoto) — CI permanece INERTE por decisão da campanha
+
+inventário de CI: 30 workflow(s) em .github/workflows
+(detalhe por arquivo em MG03_WORKFLOWS.txt na evidência) e 8
+NOME(s) de secrets referenciados (MG03_SECRET_NAMES.txt). Valores NUNCA lidos;
+expressões de cron NUNCA exibidas (agendamento é decisão do dono).
+
+LEITURA: achados BLOQUEIO alimentam a decisão de RELEASE do dono (correções
+nascem em ondas próprias); a onda forense é GREEN quando conclui com a
+fundação íntegra. NENHUM workflow foi disparado nesta onda (GitHub congelado;
+a onda não toca em git remoto) e o vercel.json NÃO foi editado (só leitura) —
+CI e deploy permanecem decisão do dono (janela MG-07).
+
+--- D) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- E) VITEST (8 suítes JEV — a fundação continua íntegra durante a campanha) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (RUN27-A)
+
+--- F) MASTER SWEEP (a fundação re-verificada antes da onda instalar) ---
+  SELO: SEUZELLA_JEV_MASTER_CLOSURE_01 -> fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== commit do RUN29-A: SIM ✓)
+  ÂNCORAS: 16/16 ancestrais do HEAD por hash exato (RUN12..RUN19 + RUN22..RUN29)
+    RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9
+    RUN16-A=7d7f28f1 RUN17-A=1828090e RUN18-A=e5eeb65d RUN19-A=ffa3902b
+    RUN22-A=c6c07044 RUN23-A=7b3f9810 RUN24-A=de734569 RUN25-A=c6275fd8
+    RUN26-A=371a96cd RUN27-A=5e19649b RUN28-A=6261e3a5 RUN29-A=fc07fc8f
+  ARQUIVOS: 37/37 presentes (32 da fundação + certificado RUN29-A + 2 docs MG-01 + 2 docs MG-02)
+  SHAPES-3 RE-VERIFY: 9 OK / 0 FALHA (exigido 9/9)
+  CONTENT VERIFY: 40 OK / 0 FALHA (exigido 40/40 — 16 âncoras +
+    9 ondas MG + 15 garantias canônicas conferidas no relatório do payload)
+  CONTENT RE-VERIFY (pós-instalação): 28/28 re-checagens nos documentos instalados
+  TSC: 0 erros novos | VITEST: 8/8 GREEN
+RESULTADO DO SWEEP: FUNDAÇÃO ÍNTEGRA SOBRE O SELO — onda MG-03 concluída.
+
+--- G) O SELO DA FUNDAÇÃO (permanece LOCAL — NUNCA push; NUNCA alterado pela campanha) ---
+nome: SEUZELLA_JEV_MASTER_CLOSURE_01
+alvo: fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== fc07fc8f: SIM ✓)
+mensagem anotada: (verificar)
+tags SEUZELLA_* presentes no iMac:
+  - SEUZELLA_BASELINE_CLOSURE_01
+  - SEUZELLA_JEV_MASTER_CLOSURE_01
+  - SEUZELLA_RUN10_MASTER_CLOSURE_01
+  - SEUZELLA_RUN11_MASTER_CLOSURE_01
+  - SEUZELLA_RUN12_MASTER_CLOSURE_01
+  - SEUZELLA_RUN7_MASTER_CLOSURE_01
+  - SEUZELLA_RUN8_MASTER_CLOSURE_01
+  - SEUZELLA_RUN9_MASTER_CLOSURE_01
+A campanha MASTER GATE FINAL não nasce tag nenhuma: o selo é ÚNICO (RUN29-A).
+
+--- H) SEGURANÇA ---
+tokens de domínio proibido nos documentos: 0 | padrões de segredo literal: 0
+leituras de env nos documentos da onda: 0 (carrega NOMES de chaves, nunca valores)
+rede REAL: NENHUMA (sem npm install, sem fetch) | banco: NÃO CONECTADO
+workflows: NENHUM disparado (GitHub congelado; git remoto NUNCA tocado)
+credenciais: NENHUMA pedida/lida | edição em arquivo existente: NENHUMA
+push: NENHUM (commit apenas local)
+
+--- I) COMMIT LOCAL ---
+5d30e63ec2ba874149f5bf60a653242e6daac07f
+mensagem: MG-03 (MASTER GATE FINAL — CI): varredura forense estática READ-ONLY do domínio de CI (.github/workflows: triggers, permissions, secrets por NOME, superfície de risco pull_request_target/write-all, referências a deploy; vercel.json só leitura com crons em contagem — NENHUM workflow disparado, GitHub congelado, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG03_RELATORIO + MG03_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed, sem domínio financeiro
+
+--- J) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (nada exposto nesta onda)
+secret handling ✓ (só NOMES de chaves/secrets; scrub duplo nos textos de evidência) | workflows DISPARADOS: NENHUM ✓ (só inventariados/relatados)
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ (checagem própria fica no MG-05) | rede real: NENHUMA ✓ | banco: NÃO CONECTADO nesta onda ✓
+vercel.json: NÃO EDITADO ✓ (agendamento é decisão do dono)
+
+--- K) CONTENT VERIFY (40 termos — lição RUN25-A/RUN28-A aplicada ao relatório) ---
+  OK   docs/MG03_RELATORIO.md :: bede7de3
+  OK   docs/MG03_RELATORIO.md :: 480281d2
+  OK   docs/MG03_RELATORIO.md :: aff5ca01
+  OK   docs/MG03_RELATORIO.md :: 2b53b8e9
+  OK   docs/MG03_RELATORIO.md :: 7d7f28f1
+  OK   docs/MG03_RELATORIO.md :: 1828090e
+  OK   docs/MG03_RELATORIO.md :: e5eeb65d
+  OK   docs/MG03_RELATORIO.md :: ffa3902b
+  OK   docs/MG03_RELATORIO.md :: c6c07044
+  OK   docs/MG03_RELATORIO.md :: 7b3f9810
+  OK   docs/MG03_RELATORIO.md :: de734569
+  OK   docs/MG03_RELATORIO.md :: c6275fd8
+  OK   docs/MG03_RELATORIO.md :: 371a96cd
+  OK   docs/MG03_RELATORIO.md :: 5e19649b
+  OK   docs/MG03_RELATORIO.md :: 6261e3a5
+  OK   docs/MG03_RELATORIO.md :: fc07fc8f
+  OK   docs/MG03_RELATORIO.md :: MG-01
+  OK   docs/MG03_RELATORIO.md :: MG-02
+  OK   docs/MG03_RELATORIO.md :: MG-03
+  OK   docs/MG03_RELATORIO.md :: MG-04
+  OK   docs/MG03_RELATORIO.md :: MG-05
+  OK   docs/MG03_RELATORIO.md :: MG-06
+  OK   docs/MG03_RELATORIO.md :: MG-07
+  OK   docs/MG03_RELATORIO.md :: MG-08
+  OK   docs/MG03_RELATORIO.md :: MG-09
+  OK   docs/MG03_RELATORIO.md :: READ-ONLY
+  OK   docs/MG03_RELATORIO.md :: NUNCA push
+  OK   docs/MG03_RELATORIO.md :: fail-closed
+  OK   docs/MG03_RELATORIO.md :: sem banco
+  OK   docs/MG03_RELATORIO.md :: sem rede
+  OK   docs/MG03_RELATORIO.md :: sem credenciais
+  OK   docs/MG03_RELATORIO.md :: MASTER GATE FINAL
+  OK   docs/MG03_RELATORIO.md :: RELEASE
+  OK   docs/MG03_RELATORIO.md :: SEUZELLA_JEV_MASTER_CLOSURE_01
+  OK   docs/MG03_RELATORIO.md :: workflows
+  OK   docs/MG03_RELATORIO.md :: triggers
+  OK   docs/MG03_RELATORIO.md :: permissions
+  OK   docs/MG03_RELATORIO.md :: secrets
+  OK   docs/MG03_RELATORIO.md :: vercel.json
+  OK   docs/MG03_RELATORIO.md :: valor NUNCA exibido
+RESULTADO: 40 termo(s) obrigatório(s) OK | 0 falha(s) (exigido 40/40)
+DOUTRINA: o relatório só entra — e o commit só nasce — se conferir com a
+realidade da campanha: mesmas disciplinas do SHAPES-3 VERIFY (rc=87) sobre
+código e do CONTENT VERIFY (rc=88) sobre documentação.
+
+CAMPAÑHA: MG-03/9 (CI) concluída — PRÓXIMO: MG-04 (tenant isolation). Sua
+janela de fechamento segue mapeada: MG-04 tenant isolation,
+MG-05 billing (só ausência do domínio proibido), MG-06 migration profunda,
+MG-07 VPS/deploy (com o next build oficial, se você quiser), MG-08 testes,
+MG-09 wiring residual -> RELEASE. Nada do domínio proibido. NUNCA push.
+================================================================

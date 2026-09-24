@@ -1,0 +1,5 @@
+src/app/api/checkout/create/route.ts(159,215): error TS2345: Argument of type '() => Promise<NextResponse<unknown> | Record<string, unknown>>' is not assignable to parameter of type '() => Promise<Record<string, unknown>>'.
+  Type 'Promise<NextResponse<unknown> | Record<string, unknown>>' is not assignable to type 'Promise<Record<string, unknown>>'.
+    Type 'NextResponse<unknown> | Record<string, unknown>' is not assignable to type 'Record<string, unknown>'.
+      Type 'NextResponse<unknown>' is not assignable to type 'Record<string, unknown>'.
+        Index signature for type 'string' is missing in type 'NextResponse<unknown>'.

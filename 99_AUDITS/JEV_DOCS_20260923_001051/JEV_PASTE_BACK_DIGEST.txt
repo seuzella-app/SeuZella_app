@@ -1,0 +1,125 @@
+================================================================
+ SEUZELLA — JEV_PASTE_BACK_DIGEST (JEV DOCS — RUN28-A, GLOSSÁRIO CONSOLIDADO)
+ Gerado em: 2026-09-23T03:11:32.741Z
+ Objetivo: consolidar a DOCUMENTAÇÃO canônica da trilha JEV (glossário +
+ estado + manual do pulso) e autorizar a reta final (MASTER GATE -> VPS)
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: 6261e3a55a57a9e1379784b2fe26a9e793c1338e
+árvore: modified=0 untracked=26 | FORA de 99_AUDITS: 0
+
+--- B) DOCUMENTOS INSTALADOS (3, ADITIVOS em docs/ — nenhum existente editado, zero código de produção) ---
+docs/JEV_GLOSSARIO.md | 325 linhas | sha256=d42b386c0bac01065f16c4a35afab542aaeb39d3201b624701805d970eee38c3
+docs/JEV_TRILHA.md | 190 linhas | sha256=9db69db206bee78d7493cf32616aa9beec9ace31d0e7133ef2ece8f1a6766caa
+docs/JEV_OPERACAO.md | 195 linhas | sha256=cc979cd4e7c78aec4f939bdf1cade6609b66356d7f609ad787309c9c47f13ccd
+
+
+--- C) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- D) VITEST (8 suítes JEV — estabilidade pós-instalação) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (RUN27-A)
+LEITURA: a documentação não afeta código — as 8 suítes seguem GREEN e o tsc
+segue sem erros novos.
+
+--- E) CONTENT VERIFY — DOCUMENTAÇÃO CANÔNICA (análogo documental do SHAPES-3) ---
+NOVO GATE (rc=88): os termos obrigatórios são conferidos ANTES de instalar;
+qualquer ausência recusa a onda. Termos canônicos = nomes de módulos, razões
+tipadas dos gates, âncoras e garantias que a trilha tornou oficiais.
+  docs/JEV_GLOSSARIO.md: 14 termos obrigatórios OK (SHADOW_ONLY, fail-closed, ledger, firewall de PII, fusível, budget guard, shapes, invariantes, opt-in, tenantHash, export JSONL, idempotência, ciclo shadow, caps)
+  docs/JEV_TRILHA.md: 10 termos obrigatórios OK (RUN22-A..RUN27-A, âncoras 371a96cd/5e19649b, NUNCA push, MASTER GATE)
+  docs/JEV_OPERACAO.md: 10 termos obrigatórios OK (jev-shadow-pulse, ?src=, &max=, 3 chaves por nome, export JSONL, 5 MB, 10.000 linhas, internal-secret)
+TOTAL: 34 OK / 0 FALHA (exigido 34/34)
+CONTENT RE-VERIFY (pós-instalação): 20/20 re-checagens nos arquivos instalados (cópia byte-idêntica)
+
+--- F) ONDE FICA A DOCUMENTAÇÃO (índice) ---
+  docs/JEV_GLOSSARIO.md  — glossário completo da trilha: cada conceito com
+    onde vive no código, qual onda introduziu e qual garantia o cerca (ex.:
+    SHADOW_ONLY, fail-closed, firewall de PII, fusível por sonda, budget
+    guard, shapes, invariantes, idempotência, tenantHash, opt-in, caps).
+  docs/JEV_TRILHA.md     — estado canônico: as ondas RUN20..RUN27, as 14
+    âncoras de cadeia (RUN12..RUN19 + RUN22..RUN27), os arquivos com SHA-256
+    (RUN26/RUN27), as 8 suítes, as 29 provas de segurança, as lições
+    institucionalizadas e os próximos passos (MASTER GATE -> VPS).
+  docs/JEV_OPERACAO.md   — manual de operação do pulso RUN27-A: como gerar o
+    export JSONL (regras + caps 5 MB / 10.000 linhas), como chamar
+    /api/cron/jev-shadow-pulse?src=...&max=1..500, como ler as contagens,
+    acendimento das 3 chaves (por PRESENÇA, nunca valores), agendamento
+    externo como decisão do dono e solução de problemas (rc codes + razões
+    tipadas da rota).
+USO DO PULSO: continua sendo DECISÃO DO DONO — nada acende sozinho. O manual
+DESCRIve o caminho; a única fonte de verdade dos mecanismos são os módulos
+instalados e as 29 provas.
+ACENDIMENTO REMOTO (3 chaves no .env.local — decisão do dono; presença
+apenas abaixo, valores NUNCA lidos pelo kit):
+TYPESAFE_API_KEY: AUSENTE
+JEV_ENABLED: não ligado
+SSRF_ALLOWLIST: AUSENTE
+=> remoto permanece INERTE (fail-closed): heurística local segue decidindo em shadow, nada quebra.
+
+--- G) SEGURANÇA ---
+tokens de domínio proibido nos 3 documentos: 0 | padrões de segredo literal: 0
+leituras de env nos documentos da onda: 0 (documentação carrega NOMES de chaves, nunca valores)
+rede REAL: NENHUMA (suítes com fetch injetado/mocked) | edição em arquivo existente: NENHUMA
+banco: NÃO LIDO | tenant puro: NUNCA aparece nos documentos (só conceitos e hashes de âncora)
+push: NENHUM (commit apenas local)
+
+--- H) COMMIT LOCAL ---
+6261e3a55a57a9e1379784b2fe26a9e793c1338e
+mensagem: RUN28-A (JEV MASTER DOCS): documentação consolidada da trilha JEV (glossário completo + estado canônico com 14 âncoras e 29 provas + manual de operação do pulso com opt-in ?src= e acendimento de 3 chaves) — 3 docs aditivos em docs/, zero código de produção, CONTENT VERIFY 34/34 antes de instalar — SHADOW_ONLY, sem domínio financeiro
+
+--- I) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (docs não expõem tenant)
+secret handling ✓ (só NOMES de chaves; scrub duplo nos textos de evidência) | migração destrutiva: NENHUMA ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ | rede real: NENHUMA ✓ | banco: NÃO LIDO nesta onda ✓
+vercel.json: NÃO EDITADO ✓ (agendamento é decisão do dono)
+
+--- K) CONTENT VERIFY (lição RUN25-A aplicada a documentação) ---
+  OK   docs/JEV_GLOSSARIO.md :: SHADOW_ONLY
+  OK   docs/JEV_GLOSSARIO.md :: fail-closed
+  OK   docs/JEV_GLOSSARIO.md :: ledger
+  OK   docs/JEV_GLOSSARIO.md :: firewall de PII
+  OK   docs/JEV_GLOSSARIO.md :: fusível
+  OK   docs/JEV_GLOSSARIO.md :: budget guard
+  OK   docs/JEV_GLOSSARIO.md :: shapes
+  OK   docs/JEV_GLOSSARIO.md :: invariantes
+  OK   docs/JEV_GLOSSARIO.md :: opt-in
+  OK   docs/JEV_GLOSSARIO.md :: tenantHash
+  OK   docs/JEV_GLOSSARIO.md :: export JSONL
+  OK   docs/JEV_GLOSSARIO.md :: idempotência
+  OK   docs/JEV_GLOSSARIO.md :: ciclo shadow
+  OK   docs/JEV_GLOSSARIO.md :: caps
+  OK   docs/JEV_TRILHA.md :: RUN22-A
+  OK   docs/JEV_TRILHA.md :: RUN23-A
+  OK   docs/JEV_TRILHA.md :: RUN24-A
+  OK   docs/JEV_TRILHA.md :: RUN25-A
+  OK   docs/JEV_TRILHA.md :: RUN26-A
+  OK   docs/JEV_TRILHA.md :: RUN27-A
+  OK   docs/JEV_TRILHA.md :: 371a96cd
+  OK   docs/JEV_TRILHA.md :: 5e19649b
+  OK   docs/JEV_TRILHA.md :: NUNCA push
+  OK   docs/JEV_TRILHA.md :: MASTER GATE
+  OK   docs/JEV_OPERACAO.md :: jev-shadow-pulse
+  OK   docs/JEV_OPERACAO.md :: ?src=
+  OK   docs/JEV_OPERACAO.md :: &max=
+  OK   docs/JEV_OPERACAO.md :: TYPESAFE_API_KEY
+  OK   docs/JEV_OPERACAO.md :: JEV_ENABLED
+  OK   docs/JEV_OPERACAO.md :: SSRF_ALLOWLIST
+  OK   docs/JEV_OPERACAO.md :: export JSONL
+  OK   docs/JEV_OPERACAO.md :: 5 MB
+  OK   docs/JEV_OPERACAO.md :: 10.000 linhas
+  OK   docs/JEV_OPERACAO.md :: internal-secret
+RESULTADO: 34 termo(s) obrigatório(s) OK | 0 falha(s) (exigido 34/34)
+DOUTRINA: a documentação só entra se conferir com a realidade da trilha —
+mesma disciplina do SHAPES-3 VERIFY (rc=87, RUN27-A) sobre código. O que está
+escrito em docs/ corresponde exatamente aos módulos instalados, às razões
+tipadas dos gates e às âncoras da cadeia.
+
+PRÓXIMA ONDA (após auditoria do agente): MASTER GATE (só lá nasce a próxima
+tag) -> VPS. Uso do pulso é DECISÃO DO DONO (export JSONL + ?src= +
+agendamento externo opcional). Nada de Asaas/refund/parcela. NUNCA push.
+================================================================

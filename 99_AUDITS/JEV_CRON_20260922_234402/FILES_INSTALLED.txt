@@ -1,0 +1,3 @@
+src/lib/ai/jev/jev-cerebro-cron-pulse.ts | 329 linhas | sha256=82e3c015e0e6a07e063475f8b23e6ba4ae1f61faedc63dc8ea34914d37e26298
+src/app/api/cron/jev-shadow-pulse/route.ts | 45 linhas | sha256=e75adb2a0e477d98cbdd61fe6132ddf6e6dd6680bce9fe63a99d1c6f7c702f6e
+src/__tests__/jev/jev-cron.test.ts | 502 linhas | sha256=c6adf7b2e1f66245e4792b3d8d7084a80cb168c93a97f9fbafc62e63d5be3538

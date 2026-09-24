@@ -1,0 +1,23 @@
+8: export type ErrorCategory =
+12: interface ErrorContext { [key: string]: unknown; }
+14: interface ClassifiedError {
+23: function classifyError(error: unknown): ClassifiedError {
+24: const err = error instanceof Error ? error : new Error(String(error));
+25: const message = err.message.toLowerCase();
+26: const name = err.name.toLowerCase();
+59: export function handleApiError(error: unknown, options: { requestId?: string; endpoint?: string; context?: ErrorContext } = {}): NextResponse {
+60: const { requestId, endpoint, context } = options;
+61: const classified = classifyError(error);
+63: const logCtx = { ...context, category: classified.category, statusCode: classified.statusCode, ...(endpoint ? { endpoint } : {}) };
+73: export function apiSuccess<T>(data: T, options: { requestId?: string; status?: number; message?: string } = {}): NextResponse {
+74: const { requestId, status = 200, message } = options;
+78: export function validationError(message: string, fields?: Record<string, string>, options: { requestId?: string } = {}): NextResponse {
+83: export function notFoundError(resource: string, options: { requestId?: string } = {}): NextResponse {
+87: export function createError(status: number, code: string, message: string, details?: unknown): NextResponse {
+88: const payload: { code: string; message: string; details?: unknown } = { code, message };
+93: export function withErrorHandling(handler: (request: Request, context: { requestId: string; startTime: number }) => Promise<NextResponse>): (request: Request) => Promise<NextResponse> {
+95: const requestId = logger.generateRequestId();
+96: const startTime = Date.now();
+98: const response = await handler(request, { requestId, startTime });
+99: const duration = Date.now() - startTime;
+108: export type { ErrorContext, ClassifiedError };

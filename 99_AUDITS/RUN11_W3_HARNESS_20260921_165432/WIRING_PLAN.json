@@ -1,0 +1,1368 @@
+{
+  "schema": "RUN11_W3_WIRING_PLAN/v1",
+  "generatedAt": "2026-09-21T19:54:35.542Z",
+  "basedOnInventoryAt": "2026-09-21T19:54:34.353Z",
+  "w2LayerPresent": {
+    "cache.ts": true,
+    "queue.ts": true,
+    "rate-limit.ts": true,
+    "audit.ts": true,
+    "health.ts": true,
+    "optional-require.ts": true
+  },
+  "totalProposals": 133,
+  "byModule": {
+    "audit": [
+      {
+        "targetRoute": "src/app/api/admin/faturamento-zehla/route.ts",
+        "module": "audit",
+        "rationale": "mutação de identidade/RBAC",
+        "confidence": "medium",
+        "evidence": "\\/(user|tenant|admin|role|permission)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/admin/upsell-analytics/route.ts",
+        "module": "audit",
+        "rationale": "mutação de identidade/RBAC",
+        "confidence": "medium",
+        "evidence": "\\/(user|tenant|admin|role|permission)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/checkout/cancel/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/create/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/downgrade/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/pix-status/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/success/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/upgrade/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/webhook/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/webhook/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/cron/booking-daily/route.ts",
+        "module": "audit",
+        "rationale": "mutação de reserva — auditoria",
+        "confidence": "medium",
+        "evidence": "\\/(reservation|booking|stay)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/cron/payment-confirmation/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/cron/payment-overdue/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/dashboard/bookings/route.ts",
+        "module": "audit",
+        "rationale": "mutação de reserva — auditoria",
+        "confidence": "medium",
+        "evidence": "\\/(reservation|booking|stay)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/booking-sync/route.ts",
+        "module": "audit",
+        "rationale": "mutação de reserva — auditoria",
+        "confidence": "medium",
+        "evidence": "\\/(reservation|booking|stay)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/ddc/bookings/route.ts",
+        "module": "audit",
+        "rationale": "mutação de reserva — auditoria",
+        "confidence": "medium",
+        "evidence": "\\/(reservation|booking|stay)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/realtime/tenant-state/route.ts",
+        "module": "audit",
+        "rationale": "mutação de identidade/RBAC",
+        "confidence": "medium",
+        "evidence": "\\/(user|tenant|admin|role|permission)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/upsell/payment-method/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/tenants/route.ts",
+        "module": "audit",
+        "rationale": "mutação de identidade/RBAC",
+        "confidence": "medium",
+        "evidence": "\\/(user|tenant|admin|role|permission)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/v1/reservations/[id]/payment/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/v1/reservations/[id]/payment/route.ts",
+        "module": "audit",
+        "rationale": "mutação de reserva — auditoria",
+        "confidence": "medium",
+        "evidence": "\\/(reservation|booking|stay)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/v1/reservations/route.ts",
+        "module": "audit",
+        "rationale": "mutação de reserva — auditoria",
+        "confidence": "medium",
+        "evidence": "\\/(reservation|booking|stay)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/webhook-whatsapp/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+        "module": "audit",
+        "rationale": "mutação de reserva — auditoria",
+        "confidence": "medium",
+        "evidence": "\\/(reservation|booking|stay)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/mercadopago/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/payment/route.ts",
+        "module": "audit",
+        "rationale": "mutação financeira — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback|payout)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/payment/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+        "module": "audit",
+        "rationale": "entrada externa — trilha obrigatória",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/tenants/[id]/status/route.ts",
+        "module": "audit",
+        "rationale": "mutação de identidade/RBAC",
+        "confidence": "medium",
+        "evidence": "\\/(user|tenant|admin|role|permission)",
+        "methods": [
+          "PATCH"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/tenants/route.ts",
+        "module": "audit",
+        "rationale": "mutação de identidade/RBAC",
+        "confidence": "medium",
+        "evidence": "\\/(user|tenant|admin|role|permission)",
+        "methods": [
+          "GET"
+        ]
+      }
+    ],
+    "rate-limit": [
+      {
+        "targetRoute": "src/app/api/airb-pro/comparativo/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/airb-pro/rentabilidade/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/airb-pro/yield-suggestion/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/airb-test/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/auth/[...nextauth]/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+        "confidence": "high",
+        "evidence": "\\/(auth|login|signup|register|password|otp)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/auth/forgot-password/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+        "confidence": "high",
+        "evidence": "\\/(auth|login|signup|register|password|otp)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/auth/m2m/token/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+        "confidence": "high",
+        "evidence": "\\/(auth|login|signup|register|password|otp)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/auth/magic-link/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+        "confidence": "high",
+        "evidence": "\\/(auth|login|signup|register|password|otp)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/auth/register/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+        "confidence": "high",
+        "evidence": "\\/(auth|login|signup|register|password|otp)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/auth/reset-password/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de autenticação — proteção contra abuso de credenciais",
+        "confidence": "high",
+        "evidence": "\\/(auth|login|signup|register|password|otp)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/brain/health/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/brain/intents/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/brain/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/checkout/cancel/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/create/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/downgrade/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/pix-status/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/success/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/upgrade/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/webhook/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/checkout/webhook/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/cron/payment-confirmation/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/cron/payment-overdue/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/ai-status/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb/conversations/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb/notifications/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb/onboarding/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb/properties/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST",
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb/regional/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST",
+          "DELETE"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb/scrape/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/commissions/[id]/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/commissions/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/expenses/[id]/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/expenses/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/goals/[id]/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/goals/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/operations/[id]/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/operations/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/reports/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/meta-connect/route.ts",
+        "module": "rate-limit",
+        "rationale": "envio de mensagem — quota externa",
+        "confidence": "medium",
+        "evidence": "\\/(whatsapp|meta|send)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/upsell/payment-method/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/knowledge/generate-embeddings/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/landing/chat/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/meta-costs/route.ts",
+        "module": "rate-limit",
+        "rationale": "envio de mensagem — quota externa",
+        "confidence": "medium",
+        "evidence": "\\/(whatsapp|meta|send)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/v1/reservations/[id]/payment/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/webhook-whatsapp/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/mercadopago/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/payment/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota financeira — proteção contra repetição",
+        "confidence": "high",
+        "evidence": "\\/(checkout|payment|billing|asaas|refund|chargeback)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/payment/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+        "module": "rate-limit",
+        "rationale": "envio de mensagem — quota externa",
+        "confidence": "medium",
+        "evidence": "\\/(whatsapp|meta|send)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/airbnb/oauth/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/brain/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/cerebro/llmops/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+        "module": "rate-limit",
+        "rationale": "webhook — proteção contra replay/flood",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/leads/brain-analyze/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/synthetic-brazil/generate/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/whatsapp/simulate/route.ts",
+        "module": "rate-limit",
+        "rationale": "envio de mensagem — quota externa",
+        "confidence": "medium",
+        "evidence": "\\/(whatsapp|meta|send)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zelador-suporte/chat/route.ts",
+        "module": "rate-limit",
+        "rationale": "rota de IA — custo por chamada",
+        "confidence": "high",
+        "evidence": "\\/(ai|llm|brain|chat|completion|embed|generate)",
+        "methods": [
+          "POST"
+        ]
+      }
+    ],
+    "queue": [
+      {
+        "targetRoute": "src/app/api/checkout/webhook/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/billing/invoices/route.ts",
+        "module": "queue",
+        "rationale": "cobrança — fila de jobs",
+        "confidence": "medium",
+        "evidence": "\\/(billing|invoice|charge)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/conversations/[id]/messages/route.ts",
+        "module": "queue",
+        "rationale": "envio — fila com retry/backoff",
+        "confidence": "medium",
+        "evidence": "\\/(send|notify|email|whatsapp|message)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/upsell/charge/route.ts",
+        "module": "queue",
+        "rationale": "cobrança — fila de jobs",
+        "confidence": "medium",
+        "evidence": "\\/(billing|invoice|charge)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/webhook-whatsapp/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/asaas/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/booking-com/reviews/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/mercadopago/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/payment/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/webhooks/whatsapp/route.ts",
+        "module": "queue",
+        "rationale": "envio — fila com retry/backoff",
+        "confidence": "medium",
+        "evidence": "\\/(send|notify|email|whatsapp|message)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/airbnb/webhook/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/github/webhook/route.ts",
+        "module": "queue",
+        "rationale": "webhook — processar async para resposta rápida",
+        "confidence": "high",
+        "evidence": "\\/(webhook)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/whatsapp/simulate/route.ts",
+        "module": "queue",
+        "rationale": "envio — fila com retry/backoff",
+        "confidence": "medium",
+        "evidence": "\\/(send|notify|email|whatsapp|message)",
+        "methods": [
+          "POST"
+        ]
+      }
+    ],
+    "cache": [
+      {
+        "targetRoute": "src/app/api/cron/metrics-snapshot/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/dashboard/bookings/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/dashboard/overview/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/dashboard/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/airb-pro/reports/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET",
+          "POST"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/linkinbio/stats/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/metrics/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/ddc/upsell/metrics/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/feedback/stats/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/v1/metrics/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": []
+      },
+      {
+        "targetRoute": "src/app/api/zcc/code-reviewer/stats/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/dashboard-stats/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/metrics/financial/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/metrics/geographic/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/metrics/periods/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/metrics/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/stats/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      },
+      {
+        "targetRoute": "src/app/api/zcc/ze-code/stats/route.ts",
+        "module": "cache",
+        "rationale": "agregação de leitura — cache curto",
+        "confidence": "medium",
+        "evidence": "\\/(dashboard|metrics|stats|report|availability|calendar|pricing)",
+        "methods": [
+          "GET"
+        ]
+      }
+    ]
+  },
+  "coverage": {
+    "restRoutesTotal": 320,
+    "trpcRoutersTotal": 0,
+    "restRoutesWithProposal": 89,
+    "trpcRoutersWithProposal": 0
+  },
+  "disclaimer": "PROPOSTA CONSERVADORA baseada em heuristica de path. O patch W3 real DEVE validar cada proposta contra o inventario W1 real (pos-V3 paste-back). Nenhum arquivo foi modificado."
+}

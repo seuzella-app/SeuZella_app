@@ -1,0 +1,290 @@
+{
+  "schema": "RUN19_HYGIENE_RECON/v1",
+  "generatedAt": "2026-09-22T14:20:28.346Z",
+  "summary": {
+    "cronTotal": 38,
+    "cronComGuard": 0,
+    "cronComSegredo": 38,
+    "webhookTotal": 9,
+    "webhookComAssinatura": 9,
+    "webhookComGuard": 9,
+    "syncTokenFiles": 6,
+    "syncTokenGenerationSites": 2,
+    "ambasCount": 0,
+    "middlewareAuthFalse": false
+  },
+  "cron": [
+    {
+      "rel": "src/app/api/auth/m2m/token/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/achievements-check/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/backup-restore-drill/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/booking-daily/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/budget-reset/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-analyze/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-budget-forecast/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-churn-predict/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-cleanup/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-distill/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-learning/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-night-audit/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-night-pentest/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-night-pulse/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-orchestrator/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-refactor-check/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/cerebro-watchdog/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/dlq-drain/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/housekeeping-dispatch/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/ical-sync/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/learning-cycle/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/lembrete-checkin/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/linkinbio-expiry-check/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/locks-maintenance/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/metrics-snapshot/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/monthly-billing/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/nps-checkout/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/ota-token-expiry/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/payment-confirmation/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/payment-overdue/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/plan-expiry/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/plan-limits-check/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/security-scan/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/sre-alerts/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/cron/weekly-report/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/integrations/sync/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/zcc/cerebro/runbook/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    },
+    {
+      "rel": "src/app/api/zcc/github/expiry-check/route.ts",
+      "hasSecret": true,
+      "hasGuard": false
+    }
+  ],
+  "webhook": [
+    {
+      "rel": "src/app/api/checkout/webhook/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    },
+    {
+      "rel": "src/app/api/webhook-whatsapp/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    },
+    {
+      "rel": "src/app/api/webhooks/asaas/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    },
+    {
+      "rel": "src/app/api/webhooks/booking-com/reviews/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    },
+    {
+      "rel": "src/app/api/webhooks/mercadopago/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    },
+    {
+      "rel": "src/app/api/webhooks/payment/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    },
+    {
+      "rel": "src/app/api/webhooks/whatsapp/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    },
+    {
+      "rel": "src/app/api/zcc/airbnb/webhook/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    },
+    {
+      "rel": "src/app/api/zcc/github/webhook/route.ts",
+      "hasSignature": true,
+      "hasGuard": true
+    }
+  ],
+  "syncToken": {
+    "files": [
+      "src/app/api/ddc/booking-sync/route.ts",
+      "src/app/api/ical/[syncToken]/route.ts",
+      "src/app/api/integrations/ical/[roomId]/route.ts",
+      "src/components/ddc/BookingSyncPanel.tsx",
+      "src/lib/ical-import-engine.ts",
+      "src/lib/integrations/ical-service.ts"
+    ],
+    "generationSites": [
+      {
+        "rel": "src/app/api/ddc/booking-sync/route.ts",
+        "line": 118,
+        "randomBytes": 24,
+        "hexChars": 48
+      },
+      {
+        "rel": "src/lib/integrations/ical-service.ts",
+        "line": 37,
+        "randomBytes": 24,
+        "hexChars": 48
+      }
+    ],
+    "icalRoute": {
+      "rel": "src/lib/ical-import-engine.ts",
+      "minLengthCheck": null,
+      "checksInHandler": false
+    }
+  },
+  "ambas": [],
+  "middleware": {
+    "present": true,
+    "doesAuth": true,
+    "lines": 39
+  }
+}

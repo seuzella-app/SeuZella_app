@@ -1,0 +1,6 @@
+ROTA|src/app/api/webhooks/asaas/route.ts
+GATEWAY|package.json:76
+SCHEMA|prisma/schema.prisma:1165
+MIGRATION|prisma/migrations/20260817000002_remove_caution_fields/migration.sql:9
+MIGRATION|prisma/migrations/20260817000000_add_caucao_toggle/migration.sql:6
+DOCS|docs/MG01_RELATORIO.md:36

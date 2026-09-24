@@ -1,0 +1,9 @@
+exprs=2 (criacao|requestedEmail antes-ancora@135|customerEmail) idioma=idioma-3args json=json-idioma tsc=presente specs=7
+matrix:
+  #1 q=findUnique ret=statusFirst expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+  #2 q=findFirst ret=statusFirst expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+  #3 q=findUnique ret=statusFirst expr=customerEmail wrap=0 inline=0 var=existingTenantMG07
+  #4 q=findUnique ret=json expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+  #5 q=findFirst ret=statusFirst expr=requestedEmail wrap=1 inline=0 var=existingTenantMG07
+  #6 q=findUnique ret=idiom expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+  #7 q=findFirst ret=json expr=requestedEmail wrap=1 inline=0 var=existingTenantMG07

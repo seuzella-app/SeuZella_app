@@ -1,0 +1,3 @@
+docs/JEV_GLOSSARIO.md | 325 linhas | sha256=d42b386c0bac01065f16c4a35afab542aaeb39d3201b624701805d970eee38c3
+docs/JEV_TRILHA.md | 190 linhas | sha256=9db69db206bee78d7493cf32616aa9beec9ace31d0e7133ef2ece8f1a6766caa
+docs/JEV_OPERACAO.md | 195 linhas | sha256=cc979cd4e7c78aec4f939bdf1cade6609b66356d7f609ad787309c9c47f13ccd

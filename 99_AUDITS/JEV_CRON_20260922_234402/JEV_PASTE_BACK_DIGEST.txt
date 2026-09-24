@@ -1,0 +1,116 @@
+================================================================
+ SEUZELLA — JEV_PASTE_BACK_DIGEST (JEV USO REAL NO CRON — RUN27-A, SHADOW_ONLY)
+ Gerado em: 2026-09-23T02:44:41.736Z
+ Objetivo: fechar a onda USO REAL NO CRON (rota nova do pulso shadow com os
+ gates da casa por assinaturas exatas + SHAPES-3 VERIFY antes de instalar)
+ e autorizar a reta final (DOCS -> MASTER GATE -> VPS)
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: 5e19649b5d5e5293029052cc9dde695fe857c899
+árvore: modified=0 untracked=25 | FORA de 99_AUDITS: 0
+
+--- B) ARQUIVOS INSTALADOS (3, ADITIVOS — nenhum existente editado) ---
+src/lib/ai/jev/jev-cerebro-cron-pulse.ts | 329 linhas | sha256=82e3c015e0e6a07e063475f8b23e6ba4ae1f61faedc63dc8ea34914d37e26298
+src/app/api/cron/jev-shadow-pulse/route.ts | 45 linhas | sha256=e75adb2a0e477d98cbdd61fe6132ddf6e6dd6680bce9fe63a99d1c6f7c702f6e
+src/__tests__/jev/jev-cron.test.ts | 502 linhas | sha256=c6adf7b2e1f66245e4792b3d8d7084a80cb168c93a97f9fbafc62e63d5be3538
+
+
+--- C) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- D) VITEST (8 suítes JEV) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (NOVA)
+
+--- E) PULSO NO CRON — ROTA NOVA + GATES DA CASA (SHADOW_ONLY) ---
+FIÇÃO DA ROTA (provado por leitura do texto): auth da casa=true | budget singleton=true | sonda do fusível=true | force-dynamic=true | maxDuration 60=true | zero env na produção=true
+GATES FAIL-CLOSED (cada um com ciclo NUNCA chamado):
+  sem ?src= => inerte (true) | fonte recusada => inerte (true) | budget recusado => skip (true) | fusível aberto => skip (true) | fusível indisponível => skip (true)
+CAMINHO FELIZ: status=ran | recordSuccess=1 | contagens espelhadas=true
+CICLO LANÇA: http=500 com reason tipada, SEM stack/message do erro (true)
+TETO DE TEMPO: tipado=true | 25000ms (< maxDuration 60s) | recordFailure=1
+INTEGRAÇÃO REAL (ciclo RUN26-A + fonte real + parser + ledger; rede 100% mockada): lidas=6 | aceitas=3 | recusas=3 | avaliadas=3 | remoto inerte=false | ledger=6 (total 6)
+SONDA DO FUSÍVEL (fail-closed contra qualquer forma divergente): classe completa=true | módulo vazio=true | classe parcial=true | construtor que lança=true
+CLAMP DO MAX: 9999 => 500 | lixo => 50
+HIGIENE: resposta sem tenant/payload/segredo=true | zero env na lib=true | zero token proibido=true
+
+INVARIANTES PROVADAS: shadowOnlyLiteral=true tenantHashOnly=true payloadNotSerialized=true networkOnlyMocked=true budgetAndBreakerFailClosed=true timeoutBounded=true secretNeverInResponse=true
+LEITURA: o ciclo da RUN26-A agora tem um chamador de PRODUÇÃO (rota nova de
+cron), com TODOS os gates da casa aplicados por assinaturas EXATAS (shapes-3
+verificadas antes de instalar). O pulso é INERTE por construção sem ?src=
+(opt-in do dono) e o remoto segue SHADOW_ONLY — só acende com as 3 chaves
+que o DONO põe no .env.local. Agendamento externo NÃO é editado pelo kit.
+
+--- F) COMO USAR (DECISÃO DO DONO — nada roda sem opt-in) ---
+O pulso é INERTE por construção: sem ?src= apontando para um export JSONL,
+a rota responde inerte e NADA é avaliado. Para o uso real:
+  1) Gere o export JSONL de amostras (1 amostra por linha), ex.:
+       {"tenantId":"seu-tenant","mode":"INTENT","text":"texto real do cliente"}
+       {"tenantId":"seu-tenant","mode":"SENTIMENT","payload":{"text":"..."}}
+     Regras: tenant 'demo' é recusado; modo tem de ser um dos 7 do contrato;
+     payload passa pelo firewall (PII ofuscada, campos fora da allowlist
+     descartados); amostra que sobra vazia é RECUSADA. Caps: 5 MB / 10k
+     linhas por ciclo (defesa da fonte RUN26-A).
+  2) Com o servidor da casa rodando, chame a rota nova (autenticação é o
+     mecanismo interno da casa — internal-secret, RUN19-A; o kit NUNCA lê
+     nem exibe valores):
+       /api/cron/jev-shadow-pulse?src=<CAMINHO-ABSOLUTO-DO-ARQUIVO.jsonl>
+     Parâmetro opcional: &max=<1..500> (default 50).
+  3) A resposta contém SÓ contagens (lidas/aceitas/recusas/avaliadas/
+     acordos/divergências/ledger) — zero payload, zero tenant real.
+  4) Agendamento externo (vercel.json / cron externo): NÃO é editado pelo
+     kit — é decisão do DONO, com a autenticação da casa.
+ACENDIMENTO REMOTO (3 chaves no .env.local — decisão do dono; presença
+apenas abaixo, valores NUNCA lidos pelo kit):
+TYPESAFE_API_KEY: AUSENTE
+JEV_ENABLED: não ligado
+SSRF_ALLOWLIST: AUSENTE
+=> remoto permanece INERTE (fail-closed): heurística local segue decidindo em shadow, nada quebra.
+
+--- G) SEGURANÇA ---
+tokens de domínio proibido nos 3 arquivos: 0 | padrões de segredo literal: 0
+leituras de env nos arquivos de produção da onda: 0 (config continua central em jev-config)
+rede REAL: NENHUMA (todos os testes com fetch injetado/mocked) | edição em arquivo existente: NENHUMA
+banco: NÃO LIDO (fonte é o export JSONL do dono, apontado por ?src=)
+tenant puro: NUNCA sai do pulso (resposta só contagens; ledger só hashes — provado)
+recusa da auth da casa: devolvida INTACTA (a casa decide a resposta)
+push: NENHUM (commit apenas local)
+
+--- H) COMMIT LOCAL ---
+5e19649b5d5e5293029052cc9dde695fe857c899
+mensagem: RUN27-A (JEV MASTER USO REAL NO CRON): rota nova de cron do pulso shadow (auth internal-secret da casa + budget canUseTier + fusível por sonda fail-closed + teto de 25s) chamando o ciclo RUN26-A com ?src= opt-in do dono + suíte por contrato (gates/caminho feliz/timeout/integração mockada/sonda/fiação da rota) + gate SHAPES-3 VERIFY — aditivo, SHADOW_ONLY, sem domínio financeiro
+
+--- I) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (resposta só contagens — provado)
+secret handling ✓ (kit não lê valores; ?src= é opt-in explícito do chamador autenticado) | migração destrutiva: NENHUMA ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ | rede real: NENHUMA ✓ | banco: NÃO LIDO nesta onda ✓
+vercel.json: NÃO EDITADO ✓ (agendamento é decisão do dono)
+
+--- K) SHAPES-3 VERIFY (lição RUN25-A virada em gate permanente) ---
+VERIFICAÇÃO ANTES DE INSTALAR (rc=87 se qualquer obrigatória faltar):
+  OK   src/lib/infra/internal-secret.ts :: export function requireInternalSecret(req: unknown): Response | null {
+  OK   src/lib/ai/budget-guard.ts :: export const tenantBudgetGuard = new TenantBudgetGuard();
+  OK   src/lib/ai/budget-guard.ts :: canUseTier(tenantId: string, tier: number, estimatedCost?: number, plan?: string): boolean
+  OK   src/lib/ai/circuit-breaker.ts :: export class CircuitBreaker {
+  OK   src/lib/ai/circuit-breaker.ts :: allow(): boolean
+  OK   src/lib/ai/circuit-breaker.ts :: recordSuccess(): void
+  OK   src/lib/ai/circuit-breaker.ts :: recordFailure(): void
+  OK   src/lib/ai/jev/jev-cerebro-shadow-loop.ts :: export async function runCerebroShadowCycle(
+  OK   src/lib/ai/jev/jev-cerebro-file-source.ts :: export function createFileSampleSource(filePath: string): JevSampleSource | null {
+  INFO src/lib/ai/llm-timeout.ts :: export async function withLlmTimeout<T>(
+  INFO src/** :: USE_TF_INTENT
+RESULTADO: 9 assinatura(s) obrigatória(s) OK | 2 informativa(s)
+DOUTRINA: o payload só usa assinaturas que vieram EXATAS nas shapes-2
+(RUN26-A). withLlmTimeout/withLlmFallback existem mas os parâmetros não
+vieram — NÃO são usados (timer próprio do pulso). Flags USE_TF_* existem
+mas o módulo de origem não veio nas shapes — NÃO são importadas. Lição
+RUN25-A virada em GATE PERMANENTE.
+
+PRÓXIMA ONDA (após auditoria do agente): DOCS (glossário/estado consolidado
+da trilha JEV) -> MASTER GATE (só lá nasce a próxima tag) -> VPS. Uso do
+pulso é DECISÃO DO DONO (export JSONL + ?src= + agendamento externo opcional).
+Nada de Asaas/refund/parcela. NUNCA push.
+================================================================

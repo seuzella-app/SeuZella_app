@@ -1,0 +1,795 @@
+
+ RUN  v3.2.7 /Users/marciocau/SeuZella_project
+
+stderr | src/__tests__/jev/jev-integration.test.ts > fiação da integração — fail-closed estrutural > createActiveShadowRunner: apagado => runner só-local; aceso => remotePort protegido com agreement
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > AUTH M2M — header Bearer exato, payload minimizado, chave nunca exposta > fetch sai com Authorization Bearer da chave, host liberado e SÓ o payload minimizado
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > AUTH M2M — header Bearer exato, payload minimizado, chave nunca exposta > resposta inválida do endpoint: erro tipado e a chave não aparece na serialização
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > SSRF na fronteira — guard da casa antes de qualquer rede > adapter ESPELHA o veredito REAL do guard (oráculo: liberado => segue; bloqueado => nem chama)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > SSRF na fronteira — guard da casa antes de qualquer rede > host liberado no guard: a chamada segue (caminho feliz complementar)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > flag+chave: remoteOk=3, agreements=2, mismatches=1, ledger 3+3=6
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > flag+chave: remoteOk=3, agreements=2, mismatches=1, ledger 3+3=6
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > flag+chave: remoteOk=3, agreements=2, mismatches=1, ledger 3+3=6
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > re-ciclo com a MESMA fonte e ledger => 0 novos + 6 duplicatas (idempotência)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > re-ciclo com a MESMA fonte e ledger => 0 novos + 6 duplicatas (idempotência)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > re-ciclo com a MESMA fonte e ledger => 0 novos + 6 duplicatas (idempotência)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+ ✓ src/__tests__/jev/jev-cron.test.ts (20 tests) 99ms
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > re-ciclo com a MESMA fonte e ledger => 0 novos + 6 duplicatas (idempotência)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > re-ciclo com a MESMA fonte e ledger => 0 novos + 6 duplicatas (idempotência)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > ciclo com remoto aceso — cenário PINADO 3 => 3 ok => 2 acordos + 1 divergência > re-ciclo com a MESMA fonte e ledger => 0 novos + 6 duplicatas (idempotência)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > sink do ledger — export JSONL sem payload e sem tenant puro > sink recebe TODAS as linhas; nenhuma linha tem "payload", tenant puro ou chave
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > sink do ledger — export JSONL sem payload e sem tenant puro > sink recebe TODAS as linhas; nenhuma linha tem "payload", tenant puro ou chave
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > sink do ledger — export JSONL sem payload e sem tenant puro > sink recebe TODAS as linhas; nenhuma linha tem "payload", tenant puro ou chave
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > sink do ledger — export JSONL sem payload e sem tenant puro > caps: maxSamples=2 => readCapped true, 2 aceitas, 2 avaliadas, ledger 4
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-wiring.test.ts > sink do ledger — export JSONL sem payload e sem tenant puro > caps: maxSamples=2 => readCapped true, 2 aceitas, 2 avaliadas, ledger 4
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+ ✓ src/__tests__/jev/jev-wiring.test.ts (12 tests) 108ms
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+stderr | src/__tests__/jev/jev-integration.test.ts > FUZZ do parser remoto — 240 corpos determinísticos contra o parser de produção > nunca lança; sempre tipado; válido => ok; desvio => recusado (seed fixa)
+{"evt":"ssrf.shadow","host":"api.typesafe.ai","allowlisted":false}
+
+ ✓ src/__tests__/jev/jev-integration.test.ts (18 tests) 288ms
+ ✓ src/__tests__/jev/jev-shadow.test.ts (13 tests) 29ms
+ ✓ src/__tests__/jev/jev-ledger.test.ts (26 tests) 39ms
+ ✓ src/__tests__/jev/jev-harness.test.ts (14 tests) 59ms
+ ✓ src/__tests__/jev/jev-contract.test.ts (13 tests) 20ms
+ ✓ src/__tests__/jev/jev-registry.test.ts (9 tests) 13ms
+
+ Test Files  8 passed (8)
+      Tests  125 passed (125)
+   Start at  00:40:19
+   Duration  3.97s (transform 637ms, setup 0ms, collect 1.42s, tests 654ms, environment 4ms, prepare 1.86s)
+

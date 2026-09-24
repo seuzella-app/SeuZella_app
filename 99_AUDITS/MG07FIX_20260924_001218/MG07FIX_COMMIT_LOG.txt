@@ -1,0 +1,4 @@
+[feat/meta-zella-foundation a19e0e47] MG-07 FIX (V8): restaura fail-closed ACCOUNT_EXISTS no checkout de convidados (semantica original e35bef80; perdida em 064db917/r3-f04 sem atualizar o gate 17-20; run semantica auto-provada pelo tsc do alvo: erro nativo da arquitetura executeCheckout) + 2 docs aditivos — evidencias em 99_AUDITS/MG07FIX_* — NUNCA push, fail-closed
+ 3 files changed, 159 insertions(+)
+ create mode 100644 docs/MG07FIX_ACHADOS.md
+ create mode 100644 docs/MG07FIX_RELATORIO.md

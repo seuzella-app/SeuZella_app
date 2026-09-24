@@ -1,0 +1,154 @@
+================================================================
+ SEUZELLA — MG04_PASTE_BACK_DIGEST (MG-04 — MASTER GATE FINAL: FORENSE TENANT ISOLATION)
+ Gerado em: 2026-09-23T18:08:52.639Z
+ Objetivo: varredura forense ESTÁTICA READ-ONLY do isolamento de tenant —
+ 4ª onda da campanha MASTER GATE FINAL (pré-RELEASE). Selo da fundação intocado.
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: 91e5d5edcd84f7e7fcfdf96e94e11ab1c9545848
+árvore: modified=0 untracked=31 | FORA de 99_AUDITS: 0
+
+--- B) DOCUMENTOS INSTALADOS (2, ADITIVOS em docs/ — nenhum existente editado, zero código de produção) ---
+docs/MG04_RELATORIO.md | 160 linhas | sha256=2886cfd4c121a1ec9a208a16f8368756c29df86128fd6eb0e7428f362d38088c
+docs/MG04_ACHADOS.md | 44 linhas | sha256=f14648cfd52d1e7c1f03c75437d457131e05ea91f2e58aa0e229338d9ac068ba
+
+
+--- C) FORENSE MG-04 (tenant isolation — READ-ONLY: nenhuma consulta executada, sem rede, sem banco, sem credenciais) ---
+resumo: BLOQUEIOS=0 ATENÇÃO=3 INFO=10
+achados (contagens/versões/arquivo:linha/nomes de chaves — valores NUNCA exibidos):
+  [INFO] middleware: presente (src/middleware.ts) — 1 linha(s) com menção a tenant (CONTAGEM — conteúdo NUNCA exibido)
+  [INFO] middleware: 1 linha(s) com matcher (contagem — caminhos NUNCA enumerados nesta onda)
+  [INFO] guards da casa em uso (contagem de arquivos em src/): requireInternalSecret=7 budget=17 circuit=16 wiring=94 (definições re-verificadas pelo SHAPES-3; conteúdo NUNCA exibido)
+  [INFO] menções a tenant em src/: 503 arquivo(s) (contagens por arquivo na evidência MG04_TENANT_FILES.txt — conteúdo NUNCA exibido)
+  [INFO] schema: 127 modelo(s), 81 com campo tenantId (NOMES de modelo NUNCA exibidos — contagens)
+  [INFO] migrations com RLS/policy: 2 arquivo(s) (contagem — conteúdo NUNCA exibido)
+  [INFO] rotas de API: 321 route.ts em src/app/api (guards por rota na evidência MG04_ROUTES_GUARD.txt)
+  [INFO] rotas com guard da casa: 95/321 (nomes das rotas e guards detectados apenas na evidência — conteúdo NUNCA exibido)
+  **[ATENÇÃO]** 226 rota(s) de API sem import de guard da casa (NOMES na evidência MG04_ROUTES_GUARD.txt; conteúdo NUNCA exibido): superfície para revisão do dono antes do RELEASE — webhooks com assinatura própria podem …[truncado]
+  [INFO] superfície tenant (rotas + middleware): 0 padrão de segredo literal
+  **[ATENÇÃO]** consulta raw ($queryRaw/$executeRaw) na superfície tenant: 17 ocorrência(s) — arquivo:linha na evidência MG04_SURFACE_HITS.txt (conteúdo NUNCA exibido): verificar escopo por tenant
+  **[ATENÇÃO]** token de domínio proibido na superfície tenant: 80 ocorrência(s) — arquivo:linha na evidência MG04_SURFACE_HITS.txt (conteúdo NUNCA exibido; NOMES de arquivo que contêm o próprio token ficam retidos dos d…[truncado]
+  [INFO] isolamento: nenhuma consulta executada, nenhum dado de tenant lido nesta onda — contagens, NOMES de arquivo e arquivo:linha apenas
+
+superfície de isolamento: 503 arquivo(s) de src/ com menção a
+tenant (contagens em MG04_TENANT_FILES.txt) e 321 rota(s) de API
+inventariadas com guards por rota (MG04_ROUTES_GUARD.txt). Conteúdo NUNCA
+exibido; nenhum dado de tenant lido (a varredura é estática).
+
+LEITURA: achados BLOQUEIO alimentam a decisão de RELEASE do dono (correções
+nascem em ondas próprias); a onda forense é GREEN quando conclui com a
+fundação íntegra. NENHUMA consulta foi executada nesta onda (nenhum dado de
+tenant lido; banco NÃO conectado) e nenhum arquivo existente foi editado —
+o endurecimento do isolamento permanece decisão do dono (ondas próprias).
+
+--- D) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- E) VITEST (8 suítes JEV — a fundação continua íntegra durante a campanha) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (RUN27-A)
+
+--- F) MASTER SWEEP (a fundação re-verificada antes da onda instalar) ---
+  SELO: SEUZELLA_JEV_MASTER_CLOSURE_01 -> fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== commit do RUN29-A: SIM ✓)
+  ÂNCORAS: 16/16 ancestrais do HEAD por hash exato (RUN12..RUN19 + RUN22..RUN29)
+    RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9
+    RUN16-A=7d7f28f1 RUN17-A=1828090e RUN18-A=e5eeb65d RUN19-A=ffa3902b
+    RUN22-A=c6c07044 RUN23-A=7b3f9810 RUN24-A=de734569 RUN25-A=c6275fd8
+    RUN26-A=371a96cd RUN27-A=5e19649b RUN28-A=6261e3a5 RUN29-A=fc07fc8f
+  ARQUIVOS: 39/39 presentes (32 da fundação + certificado RUN29-A + 2 docs MG-01 + 2 docs MG-02 + 2 docs MG-03)
+  SHAPES-3 RE-VERIFY: 9 OK / 0 FALHA (exigido 9/9)
+  CONTENT VERIFY: 40 OK / 0 FALHA (exigido 40/40 — 16 âncoras +
+    9 ondas MG + 15 garantias canônicas conferidas no relatório do payload)
+  CONTENT RE-VERIFY (pós-instalação): 28/28 re-checagens nos documentos instalados
+  TSC: 0 erros novos | VITEST: 8/8 GREEN
+RESULTADO DO SWEEP: FUNDAÇÃO ÍNTEGRA SOBRE O SELO — onda MG-04 concluída.
+
+--- G) O SELO DA FUNDAÇÃO (permanece LOCAL — NUNCA push; NUNCA alterado pela campanha) ---
+nome: SEUZELLA_JEV_MASTER_CLOSURE_01
+alvo: fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== fc07fc8f: SIM ✓)
+mensagem anotada: (verificar)
+tags SEUZELLA_* presentes no iMac:
+  - SEUZELLA_BASELINE_CLOSURE_01
+  - SEUZELLA_JEV_MASTER_CLOSURE_01
+  - SEUZELLA_RUN10_MASTER_CLOSURE_01
+  - SEUZELLA_RUN11_MASTER_CLOSURE_01
+  - SEUZELLA_RUN12_MASTER_CLOSURE_01
+  - SEUZELLA_RUN7_MASTER_CLOSURE_01
+  - SEUZELLA_RUN8_MASTER_CLOSURE_01
+  - SEUZELLA_RUN9_MASTER_CLOSURE_01
+A campanha MASTER GATE FINAL não nasce tag nenhuma: o selo é ÚNICO (RUN29-A).
+
+--- H) SEGURANÇA ---
+tokens de domínio proibido nos documentos: 0 | padrões de segredo literal: 0
+leituras de env nos documentos da onda: 0 (carrega NOMES de chaves, nunca valores)
+rede REAL: NENHUMA (sem npm install, sem fetch) | banco: NÃO CONECTADO
+consultas: NENHUMA executada (leitura de filesystem; banco NUNCA conectado)
+credenciais: NENHUMA pedida/lida | edição em arquivo existente: NENHUMA
+push: NENHUM (commit apenas local)
+
+--- I) COMMIT LOCAL ---
+91e5d5edcd84f7e7fcfdf96e94e11ab1c9545848
+mensagem: MG-04 (MASTER GATE FINAL — tenant isolation): varredura forense estática READ-ONLY do isolamento de tenant (middleware em contagem, guards da casa por contagem de arquivos, menções a tenant, schema com tenantId em contagem, migrations com RLS em contagem, inventário de guards por rota de API, superfície tenant: segredo literal BLOQUEIO com valor NUNCA exibido, consulta raw e token proibido em arquivo:linha — NENHUMA consulta executada, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG04_RELATORIO + MG04_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed, sem domínio financeiro
+
+--- J) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (nada exposto nesta onda)
+secret handling ✓ (só NOMES de chaves/secrets; scrub duplo nos textos de evidência) | consultas EXECUTADAS: NENHUMA ✓ (só inventário estático)
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ (checagem própria fica no MG-05) | rede real: NENHUMA ✓ | banco: NÃO CONECTADO nesta onda ✓
+arquivo existente: NENHUM EDITADO ✓ (o isolamento permanece decisão do dono)
+
+--- K) CONTENT VERIFY (40 termos — lição RUN25-A/RUN28-A aplicada ao relatório) ---
+  OK   docs/MG04_RELATORIO.md :: bede7de3
+  OK   docs/MG04_RELATORIO.md :: 480281d2
+  OK   docs/MG04_RELATORIO.md :: aff5ca01
+  OK   docs/MG04_RELATORIO.md :: 2b53b8e9
+  OK   docs/MG04_RELATORIO.md :: 7d7f28f1
+  OK   docs/MG04_RELATORIO.md :: 1828090e
+  OK   docs/MG04_RELATORIO.md :: e5eeb65d
+  OK   docs/MG04_RELATORIO.md :: ffa3902b
+  OK   docs/MG04_RELATORIO.md :: c6c07044
+  OK   docs/MG04_RELATORIO.md :: 7b3f9810
+  OK   docs/MG04_RELATORIO.md :: de734569
+  OK   docs/MG04_RELATORIO.md :: c6275fd8
+  OK   docs/MG04_RELATORIO.md :: 371a96cd
+  OK   docs/MG04_RELATORIO.md :: 5e19649b
+  OK   docs/MG04_RELATORIO.md :: 6261e3a5
+  OK   docs/MG04_RELATORIO.md :: fc07fc8f
+  OK   docs/MG04_RELATORIO.md :: MG-01
+  OK   docs/MG04_RELATORIO.md :: MG-02
+  OK   docs/MG04_RELATORIO.md :: MG-03
+  OK   docs/MG04_RELATORIO.md :: MG-04
+  OK   docs/MG04_RELATORIO.md :: MG-05
+  OK   docs/MG04_RELATORIO.md :: MG-06
+  OK   docs/MG04_RELATORIO.md :: MG-07
+  OK   docs/MG04_RELATORIO.md :: MG-08
+  OK   docs/MG04_RELATORIO.md :: MG-09
+  OK   docs/MG04_RELATORIO.md :: READ-ONLY
+  OK   docs/MG04_RELATORIO.md :: NUNCA push
+  OK   docs/MG04_RELATORIO.md :: fail-closed
+  OK   docs/MG04_RELATORIO.md :: sem banco
+  OK   docs/MG04_RELATORIO.md :: sem rede
+  OK   docs/MG04_RELATORIO.md :: sem credenciais
+  OK   docs/MG04_RELATORIO.md :: MASTER GATE FINAL
+  OK   docs/MG04_RELATORIO.md :: RELEASE
+  OK   docs/MG04_RELATORIO.md :: SEUZELLA_JEV_MASTER_CLOSURE_01
+  OK   docs/MG04_RELATORIO.md :: isolamento
+  OK   docs/MG04_RELATORIO.md :: guards
+  OK   docs/MG04_RELATORIO.md :: tenantId
+  OK   docs/MG04_RELATORIO.md :: middleware
+  OK   docs/MG04_RELATORIO.md :: route.ts
+  OK   docs/MG04_RELATORIO.md :: valor NUNCA exibido
+RESULTADO: 40 termo(s) obrigatório(s) OK | 0 falha(s) (exigido 40/40)
+DOUTRINA: o relatório só entra — e o commit só nasce — se conferir com a
+realidade da campanha: mesmas disciplinas do SHAPES-3 VERIFY (rc=87) sobre
+código e do CONTENT VERIFY (rc=88) sobre documentação.
+
+CAMPAÑHA: MG-04/9 (tenant isolation) concluída — PRÓXIMO: MG-05 (billing —
+só ausência do domínio proibido). Sua janela de fechamento segue mapeada:
+MG-05 billing (só ausência),
+MG-05 billing (só ausência do domínio proibido), MG-06 migration profunda,
+MG-07 VPS/deploy (com o next build oficial, se você quiser), MG-08 testes,
+MG-09 wiring residual -> RELEASE. Nada do domínio proibido. NUNCA push.
+================================================================

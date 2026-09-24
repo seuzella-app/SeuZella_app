@@ -1,0 +1,33 @@
+================================================================
+ SEUZELLA — RUN19 HYGIENE: DECISÕES POR GAP (entrada: digest RUN18)
+================================================================
+insumo: 99_AUDITS/RUN18_A_20260922_102754 — confronto tabela embutida: IDÊNTICO
+ficção: 13 diferidos -> nova tentativa com âncoras EXPANDIDAS (fail-safe);
+        4 internas inequívocas -> segredo em MODO SOMBRA (não quebra nada
+        até o dono ativar); proxy -> allowlist report/wire; cron, webhook,
+        syncToken, ambas e middleware -> RECON + relatório (decisão do dono).
+
+-- RETRY DE FIAÇÃO (13 diferidos do RUN18, âncoras expandidas) --
+  [P1] RETRY src/app/api/bim-vision/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P1] RETRY src/app/api/pinns-clifford/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P1] RETRY src/app/api/proxy/[...path]/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P1] RETRY src/app/api/webgl-bridge/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P2] RETRY src/app/api/ddc/runtime-version/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P2] RETRY src/app/api/hunt-stream/route.ts — motivo no RUN18: bloco de imports nao encontrado
+  [P2] RETRY src/app/api/leads/analytics/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P2] RETRY src/app/api/zcc/adapters/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P2] RETRY src/app/api/zcc/brain/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P2] RETRY src/app/api/zcc/cortex/growth/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P2] RETRY src/app/api/zcc/cortex/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P2] RETRY src/app/api/zcc/personas/route.ts — motivo no RUN18: ancora do handler nao encontrada
+  [P2] RETRY src/app/api/zcc/synthetic-brazil/route.ts — motivo no RUN18: ancora do handler nao encontrada
+
+-- SEGREDO INTERNO EM MODO SOMBRA (4, já fiadas no RUN18) --
+  [P1] SHADOW src/app/api/debug-agent/route.ts — ferramenta interna de depuração — segredo em modo sombra
+  [P1] SHADOW src/app/api/debug-agent/github/route.ts — ferramenta interna de depuração — segredo em modo sombra
+  [P1] SHADOW src/app/api/debug-agent/knowledge/route.ts — ferramenta interna de depuração — segredo em modo sombra
+  [P1] SHADOW src/app/api/leads/seed/route.ts — semeadura de dados — nunca pública; segredo em modo sombra
+
+-- PROXY/SSRF: src/app/api/proxy/[...path]/route.ts — módulo allowlist instalado; fiação da checagem só se o handler e a variável de destino forem reconhecidos --
+
+-- RECON-ONLY (decisão do dono): cron 17/34, webhook 6/9, syncToken iCal, ambas=N, middleware auth=false --

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# =============================================================================
+# SZ_MG07_VPS_PREP_V1 — 2_COMANDO_NO_VPS.txt (VPS, amanha)
+# Sequencia anotada: extracao -> --check -> --deploy -> --fogo
+# NAO rode este arquivo com bash de uma vez: ele e GUIA. Copie os blocos
+# abaixo na ordem, conferindo as saidas.
+# =============================================================================
+set -o pipefail
+KIT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+echo "================================================================"
+echo " GUIA DE DEPLOY NO VPS — SZ_MG07_VPS_PREP_V1"
+echo " (este arquivo imprime os comandos na ordem; rode um a um)"
+echo "================================================================"
+
+echo ""
+echo "# 0) (uma vez) dependencias basicas — se VPS zero:"
+echo "   sudo apt update && sudo apt -y install git curl"
+echo "   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - && sudo apt -y install nodejs"
+echo "   sudo npm i -g pm2 && node -v   # >= v20"
+
+echo ""
+echo "# 1) auditoria read-only do ambiente (30s):"
+echo "   bash $KIT_DIR/SZ_VPS_DEPLOY.sh --check"
+
+echo ""
+echo "# 1b) .env (se ainda nao existe em /var/www/seuzella/shared/.env):"
+echo "   sudo mkdir -p /var/www/seuzella/shared"
+echo "   sudo chown -R \$USER /var/www/seuzella"
+echo "   cp $KIT_DIR/docs/MG07VPS_ENV_TEMPLATE.env /var/www/seuzella/shared/.env"
+echo "   nano /var/www/seuzella/shared/.env     # preencha os valores (do .env do iMac)"
+echo "   chmod 600 /var/www/seuzella/shared/.env"
+
+echo ""
+echo "# 2) DEPLOY fail-closed com rollback automatico (5-12 min):"
+echo "   bash $KIT_DIR/SZ_VPS_DEPLOY.sh --deploy"
+
+echo ""
+echo "# 3) provas tecnicas de fogo (10s):"
+echo "   bash $KIT_DIR/SZ_VPS_DEPLOY.sh --fogo"
+
+echo ""
+echo "# 4) se algo der errado: rollback em 10 segundos"
+echo "   bash $KIT_DIR/SZ_VPS_DEPLOY.sh --rollback"
+
+echo ""
+echo "# 5) cole no chat: log do --deploy + MG07VPS_DEPLOY_DIGEST.txt + saida do --fogo"
+echo "================================================================"
+echo " FIM DO GUIA — detalhes completos: docs/MG07VPS_RUNBOOK.md"
+echo "================================================================"

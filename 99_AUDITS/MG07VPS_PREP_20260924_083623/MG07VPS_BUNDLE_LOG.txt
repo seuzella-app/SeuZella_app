@@ -1,0 +1,5 @@
+/Users/marciocau/SeuZella_project/99_AUDITS/MG07VPS_PREP_20260924_083623/payload/repo.bundle is okay
+The bundle contains this ref:
+a19e0e4795196da1b1092c4487dfa1b1d4f28da6 refs/heads/feat/meta-zella-foundation
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1

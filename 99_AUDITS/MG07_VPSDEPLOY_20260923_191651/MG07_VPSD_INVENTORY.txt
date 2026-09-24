@@ -1,0 +1,33 @@
+# MG07_VPSD_INVENTORY — 2026-09-23T22:17:04.582Z
+# READ-ONLY — presenca/tamanho/permissao apenas. Nenhum conteudo exibido.
+
+PATH                              STATUS     INFO                          NOTA
+----------------------------------------------------------------------------------------------------------------
+Dockerfile                          PRESENTE   2579B, modo 755               imagem de producao
+.dockerignore                       PRESENTE   265B, modo 755                contexto docker enxuto
+docker-compose.yml                  PRESENTE   3743B, modo 755               orquestracao (opcional)
+Dockerfile.prod                     AUSENTE                                  imagem dedicada de producao (opcional)
+Procfile                            AUSENTE                                  procfile (opcional)
+fly.toml                            AUSENTE                                  plataforma (opcional)
+vercel.json                         PRESENTE   3707B, modo 755               PRESENCA APENAS — NUNCA EDITAR (regra permanente)
+next.config.ts                      PRESENTE   3494B, modo 755               config Next (varre .ts/.js/.mjs)
+.env.example                        PRESENTE   24077B, modo 755              contrato de variaveis
+.env                              PRESENTE   16B, modo 600                 PRESENCA/PERMISSAO APENAS — valores NUNCA lidos
+ecosystem.config.js                 PRESENTE   432B, modo 755                PM2 (opcional)
+nginx.conf                          AUSENTE                                  proxy reverso (opcional)
+prisma/schema.prisma                PRESENTE   88317B, modo 755              schema do banco
+prisma/migrations                   DIRETORIO  22 migrations                 diretorio de migrations
+prisma/migration_lock.toml          AUSENTE                                  declaracao de provider (achado MG-06: ausente)
+scripts                             DIRETORIO  16 entradas                   diretorio de scripts operacionais
+deploy                              DIRETORIO  16 entradas                   diretorio de deploy (opcional)
+docs                              DIRETORIO  111 entradas                  documentacao
+src/app/api/health*/route.*         PRESENTE   1 rota(s)                     readiness/liveness para VPS e monitoramento
+docs/*RUNBOOK*.md                   PRESENTE   5 doc(s)                      documentacao operacional
+docs/*DR*.md                        PRESENTE   4 doc(s)                      documentacao operacional
+docs/*DEPLOY*.md                    PRESENTE   1 doc(s)                      documentacao operacional
+docs/*VPS*.md                       AUSENTE    0 doc(s)                      documentacao operacional
+docs/*BACKUP*.md                    PRESENTE   1 doc(s)                      documentacao operacional
+scripts/*deploy*                    PRESENTE   scripts/deploy-mvk4.sh        operacao VPS
+scripts/*backup*                    PRESENTE   scripts/backup.sh, scripts/prooperacao VPS
+scripts/*rollback*                  AUSENTE    —                             operacao VPS
+scripts/*restore*                   PRESENTE   scripts/production/restore-drioperacao VPS

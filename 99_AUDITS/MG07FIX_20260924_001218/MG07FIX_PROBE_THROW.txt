@@ -1,0 +1,4 @@
+throw-CheckoutError-3args @linha 145
+callee=new CheckoutError
+args=["409","'ACCOUNT_CREATION_CONFLICT'","'Não foi possível iniciar esta conta. Verifique o e-mail e tente novamente.'"]
+codeSlot=1 statusSlot=0 msgSlot=2

@@ -1,0 +1,77 @@
+================================================================
+MG07FIX_PASTE_BACK_DIGEST — SZ_MG07_FIX_V8
+================================================================
+[A] IDENTIFICACAO
+  Kit        : SZ_MG07_FIX_V8 (onda MG-07 FIX — RUN SEMANTICA: probe v2
+               (consumidor de executeCheckout + esqueleto do modulo de erro
+               + throws), escada throw-nativo/retorno-tipado, DETALHE integral)
+  Emitido em : 2026-09-24T03:12:18.000Z
+  Repos      : /Users/marciocau/SeuZella_project (branch feat/meta-zella-foundation)
+  Evidencia  : 99_AUDITS/MG07FIX_20260924_001218
+
+[B] ESTADO ANTES
+  HEAD antes : f749f190b83358c1b4607d82ec49d4c4ef59a7c8 (== base auditada pelo ACCPROBE; V4/V5/V6
+               rollbackaram limpo e a cadeia seguiu intacta)
+  git/node   : git 2.50.1 | v24.13.1
+
+[C] VARREDURA DA FUNDACAO
+  Selo       : SEUZELLA_JEV_MASTER_CLOSURE_01 -> fc07fc8fbd7822dda2d186981e21a218a6bfd642 (verificado)
+  Ancoras    : 17/17 checkpoints (ancestrais de HEAD)
+  Resultado  : VERDE
+
+[D] PROVA FORENSE (ACCPROBE V1 + CAPTURA + LOGS V6/V7)
+  Origem     : e35bef80 adicionou ACCOUNT_EXISTS (2026-08-20)
+  Culpado    : 064db917 removeu sem atualizar o gate (2026-09-02, r3-f04 PR#47)
+  Prova V6   : query por email type-safe (formas JSON sem TS2345)
+  Prova V7   : createError(status: number, code: string) — argumentos NUNCA
+               foram o problema; o consumidor de executeCheckout exige
+               () => Promise<Record<string, unknown>> (TS2345 em 157,215)
+               -> executeCheckout so retorna RECORDS; erros por THROW
+  src/ hoje  : 0 ocorrencias (semantica nao migrou) -> H1 regressao real
+  Gate       : intocado — correcao foi no CODIGO, nunca no teste
+
+[E] PATCH (engine semantica V8)
+  Probe      : def=src/lib/error-handler.ts ACCOUNT_EXISTS-no-dominio=AUSENTE irmaos=PAYLOAD_TOO_LARGE,MISSING_FIELDS,INVALID_EMAIL,INVALID_PLAN,INVALID_PAYMENT_METHOD,INVALID_NICHE,INVALID_GATEWAY,INVALID_PRICING,TENANT_INACTIVE,INVALID_ACCOUNT_EMAIL,INVALID_IDEMPOTENCY_KEY,RATE_LIMITED,IDEMPOTENCY_IN_PROGRESS,IDEMPOTENCY_RESULT_UNAVAILABLE,PAYMENT_GATEWAY_NOT_CONFIGURED,PAYMENT_GATEWAY_UNAVAILABLE,PAYMENT_GATEWAY_ERROR,BILLING_IDEMPOTENCY_UNAVAILABLE,IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST,IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING,CHECKOUT_ERROR
+  Dominio    : route-only (dominio de codigos ja aceita ACCOUNT_EXISTS ou curado por cast no proprio route)
+  Alvo(s)    : src/app/api/checkout/create/route.ts (ancora: criacao do tenant; ACCOUNT_EXISTS na linha 141 pos-patch)
+  Analise    : exprs=2 (criacao|requestedEmail antes-ancora@135|customerEmail) idioma=idioma-3args throw=throw-CheckoutError-3args consumers=3 lib=route-only tsc=presente
+  Espec vencedora : 3 spec: kind=return mode=casted casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+  Tentativas julgadas pelo TSC : 3 (cada falha reverteu TODOS os arquivos tocados)
+  Conteudo   : bloqueio 409 ACCOUNT_EXISTS para e-mail ja cadastrado
+               (anti-duplicidade de conta), SEM select, SEM mudanca de gate
+  SHA-256 pos-patch : 59100b28d55b7ae1b76733a8b76f4618ce7c19f608f8a416b17335040e6b7382
+
+[F] TSC (juiz do patch)
+  Status     : VERDE (engine semantica — 3 spec: kind=return mode=casted casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07)
+  Baseline   : 0 erro(s) conhecido(s) na base (tokens arquivo:TScode)
+  Regra      : 0 erros NOVOS exigidos — candidatos reprovados foram revertidos
+
+[G] GATE 17-20 + VITEST (arbitro final — suite completa)
+  Gate file  : VERDE (gate 17-20 isolado passou)
+  Suite      : VERDE ( Test Files  315 passed | 3 skipped (318) |       Tests  3193 passed | 45 skipped (3238))
+
+[H] INSTALACAO
+  Commit LOCAL : a19e0e4795196da1b1092c4487dfa1b1d4f28da6
+  Conteudo     : src/app/api/checkout/create/route.ts, | docs/MG07FIX_RELATORIO.md | docs/MG07FIX_ACHADOS.md
+  Mensagem     : "MG-07 FIX (V8): restaura fail-closed ACCOUNT_EXISTS ... NUNCA push, fail-closed"
+
+[I] VARREDURA FINAL (pos-commit)
+  Selo + ancoras : 17/17 VERDE
+  Novos commits  : 1 (esperado 1)
+  Working tree   : limpa (rastreados)
+
+[J] VERIFICACAO STOP=VERMELHO (regra permanente)
+  [OK] NUNCA push — nenhum comando git remoto executado
+  [OK] Nenhum teste alterado — gate de seguranca intocado
+  [OK] Rollback automatico provado em caminho vermelho (engine/VITEST)
+  [OK] vercel.json intocado | .env valores nunca lidos
+  [OK] Sem rede, sem banco, sem credenciais
+  [OK] Fail-closed nos gates (91/92/96/87/89/93/95/84/88)
+
+[K] CAMPANHA
+  MG-07/9 FIX CONCLUIDO — suite 100% VERDE.
+  Proximo: etapa VPS/deploy da MG-07 (subir e entao PROVAS DE FOGO em producao).
+  Cole no chat: 1) este digest  2) o log do terminal.
+================================================================
+FIM DO DIGEST MG-07 FIX — rc=0 VERDE
+================================================================

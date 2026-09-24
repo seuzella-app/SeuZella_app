@@ -1,0 +1,36 @@
+{
+  "wave": "RUN26-A",
+  "generatedAt": "2026-09-23T01:38:32.592Z",
+  "source": {
+    "capBytes": 5242880,
+    "accepted": 3,
+    "rejected": 3,
+    "read": 6
+  },
+  "cycle": {
+    "evaluated": 3,
+    "remoteOk": 3,
+    "agreements": 2,
+    "mismatches": 1,
+    "inertFailClosed": true
+  },
+  "ledger": {
+    "appendedFirst": 6,
+    "totalFirst": 6,
+    "reRunAppended": 0,
+    "reRunDuplicates": 6
+  },
+  "sink": {
+    "ok": true,
+    "written": 6,
+    "noPayloadNoTenant": true
+  },
+  "invariants": {
+    "tenantHashOnly": true,
+    "payloadNotSerialized": true,
+    "idempotentCycle": true,
+    "networkOnlyMocked": true,
+    "capRespected": true,
+    "secretNeverInReport": true
+  }
+}

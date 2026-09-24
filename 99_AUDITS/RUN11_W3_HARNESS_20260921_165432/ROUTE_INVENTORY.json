@@ -1,0 +1,4334 @@
+{
+  "schema": "RUN11_W3_ROUTE_INVENTORY/v1",
+  "generatedAt": "2026-09-21T19:54:34.353Z",
+  "project": "/Users/marciocau/SeuZella_project",
+  "w2Layer": {
+    "dir": "/Users/marciocau/SeuZella_project/src/lib/infra",
+    "present": {
+      "cache.ts": true,
+      "queue.ts": true,
+      "rate-limit.ts": true,
+      "audit.ts": true,
+      "health.ts": true,
+      "optional-require.ts": true
+    }
+  },
+  "apiRoutes": {
+    "count": 320,
+    "totalHandlers": 376,
+    "routes": [
+      {
+        "rel": "src/app/api/admin/faturamento-zehla/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/admin/faturamento-zehla/route.ts",
+        "domain": "admin",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 61,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/admin/upsell-analytics/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/admin/upsell-analytics/route.ts",
+        "domain": "admin",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 107,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/agent-logs/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/agent-logs/route.ts",
+        "domain": "agent-logs",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 54,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/agents/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/agents/route.ts",
+        "domain": "agents",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 77,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/airb-pro/comparativo/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/airb-pro/comparativo/route.ts",
+        "domain": "airb-pro",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 75,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/airb-pro/rentabilidade/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/airb-pro/rentabilidade/route.ts",
+        "domain": "airb-pro",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 100,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/airb-pro/yield-suggestion/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/airb-pro/yield-suggestion/route.ts",
+        "domain": "airb-pro",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 67,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/airb-test/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/airb-test/route.ts",
+        "domain": "airb-test",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 56,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/alexa/smart-home/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/alexa/smart-home/route.ts",
+        "domain": "alexa",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 55,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/auth/[...nextauth]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/auth/[...nextauth]/route.ts",
+        "domain": "auth",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 6,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/auth/forgot-password/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/auth/forgot-password/route.ts",
+        "domain": "auth",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 63,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/auth/m2m/token/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/auth/m2m/token/route.ts",
+        "domain": "auth",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 120,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/auth/magic-link/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/auth/magic-link/route.ts",
+        "domain": "auth",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 110,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/auth/register/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/auth/register/route.ts",
+        "domain": "auth",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 199,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/auth/reset-password/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/auth/reset-password/route.ts",
+        "domain": "auth",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 55,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/bim-vision/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/bim-vision/route.ts",
+        "domain": "bim-vision",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 96,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/brain/health/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/brain/health/route.ts",
+        "domain": "brain",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 27,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/brain/intents/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/brain/intents/route.ts",
+        "domain": "brain",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 27,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/brain/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/brain/route.ts",
+        "domain": "brain",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 52,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/bulk-whatsapp/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/bulk-whatsapp/route.ts",
+        "domain": "bulk-whatsapp",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 96,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/campaigns/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/campaigns/[id]/route.ts",
+        "domain": "campaigns",
+        "methods": [
+          "GET",
+          "PUT",
+          "DELETE"
+        ],
+        "handlerCount": 3,
+        "lineCount": 163,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/campaigns/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/campaigns/route.ts",
+        "domain": "campaigns",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 97,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/channel-manager/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/channel-manager/route.ts",
+        "domain": "channel-manager",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 82,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/checkout/cancel/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/checkout/cancel/route.ts",
+        "domain": "checkout",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 34,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/checkout/create/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/checkout/create/route.ts",
+        "domain": "checkout",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 265,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/checkout/downgrade/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/checkout/downgrade/route.ts",
+        "domain": "checkout",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 89,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/checkout/pix-status/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/checkout/pix-status/route.ts",
+        "domain": "checkout",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 81,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/checkout/success/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/checkout/success/route.ts",
+        "domain": "checkout",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 114,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/checkout/upgrade/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/checkout/upgrade/route.ts",
+        "domain": "checkout",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 115,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/checkout/webhook/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/checkout/webhook/route.ts",
+        "domain": "checkout",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 114,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/config/keys/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/config/keys/route.ts",
+        "domain": "config",
+        "methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH"
+        ],
+        "handlerCount": 4,
+        "lineCount": 161,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/conversations/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/conversations/route.ts",
+        "domain": "conversations",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 70,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/achievements-check/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/achievements-check/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 96,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/backup-restore-drill/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/backup-restore-drill/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 86,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/booking-daily/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/booking-daily/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 130,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/budget-reset/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/budget-reset/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 75,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-analyze/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-analyze/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 233,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-budget-forecast/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-budget-forecast/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 236,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-churn-predict/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-churn-predict/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 132,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-cleanup/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-cleanup/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 99,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-distill/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-distill/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 92,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-learning/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-learning/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 76,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-night-audit/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-night-audit/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 93,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-night-pentest/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-night-pentest/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 78,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-night-pulse/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-night-pulse/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 74,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-orchestrator/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-orchestrator/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 120,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-refactor-check/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-refactor-check/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 212,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/cerebro-watchdog/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/cerebro-watchdog/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 175,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/dlq-drain/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/dlq-drain/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 40,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/housekeeping-dispatch/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/housekeeping-dispatch/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 61,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/ical-sync/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/ical-sync/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 72,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/learning-cycle/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/learning-cycle/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 64,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/lembrete-checkin/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/lembrete-checkin/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 125,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/cron/linkinbio-expiry-check/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/linkinbio-expiry-check/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 57,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/locks-maintenance/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/locks-maintenance/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 123,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/metrics-snapshot/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/metrics-snapshot/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 173,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/cron/monthly-billing/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/monthly-billing/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 217,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/nps-checkout/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/nps-checkout/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 106,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/cron/ota-token-expiry/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/ota-token-expiry/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 93,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/payment-confirmation/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/payment-confirmation/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 121,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/cron/payment-overdue/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/payment-overdue/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 110,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/plan-expiry/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/plan-expiry/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 96,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/plan-limits-check/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/plan-limits-check/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 78,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/security-scan/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/security-scan/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 61,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/sre-alerts/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/sre-alerts/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 80,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/cron/weekly-report/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/cron/weekly-report/route.ts",
+        "domain": "cron",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 808,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/dashboard/bookings/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/dashboard/bookings/route.ts",
+        "domain": "dashboard",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 18,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/dashboard/overview/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/dashboard/overview/route.ts",
+        "domain": "dashboard",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 28,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/dashboard/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/dashboard/route.ts",
+        "domain": "dashboard",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 136,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/ai-status/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/ai-status/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 101,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb/conversations/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb/conversations/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 174,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb/notifications/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb/notifications/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 228,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb/onboarding/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb/onboarding/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 246,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb/properties/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb/properties/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST",
+          "PATCH",
+          "DELETE"
+        ],
+        "handlerCount": 4,
+        "lineCount": 309,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb/regional/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb/regional/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST",
+          "DELETE"
+        ],
+        "handlerCount": 3,
+        "lineCount": 164,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb/scrape/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb/scrape/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 246,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/commissions/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/commissions/[id]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ],
+        "handlerCount": 2,
+        "lineCount": 103,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/commissions/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/commissions/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 269,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/expenses/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/expenses/[id]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ],
+        "handlerCount": 2,
+        "lineCount": 108,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/expenses/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/expenses/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 204,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/goals/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/goals/[id]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ],
+        "handlerCount": 2,
+        "lineCount": 95,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/goals/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/goals/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 328,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/operations/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/operations/[id]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ],
+        "handlerCount": 2,
+        "lineCount": 115,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/operations/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/operations/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 204,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/airb-pro/reports/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/airb-pro/reports/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 843,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/billing/invoices/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/billing/invoices/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 98,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/booking-sync/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/booking-sync/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 190,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/bookings/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/bookings/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 105,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/cerebro/feedback/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/cerebro/feedback/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 75,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/cerebro/learning/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/cerebro/learning/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 63,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/conversations/[id]/escalate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/conversations/[id]/escalate/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 107,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/conversations/[id]/messages/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/conversations/[id]/messages/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 85,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/conversations/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/conversations/[id]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "PATCH"
+        ],
+        "handlerCount": 2,
+        "lineCount": 119,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/conversations/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/conversations/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "DELETE"
+        ],
+        "handlerCount": 2,
+        "lineCount": 276,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/credits/balance/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/credits/balance/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 30,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/credits/codes/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/credits/codes/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 34,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/credits/create-code/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/credits/create-code/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 42,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/credits/lite-milestone/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/credits/lite-milestone/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 21,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/credits/referrals/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/credits/referrals/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 21,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/credits/track-click/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/credits/track-click/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 44,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/deliveries/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/deliveries/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 392,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/dpo-capture/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/dpo-capture/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 137,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/dynamic-pricing/calculate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/dynamic-pricing/calculate/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 206,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/dynamic-pricing/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/dynamic-pricing/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 251,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/gerente-ia/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/gerente-ia/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 302,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/guest-guide/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/guest-guide/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 308,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/guest-registration/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/guest-registration/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST",
+          "PATCH"
+        ],
+        "handlerCount": 3,
+        "lineCount": 116,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/guests/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/guests/[id]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "PUT",
+          "DELETE"
+        ],
+        "handlerCount": 3,
+        "lineCount": 85,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/guests/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/guests/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 119,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/housekeeping/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/housekeeping/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST",
+          "PATCH"
+        ],
+        "handlerCount": 3,
+        "lineCount": 100,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/learning-stats/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/learning-stats/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 112,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/linkinbio/activate-standalone/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/linkinbio/activate-standalone/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 45,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/linkinbio/purchase-addon/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/linkinbio/purchase-addon/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 60,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/linkinbio/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/linkinbio/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 141,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/linkinbio/stats/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/linkinbio/stats/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 55,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/live-feed/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/live-feed/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 181,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/[id]/panic-revoke/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/[id]/panic-revoke/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 39,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "DELETE"
+        ],
+        "handlerCount": 1,
+        "lineCount": 40,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/[id]/pins/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/[id]/pins/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 164,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/[id]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "PATCH",
+          "DELETE"
+        ],
+        "handlerCount": 3,
+        "lineCount": 81,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/[id]/unlock/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/[id]/unlock/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 63,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/events/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/events/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 31,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/oauth/[provider]/callback/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/oauth/[provider]/callback/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 91,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/oauth/[provider]/devices/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/oauth/[provider]/devices/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 72,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/oauth/[provider]/start/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/oauth/[provider]/start/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 65,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/locks/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/locks/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 86,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/magic-link/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/magic-link/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 186,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/meta-connect/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/meta-connect/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 103,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/metrics/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/metrics/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 162,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/mobile/state/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/mobile/state/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 84,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/notifications/read-all/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/notifications/read-all/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "PUT"
+        ],
+        "handlerCount": 1,
+        "lineCount": 31,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/notifications/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/notifications/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "PUT"
+        ],
+        "handlerCount": 2,
+        "lineCount": 68,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/notifications/v2/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/notifications/v2/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST",
+          "PUT"
+        ],
+        "handlerCount": 3,
+        "lineCount": 233,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/onboarding-wizard/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/onboarding-wizard/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 290,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/partner-program/badge/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/partner-program/badge/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 35,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/partner-program/claim/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/partner-program/claim/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 41,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/partner-program/status/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/partner-program/status/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 15,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/partner-program/waitlist/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/partner-program/waitlist/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 36,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/personality/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/personality/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 131,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/property-name/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/property-name/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 61,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/realtime/tenant-state/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/realtime/tenant-state/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 229,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/ddc/revenue-details/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/revenue-details/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 136,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/runtime-version/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/runtime-version/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 32,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/simulate-message/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/simulate-message/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 66,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/special-dates/overrides/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/special-dates/overrides/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 22,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/special-dates/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/special-dates/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 60,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 40,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 39,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/training/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/training/[id]/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "POST",
+          "PUT",
+          "DELETE"
+        ],
+        "handlerCount": 3,
+        "lineCount": 175,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/training/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/training/route.ts",
+        "domain": "ddc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 67,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/upsell/charge/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/upsell/charge/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 55,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/upsell/metrics/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/upsell/metrics/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 69,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/upsell/payment-method/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/upsell/payment-method/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 43,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ddc/upsell/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ddc/upsell/route.ts",
+        "domain": "ddc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 120,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/debug-agent/github/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/debug-agent/github/route.ts",
+        "domain": "debug-agent",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 51,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/debug-agent/knowledge/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/debug-agent/knowledge/route.ts",
+        "domain": "debug-agent",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 48,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/debug-agent/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/debug-agent/route.ts",
+        "domain": "debug-agent",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 75,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/diagnose/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/diagnose/route.ts",
+        "domain": "diagnose",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 52,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/download/[filename]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/download/[filename]/route.ts",
+        "domain": "download",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 78,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/export/leads/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/export/leads/route.ts",
+        "domain": "export",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 67,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/feedback/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/feedback/route.ts",
+        "domain": "feedback",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 58,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/feedback/stats/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/feedback/stats/route.ts",
+        "domain": "feedback",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 64,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/guide/[slug]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/guide/[slug]/route.ts",
+        "domain": "guide",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 337,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/health/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/health/route.ts",
+        "domain": "health",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 68,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/hunt/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/hunt/route.ts",
+        "domain": "hunt",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 157,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/hunt-stream/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/hunt-stream/route.ts",
+        "domain": "hunt-stream",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 103,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/ical/[syncToken]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/ical/[syncToken]/route.ts",
+        "domain": "ical",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 30,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/integrations/ical/[roomId]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/integrations/ical/[roomId]/route.ts",
+        "domain": "integrations",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 74,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/integrations/sync/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/integrations/sync/route.ts",
+        "domain": "integrations",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 87,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/internal/flush-buffer/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/internal/flush-buffer/route.ts",
+        "domain": "internal",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 32,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/knowledge/generate-embeddings/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/knowledge/generate-embeddings/route.ts",
+        "domain": "knowledge",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 72,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/landing/chat/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/landing/chat/route.ts",
+        "domain": "landing",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 36,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/landing/contact/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/landing/contact/route.ts",
+        "domain": "landing",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 172,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/leads/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/leads/[id]/route.ts",
+        "domain": "leads",
+        "methods": [
+          "GET",
+          "PUT",
+          "DELETE"
+        ],
+        "handlerCount": 3,
+        "lineCount": 148,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/leads/analytics/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/leads/analytics/route.ts",
+        "domain": "leads",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 52,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/leads/converted-pousadas/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/leads/converted-pousadas/route.ts",
+        "domain": "leads",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 103,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/leads/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/leads/route.ts",
+        "domain": "leads",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 153,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/leads/seed/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/leads/seed/route.ts",
+        "domain": "leads",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 39,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/lgpd/consent/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/lgpd/consent/route.ts",
+        "domain": "lgpd",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 68,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/lgpd/delete-my-data/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/lgpd/delete-my-data/route.ts",
+        "domain": "lgpd",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 77,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/lgpd/dpa/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/lgpd/dpa/route.ts",
+        "domain": "lgpd",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 24,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/lgpd/export-my-data/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/lgpd/export-my-data/route.ts",
+        "domain": "lgpd",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 43,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/lgpd/forget-guest/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/lgpd/forget-guest/route.ts",
+        "domain": "lgpd",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 106,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/meta-costs/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/meta-costs/route.ts",
+        "domain": "meta-costs",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 40,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/mobile/devices-tracking/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/mobile/devices-tracking/route.ts",
+        "domain": "mobile",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 620,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/mobile/devices-tracking-v2/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/mobile/devices-tracking-v2/route.ts",
+        "domain": "mobile",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 99,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/monitoring/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/monitoring/route.ts",
+        "domain": "monitoring",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 85,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/onboarding/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/onboarding/route.ts",
+        "domain": "onboarding",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 147,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/pinns-clifford/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/pinns-clifford/route.ts",
+        "domain": "pinns-clifford",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 93,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/properties/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/properties/[id]/route.ts",
+        "domain": "properties",
+        "methods": [
+          "GET",
+          "PUT",
+          "DELETE"
+        ],
+        "handlerCount": 3,
+        "lineCount": 131,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/properties/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/properties/route.ts",
+        "domain": "properties",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 134,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/proxy/[...path]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/proxy/[...path]/route.ts",
+        "domain": "proxy",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 136,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/pulse/io/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/pulse/io/route.ts",
+        "domain": "pulse",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 26,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/push/subscribe/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/push/subscribe/route.ts",
+        "domain": "push",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 50,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/push/unsubscribe/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/push/unsubscribe/route.ts",
+        "domain": "push",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 38,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/push/vapid-public-key/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/push/vapid-public-key/route.ts",
+        "domain": "push",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 25,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/readiness/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/readiness/route.ts",
+        "domain": "readiness",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 87,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/roi/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/roi/route.ts",
+        "domain": "roi",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 102,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/route.ts",
+        "domain": "route.ts",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 29,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/router/budget/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/router/budget/route.ts",
+        "domain": "router",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 137,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/router/providers/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/router/providers/route.ts",
+        "domain": "router",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 110,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/scraping/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/scraping/route.ts",
+        "domain": "scraping",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 57,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/security/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/security/route.ts",
+        "domain": "security",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 52,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/swipe-templates/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/swipe-templates/route.ts",
+        "domain": "swipe-templates",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 48,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/targets/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/targets/[id]/route.ts",
+        "domain": "targets",
+        "methods": [
+          "GET",
+          "PUT",
+          "DELETE"
+        ],
+        "handlerCount": 3,
+        "lineCount": 164,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/targets/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/targets/route.ts",
+        "domain": "targets",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 99,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/telemetry/ingest/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/telemetry/ingest/route.ts",
+        "domain": "telemetry",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 80,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/telemetry/landing/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/telemetry/landing/route.ts",
+        "domain": "telemetry",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 66,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/telemetry/query/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/telemetry/query/route.ts",
+        "domain": "telemetry",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 89,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/tenants/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/tenants/route.ts",
+        "domain": "tenants",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 32,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/v1/guest/ddc/notifications/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/v1/guest/ddc/notifications/route.ts",
+        "domain": "v1",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 181,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/v1/guest/ddc/overview/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/v1/guest/ddc/overview/route.ts",
+        "domain": "v1",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 294,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/v1/latency/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/v1/latency/route.ts",
+        "domain": "v1",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 58,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/v1/loops/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/v1/loops/route.ts",
+        "domain": "v1",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 34,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/v1/metrics/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/v1/metrics/route.ts",
+        "domain": "v1",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 42,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/v1/reservations/[id]/payment/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/v1/reservations/[id]/payment/route.ts",
+        "domain": "v1",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 69,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/v1/reservations/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/v1/reservations/route.ts",
+        "domain": "v1",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 166,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/webgl-bridge/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/webgl-bridge/route.ts",
+        "domain": "webgl-bridge",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 86,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/webhook-whatsapp/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/webhook-whatsapp/route.ts",
+        "domain": "webhook-whatsapp",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 106,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/webhooks/asaas/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/webhooks/asaas/route.ts",
+        "domain": "webhooks",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 34,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/webhooks/booking-com/reviews/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/webhooks/booking-com/reviews/route.ts",
+        "domain": "webhooks",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 143,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/webhooks/mercadopago/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/webhooks/mercadopago/route.ts",
+        "domain": "webhooks",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 48,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/webhooks/payment/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/webhooks/payment/route.ts",
+        "domain": "webhooks",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 777,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/webhooks/whatsapp/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/webhooks/whatsapp/route.ts",
+        "domain": "webhooks",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 1012,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/yield/calculate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/yield/calculate/route.ts",
+        "domain": "yield",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 177,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/yield/profit-summary/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/yield/profit-summary/route.ts",
+        "domain": "yield",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 121,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/adapters/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/adapters/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 25,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/agents/[id]/run/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/agents/[id]/run/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 45,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/agents/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/agents/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 25,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/airbnb/oauth/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/airbnb/oauth/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 134,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/airbnb/webhook/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/airbnb/webhook/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 71,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/backup-drill/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/backup-drill/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 155,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/brain/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/brain/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 119,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/burn-rate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/burn-rate/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 603,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/campaigns/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/campaigns/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 34,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/analyses/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/analyses/route.ts",
+        "domain": "zcc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 206,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/anomalies/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/anomalies/route.ts",
+        "domain": "zcc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 183,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/ask/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/ask/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 100,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/llmops/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/llmops/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 27,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/ml-stats/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/ml-stats/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 82,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/prompt-ide/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/prompt-ide/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 109,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/refactors/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/refactors/route.ts",
+        "domain": "zcc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 227,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/runbook/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/runbook/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 238,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/status/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/status/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 761,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/stream/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/stream/route.ts",
+        "domain": "zcc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 210,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/test-alert/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/test-alert/route.ts",
+        "domain": "zcc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 97,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cerebro/workflows/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cerebro/workflows/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 63,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/code-reviewer/apply/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/code-reviewer/apply/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 118,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/code-reviewer/config/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/code-reviewer/config/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "PUT"
+        ],
+        "handlerCount": 2,
+        "lineCount": 130,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/code-reviewer/review/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/code-reviewer/review/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 78,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/code-reviewer/reviews/[id]/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/code-reviewer/reviews/[id]/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "PATCH"
+        ],
+        "handlerCount": 2,
+        "lineCount": 102,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/code-reviewer/reviews/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/code-reviewer/reviews/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 72,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/code-reviewer/stats/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/code-reviewer/stats/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 55,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cognitive-bus/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cognitive-bus/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 27,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cognitive-memory/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cognitive-memory/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 35,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/conductor/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/conductor/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 65,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/consent/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/consent/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 185,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cortex/growth/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cortex/growth/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 24,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/cortex/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/cortex/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 59,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/dashboard-stats/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/dashboard-stats/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 29,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/digital-twin/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/digital-twin/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 40,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/dspy-compiler/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/dspy-compiler/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 68,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/export/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/export/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 517,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/finance/expenses/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/finance/expenses/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 541,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/github/apply-pr/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/github/apply-pr/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 50,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/github/credentials/[id]/revoke/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/github/credentials/[id]/revoke/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 51,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/github/credentials/[id]/rotate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/github/credentials/[id]/rotate/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 61,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/github/credentials/audit/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/github/credentials/audit/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 64,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/github/credentials/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/github/credentials/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 122,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/github/credentials/validate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/github/credentials/validate/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 59,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/github/expiry-check/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/github/expiry-check/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 46,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/github/webhook/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/github/webhook/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 440,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/zcc/health/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/health/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 24,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/inference-simulation/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/inference-simulation/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 37,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/infra/scaling-ruler/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/infra/scaling-ruler/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 43,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/infrastructure/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/infrastructure/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 145,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/leads/brain-analyze/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/leads/brain-analyze/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 92,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/metrics/financial/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/metrics/financial/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 347,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/metrics/geographic/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/metrics/geographic/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 256,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/metrics/periods/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/metrics/periods/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 652,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/metrics/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/metrics/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 98,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/national-simulator/compare/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/national-simulator/compare/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 31,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/national-simulator/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/national-simulator/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 49,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/night-audit/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/night-audit/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 97,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/night-audit/vulns/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/night-audit/vulns/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 121,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/observability/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/observability/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 32,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/onboarding-tracker/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/onboarding-tracker/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 156,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/partner-program/reopen/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/partner-program/reopen/route.ts",
+        "domain": "zcc",
+        "methods": [],
+        "handlerCount": 0,
+        "lineCount": 23,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/personas/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/personas/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 14,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/pulse/analyze/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/pulse/analyze/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 98,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/pulse/capture/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/pulse/capture/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 75,
+        "infraImports": [],
+        "risks": [
+          "console.log"
+        ]
+      },
+      {
+        "rel": "src/app/api/zcc/sales-funnel/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/sales-funnel/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 592,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/sandbox/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/sandbox/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 219,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/security/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/security/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 110,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/semantica/conflicts/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/semantica/conflicts/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 72,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/semantica/decisions/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/semantica/decisions/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 153,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/semantica/export/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/semantica/export/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 267,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/semantica/graph/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/semantica/graph/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 98,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/semantica/ingest/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/semantica/ingest/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 77,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/simulation-lab/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/simulation-lab/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 39,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/stats/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/stats/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 36,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/synthetic-brazil/generate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/synthetic-brazil/generate/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 49,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/synthetic-brazil/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/synthetic-brazil/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 17,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/targets/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/targets/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 36,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/tenants/[id]/status/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/tenants/[id]/status/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "PATCH"
+        ],
+        "handlerCount": 1,
+        "lineCount": 139,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/tenants/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/tenants/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 196,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/vps-preflight/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/vps-preflight/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 152,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/whatsapp/simulate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/whatsapp/simulate/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 99,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/ze-code/apply/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 255,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/ze-code/bottlenecks/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/ze-code/bottlenecks/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 116,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/ze-code/evolve/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/ze-code/evolve/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 101,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/ze-code/gaps/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/ze-code/gaps/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 116,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/ze-code/refactors/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/ze-code/refactors/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 181,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/ze-code/review/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/ze-code/review/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "handlerCount": 2,
+        "lineCount": 131,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/ze-code/stats/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/ze-code/stats/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET"
+        ],
+        "handlerCount": 1,
+        "lineCount": 43,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zcc/zgs/decisions/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zcc/zgs/decisions/route.ts",
+        "domain": "zcc",
+        "methods": [
+          "GET",
+          "PATCH"
+        ],
+        "handlerCount": 2,
+        "lineCount": 63,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zelador-suporte/chat/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zelador-suporte/chat/route.ts",
+        "domain": "zelador-suporte",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 39,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zelador-suporte/consultoria/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zelador-suporte/consultoria/route.ts",
+        "domain": "zelador-suporte",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 36,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zelador-suporte/ticket/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zelador-suporte/ticket/route.ts",
+        "domain": "zelador-suporte",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 76,
+        "infraImports": [],
+        "risks": []
+      },
+      {
+        "rel": "src/app/api/zella/simulate/route.ts",
+        "abs": "/Users/marciocau/SeuZella_project/src/app/api/zella/simulate/route.ts",
+        "domain": "zella",
+        "methods": [
+          "POST"
+        ],
+        "handlerCount": 1,
+        "lineCount": 286,
+        "infraImports": [],
+        "risks": []
+      }
+    ]
+  },
+  "trpcRouters": {
+    "count": 0,
+    "routers": []
+  },
+  "byDomain": {
+    "admin": [
+      "src/app/api/admin/faturamento-zehla/route.ts",
+      "src/app/api/admin/upsell-analytics/route.ts"
+    ],
+    "agent-logs": [
+      "src/app/api/agent-logs/route.ts"
+    ],
+    "agents": [
+      "src/app/api/agents/route.ts"
+    ],
+    "airb-pro": [
+      "src/app/api/airb-pro/comparativo/route.ts",
+      "src/app/api/airb-pro/rentabilidade/route.ts",
+      "src/app/api/airb-pro/yield-suggestion/route.ts"
+    ],
+    "airb-test": [
+      "src/app/api/airb-test/route.ts"
+    ],
+    "alexa": [
+      "src/app/api/alexa/smart-home/route.ts"
+    ],
+    "auth": [
+      "src/app/api/auth/[...nextauth]/route.ts",
+      "src/app/api/auth/forgot-password/route.ts",
+      "src/app/api/auth/m2m/token/route.ts",
+      "src/app/api/auth/magic-link/route.ts",
+      "src/app/api/auth/register/route.ts",
+      "src/app/api/auth/reset-password/route.ts"
+    ],
+    "bim-vision": [
+      "src/app/api/bim-vision/route.ts"
+    ],
+    "brain": [
+      "src/app/api/brain/health/route.ts",
+      "src/app/api/brain/intents/route.ts",
+      "src/app/api/brain/route.ts"
+    ],
+    "bulk-whatsapp": [
+      "src/app/api/bulk-whatsapp/route.ts"
+    ],
+    "campaigns": [
+      "src/app/api/campaigns/[id]/route.ts",
+      "src/app/api/campaigns/route.ts"
+    ],
+    "channel-manager": [
+      "src/app/api/channel-manager/route.ts"
+    ],
+    "checkout": [
+      "src/app/api/checkout/cancel/route.ts",
+      "src/app/api/checkout/create/route.ts",
+      "src/app/api/checkout/downgrade/route.ts",
+      "src/app/api/checkout/pix-status/route.ts",
+      "src/app/api/checkout/success/route.ts",
+      "src/app/api/checkout/upgrade/route.ts",
+      "src/app/api/checkout/webhook/route.ts"
+    ],
+    "config": [
+      "src/app/api/config/keys/route.ts"
+    ],
+    "conversations": [
+      "src/app/api/conversations/route.ts"
+    ],
+    "cron": [
+      "src/app/api/cron/achievements-check/route.ts",
+      "src/app/api/cron/backup-restore-drill/route.ts",
+      "src/app/api/cron/booking-daily/route.ts",
+      "src/app/api/cron/budget-reset/route.ts",
+      "src/app/api/cron/cerebro-analyze/route.ts",
+      "src/app/api/cron/cerebro-budget-forecast/route.ts",
+      "src/app/api/cron/cerebro-churn-predict/route.ts",
+      "src/app/api/cron/cerebro-cleanup/route.ts",
+      "src/app/api/cron/cerebro-distill/route.ts",
+      "src/app/api/cron/cerebro-learning/route.ts",
+      "src/app/api/cron/cerebro-night-audit/route.ts",
+      "src/app/api/cron/cerebro-night-pentest/route.ts",
+      "src/app/api/cron/cerebro-night-pulse/route.ts",
+      "src/app/api/cron/cerebro-orchestrator/route.ts",
+      "src/app/api/cron/cerebro-refactor-check/route.ts",
+      "src/app/api/cron/cerebro-watchdog/route.ts",
+      "src/app/api/cron/dlq-drain/route.ts",
+      "src/app/api/cron/housekeeping-dispatch/route.ts",
+      "src/app/api/cron/ical-sync/route.ts",
+      "src/app/api/cron/learning-cycle/route.ts",
+      "src/app/api/cron/lembrete-checkin/route.ts",
+      "src/app/api/cron/linkinbio-expiry-check/route.ts",
+      "src/app/api/cron/locks-maintenance/route.ts",
+      "src/app/api/cron/metrics-snapshot/route.ts",
+      "src/app/api/cron/monthly-billing/route.ts",
+      "src/app/api/cron/nps-checkout/route.ts",
+      "src/app/api/cron/ota-token-expiry/route.ts",
+      "src/app/api/cron/payment-confirmation/route.ts",
+      "src/app/api/cron/payment-overdue/route.ts",
+      "src/app/api/cron/plan-expiry/route.ts",
+      "src/app/api/cron/plan-limits-check/route.ts",
+      "src/app/api/cron/security-scan/route.ts",
+      "src/app/api/cron/sre-alerts/route.ts",
+      "src/app/api/cron/weekly-report/route.ts"
+    ],
+    "dashboard": [
+      "src/app/api/dashboard/bookings/route.ts",
+      "src/app/api/dashboard/overview/route.ts",
+      "src/app/api/dashboard/route.ts"
+    ],
+    "ddc": [
+      "src/app/api/ddc/ai-status/route.ts",
+      "src/app/api/ddc/airb/conversations/route.ts",
+      "src/app/api/ddc/airb/notifications/route.ts",
+      "src/app/api/ddc/airb/onboarding/route.ts",
+      "src/app/api/ddc/airb/properties/route.ts",
+      "src/app/api/ddc/airb/regional/route.ts",
+      "src/app/api/ddc/airb/scrape/route.ts",
+      "src/app/api/ddc/airb-pro/commissions/[id]/route.ts",
+      "src/app/api/ddc/airb-pro/commissions/route.ts",
+      "src/app/api/ddc/airb-pro/expenses/[id]/route.ts",
+      "src/app/api/ddc/airb-pro/expenses/route.ts",
+      "src/app/api/ddc/airb-pro/goals/[id]/route.ts",
+      "src/app/api/ddc/airb-pro/goals/route.ts",
+      "src/app/api/ddc/airb-pro/operations/[id]/route.ts",
+      "src/app/api/ddc/airb-pro/operations/route.ts",
+      "src/app/api/ddc/airb-pro/reports/route.ts",
+      "src/app/api/ddc/billing/invoices/route.ts",
+      "src/app/api/ddc/booking-sync/route.ts",
+      "src/app/api/ddc/bookings/route.ts",
+      "src/app/api/ddc/cerebro/feedback/route.ts",
+      "src/app/api/ddc/cerebro/learning/route.ts",
+      "src/app/api/ddc/conversations/[id]/escalate/route.ts",
+      "src/app/api/ddc/conversations/[id]/messages/route.ts",
+      "src/app/api/ddc/conversations/[id]/route.ts",
+      "src/app/api/ddc/conversations/route.ts",
+      "src/app/api/ddc/credits/balance/route.ts",
+      "src/app/api/ddc/credits/codes/route.ts",
+      "src/app/api/ddc/credits/create-code/route.ts",
+      "src/app/api/ddc/credits/lite-milestone/route.ts",
+      "src/app/api/ddc/credits/referrals/route.ts",
+      "src/app/api/ddc/credits/track-click/route.ts",
+      "src/app/api/ddc/deliveries/route.ts",
+      "src/app/api/ddc/dpo-capture/route.ts",
+      "src/app/api/ddc/dynamic-pricing/calculate/route.ts",
+      "src/app/api/ddc/dynamic-pricing/route.ts",
+      "src/app/api/ddc/gerente-ia/route.ts",
+      "src/app/api/ddc/guest-guide/route.ts",
+      "src/app/api/ddc/guest-registration/route.ts",
+      "src/app/api/ddc/guests/[id]/route.ts",
+      "src/app/api/ddc/guests/route.ts",
+      "src/app/api/ddc/housekeeping/route.ts",
+      "src/app/api/ddc/learning-stats/route.ts",
+      "src/app/api/ddc/linkinbio/activate-standalone/route.ts",
+      "src/app/api/ddc/linkinbio/purchase-addon/route.ts",
+      "src/app/api/ddc/linkinbio/route.ts",
+      "src/app/api/ddc/linkinbio/stats/route.ts",
+      "src/app/api/ddc/live-feed/route.ts",
+      "src/app/api/ddc/locks/[id]/panic-revoke/route.ts",
+      "src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts",
+      "src/app/api/ddc/locks/[id]/pins/route.ts",
+      "src/app/api/ddc/locks/[id]/route.ts",
+      "src/app/api/ddc/locks/[id]/unlock/route.ts",
+      "src/app/api/ddc/locks/events/route.ts",
+      "src/app/api/ddc/locks/oauth/[provider]/callback/route.ts",
+      "src/app/api/ddc/locks/oauth/[provider]/devices/route.ts",
+      "src/app/api/ddc/locks/oauth/[provider]/start/route.ts",
+      "src/app/api/ddc/locks/route.ts",
+      "src/app/api/ddc/magic-link/route.ts",
+      "src/app/api/ddc/meta-connect/route.ts",
+      "src/app/api/ddc/metrics/route.ts",
+      "src/app/api/ddc/mobile/state/route.ts",
+      "src/app/api/ddc/notifications/read-all/route.ts",
+      "src/app/api/ddc/notifications/route.ts",
+      "src/app/api/ddc/notifications/v2/route.ts",
+      "src/app/api/ddc/onboarding-wizard/route.ts",
+      "src/app/api/ddc/partner-program/badge/route.ts",
+      "src/app/api/ddc/partner-program/claim/route.ts",
+      "src/app/api/ddc/partner-program/status/route.ts",
+      "src/app/api/ddc/partner-program/waitlist/route.ts",
+      "src/app/api/ddc/personality/route.ts",
+      "src/app/api/ddc/property-name/route.ts",
+      "src/app/api/ddc/realtime/tenant-state/route.ts",
+      "src/app/api/ddc/revenue-details/route.ts",
+      "src/app/api/ddc/runtime-version/route.ts",
+      "src/app/api/ddc/simulate-message/route.ts",
+      "src/app/api/ddc/special-dates/overrides/route.ts",
+      "src/app/api/ddc/special-dates/route.ts",
+      "src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts",
+      "src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts",
+      "src/app/api/ddc/training/[id]/route.ts",
+      "src/app/api/ddc/training/route.ts",
+      "src/app/api/ddc/upsell/charge/route.ts",
+      "src/app/api/ddc/upsell/metrics/route.ts",
+      "src/app/api/ddc/upsell/payment-method/route.ts",
+      "src/app/api/ddc/upsell/route.ts"
+    ],
+    "debug-agent": [
+      "src/app/api/debug-agent/github/route.ts",
+      "src/app/api/debug-agent/knowledge/route.ts",
+      "src/app/api/debug-agent/route.ts"
+    ],
+    "diagnose": [
+      "src/app/api/diagnose/route.ts"
+    ],
+    "download": [
+      "src/app/api/download/[filename]/route.ts"
+    ],
+    "export": [
+      "src/app/api/export/leads/route.ts"
+    ],
+    "feedback": [
+      "src/app/api/feedback/route.ts",
+      "src/app/api/feedback/stats/route.ts"
+    ],
+    "guide": [
+      "src/app/api/guide/[slug]/route.ts"
+    ],
+    "health": [
+      "src/app/api/health/route.ts"
+    ],
+    "hunt": [
+      "src/app/api/hunt/route.ts"
+    ],
+    "hunt-stream": [
+      "src/app/api/hunt-stream/route.ts"
+    ],
+    "ical": [
+      "src/app/api/ical/[syncToken]/route.ts"
+    ],
+    "integrations": [
+      "src/app/api/integrations/ical/[roomId]/route.ts",
+      "src/app/api/integrations/sync/route.ts"
+    ],
+    "internal": [
+      "src/app/api/internal/flush-buffer/route.ts"
+    ],
+    "knowledge": [
+      "src/app/api/knowledge/generate-embeddings/route.ts"
+    ],
+    "landing": [
+      "src/app/api/landing/chat/route.ts",
+      "src/app/api/landing/contact/route.ts"
+    ],
+    "leads": [
+      "src/app/api/leads/[id]/route.ts",
+      "src/app/api/leads/analytics/route.ts",
+      "src/app/api/leads/converted-pousadas/route.ts",
+      "src/app/api/leads/route.ts",
+      "src/app/api/leads/seed/route.ts"
+    ],
+    "lgpd": [
+      "src/app/api/lgpd/consent/route.ts",
+      "src/app/api/lgpd/delete-my-data/route.ts",
+      "src/app/api/lgpd/dpa/route.ts",
+      "src/app/api/lgpd/export-my-data/route.ts",
+      "src/app/api/lgpd/forget-guest/route.ts"
+    ],
+    "meta-costs": [
+      "src/app/api/meta-costs/route.ts"
+    ],
+    "mobile": [
+      "src/app/api/mobile/devices-tracking/route.ts",
+      "src/app/api/mobile/devices-tracking-v2/route.ts"
+    ],
+    "monitoring": [
+      "src/app/api/monitoring/route.ts"
+    ],
+    "onboarding": [
+      "src/app/api/onboarding/route.ts"
+    ],
+    "pinns-clifford": [
+      "src/app/api/pinns-clifford/route.ts"
+    ],
+    "properties": [
+      "src/app/api/properties/[id]/route.ts",
+      "src/app/api/properties/route.ts"
+    ],
+    "proxy": [
+      "src/app/api/proxy/[...path]/route.ts"
+    ],
+    "pulse": [
+      "src/app/api/pulse/io/route.ts"
+    ],
+    "push": [
+      "src/app/api/push/subscribe/route.ts",
+      "src/app/api/push/unsubscribe/route.ts",
+      "src/app/api/push/vapid-public-key/route.ts"
+    ],
+    "readiness": [
+      "src/app/api/readiness/route.ts"
+    ],
+    "roi": [
+      "src/app/api/roi/route.ts"
+    ],
+    "route.ts": [
+      "src/app/api/route.ts"
+    ],
+    "router": [
+      "src/app/api/router/budget/route.ts",
+      "src/app/api/router/providers/route.ts"
+    ],
+    "scraping": [
+      "src/app/api/scraping/route.ts"
+    ],
+    "security": [
+      "src/app/api/security/route.ts"
+    ],
+    "swipe-templates": [
+      "src/app/api/swipe-templates/route.ts"
+    ],
+    "targets": [
+      "src/app/api/targets/[id]/route.ts",
+      "src/app/api/targets/route.ts"
+    ],
+    "telemetry": [
+      "src/app/api/telemetry/ingest/route.ts",
+      "src/app/api/telemetry/landing/route.ts",
+      "src/app/api/telemetry/query/route.ts"
+    ],
+    "tenants": [
+      "src/app/api/tenants/route.ts"
+    ],
+    "v1": [
+      "src/app/api/v1/guest/ddc/notifications/route.ts",
+      "src/app/api/v1/guest/ddc/overview/route.ts",
+      "src/app/api/v1/latency/route.ts",
+      "src/app/api/v1/loops/route.ts",
+      "src/app/api/v1/metrics/route.ts",
+      "src/app/api/v1/reservations/[id]/payment/route.ts",
+      "src/app/api/v1/reservations/route.ts"
+    ],
+    "webgl-bridge": [
+      "src/app/api/webgl-bridge/route.ts"
+    ],
+    "webhook-whatsapp": [
+      "src/app/api/webhook-whatsapp/route.ts"
+    ],
+    "webhooks": [
+      "src/app/api/webhooks/asaas/route.ts",
+      "src/app/api/webhooks/booking-com/reviews/route.ts",
+      "src/app/api/webhooks/mercadopago/route.ts",
+      "src/app/api/webhooks/payment/route.ts",
+      "src/app/api/webhooks/whatsapp/route.ts"
+    ],
+    "yield": [
+      "src/app/api/yield/calculate/route.ts",
+      "src/app/api/yield/profit-summary/route.ts"
+    ],
+    "zcc": [
+      "src/app/api/zcc/adapters/route.ts",
+      "src/app/api/zcc/agents/[id]/run/route.ts",
+      "src/app/api/zcc/agents/route.ts",
+      "src/app/api/zcc/airbnb/oauth/route.ts",
+      "src/app/api/zcc/airbnb/webhook/route.ts",
+      "src/app/api/zcc/backup-drill/route.ts",
+      "src/app/api/zcc/brain/route.ts",
+      "src/app/api/zcc/burn-rate/route.ts",
+      "src/app/api/zcc/campaigns/route.ts",
+      "src/app/api/zcc/cerebro/analyses/route.ts",
+      "src/app/api/zcc/cerebro/anomalies/route.ts",
+      "src/app/api/zcc/cerebro/ask/route.ts",
+      "src/app/api/zcc/cerebro/llmops/route.ts",
+      "src/app/api/zcc/cerebro/ml-stats/route.ts",
+      "src/app/api/zcc/cerebro/prompt-ide/route.ts",
+      "src/app/api/zcc/cerebro/refactors/route.ts",
+      "src/app/api/zcc/cerebro/runbook/route.ts",
+      "src/app/api/zcc/cerebro/status/route.ts",
+      "src/app/api/zcc/cerebro/stream/route.ts",
+      "src/app/api/zcc/cerebro/test-alert/route.ts",
+      "src/app/api/zcc/cerebro/workflows/route.ts",
+      "src/app/api/zcc/code-reviewer/apply/route.ts",
+      "src/app/api/zcc/code-reviewer/config/route.ts",
+      "src/app/api/zcc/code-reviewer/review/route.ts",
+      "src/app/api/zcc/code-reviewer/reviews/[id]/route.ts",
+      "src/app/api/zcc/code-reviewer/reviews/route.ts",
+      "src/app/api/zcc/code-reviewer/stats/route.ts",
+      "src/app/api/zcc/cognitive-bus/route.ts",
+      "src/app/api/zcc/cognitive-memory/route.ts",
+      "src/app/api/zcc/conductor/route.ts",
+      "src/app/api/zcc/consent/route.ts",
+      "src/app/api/zcc/cortex/growth/route.ts",
+      "src/app/api/zcc/cortex/route.ts",
+      "src/app/api/zcc/dashboard-stats/route.ts",
+      "src/app/api/zcc/digital-twin/route.ts",
+      "src/app/api/zcc/dspy-compiler/route.ts",
+      "src/app/api/zcc/export/route.ts",
+      "src/app/api/zcc/finance/expenses/route.ts",
+      "src/app/api/zcc/github/apply-pr/route.ts",
+      "src/app/api/zcc/github/credentials/[id]/revoke/route.ts",
+      "src/app/api/zcc/github/credentials/[id]/rotate/route.ts",
+      "src/app/api/zcc/github/credentials/audit/route.ts",
+      "src/app/api/zcc/github/credentials/route.ts",
+      "src/app/api/zcc/github/credentials/validate/route.ts",
+      "src/app/api/zcc/github/expiry-check/route.ts",
+      "src/app/api/zcc/github/webhook/route.ts",
+      "src/app/api/zcc/health/route.ts",
+      "src/app/api/zcc/inference-simulation/route.ts",
+      "src/app/api/zcc/infra/scaling-ruler/route.ts",
+      "src/app/api/zcc/infrastructure/route.ts",
+      "src/app/api/zcc/leads/brain-analyze/route.ts",
+      "src/app/api/zcc/metrics/financial/route.ts",
+      "src/app/api/zcc/metrics/geographic/route.ts",
+      "src/app/api/zcc/metrics/periods/route.ts",
+      "src/app/api/zcc/metrics/route.ts",
+      "src/app/api/zcc/national-simulator/compare/route.ts",
+      "src/app/api/zcc/national-simulator/route.ts",
+      "src/app/api/zcc/night-audit/route.ts",
+      "src/app/api/zcc/night-audit/vulns/route.ts",
+      "src/app/api/zcc/observability/route.ts",
+      "src/app/api/zcc/onboarding-tracker/route.ts",
+      "src/app/api/zcc/partner-program/reopen/route.ts",
+      "src/app/api/zcc/personas/route.ts",
+      "src/app/api/zcc/pulse/analyze/route.ts",
+      "src/app/api/zcc/pulse/capture/route.ts",
+      "src/app/api/zcc/sales-funnel/route.ts",
+      "src/app/api/zcc/sandbox/route.ts",
+      "src/app/api/zcc/security/route.ts",
+      "src/app/api/zcc/semantica/conflicts/route.ts",
+      "src/app/api/zcc/semantica/decisions/route.ts",
+      "src/app/api/zcc/semantica/export/route.ts",
+      "src/app/api/zcc/semantica/graph/route.ts",
+      "src/app/api/zcc/semantica/ingest/route.ts",
+      "src/app/api/zcc/simulation-lab/route.ts",
+      "src/app/api/zcc/stats/route.ts",
+      "src/app/api/zcc/synthetic-brazil/generate/route.ts",
+      "src/app/api/zcc/synthetic-brazil/route.ts",
+      "src/app/api/zcc/targets/route.ts",
+      "src/app/api/zcc/tenants/[id]/status/route.ts",
+      "src/app/api/zcc/tenants/route.ts",
+      "src/app/api/zcc/vps-preflight/route.ts",
+      "src/app/api/zcc/whatsapp/simulate/route.ts",
+      "src/app/api/zcc/ze-code/apply/route.ts",
+      "src/app/api/zcc/ze-code/bottlenecks/route.ts",
+      "src/app/api/zcc/ze-code/evolve/route.ts",
+      "src/app/api/zcc/ze-code/gaps/route.ts",
+      "src/app/api/zcc/ze-code/refactors/route.ts",
+      "src/app/api/zcc/ze-code/review/route.ts",
+      "src/app/api/zcc/ze-code/stats/route.ts",
+      "src/app/api/zcc/zgs/decisions/route.ts"
+    ],
+    "zelador-suporte": [
+      "src/app/api/zelador-suporte/chat/route.ts",
+      "src/app/api/zelador-suporte/consultoria/route.ts",
+      "src/app/api/zelador-suporte/ticket/route.ts"
+    ],
+    "zella": [
+      "src/app/api/zella/simulate/route.ts"
+    ]
+  }
+}

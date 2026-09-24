@@ -1,0 +1,153 @@
+================================================================
+ SEUZELLA — MG05_PASTE_BACK_DIGEST (MG-05 — MASTER GATE FINAL: BILLING — AUSÊNCIA DO DOMÍNIO PROIBIDO)
+ Gerado em: 2026-09-23T18:46:39.515Z
+ Objetivo: varredura forense ESTÁTICA READ-ONLY da ausência do domínio
+ proibido — 5ª onda da campanha MASTER GATE FINAL (pré-RELEASE). Selo da
+ fundação intocado.
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: ac0f730c39079cae635982b28db1f08c5125abf6
+árvore: modified=0 untracked=32 | FORA de 99_AUDITS: 0
+
+--- B) DOCUMENTOS INSTALADOS (2, ADITIVOS em docs/ — nenhum existente editado, zero código de produção) ---
+docs/MG05_RELATORIO.md | 164 linhas | sha256=097d67aa613d6a1c94fca69c11cbfad5ee243939cbc45d002398866121a41aa9
+docs/MG05_ACHADOS.md | 43 linhas | sha256=8b33ccb87977917e4242b6ff097b740c9b1a8f60a3ec1e5f581dc9521808fef4
+
+
+--- C) FORENSE MG-05 (billing — READ-ONLY: ausência do domínio proibido verificada por contagens, sem execução, sem rede, sem banco, sem credenciais) ---
+resumo: BLOQUEIOS=2 ATENÇÃO=6 INFO=3
+achados (contagens/versões/arquivo:linha/nomes de chaves — valores NUNCA exibidos):
+  [INFO] menções ao domínio proibido em src/: 173 arquivo(s) (contagens por arquivo na evidência MG05_BANNED_FILES.txt — conteúdo NUNCA exibido)
+  **[ATENÇÃO]** ocorrências do domínio proibido em código: 727 (arquivo:linha na evidência MG05_CODE_HITS.txt — conteúdo NUNCA exibido; baseline conhecido do MG-02: next.config.ts e src/middleware.ts; a remoção é decisão…[truncado]
+  **[ATENÇÃO]** ocorrências FORA do baseline conhecido (next.config.ts e src/middleware.ts): 723 — arquivo:linha na evidência MG05_CODE_HITS.txt (conteúdo NUNCA exibido; NOMES de arquivo ficam na evidência)
+  **[ATENÇÃO]** rotas de API com o próprio token no caminho: 1 (NOMES na evidência MG05_SURFACE_MORE.txt — conteúdo NUNCA exibido): superfície exposta de domínio proibido — decisão do dono antes do RELEASE
+  **[BLOQUEIO]** dependência do domínio proibido instalada no package.json: 1 ocorrência(s) (NOMES dos pacotes na evidência MG05_SURFACE_MORE.txt; versões NUNCA exibidas): presença de implementação financeira proibida — …[truncado]
+  **[ATENÇÃO]** schema.prisma: 1 linha(s) com menção ao domínio proibido (arquivo:linha na evidência MG05_SURFACE_MORE.txt — NOMES de modelo/campo NUNCA exibidos)
+  **[ATENÇÃO]** migrations: 2 linha(s) com menção ao domínio proibido (arquivo:linha na evidência MG05_SURFACE_MORE.txt — conteúdo NUNCA exibido)
+  [INFO] vercel.json: 0 linha(s) com menção ao domínio proibido (só leitura; NUNCA editado)
+  **[ATENÇÃO]** documentos da campanha: 1 ocorrência(s) do domínio proibido (arquivo:linha na evidência MG05_SURFACE_MORE.txt — conteúdo NUNCA exibido): menção documental de proibição é legítima; a decisão de manter é do…[truncado]
+  **[BLOQUEIO]** segredo literal em arquivo com menção ao domínio proibido: 1 ocorrência(s) — arquivo:linha na evidência MG05_CODE_HITS.txt; VALOR NUNCA exibido; mover para env antes de qualquer reativação
+  [INFO] ausência: nenhuma execução, nenhuma consulta, sem rede, sem banco, sem credenciais nesta onda — contagens, NOMES de arquivo e arquivo:linha apenas
+
+superfície do domínio proibido: 174 arquivo(s) com menção
+(contagens em MG05_BANNED_FILES.txt) e 728 ocorrência(s)
+arquivo:linha em código (MG05_CODE_HITS.txt). Conteúdo NUNCA exibido;
+nenhuma execução, rede ou banco nesta onda (a varredura é estática e por
+contagem; os NOMES dos tokens ficam confinados ao motor do kit).
+
+LEITURA: achados BLOQUEIO alimentam a decisão de RELEASE do dono (correções
+nascem em ondas próprias); a onda forense é GREEN quando conclui com a
+fundação íntegra. NENHUMA execução aconteceu nesta onda (leitura pura do
+filesystem; banco NÃO conectado) e nenhum arquivo existente foi editado —
+a presença (ou ausência) do domínio proibido permanece decisão do dono.
+
+--- D) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- E) VITEST (8 suítes JEV — a fundação continua íntegra durante a campanha) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (RUN27-A)
+
+--- F) MASTER SWEEP (a fundação re-verificada antes da onda instalar) ---
+  SELO: SEUZELLA_JEV_MASTER_CLOSURE_01 -> fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== commit do RUN29-A: SIM ✓)
+  ÂNCORAS: 16/16 ancestrais do HEAD por hash exato (RUN12..RUN19 + RUN22..RUN29)
+    RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9
+    RUN16-A=7d7f28f1 RUN17-A=1828090e RUN18-A=e5eeb65d RUN19-A=ffa3902b
+    RUN22-A=c6c07044 RUN23-A=7b3f9810 RUN24-A=de734569 RUN25-A=c6275fd8
+    RUN26-A=371a96cd RUN27-A=5e19649b RUN28-A=6261e3a5 RUN29-A=fc07fc8f
+  ARQUIVOS: 41/41 presentes (32 da fundação + certificado RUN29-A + 2 docs MG-01 + 2 docs MG-02 + 2 docs MG-03 + 2 docs MG-04)
+  SHAPES-3 RE-VERIFY: 9 OK / 0 FALHA (exigido 9/9)
+  CONTENT VERIFY: 40 OK / 0 FALHA (exigido 40/40 — 16 âncoras +
+    9 ondas MG + 15 garantias canônicas conferidas no relatório do payload)
+  CONTENT RE-VERIFY (pós-instalação): 28/28 re-checagens nos documentos instalados
+  TSC: 0 erros novos | VITEST: 8/8 GREEN
+RESULTADO DO SWEEP: FUNDAÇÃO ÍNTEGRA SOBRE O SELO — onda MG-05 concluída.
+
+--- G) O SELO DA FUNDAÇÃO (permanece LOCAL — NUNCA push; NUNCA alterado pela campanha) ---
+nome: SEUZELLA_JEV_MASTER_CLOSURE_01
+alvo: fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== fc07fc8f: SIM ✓)
+mensagem anotada: (verificar)
+tags SEUZELLA_* presentes no iMac:
+  - SEUZELLA_BASELINE_CLOSURE_01
+  - SEUZELLA_JEV_MASTER_CLOSURE_01
+  - SEUZELLA_RUN10_MASTER_CLOSURE_01
+  - SEUZELLA_RUN11_MASTER_CLOSURE_01
+  - SEUZELLA_RUN12_MASTER_CLOSURE_01
+  - SEUZELLA_RUN7_MASTER_CLOSURE_01
+  - SEUZELLA_RUN8_MASTER_CLOSURE_01
+  - SEUZELLA_RUN9_MASTER_CLOSURE_01
+A campanha MASTER GATE FINAL não nasce tag nenhuma: o selo é ÚNICO (RUN29-A).
+
+--- H) SEGURANÇA ---
+tokens de domínio proibido nos documentos: 0 | padrões de segredo literal: 0
+leituras de env nos documentos da onda: 0 (carrega NOMES de chaves, nunca valores)
+rede REAL: NENHUMA (sem npm install, sem fetch) | banco: NÃO CONECTADO
+execuções: NENHUMA (leitura de filesystem; banco NUNCA conectado)
+credenciais: NENHUMA pedida/lida | edição em arquivo existente: NENHUMA
+push: NENHUM (commit apenas local)
+
+--- I) COMMIT LOCAL ---
+ac0f730c39079cae635982b28db1f08c5125abf6
+mensagem: MG-05 (MASTER GATE FINAL — billing): varredura forense estática READ-ONLY da ausência do domínio proibido (menções em src/ e next.config.ts em contagens e arquivo:linha — baseline conhecido do MG-02: next.config.ts e src/middleware.ts; ocorrências fora do baseline em arquivo:linha; rotas com o próprio token no caminho; dependências financeiras no package.json; schema e migrations em contagem; vercel.json em só leitura; documentos da campanha re-verificados; segredo literal em arquivo com menção = BLOQUEIO com VALOR NUNCA exibido — NENHUMA execução, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG05_RELATORIO + MG05_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed
+
+--- J) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | domínio proibido ✓ (ausência verificada por contagens nesta onda)
+secret handling ✓ (só NOMES de chaves/secrets; scrub duplo nos textos de evidência) | execuções: NENHUMA ✓ (só inventário estático por contagens)
+push: NENHUM ✓ | domínio financeiro: SÓ CONTAGENS ✓ (nenhuma implementação introduzida; decisão é do dono) | rede real: NENHUMA ✓ | banco: NÃO CONECTADO nesta onda ✓
+arquivo existente: NENHUM EDITADO ✓ (a superfície do domínio proibido permanece decisão do dono)
+
+--- K) CONTENT VERIFY (40 termos — lição RUN25-A/RUN28-A aplicada ao relatório) ---
+  OK   docs/MG05_RELATORIO.md :: bede7de3
+  OK   docs/MG05_RELATORIO.md :: 480281d2
+  OK   docs/MG05_RELATORIO.md :: aff5ca01
+  OK   docs/MG05_RELATORIO.md :: 2b53b8e9
+  OK   docs/MG05_RELATORIO.md :: 7d7f28f1
+  OK   docs/MG05_RELATORIO.md :: 1828090e
+  OK   docs/MG05_RELATORIO.md :: e5eeb65d
+  OK   docs/MG05_RELATORIO.md :: ffa3902b
+  OK   docs/MG05_RELATORIO.md :: c6c07044
+  OK   docs/MG05_RELATORIO.md :: 7b3f9810
+  OK   docs/MG05_RELATORIO.md :: de734569
+  OK   docs/MG05_RELATORIO.md :: c6275fd8
+  OK   docs/MG05_RELATORIO.md :: 371a96cd
+  OK   docs/MG05_RELATORIO.md :: 5e19649b
+  OK   docs/MG05_RELATORIO.md :: 6261e3a5
+  OK   docs/MG05_RELATORIO.md :: fc07fc8f
+  OK   docs/MG05_RELATORIO.md :: MG-01
+  OK   docs/MG05_RELATORIO.md :: MG-02
+  OK   docs/MG05_RELATORIO.md :: MG-03
+  OK   docs/MG05_RELATORIO.md :: MG-04
+  OK   docs/MG05_RELATORIO.md :: MG-05
+  OK   docs/MG05_RELATORIO.md :: MG-06
+  OK   docs/MG05_RELATORIO.md :: MG-07
+  OK   docs/MG05_RELATORIO.md :: MG-08
+  OK   docs/MG05_RELATORIO.md :: MG-09
+  OK   docs/MG05_RELATORIO.md :: READ-ONLY
+  OK   docs/MG05_RELATORIO.md :: NUNCA push
+  OK   docs/MG05_RELATORIO.md :: fail-closed
+  OK   docs/MG05_RELATORIO.md :: sem banco
+  OK   docs/MG05_RELATORIO.md :: sem rede
+  OK   docs/MG05_RELATORIO.md :: sem credenciais
+  OK   docs/MG05_RELATORIO.md :: MASTER GATE FINAL
+  OK   docs/MG05_RELATORIO.md :: RELEASE
+  OK   docs/MG05_RELATORIO.md :: SEUZELLA_JEV_MASTER_CLOSURE_01
+  OK   docs/MG05_RELATORIO.md :: domínio proibido
+  OK   docs/MG05_RELATORIO.md :: ausência
+  OK   docs/MG05_RELATORIO.md :: contagem
+  OK   docs/MG05_RELATORIO.md :: package.json
+  OK   docs/MG05_RELATORIO.md :: migrations
+  OK   docs/MG05_RELATORIO.md :: valor NUNCA exibido
+RESULTADO: 40 termo(s) obrigatório(s) OK | 0 falha(s) (exigido 40/40)
+DOUTRINA: o relatório só entra — e o commit só nasce — se conferir com a
+realidade da campanha: mesmas disciplinas do SHAPES-3 VERIFY (rc=87) sobre
+código e do CONTENT VERIFY (rc=88) sobre documentação.
+
+CAMPAÑHA: MG-05/9 (billing — ausência do domínio proibido) concluída —
+PRÓXIMO: MG-06 (migration profunda). Sua janela de fechamento segue mapeada:
+MG-06 migration profunda (segurança e reversibilidade),
+MG-07 VPS/deploy (com o next build oficial, se você quiser), MG-08 testes,
+MG-09 wiring residual -> RELEASE. Nada do domínio proibido. NUNCA push.
+================================================================

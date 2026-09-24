@@ -1,0 +1,2 @@
+docs/MG02_RELATORIO.md | 145 linhas | sha256=e4d9e8b9626686dd044813bdeb949fcb920afb959ded6cecfd35ad8c93de03df
+docs/MG02_ACHADOS.md | 58 linhas | sha256=c74ed0d4a72abec4dcc6b1f347ff886ba0c05a30bf4cfd95b6b0fdecee694a0b

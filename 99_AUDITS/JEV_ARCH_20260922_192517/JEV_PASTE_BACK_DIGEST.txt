@@ -1,0 +1,66 @@
+================================================================
+ SEUZELLA — JEV_PASTE_BACK_DIGEST (JEV ARCH/CONTRACT — RUN22-A, SHADOW_ONLY)
+ Gerado em: 2026-09-22T22:25:57.054Z
+ Objetivo: fechar a onda ARCH/CONTRACT (contrato + adapters + registry
+ kind=DECISION + SHADOW_ONLY) e autorizar a próxima (SHADOW HARNESS)
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: c6c070446381a4ecae6c1cb3a355fcec2c2b9568
+árvore: modified=0 untracked=19 | FORA de 99_AUDITS: 0
+
+--- B) ARQUIVOS INSTALADOS (12, ADITIVOS — nenhum existente editado) ---
+src/domain/decision/contracts/JevTypes.ts | 124 linhas | sha256=b018908183e132a5299646e136389bece908521ad1397b3400e7d4065b6c739b
+src/domain/decision/contracts/JevDecisionContract.ts | 88 linhas | sha256=fe22b64f341b2e5fbe96bd62dd0133b064aa6113b3ddafeb92df736dd968c5a4
+src/domain/decision/ports/IJevDecisionPort.ts | 17 linhas | sha256=12fb6886013b6befe1b77667d335a63e2e805175786f3805e3926ccebfed3e62
+src/domain/decision/adapters/JevLocalHeuristicAdapter.ts | 138 linhas | sha256=cd56f8ef57f6614e47c3462770628e7d8176e6638e3ed6262861f4d233bf1b3a
+src/domain/decision/adapters/JevTypesafeAdapter.ts | 167 linhas | sha256=56f465e1abcdd464252da2f1ef271b546bd28116dbc6e70e067e5b694e3176d2
+src/__tests__/jev/jev-contract.test.ts | 163 linhas | sha256=1a3a341c0ab629bd3170b4d8f1af5c319aadf12df5ff5383d96fc64f2d9799e5
+src/__tests__/jev/jev-registry.test.ts | 119 linhas | sha256=24aecd555e90b2a71a895feea30dcdf0f94f5c7e777bcebaf96322fd7748485e
+src/lib/ai/jev/jev-config.ts | 124 linhas | sha256=a97a3bf65898c7b9f01c6f104dc4debc6d7ca5f74f20a3d05d5f7c94d6c91936
+src/lib/ai/jev/jev-provider-registry.ts | 174 linhas | sha256=c033e70912e32fba96a1c14271fc8e352b80855f0a05baec2c69b36944715ab1
+src/lib/ai/jev/jev-pii-firewall.ts | 96 linhas | sha256=470e7720009e67191dece9b2133e67fc44eab9918b6ce2f88e1bab770c2b018e
+src/lib/ai/jev/jev-shadow.ts | 177 linhas | sha256=78199a48ae4f7deae4c97c08441639d8e91f25508f5423eab386fb4c7cd1118f
+src/__tests__/jev/jev-shadow.test.ts | 241 linhas | sha256=d6c2d57c27713addc76f2eb2430f6ea2c219d26716fda4fe51b616f2f630cb50
+
+
+--- C) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- D) VITEST (3 suítes novas) ---
+resultado: 3 passed / 0 failed
+suítes: jev-contract (contrato+firewall), jev-registry (kind=DECISION), jev-shadow (config+runner+adapter)
+provas de segurança no digest: fetch remoto nunca chamado sem flag+chave; chave nunca serializada;
+tenant só em HASH no buffer; payload nunca no buffer; GENERATIVE e shadowOnly=false recusados.
+
+--- E) REGISTRO KIND=DECISION ---
+defaults: jev-local-heuristic (tier 1, custo 0, ATIVO) + jev-typesafe (tier 2, api.typesafe.ai, INATIVO)
+kinds: { DECISION: 2, GENERATIVE: 0 } | shadowOnlyOnly: true (invariante da onda)
+extensão aditiva de ProviderRegistration do zaos (registerProvider espelha a convenção L1039)
+
+--- F) CONTRATO DE ENV (7 chaves + 1 opcional) ---
+TYPESAFE_API_KEY (opcional agora; valor NUNCA logado) | JEV_ENABLED (default false)
+JEV_SHADOW_MODE (default true; 'false' IGNORADO nesta onda) | JEV_MODEL (default jev-1)
+JEV_TIMEOUT_MS (8000, clamp 100..60000) | JEV_MAX_RETRIES (1, clamp 0..5)
+JEV_DEFAULT_CONFIDENCE_THRESHOLD (0.7, clamp 0..1) | JEV_TYPESAFE_BASE_URL (opcional, api.typesafe.ai)
+Detalhe completo: JEV_ENV_CONTRACT.md nesta pasta.
+
+--- G) SEGURANÇA ---
+tokens de domínio proibido nos 12 arquivos: 0 | padrões de segredo literal: 0
+shadowOnly literal na união de resposta: 3 declarações (ok/unavailable/rejected)
+push: NENHUM (commit apenas local) | edição em arquivo existente: NENHUMA
+
+--- H) COMMIT LOCAL ---
+c6c070446381a4ecae6c1cb3a355fcec2c2b9568
+mensagem: RUN22-A (JEV MASTER ARCH/CONTRACT): contrato de decisão + adapters + registry kind=DECISION + firewall PII + shadow runner (SHADOW_ONLY) — aditivo, fail-closed, sem domínio financeiro
+
+--- I) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (obrigatória no contrato + hash no buffer)
+secret handling ✓ (booleano no config; valor só no momento da chamada) | migração destrutiva: NENHUMA ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓
+
+PRÓXIMA ONDA (após auditoria do agente): SHADOW HARNESS — amostras reais do
+Cérebro no runner + agreementRate por modo; ledger persistido na onda seguinte.
+================================================================

@@ -1,0 +1,3 @@
+#1 FALHA[route.ts:TS1109] kind=throw mode=plain casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+#2 FALHA[route.ts:TS1109] kind=throw mode=casted casts=params/params q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+#3 VERDE kind=return mode=casted casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07

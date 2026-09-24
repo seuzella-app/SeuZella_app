@@ -1,0 +1,5 @@
+#1 FALHA[route.ts:TS2345] mode=plain lib=0 ret=statusFirst casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+#2 FALHA[route.ts:TS2345] mode=cast lib=0 ret=statusFirst casts=params/params q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+#3 FALHA[route.ts:TS2345] mode=never lib=0 ret=statusFirst casts=never/never q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+#4 FALHA[route.ts:TS2345] mode=idiomCast lib=0 ret=idiom casts=params/params q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+#5 FALHA[route.ts:TS7023 route.ts:TS2304 route.ts:TS7022] mode=json lib=0 ret=json casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07

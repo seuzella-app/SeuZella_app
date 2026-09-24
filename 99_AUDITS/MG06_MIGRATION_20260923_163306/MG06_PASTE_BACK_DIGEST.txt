@@ -1,0 +1,154 @@
+================================================================
+ SEUZELLA — MG06_PASTE_BACK_DIGEST (MG-06 — MASTER GATE FINAL: MIGRATION — SEGURANÇA E REVERSIBILIDADE)
+ Gerado em: 2026-09-23T19:33:56.519Z
+ Objetivo: varredura forense ESTÁTICA READ-ONLY das migrations (segurança
+ e reversibilidade em profundidade) — 6ª onda da campanha MASTER GATE
+ FINAL (pré-RELEASE). Selo da fundação intocado.
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: f749f190b83358c1b4607d82ec49d4c4ef59a7c8
+árvore: modified=0 untracked=33 | FORA de 99_AUDITS: 0
+
+--- B) DOCUMENTOS INSTALADOS (2, ADITIVOS em docs/ — nenhum existente editado, zero código de produção) ---
+docs/MG06_RELATORIO.md | 172 linhas | sha256=97fa5742e57f79a54a2bba45f84faef4b56e50ccc9593f0fcaf947e4fc717c1d
+docs/MG06_ACHADOS.md | 46 linhas | sha256=a3e107e784028757c9edaf7a3bc5b79cfaf54f9d6845c4bce6eb04d8c5d7d638
+
+
+--- C) FORENSE MG-06 (migration — READ-ONLY: segurança e reversibilidade verificadas por contagens, sem execução, sem rede, sem banco, sem credenciais) ---
+resumo: BLOQUEIOS=0 ATENÇÃO=2 INFO=9
+achados (contagens/versões/arquivo:linha/nomes de chaves — valores NUNCA exibidos):
+  [INFO] inventário de migrations: 22 diretório(s) (NOMES na evidência MG06_MIGR_INVENTORY.txt — conteúdo NUNCA exibido)
+  **[ATENÇÃO]** migration_lock.toml: AUSENTE — o provedor da migração não está declarado; reversibilidade/execução futura dependem desta declaração (criação é decisão do dono antes do RELEASE)
+  [INFO] sinalizações construtivas: CREATE TABLE=31, CREATE INDEX=89, CREATE UNIQUE INDEX=19, CONSTRAINT=62, IF NOT EXISTS=43, IF EXISTS=17 (contagens em MG06_MIGR_SIGNALS.txt)
+  **[ATENÇÃO]** operações destrutivas (DROP TABLE/COLUMN/SCHEMA/TYPE/DATABASE, TRUNCATE): 4 ocorrência(s) — arquivo:linha na evidência MG06_MIGR_HITS.txt (conteúdo NUNCA exibido): irreversibilidade potencial — revisão do…[truncado]
+  [INFO] DELETE FROM em migrations: 0
+  [INFO] mudanças de tipo de coluna (ALTER COLUMN ... TYPE): 0
+  [INFO] RLS/policy em migrations (profundidade do achado do MG-04): 15 linha(s) — arquivo:linha na evidência MG06_MIGR_HITS.txt (nomes de policy NUNCA exibidos)
+  [INFO] migrations vazias (migration.sql com 0 bytes): 0
+  [INFO] diretórios fora do padrão de timestamp do Prisma (14 dígitos + _nome): 0 (todas no padrão)
+  [INFO] 0 padrão de segredo literal em migrations
+  [INFO] ausência: nenhuma execução, nenhuma migração executada, nenhuma consulta, sem banco, sem rede, sem credenciais nesta onda — contagens, NOMES de arquivo e arquivo:linha apenas
+
+superfície de migrations: 22 entrada(s) no inventário
+(NOMES em MG06_MIGR_INVENTORY.txt) e 19 ocorrência(s)
+arquivo:linha (MG06_MIGR_HITS.txt — destrutivas/DELETE/ALTER TYPE/RLS/segredo).
+Conteúdo NUNCA exibido; nenhuma execução, rede ou banco nesta onda (a
+varredura é estática e por contagem; nenhuma migração é executada).
+
+LEITURA: achados BLOQUEIO/ATENÇÃO alimentam a decisão de RELEASE do dono
+(correções nascem em ondas próprias); a onda forense é GREEN quando conclui
+com a fundação íntegra. NENHUMA execução aconteceu nesta onda (leitura pura
+do filesystem; banco NÃO conectado; nenhuma migração executada) e nenhum
+arquivo existente foi editado — a segurança e a reversibilidade das
+migrations permanecem decisão do dono.
+
+--- D) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- E) VITEST (8 suítes JEV — a fundação continua íntegra durante a campanha) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (RUN27-A)
+
+--- F) MASTER SWEEP (a fundação re-verificada antes da onda instalar) ---
+  SELO: SEUZELLA_JEV_MASTER_CLOSURE_01 -> fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== commit do RUN29-A: SIM ✓)
+  ÂNCORAS: 16/16 ancestrais do HEAD por hash exato (RUN12..RUN19 + RUN22..RUN29)
+    RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9
+    RUN16-A=7d7f28f1 RUN17-A=1828090e RUN18-A=e5eeb65d RUN19-A=ffa3902b
+    RUN22-A=c6c07044 RUN23-A=7b3f9810 RUN24-A=de734569 RUN25-A=c6275fd8
+    RUN26-A=371a96cd RUN27-A=5e19649b RUN28-A=6261e3a5 RUN29-A=fc07fc8f
+  ARQUIVOS: 43/43 presentes (32 da fundação + certificado RUN29-A + 2 docs MG-01 + 2 docs MG-02 + 2 docs MG-03 + 2 docs MG-04 + 2 docs MG-05)
+  SHAPES-3 RE-VERIFY: 9 OK / 0 FALHA (exigido 9/9)
+  CONTENT VERIFY: 40 OK / 0 FALHA (exigido 40/40 — 16 âncoras +
+    9 ondas MG + 15 garantias canônicas conferidas no relatório do payload)
+  CONTENT RE-VERIFY (pós-instalação): 28/28 re-checagens nos documentos instalados
+  TSC: 0 erros novos | VITEST: 8/8 GREEN
+RESULTADO DO SWEEP: FUNDAÇÃO ÍNTEGRA SOBRE O SELO — onda MG-06 concluída.
+
+--- G) O SELO DA FUNDAÇÃO (permanece LOCAL — NUNCA push; NUNCA alterado pela campanha) ---
+nome: SEUZELLA_JEV_MASTER_CLOSURE_01
+alvo: fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== fc07fc8f: SIM ✓)
+mensagem anotada: (verificar)
+tags SEUZELLA_* presentes no iMac:
+  - SEUZELLA_BASELINE_CLOSURE_01
+  - SEUZELLA_JEV_MASTER_CLOSURE_01
+  - SEUZELLA_RUN10_MASTER_CLOSURE_01
+  - SEUZELLA_RUN11_MASTER_CLOSURE_01
+  - SEUZELLA_RUN12_MASTER_CLOSURE_01
+  - SEUZELLA_RUN7_MASTER_CLOSURE_01
+  - SEUZELLA_RUN8_MASTER_CLOSURE_01
+  - SEUZELLA_RUN9_MASTER_CLOSURE_01
+A campanha MASTER GATE FINAL não nasce tag nenhuma: o selo é ÚNICO (RUN29-A).
+
+--- H) SEGURANÇA ---
+tokens de domínio proibido nos documentos: 0 | padrões de segredo literal: 0
+leituras de env nos documentos da onda: 0 (carrega NOMES de chaves, nunca valores)
+rede REAL: NENHUMA (sem npm install, sem fetch) | banco: NÃO CONECTADO
+execuções: NENHUMA (leitura de filesystem; banco NUNCA conectado)
+credenciais: NENHUMA pedida/lida | edição em arquivo existente: NENHUMA
+push: NENHUM (commit apenas local)
+
+--- I) COMMIT LOCAL ---
+f749f190b83358c1b4607d82ec49d4c4ef59a7c8
+mensagem: MG-06 (MASTER GATE FINAL — migration): varredura forense estática READ-ONLY das migrations (segurança e reversibilidade em profundidade: inventário, migration_lock em presença, sinalizações construtivas em contagens, operações destrutivas/DELETE FROM/ALTER COLUMN TYPE em contagens e arquivo:linha, RLS/policy em arquivo:linha — aprofundamento do MG-04, migrations vazias e convenção de timestamp, segredo literal = BLOQUEIO com VALOR NUNCA exibido — NENHUMA execução, nenhuma migração executada, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG06_RELATORIO + MG06_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed
+
+--- J) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | migrations ✓ (segurança e reversibilidade em contagem nesta onda)
+secret handling ✓ (só NOMES de chaves/secrets; scrub duplo nos textos de evidência) | execuções: NENHUMA ✓ (só inventário estático por contagens)
+push: NENHUM ✓ | domínio financeiro: FORA DO ESCOPO DESTA ONDA ✓ (pertence ao MG-05) | rede real: NENHUMA ✓ | banco: NÃO CONECTADO nesta onda ✓
+arquivo existente: NENHUM EDITADO ✓ (a segurança das migrations permanece decisão do dono)
+
+--- K) CONTENT VERIFY (40 termos — lição RUN25-A/RUN28-A aplicada ao relatório) ---
+  OK   docs/MG06_RELATORIO.md :: bede7de3
+  OK   docs/MG06_RELATORIO.md :: 480281d2
+  OK   docs/MG06_RELATORIO.md :: aff5ca01
+  OK   docs/MG06_RELATORIO.md :: 2b53b8e9
+  OK   docs/MG06_RELATORIO.md :: 7d7f28f1
+  OK   docs/MG06_RELATORIO.md :: 1828090e
+  OK   docs/MG06_RELATORIO.md :: e5eeb65d
+  OK   docs/MG06_RELATORIO.md :: ffa3902b
+  OK   docs/MG06_RELATORIO.md :: c6c07044
+  OK   docs/MG06_RELATORIO.md :: 7b3f9810
+  OK   docs/MG06_RELATORIO.md :: de734569
+  OK   docs/MG06_RELATORIO.md :: c6275fd8
+  OK   docs/MG06_RELATORIO.md :: 371a96cd
+  OK   docs/MG06_RELATORIO.md :: 5e19649b
+  OK   docs/MG06_RELATORIO.md :: 6261e3a5
+  OK   docs/MG06_RELATORIO.md :: fc07fc8f
+  OK   docs/MG06_RELATORIO.md :: MG-01
+  OK   docs/MG06_RELATORIO.md :: MG-02
+  OK   docs/MG06_RELATORIO.md :: MG-03
+  OK   docs/MG06_RELATORIO.md :: MG-04
+  OK   docs/MG06_RELATORIO.md :: MG-05
+  OK   docs/MG06_RELATORIO.md :: MG-06
+  OK   docs/MG06_RELATORIO.md :: MG-07
+  OK   docs/MG06_RELATORIO.md :: MG-08
+  OK   docs/MG06_RELATORIO.md :: MG-09
+  OK   docs/MG06_RELATORIO.md :: READ-ONLY
+  OK   docs/MG06_RELATORIO.md :: NUNCA push
+  OK   docs/MG06_RELATORIO.md :: fail-closed
+  OK   docs/MG06_RELATORIO.md :: sem banco
+  OK   docs/MG06_RELATORIO.md :: sem rede
+  OK   docs/MG06_RELATORIO.md :: sem credenciais
+  OK   docs/MG06_RELATORIO.md :: MASTER GATE FINAL
+  OK   docs/MG06_RELATORIO.md :: RELEASE
+  OK   docs/MG06_RELATORIO.md :: SEUZELLA_JEV_MASTER_CLOSURE_01
+  OK   docs/MG06_RELATORIO.md :: migration
+  OK   docs/MG06_RELATORIO.md :: reversibilidade
+  OK   docs/MG06_RELATORIO.md :: contagem
+  OK   docs/MG06_RELATORIO.md :: migration_lock
+  OK   docs/MG06_RELATORIO.md :: destrutiva
+  OK   docs/MG06_RELATORIO.md :: valor NUNCA exibido
+RESULTADO: 40 termo(s) obrigatório(s) OK | 0 falha(s) (exigido 40/40)
+DOUTRINA: o relatório só entra — e o commit só nasce — se conferir com a
+realidade da campanha: mesmas disciplinas do SHAPES-3 VERIFY (rc=87) sobre
+código e do CONTENT VERIFY (rc=88) sobre documentação.
+
+CAMPAÑHA: MG-06/9 (migration — segurança e reversibilidade) concluída —
+PRÓXIMO: MG-07 (VPS/deploy). Sua janela de fechamento segue mapeada:
+MG-07 VPS/deploy (preparação e, se você quiser, o next build oficial),
+MG-08 testes, MG-09 wiring residual -> RELEASE. Nada do domínio proibido.
+NUNCA push.
+================================================================

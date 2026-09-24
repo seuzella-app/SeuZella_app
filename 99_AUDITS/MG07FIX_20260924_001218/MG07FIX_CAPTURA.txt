@@ -1,0 +1,28 @@
+=== Bloco original de e35bef80 que continha ACCOUNT_EXISTS (mascarado, max 60 linhas) ===
+57-      if (!validEmail(customerEmail)) return createError(400, 'INVALID_ACCOUNT_EMAIL', 'Conta sem e-mail válido para cobrança.');
+58-    } else {
+59-      // Never bind a guest checkout to an existing tenant by email: that would enable account takeover.
+60-      const existingTenant = await db.tenant.findUnique({ where: { email: requestedEmail } });
+61:      if (existingTenant) return createError(409, 'ACCOUNT_EXISTS', 'Este e-mail já possui uma conta. Faça login para continuar.');
+62-      try {
+63-        const newTenant = await db.tenant.create({
+64-          data: {
+65-            name: propertyName || name, email: requestedEmail, phone: phone || null, niche,
+66-            plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(),
+67-            status: 'pending', role: 'owner',
+68-          },
+69-        });
+70-        tenantId = newTenant.id;
+71-        if (propertyName) {
+72-          const slugBase = propertyName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70);
+73-          await db.property.create({ data: { tenantId, name: propertyName, type: niche, slug: `${slugBase || 'propriedade'}-${tenantId.slice(-6)}` } });
+
+=== Stat do culpado 064db917 (top 12) ===
+064db917 2026-09-02 feat(r3-f04): gateway uncertainty hardening — deterministic subscription + MP idempotency + Asaas reconciliation [PR #47]
+
+ src/app/api/checkout/create/route.ts               | 157 +++++++++------------
+ src/lib/payments/providers/asaas/index.ts          |  35 +++++
+ src/lib/payments/providers/mercadopago/index.ts    |  17 ++-
+ src/lib/payments/types.ts                          |   2 +
+ tests/security/r3-f03-checkout-idempotency.test.ts |  19 ++-
+ 5 files changed, 130 insertions(+), 100 deletions(-)

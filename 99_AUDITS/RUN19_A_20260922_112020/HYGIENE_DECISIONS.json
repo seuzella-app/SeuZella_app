@@ -1,0 +1,108 @@
+{
+  "schema": "RUN19_HYGIENE_DECISIONS/v1",
+  "generatedAt": "2026-09-22T14:20:27.282Z",
+  "basedOn": {
+    "run18Evidence": "99_AUDITS/RUN18_A_20260922_102754",
+    "confronto": "IDÊNTICO (43/43 itens WIRE)"
+  },
+  "policy": {
+    "points": 60,
+    "windowMs": 60000
+  },
+  "deferredRetry": [
+    {
+      "rel": "src/app/api/bim-vision/route.ts",
+      "prioridade": "P1",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/pinns-clifford/route.ts",
+      "prioridade": "P1",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/proxy/[...path]/route.ts",
+      "prioridade": "P1",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/webgl-bridge/route.ts",
+      "prioridade": "P1",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/ddc/runtime-version/route.ts",
+      "prioridade": "P2",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/hunt-stream/route.ts",
+      "prioridade": "P2",
+      "motivo18": "bloco de imports nao encontrado"
+    },
+    {
+      "rel": "src/app/api/leads/analytics/route.ts",
+      "prioridade": "P2",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/zcc/adapters/route.ts",
+      "prioridade": "P2",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/zcc/brain/route.ts",
+      "prioridade": "P2",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/zcc/cortex/growth/route.ts",
+      "prioridade": "P2",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/zcc/cortex/route.ts",
+      "prioridade": "P2",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/zcc/personas/route.ts",
+      "prioridade": "P2",
+      "motivo18": "ancora do handler nao encontrada"
+    },
+    {
+      "rel": "src/app/api/zcc/synthetic-brazil/route.ts",
+      "prioridade": "P2",
+      "motivo18": "ancora do handler nao encontrada"
+    }
+  ],
+  "internalShadow": [
+    {
+      "rel": "src/app/api/debug-agent/route.ts",
+      "just": "ferramenta interna de depuração — segredo em modo sombra"
+    },
+    {
+      "rel": "src/app/api/debug-agent/github/route.ts",
+      "just": "ferramenta interna de depuração — segredo em modo sombra"
+    },
+    {
+      "rel": "src/app/api/debug-agent/knowledge/route.ts",
+      "just": "ferramenta interna de depuração — segredo em modo sombra"
+    },
+    {
+      "rel": "src/app/api/leads/seed/route.ts",
+      "just": "semeadura de dados — nunca pública; segredo em modo sombra"
+    }
+  ],
+  "proxyRel": "src/app/api/proxy/[...path]/route.ts",
+  "ssrf": {
+    "module": "src/lib/infra/ssrf-guard.ts",
+    "mode": "shadow até SZ_SSRF_ENFORCE=1",
+    "allowlistEnv": "PROXY_ALLOWLIST"
+  },
+  "internalSecret": {
+    "module": "src/lib/infra/internal-secret.ts",
+    "mode": "shadow até SZ_ENFORCE_INTERNAL=1",
+    "secretEnv": "INTERNAL_SECRET"
+  }
+}

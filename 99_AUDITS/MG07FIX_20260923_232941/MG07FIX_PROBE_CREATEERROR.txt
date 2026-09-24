@@ -1,0 +1,110 @@
+modulo: src/lib/error-handler.ts
+
+// ==============================================================================  
+// ZEHLA SmartHotel — Error Handler (Fase 5)  
+// ==============================================================================
+
+import { NextResponse } from 'next/server';  
+import { logger } from './logger';
+
+export type ErrorCategory =  
+ | 'validation' | 'authentication' | 'authorization' | 'not_found'  
+ | 'conflict' | 'rate_limit' | 'internal' | 'service' | 'timeout' | 'unknown';
+
+interface ErrorContext { [key: string]: unknown; }
+
+interface ClassifiedError {  
+ category: ErrorCategory;  
+ statusCode: number;  
+ userMessage: string;  
+ logMessage: string;  
+ shouldLog: boolean;  
+ shouldAlert: boolean;  
+}
+
+function classifyError(error: unknown): ClassifiedError {  
+ const err = error instanceof Error ? error : new Error(String(error));  
+ const message = err.message.toLowerCase();  
+ const name = err.name.toLowerCase();
+
+ if (name.includes('notfound') || message.includes('record not found') || message.includes('no record found')) {  
+   return { category: 'not_found', statusCode: 404, userMessage: 'Recurso nao encontrado.', logMessage: `Resource not found: ${err.message}`, shouldLog: false, shouldAlert: false };  
+ }  
+ if (message.includes('unique constraint') || message.includes('already exists') || name.includes('uniquerestricterror')) {  
+   return { category: 'conflict', statusCode: 409, userMessage: 'Recurso ja existe.', logMessage: `Conflict: ${err.message}`, shouldLog: false, shouldAlert: false };  
+ }  
+ if (message.includes('validation') || message.includes('invalid') || message.includes('required')) {  
+   return { category: 'validation', statusCode: 400, userMessage: 'Dados invalidos. Verifique os campos enviados.', logMessage: `Validation error: ${err.message}`, shouldLog: false, shouldAlert: false };  
+ }  
+ if (message.includes('unauthorized') || message.includes('token') || message.includes('session expired') || message.includes('not authenticated')) {  
+   return { category: 'authentication', statusCode: 401, userMessage: 'Autenticacao necessaria.', logMessage: `Auth error: ${err.message}`, shouldLog: true, shouldAlert: false };  
+ }  
+ if (message.includes('forbidden') || message.includes('no permission') || message.includes('access denied')) {  
+   return { category: 'authorization', statusCode: 403, userMessage: 'Acesso negado.', logMessage: `Authorization error: ${err.message}`, shouldLog: true, shouldAlert: false };  
+ }  
+ if (message.includes('rate limit') || message.includes('too many')) {  
+   return { category: 'rate_limit', statusCode: 429, userMessage: 'Muitas requisicoes. Tente novamente em instantes.', logMessage: `Rate limited: ${err.message}`, shouldLog: true, shouldAlert: false };  
+ }  
+ if (message.includes('timeout') || message.includes('timed out') || message.includes('abort')) {  
+   return { category: 'timeout', statusCode: 504, userMessage: 'Servico demorou demais. Tente novamente.', logMessage: `Timeout: ${err.message}`, shouldLog: true, shouldAlert: true };  
+ }  
+ if (message.includes('fetch') || message.includes('network') || message.includes('econnrefused') || message.includes('service unavailable')) {  
+   return { category: 'service', statusCode: 502, userMessage: 'Servico temporariamente indisponivel.', logMessage: `Service error: ${err.message}`, shouldLog: true, shouldAlert: true };  
+ }  
+ return {  
+   category: 'internal', statusCode: 500,  
+   userMessage: process.env.NODE_ENV === 'production' ? 'Erro interno do servidor.' : `Erro interno: ${err.message}`,  
+   logMessage: `Internal error: ${err.message}`, shouldLog: true, shouldAlert: true,  
+ };  
+}
+
+export function handleApiError(error: unknown, options: { requestId?: string; endpoint?: string; context?: ErrorContext } = {}): NextResponse {  
+ const { requestId, endpoint, context } = options;  
+ const classified = classifyError(error);  
+ if (classified.shouldLog || classified.shouldAlert) {  
+   const logCtx = { ...context, category: classified.category, statusCode: classified.statusCode, ...(endpoint ? { endpoint } : {}) };  
+   if (classified.shouldAlert) {  
+     logger.error(classified.logMessage, error instanceof Error ? error : undefined, logCtx, requestId);  
+   } else {  
+     logger.warn(classified.logMessage, logCtx, requestId);  
+   }  
+ }  
+  return NextResponse.json({ success: false, error: { code: classified.category.toUpperCase(), message: classified.userMessage, ...(process.env.NODE_ENV !== 'production' ? { details: error instanceof Error ? error.message : String(error) } : {}) }, category: classified.category, ...(requestId ? { requestId } : {}) }, { status: classified.statusCode });  
+}
+
+export function apiSuccess<T>(data: T, options: { requestId?: string; status?: number; message?: string } = {}): NextResponse {  
+  const { requestId, status = 200, message } = options;  
+  return NextResponse.json({ success: true, data, ...(message ? { message } : {}), ...(requestId ? { requestId } : {}) }, { status });  
+}
+
+export function validationError(message: string, fields?: Record<string, string>, options: { requestId?: string } = {}): NextResponse {  
+ logger.warn(`Validation: ${message}`, { fields, category: 'validation' }, options.requestId);  
+ return NextResponse.json({ success: false, error: { code: 'VALIDATION', message }, category: 'validation', ...(fields ? { fields } : {}), ...(options.requestId ? { requestId: options.requestId } : {}) }, { status: 400 });  
+}
+
+export function notFoundError(resource: string, options: { requestId?: string } = {}): NextResponse {  
+ return NextResponse.json({ success: false, error: { code: 'NOT_FOUND', message: `${resource} nao encontrado.` }, category: 'not_found', ...(options.requestId ? { requestId: options.requestId } : {}) }, { status: 404 });  
+}
+
+export function createError(status: number, code: string, message: string, details?: unknown): NextResponse {
+  const payload: { code: string; message: string; details?: unknown } = { code, message };
+  if (details !== undefined) payload.details = details;
+  return NextResponse.json({ success: false, error: payload }, { status });
+}
+
+export function withErrorHandling(handler: (request: Request, context: { requestId: string; startTime: number }) => Promise<NextResponse>): (request: Request) => Promise<NextResponse> {  
+ return async (request: Request) => {  
+   const requestId = logger.generateRequestId();  
+   const startTime = Date.now();  
+   try {  
+     const response = await handler(request, { requestId, startTime });  
+     const duration = Date.now() - startTime;  
+     if (duration > 3000) logger.warn(`Slow request: ${request.method} ${request.url}`, { durationMs: duration, method: request.method, url: request.url }, requestId);  
+     return response;  
+   } catch (error) {  
+     return handleApiError(error, { requestId, endpoint: new URL(request.url).pathname, context: { durationMs: Date.now() - startTime, method: request.method } });  
+   }  
+ };  
+}
+
+export type { ErrorContext, ClassifiedError };  

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# =============================================================================
+# SZ_MG07_VPS_PREP_V1 — 3_POS_DEPLOY.txt (VPS, apos o --deploy VERDE)
+# Resumo executavel de nginx + SSL + DNS + fogo de negocio + monitoramento.
+# GUIA (nao rode inteiro de uma vez): copie bloco a bloco.
+# =============================================================================
+echo "================================================================"
+echo " POS-DEPLOY — SZ_MG07_VPS_PREP_V1"
+echo "================================================================"
+
+echo ""
+echo "# 1) NGINX reverso (substitua SEU_DOMINIO):"
+cat <<'NGINX'
+sudo apt -y install nginx
+sudo tee /etc/nginx/sites-available/seuzella > /dev/null <<'CONF'
+server {
+    listen 80;
+    server_name SEU_DOMINIO;
+    client_max_body_size 20M;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+CONF
+sudo ln -sf /etc/nginx/sites-available/seuzella /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx
+NGINX
+
+echo ""
+echo "# 2) SSL (depois do DNS apontando para o VPS):"
+echo "   sudo apt -y install certbot python3-certbot-nginx"
+echo "   sudo certbot --nginx -d SEU_DOMINIO --redirect -m SEU_EMAIL"
+
+echo ""
+echo "# 3) DNS no painel do provedor: registro A do dominio -> IP do VPS"
+echo "   conferir: dig +short SEU_DOMINIO"
+
+echo ""
+echo "# 4) PM2 sobreviver a reboot:"
+echo "   pm2 startup systemd -u \$USER --hp \$HOME   # rode o comando que ele imprimir"
+echo "   pm2 save"
+
+echo ""
+echo "# 5) PROVAS: tecnicas (automatizada) e de negocio (manual):"
+echo "   bash SZ_VPS_DEPLOY.sh --fogo"
+echo "   docs/MG07VPS_PROVAS_DE_FOGO.md   # gate MG-07 real (409 ACCOUNT_EXISTS), reservas, checkout sandbox, webhook"
+
+echo ""
+echo "# 6) Monitoramento 24h:"
+echo "   pm2 status | pm2 monit | pm2 logs seuzella --lines 100"
+echo "================================================================"
+echo " Detalhes: docs/MG07VPS_RUNBOOK.md (secs 7-11) | Rollback: docs/MG07VPS_ROLLBACK.md"
+echo "================================================================"

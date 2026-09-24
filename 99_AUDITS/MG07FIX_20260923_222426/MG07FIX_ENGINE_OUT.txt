@@ -1,0 +1,10 @@
+ANALYZE: baseline herdada do shell (0 tokens)
+ANALYZE: exprs=2 (criacao|requestedEmail antes-ancora@135|customerEmail) idioma=idioma-3args json=json-idioma tsc=presente specs=7
+ATTEMPT 1: NOVO=1 FALHA (route.ts:TS2345) — revertendo — q=findUnique ret=statusFirst expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+ATTEMPT 2: NOVO=1 FALHA (route.ts:TS2345) — revertendo — q=findFirst ret=statusFirst expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+ATTEMPT 3: NOVO=1 FALHA (route.ts:TS2345) — revertendo — q=findUnique ret=statusFirst expr=customerEmail wrap=0 inline=0 var=existingTenantMG07
+ATTEMPT 4: NOVO=3 FALHA (route.ts:TS7023 route.ts:TS2304 route.ts:TS7022) — revertendo — q=findUnique ret=json expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+ATTEMPT 5: NOVO=1 FALHA (route.ts:TS2345) — revertendo — q=findFirst ret=statusFirst expr=requestedEmail wrap=1 inline=0 var=existingTenantMG07
+ATTEMPT 6: NOVO=1 FALHA (route.ts:TS2345) — revertendo — q=findUnique ret=idiom expr=requestedEmail wrap=0 inline=0 var=existingTenantMG07
+ATTEMPT 7: NOVO=3 FALHA (route.ts:TS7023 route.ts:TS2304 route.ts:TS7022) — revertendo — q=findFirst ret=json expr=requestedEmail wrap=1 inline=0 var=existingTenantMG07
+MG07FIX_APPLY[84]: engine auto exauriu 7 tentativa(s) sem zerar erros novos. ROLLBACK executado. TRIAGEM: /Users/marciocau/SeuZella_project/99_AUDITS/MG07FIX_20260923_222426/MG07FIX_TRIAGEM.txt (copia em /Users/marciocau/Downloads) — cole esse arquivo no chat.

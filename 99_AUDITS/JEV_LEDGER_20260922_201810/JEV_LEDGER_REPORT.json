@@ -1,0 +1,41 @@
+{
+  "wave": "RUN24-A",
+  "generatedAt": "2026-09-22T22:00:00.000Z",
+  "ledger": {
+    "total": 9,
+    "byKind": {
+      "shadow-decision": 6,
+      "cerebro-sample": 3
+    },
+    "byMode": {
+      "INTENT": 3,
+      "SENTIMENT": 2,
+      "CHURN": 2,
+      "LEAD": 1,
+      "UPSELL": 1
+    },
+    "matches": 2,
+    "mismatches": 2,
+    "agreementRate": 0.5,
+    "expectedLabeled": 2,
+    "firstSeq": 1,
+    "lastSeq": 9
+  },
+  "retention": {
+    "capacityEntries": 100,
+    "retentionMs": 2592000000,
+    "lastPruned": 1
+  },
+  "invariants": {
+    "seqMonotonic": true,
+    "tenantHashOnly": true,
+    "payloadNotSerialized": true,
+    "appendOnlyFrozen": true,
+    "idempotentAppends": true
+  },
+  "sink": {
+    "name": "file:jev-ledger.jsonl",
+    "written": 9,
+    "appendedOnly": true
+  }
+}

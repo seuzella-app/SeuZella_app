@@ -1,0 +1,80 @@
+PROBE: def=src/lib/error-handler.ts ACCOUNT_EXISTS-no-dominio=AUSENTE irmaos=PAYLOAD_TOO_LARGE,MISSING_FIELDS,INVALID_EMAIL,INVALID_PLAN,INVALID_PAYMENT_METHOD,INVALID_NICHE,INVALID_GATEWAY,INVALID_PRICING,TENANT_INACTIVE,INVALID_ACCOUNT_EMAIL,INVALID_IDEMPOTENCY_KEY,RATE_LIMITED,IDEMPOTENCY_IN_PROGRESS,IDEMPOTENCY_RESULT_UNAVAILABLE,PAYMENT_GATEWAY_NOT_CONFIGURED,PAYMENT_GATEWAY_UNAVAILABLE,PAYMENT_GATEWAY_ERROR,BILLING_IDEMPOTENCY_UNAVAILABLE,IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST,IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING,CHECKOUT_ERROR
+PROBE-SIG: contexto da definicao (linhas 75-109 de src/lib/error-handler.ts, mascarado):
+PROBE-SIG| 75:   return NextResponse.json({ success: true, data, ...(message ? { message } : {}), ...(requestId ? { requestId } : {}) }, { status });  
+PROBE-SIG| 76: }
+PROBE-SIG| 77: 
+PROBE-SIG| 78: export function validationError(message: string, fields?: Record<string, string>, options: { requestId?: string } = {}): NextResponse {  
+PROBE-SIG| 79:  logger.warn(`Validation: ${message}`, { fields, category: 'validation' }, options.requestId);  
+PROBE-SIG| 80:  return NextResponse.json({ success: false, error: { code: 'VALIDATION', message }, category: 'validation', ...(fields ? { fields } : {}), ...(options.requestId ? { requestId: options.requestId } : {}) }, { status: 400 });  
+PROBE-SIG| 81: }
+PROBE-SIG| 82: 
+PROBE-SIG| 83: export function notFoundError(resource: string, options: { requestId?: string } = {}): NextResponse {  
+PROBE-SIG| 84:  return NextResponse.json({ success: false, error: { code: 'NOT_FOUND', message: `${resource} nao encontrado.` }, category: 'not_found', ...(options.requestId ? { requestId: options.requestId } : {}) }, { status: 404 });  
+PROBE-SIG| 85: }
+PROBE-SIG| 86: 
+PROBE-SIG| 87: export function createError(status: number, code: string, message: string, details?: unknown): NextResponse {
+PROBE-SIG| 88:   const payload: { code: string; message: string; details?: unknown } = { code, message };
+PROBE-SIG| 89:   if (details !== undefined) payload.details = details;
+PROBE-SIG| 90:   return NextResponse.json({ success: false, error: payload }, { status });
+PROBE-SIG| 91: }
+PROBE-SIG| 92: 
+PROBE-SIG| 93: export function withErrorHandling(handler: (request: Request, context: { requestId: string; startTime: number }) => Promise<NextResponse>): (request: Request) => Promise<NextResponse> {  
+PROBE-SIG| 94:  return async (request: Request) => {  
+PROBE-SIG| 95:    const requestId = logger.generateRequestId();  
+PROBE-SIG| 96:    const startTime = Date.now();  
+PROBE-SIG| 97:    try {  
+PROBE-SIG| 98:      const response = await handler(request, { requestId, startTime });  
+PROBE-SIG| 99:      const duration = Date.now() - startTime;  
+PROBE-SIG| 100:      if (duration > 3000) logger.warn(`Slow request: ${request.method} ${request.url}`, { durationMs: duration, method: request.method, url: request.url }, requestId);  
+PROBE-SIG| 101:      return response;  
+PROBE-SIG| 102:    } catch (error) {  
+PROBE-SIG| 103:      return handleApiError(error, { requestId, endpoint: new URL(request.url).pathname, context: { durationMs: Date.now() - startTime, method: request.method } });  
+PROBE-SIG| 104:    }  
+PROBE-SIG| 105:  };  
+PROBE-SIG| 106: }
+PROBE-SIG| 107: 
+PROBE-SIG| 108: export type { ErrorContext, ClassifiedError };  
+PROBE-SIG| 109: 
+PROBE-SUMMARY: def=src/lib/error-handler.ts ACCOUNT_EXISTS-no-dominio=AUSENTE irmaos=PAYLOAD_TOO_LARGE,MISSING_FIELDS,INVALID_EMAIL,INVALID_PLAN,INVALID_PAYMENT_METHOD,INVALID_NICHE,INVALID_GATEWAY,INVALID_PRICING,TENANT_INACTIVE,INVALID_ACCOUNT_EMAIL,INVALID_IDEMPOTENCY_KEY,RATE_LIMITED,IDEMPOTENCY_IN_PROGRESS,IDEMPOTENCY_RESULT_UNAVAILABLE,PAYMENT_GATEWAY_NOT_CONFIGURED,PAYMENT_GATEWAY_UNAVAILABLE,PAYMENT_GATEWAY_ERROR,BILLING_IDEMPOTENCY_UNAVAILABLE,IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST,IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING,CHECKOUT_ERROR
+PROBE-CONSUMER: 3 ocorrencia(s) de executeCheckout (ate 6, mascarado):
+PROBE-CONSUMER| 129: const executeCheckout = async () => {
+PROBE-CONSUMER| 153: const result = await executeWithBillingIdempotency({ provider: 'generic', eventId: `checkout-create:${idempotencyScope}:${idempotencyKey}`, eventType: 'checkout.create', status: 'created', fingerprint }, executeCheckout);
+PROBE-CONSUMER| 160: const data = await executeCheckout();
+PROBE-SKEL: estrutura de src/lib/error-handler.ts (ate 60 linhas-chave, mascarado):
+PROBE-SKEL| 8: export type ErrorCategory =
+PROBE-SKEL| 12: interface ErrorContext { [key: string]: unknown; }
+PROBE-SKEL| 14: interface ClassifiedError {
+PROBE-SKEL| 23: function classifyError(error: unknown): ClassifiedError {
+PROBE-SKEL| 24: const err = error instanceof Error ? error : new Error(String(error));
+PROBE-SKEL| 25: const message = err.message.toLowerCase();
+PROBE-SKEL| 26: const name = err.name.toLowerCase();
+PROBE-SKEL| 59: export function handleApiError(error: unknown, options: { requestId?: string; endpoint?: string; context?: ErrorContext } = {}): NextResponse {
+PROBE-SKEL| 60: const { requestId, endpoint, context } = options;
+PROBE-SKEL| 61: const classified = classifyError(error);
+PROBE-SKEL| 63: const logCtx = { ...context, category: classified.category, statusCode: classified.statusCode, ...(endpoint ? { endpoint } : {}) };
+PROBE-SKEL| 73: export function apiSuccess<T>(data: T, options: { requestId?: string; status?: number; message?: string } = {}): NextResponse {
+PROBE-SKEL| 74: const { requestId, status = 200, message } = options;
+PROBE-SKEL| 78: export function validationError(message: string, fields?: Record<string, string>, options: { requestId?: string } = {}): NextResponse {
+PROBE-SKEL| 83: export function notFoundError(resource: string, options: { requestId?: string } = {}): NextResponse {
+PROBE-SKEL| 87: export function createError(status: number, code: string, message: string, details?: unknown): NextResponse {
+PROBE-SKEL| 88: const payload: { code: string; message: string; details?: unknown } = { code, message };
+PROBE-SKEL| 93: export function withErrorHandling(handler: (request: Request, context: { requestId: string; startTime: number }) => Promise<NextResponse>): (request: Request) => Promise<NextResponse> {
+PROBE-SKEL| 95: const requestId = logger.generateRequestId();
+PROBE-SKEL| 96: const startTime = Date.now();
+PROBE-SKEL| 98: const response = await handler(request, { requestId, startTime });
+PROBE-SKEL| 99: const duration = Date.now() - startTime;
+PROBE-SKEL| 108: export type { ErrorContext, ClassifiedError };
+PROBE: throws classificados no route: throw-CheckoutError-3args (linha 145)
+PROBE: cura de dominio desnecessaria (assinatura aceita ACCOUNT_EXISTS) — escada semantica assume
+ANALYZE: baseline herdada do shell (0 tokens)
+ANALYZE: exprs=2 (criacao|requestedEmail antes-ancora@135|customerEmail) idioma=idioma-3args throw=throw-CheckoutError-3args consumers=3 lib=route-only tsc=presente
+ATTEMPT 1: NOVO=1 FALHA — revertendo — kind=throw mode=plain casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+DETALHE[1]: texto integral dos erros novos (mascarado, ate 4):
+DETALHE[1]| src/app/api/checkout/create/route.ts(141,47): error TS1109: Expression expected.
+ATTEMPT 2: NOVO=1 FALHA — revertendo — kind=throw mode=casted casts=params/params q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+DETALHE[2]: texto integral dos erros novos (mascarado, ate 4):
+DETALHE[2]| src/app/api/checkout/create/route.ts(141,47): error TS1109: Expression expected.
+ATTEMPT 3: NOVO=0 VERDE — kind=return mode=casted casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07
+TOUCHED: 1 | src/app/api/checkout/create/route.ts
+PROBE-SUMMARY: def=src/lib/error-handler.ts ACCOUNT_EXISTS-no-dominio=AUSENTE irmaos=PAYLOAD_TOO_LARGE,MISSING_FIELDS,INVALID_EMAIL,INVALID_PLAN,INVALID_PAYMENT_METHOD,INVALID_NICHE,INVALID_GATEWAY,INVALID_PRICING,TENANT_INACTIVE,INVALID_ACCOUNT_EMAIL,INVALID_IDEMPOTENCY_KEY,RATE_LIMITED,IDEMPOTENCY_IN_PROGRESS,IDEMPOTENCY_RESULT_UNAVAILABLE,PAYMENT_GATEWAY_NOT_CONFIGURED,PAYMENT_GATEWAY_UNAVAILABLE,PAYMENT_GATEWAY_ERROR,BILLING_IDEMPOTENCY_UNAVAILABLE,IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_REQUEST,IDEMPOTENCY_RESPONSE_FINGERPRINT_MISSING,CHECKOUT_ERROR
+WINNER: 3 spec: kind=return mode=casted casts=none q=findUnique expr=requestedEmail wrap=0 inline=1 var=existingTenantMG07

@@ -1,0 +1,30 @@
+.github/workflows/ci-airbnb-style-guide.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-cd.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-ddc-mobile-suite.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-dify-integration.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-locks-integration.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-multi-agent-system.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-night-audit-system.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-production-build.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-runner-smoke.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-seclists-integration.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-semantica-tests.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-tensorflow-integration.yml | triggers: pull_request workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-v11-p0-antigravity.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-v11-p0-canaries.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-v11-p0-harness.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-v11-p0-security.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ci-zcc-vps-preflight.yml | triggers: push pull_request workflow_dispatch | jobs=2 | permissions=explicit
+.github/workflows/deploy.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/master-ci-build-regression.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/master-ci-crons-webhooks.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/master-ci-fast-gate.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/master-ci-notifications-mobile.yml | triggers: push pull_request workflow_dispatch | jobs=8 | permissions=explicit
+.github/workflows/master-ci-stress-security.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/master-ci-zcc-simulation.yml | triggers: push pull_request | jobs=3 | permissions=explicit
+.github/workflows/master-gate.yml | triggers: push pull_request workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/nightly-deep-security.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/production-build.yml | triggers: workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/security-scan.yml | triggers: schedule workflow_dispatch | jobs=1 | permissions=explicit
+.github/workflows/ze-code-review.yml | triggers: pull_request | jobs=1 | permissions=explicit
+.github/workflows/zecode-pr-review.yml | triggers: pull_request | jobs=1 | permissions=explicit

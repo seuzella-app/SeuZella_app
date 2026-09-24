@@ -1,0 +1,138 @@
+{
+  "schema": "RUN19_HYGIENE_WIRING_APPLIED/v1",
+  "generatedAt": "2026-09-22T14:21:15.978Z",
+  "basedOnDecisions": "HYGIENE_DECISIONS.json",
+  "run18TestPatched": true,
+  "run18TestAlreadyPatched": false,
+  "registryPrevVersion": "RUN18-A",
+  "registryPath": "src/lib/infra/wiring-registry.ts",
+  "retryItems": 13,
+  "uniqueRetryFiles": 13,
+  "wireFiles": {
+    "src/app/api/bim-vision/route.ts": {
+      "status": "WIRED",
+      "routeId": "bim-vision",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "param": "request",
+      "kind": "const",
+      "ssrf": null
+    },
+    "src/app/api/pinns-clifford/route.ts": {
+      "status": "WIRED",
+      "routeId": "pinns-clifford",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "param": "request",
+      "kind": "const",
+      "ssrf": null
+    },
+    "src/app/api/proxy/[...path]/route.ts": {
+      "status": "DEFERRED_TSC",
+      "reason": "revertido no rollback fino por tsc (rodada 1) — ver RECON_DEFERRED2.txt"
+    },
+    "src/app/api/webgl-bridge/route.ts": {
+      "status": "WIRED",
+      "routeId": "webgl-bridge",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P1",
+      "param": "request",
+      "kind": "const",
+      "ssrf": null
+    },
+    "src/app/api/ddc/runtime-version/route.ts": {
+      "status": "DEFERRED",
+      "reason": "handler sem parâmetro de request — fiação manual"
+    },
+    "src/app/api/hunt-stream/route.ts": {
+      "status": "WIRED",
+      "routeId": "hunt-stream",
+      "policy": {
+        "points": 60,
+        "windowMs": 60000
+      },
+      "prioridade": "P2",
+      "param": "request",
+      "kind": "function",
+      "ssrf": null
+    },
+    "src/app/api/leads/analytics/route.ts": {
+      "status": "DEFERRED",
+      "reason": "handler sem parâmetro de request — fiação manual"
+    },
+    "src/app/api/zcc/adapters/route.ts": {
+      "status": "DEFERRED",
+      "reason": "handler sem parâmetro de request — fiação manual"
+    },
+    "src/app/api/zcc/brain/route.ts": {
+      "status": "DEFERRED",
+      "reason": "handler sem parâmetro de request — fiação manual"
+    },
+    "src/app/api/zcc/cortex/growth/route.ts": {
+      "status": "DEFERRED",
+      "reason": "handler sem parâmetro de request — fiação manual"
+    },
+    "src/app/api/zcc/cortex/route.ts": {
+      "status": "DEFERRED",
+      "reason": "handler sem parâmetro de request — fiação manual"
+    },
+    "src/app/api/zcc/personas/route.ts": {
+      "status": "DEFERRED",
+      "reason": "handler sem parâmetro de request — fiação manual"
+    },
+    "src/app/api/zcc/synthetic-brazil/route.ts": {
+      "status": "DEFERRED",
+      "reason": "handler sem parâmetro de request — fiação manual"
+    }
+  },
+  "shadowFiles": {
+    "src/app/api/debug-agent/github/route.ts": {
+      "status": "SHADOW_WIRED",
+      "param": "request",
+      "just": "ferramenta interna de depuração — segredo em modo sombra"
+    },
+    "src/app/api/debug-agent/knowledge/route.ts": {
+      "status": "SHADOW_WIRED",
+      "param": "request",
+      "just": "ferramenta interna de depuração — segredo em modo sombra"
+    },
+    "src/app/api/debug-agent/route.ts": {
+      "status": "SHADOW_TSC",
+      "reason": "revertido no rollback fino por tsc (rodada 1)"
+    },
+    "src/app/api/leads/seed/route.ts": {
+      "status": "SHADOW_WIRED",
+      "param": "req",
+      "just": "semeadura de dados — nunca pública; segredo em modo sombra"
+    }
+  },
+  "shadowSummary": {
+    "SHADOW_WIRED": 3,
+    "SHADOW_TSC": 1
+  },
+  "modulesInstalled": [
+    "src/lib/infra/ssrf-guard.ts",
+    "src/lib/infra/internal-secret.ts"
+  ],
+  "ssrf": {
+    "wired": true,
+    "targetVar": "targetUrl",
+    "note": "ssrfGuard fiado junto com o W2 (modo sombra)"
+  },
+  "wiredRouteIds": [
+    "bim-vision",
+    "pinns-clifford",
+    "webgl-bridge",
+    "hunt-stream"
+  ],
+  "tscRounds": 2
+}

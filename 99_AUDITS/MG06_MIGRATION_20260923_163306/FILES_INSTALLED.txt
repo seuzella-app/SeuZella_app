@@ -1,0 +1,2 @@
+docs/MG06_RELATORIO.md | 172 linhas | sha256=97fa5742e57f79a54a2bba45f84faef4b56e50ccc9593f0fcaf947e4fc717c1d
+docs/MG06_ACHADOS.md | 46 linhas | sha256=a3e107e784028757c9edaf7a3bc5b79cfaf54f9d6845c4bce6eb04d8c5d7d638

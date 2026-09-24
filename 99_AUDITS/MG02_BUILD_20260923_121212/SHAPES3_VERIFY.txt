@@ -1,0 +1,11 @@
+OK   src/lib/infra/internal-secret.ts :: export function requireInternalSecret(req: unknown): Response | null {
+OK   src/lib/ai/budget-guard.ts :: export const tenantBudgetGuard = new TenantBudgetGuard();
+OK   src/lib/ai/budget-guard.ts :: canUseTier(tenantId: string, tier: number, estimatedCost?: number, plan?: string): boolean
+OK   src/lib/ai/circuit-breaker.ts :: export class CircuitBreaker {
+OK   src/lib/ai/circuit-breaker.ts :: allow(): boolean
+OK   src/lib/ai/circuit-breaker.ts :: recordSuccess(): void
+OK   src/lib/ai/circuit-breaker.ts :: recordFailure(): void
+OK   src/lib/ai/jev/jev-cerebro-shadow-loop.ts :: export async function runCerebroShadowCycle(
+OK   src/lib/ai/jev/jev-cerebro-file-source.ts :: export function createFileSampleSource(filePath: string): JevSampleSource | null {
+INFO src/lib/ai/llm-timeout.ts :: export async function withLlmTimeout<T>(
+INFO src/** :: USE_TF_INTENT

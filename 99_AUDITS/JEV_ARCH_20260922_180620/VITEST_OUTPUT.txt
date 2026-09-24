@@ -1,0 +1,9 @@
+
+ RUN  v3.2.7 /Users/marciocau/SeuZella_project
+
+No test files found, exiting with code 1
+
+filter: src/domain/decision/__tests__/jev-contract.test.ts, src/domain/decision/__tests__/jev-registry.test.ts, src/lib/ai/jev/__tests__/jev-shadow.test.ts
+include: tests/**/*.test.ts, tests/**/*.test.tsx, src/__tests__/**/*.test.ts, src/__tests__/**/*.test.tsx
+exclude:  **/node_modules/**, **/dist/**, **/cypress/**, **/.{idea,git,cache,output,temp}/**, **/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*
+

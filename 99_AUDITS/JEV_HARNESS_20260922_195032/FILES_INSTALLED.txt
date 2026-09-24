@@ -1,0 +1,4 @@
+src/lib/ai/jev/jev-harness-samples.ts | 274 linhas | sha256=614f1fce764d6f5f4abbf7122d3326923133f9cbfb27e05505c3470866fa4993
+src/lib/ai/jev/jev-agreement.ts | 157 linhas | sha256=bb96e0443114af1f68185e9eb5477af076444673e27808e7719623d7e7f0acb3
+src/lib/ai/jev/jev-harness.ts | 122 linhas | sha256=3d7d3b900e6bdc388e519fffb5997909e962285307913abac003d43f08d62d95
+src/__tests__/jev/jev-harness.test.ts | 244 linhas | sha256=8e603dd859a1b00457371cbac9d194a3273f25f923c5d55170f0abe222225977

@@ -1,0 +1,68 @@
+================================================================
+ SEUZELLA — JEV_PASTE_BACK_DIGEST (JEV SHADOW HARNESS — RUN23-A, SHADOW_ONLY)
+ Gerado em: 2026-09-22T22:51:04.701Z
+ Objetivo: fechar a onda SHADOW HARNESS (corpus v1 + agreementRate por modo
+ contra ground truth independente) e autorizar a próxima (LEDGER)
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: 7b3f9810163550595bccb58002a1c91845527fe1
+árvore: modified=0 untracked=20 | FORA de 99_AUDITS: 0
+
+--- B) ARQUIVOS INSTALADOS (4, ADITIVOS — nenhum existente editado) ---
+src/lib/ai/jev/jev-harness-samples.ts | 274 linhas | sha256=614f1fce764d6f5f4abbf7122d3326923133f9cbfb27e05505c3470866fa4993
+src/lib/ai/jev/jev-agreement.ts | 157 linhas | sha256=bb96e0443114af1f68185e9eb5477af076444673e27808e7719623d7e7f0acb3
+src/lib/ai/jev/jev-harness.ts | 122 linhas | sha256=3d7d3b900e6bdc388e519fffb5997909e962285307913abac003d43f08d62d95
+src/__tests__/jev/jev-harness.test.ts | 244 linhas | sha256=8e603dd859a1b00457371cbac9d194a3273f25f923c5d55170f0abe222225977
+
+
+--- C) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- D) VITEST (4 suítes JEV) ---
+resultado: 4 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (NOVA)
+
+--- E) HARNESS — AGREEMENT POR MODO (corpus v1, ground truth independente) ---
+corpus: jev-harness-corpus-v1 | amostras: 28
+  global: match=25 mismatch=3 rejected=0 unavailable=0 | agreementRate=89.3%
+
+POR MODO (agreementRate = match / (match + mismatch)):
+  INTENT    n= 4 match= 3 mismatch= 1 rate= 75.0%  | INT-002: esperado CANCELAMENTO -> obtido RESERVA
+  SENTIMENT n= 4 match= 4 mismatch= 0 rate=100.0%
+  CHURN     n= 4 match= 3 mismatch= 1 rate= 75.0%  | CHU-004: esperado MEDIO -> obtido ALTO
+  LEAD      n= 4 match= 3 mismatch= 1 rate= 75.0%  | LEA-003: esperado LEAD_QUALIFICADO -> obtido NAO_QUALIFICADO
+  ANOMALY   n= 4 match= 4 mismatch= 0 rate=100.0%
+  OCCUPANCY n= 4 match= 4 mismatch= 0 rate=100.0%
+  UPSELL    n= 4 match= 4 mismatch= 0 rate=100.0%
+
+INVARIANTES PROVADAS: shadowOnlyAllTrue=true remotePortUsed=false tenantHashOnly=true payloadNotSerialized=true
+LEITURA: as divergencias sao o mapa de calor da escada de custo — dizem ONDE o
+baseline $0 e fraco e ONDE o decision provider remoto (onda de integracao)
+vale o custo. Nenhuma amostra real de cliente foi usada (corpus sintetico).
+
+--- F) CAMINHO DE EXECUÇÃO (mesmo de produção) ---
+contrato (validação fail-closed) -> firewall (allowlist por modo) -> adapter
+local (heurística $0) -> buffer em memória -> agreement vs ground truth.
+Remoto (TypeSafe): ESTRUTURALMENTE ausente (remotePort null) — o agreement
+local-vs-remoto acende só na onda de integração. Nada persiste nesta onda.
+
+--- G) SEGURANÇA ---
+tokens de domínio proibido nos 4 arquivos: 0 | padrões de segredo literal: 0
+relatório do harness: sem tenant puro, sem payload, sem resposta bruta
+push: NENHUM (commit apenas local) | edição em arquivo existente: NENHUMA
+
+--- H) COMMIT LOCAL ---
+7b3f9810163550595bccb58002a1c91845527fe1
+mensagem: RUN23-A (JEV MASTER SHADOW HARNESS): corpus rotulado v1 + motor de agreement + harness no runner shadow (agreementRate por modo) — aditivo, SHADOW_ONLY, sem domínio financeiro
+
+--- I) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (hash no runner; corpus usa tenants sintéticos)
+secret handling ✓ (nada de env/chave nesta onda) | migração destrutiva: NENHUMA ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ | rede: NENHUMA ✓
+
+PRÓXIMA ONDA (após auditoria do agente): LEDGER — persistência das entradas
+shadow + exportação de amostras reais do Cérebro (apend-only, com retenção).
+================================================================

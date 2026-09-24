@@ -1,0 +1,67 @@
+{
+  "wave": "RUN27-A",
+  "route": {
+    "path": "src/app/api/cron/jev-shadow-pulse/route.ts",
+    "usesInternalSecret": true,
+    "usesBudgetGuard": true,
+    "usesBreakerProbe": true,
+    "forceDynamic": true,
+    "maxDuration60": true,
+    "noEnvReads": true
+  },
+  "gates": {
+    "noSrcInert": true,
+    "badSourceInert": true,
+    "budgetDeniedSkip": true,
+    "breakerOpenSkip": true,
+    "breakerMissingSkip": true
+  },
+  "happy": {
+    "status": "ran",
+    "recordSuccess": 1,
+    "countsMirrored": true
+  },
+  "cycleError": {
+    "http": 500,
+    "reasonTyped": true,
+    "noStackLeak": true
+  },
+  "timeout": {
+    "typed": true,
+    "boundedMs": 25000,
+    "recordFailure": 1
+  },
+  "integration": {
+    "read": 6,
+    "accepted": 3,
+    "rejected": 3,
+    "evaluated": 3,
+    "remoteActive": false,
+    "ledgerAppended": 6,
+    "ledgerTotal": 6
+  },
+  "probe": {
+    "fullClassOk": true,
+    "emptyModuleNull": true,
+    "partialClassNull": true,
+    "throwingCtorNull": true
+  },
+  "maxClamp": {
+    "overflowToCap": 500,
+    "garbageToDefault": 50
+  },
+  "hygiene": {
+    "noTenantNoPayloadNoSecretInBody": true,
+    "noEnvInLib": true,
+    "noForbiddenDomainTokens": true
+  },
+  "invariants": {
+    "shadowOnlyLiteral": true,
+    "tenantHashOnly": true,
+    "payloadNotSerialized": true,
+    "networkOnlyMocked": true,
+    "budgetAndBreakerFailClosed": true,
+    "timeoutBounded": true,
+    "secretNeverInResponse": true
+  }
+}

@@ -1,0 +1,922 @@
+{
+  "schema": "JEV_MASTER_SHAPES/v1",
+  "generatedAt": "2026-09-22T19:16:14.530Z",
+  "wave": "RUN21-A",
+  "git": {
+    "branch": "feat/meta-zella-foundation",
+    "head": "ffa3902b54a50b0adfd0d286ddef8281f5e80327",
+    "headShort": "ffa3902b",
+    "modified": 0,
+    "untracked": 15,
+    "staged": 0,
+    "outside99": 0
+  },
+  "zaos": {
+    "present": true,
+    "totalLines": 1926,
+    "exports": [
+      {
+        "line": 58,
+        "text": "export type ContextBucket = (typeof CONTEXT_BUCKETS)[number];"
+      },
+      {
+        "line": 61,
+        "text": "export interface LLMRequest {"
+      },
+      {
+        "line": 87,
+        "text": "export interface LLMResponse {"
+      },
+      {
+        "line": 125,
+        "text": "export interface LLMToolCall {"
+      },
+      {
+        "line": 132,
+        "text": "export interface LLMToolResponse extends LLMResponse {"
+      },
+      {
+        "line": 140,
+        "text": "export interface LLMToolRequest {"
+      },
+      {
+        "line": 156,
+        "text": "export interface ProviderRegistration {"
+      },
+      {
+        "line": 181,
+        "text": "export interface RouterProviderState {"
+      },
+      {
+        "line": 386,
+        "text": "export interface AgentFallbackChain {"
+      },
+      {
+        "line": 397,
+        "text": "export const AGENT_FALLBACK_CHAINS: Record<string, AgentFallbackChain> = {"
+      },
+      {
+        "line": 452,
+        "text": "export function getAgentChain(agentId: string): AgentFallbackChain {"
+      },
+      {
+        "line": 483,
+        "text": "export class ZaosNeuroRouter {"
+      },
+      {
+        "line": 1913,
+        "text": "export async function getNeuroRouter(): Promise<ZaosNeuroRouter> {"
+      },
+      {
+        "line": 1924,
+        "text": "export function resetNeuroRouter(): void {"
+      }
+    ],
+    "providerRegistration": {
+      "startLine": 156,
+      "lines": 23,
+      "text": "export interface ProviderRegistration {\n  id: string;\n  name: string;\n  tier: number;\n  /** Cost per 1K input tokens in USD */\n  costPer1kInput: number;\n  /** Cost per 1K output tokens in USD */\n  costPer1kOutput: number;\n  /** Average expected latency in ms */\n  expectedLatencyMs: number;\n  /** Maximum context window in tokens */\n  maxContextTokens: number;\n  /** Whether provider supports JSON mode */\n  supportsJson: boolean;\n  /** Whether provider supports tool/function calling */\n  supportsTools: boolean;\n  /** Base URL for API calls (null for local) */\n  baseUrl: string | null;\n  /** Initial alpha for Beta posterior (default: 1.0) */\n  initialAlpha?: number;\n  /** Initial beta for Beta posterior (default: 1.0) */\n  initialBeta?: number;\n}",
+      "truncated": false
+    },
+    "defaultProviders": {
+      "startLine": 194,
+      "lines": 15,
+      "text": "const DEFAULT_PROVIDERS: ProviderRegistration[] = [\n  {\n    id: 'ollama-llama3',\n    name: 'Ollama Llama 3.1 8B (Local)',\n    tier: 1,\n    costPer1kInput: 0,\n    costPer1kOutput: 0,\n    expectedLatencyMs: 120,\n    maxContextTokens: 8192,\n    supportsJson: true,\n    supportsTools: false,\n    baseUrl: null,\n    initialAlpha: 3.0,\n    initialBeta: 1.0,\n  },",
+      "truncated": false
+    },
+    "registrationFns": [
+      {
+        "line": 1039,
+        "text": "registerProvider(registration: ProviderRegistration): void {"
+      }
+    ],
+    "kindTyping": []
+  },
+  "decision": {
+    "present": true,
+    "files": [
+      {
+        "rel": "src/domain/decision/adapters/InMemoryRouterStateAdapter.ts",
+        "lines": 72
+      },
+      {
+        "rel": "src/domain/decision/models/BetaBinomialPosterior.ts",
+        "lines": 137
+      },
+      {
+        "rel": "src/domain/decision/models/BudgetGuard.ts",
+        "lines": 76
+      },
+      {
+        "rel": "src/domain/decision/models/CircuitBreakerState.ts",
+        "lines": 132
+      },
+      {
+        "rel": "src/domain/decision/models/PosteriorKey.ts",
+        "lines": 5
+      },
+      {
+        "rel": "src/domain/decision/models/ProviderCapabilityProfile.ts",
+        "lines": 52
+      },
+      {
+        "rel": "src/domain/decision/models/RoutingContext.ts",
+        "lines": 36
+      },
+      {
+        "rel": "src/domain/decision/models/RoutingDecision.ts",
+        "lines": 47
+      },
+      {
+        "rel": "src/domain/decision/ports/IRouterStatePort.ts",
+        "lines": 44
+      },
+      {
+        "rel": "src/domain/decision/services/AdaptiveStickiness.ts",
+        "lines": 45
+      },
+      {
+        "rel": "src/domain/decision/services/ContextDiscretizer.ts",
+        "lines": 148
+      },
+      {
+        "rel": "src/domain/decision/services/ParetoMultiObjectiveSelector.ts",
+        "lines": 88
+      },
+      {
+        "rel": "src/domain/decision/services/ZaosNeuroRouter.ts",
+        "lines": 264
+      }
+    ],
+    "exports": {
+      "src/domain/decision/adapters/InMemoryRouterStateAdapter.ts": [
+        {
+          "line": 3,
+          "text": "export class InMemoryRouterStateAdapter implements IRouterStatePort {"
+        }
+      ],
+      "src/domain/decision/models/BetaBinomialPosterior.ts": [
+        {
+          "line": 1,
+          "text": "export class BetaBinomialPosterior {"
+        }
+      ],
+      "src/domain/decision/models/BudgetGuard.ts": [
+        {
+          "line": 1,
+          "text": "export interface BudgetSnapshot {"
+        },
+        {
+          "line": 8,
+          "text": "export enum BudgetLevel {"
+        },
+        {
+          "line": 14,
+          "text": "export class BudgetGuard {"
+        }
+      ],
+      "src/domain/decision/models/CircuitBreakerState.ts": [
+        {
+          "line": 1,
+          "text": "export enum CircuitState {"
+        },
+        {
+          "line": 7,
+          "text": "export interface CircuitBreakerConfig {"
+        },
+        {
+          "line": 14,
+          "text": "export const DEFAULT_CB_CONFIG: CircuitBreakerConfig = {"
+        },
+        {
+          "line": 21,
+          "text": "export class CircuitBreakerState {"
+        }
+      ],
+      "src/domain/decision/models/PosteriorKey.ts": [
+        {
+          "line": 1,
+          "text": "export interface PosteriorKey {"
+        }
+      ],
+      "src/domain/decision/models/ProviderCapabilityProfile.ts": [
+        {
+          "line": 1,
+          "text": "export interface ICapabilityVector {"
+        },
+        {
+          "line": 11,
+          "text": "export class ProviderCapabilityProfile {"
+        }
+      ],
+      "src/domain/decision/models/RoutingContext.ts": [
+        {
+          "line": 1,
+          "text": "export class RoutingContext {"
+        }
+      ],
+      "src/domain/decision/models/RoutingDecision.ts": [
+        {
+          "line": 1,
+          "text": "export class RoutingDecision {"
+        }
+      ],
+      "src/domain/decision/ports/IRouterStatePort.ts": [
+        {
+          "line": 1,
+          "text": "export interface IRouterStatePort {"
+        }
+      ],
+      "src/domain/decision/services/AdaptiveStickiness.ts": [
+        {
+          "line": 4,
+          "text": "export interface IStickinessSessionState {"
+        },
+        {
+          "line": 10,
+          "text": "export class AdaptiveStickiness {"
+        }
+      ],
+      "src/domain/decision/services/ContextDiscretizer.ts": [
+        {
+          "line": 1,
+          "text": "export class ContextDiscretizer {"
+        }
+      ],
+      "src/domain/decision/services/ParetoMultiObjectiveSelector.ts": [
+        {
+          "line": 3,
+          "text": "export interface IBucketRequirement {"
+        },
+        {
+          "line": 9,
+          "text": "export class ParetoMultiObjectiveSelector {"
+        }
+      ]
+    },
+    "capabilityProfile": {
+      "rel": "src/domain/decision/models/ProviderCapabilityProfile.ts",
+      "block": {
+        "startLine": 1,
+        "lines": 9,
+        "text": "export interface ICapabilityVector {\n  readonly reasoning: number; // [0, 1]\n  readonly conversation: number; // [0, 1]\n  readonly code: number; // [0, 1]\n  readonly json: number; // [0, 1]\n  readonly creative: number; // [0, 1]\n  readonly multilingual: number; // [0, 1]\n  readonly safety: number; // [0, 1]\n}",
+        "truncated": false
+      }
+    }
+  },
+  "adapters": {
+    "present": true,
+    "totalLines": 797,
+    "exports": [
+      {
+        "line": 6,
+        "text": "export interface AdapterResponse {"
+      },
+      {
+        "line": 12,
+        "text": "export interface AdapterMessage {"
+      },
+      {
+        "line": 22,
+        "text": "export interface AdapterToolDef {"
+      },
+      {
+        "line": 36,
+        "text": "export interface AdapterToolCallDef {"
+      },
+      {
+        "line": 65,
+        "text": "export async function callOpenAICompatible(params: {"
+      },
+      {
+        "line": 121,
+        "text": "export async function callAnthropic(params: {"
+      },
+      {
+        "line": 171,
+        "text": "export async function callGemini(params: {"
+      },
+      {
+        "line": 240,
+        "text": "export interface AdapterToolResponse extends AdapterResponse {"
+      },
+      {
+        "line": 262,
+        "text": "export async function callOpenAIWithTools(params: {"
+      },
+      {
+        "line": 362,
+        "text": "export async function callGeminiWithTools(params: {"
+      },
+      {
+        "line": 522,
+        "text": "export async function callAnthropicWithTools(params: {"
+      },
+      {
+        "line": 704,
+        "text": "export async function callGeminiWithAudio(params: {"
+      },
+      {
+        "line": 777,
+        "text": "export function mapWhatsappAudioToGemini(whatsappMime: string): {"
+      }
+    ],
+    "firstTypeBlock": {
+      "startLine": 6,
+      "lines": 5,
+      "text": "export interface AdapterResponse {\n  content: string;\n  inputTokens: number;\n  outputTokens: number;\n}",
+      "truncated": false
+    },
+    "llmRouter": {
+      "present": true,
+      "totalLines": 244,
+      "exports": [
+        {
+          "line": 3,
+          "text": "export interface MLInteractionLog {"
+        },
+        {
+          "line": 93,
+          "text": "export class LLMRouter {"
+        },
+        {
+          "line": 243,
+          "text": "export const llmRouter = new LLMRouter()"
+        }
+      ]
+    }
+  },
+  "support": [
+    {
+      "rel": "src/lib/ai/budget-guard.ts",
+      "present": true,
+      "totalLines": 374,
+      "exports": [
+        {
+          "line": 17,
+          "text": "export enum BudgetLevel {"
+        },
+        {
+          "line": 23,
+          "text": "export enum ProviderTier {"
+        },
+        {
+          "line": 29,
+          "text": "export interface BudgetGuardConfig {"
+        },
+        {
+          "line": 40,
+          "text": "export interface BudgetGuardSnapshot {"
+        },
+        {
+          "line": 60,
+          "text": "export class BudgetGuard {"
+        },
+        {
+          "line": 268,
+          "text": "export class TenantBudgetGuard {"
+        },
+        {
+          "line": 332,
+          "text": "export const tenantBudgetGuard = new TenantBudgetGuard();"
+        },
+        {
+          "line": 334,
+          "text": "export async function getTotalSpendReport(tenantId: string) {"
+        }
+      ]
+    },
+    {
+      "rel": "src/lib/ai/circuit-breaker.ts",
+      "present": true,
+      "totalLines": 227,
+      "exports": [
+        {
+          "line": 16,
+          "text": "export enum CircuitState {"
+        },
+        {
+          "line": 22,
+          "text": "export interface CircuitBreakerConfig {"
+        },
+        {
+          "line": 31,
+          "text": "export interface CircuitBreakerSnapshot {"
+        },
+        {
+          "line": 46,
+          "text": "export class CircuitBreaker {"
+        }
+      ]
+    },
+    {
+      "rel": "src/lib/ai/llm-timeout.ts",
+      "present": true,
+      "totalLines": 99,
+      "exports": [
+        {
+          "line": 29,
+          "text": "export interface LlmTimeoutContext {"
+        },
+        {
+          "line": 46,
+          "text": "export async function withLlmTimeout<T>("
+        },
+        {
+          "line": 85,
+          "text": "export async function withLlmFallback<T>("
+        }
+      ]
+    },
+    {
+      "rel": "src/lib/ai/cost-logger.ts",
+      "present": true,
+      "totalLines": 108,
+      "exports": [
+        {
+          "line": 3,
+          "text": "export interface LLMCostLogEntry {"
+        },
+        {
+          "line": 18,
+          "text": "export class CostLogger {"
+        },
+        {
+          "line": 107,
+          "text": "export const costLogger = new CostLogger();"
+        }
+      ]
+    },
+    {
+      "rel": "src/lib/ai/pii-guard.ts",
+      "present": true,
+      "totalLines": 139,
+      "exports": [
+        {
+          "line": 92,
+          "text": "export const piiGuard = {"
+        }
+      ]
+    },
+    {
+      "rel": "src/lib/ai/tier-distributor.ts",
+      "present": true,
+      "totalLines": 291,
+      "exports": [
+        {
+          "line": 39,
+          "text": "export type TierLevel = 1 | 2 | 3;"
+        },
+        {
+          "line": 41,
+          "text": "export interface TierDecision {"
+        },
+        {
+          "line": 115,
+          "text": "export function decideTier("
+        },
+        {
+          "line": 258,
+          "text": "export function estimateWeightedCost("
+        },
+        {
+          "line": 284,
+          "text": "export function getTierDistributionStats() {"
+        }
+      ]
+    }
+  ],
+  "infra": {
+    "present": true,
+    "files": [
+      {
+        "rel": "src/lib/infra/audit.ts",
+        "lines": 93
+      },
+      {
+        "rel": "src/lib/infra/cache.ts",
+        "lines": 202
+      },
+      {
+        "rel": "src/lib/infra/health.ts",
+        "lines": 74
+      },
+      {
+        "rel": "src/lib/infra/internal-secret.ts",
+        "lines": 63
+      },
+      {
+        "rel": "src/lib/infra/logger.ts",
+        "lines": 65
+      },
+      {
+        "rel": "src/lib/infra/optional-require.ts",
+        "lines": 33
+      },
+      {
+        "rel": "src/lib/infra/queue.ts",
+        "lines": 208
+      },
+      {
+        "rel": "src/lib/infra/rate-limit.ts",
+        "lines": 128
+      },
+      {
+        "rel": "src/lib/infra/ssrf-guard.ts",
+        "lines": 60
+      },
+      {
+        "rel": "src/lib/infra/wiring-registry.ts",
+        "lines": 36
+      },
+      {
+        "rel": "src/lib/infra/wiring.ts",
+        "lines": 64
+      }
+    ],
+    "exports": {
+      "internal-secret.ts": [
+        {
+          "line": 16,
+          "text": "export function internalEnforced(): boolean {"
+        },
+        {
+          "line": 20,
+          "text": "export function providedInternalSecret(req: unknown): string | null {"
+        },
+        {
+          "line": 42,
+          "text": "export function requireInternalSecret(req: unknown): Response | null {"
+        }
+      ],
+      "ssrf-guard.ts": [
+        {
+          "line": 15,
+          "text": "export function ssrfAllowlist(): string[] {"
+        },
+        {
+          "line": 22,
+          "text": "export function ssrfEnforced(): boolean {"
+        },
+        {
+          "line": 26,
+          "text": "export function hostOf(targetUrl: string): string | null {"
+        },
+        {
+          "line": 46,
+          "text": "export function ssrfGuard(targetUrl: string): Response | null {"
+        }
+      ],
+      "wiring.ts": [
+        {
+          "line": 20,
+          "text": "export type GuardPolicy = RateLimitPolicy;"
+        },
+        {
+          "line": 22,
+          "text": "export function clientIp(req: Request): string {"
+        },
+        {
+          "line": 29,
+          "text": "export function hashIp(ip: string): string {"
+        },
+        {
+          "line": 34,
+          "text": "export function guardRequest("
+        },
+        {
+          "line": 61,
+          "text": "export function auditRouteEvent(event: AuditEvent): string {"
+        }
+      ]
+    }
+  },
+  "envConvention": {
+    "keyCount": 47,
+    "keys": [
+      {
+        "name": "NODE_ENV",
+        "count": 2,
+        "sample": "if (!context.userId || !context.tenantId || (process.env.NODE_ENV === 'production' && context.tenantId.includes('demo'))) {",
+        "sampleRel": "src/lib/ai/backend-tool-authorizer.ts"
+      },
+      {
+        "name": "BATCH_API_ENABLED",
+        "count": 1,
+        "sample": "enabled: process.env.BATCH_API_ENABLED === 'true',",
+        "sampleRel": "src/lib/ai/batch-queue.ts"
+      },
+      {
+        "name": "USE_DSPY_COMPILED_PROMPTS",
+        "count": 1,
+        "sample": "const USE_DSPY_COMPILED_PROMPTS = process.env.USE_DSPY_COMPILED_PROMPTS === 'true';",
+        "sampleRel": "src/lib/ai/cognitive-router.ts"
+      },
+      {
+        "name": "HEADROOM_PROXY_ENABLED",
+        "count": 2,
+        "sample": "/** Whether Headroom Proxy is enabled (default: process.env.HEADROOM_PROXY_ENABLED) */",
+        "sampleRel": "src/lib/ai/headroom-client.ts"
+      },
+      {
+        "name": "OLLAMA_URL",
+        "count": 1,
+        "sample": "const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434'",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "DEEPSEEK_API_KEY",
+        "count": 5,
+        "sample": "const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || ''",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "ZHIPU_API_KEY",
+        "count": 5,
+        "sample": "const GLM_KEY = process.env.ZHIPU_API_KEY || ''",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "OPENROUTER_API_KEY",
+        "count": 5,
+        "sample": "const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || ''",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "GROQ_API_KEY",
+        "count": 5,
+        "sample": "const GROQ_KEY = process.env.GROQ_API_KEY || ''",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "OPENAI_API_KEY",
+        "count": 3,
+        "sample": "const OPENAI_KEY = process.env.OPENAI_API_KEY || ''",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "GEMINI_API_KEY",
+        "count": 8,
+        "sample": "const GEMINI_KEY = process.env.GEMINI_API_KEY || ''",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "ANTHROPIC_API_KEY",
+        "count": 4,
+        "sample": "const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || ''",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "CLAUDE_MODEL",
+        "count": 1,
+        "sample": "const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-3-5-sonnet-20241022'",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "NEXTAUTH_URL",
+        "count": 1,
+        "sample": "headers['HTTP-Referer'] = process.env.NEXTAUTH_URL || 'http://localhost:3000'",
+        "sampleRel": "src/lib/ai/llm-router.ts"
+      },
+      {
+        "name": "UPSTASH_REDIS_REST_URL",
+        "count": 2,
+        "sample": "enabled: !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),",
+        "sampleRel": "src/lib/ai/redis-cache.ts"
+      },
+      {
+        "name": "UPSTASH_REDIS_REST_TOKEN",
+        "count": 2,
+        "sample": "enabled: !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),",
+        "sampleRel": "src/lib/ai/redis-cache.ts"
+      },
+      {
+        "name": "TF_SIDECAR_URL",
+        "count": 1,
+        "sample": "const TF_SIDECAR_URL = process.env.TF_SIDECAR_URL || 'http://127.0.0.1:8501';",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "TF_API_KEY",
+        "count": 1,
+        "sample": "const TF_API_KEY = process.env.TF_API_KEY || '';",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "TF_TIMEOUT_MS",
+        "count": 1,
+        "sample": "const TF_TIMEOUT_MS = parseInt(process.env.TF_TIMEOUT_MS || '3000', 10);",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "USE_TF_INTENT",
+        "count": 1,
+        "sample": "intent: process.env.USE_TF_INTENT === 'true',",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "USE_TF_CHURN",
+        "count": 1,
+        "sample": "churn: process.env.USE_TF_CHURN === 'true',",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "USE_TF_LEAD",
+        "count": 1,
+        "sample": "lead: process.env.USE_TF_LEAD === 'true',",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "USE_TF_ANOMALY",
+        "count": 1,
+        "sample": "anomaly: process.env.USE_TF_ANOMALY === 'true',",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "USE_TF_OCCUPANCY",
+        "count": 1,
+        "sample": "occupancy: process.env.USE_TF_OCCUPANCY === 'true',",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "USE_TF_SENTIMENT",
+        "count": 1,
+        "sample": "sentiment: process.env.USE_TF_SENTIMENT === 'true',",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "USE_TF_PRICE",
+        "count": 1,
+        "sample": "price: process.env.USE_TF_PRICE === 'true',",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "USE_TF_UPSELL",
+        "count": 1,
+        "sample": "upsell: process.env.USE_TF_UPSELL === 'true',",
+        "sampleRel": "src/lib/ai/tf-client.ts"
+      },
+      {
+        "name": "GLM_5_2_API_KEY",
+        "count": 4,
+        "sample": "process.env.GLM_5_2_API_KEY || process.env.ZHIPU_API_KEY,",
+        "sampleRel": "src/lib/ai/tool-calling.ts"
+      },
+      {
+        "name": "KIMI_K2_6_API_KEY",
+        "count": 4,
+        "sample": "process.env.KIMI_K2_6_API_KEY || process.env.MOONSHOT_API_KEY,",
+        "sampleRel": "src/lib/ai/tool-calling.ts"
+      },
+      {
+        "name": "MOONSHOT_API_KEY",
+        "count": 4,
+        "sample": "process.env.KIMI_K2_6_API_KEY || process.env.MOONSHOT_API_KEY,",
+        "sampleRel": "src/lib/ai/tool-calling.ts"
+      }
+    ],
+    "helperPatterns": [
+      {
+        "rel": "src/lib/ai/tool-registry.ts",
+        "line": 19,
+        "text": "*     inputSchema: z.object({ checkIn: z.string(), checkOut: z.string() }),"
+      },
+      {
+        "rel": "src/lib/cerebro/ze-code/gap-detector.ts",
+        "line": 92,
+        "text": "suggestedCode: '// Adicione:\\nimport { z } from \"zod\";\\nconst schema = z.object({ /* ... */ });\\nconst parsed = schema.safeParse(await req.json());\\nif (!parsed.success) return Response.json({ error: \"Invalid input\" }..."
+      },
+      {
+        "rel": "src/lib/env.ts",
+        "line": 5,
+        "text": "function getEnv(key: string, fallback?: string): string {"
+      },
+      {
+        "rel": "src/lib/env.ts",
+        "line": 27,
+        "text": "export const DATABASE_URL = getEnv('DATABASE_URL', 'file:./db/custom.db');"
+      },
+      {
+        "rel": "src/lib/env.ts",
+        "line": 28,
+        "text": "export const NEXTAUTH_URL = getEnv('NEXTAUTH_URL', 'http://localhost:3000');"
+      },
+      {
+        "rel": "src/lib/infra/health.ts",
+        "line": 44,
+        "text": "export function getEnvAllowlist(): string[] {"
+      },
+      {
+        "rel": "src/lib/metagpt/sops/experience-distiller.sop.ts",
+        "line": 13,
+        "text": "const NPSFeedbackInputSchema = z.object({"
+      },
+      {
+        "rel": "src/lib/metagpt/sops/experience-distiller.sop.ts",
+        "line": 20,
+        "text": "const NPSFeedbackOutputSchema = z.object({"
+      },
+      {
+        "rel": "src/lib/metagpt/sops/experience-distiller.sop.ts",
+        "line": 26,
+        "text": "const DistillKnowledgeInputSchema = z.object({"
+      },
+      {
+        "rel": "src/lib/metagpt/sops/experience-distiller.sop.ts",
+        "line": 32,
+        "text": "const DistillKnowledgeOutputSchema = z.object({"
+      }
+    ]
+  },
+  "callSample": {
+    "rel": "src/app/api/cron/cerebro-analyze/route.ts",
+    "totalLines": 233,
+    "imports": [
+      "import { NextRequest, NextResponse } from 'next/server';",
+      "import { verifyCronAuth } from '@/lib/security/cron-auth-unified';",
+      "import { logSink } from '@/lib/cerebro/log-sink';",
+      "import { getCerebroMode } from '@/lib/cerebro/types';",
+      "import { runAnomalyDetection } from '@/lib/cerebro/anomaly-detector';",
+      "import { bridgeCerebroAlert } from '@/lib/notifications/bridges';",
+      "import { getGlmCerebroService } from '@/lib/cerebro/glm-service';",
+      "import { dispatchAlert } from '@/lib/cerebro/alert-bus';",
+      "import { verifyCronM2MToken, auditCronExecution } from '@/lib/security/cron-auth';",
+      "import { db } from '@/lib/db';"
+    ],
+    "bodyExcerpt": [
+      "// ============================================================================",
+      "// ZÉLLA — Cron: Cérebro Analyze (15 min)",
+      "// ============================================================================",
+      "// Endpoint chamado a cada 15 min via Vercel Cron.",
+      "//",
+      "// FUNÇÃO:",
+      "//  1. Puxa anomalias não-acknowledged dos últimos 15 min (do AnomalyDetector)",
+      "//  2. Se há anomalias, chama GlmCerebroService.analyzeAnomalies()",
+      "//  3. Persiste análise em CerebroAnalysis",
+      "//  4. Se severity >= critical, dispara AlertBus (em live mode)",
+      "//  5. Em mock mode: gera análises sintéticas mas NÃO envia alertas",
+      "//",
+      "// AUTH:",
+      "//  - Em produção: CRON_SECRET (header Authorization: Bearer <token>)",
+      "//  - Em dev: sem auth (para teste manual)",
+      "//",
+      "// CUSTO LLM:",
+      "//  - Em mock: $0 (não chama GLM)",
+      "//  - Em live: ~$0.002 por análise × 4/hora × 24h × 30d = ~$5.76/mês",
+      "//  - Hard cap: CEREBRO_MONTHLY_BUDGET_USD (default $20) — fallback para mock se estourar",
+      "//",
+      "// INTEGRAÇÃO COM VERCEL CRON:",
+      "//  Adicionar em vercel.json:",
+      "//  { \"path\": \"/api/cron/cerebro-analyze\", \"schedule\": \"*/15 * * * *\" }",
+      "// ============================================================================",
+      "// Notification bridge — Phase 2: pushes analysis anomalies into DDC for the tenant",
+      "export async function GET(request: NextRequest): Promise<NextResponse> {",
+      "  return runAnalysis(request);",
+      "}",
+      "export async function POST(request: NextRequest): Promise<NextResponse> {",
+      "  return runAnalysis(request);",
+      "}",
+      "async function runAnalysis(request: NextRequest): Promise<NextResponse> {",
+      "  const startTime = Date.now();",
+      "  const mode = getCerebroMode();",
+      "  // ── Auth M2M EdDSA (V11-P0) — fail-closed ──",
+      "  const auth = await verifyCronM2MToken(request, 'cerebro:read');",
+      "  if (!auth.ok) {",
+      "    return auth.response;",
+      "  }",
+      "  const {principal} = auth;",
+      "  try {",
+      "    // ── 1. Roda AnomalyDetector para coletar anomalias atuais ──",
+      "    const anomalies = await runAnomalyDetection();",
+      "    if (anomalies.length === 0) {",
+      "      const processingTime = Date.now() - startTime;",
+      "      logSink.info({",
+      "        module: 'cerebro-analyze',",
+      "        event: 'no_anomalies_to_analyze',",
+      "        message: `Nenhuma anomalia detectada — análise não necessária (${processingTime}ms)`,",
+      "        context: { processingTimeMs: processingTime, mode },",
+      "      });",
+      "      return NextResponse.json({",
+      "        ok: true,",
+      "        mode,"
+    ]
+  },
+  "middleware": {
+    "present": true,
+    "totalLines": 39,
+    "excerpt": "import { NextRequest, NextResponse } from 'next/server';\nimport { getToken } from 'next-auth/jwt';\nimport { wafMiddleware } from '@/lib/security/waf-middleware';\n\n// FIX (onda Meta Foundation — auditoria): '/api/webhooks/whatsapp' é o webhook\n// canônico da Meta Cloud API (HMAC fail-closed + idempotência + pricing). Ele\n// DEVE ser público como os demais webhooks (/api/webhook-whatsapp, asaas,\n// mercadopago): a autenticação aqui é a assinatura HMAC X-Hub-Signature-256,\n// verificada dentro do handler — não a sessão NextAuth.\nconst PUBLIC_API_PREFIXES = ['/api/health','/api/readiness','/api/auth','/api/webhook-whatsapp','/api/webhooks/whatsapp','/api/webhooks/asaas','/api/webhooks/mercadopago','/api/webhooks/payment','/api/checkout/webhook...\nconst BLOCKED_API_PREFIXES = ['/api/debug-agent','/api/proxy','/api/diagnose'];\nconst PROTECTED_PAGE_PREFIXES = ['/zcc','/dashboard','/config','/tenants','/campaigns','/leads','/targets','/agents','/roi','/swipe-templates'];\nconst REQUEST_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;\n\nfunction startsWithAny(pathname: string, prefixes: string[]): boolean { return prefixes.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)); }\nfunction isPublicApi(pathname: string): boolean { return startsWithAny(pathname, PUBLIC_API_PREFIXES); }\nfunction getSessionCookie(request: NextRequest): string | undefined { return request.cookies.get('__Secure-next-auth.session-token')?.value || request.cookies.get('next-auth.session-token')?.value; }\nfunction createRequestId(request: NextRequest): string { const supplied = request.headers.get('x-request-id') || request.headers.get('x-vercel-id'); return supplied && REQUEST_ID_RE.test(supplied) ? supplied : `mid-${...\nfunction securityHeaders(response: NextResponse, requestId: string): NextResponse { response.headers.set('X-Request-ID', requestId); response.headers.set('X-Content-Type-Options','nosniff'); response.headers.set('X-Fr...\nasync function getAuthenticatedToken(request: NextRequest) { const secret = process.env.NEXTAUTH_SECRET; if (!secret) throw new Error('NEXTAUTH_SECRET environment variable is required'); return getToken({ req: request...\nasync function authorizeZcc(request: NextRequest): Promise<boolean> { const token = await getAuthenticatedToken(request); if (!token) return false; const email = typeof token.email === 'string' ? token.email.trim().to...\nfunction timingSafeEqualStr(a: string,b: string): boolean { if (a.length !== b.length) return false; let mismatch = 0; for (let i=0;i<a.length;i++) mismatch |= a.charCodeAt(i)^b.charCodeAt(i); return mismatch === 0; }\nfunction isMachineAuthorized(request: NextRequest): boolean { const authHeader = request.headers.get('authorization'); if (!authHeader) return false; const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7...\n\nexport async function middleware(request: NextRequest) {\n  const { pathname } = request.nextUrl;\n  const requestId = createRequestId(request);\n  const wafResponse = wafMiddleware(request);\n  if (wafResponse) return securityHeaders(wafResponse, requestId);\n  if (startsWithAny(pathname,BLOCKED_API_PREFIXES) && process.env.NODE_ENV === 'production') return securityHeaders(NextResponse.json({ error:'NOT_FOUND', requestId },{status:404}),requestId);\n  if (pathname === '/zcc/login') return securityHeaders(NextResponse.next(),requestId);\n  if (pathname === '/ddc' || pathname.startsWith('/ddc/')) { if (pathname === '/ddc' || pathname === '/ddc/') { try { const token = await getAuthenticatedToken(request); const niche = (token as any)?.niche; return sec...\n  if (pathname === '/zcc' || pathname.startsWith('/zcc/')) { try { if (await authorizeZcc(request)) return securityHeaders(NextResponse.next(),requestId); } catch { /* fail closed */ } const loginUrl = new URL('/zcc/l...\n  if (pathname.startsWith('/api/')) { if (isPublicApi(pathname)) return securityHeaders(NextResponse.next(),requestId); /* RUN7-W2 (RES-01): presenca de cookie != sessao valida - o JWT e verificado de fato no perimetr...\n  if (startsWithAny(pathname,PROTECTED_PAGE_PREFIXES) && !getSessionCookie(request)) { const loginUrl = new URL('/login',request.url); loginUrl.searchParams.set('callbackUrl',pathname); return securityHeaders(NextResp...\n  return securityHeaders(NextResponse.next(),requestId);\n}\nexport const config = { matcher: ['/((?!_next/static|_next/image|favicon\\\\.ico|.*\\\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2)$).*)'] };\n"
+  },
+  "tsconfig": {
+    "parseError": true
+  },
+  "questions": {
+    "q1": "BLOCO EXTRAÍDO (L156, 23 linhas)",
+    "q2": "1 ocorrência(s) de registro",
+    "q3": "sem kind/DECISION/GENERATIVE no zaos",
+    "q4": "bloco extraído (9 linhas)",
+    "q5": "bloco extraído (L6)",
+    "q6": "process.env direto em 47 chave(s)",
+    "q7": "src/app/api/cron/cerebro-analyze/route.ts (233 linhas)",
+    "q8": "presente (39 linhas)"
+  }
+}

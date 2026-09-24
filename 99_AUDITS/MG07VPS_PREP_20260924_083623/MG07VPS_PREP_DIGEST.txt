@@ -1,0 +1,55 @@
+================================================================
+MG07VPS_PREP_DIGEST — SZ_MG07_VPS_PREP_V1
+================================================================
+[A] IDENTIFICACAO
+  Kit        : SZ_MG07_VPS_PREP_V1 (pre-vou iMac -> payload de voo para VPS)
+  Emitido em : 2026-09-24T11:36:23.000Z
+  Repos      : /Users/marciocau/SeuZella_project (branch feat/meta-zella-foundation)
+  Evidencia  : 99_AUDITS/MG07VPS_PREP_20260924_083623
+
+[B] CADEIA
+  HEAD       : a19e0e4795196da1b1092c4487dfa1b1d4f28da6
+  FIX MG-07  : a19e0e4795196da1b1092c4487dfa1b1d4f28da6 (ancestral de HEAD: SIM)
+  Base       : f749f190b83358c1b4607d82ec49d4c4ef59a7c8
+  git/node   : git 2.50.1 | v24.13.1
+
+[C] FUNDACAO
+  Selo+ancoras : 17/17 VERDE
+
+[D] SEGURANCA
+  .env rastreado : NAO (nao viaja no bundle)
+  Token route    : ACCOUNT_EXISTS PRESENTE (linha 141)
+  Evidencia V8   : PRESENTE
+
+[E] BUILD LOCAL
+  Status     : VERDE (169s)
+  Token .next: PRESENTE (prova MG-07 no artefato)
+  Suite      : herdada do V8 (3193 passed | 45 skipped)
+
+[F] BUNDLE + PAYLOAD
+  Bundle     : repo.bundle (49MB, sha256 aa8d94b37d8496a560107fa252e60986b13a4a8b41e07f548b0f6ced000cfb9f)
+  Payload    : MG07VPS_PAYLOAD_20260924_083623.tar.gz (50900813 bytes, sha256 6ad1fbfe75d0b33915bc43a82161ccacc352bc006be64901d6fb51ab78f6a0d1)
+  Copia      : /Users/marciocau/Downloads/MG07VPS_PAYLOAD_20260924_083623.tar.gz
+  Inventario : 19 asset(s) de deploy do repo (MG07VPS_INVENTORY.txt)
+
+[G] TRANSFERENCIA
+  Modo       : manual (comandos impressos)
+
+[H] VERIFICACAO STOP=VERMELHO
+  [OK] NUNCA push — nenhum comando remoto executado
+  [OK] .env valores nunca lidos; bundle nao contem segredos (arquivos nao rastreados ficam fora)
+  [OK] vercel.json intocado
+  [OK] repo: nenhuma escrita (leitura + .next + 99_AUDITS apenas)
+
+[I] PROXIMOS PASSOS (amanha, no VPS)
+  1) scp do payload -> sha256sum conferido
+  2) bash SZ_VPS_DEPLOY.sh --check     (auditoria read-only do ambiente)
+  3) bash SZ_VPS_DEPLOY.sh --deploy    (deploy fail-closed com rollback)
+  4) bash SZ_VPS_DEPLOY.sh --fogo      (provas tecnicas de fogo)
+  5) colar de volta: MG07VPS_PREP_DIGEST.txt + log do --deploy + digest do --deploy
+
+[J] CAMPANHA
+  MG-07 FIX: VERDE (a19e0e47) | PRE-VOU VPS: VERDE | Proximo: DEPLOY VPS -> PROVAS DE FOGO
+================================================================
+FIM DO DIGEST MG07VPS PREP — rc=0 VERDE
+================================================================

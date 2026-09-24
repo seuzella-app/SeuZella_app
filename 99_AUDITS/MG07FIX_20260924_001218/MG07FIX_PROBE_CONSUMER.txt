@@ -1,0 +1,3 @@
+129: const executeCheckout = async () => {
+153: const result = await executeWithBillingIdempotency({ provider: 'generic', eventId: `checkout-create:${idempotencyScope}:${idempotencyKey}`, eventType: 'checkout.create', status: 'created', fingerprint }, executeCheckout);
+160: const data = await executeCheckout();

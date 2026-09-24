@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/marciocau/SeuZella_project
+
+ ✓ tests/security-hardening-12-fronts.test.ts (5 tests) 17ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  00:13:50
+   Duration  1.11s (transform 81ms, setup 0ms, collect 63ms, tests 17ms, environment 0ms, prepare 176ms)
+

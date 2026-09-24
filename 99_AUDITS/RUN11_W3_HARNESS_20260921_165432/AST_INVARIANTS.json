@@ -1,0 +1,63 @@
+{
+  "schema": "RUN11_W3_AST_INVARIANTS/v1",
+  "generatedAt": "2026-09-21T19:54:37.650Z",
+  "project": "/Users/marciocau/SeuZella_project",
+  "w2LayerPresent": true,
+  "invariants": [
+    {
+      "invariant": "I1_NO_STATIC_IOREDIS_IN_INFRA",
+      "status": "GREEN",
+      "evidence": "0 imports estaticos de ioredis em src/lib/infra/*",
+      "count": 0
+    },
+    {
+      "invariant": "I2_NO_REDIS_URL_LITERAL_IN_INFRA_CODE",
+      "status": "GREEN",
+      "evidence": "0 literais redis:// em src/lib/infra/*",
+      "count": 0
+    },
+    {
+      "invariant": "I3_NO_VENDOR_KEY_LITERALS_IN_INFRA",
+      "status": "GREEN",
+      "evidence": "0 literais vendor em src/lib/infra/*",
+      "count": 0
+    },
+    {
+      "invariant": "I4_AUDIT_HAS_REDACTION_PATTERNS",
+      "status": "YELLOW",
+      "evidence": "audit.ts parcial: keyRe=true valuePatterns=true sk=false jwt=false",
+      "count": 0
+    },
+    {
+      "invariant": "I5_HEALTH_ENV_CONFIGURED_BOOLEAN_ONLY",
+      "status": "GREEN",
+      "evidence": "health.ts so reporta configured:boolean com allowlist",
+      "count": 1
+    },
+    {
+      "invariant": "I6_NO_REDIS_URL_HARDCODED_IN_CODEBASE",
+      "status": "YELLOW",
+      "evidence": "1 literais em temp_openwa/src/core/plugins/plugin-loader.service.spec.ts",
+      "count": 1
+    },
+    {
+      "invariant": "I7_NO_DB_PUSH_ACCEPT_DATA_LOSS",
+      "status": "RED",
+      "evidence": "6 scripts: .zscripts/zcc-battery/03-full-regression-suite.sh, graft/.cache/extract.496c9d83e6eb3668.json, scripts/deploy-mvk4.sh, src/lib/cerebro/vulnerability-scanner.ts, tests/cerebro-ml-anti-hacker.test.ts",
+      "count": 6
+    },
+    {
+      "invariant": "I8_NO_CONSOLE_LOG_IN_PROD_CODE",
+      "status": "YELLOW",
+      "evidence": "48 ocorrências em 15 arquivos (top: src/app/api/cron/budget-reset/route.ts, src/app/api/cron/lembrete-checkin/route.ts, src/app/api/cron/metrics-snapshot/route.ts)",
+      "count": 48
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "green": 4,
+    "yellow": 3,
+    "red": 1
+  },
+  "verdict": "RED"
+}

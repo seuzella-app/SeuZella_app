@@ -1,0 +1,48 @@
+# MG07_VPSD_SIGNALS — 2026-09-23T22:03:22.196Z
+# Sinais construtivos (contagens apenas, nenhuma linha de codigo exibida).
+
+[G1-Dockerfile]
+  estagios FROM                              3
+  multi-stage (FROM>=2)                         1
+  USER nao-root                              1
+  HEALTHCHECK                              1
+  EXPOSE                              1
+  CMD/ENTRYPOINT                              1
+  prisma generate no build                      1
+  NEXT_TELEMETRY_DISABLED                       0
+
+[G2-next.config]
+  output standalone                             1
+  poweredByHeader false                         0
+
+[G3-deploy]
+  prisma migrate deploy                         16
+  next build                              2
+  health check (/api/health|healthcheck)        12
+  backup antes do deploy (pg_dump)              13
+  referencia a rollback                         7
+  pm2/systemctl/docker compose                  58
+
+[G4-env]
+  chaves declaradas em .env.example (contagem)  209
+  .env presente (valor NUNCA lido)              1
+  .env permissao decimal (ex.: 600)             384
+
+[G5-health]
+  rotas api/health                              1
+  tokens readiness/allowlist/configured         1
+
+[G6-redis-fila]
+  REDIS_URL em src/lib                          13
+  tokens worker/retry/DLQ em src/lib            144
+
+[G7-cron]
+  CRON_SECRET em src (auth de cron)             57
+
+[G8-backup-rollback]
+  scripts backup                              4
+  scripts rollback/restore                      1
+  pg_dump/psql em scripts                       28
+  revert/recover em scripts                     0
+
+TOTAL de sinais: 28

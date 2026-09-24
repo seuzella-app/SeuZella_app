@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 /Users/marciocau/SeuZella_project
+
+ ✓ src/__tests__/jev/jev-registry.test.ts (9 tests) 15ms
+ ✓ src/__tests__/jev/jev-contract.test.ts (13 tests) 22ms
+ ✓ src/__tests__/jev/jev-shadow.test.ts (13 tests) 21ms
+
+ Test Files  3 passed (3)
+      Tests  35 passed (35)
+   Start at  19:25:51
+   Duration  1.20s (transform 288ms, setup 0ms, collect 447ms, tests 59ms, environment 1ms, prepare 628ms)
+

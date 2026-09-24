@@ -1,0 +1,660 @@
+
+> nextjs_tailwind_shadcn_ts@0.2.0 build
+> prisma generate && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
+
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.19.3) to ./node_modules/@prisma/client in 1.85s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/marciocau/SeuZella_project/package-lock.json
+   * /Users/marciocau/package-lock.json
+
+▲ Next.js 16.2.10 (Turbopack)
+- Environments: .env.local, .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Turbopack build encountered 11 warnings:
+./marciocau/SeuZella_project/src/lib/cerebro/code-indexer.ts:613:20
+The file pattern ('/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 19100 files in [project]/marciocau/SeuZella_project
+  [90m611 |[0m [90m */[0m
+  [90m612 |[0m [36mexport[0m [36mfunction[0m readCodeSnippet(filePath: string, startLine: number, ...
+[31m[1m>[0m [90m613 |[0m   [36mconst[0m fullPath = join(process.cwd(), filePath);
+  [90m    |[0m                    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m614 |[0m   [36mif[0m (!existsSync(fullPath)) [36mreturn[0m [36mnull[0m;
+  [90m615 |[0m
+  [90m616 |[0m   [36mtry[0m {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/code-indexer.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/code-indexer.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/orchestrator.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/cerebro/code-reviewer/code-reader.ts:162:19
+The file pattern ('/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 19100 files in [project]/marciocau/SeuZella_project
+  [90m160 |[0m   }
+  [90m161 |[0m
+[31m[1m>[0m [90m162 |[0m   [36mconst[0m absPath = join(root, relPath);
+  [90m    |[0m                   [31m[1m^^^^^^^^^^^^^^^^^^^[0m
+  [90m163 |[0m
+  [90m164 |[0m   [90m// 2. Anti-traversal[0m
+  [90m165 |[0m   [36mif[0m (!assertPathInsideRoot(absPath, root)) {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/code-reviewer/code-reader.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/code-reviewer/stats/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/code-reviewer/code-reader.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/cerebro/code-reviewer/code-reader.ts:273:18
+The file pattern ('/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 19100 files in [project]/marciocau/SeuZella_project
+  [90m271 |[0m     .map((p) => p.slice([35m1[0m));
+  [90m272 |[0m
+[31m[1m>[0m [90m273 |[0m   [36mconst[0m absDir = join(root, dirRelPath);
+  [90m    |[0m                  [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m274 |[0m
+  [90m275 |[0m   [90m// Anti-traversal[0m
+  [90m276 |[0m   [36mif[0m (!assertPathInsideRoot(absDir, root)) {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/code-reviewer/code-reader.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/code-reviewer/stats/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/code-reviewer/code-reader.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/cerebro/vulnerability-scanner.ts:388:28
+The file pattern ('/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 19100 files in [project]/marciocau/SeuZella_project
+  [90m386 |[0m         [90m// Converte relative paths para FoundFile[0m
+  [90m387 |[0m         [36mfor[0m ([36mconst[0m relPath [36mof[0m gitFiles) {
+[31m[1m>[0m [90m388 |[0m           [36mconst[0m fullPath = join(process.cwd(), relPath);
+  [90m    |[0m                            [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m389 |[0m           [36mif[0m (existsSync(fullPath)) {
+  [90m390 |[0m             [36mtry[0m {
+  [90m391 |[0m               [36mconst[0m stat = statSync(fullPath);
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/vulnerability-scanner.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/cerebro/ml-stats/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/vulnerability-scanner.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts:240:19
+The file pattern ('/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 19100 files in [project]/marciocau/SeuZella_project
+  [90m238 |[0m
+  [90m239 |[0m   [90m// 4. Verificar que arquivo existe[0m
+[31m[1m>[0m [90m240 |[0m   [36mconst[0m absPath = join(process.cwd(), req.filePath);
+  [90m    |[0m                   [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m241 |[0m   [36mif[0m (!existsSync(absPath)) {
+  [90m242 |[0m     safetyLocksTriggered.push([32m'file_not_found'[0m);
+  [90m243 |[0m     [36mreturn[0m {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import trace:
+  App Route:
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/security/security-scan-service.ts:123:20
+The file pattern ('/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 19100 files in [project]/marciocau/SeuZella_project
+  [90m121 |[0m
+  [90m122 |[0m   [90m// Read the source file[0m
+[31m[1m>[0m [90m123 |[0m   [36mconst[0m fullPath = resolve(process.cwd(), filePath);
+  [90m    |[0m                    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m124 |[0m   [36mif[0m (!existsSync(fullPath)) {
+  [90m125 |[0m     logger.warn([32m'[SecurityScan] File not found'[0m, { filePath });
+  [90m126 |[0m     [36mreturn[0m [];
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/security/security-scan-service.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/security/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/security/security-scan-service.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/security/security-scan-service.ts:851:22
+The file pattern ('/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 19100 files in [project]/marciocau/SeuZella_project
+  [90m849 |[0m
+  [90m850 |[0m   [36mtry[0m {
+[31m[1m>[0m [90m851 |[0m     [36mconst[0m fullPath = resolve(process.cwd(), finding.file);
+  [90m    |[0m                      [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m852 |[0m     [36mif[0m (!existsSync(fullPath)) [36mreturn[0m [36mnull[0m;
+  [90m853 |[0m
+  [90m854 |[0m     [36mconst[0m sourceCode = readFileSync(fullPath, [32m'utf8'[0m);
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/security/security-scan-service.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/security/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/security/security-scan-service.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/cerebro/night-audit-service.ts:418:22
+The file pattern ('/ROOT/marciocau/SeuZella_project/src/app/api' | '/ROOT/marciocau/SeuZella_projectsrc/app/api' | '/ROOT/marciocau/SeuZella_project/src/lib' | '/ROOT/marciocau/SeuZella_projectsrc/lib' | '/ROOT/marciocau/SeuZella_project/src/components' | '/ROOT/marciocau/SeuZella_projectsrc/components' | '/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 20067 files in [project]/marciocau/SeuZella_project
+  [90m416 |[0m
+  [90m417 |[0m     [36mfor[0m ([36mconst[0m dir [36mof[0m [33mSOURCE_DIRS[0m) {
+[31m[1m>[0m [90m418 |[0m       [36mconst[0m absDir = path.join(projectRoot, dir);
+  [90m    |[0m                      [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m419 |[0m       [36mif[0m (!fs.existsSync(absDir)) [36mcontinue[0m;
+  [90m420 |[0m
+  [90m421 |[0m       [36mawait[0m [36mthis[0m.scanDir(absDir, projectRoot, findings);
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/night-audit-service.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/night-audit/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/night-audit-service.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/cerebro/night-pentest-service.ts:228:22
+The file pattern ('/ROOT/marciocau/SeuZella_project/src/app/api' | '/ROOT/marciocau/SeuZella_projectsrc/app/api' | '/ROOT/marciocau/SeuZella_project/src/lib' | '/ROOT/marciocau/SeuZella_projectsrc/lib' | '/ROOT/marciocau/SeuZella_project/src/components' | '/ROOT/marciocau/SeuZella_projectsrc/components' | '/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 20067 files in [project]/marciocau/SeuZella_project
+  [90m226 |[0m
+  [90m227 |[0m     [36mfor[0m ([36mconst[0m dir [36mof[0m [33mSOURCE_DIRS[0m) {
+[31m[1m>[0m [90m228 |[0m       [36mconst[0m absDir = path.join(projectRoot, dir);
+  [90m    |[0m                      [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m229 |[0m       [36mif[0m (!fs.existsSync(absDir)) [36mcontinue[0m;
+  [90m230 |[0m       [36mthis[0m.scanDirForSast(absDir, projectRoot, findings);
+  [90m231 |[0m     }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/night-pentest-service.ts
+    ./marciocau/SeuZella_project/src/app/api/cron/cerebro-night-pentest/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/night-pentest-service.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/src/lib/cerebro/night-pulse-service.ts:266:21
+The file pattern ('/ROOT/marciocau/SeuZella_project/src/lib/cerebro' | '/ROOT/marciocau/SeuZella_projectsrc/lib/cerebro' | '/ROOT/marciocau/SeuZella_project/src/lib/ai' | '/ROOT/marciocau/SeuZella_projectsrc/lib/ai' | '/ROOT/marciocau/SeuZella_project/src/lib/security' | '/ROOT/marciocau/SeuZella_projectsrc/lib/security' | '/ROOT/marciocau/SeuZella_project/src/lib/payments' | '/ROOT/marciocau/SeuZella_projectsrc/lib/payments' | '/ROOT/marciocau/SeuZella_project/src/lib/airb' | '/ROOT/marciocau/SeuZella_projectsrc/lib/airb' | '/ROOT/marciocau/SeuZella_project/src/app/api/v1' | '/ROOT/marciocau/SeuZella_projectsrc/app/api/v1' | '/ROOT/marciocau/SeuZella_project/src/app/api/zcc' | '/ROOT/marciocau/SeuZella_projectsrc/app/api/zcc' | '/ROOT/marciocau/SeuZella_project/src/app/api/cron' | '/ROOT/marciocau/SeuZella_projectsrc/app/api/cron' | '/ROOT/marciocau/SeuZella_project/' <dynamic> | '/ROOT/marciocau/SeuZella_project' <dynamic>) matches 19386 files in [project]/marciocau/SeuZella_project
+  [90m264 |[0m ...[90m Escolhe 1 módulo aleatório[0m
+  [90m265 |[0m ...[36mnst[0m modulePath = [33mMODULES_TO_SCAN[0m[[33mMath[0m.floor([33mMath[0m.random() * [33mMODULE...[0m
+[31m[1m>[0m [90m266 |[0m ...[36mnst[0m absPath = path.resolve(process.cwd(), modulePath);
+  [90m    |[0m                  [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m267 |[0m ...
+  [90m268 |[0m ...[36mt[0m filesScanned = [35m0[0m;
+  [90m269 |[0m ...[36mnst[0m findings: [33mArray[0m<{
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/night-pulse-service.ts
+    ./marciocau/SeuZella_project/src/app/api/cron/cerebro-night-pulse/route.ts
+
+  #2 [App Route]:
+    ./marciocau/SeuZella_project/src/lib/cerebro/night-pulse-service.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+./marciocau/SeuZella_project/next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./marciocau/SeuZella_project/next.config.ts
+    ./marciocau/SeuZella_project/src/lib/cerebro/ze-code/git-applier.ts
+    ./marciocau/SeuZella_project/src/app/api/zcc/ze-code/apply/route.ts
+
+
+✓ Compiled successfully in 44s
+  Running TypeScript ...
+  Finished TypeScript in 94s ...
+  Collecting page data using 3 workers ...
+════════════════════════════════════════════════════════════════════════════════
+[RATE-LIMIT] CRÍTICO: Produção sem UPSTASH_REDIS_REST_URL/TOKEN configurados.
+Rate limiting está operando em modo DENY-ALL. Configure Upstash Redis imediatamente.
+Docs: https://docs.upstash.com/redis/serverless-databases
+════════════════════════════════════════════════════════════════════════════════
+════════════════════════════════════════════════════════════════════════════════
+[RATE-LIMIT] CRÍTICO: Produção sem UPSTASH_REDIS_REST_URL/TOKEN configurados.
+Rate limiting está operando em modo DENY-ALL. Configure Upstash Redis imediatamente.
+Docs: https://docs.upstash.com/redis/serverless-databases
+════════════════════════════════════════════════════════════════════════════════
+════════════════════════════════════════════════════════════════════════════════
+[RATE-LIMIT] CRÍTICO: Produção sem UPSTASH_REDIS_REST_URL/TOKEN configurados.
+Rate limiting está operando em modo DENY-ALL. Configure Upstash Redis imediatamente.
+Docs: https://docs.upstash.com/redis/serverless-databases
+════════════════════════════════════════════════════════════════════════════════
+  Generating static pages using 3 workers (0/248) ...
+  Generating static pages using 3 workers (62/248) 
+  Generating static pages using 3 workers (124/248) 
+  Generating static pages using 3 workers (186/248) 
+✓ Generating static pages using 3 workers (248/248) in 1706ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /[locale]/ddc
+├ ƒ /api
+├ ƒ /api/admin/faturamento-zehla
+├ ƒ /api/admin/upsell-analytics
+├ ƒ /api/agent-logs
+├ ƒ /api/agents
+├ ƒ /api/airb-pro/comparativo
+├ ƒ /api/airb-pro/rentabilidade
+├ ƒ /api/airb-pro/yield-suggestion
+├ ƒ /api/airb-test
+├ ƒ /api/alexa/smart-home
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/forgot-password
+├ ƒ /api/auth/m2m/token
+├ ƒ /api/auth/magic-link
+├ ƒ /api/auth/register
+├ ƒ /api/auth/reset-password
+├ ƒ /api/bim-vision
+├ ƒ /api/brain
+├ ƒ /api/brain/health
+├ ƒ /api/brain/intents
+├ ƒ /api/bulk-whatsapp
+├ ƒ /api/campaigns
+├ ƒ /api/campaigns/[id]
+├ ƒ /api/channel-manager
+├ ƒ /api/checkout/cancel
+├ ƒ /api/checkout/create
+├ ƒ /api/checkout/downgrade
+├ ƒ /api/checkout/pix-status
+├ ƒ /api/checkout/success
+├ ƒ /api/checkout/upgrade
+├ ƒ /api/checkout/webhook
+├ ƒ /api/config/keys
+├ ƒ /api/conversations
+├ ƒ /api/cron/achievements-check
+├ ƒ /api/cron/backup-restore-drill
+├ ƒ /api/cron/booking-daily
+├ ƒ /api/cron/budget-reset
+├ ƒ /api/cron/cerebro-analyze
+├ ƒ /api/cron/cerebro-budget-forecast
+├ ƒ /api/cron/cerebro-churn-predict
+├ ƒ /api/cron/cerebro-cleanup
+├ ƒ /api/cron/cerebro-distill
+├ ƒ /api/cron/cerebro-learning
+├ ƒ /api/cron/cerebro-night-audit
+├ ƒ /api/cron/cerebro-night-pentest
+├ ƒ /api/cron/cerebro-night-pulse
+├ ƒ /api/cron/cerebro-orchestrator
+├ ƒ /api/cron/cerebro-refactor-check
+├ ƒ /api/cron/cerebro-watchdog
+├ ƒ /api/cron/dlq-drain
+├ ƒ /api/cron/housekeeping-dispatch
+├ ƒ /api/cron/ical-sync
+├ ƒ /api/cron/jev-shadow-pulse
+├ ƒ /api/cron/learning-cycle
+├ ƒ /api/cron/lembrete-checkin
+├ ƒ /api/cron/linkinbio-expiry-check
+├ ƒ /api/cron/locks-maintenance
+├ ƒ /api/cron/metrics-snapshot
+├ ƒ /api/cron/monthly-billing
+├ ƒ /api/cron/nps-checkout
+├ ƒ /api/cron/ota-token-expiry
+├ ƒ /api/cron/payment-confirmation
+├ ƒ /api/cron/payment-overdue
+├ ƒ /api/cron/plan-expiry
+├ ƒ /api/cron/plan-limits-check
+├ ƒ /api/cron/security-scan
+├ ƒ /api/cron/sre-alerts
+├ ƒ /api/cron/weekly-report
+├ ƒ /api/dashboard
+├ ƒ /api/dashboard/bookings
+├ ƒ /api/dashboard/overview
+├ ƒ /api/ddc/ai-status
+├ ƒ /api/ddc/airb-pro/commissions
+├ ƒ /api/ddc/airb-pro/commissions/[id]
+├ ƒ /api/ddc/airb-pro/expenses
+├ ƒ /api/ddc/airb-pro/expenses/[id]
+├ ƒ /api/ddc/airb-pro/goals
+├ ƒ /api/ddc/airb-pro/goals/[id]
+├ ƒ /api/ddc/airb-pro/operations
+├ ƒ /api/ddc/airb-pro/operations/[id]
+├ ƒ /api/ddc/airb-pro/reports
+├ ƒ /api/ddc/airb/conversations
+├ ƒ /api/ddc/airb/notifications
+├ ƒ /api/ddc/airb/onboarding
+├ ƒ /api/ddc/airb/properties
+├ ƒ /api/ddc/airb/regional
+├ ƒ /api/ddc/airb/scrape
+├ ƒ /api/ddc/billing/invoices
+├ ƒ /api/ddc/booking-sync
+├ ƒ /api/ddc/bookings
+├ ƒ /api/ddc/cerebro/feedback
+├ ƒ /api/ddc/cerebro/learning
+├ ƒ /api/ddc/conversations
+├ ƒ /api/ddc/conversations/[id]
+├ ƒ /api/ddc/conversations/[id]/escalate
+├ ƒ /api/ddc/conversations/[id]/messages
+├ ƒ /api/ddc/credits/balance
+├ ƒ /api/ddc/credits/codes
+├ ƒ /api/ddc/credits/create-code
+├ ƒ /api/ddc/credits/lite-milestone
+├ ƒ /api/ddc/credits/referrals
+├ ƒ /api/ddc/credits/track-click
+├ ƒ /api/ddc/deliveries
+├ ƒ /api/ddc/dpo-capture
+├ ƒ /api/ddc/dynamic-pricing
+├ ƒ /api/ddc/dynamic-pricing/calculate
+├ ƒ /api/ddc/gerente-ia
+├ ƒ /api/ddc/guest-guide
+├ ƒ /api/ddc/guest-registration
+├ ƒ /api/ddc/guests
+├ ƒ /api/ddc/guests/[id]
+├ ƒ /api/ddc/housekeeping
+├ ƒ /api/ddc/learning-stats
+├ ƒ /api/ddc/linkinbio
+├ ƒ /api/ddc/linkinbio/activate-standalone
+├ ƒ /api/ddc/linkinbio/purchase-addon
+├ ƒ /api/ddc/linkinbio/stats
+├ ƒ /api/ddc/live-feed
+├ ƒ /api/ddc/locks
+├ ƒ /api/ddc/locks/[id]
+├ ƒ /api/ddc/locks/[id]/panic-revoke
+├ ƒ /api/ddc/locks/[id]/pins
+├ ƒ /api/ddc/locks/[id]/pins/[pinId]
+├ ƒ /api/ddc/locks/[id]/unlock
+├ ƒ /api/ddc/locks/events
+├ ƒ /api/ddc/locks/oauth/[provider]/callback
+├ ƒ /api/ddc/locks/oauth/[provider]/devices
+├ ƒ /api/ddc/locks/oauth/[provider]/start
+├ ƒ /api/ddc/magic-link
+├ ƒ /api/ddc/meta-connect
+├ ƒ /api/ddc/metrics
+├ ƒ /api/ddc/mobile/state
+├ ƒ /api/ddc/notifications
+├ ƒ /api/ddc/notifications/read-all
+├ ƒ /api/ddc/notifications/v2
+├ ƒ /api/ddc/onboarding-wizard
+├ ƒ /api/ddc/partner-program/badge
+├ ƒ /api/ddc/partner-program/claim
+├ ƒ /api/ddc/partner-program/status
+├ ƒ /api/ddc/partner-program/waitlist
+├ ƒ /api/ddc/personality
+├ ƒ /api/ddc/property-name
+├ ƒ /api/ddc/realtime/tenant-state
+├ ƒ /api/ddc/revenue-details
+├ ƒ /api/ddc/runtime-version
+├ ƒ /api/ddc/simulate-message
+├ ƒ /api/ddc/special-dates
+├ ƒ /api/ddc/special-dates/overrides
+├ ƒ /api/ddc/special-dates/suggestions/[id]/approve
+├ ƒ /api/ddc/special-dates/suggestions/[id]/reject
+├ ƒ /api/ddc/training
+├ ƒ /api/ddc/training/[id]
+├ ƒ /api/ddc/upsell
+├ ƒ /api/ddc/upsell/charge
+├ ƒ /api/ddc/upsell/metrics
+├ ƒ /api/ddc/upsell/payment-method
+├ ƒ /api/debug-agent
+├ ƒ /api/debug-agent/github
+├ ƒ /api/debug-agent/knowledge
+├ ƒ /api/diagnose
+├ ƒ /api/download/[filename]
+├ ƒ /api/export/leads
+├ ƒ /api/feedback
+├ ƒ /api/feedback/stats
+├ ƒ /api/guide/[slug]
+├ ƒ /api/health
+├ ƒ /api/hunt
+├ ƒ /api/hunt-stream
+├ ƒ /api/ical/[syncToken]
+├ ƒ /api/integrations/ical/[roomId]
+├ ƒ /api/integrations/sync
+├ ƒ /api/internal/flush-buffer
+├ ƒ /api/knowledge/generate-embeddings
+├ ƒ /api/landing/chat
+├ ƒ /api/landing/contact
+├ ƒ /api/leads
+├ ƒ /api/leads/[id]
+├ ƒ /api/leads/analytics
+├ ƒ /api/leads/converted-pousadas
+├ ƒ /api/leads/seed
+├ ƒ /api/lgpd/consent
+├ ƒ /api/lgpd/delete-my-data
+├ ƒ /api/lgpd/dpa
+├ ƒ /api/lgpd/export-my-data
+├ ƒ /api/lgpd/forget-guest
+├ ƒ /api/meta-costs
+├ ƒ /api/mobile/devices-tracking
+├ ƒ /api/mobile/devices-tracking-v2
+├ ƒ /api/monitoring
+├ ƒ /api/onboarding
+├ ƒ /api/pinns-clifford
+├ ƒ /api/properties
+├ ƒ /api/properties/[id]
+├ ƒ /api/proxy/[...path]
+├ ƒ /api/pulse/io
+├ ƒ /api/push/subscribe
+├ ƒ /api/push/unsubscribe
+├ ƒ /api/push/vapid-public-key
+├ ƒ /api/readiness
+├ ƒ /api/roi
+├ ƒ /api/router/budget
+├ ƒ /api/router/providers
+├ ƒ /api/scraping
+├ ƒ /api/security
+├ ƒ /api/swipe-templates
+├ ƒ /api/targets
+├ ƒ /api/targets/[id]
+├ ƒ /api/telemetry/ingest
+├ ƒ /api/telemetry/landing
+├ ƒ /api/telemetry/query
+├ ƒ /api/tenants
+├ ƒ /api/v1/guest/ddc/notifications
+├ ƒ /api/v1/guest/ddc/overview
+├ ƒ /api/v1/latency
+├ ƒ /api/v1/loops
+├ ƒ /api/v1/metrics
+├ ƒ /api/v1/reservations
+├ ƒ /api/v1/reservations/[id]/payment
+├ ƒ /api/webgl-bridge
+├ ƒ /api/webhook-whatsapp
+├ ƒ /api/webhooks/asaas
+├ ƒ /api/webhooks/booking-com/reviews
+├ ƒ /api/webhooks/mercadopago
+├ ƒ /api/webhooks/payment
+├ ƒ /api/webhooks/whatsapp
+├ ƒ /api/yield/calculate
+├ ƒ /api/yield/profit-summary
+├ ƒ /api/zcc/adapters
+├ ƒ /api/zcc/agents
+├ ƒ /api/zcc/agents/[id]/run
+├ ƒ /api/zcc/airbnb/oauth
+├ ƒ /api/zcc/airbnb/webhook
+├ ƒ /api/zcc/backup-drill
+├ ƒ /api/zcc/brain
+├ ƒ /api/zcc/burn-rate
+├ ƒ /api/zcc/campaigns
+├ ƒ /api/zcc/cerebro/analyses
+├ ƒ /api/zcc/cerebro/anomalies
+├ ƒ /api/zcc/cerebro/ask
+├ ƒ /api/zcc/cerebro/llmops
+├ ƒ /api/zcc/cerebro/ml-stats
+├ ƒ /api/zcc/cerebro/prompt-ide
+├ ƒ /api/zcc/cerebro/refactors
+├ ƒ /api/zcc/cerebro/runbook
+├ ƒ /api/zcc/cerebro/status
+├ ƒ /api/zcc/cerebro/stream
+├ ƒ /api/zcc/cerebro/test-alert
+├ ƒ /api/zcc/cerebro/workflows
+├ ƒ /api/zcc/code-reviewer/apply
+├ ƒ /api/zcc/code-reviewer/config
+├ ƒ /api/zcc/code-reviewer/review
+├ ƒ /api/zcc/code-reviewer/reviews
+├ ƒ /api/zcc/code-reviewer/reviews/[id]
+├ ƒ /api/zcc/code-reviewer/stats
+├ ƒ /api/zcc/cognitive-bus
+├ ƒ /api/zcc/cognitive-memory
+├ ƒ /api/zcc/conductor
+├ ƒ /api/zcc/consent
+├ ƒ /api/zcc/cortex
+├ ƒ /api/zcc/cortex/growth
+├ ƒ /api/zcc/dashboard-stats
+├ ƒ /api/zcc/digital-twin
+├ ƒ /api/zcc/dspy-compiler
+├ ƒ /api/zcc/export
+├ ƒ /api/zcc/finance/expenses
+├ ƒ /api/zcc/github/apply-pr
+├ ƒ /api/zcc/github/credentials
+├ ƒ /api/zcc/github/credentials/[id]/revoke
+├ ƒ /api/zcc/github/credentials/[id]/rotate
+├ ƒ /api/zcc/github/credentials/audit
+├ ƒ /api/zcc/github/credentials/validate
+├ ƒ /api/zcc/github/expiry-check
+├ ƒ /api/zcc/github/webhook
+├ ƒ /api/zcc/health
+├ ƒ /api/zcc/inference-simulation
+├ ƒ /api/zcc/infra/scaling-ruler
+├ ƒ /api/zcc/infrastructure
+├ ƒ /api/zcc/leads/brain-analyze
+├ ƒ /api/zcc/metrics
+├ ƒ /api/zcc/metrics/financial
+├ ƒ /api/zcc/metrics/geographic
+├ ƒ /api/zcc/metrics/periods
+├ ƒ /api/zcc/national-simulator
+├ ƒ /api/zcc/national-simulator/compare
+├ ƒ /api/zcc/night-audit
+├ ƒ /api/zcc/night-audit/vulns
+├ ƒ /api/zcc/observability
+├ ƒ /api/zcc/onboarding-tracker
+├ ƒ /api/zcc/partner-program/reopen
+├ ƒ /api/zcc/personas
+├ ƒ /api/zcc/pulse/analyze
+├ ƒ /api/zcc/pulse/capture
+├ ƒ /api/zcc/sales-funnel
+├ ƒ /api/zcc/sandbox
+├ ƒ /api/zcc/security
+├ ƒ /api/zcc/semantica/conflicts
+├ ƒ /api/zcc/semantica/decisions
+├ ƒ /api/zcc/semantica/export
+├ ƒ /api/zcc/semantica/graph
+├ ƒ /api/zcc/semantica/ingest
+├ ƒ /api/zcc/simulation-lab
+├ ƒ /api/zcc/stats
+├ ƒ /api/zcc/synthetic-brazil
+├ ƒ /api/zcc/synthetic-brazil/generate
+├ ƒ /api/zcc/targets
+├ ƒ /api/zcc/tenants
+├ ƒ /api/zcc/tenants/[id]/status
+├ ƒ /api/zcc/vps-preflight
+├ ƒ /api/zcc/whatsapp/simulate
+├ ƒ /api/zcc/ze-code/apply
+├ ƒ /api/zcc/ze-code/bottlenecks
+├ ƒ /api/zcc/ze-code/evolve
+├ ƒ /api/zcc/ze-code/gaps
+├ ƒ /api/zcc/ze-code/refactors
+├ ƒ /api/zcc/ze-code/review
+├ ƒ /api/zcc/ze-code/stats
+├ ƒ /api/zcc/zgs/decisions
+├ ƒ /api/zelador-suporte/chat
+├ ƒ /api/zelador-suporte/consultoria
+├ ƒ /api/zelador-suporte/ticket
+├ ƒ /api/zella/simulate
+├ ○ /checkout/cancel
+├ ○ /checkout/success
+├ ○ /dashboard
+├ ○ /dashboard/readiness
+├ ○ /dashboard/settings/billing
+├ ○ /ddc
+├ ƒ /ddc/airbnb
+├ ƒ /ddc/pousada
+├ ƒ /demo/link-in-bio
+├ ○ /forgot-password
+├ ƒ /l/[slug]
+├ ○ /legal
+├ ƒ /legal/[slug]
+├ ○ /legal/politica-cobranca
+├ ○ /legal/politica-privacidade
+├ ○ /legal/termos-beta
+├ ○ /legal/termos-uso
+├ ○ /link-in-bio
+├ ○ /login
+├ ○ /manifest.webmanifest
+├ ○ /mobile
+├ ƒ /mobile/airbnb
+├ ƒ /mobile/pousada
+├ ○ /parceiro
+├ ƒ /r/[code]
+├ ○ /reset-password
+├ ○ /zcc
+└ ○ /zcc/login
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

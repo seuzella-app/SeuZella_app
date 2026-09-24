@@ -1,0 +1,4 @@
+src/lib/ai/jev/jev-ledger.ts | 407 linhas | sha256=12cb11848b45efa3a38779b33d67808f9aaa32a2e4ecfae615a64a6d476b2d7f
+src/lib/ai/jev/jev-cerebro-samples.ts | 195 linhas | sha256=1723678fd30d5ebac57096ec9d00763b2b68dda0757245f4b55fda3876f36a4e
+src/lib/ai/jev/jev-ledger-sink.ts | 123 linhas | sha256=e718004205ba1abc2da6f1d69ea27ca19f85ed1fa2620ba369b938f22d83e3db
+src/__tests__/jev/jev-ledger.test.ts | 479 linhas | sha256=30617728bd8f8b84d087c6f4e9f8a83087aa01886408adf6cd19ae3190451a24

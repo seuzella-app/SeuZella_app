@@ -1,0 +1,3 @@
+src/lib/ai/jev/jev-cerebro-file-source.ts | 76 linhas | sha256=451dc6d09e55b46fd25f4f4daa18f84cc3da2291baf49f453aa793af338a7e90
+src/lib/ai/jev/jev-cerebro-shadow-loop.ts | 222 linhas | sha256=a518e944697b4a7d3d1c9c87207064d391cca2d500a2f9f4556895d42c68fc99
+src/__tests__/jev/jev-wiring.test.ts | 433 linhas | sha256=e52097371b777690781242e9b58797b690a621cea3c4df3180f059bcd68b95cb

@@ -1,0 +1,111 @@
+{
+  "wave": "RUN23-A",
+  "corpusVersion": "jev-harness-corpus-v1",
+  "generatedAt": "2026-09-22T22:51:00.403Z",
+  "totalSamples": 28,
+  "agreement": {
+    "total": 28,
+    "matches": 25,
+    "mismatches": 3,
+    "rejected": 0,
+    "unavailable": 0,
+    "agreementRate": 0.8928571428571429,
+    "byMode": {
+      "INTENT": {
+        "mode": "INTENT",
+        "n": 4,
+        "matches": 3,
+        "mismatches": 1,
+        "rejected": 0,
+        "unavailable": 0,
+        "agreementRate": 0.75,
+        "divergences": [
+          {
+            "sampleId": "INT-002",
+            "expected": "CANCELAMENTO",
+            "got": "RESERVA"
+          }
+        ]
+      },
+      "SENTIMENT": {
+        "mode": "SENTIMENT",
+        "n": 4,
+        "matches": 4,
+        "mismatches": 0,
+        "rejected": 0,
+        "unavailable": 0,
+        "agreementRate": 1,
+        "divergences": []
+      },
+      "CHURN": {
+        "mode": "CHURN",
+        "n": 4,
+        "matches": 3,
+        "mismatches": 1,
+        "rejected": 0,
+        "unavailable": 0,
+        "agreementRate": 0.75,
+        "divergences": [
+          {
+            "sampleId": "CHU-004",
+            "expected": "MEDIO",
+            "got": "ALTO"
+          }
+        ]
+      },
+      "LEAD": {
+        "mode": "LEAD",
+        "n": 4,
+        "matches": 3,
+        "mismatches": 1,
+        "rejected": 0,
+        "unavailable": 0,
+        "agreementRate": 0.75,
+        "divergences": [
+          {
+            "sampleId": "LEA-003",
+            "expected": "LEAD_QUALIFICADO",
+            "got": "NAO_QUALIFICADO"
+          }
+        ]
+      },
+      "ANOMALY": {
+        "mode": "ANOMALY",
+        "n": 4,
+        "matches": 4,
+        "mismatches": 0,
+        "rejected": 0,
+        "unavailable": 0,
+        "agreementRate": 1,
+        "divergences": []
+      },
+      "OCCUPANCY": {
+        "mode": "OCCUPANCY",
+        "n": 4,
+        "matches": 4,
+        "mismatches": 0,
+        "rejected": 0,
+        "unavailable": 0,
+        "agreementRate": 1,
+        "divergences": []
+      },
+      "UPSELL": {
+        "mode": "UPSELL",
+        "n": 4,
+        "matches": 4,
+        "mismatches": 0,
+        "rejected": 0,
+        "unavailable": 0,
+        "agreementRate": 1,
+        "divergences": []
+      }
+    }
+  },
+  "remoteAgreementRate": null,
+  "invariants": {
+    "shadowOnlyAllTrue": true,
+    "remotePortUsed": false,
+    "tenantHashOnly": true,
+    "payloadNotSerialized": true
+  }
+}

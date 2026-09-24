@@ -1,0 +1,12 @@
+src/domain/decision/contracts/JevTypes.ts | 124 linhas | sha256=b018908183e132a5299646e136389bece908521ad1397b3400e7d4065b6c739b
+src/domain/decision/contracts/JevDecisionContract.ts | 88 linhas | sha256=fe22b64f341b2e5fbe96bd62dd0133b064aa6113b3ddafeb92df736dd968c5a4
+src/domain/decision/ports/IJevDecisionPort.ts | 17 linhas | sha256=12fb6886013b6befe1b77667d335a63e2e805175786f3805e3926ccebfed3e62
+src/domain/decision/adapters/JevLocalHeuristicAdapter.ts | 138 linhas | sha256=cd56f8ef57f6614e47c3462770628e7d8176e6638e3ed6262861f4d233bf1b3a
+src/domain/decision/adapters/JevTypesafeAdapter.ts | 167 linhas | sha256=56f465e1abcdd464252da2f1ef271b546bd28116dbc6e70e067e5b694e3176d2
+src/domain/decision/__tests__/jev-contract.test.ts | 161 linhas | sha256=678e319729efedf056be6673546b764fe0e8f21432d85c3bd02f51c177a8f0df
+src/domain/decision/__tests__/jev-registry.test.ts | 117 linhas | sha256=b36d9e9fc286513c2e423291761316f4aedd65b2f651aace788cf392bede60bf
+src/lib/ai/jev/jev-config.ts | 124 linhas | sha256=a97a3bf65898c7b9f01c6f104dc4debc6d7ca5f74f20a3d05d5f7c94d6c91936
+src/lib/ai/jev/jev-provider-registry.ts | 174 linhas | sha256=c033e70912e32fba96a1c14271fc8e352b80855f0a05baec2c69b36944715ab1
+src/lib/ai/jev/jev-pii-firewall.ts | 96 linhas | sha256=470e7720009e67191dece9b2133e67fc44eab9918b6ce2f88e1bab770c2b018e
+src/lib/ai/jev/jev-shadow.ts | 177 linhas | sha256=78199a48ae4f7deae4c97c08441639d8e91f25508f5423eab386fb4c7cd1118f
+src/lib/ai/jev/__tests__/jev-shadow.test.ts | 239 linhas | sha256=5958612b5a9bd5032e0ef74b46497a4eff584924d9a9dc3bae3add4d61de3324

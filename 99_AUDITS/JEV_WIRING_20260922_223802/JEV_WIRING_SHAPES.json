@@ -1,0 +1,507 @@
+{
+  "ok": true,
+  "generatedAt": "2026-09-23T01:38:37.202Z",
+  "wave": "RUN26-A",
+  "readOnlyProof": {
+    "treeUntouched": true,
+    "note": "git status --porcelain idêntico antes/depois"
+  },
+  "targets": [
+    {
+      "key": "budget",
+      "label": "budget-guard (TenantBudgetGuard + singleton)",
+      "status": "OK",
+      "notes": "8 exports; 9 métodos",
+      "file": "src/lib/ai/budget-guard.ts"
+    },
+    {
+      "key": "breaker",
+      "label": "circuit-breaker (estado/fusível do provider)",
+      "status": "OK",
+      "notes": "4 exports; 11 métodos",
+      "file": "src/lib/ai/circuit-breaker.ts"
+    },
+    {
+      "key": "timeout",
+      "label": "llm-timeout (withLlmTimeout/withLlmFallback)",
+      "status": "OK",
+      "notes": "3 exports",
+      "file": "src/lib/ai/llm-timeout.ts"
+    },
+    {
+      "key": "cron",
+      "label": "rota cron do Cérebro (ponto de chamada real)",
+      "status": "OK",
+      "notes": "34 rota(s) cron; corpo extraído (74 linhas)",
+      "file": "src/app/api/cron/cerebro-night-pulse/route.ts"
+    },
+    {
+      "key": "prisma",
+      "label": "prisma schema (modelos + campos de tenant)",
+      "status": "OK",
+      "notes": "40 modelos; 20 com tenant",
+      "file": "prisma/schema.prisma"
+    },
+    {
+      "key": "middleware",
+      "label": "middleware.ts (prefixos PUBLIC/BLOCKED/PROTECTED)",
+      "status": "OK",
+      "notes": "39 linhas",
+      "file": "src/middleware.ts"
+    },
+    {
+      "key": "secret",
+      "label": "internal-secret (auth de cron/webhook)",
+      "status": "OK",
+      "notes": "3 exports",
+      "file": "src/lib/infra/internal-secret.ts"
+    },
+    {
+      "key": "flags",
+      "label": "flags USE_TF_* (interrupções por feature)",
+      "status": "OK",
+      "notes": "USE_TF_ANOMALY, USE_TF_CHURN, USE_TF_INTENT, USE_TF_LEAD, USE_TF_OCCUPANCY, USE_TF_PRICE, USE_TF_SENTIMENT, USE_TF_UPSELL",
+      "file": "src/**/*.ts"
+    }
+  ],
+  "sections": {
+    "budgetGuard": {
+      "file": "src/lib/ai/budget-guard.ts",
+      "lines": 374,
+      "exports": [
+        "export enum BudgetLevel {",
+        "export enum ProviderTier {",
+        "export interface BudgetGuardConfig {",
+        "export interface BudgetGuardSnapshot {",
+        "export class BudgetGuard {",
+        "export class TenantBudgetGuard {",
+        "export const tenantBudgetGuard = new TenantBudgetGuard();",
+        "export async function getTotalSpendReport(tenantId: string) {"
+      ],
+      "tenantBudgetGuardMethods": [
+        "getGuard(tenantId: string, plan?: string): BudgetGuard",
+        "addSpend(tenantId: string, amountUsd: number, plan?: string): void",
+        "getSnapshot(tenantId: string, plan?: string): BudgetGuardSnapshot",
+        "canUseTier(tenantId: string, tier: number, estimatedCost?: number, plan?: string): boolean",
+        "getMaxAllowedTier(tenantId: string, plan?: string): number",
+        "getLevel(tenantId: string, plan?: string): BudgetLevel",
+        "removeTenant(tenantId: string): void",
+        "getActiveTenantCount(): number",
+        "getAllSnapshots(): Record<string, BudgetGuardSnapshot>"
+      ]
+    },
+    "circuitBreaker": {
+      "file": "src/lib/ai/circuit-breaker.ts",
+      "lines": 227,
+      "exports": [
+        "export enum CircuitState {",
+        "export interface CircuitBreakerConfig {",
+        "export interface CircuitBreakerSnapshot {",
+        "export class CircuitBreaker {"
+      ],
+      "classMethods": [
+        "allow(): boolean",
+        "recordSuccess(): void",
+        "recordFailure(): void",
+        "getState(): CircuitState",
+        "getConsecutiveFailures(): number",
+        "getLastFailureTime(): number | null",
+        "isAvailable(): boolean",
+        "getSnapshot(): CircuitBreakerSnapshot",
+        "reset(): void",
+        "resetAll(): void",
+        "getSuccessRate(): number"
+      ]
+    },
+    "llmTimeout": {
+      "file": "src/lib/ai/llm-timeout.ts",
+      "lines": 99,
+      "exports": [
+        "export interface LlmTimeoutContext {",
+        "export async function withLlmTimeout<T>(",
+        "export async function withLlmFallback<T>("
+      ]
+    },
+    "cronRoutes": {
+      "list": [
+        "src/app/api/cron/lembrete-checkin/route.ts",
+        "src/app/api/cron/cerebro-budget-forecast/route.ts",
+        "src/app/api/cron/cerebro-night-audit/route.ts",
+        "src/app/api/cron/cerebro-orchestrator/route.ts",
+        "src/app/api/cron/nps-checkout/route.ts",
+        "src/app/api/cron/weekly-report/route.ts",
+        "src/app/api/cron/cerebro-night-pentest/route.ts",
+        "src/app/api/cron/linkinbio-expiry-check/route.ts",
+        "src/app/api/cron/cerebro-distill/route.ts",
+        "src/app/api/cron/payment-overdue/route.ts",
+        "src/app/api/cron/booking-daily/route.ts",
+        "src/app/api/cron/locks-maintenance/route.ts",
+        "src/app/api/cron/cerebro-watchdog/route.ts",
+        "src/app/api/cron/housekeeping-dispatch/route.ts",
+        "src/app/api/cron/security-scan/route.ts",
+        "src/app/api/cron/cerebro-cleanup/route.ts",
+        "src/app/api/cron/plan-expiry/route.ts",
+        "src/app/api/cron/cerebro-refactor-check/route.ts",
+        "src/app/api/cron/cerebro-churn-predict/route.ts",
+        "src/app/api/cron/backup-restore-drill/route.ts"
+      ],
+      "chosen": "src/app/api/cron/cerebro-night-pulse/route.ts",
+      "body": [
+        "/**",
+        " * CRON — Night Pulse (a cada 30min, 24/7)",
+        " * ========================================",
+        " *",
+        " * Schedule: every 30 minutes (UTC) - configured in vercel.json",
+        " *",
+        " * 3 tipos de pulso alternados:",
+        " *   - xx:00 → METRICS_SNAPSHOT (hora cheia)",
+        " *   - xx:30 → MINI_SCAN (meia-hora)",
+        " *   - outros → HEARTBEAT (fallback)",
+        " *",
+        " * Total: 48 pulsos/dia. Custo: ~$0.004/dia (apenas METRICS_SNAPSHOT usa LLM",
+        " * e só quando detecta anomalia).",
+        " *",
+        " * Auth: M2M EdDSA JWT via verifyCronM2MToken(scope='cerebro:write')",
+        " */",
+        "",
+        "import { NextRequest, NextResponse } from 'next/server';",
+        "import { verifyCronAuth } from '@/lib/security/cron-auth-unified';",
+        "import { verifyCronM2MToken } from '@/lib/security/cron-auth';",
+        "import { NightPulseService } from '@/lib/cerebro/night-pulse-service';",
+        "",
+        "export const dynamic = 'force-dynamic';",
+        "export const maxDuration = 60; // 1 min — pulsos são rápidos",
+        "",
+        "export async function GET(request: NextRequest) {",
+        "  // ── Auth: verifyCronAuth (Onda 5H) ──",
+        "  const authResult = await verifyCronAuth(request, 'admin:all');",
+        "  if (!authResult.ok) {",
+        "    return authResult.response ?? NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });",
+        "  }",
+        "",
+        "  return runPulse(request);",
+        "}",
+        "",
+        "export async function POST(request: NextRequest) {",
+        "  return runPulse(request);",
+        "}",
+        "",
+        "async function runPulse(request: NextRequest) {",
+        "  const startTime = Date.now();",
+        "",
+        "  // Auth M2M",
+        "  const auth = await verifyCronM2MToken(request, 'cerebro:write');",
+        "  if (!auth.ok) return auth.response;",
+        "",
+        "  // Permite forçar tipo de pulso via query param (?type=heartbeat)",
+        "  const sp = request.nextUrl.searchParams;",
+        "  const forcedType = sp.get('type') as 'heartbeat' | 'mini_scan' | 'metrics_snapshot' | null;",
+        "",
+        "  try {",
+        "    const result = await NightPulseService.run(",
+        "      forcedType ? { pulseType: forcedType } : undefined",
+        "    );",
+        "",
+        "    return NextResponse.json({",
+        "      ok: true,",
+        "      pulseType: result.pulseType,",
+        "      status: result.status,",
+        "      durationMs: Date.now() - startTime,",
+        "      triggeredAlert: result.triggeredAlert,",
+        "      alertMessage: result.alertMessage,",
+        "      mode: result.mode,",
+        "      timestamp: new Date().toISOString(),",
+        "    });",
+        "  } catch (err: any) {",
+        "    console.error('[CRON_NIGHT_PULSE] Falha:', err);",
+        "    return NextResponse.json(",
+        "      { ok: false, error: err?.message ?? String(err) },",
+        "      { status: 500 }",
+        "    );",
+        "  }",
+        "}",
+        ""
+      ]
+    },
+    "prisma": {
+      "file": "prisma/schema.prisma",
+      "modelCount": 40,
+      "models": [
+        "User",
+        "Post",
+        "Tenant",
+        "Property",
+        "Room",
+        "ApiConfig",
+        "AgentConfig",
+        "AuditLog",
+        "Lead",
+        "EmailTracking",
+        "Target",
+        "AgentLog",
+        "SecurityAlert",
+        "SwipeTemplate",
+        "SwipeUsage",
+        "Campaign",
+        "TrendKeyword",
+        "TrendDataPoint",
+        "TrendSignal",
+        "FunnelEvent",
+        "FunnelScore",
+        "WebhookLog",
+        "Guest",
+        "Reservation",
+        "Transaction",
+        "RouterProvider",
+        "BudgetGuardState",
+        "CostLog",
+        "Message",
+        "Subscription",
+        "PaymentTransaction",
+        "GuestMessage",
+        "Booking",
+        "AIActivityLog",
+        "ConversationLog",
+        "ConversationMessage",
+        "KnowledgeEntry",
+        "TrainingPrompt",
+        "Notification",
+        "PerformanceSnapshot"
+      ],
+      "modelsWithTenant": [
+        {
+          "name": "User",
+          "tenantFields": [
+            "tenantId      String?",
+            "tenant        Tenant?   @relation(\"UserToTenant\", fields: [tenantId], references: [id])"
+          ]
+        },
+        {
+          "name": "Tenant",
+          "tenantFields": [
+            "users      User[]    @relation(\"UserToTenant\")",
+            "isTestTenant Boolean @default(false)"
+          ]
+        },
+        {
+          "name": "Property",
+          "tenantFields": [
+            "tenantId        String  @unique",
+            "tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "Room",
+          "tenantFields": [
+            "tenant       Tenant?       @relation(fields: [tenantId], references: [id])",
+            "tenantId     String?"
+          ]
+        },
+        {
+          "name": "ApiConfig",
+          "tenantFields": [
+            "tenantId     String",
+            "tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "AgentConfig",
+          "tenantFields": [
+            "tenantId        String",
+            "tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "AuditLog",
+          "tenantFields": [
+            "tenantId  String",
+            "tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "Lead",
+          "tenantFields": [
+            "tenantId        String",
+            "tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "Target",
+          "tenantFields": [
+            "tenantId String",
+            "tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "AgentLog",
+          "tenantFields": [
+            "tenantId  String",
+            "tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "SecurityAlert",
+          "tenantFields": [
+            "tenantId  String?"
+          ]
+        },
+        {
+          "name": "SwipeTemplate",
+          "tenantFields": [
+            "tenantId  String",
+            "tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "Campaign",
+          "tenantFields": [
+            "tenantId  String",
+            "tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "Guest",
+          "tenantFields": [
+            "tenantId          String",
+            "tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "Reservation",
+          "tenantFields": [
+            "tenantId   String",
+            "tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "Transaction",
+          "tenantFields": [
+            "tenantId      String",
+            "tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "CostLog",
+          "tenantFields": [
+            "tenantId     String?"
+          ]
+        },
+        {
+          "name": "Subscription",
+          "tenantFields": [
+            "tenantId           String",
+            "tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)"
+          ]
+        },
+        {
+          "name": "Booking",
+          "tenantFields": [
+            "tenantId       String"
+          ]
+        },
+        {
+          "name": "AIActivityLog",
+          "tenantFields": [
+            "tenantId  String"
+          ]
+        }
+      ]
+    },
+    "middleware": {
+      "file": "src/middleware.ts",
+      "lines": 39,
+      "publicPrefixes": [
+        "'next/server'",
+        "'next-auth/jwt'",
+        "/lib/security/waf-middleware'",
+        "'/api/webhooks/whatsapp'",
+        "'/api/health'",
+        "'/api/readiness'",
+        "'/api/auth'",
+        "'/api/webhook-whatsapp'",
+        "'/api/webhooks/whatsapp'",
+        "'/api/webhooks/asaas'",
+        "'/api/webhooks/mercadopago'",
+        "'/api/webhooks/payment'",
+        "'/api/checkout/webhook'",
+        "'/api/webhooks/booking-com'",
+        "'/api/debug-agent'",
+        "'/api/proxy'",
+        "'/api/diagnose'",
+        "'/zcc'",
+        "'/dashboard'",
+        "'/config'",
+        "'/tenants'",
+        "'/campaigns'",
+        "'/leads'",
+        "'/targets'",
+        "'/agents'",
+        "'/roi'",
+        "'/swipe-templates'",
+        "'x-request-id'",
+        "'x-vercel-id'",
+        "'X-Request-ID'"
+      ],
+      "raw": [
+        "import { NextRequest, NextResponse } from 'next/server';",
+        "import { getToken } from 'next-auth/jwt';",
+        "import { wafMiddleware } from '@/lib/security/waf-middleware';",
+        "",
+        "// FIX (onda Meta Foundation — auditoria): '/api/webhooks/whatsapp' é o webhook",
+        "// canônico da Meta Cloud API (HMAC fail-closed + idempotência + pricing). Ele",
+        "// DEVE ser público como os demais webhooks (/api/webhook-whatsapp, asaas,",
+        "// mercadopago): a autenticação aqui é a assinatura HMAC X-Hub-Signature-256,",
+        "// verificada dentro do handler — não a sessão NextAuth.",
+        "const PUBLIC_API_PREFIXES = ['/api/health','/api/readiness','/api/auth','/api/webhook-whatsapp','/api/webhooks/whatsapp','/api/webhooks/asaas','/api/webhooks/mercadopago','/api/webhooks/payment','/api/checkout/webhook','…[truncado]",
+        "const BLOCKED_API_PREFIXES = ['/api/debug-agent','/api/proxy','/api/diagnose'];",
+        "const PROTECTED_PAGE_PREFIXES = ['/zcc','/dashboard','/config','/tenants','/campaigns','/leads','/targets','/agents','/roi','/swipe-templates'];",
+        "const REQUEST_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;",
+        "",
+        "function startsWithAny(pathname: string, prefixes: string[]): boolean { return prefixes.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)); }",
+        "function isPublicApi(pathname: string): boolean { return startsWithAny(pathname, PUBLIC_API_PREFIXES); }",
+        "function getSessionCookie(request: NextRequest): string | undefined { return request.cookies.get('__Secure-next-auth.session-token')?.value || request.cookies.get('next-auth.session-token')?.value; }",
+        "function createRequestId(request: NextRequest): string { const supplied = request.headers.get('x-request-id') || request.headers.get('x-vercel-id'); return supplied && REQUEST_ID_RE.test(supplied) ? supplied : `mid-${cry…[truncado]",
+        "function securityHeaders(response: NextResponse, requestId: string): NextResponse { response.headers.set('X-Request-ID', requestId); response.headers.set('X-Content-Type-Options','nosniff'); response.headers.set('X-Frame…[truncado]",
+        "async function getAuthenticatedToken(request: NextRequest) { const secret = process.env.NEXTAUTH_SECRET; if (!secret) throw new Error('NEXTAUTH_SECRET environment variable is required'); return getToken({ req: request, s…[truncado]",
+        "async function authorizeZcc(request: NextRequest): Promise<boolean> { const token = await getAuthenticatedToken(request); if (!token) return false; const email = typeof token.email === 'string' ? token.email.trim().toLow…[truncado]",
+        "function timingSafeEqualStr(a: string,b: string): boolean { if (a.length !== b.length) return false; let mismatch = 0; for (let i=0;i<a.length;i++) mismatch |= a.charCodeAt(i)^b.charCodeAt(i); return mismatch === 0; }",
+        "function isMachineAuthorized(request: NextRequest): boolean { const authHeader = request.headers.get('authorization'); if (!authHeader) return false; const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).t…[truncado]",
+        "",
+        "export async function middleware(request: NextRequest) {",
+        "  const { pathname } = request.nextUrl;",
+        "  const requestId = createRequestId(request);",
+        "  const wafResponse = wafMiddleware(request);",
+        "  if (wafResponse) return securityHeaders(wafResponse, requestId);",
+        "  if (startsWithAny(pathname,BLOCKED_API_PREFIXES) && process.env.NODE_ENV === 'production') return securityHeaders(NextResponse.json({ error:'NOT_FOUND', requestId },{status:404}),requestId);",
+        "  if (pathname === '/zcc/login') return securityHeaders(NextResponse.next(),requestId);",
+        "  if (pathname === '/ddc' || pathname.startsWith('/ddc/')) { if (pathname === '/ddc' || pathname === '/ddc/') { try { const token = await getAuthenticatedToken(request); const niche = (token as any)?.niche; return securi…[truncado]",
+        "  if (pathname === '/zcc' || pathname.startsWith('/zcc/')) { try { if (await authorizeZcc(request)) return securityHeaders(NextResponse.next(),requestId); } catch { /* fail closed */ } const loginUrl = new URL('/zcc/logi…[truncado]",
+        "  if (pathname.startsWith('/api/')) { if (isPublicApi(pathname)) return securityHeaders(NextResponse.next(),requestId); /* RUN7-W2 (RES-01): presenca de cookie != sessao valida - o JWT e verificado de fato no perimetro (…[truncado]",
+        "  if (startsWithAny(pathname,PROTECTED_PAGE_PREFIXES) && !getSessionCookie(request)) { const loginUrl = new URL('/login',request.url); loginUrl.searchParams.set('callbackUrl',pathname); return securityHeaders(NextRespons…[truncado]",
+        "  return securityHeaders(NextResponse.next(),requestId);",
+        "}",
+        "export const config = { matcher: ['/((?!_next/static|_next/image|favicon\\\\.ico|.*\\\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2)$).*)'] };",
+        ""
+      ]
+    },
+    "internalSecret": {
+      "file": "src/lib/infra/internal-secret.ts",
+      "lines": 63,
+      "exports": [
+        "export function internalEnforced(): boolean {",
+        "export function providedInternalSecret(req: unknown): string | null {",
+        "export function requireInternalSecret(req: unknown): Response | null {"
+      ]
+    },
+    "useTfFlags": [
+      "USE_TF_ANOMALY",
+      "USE_TF_CHURN",
+      "USE_TF_INTENT",
+      "USE_TF_LEAD",
+      "USE_TF_OCCUPANCY",
+      "USE_TF_PRICE",
+      "USE_TF_SENTIMENT",
+      "USE_TF_UPSELL"
+    ]
+  }
+}

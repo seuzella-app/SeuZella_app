@@ -1,0 +1,81 @@
+================================================================
+ SEUZELLA — JEV_PASTE_BACK_DIGEST (JEV INTEGRAÇÃO TYPESAFE — RUN25-A, SHADOW_ONLY)
+ Gerado em: 2026-09-23T01:01:35.332Z
+ Objetivo: fechar a onda INTEGRAÇÃO TYPESAFE (rate-limit do caminho remoto +
+ auth M2M + SSRF na fronteira + fuzz do parser remoto + fábrica protegida do
+ remotePort) e autorizar a próxima (FIAÇÃO NO CÉREBRO)
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: c6275fd887fc93addacac038270c75eedfdaeeb8
+árvore: modified=0 untracked=23 | FORA de 99_AUDITS: 0
+
+--- B) ARQUIVOS INSTALADOS (3, ADITIVOS — nenhum existente editado) ---
+src/lib/ai/jev/jev-remote-rate-limit.ts | 251 linhas | sha256=6519337a46fb7a993c343c0b719a3b3bc141d483f3ef1439d5ee4c89942ea0bc
+src/lib/ai/jev/jev-integration.ts | 157 linhas | sha256=ced547b04d67f897b1783e47df4cb9b5048852da6aab691db48efc642efbf781
+src/__tests__/jev/jev-integration.test.ts | 730 linhas | sha256=eab66dc932bc447aa1db2be47a41196a2978cfeb0c3b285f881e6b8b224b54db
+
+
+--- C) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- D) VITEST (6 suítes JEV) ---
+resultado: 6 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (NOVA)
+
+--- E) INTEGRAÇÃO — RATE-LIMIT, AUTH M2M, SSRF E FUZZ (SHADOW_ONLY) ---
+rate-limit (cenário pinado, clock injetado): maxPerWindow=5 windowMs=60000 cooldownMs=60000
+  admitidas=6 | negadas pelo limiter=2 | respostas 429 registradas=1
+  cooldown pós-429 honrado=true | Retry-After respeitado (cap 300s)=true
+auth M2M: bearerSent=true | contentTypeJson=true | chave no corpo=false | chave na resposta=false | chave no erro=false
+  payload minimizado (só allowlist do modo)=true | sem chave o fetch NUNCA é chamado=true | SSRF: veredito de bloqueio do guard honrado antes de qualquer rede=true
+fuzz do parser remoto: seed=20260922 | iterações=240 | válidas aceitas=96 | desvios recusados=96 | lixo tipado=48
+  nunca lançou=true | sempre tipado=true
+fiação: fábrica null sem flag=true | null sem chave=true | ativa com flag+chave=true
+  runner só-local apagado=true | runner remoto protegido aceso=true | status sem segredo=true
+
+INVARIANTES PROVADAS: limiterFailClosed=true decoratorNeverCallsInnerWhenDenied=true ssrfGuardHonored=true keyNeverSerialized=true remoteAlwaysShadowOnly=true networkOnlyMocked=true
+LEITURA: o caminho remoto agora tem PROTEÇÃO DE VOLUME (janela + cooldown 429)
+e a porta só é montada com flag+chave+shadow — e mesmo assim tudo continua
+SHADOW_ONLY (shadowOnly literal true em toda resposta). A união de razões de
+RUN22-A não foi editada: recusa do limiter usa JEV_REMOTE_ERROR e a causa
+real fica nos stats (deniedByLimiter). Nada em produção chama a fábrica
+ainda — a fiação no Cérebro (próxima onda) usará createActiveShadowRunner.
+
+--- F) ESTADO DO ACENDIMENTO (presença no .env.local — NUNCA valores) ---
+TYPESAFE_API_KEY: AUSENTE
+JEV_ENABLED: não ligado
+SSRF_ALLOWLIST: AUSENTE
+=> remoto permanece INERTE (fail-closed): heurística local segue decidindo em shadow, nada quebra.
+COMO ACENDER (decisão do DONO, quando quiser): adicionar no .env.local do iMac
+  TYPESAFE_API_KEY=<sua chave>   (o valor NUNCA transitou por chat/kit/log)
+  JEV_ENABLED=true
+  SSRF_ALLOWLIST=api.typesafe.ai (ou o host que você apontar em JEV_TYPESAFE_BASE_URL)
+Depois: reiniciar o dev server. Sem as três: remoto inerte, heurística local
+segue decidindo em shadow — NADA quebra. O agreement local-vs-remoto acende
+de fato quando o endpoint real estiver apontado (a fábrica já está pronta e
+protegida: rate-limit + cooldown 429 + firewall + SSRF + parser estrito).
+
+--- G) SEGURANÇA ---
+tokens de domínio proibido nos 3 arquivos: 0 | padrões de segredo literal: 0
+leituras de env nos arquivos de produção da onda: 0 (config continua central em jev-config)
+rede REAL: NENHUMA (todos os testes com fetch injetado/mocked) | edição em arquivo existente: NENHUMA
+chave: valor nunca lido pelo kit (apenas presença); nunca em corpo/resposta/erro (provado)
+push: NENHUM (commit apenas local)
+
+--- H) COMMIT LOCAL ---
+c6275fd887fc93addacac038270c75eedfdaeeb8
+mensagem: RUN25-A (JEV MASTER INTEGRAÇÃO TYPESAFE): rate-limit do caminho remoto (janela + cooldown 429) + fábrica protegida do remotePort + security tests restantes (auth M2M, SSRF na fronteira, fuzz do parser remoto) — aditivo, SHADOW_ONLY, sem domínio financeiro
+
+--- I) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (hash no runner/ledger; contrato valida tenant)
+secret handling ✓ (kit não lê valores; chave só dentro do adapter no momento da chamada) | migração destrutiva: NENHUMA ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ | rede real: NENHUMA ✓ | banco: NÃO LIDO nesta onda ✓
+
+PRÓXIMA ONDA (após auditoria do agente): FIAÇÃO NO CÉREBRO — extrator real
+de amostras (implementa a ponte do RUN24-A num arquivo novo) + chamador do
+createActiveShadowRunner + shapes exatas de circuit-breaker/budget antes do
+uso. Nada de Asaas/refund/parcela. NUNCA push.
+================================================================

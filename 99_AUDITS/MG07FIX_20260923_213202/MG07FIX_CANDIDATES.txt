@@ -1,0 +1,2 @@
+E1|requestedEmail
+E2|customerEmail

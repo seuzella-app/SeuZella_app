@@ -1,0 +1,4 @@
+src/domain/decision/__tests__/jev-contract.test.ts(68,19): error TS2540: Cannot assign to 'NODE_ENV' because it is a read-only property.
+src/domain/decision/__tests__/jev-contract.test.ts(73,19): error TS2540: Cannot assign to 'NODE_ENV' because it is a read-only property.
+src/domain/decision/__tests__/jev-contract.test.ts(76,42): error TS2704: The operand of a 'delete' operator cannot be a read-only property.
+src/domain/decision/__tests__/jev-contract.test.ts(77,24): error TS2540: Cannot assign to 'NODE_ENV' because it is a read-only property.

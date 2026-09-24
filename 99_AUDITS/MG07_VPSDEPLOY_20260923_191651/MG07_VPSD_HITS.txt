@@ -1,0 +1,43 @@
+# MG07_VPSD_HITS — 2026-09-23T22:17:04.583Z
+# Evidencia = arquivo:linha APENAS. O conteudo da linha NUNCA e exibido.
+# BLOQUEIO=impede instalacao da onda (fail-closed) | ATENCAO=decisao do dono antes do RELEASE
+
+RESUMO: BLOQUEIO=0 ATENCAO=23 INFO=12
+
+[ATENCAO] URL postgres com senha literal — Dockerfile:26
+[ATENCAO] atribuicao de segredo literal — Dockerfile:27
+[ATENCAO] atribuicao de segredo literal — docker-compose.semantica.yml:54
+[ATENCAO] URL postgres com senha literal — docker-compose.semantica.yml:56
+[ATENCAO] IP hardcode (nao-loopback) — temp_openwa/.env.example:62
+[ATENCAO] --force em deploy — temp_openwa/Dockerfile:118
+[ATENCAO] --force em deploy — temp_openwa/Dockerfile:127
+[ATENCAO] prisma db push (bypass de migration) — scripts/deploy-mvk4.sh:36
+[ATENCAO] --force em deploy — scripts/github/migrate-to-corporate.sh:141
+[ATENCAO] URL postgres com senha literal — scripts/production/backup-postgres.sh:21
+[ATENCAO] migrate reset (destrutivo) — scripts/production/backup-pre-migration.sh:13
+[ATENCAO] prisma db push (bypass de migration) — scripts/production/migrate-to-postgres.sh:89
+[ATENCAO] echo de variavel sensivel — scripts/production/pentest-checklist.sh:88
+[ATENCAO] --force em deploy — deploy/README-VPS-DEPLOY.md:48
+[ATENCAO] atribuicao de segredo literal — deploy/README-VPS-DEPLOY.md:235
+[ATENCAO] URL postgres com senha literal — deploy/semantica-sidecar/RUNBOOK.md:95
+[ATENCAO] URL postgres com senha literal — deploy/semantica-sidecar/app/core/config.py:37
+[ATENCAO] echo de variavel sensivel — deploy/semantica-sidecar/start.sh:35
+[ATENCAO] --force em deploy — deploy/setup-vps.sh:54
+[ATENCAO] --force em deploy — deploy/setup-vps.sh:60
+[ATENCAO] echo de variavel sensivel — deploy/setup-vps.sh:117
+[ATENCAO] atribuicao de segredo literal — deploy/vps-crontab:22
+[ATENCAO] migrate reset (destrutivo) — package.json:66
+
+# INFO (sumario de contexto, sem conteudo):
+[INFO] migrations: 22 migrations
+[INFO] migration_lock.toml: AUSENTE (achado MG-06 mantido — decisao do dono antes do RELEASE)
+[INFO] .env.example chaves: 209
+[INFO] .env: presente, modo 600 (valor NUNCA lido)
+[INFO] vercel.json: presente — NUNCA EDITAR (regra permanente), conteudo nao lido
+[INFO] rotas api/health: 1
+[INFO] REDIS_URL refs em src/lib: 13
+[INFO] CRON_SECRET refs em src: 57
+[INFO] Dockerfile estagios: 3
+[INFO] next.config standalone: sim
+[INFO] scripts operacionais: 18 arquivos em scripts/
+[INFO] superficie analisada: 65 arquivos, 10791 linhas (deploy surface apenas)

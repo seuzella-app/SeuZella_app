@@ -1,0 +1,3940 @@
+{
+  "schema": "JEV_MASTER_RECON/v1",
+  "summary": {
+    "generatedAt": "2026-09-22T18:42:42.676Z",
+    "directive": "JEV MASTER IMPLEMENTATION — seção 1 (recon obrigatório, read-only)",
+    "git": {
+      "branch": "feat/meta-zella-foundation",
+      "head": "ffa3902b54a50b0adfd0d286ddef8281f5e80327",
+      "statusCounts": {
+        "modified": 0,
+        "untracked": 14,
+        "staged": 0,
+        "total": 14,
+        "nonAudit": 0
+      }
+    },
+    "aiInfra": [
+      {
+        "id": "entrypoint_canonico",
+        "found": true,
+        "primary": {
+          "rel": "src/adapters/interfaces/IPaymentGatewayAdapter.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2
+          ]
+        },
+        "totalFiles": 71,
+        "counts": {
+          "REAL_CODE": 16,
+          "DOC_ONLY": 25,
+          "TEST_ONLY": 30
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "zaos_neuro_router",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/zaos-neuro-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            480,
+            483,
+            551,
+            626
+          ]
+        },
+        "totalFiles": 32,
+        "counts": {
+          "REAL_CODE": 19,
+          "DOC_ONLY": 8,
+          "TEST_ONLY": 5
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "llm_adapters",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/llm-adapters.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            49,
+            55,
+            107,
+            157,
+            224
+          ]
+        },
+        "totalFiles": 20,
+        "counts": {
+          "REAL_CODE": 13,
+          "DOC_ONLY": 6,
+          "TEST_ONLY": 1
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "llm_router",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/llm-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            93,
+            243
+          ]
+        },
+        "totalFiles": 17,
+        "counts": {
+          "REAL_CODE": 12,
+          "DOC_ONLY": 4,
+          "TEST_ONLY": 1
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "provider_registry",
+        "found": true,
+        "primary": {
+          "rel": "docs/WAVE_2_PROGRESS.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            52
+          ]
+        },
+        "totalFiles": 1,
+        "counts": {
+          "DOC_ONLY": 1
+        },
+        "primaryUnreferenced": null
+      },
+      {
+        "id": "provider_capability",
+        "found": true,
+        "primary": {
+          "rel": "src/domain/decision/models/ProviderCapabilityProfile.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            11,
+            30,
+            31
+          ]
+        },
+        "totalFiles": 11,
+        "counts": {
+          "REAL_CODE": 4,
+          "DOC_ONLY": 4,
+          "TEST_ONLY": 3
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "budget_guard",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/budget-guard.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            29,
+            40,
+            53,
+            60,
+            66
+          ]
+        },
+        "totalFiles": 57,
+        "counts": {
+          "REAL_CODE": 29,
+          "DOC_ONLY": 16,
+          "TEST_ONLY": 12
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "tenant_budget_guard",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/budget-guard.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            268,
+            332
+          ]
+        },
+        "totalFiles": 3,
+        "counts": {
+          "REAL_CODE": 2,
+          "DOC_ONLY": 1
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "circuit_breaker",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/circuit-breaker.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            22,
+            31,
+            40,
+            46,
+            53
+          ]
+        },
+        "totalFiles": 25,
+        "counts": {
+          "REAL_CODE": 13,
+          "DOC_ONLY": 8,
+          "TEST_ONLY": 4
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "cognitive_router",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/cognitive-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            130,
+            182,
+            211,
+            220,
+            323
+          ]
+        },
+        "totalFiles": 14,
+        "counts": {
+          "REAL_CODE": 7,
+          "DOC_ONLY": 6,
+          "TEST_ONLY": 1
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "intent_router",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/intent-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            303
+          ]
+        },
+        "totalFiles": 12,
+        "counts": {
+          "REAL_CODE": 7,
+          "DOC_ONLY": 4,
+          "TEST_ONLY": 1
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "cerebro",
+        "found": true,
+        "primary": {
+          "rel": "src/app/api/brain/health/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": []
+        },
+        "totalFiles": 454,
+        "counts": {
+          "REAL_CODE": 204,
+          "DOC_ONLY": 179,
+          "TEST_ONLY": 71
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "learning_engine",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/cerebro/learning-engine.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            144,
+            153,
+            234,
+            282,
+            298
+          ]
+        },
+        "totalFiles": 19,
+        "counts": {
+          "REAL_CODE": 7,
+          "DOC_ONLY": 4,
+          "TEST_ONLY": 8
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "telemetry",
+        "found": true,
+        "primary": {
+          "rel": "src/app/api/telemetry/ingest/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            4,
+            9,
+            10,
+            12
+          ]
+        },
+        "totalFiles": 89,
+        "counts": {
+          "REAL_CODE": 42,
+          "DOC_ONLY": 24,
+          "TEST_ONLY": 23
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "provider_registration",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/zaos-neuro-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            156,
+            182,
+            194,
+            503,
+            1039
+          ]
+        },
+        "totalFiles": 2,
+        "counts": {
+          "REAL_CODE": 1,
+          "DOC_ONLY": 1
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "default_providers",
+        "found": true,
+        "primary": {
+          "rel": "src/lib/ai/zaos-neuro-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            194,
+            387,
+            389,
+            512
+          ]
+        },
+        "totalFiles": 1,
+        "counts": {
+          "REAL_CODE": 1
+        },
+        "primaryUnreferenced": false
+      },
+      {
+        "id": "provider_adapter",
+        "found": false,
+        "primary": null,
+        "totalFiles": 0,
+        "counts": {},
+        "primaryUnreferenced": null
+      }
+    ],
+    "providerSearch": [
+      {
+        "term": "GLM",
+        "codeHits": 8,
+        "docHits": 8,
+        "testHits": 8
+      },
+      {
+        "term": "Kimi",
+        "codeHits": 7,
+        "docHits": 1,
+        "testHits": 0
+      },
+      {
+        "term": "OpenRouter",
+        "codeHits": 8,
+        "docHits": 4,
+        "testHits": 2
+      },
+      {
+        "term": "Ollama",
+        "codeHits": 8,
+        "docHits": 5,
+        "testHits": 3
+      },
+      {
+        "term": "Anthropic",
+        "codeHits": 8,
+        "docHits": 7,
+        "testHits": 8
+      },
+      {
+        "term": "OpenAI",
+        "codeHits": 8,
+        "docHits": 8,
+        "testHits": 8
+      },
+      {
+        "term": "Zhipu",
+        "codeHits": 8,
+        "docHits": 3,
+        "testHits": 1
+      },
+      {
+        "term": "Moonshot",
+        "codeHits": 8,
+        "docHits": 1,
+        "testHits": 1
+      },
+      {
+        "term": "ProviderAdapter",
+        "codeHits": 0,
+        "docHits": 0,
+        "testHits": 0
+      },
+      {
+        "term": "ProviderRegistration",
+        "codeHits": 1,
+        "docHits": 1,
+        "testHits": 0
+      },
+      {
+        "term": "modelId",
+        "codeHits": 0,
+        "docHits": 0,
+        "testHits": 0
+      },
+      {
+        "term": "providerId",
+        "codeHits": 8,
+        "docHits": 3,
+        "testHits": 5
+      }
+    ],
+    "env": {
+      "aiKeys": [
+        "AIRBNB_WEBHOOK_SECRET",
+        "AI_RATE_LIMIT_MAX",
+        "ALEXA_JWT_SECRET",
+        "ANTHROPIC_API_KEY",
+        "ASAAS_ACCESS_TOKEN",
+        "ASAAS_ALLOW_LEGACY_TOKEN",
+        "ASAAS_API_KEY",
+        "ASAAS_WEBHOOK_SECRET",
+        "AUGUST_API_KEY",
+        "BOOKING_COM_WEBHOOK_SECRET",
+        "CACHE_SIGNING_SECRET",
+        "CALENDAR_SYNC_SECRET",
+        "CEREBRO_DAILY_BUDGET_USD",
+        "CEREBRO_MONTHLY_BUDGET_USD",
+        "CLAUDE_MODEL",
+        "CRON_SECRET",
+        "DATABASE_BACKUP_PROVIDER",
+        "DATABASE_PROVIDER",
+        "DEEPINFRA_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "ENCRYPTION_SECRET",
+        "FISCAL_PROVIDER",
+        "GEMINI_API_KEY",
+        "GITHUB_APP_WEBHOOK_SECRET",
+        "GITHUB_TOKEN",
+        "GITHUB_WEBHOOK_SECRET",
+        "GLM_5_2_API_KEY",
+        "GLM_BASE_URL",
+        "GLM_MODEL",
+        "GLM_PULSE_MODEL",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_MAPS_API_KEY",
+        "GROQ_API_KEY",
+        "ICAL_SYNC_PROVIDER",
+        "IGLOOHOME_CLIENT_SECRET",
+        "INTERNAL_ENDPOINT_TOKEN",
+        "INTERNAL_SECRET",
+        "KIMI_K2_6_API_KEY",
+        "MERCADOPAGO_ACCESS_TOKEN",
+        "MERCADOPAGO_WEBHOOK_SECRET",
+        "META_ACCESS_TOKEN",
+        "META_APP_SECRET",
+        "META_BUDGET_ENFORCEMENT_DISABLED",
+        "META_BUDGET_GRATUITO_USD",
+        "META_BUDGET_LITE_USD",
+        "META_BUDGET_MAX_USD",
+        "META_BUDGET_PARCEIRO_USD",
+        "META_BUDGET_PRO_USD",
+        "META_CAPI_ACCESS_TOKEN",
+        "MISTRAL_API_KEY",
+        "MOONSHOT_API_KEY",
+        "MP_ACCESS_TOKEN",
+        "MP_WEBHOOK_SECRET",
+        "NEXTAUTH_SECRET",
+        "NUKI_CLIENT_SECRET",
+        "OLLAMA_URL",
+        "OPENAI_API_KEY",
+        "OPENROUTER_API_KEY",
+        "PAYMENT_WEBHOOK_SECRET",
+        "QSTASH_TOKEN",
+        "QWEN_API_KEY",
+        "REDIS_TOKEN",
+        "RESEND_API_KEY",
+        "SECRET",
+        "SECRET_NAME",
+        "SEMANTICA_API_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "TF_API_KEY",
+        "TTLOCK_CLIENT_SECRET",
+        "TUYA_CLIENT_SECRET",
+        "TWILIO_AUTH_TOKEN",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "WEBHOOK_ALLOW_NO_SECRET",
+        "WHATSAPP_ACCESS_TOKEN",
+        "WHATSAPP_APP_SECRET",
+        "WHATSAPP_PROVIDER",
+        "WHATSAPP_TOKEN",
+        "ZAI_API_KEY",
+        "ZCC_ADMIN_TOKEN",
+        "ZCC_GODMODE_TOKEN",
+        "ZCC_LLM_PROVIDER",
+        "ZEHLA_LOOP_API_KEY",
+        "ZELLA_NUCLEAR_TOKEN",
+        "ZHIPU_API_KEY"
+      ],
+      "aiKeyCount": 84,
+      "totalKeys": 281,
+      "allKeys": [
+        "AIRBNB_CLIENT_ID",
+        "AIRBNB_WEBHOOK_SECRET",
+        "AI_RATE_LIMIT_MAX",
+        "ALEXA_JWT_SECRET",
+        "ALLOW_PROD_RESET",
+        "ANTHROPIC_API_KEY",
+        "ASAAS_ACCESS_TOKEN",
+        "ASAAS_ALLOW_LEGACY_TOKEN",
+        "ASAAS_API_KEY",
+        "ASAAS_AUTO_NFSE",
+        "ASAAS_ENVIRONMENT",
+        "ASAAS_MUNICIPAL_SERVICE_CODE",
+        "ASAAS_MUNICIPAL_SERVICE_NAME",
+        "ASAAS_WEBHOOK_SECRET",
+        "AUDIO_MOCK_MODE",
+        "AUGUST_API_KEY",
+        "AUGUST_INSTALL_ID",
+        "AUGUST_PASSWORD",
+        "AUGUST_USERNAME",
+        "BATCH_API_ENABLED",
+        "BETTERUPTIME_STATUS_PAGE_URL",
+        "BOOKING_COM_WEBHOOK_SECRET",
+        "BYPASS_MIDDLEWARE_AUTH",
+        "BYPASS_TENANT_LOOKUP",
+        "CACHE_LOCAL_MAX",
+        "CACHE_SIGNING_SECRET",
+        "CALENDAR_SYNC_SECRET",
+        "CEREBRO_ALERT_DEDUP_WINDOW_MS",
+        "CEREBRO_ALERT_EMAILS",
+        "CEREBRO_AUTO_CONFIDENCE_THRESHOLD",
+        "CEREBRO_AUTO_REMEDIATE",
+        "CEREBRO_AUTO_REMEDIATE_MAX_PER_HOUR",
+        "CEREBRO_AUTO_REMEDIATE_SKIP_TSC",
+        "CEREBRO_CUSTOM_WEBHOOK_URL",
+        "CEREBRO_DAILY_BUDGET_USD",
+        "CEREBRO_EMERGENCY_PHONES",
+        "CEREBRO_LIVE_MODE",
+        "CEREBRO_MIN_SEVERITY",
+        "CEREBRO_MONTHLY_BUDGET_USD",
+        "CEREBRO_RECURRING_ERROR_THRESHOLD",
+        "CI",
+        "CLAUDE_MODEL",
+        "CRISP_WEBSITE_ID",
+        "CRON_SECRET",
+        "DATABASE_BACKUP_PROVIDER",
+        "DATABASE_BACKUP_RPO_HOURS",
+        "DATABASE_BACKUP_RTO_MINUTES",
+        "DATABASE_PROVIDER",
+        "DATABASE_URL",
+        "DEEPINFRA_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "DEFAULT_PAYMENT_GATEWAY",
+        "DEMO_PLAN",
+        "E2E_AUTH_COOKIE",
+        "E2E_BASE_URL",
+        "E2E_LOCK_ID",
+        "E2E_RESERVATION_ID",
+        "E2E_ROOM_ID",
+        "E2E_TENANT_ID",
+        "E2E_TEST_EMAIL",
+        "E2E_TEST_PASSWORD",
+        "E2E_WAMID",
+        "E2E_WEBHOOK_REFERENCE",
+        "EMAIL_FROM",
+        "ENABLE_DEV_PROXY",
+        "ENCRYPTION_SECRET",
+        "FISCAL_PROVIDER",
+        "FROM_EMAIL",
+        "FROM_NAME",
+        "GEMINI_API_KEY",
+        "GITHUB_APP_WEBHOOK_SECRET",
+        "GITHUB_PAT_MASTER_KEY",
+        "GITHUB_REPO_NAME",
+        "GITHUB_REPO_OWNER",
+        "GITHUB_TOKEN",
+        "GITHUB_WEBHOOK_SECRET",
+        "GIT_COMMIT_SHA",
+        "GLM_5_2_API_KEY",
+        "GLM_BASE_URL",
+        "GLM_MODEL",
+        "GLM_PULSE_MODEL",
+        "GODMODE",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_MAPS_API_KEY",
+        "GROQ_API_KEY",
+        "HEADROOM_PROXY_ENABLED",
+        "ICAL_SYNC_PROVIDER",
+        "IGLOOHOME_CLIENT_ID",
+        "IGLOOHOME_CLIENT_SECRET",
+        "IGLOOHOME_REDIRECT_URI",
+        "INTERNAL_ENDPOINT_TOKEN",
+        "INTERNAL_SECRET",
+        "KIMI_K2_6_API_KEY",
+        "LANDING_LEADS_TENANT_ID",
+        "LGPD_OPT_OUT_KEYWORDS",
+        "LGPD_RETENTION_AUDIT_DAYS",
+        "LGPD_RETENTION_CONSENT_DAYS",
+        "LGPD_RETENTION_CONVERSATION_DAYS",
+        "LGPD_RETENTION_DELETED_DAYS",
+        "LGPD_RETENTION_FNRH_DAYS",
+        "LGPD_RETENTION_PAYMENT_DAYS",
+        "LOG_LEVEL",
+        "LOG_PII",
+        "MERCADOPAGO_ACCESS_TOKEN",
+        "MERCADOPAGO_WEBHOOK_SECRET",
+        "META_ACCESS_TOKEN",
+        "META_APP_SECRET",
+        "META_BUDGET_ENFORCEMENT_DISABLED",
+        "META_BUDGET_GRATUITO_USD",
+        "META_BUDGET_LITE_USD",
+        "META_BUDGET_MAX_USD",
+        "META_BUDGET_PARCEIRO_USD",
+        "META_BUDGET_PRO_USD",
+        "META_CAPI_ACCESS_TOKEN",
+        "META_CAPI_DATASET_ID",
+        "META_CAPI_ENABLED",
+        "META_COST_ENABLED",
+        "META_COST_GUARD_ENABLED",
+        "META_COST_LIMIT_PER_MESSAGE",
+        "META_COST_PER_SERVICE_MSG",
+        "META_COST_RECORD_MOCK",
+        "META_COST_TRACKING_ENABLED",
+        "META_CTM_WINDOW_DAYS",
+        "META_LEARNING_ENABLED",
+        "META_PHONE_NUMBER_ID",
+        "MISTRAL_API_KEY",
+        "MOONSHOT_API_KEY",
+        "MP_ACCESS_TOKEN",
+        "MP_WEBHOOK_SECRET",
+        "MULTI_INSTANCE_MODE",
+        "NEXTAUTH_SECRET",
+        "NEXTAUTH_URL",
+        "NEXT_PHASE",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_BASE_URL",
+        "NEXT_PUBLIC_PIX_KEY",
+        "NEXT_PUBLIC_WHATSAPP_COMMERCIAL",
+        "NEXT_PUBLIC_WHATSAPP_SUPPORT",
+        "NEXT_RUNTIME",
+        "NODE_ENV",
+        "NUKI_CLIENT_ID",
+        "NUKI_CLIENT_SECRET",
+        "NUKI_REDIRECT_URI",
+        "OLLAMA_URL",
+        "OPENAI_API_KEY",
+        "OPENROUTER_API_KEY",
+        "PASS",
+        "PAYMENT_GATEWAY",
+        "PAYMENT_WEBHOOK_SECRET",
+        "PREVIOUS_PRODUCTION_DEPLOYMENT",
+        "PROXY_ALLOWLIST",
+        "PUSH_ENABLED",
+        "PYTHONPATH",
+        "QSTASH_TOKEN",
+        "QSTASH_URL",
+        "QWEN_API_KEY",
+        "RATE_LIMIT_FAIL_MODE",
+        "REDIS_CONNECTION_STRING",
+        "REDIS_PASSWORD",
+        "REDIS_TOKEN",
+        "REDIS_URL",
+        "RESEND_API_KEY",
+        "SECRET",
+        "SECRET_NAME",
+        "SEMANTICA_API_KEY",
+        "SEMANTICA_BASE_URL",
+        "SEMANTICA_CACHE_TTL",
+        "SEMANTICA_MAX_RETRIES",
+        "SEMANTICA_MTLS_CERT_PATH",
+        "SEMANTICA_MTLS_KEY_PATH",
+        "SEMANTICA_TIMEOUT_MS",
+        "SENTRY_DSN",
+        "SINGLE_SHOT_CONVERSION_ENABLED",
+        "SLACK_WEBHOOK_URL",
+        "SMTP_HOST",
+        "SMTP_PASS",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "STAGING_URL",
+        "STRIPE_WEBHOOK_SECRET",
+        "SZ_ENFORCE_INTERNAL",
+        "SZ_RUN13_EVID_JSON",
+        "SZ_RUN13_SRC_ROOT",
+        "SZ_RUN14_EVID_JSON",
+        "SZ_RUN14_SRC_ROOT",
+        "SZ_RUN18_EVID_JSON",
+        "SZ_RUN18_SRC_ROOT",
+        "SZ_RUN19_EVID_JSON",
+        "SZ_RUN19_SRC_ROOT",
+        "SZ_SSRF_ENFORCE",
+        "SZ_TEST_UNKNOWN_ENV",
+        "TF_API_KEY",
+        "TF_SIDECAR_URL",
+        "TF_TIMEOUT_MS",
+        "TTLOCK_CLIENT_ID",
+        "TTLOCK_CLIENT_SECRET",
+        "TTLOCK_REDIRECT_URI",
+        "TUYA_CLIENT_ID",
+        "TUYA_CLIENT_SECRET",
+        "TUYA_REDIRECT_URI",
+        "TUYA_REGION",
+        "TWILIO_ACCOUNT_SID",
+        "TWILIO_AUTH_TOKEN",
+        "TWILIO_FROM_NUMBER",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "UPSTASH_REDIS_REST_URL",
+        "USE_DSPY_COMPILED_PROMPTS",
+        "USE_SEMANTICA_GRAPH",
+        "USE_TF_ANOMALY",
+        "USE_TF_CHURN",
+        "USE_TF_INTENT",
+        "USE_TF_LEAD",
+        "USE_TF_OCCUPANCY",
+        "USE_TF_PRICE",
+        "USE_TF_SENTIMENT",
+        "USE_TF_UPSELL",
+        "VAPID_PRIVATE_KEY",
+        "VAPID_PUBLIC_KEY",
+        "VAPID_SUBJECT",
+        "VERCEL",
+        "VERCEL_DEPLOYMENT_ID",
+        "VERCEL_ENV",
+        "VERCEL_GIT_COMMIT_MESSAGE",
+        "VERCEL_GIT_COMMIT_SHA",
+        "VERCEL_REGION",
+        "VERCEL_URL",
+        "WAF_ALLOWED_IPS",
+        "WAF_BLOCKED_COUNTRIES",
+        "WAF_BLOCKED_IPS",
+        "WEBHOOK_ALLOW_NO_SECRET",
+        "WHATSAPP_ACCESS_TOKEN",
+        "WHATSAPP_APP_SECRET",
+        "WHATSAPP_PHONE_NUMBER_ID",
+        "WHATSAPP_PROVIDER",
+        "WHATSAPP_TOKEN",
+        "X",
+        "YIELD_BONUS_SHARE_RATE",
+        "YIELD_ENGINE_ENABLED",
+        "YIELD_SCARCITY_DAYS",
+        "YIELD_SCARCITY_MULTIPLIER",
+        "YIELD_SCARCITY_OCCUPANCY",
+        "YIELD_SEASON_WINDOW_DAYS",
+        "YIELD_SURGE_DAYS",
+        "YIELD_SURGE_MULTIPLIER",
+        "YIELD_SURGE_OCCUPANCY",
+        "ZAI_API_KEY",
+        "ZCC_ADMIN_EMAILS",
+        "ZCC_ADMIN_TOKEN",
+        "ZCC_GODMODE",
+        "ZCC_GODMODE_TOKEN",
+        "ZCC_LLM_PROVIDER",
+        "ZCC_MASTER_KEY",
+        "ZECODE_ALLOW_DIRTY_REPO",
+        "ZECODE_TARGET_REPO",
+        "ZEHLA_LOOP_API_KEY",
+        "ZEHLA_MASTER_ADMIN_EMAIL",
+        "ZEHLA_MASTER_ADMIN_PASSWORD",
+        "ZELLA_ADAPTER_ANALYTICS",
+        "ZELLA_ADAPTER_CRM",
+        "ZELLA_ADAPTER_EMAIL",
+        "ZELLA_ADAPTER_GOOGLE_ADS",
+        "ZELLA_ADAPTER_MAPS",
+        "ZELLA_ADAPTER_META_ADS",
+        "ZELLA_ADAPTER_PAYMENT",
+        "ZELLA_ADAPTER_WHATSAPP",
+        "ZELLA_ALLOW_M2M_DEV_BYPASS",
+        "ZELLA_DEMO_MODE",
+        "ZELLA_ENCRYPTION_KEY",
+        "ZELLA_M2M_ADMIN_CLIENT_ID",
+        "ZELLA_M2M_AUDIENCE",
+        "ZELLA_M2M_CLIENTS",
+        "ZELLA_M2M_CLIENT_HASHES",
+        "ZELLA_M2M_CLIENT_SCOPES",
+        "ZELLA_M2M_ED25519_PRIVATE_KEY",
+        "ZELLA_M2M_ED25519_PUBLIC_KEY",
+        "ZELLA_M2M_ISSUER",
+        "ZELLA_M2M_JWKS_URL",
+        "ZELLA_NUCLEAR_TOKEN",
+        "ZELLA_OPERATING_MODE",
+        "ZHIPU_API_KEY"
+      ]
+    },
+    "tests": {
+      "total": 586,
+      "securitySuites": [
+        "graft/tests/security/admin-surface-regression.test.md",
+        "graft/tests/security/agent-tool-policy.test.md",
+        "graft/tests/security/api-routes-sast.test.md",
+        "graft/tests/security/asaas-legacy-auth-regression.test.md",
+        "graft/tests/security/asaas-webhook-body-limit.test.md",
+        "graft/tests/security/asaas-webhook-hmac.test.md",
+        "graft/tests/security/auth-session-revocation-lote3.test.md",
+        "graft/tests/security/backup-vps-certification.test.md",
+        "graft/tests/security/behavioral-certification.test.md",
+        "graft/tests/security/billing-idempotency.test.md",
+        "graft/tests/security/browser-isolation.test.md",
+        "graft/tests/security/bulk-whatsapp-tenant-isolation.test.md",
+        "graft/tests/security/certification-hardening.test.md",
+        "graft/tests/security/checkout-webhook-mpay011.test.md",
+        "graft/tests/security/checkout-webhook-regression.test.md",
+        "graft/tests/security/codex-security-integration.test.md",
+        "graft/tests/security/cron-auth-unified.regression.test.md",
+        "graft/tests/security/cron-auth.test.md",
+        "graft/tests/security/cron-billing-idempotency.test.md",
+        "graft/tests/security/cron-error-regression.test.md",
+        "graft/tests/security/diagnostic-surface-regression.test.md",
+        "graft/tests/security/endpoint-protection-audit.test.md",
+        "graft/tests/security/export-surface-regression.test.md",
+        "graft/tests/security/health-check-regression.test.md",
+        "graft/tests/security/health-provider-regression.test.md",
+        "graft/tests/security/idor-c1-endpoints.test.md",
+        "graft/tests/security/idor-checkout-paths.test.md",
+        "graft/tests/security/internal-surface-regression.test.md",
+        "graft/tests/security/landing-telemetry-regression.test.md",
+        "graft/tests/security/lgpd-guest-tenant-binding.test.md",
+        "graft/tests/security/locks-hardening.test.md",
+        "graft/tests/security/lote4-tenant-idor-exhaustive.test.md",
+        "graft/tests/security/lote5-reservation-concurrency.test.md",
+        "graft/tests/security/lote6-special-dates-upsell-hitl.test.md",
+        "graft/tests/security/lote7-partner-zella-suite.test.md",
+        "graft/tests/security/m2m-argon2.test.md",
+        "graft/tests/security/magic-auth-regression.test.md",
+        "graft/tests/security/mercadopago-service-regression.test.md",
+        "graft/tests/security/notification-error-leak.test.md",
+        "graft/tests/security/observability-infrastructure.test.md",
+        "graft/tests/security/payment-env-regression.test.md",
+        "graft/tests/security/payment-scope-and-webhooks.test.md",
+        "graft/tests/security/payment-scope-no-stripe.test.md",
+        "graft/tests/security/production-auth-canary.test.md",
+        "graft/tests/security/production-surface-regression.test.md",
+        "graft/tests/security/readiness-regression.test.md",
+        "graft/tests/security/reconciliation-lote3r-adversarial.test.md",
+        "graft/tests/security/redactor.test.md",
+        "graft/tests/security/refund-cancellation-lifecycle.test.md",
+        "graft/tests/security/reservation-payment-contract.test.md",
+        "graft/tests/security/rls-canaries.test.md",
+        "graft/tests/security/secret-exposure-regression.test.md",
+        "graft/tests/security/security-center-certification.test.md",
+        "graft/tests/security/security-scan-service.test.md",
+        "graft/tests/security/security-typesafety-audit.test.md",
+        "graft/tests/security/ssrf.test.md",
+        "graft/tests/security/telemetry-body-regression.test.md",
+        "graft/tests/security/telemetry-ingest-regression.test.md",
+        "graft/tests/security/telemetry-query-regression.test.md",
+        "graft/tests/security/tenant-idor-routes.test.md",
+        "graft/tests/security/tenant-isolation-adversarial.test.md",
+        "graft/tests/security/tenant-isolation-matrix.test.md",
+        "graft/tests/security/tenant-isolation-regression.test.md",
+        "graft/tests/security/unsafe-execution-regression.test.md",
+        "graft/tests/security/virgin-zella-fire-test-contract.test.md",
+        "graft/tests/security/waf-regression.test.md",
+        "graft/tests/security/wave1-security-p0.test.md",
+        "graft/tests/security/webhook-verify-regression.test.md",
+        "graft/tests/security/zcc-auth-policy.test.md",
+        "graft/tests/security/zcc-metrics-regression.test.md",
+        "graft/tests/security/zero-trust-hardening.test.md",
+        "tests/security/admin-surface-regression.test.ts",
+        "tests/security/agent-tool-policy.test.ts",
+        "tests/security/api-routes-sast.test.ts",
+        "tests/security/asaas-legacy-auth-regression.test.ts",
+        "tests/security/asaas-webhook-body-limit.test.ts",
+        "tests/security/asaas-webhook-hmac.test.ts",
+        "tests/security/auth-session-revocation-lote3.test.ts",
+        "tests/security/backup-vps-certification.test.ts",
+        "tests/security/behavioral-certification.test.ts",
+        "tests/security/billing-idempotency.test.ts",
+        "tests/security/browser-isolation.test.ts",
+        "tests/security/bulk-whatsapp-tenant-isolation.test.ts",
+        "tests/security/certification-hardening.test.ts",
+        "tests/security/checkout-webhook-mpay011.test.ts",
+        "tests/security/checkout-webhook-regression.test.ts",
+        "tests/security/codex-security-integration.test.ts",
+        "tests/security/cron-auth-unified.regression.test.ts",
+        "tests/security/cron-auth.test.ts",
+        "tests/security/cron-billing-idempotency.test.ts",
+        "tests/security/cron-error-regression.test.ts",
+        "tests/security/ddc-demo-honesty.test.ts",
+        "tests/security/ddc-revenue-honesty.test.ts",
+        "tests/security/diagnostic-surface-regression.test.ts",
+        "tests/security/endpoint-protection-audit.test.ts",
+        "tests/security/export-surface-regression.test.ts",
+        "tests/security/frontend-revenue-honesty.test.ts",
+        "tests/security/handover-suppression-regression.test.ts",
+        "tests/security/health-check-regression.test.ts",
+        "tests/security/health-provider-regression.test.ts",
+        "tests/security/idor-c1-endpoints.test.ts",
+        "tests/security/idor-checkout-paths.test.ts",
+        "tests/security/internal-surface-regression.test.ts",
+        "tests/security/landing-telemetry-regression.test.ts",
+        "tests/security/lgpd-guest-tenant-binding.test.ts",
+        "tests/security/lgpd-log-redaction.test.ts",
+        "tests/security/locks-hardening.test.ts",
+        "tests/security/lote4-tenant-idor-exhaustive.test.ts",
+        "tests/security/lote5-reservation-concurrency.test.ts",
+        "tests/security/lote6-special-dates-upsell-hitl.test.ts",
+        "tests/security/lote7-partner-zella-suite.test.ts",
+        "tests/security/m2m-argon2.test.ts",
+        "tests/security/magic-auth-regression.test.ts",
+        "tests/security/mercadopago-service-regression.test.ts",
+        "tests/security/notification-error-leak.test.ts",
+        "tests/security/observability-infrastructure.test.ts",
+        "tests/security/payment-env-regression.test.ts",
+        "tests/security/payment-scope-and-webhooks.test.ts",
+        "tests/security/payment-scope-no-stripe.test.ts",
+        "tests/security/production-auth-canary.test.ts",
+        "tests/security/production-surface-regression.test.ts",
+        "tests/security/r3-f03-checkout-idempotency.test.ts",
+        "tests/security/readiness-regression.test.ts",
+        "tests/security/reconciliation-lote3r-adversarial.test.ts",
+        "tests/security/redactor.test.ts",
+        "tests/security/refund-cancellation-lifecycle.test.ts",
+        "tests/security/reservation-payment-contract.test.ts",
+        "tests/security/revenue-status-integrity.test.ts",
+        "tests/security/rls-canaries.test.ts",
+        "tests/security/run10-w1-invariants.test.ts",
+        "tests/security/run10-w2-invariants.test.ts",
+        "tests/security/run11-w1-invariants.test.ts",
+        "tests/security/run11-w2-audit.test.ts",
+        "tests/security/run11-w2-cache.test.ts",
+        "tests/security/run11-w2-health.test.ts",
+        "tests/security/run11-w2-invariants.test.ts",
+        "tests/security/run11-w2-queue.test.ts",
+        "tests/security/run11-w2-ratelimit.test.ts",
+        "tests/security/run11-w3-wiring.test.ts",
+        "tests/security/run12-hygiene.test.ts",
+        "tests/security/run13-wiring-lote1.test.ts",
+        "tests/security/run14-wiring-lote23.test.ts",
+        "tests/security/run18-mopup.test.ts",
+        "tests/security/run19-hygiene.test.ts",
+        "tests/security/run4-wave4a-checkout-adversarial.test.ts",
+        "tests/security/run4-wave4b-pat-vault.test.ts",
+        "tests/security/run4-wave4c-guest-concierge.test.ts",
+        "tests/security/run4-wave4f-tenant-authority-idor.test.ts",
+        "tests/security/run6-guest-registration-fnrh.test.ts",
+        "tests/security/run6-hardening.test.ts",
+        "tests/security/run6-platform-plane.test.ts",
+        "tests/security/run6-tenant-isolation.test.ts",
+        "tests/security/run6b-lgpd-isolation.test.ts",
+        "tests/security/run6b-m2m-roles.test.ts",
+        "tests/security/run6b-push-primitive.test.ts",
+        "tests/security/run6b-unknown-zero.test.ts",
+        "tests/security/run7-baseline-invariants.test.ts",
+        "tests/security/run7-w2-middleware-invariants.test.ts",
+        "tests/security/run8-w1-invariants.test.ts",
+        "tests/security/run8-w2-invariants.test.ts",
+        "tests/security/run9-w1-invariants.test.ts",
+        "tests/security/run9-w2-invariants.test.ts",
+        "tests/security/secret-exposure-regression.test.ts",
+        "tests/security/security-center-certification.test.ts",
+        "tests/security/security-scan-service.test.ts",
+        "tests/security/security-typesafety-audit.test.ts",
+        "tests/security/ssrf.test.ts",
+        "tests/security/telemetry-body-regression.test.ts",
+        "tests/security/telemetry-ingest-regression.test.ts",
+        "tests/security/telemetry-query-regression.test.ts",
+        "tests/security/tenant-idor-routes.test.ts",
+        "tests/security/tenant-isolation-adversarial.test.ts",
+        "tests/security/tenant-isolation-matrix.test.ts",
+        "tests/security/tenant-isolation-regression.test.ts",
+        "tests/security/unsafe-execution-regression.test.ts",
+        "tests/security/virgin-zella-fire-test-contract.test.ts",
+        "tests/security/waf-regression.test.ts",
+        "tests/security/wave-r2-database-hardening.test.ts",
+        "tests/security/wave-r2-monetary-inventory.test.ts",
+        "tests/security/wave1-security-p0.test.ts",
+        "tests/security/wave12-f05-payment-webhook-resilience.test.ts",
+        "tests/security/wave12-f06-financial-ledger-upsell.test.ts",
+        "tests/security/wave12-f07-payment-concurrency-stress.test.ts",
+        "tests/security/wave12-f08-sre-observability.test.ts",
+        "tests/security/wave12-fronts-hardening.test.ts",
+        "tests/security/wave13-f01-rule-a.test.ts",
+        "tests/security/wave13-f02-rls-context.test.ts",
+        "tests/security/wave13-f03-zero-trust-ownership.test.ts",
+        "tests/security/wave13-f04-reservation-boundary.test.ts",
+        "tests/security/wave13-f05-f08-production-hardening.test.ts",
+        "tests/security/webhook-verify-regression.test.ts",
+        "tests/security/zcc-auth-policy.test.ts",
+        "tests/security/zcc-metrics-regression.test.ts",
+        "tests/security/zero-trust-hardening.test.ts"
+      ],
+      "aiRelatedCount": 193,
+      "aiRelated": [
+        "graft/src/__tests__/cerebro/contextual-bandits.test.md",
+        "graft/src/__tests__/cerebro/learning-engine.test.md",
+        "graft/src/__tests__/cerebro/orchestrator-real-tests.test.md",
+        "graft/src/__tests__/decision/DomainModels.test.md",
+        "graft/src/__tests__/decision/RouterPipeline.test.md",
+        "graft/tests/ai-prompt-eval-lgpd.test.md",
+        "graft/tests/airb-pro.test.md",
+        "graft/tests/brain/graph-rag-skills-finance.test.md",
+        "graft/tests/cerebro-ml-anti-hacker.test.md",
+        "graft/tests/cerebro-ml-auto-adjustment.test.md",
+        "graft/tests/cerebro-ml-bug-detection.test.md",
+        "graft/tests/cerebro-ml-learning.test.md",
+        "graft/tests/cerebro-ml-modules.test.md",
+        "graft/tests/cerebro/learning-loop-certification.test.md",
+        "graft/tests/cerebro/llm-timeout.test.md",
+        "graft/tests/e2e/airbnb-full-flow.test.md",
+        "graft/tests/fiscal/fiscal-provider-capability.test.md",
+        "graft/tests/helpers/locks-test-harness.md",
+        "graft/tests/integrations/fiscal-engine.test.md",
+        "graft/tests/llm-prompt-guard.test.md"
+      ]
+    },
+    "jev": {
+      "status": "ZERO_INTEGRATION",
+      "codeRefs": 0,
+      "docRefs": 0,
+      "testRefs": 0,
+      "files": {
+        "REAL_CODE": [],
+        "DOC_ONLY": [],
+        "TEST_ONLY": [],
+        "MOCK": [],
+        "OTHER": []
+      },
+      "declaredAiSdks": []
+    },
+    "architecture": {
+      "aiDirFileCount": 39,
+      "aiDirFiles": [
+        "backend-tool-authorizer.ts",
+        "batch-queue.ts",
+        "brain-persistence.ts",
+        "budget-guard.ts",
+        "circuit-breaker.ts",
+        "cognitive-router.ts",
+        "context-discretizer.ts",
+        "cost-knowledge.ts",
+        "cost-logger.ts",
+        "dspy/dspy-assertions.ts",
+        "dspy/dspy-evaluator.ts",
+        "dspy/dspy-signatures.ts",
+        "embedder.ts",
+        "headroom-client.ts",
+        "humanized-dialogue.ts",
+        "intent-router.ts",
+        "legacy-semantic-cache.ts",
+        "llm-adapters.ts",
+        "llm-router.ts",
+        "llm-timeout.ts",
+        "pii-guard.ts",
+        "prompt-caching.ts",
+        "redis-cache.ts",
+        "semantic-cache.ts",
+        "semantic-rag.ts",
+        "skills/skill-orchestrator.ts",
+        "special-dates/hitl-service.ts",
+        "tf-client.ts",
+        "tier-distributor.ts",
+        "tool-calling.ts",
+        "tool-discovery.ts",
+        "tool-output-cap.ts",
+        "tool-policy.ts",
+        "tool-registry.ts",
+        "tools/dynamic-yield-engine.ts",
+        "tools/yield-profit-tracker.ts",
+        "vector-embedder.ts",
+        "whatsapp-guardrails.ts",
+        "zaos-neuro-router.ts"
+      ],
+      "infraDirFileCount": 11,
+      "infraDirFiles": [
+        "audit.ts",
+        "cache.ts",
+        "health.ts",
+        "internal-secret.ts",
+        "logger.ts",
+        "optional-require.ts",
+        "queue.ts",
+        "rate-limit.ts",
+        "ssrf-guard.ts",
+        "wiring-registry.ts",
+        "wiring.ts"
+      ],
+      "apiRouteCount": 320,
+      "middlewarePresent": true,
+      "tsconfigAliasAt": true,
+      "scannedCodeFiles": 3022
+    }
+  },
+  "aiInfra": [
+    {
+      "id": "entrypoint_canonico",
+      "label": "1) canonical AI entrypoint",
+      "found": true,
+      "primary": {
+        "rel": "src/adapters/interfaces/IPaymentGatewayAdapter.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          2
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/adapters/interfaces/IPaymentGatewayAdapter.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2
+          ]
+        },
+        {
+          "rel": "src/app/api/checkout/create/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            43,
+            55
+          ]
+        },
+        {
+          "rel": "src/app/api/ddc/mobile/state/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            12
+          ]
+        },
+        {
+          "rel": "src/app/manifest.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            4
+          ]
+        },
+        {
+          "rel": "src/app/mobile/page.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            4
+          ]
+        },
+        {
+          "rel": "src/components/mobile/MobileDDCDataBoundary.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            7
+          ]
+        },
+        {
+          "rel": "src/components/mobile/useDDCMobileOperationalSummary.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            9
+          ]
+        },
+        {
+          "rel": "src/domain/zcc/LearningPipeline.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            4
+          ]
+        },
+        {
+          "rel": "src/domain/zcc/types.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            12
+          ]
+        },
+        {
+          "rel": "src/lib/billing/money.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2
+          ]
+        },
+        {
+          "rel": "src/lib/billing/upsell-calculator.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2
+          ]
+        },
+        {
+          "rel": "src/lib/observability/trace-context.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            10,
+            42,
+            85
+          ]
+        }
+      ],
+      "totalFiles": 71,
+      "counts": {
+        "REAL_CODE": 16,
+        "DOC_ONLY": 25,
+        "TEST_ONLY": 30
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "zaos_neuro_router",
+      "label": "2) ZaosNeuroRouter",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/zaos-neuro-router.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          2,
+          480,
+          483,
+          551,
+          626
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/brain/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            47
+          ]
+        },
+        {
+          "rel": "src/app/api/ddc/gerente-ia/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            11,
+            207
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/brain/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            81
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/cerebro/ml-stats/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            16
+          ]
+        },
+        {
+          "rel": "src/domain/decision/services/ZaosNeuroRouter.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            15
+          ]
+        },
+        {
+          "rel": "src/lib/ai/brain-persistence.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            8,
+            64,
+            109
+          ]
+        },
+        {
+          "rel": "src/lib/ai/budget-guard.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            4
+          ]
+        },
+        {
+          "rel": "src/lib/ai/circuit-breaker.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2
+          ]
+        },
+        {
+          "rel": "src/lib/ai/cognitive-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            7
+          ]
+        },
+        {
+          "rel": "src/lib/ai/context-discretizer.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            38
+          ]
+        },
+        {
+          "rel": "src/lib/ai/headroom-client.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2
+          ]
+        },
+        {
+          "rel": "src/lib/ai/semantic-cache.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2
+          ]
+        }
+      ],
+      "totalFiles": 32,
+      "counts": {
+        "REAL_CODE": 19,
+        "DOC_ONLY": 8,
+        "TEST_ONLY": 5
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "llm_adapters",
+      "label": "3) llm-adapters",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/llm-adapters.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          49,
+          55,
+          107,
+          157,
+          224
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/zcc/cerebro/prompt-ide/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            11
+          ]
+        },
+        {
+          "rel": "src/lib/ai/llm-adapters.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            49,
+            55,
+            107,
+            157,
+            224
+          ]
+        },
+        {
+          "rel": "src/lib/ai/prompt-caching.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            38
+          ]
+        },
+        {
+          "rel": "src/lib/ai/tool-calling.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            32
+          ]
+        },
+        {
+          "rel": "src/lib/ai/zaos-neuro-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            44
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/cerebro-learning-service.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            40
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/code-reviewer/reviewer-service.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            5,
+            44
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/glm-service.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            43
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/night-audit-service.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            43
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/night-pulse-service.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            34
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/refactor-suggester.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            37
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/workflow-engine.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            28
+          ]
+        }
+      ],
+      "totalFiles": 20,
+      "counts": {
+        "REAL_CODE": 13,
+        "DOC_ONLY": 6,
+        "TEST_ONLY": 1
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "llm_router",
+      "label": "4) llm-router",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/llm-router.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          93,
+          243
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/zcc/leads/brain-analyze/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            51
+          ]
+        },
+        {
+          "rel": "src/lib/ai/llm-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            93,
+            243
+          ]
+        },
+        {
+          "rel": "src/lib/airb/ai-responder.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            10
+          ]
+        },
+        {
+          "rel": "src/lib/brain/agent-orchestrator.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            10,
+            139
+          ]
+        },
+        {
+          "rel": "src/lib/brain/intent-classifier.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            1,
+            27
+          ]
+        },
+        {
+          "rel": "src/lib/brain/receipt-extractor.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            1,
+            20
+          ]
+        },
+        {
+          "rel": "src/lib/brain/whatsapp-persona-learner.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            49
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/zelador-suporte-brain.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            1,
+            123
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/zella-sales-brain.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            1,
+            115
+          ]
+        },
+        {
+          "rel": "src/lib/llm/llm-fallback-chain.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            6,
+            10,
+            21,
+            22,
+            24
+          ]
+        },
+        {
+          "rel": "src/lib/llm/llm-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": []
+        },
+        {
+          "rel": "src/lib/llm/prompt-guard.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            24
+          ]
+        }
+      ],
+      "totalFiles": 17,
+      "counts": {
+        "REAL_CODE": 12,
+        "DOC_ONLY": 4,
+        "TEST_ONLY": 1
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "provider_registry",
+      "label": "5) provider registry",
+      "found": true,
+      "primary": {
+        "rel": "docs/WAVE_2_PROGRESS.md",
+        "class": "DOC_ONLY",
+        "lineHits": [
+          52
+        ]
+      },
+      "files": [
+        {
+          "rel": "docs/WAVE_2_PROGRESS.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            52
+          ]
+        }
+      ],
+      "totalFiles": 1,
+      "counts": {
+        "DOC_ONLY": 1
+      },
+      "primaryUnreferenced": null
+    },
+    {
+      "id": "provider_capability",
+      "label": "6) ProviderCapabilityProfile",
+      "found": true,
+      "primary": {
+        "rel": "src/domain/decision/models/ProviderCapabilityProfile.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          11,
+          30,
+          31
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/domain/decision/models/ProviderCapabilityProfile.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            11,
+            30,
+            31
+          ]
+        },
+        {
+          "rel": "src/domain/decision/services/AdaptiveStickiness.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            19
+          ]
+        },
+        {
+          "rel": "src/domain/decision/services/ParetoMultiObjectiveSelector.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            1,
+            47,
+            49
+          ]
+        },
+        {
+          "rel": "src/domain/decision/services/ZaosNeuroRouter.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            8,
+            20,
+            135
+          ]
+        },
+        {
+          "rel": "graft/src/domain/decision/models/ProviderCapabilityProfile.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            1,
+            4,
+            6
+          ]
+        },
+        {
+          "rel": "graft/src/domain/decision/services/AdaptiveStickiness.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            6
+          ]
+        },
+        {
+          "rel": "graft/src/domain/decision/services/ParetoMultiObjectiveSelector.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            5
+          ]
+        },
+        {
+          "rel": "graft/src/domain/decision/services/ZaosNeuroRouter.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            4
+          ]
+        },
+        {
+          "rel": "src/__tests__/decision/ConvergenceProof.test.ts",
+          "class": "TEST_ONLY",
+          "lineHits": [
+            3,
+            22,
+            35
+          ]
+        },
+        {
+          "rel": "src/__tests__/decision/DomainModels.test.ts",
+          "class": "TEST_ONLY",
+          "lineHits": [
+            2,
+            11,
+            22
+          ]
+        },
+        {
+          "rel": "src/__tests__/decision/RouterPipeline.test.ts",
+          "class": "TEST_ONLY",
+          "lineHits": [
+            8,
+            19,
+            59,
+            76,
+            93
+          ]
+        }
+      ],
+      "totalFiles": 11,
+      "counts": {
+        "REAL_CODE": 4,
+        "DOC_ONLY": 4,
+        "TEST_ONLY": 3
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "budget_guard",
+      "label": "7) budget guard",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/budget-guard.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          29,
+          40,
+          53,
+          60,
+          66
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/cron/budget-reset/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            17
+          ]
+        },
+        {
+          "rel": "src/app/api/router/budget/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            7,
+            24,
+            29,
+            86,
+            91
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/brain/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            10,
+            15,
+            121
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/burn-rate/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            10,
+            150,
+            257,
+            258,
+            268
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/cerebro/ml-stats/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            25,
+            50
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/cerebro/runbook/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            108
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/cerebro/status/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            14,
+            36,
+            185,
+            295,
+            539
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/finance/expenses/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            32
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/metrics/periods/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            482
+          ]
+        },
+        {
+          "rel": "src/app/legal/termos-uso/page.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            162
+          ]
+        },
+        {
+          "rel": "src/components/zcc/panels/burn-rate-panel.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            28,
+            30,
+            60,
+            80,
+            205
+          ]
+        },
+        {
+          "rel": "src/components/zcc/panels/cerebro-panel.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            56,
+            78,
+            190,
+            212,
+            872
+          ]
+        }
+      ],
+      "totalFiles": 57,
+      "counts": {
+        "REAL_CODE": 29,
+        "DOC_ONLY": 16,
+        "TEST_ONLY": 12
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "tenant_budget_guard",
+      "label": "8) tenant budget guard",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/budget-guard.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          268,
+          332
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/lib/ai/budget-guard.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            268,
+            332
+          ]
+        },
+        {
+          "rel": "src/lib/ai/zaos-neuro-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            26,
+            597,
+            598,
+            1490,
+            1491
+          ]
+        },
+        {
+          "rel": "graft/src/lib/ai/budget-guard.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            21
+          ]
+        }
+      ],
+      "totalFiles": 3,
+      "counts": {
+        "REAL_CODE": 2,
+        "DOC_ONLY": 1
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "circuit_breaker",
+      "label": "9) circuit breaker",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/circuit-breaker.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          22,
+          31,
+          40,
+          46,
+          53
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/brain/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            47
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/brain/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            96
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/cerebro/status/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            16
+          ]
+        },
+        {
+          "rel": "src/components/zcc/panels/cerebro-panel.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            58
+          ]
+        },
+        {
+          "rel": "src/domain/decision/adapters/InMemoryRouterStateAdapter.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            43,
+            47
+          ]
+        },
+        {
+          "rel": "src/domain/decision/models/CircuitBreakerState.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            7,
+            14,
+            21,
+            31,
+            42
+          ]
+        },
+        {
+          "rel": "src/domain/decision/ports/IRouterStatePort.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            23,
+            33
+          ]
+        },
+        {
+          "rel": "src/domain/decision/services/ZaosNeuroRouter.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            5,
+            6,
+            26,
+            43,
+            46
+          ]
+        },
+        {
+          "rel": "src/lib/ai/brain-persistence.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            73,
+            79,
+            112,
+            122,
+            123
+          ]
+        },
+        {
+          "rel": "src/lib/ai/circuit-breaker.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            22,
+            31,
+            40,
+            46,
+            53
+          ]
+        },
+        {
+          "rel": "src/lib/ai/zaos-neuro-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            25,
+            183,
+            516,
+            610,
+            623
+          ]
+        },
+        {
+          "rel": "src/lib/security/resource-guard.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            1,
+            7,
+            18,
+            19,
+            31
+          ]
+        }
+      ],
+      "totalFiles": 25,
+      "counts": {
+        "REAL_CODE": 13,
+        "DOC_ONLY": 8,
+        "TEST_ONLY": 4
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "cognitive_router",
+      "label": "10) cognitive router",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/cognitive-router.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          130,
+          182,
+          211,
+          220,
+          323
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/brain/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            6
+          ]
+        },
+        {
+          "rel": "src/components/zcc/panels/cerebro-test-panel.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            634
+          ]
+        },
+        {
+          "rel": "src/lib/ai/cognitive-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            130,
+            182,
+            211,
+            220,
+            323
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/best-practices.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            435
+          ]
+        },
+        {
+          "rel": "src/lib/semantica/client.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            608
+          ]
+        },
+        {
+          "rel": "src/lib/semantica/types.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            7
+          ]
+        },
+        {
+          "rel": "src/lib/whatsapp-ai-responder.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            3,
+            432
+          ]
+        },
+        {
+          "rel": "CLAUDE.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            37,
+            50,
+            81,
+            86,
+            159
+          ]
+        },
+        {
+          "rel": "docs/META_ZELLA_ARCHITECTURE.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            27
+          ]
+        },
+        {
+          "rel": "docs/semantica-integration-ADR.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            26,
+            41,
+            50,
+            88
+          ]
+        },
+        {
+          "rel": "docs/ZELLA_BRAIN_META_PIPELINE.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            19,
+            31
+          ]
+        },
+        {
+          "rel": "DOCUMENTO_MASTER_PRE_PRODUCAO.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            1007
+          ]
+        }
+      ],
+      "totalFiles": 14,
+      "counts": {
+        "REAL_CODE": 7,
+        "DOC_ONLY": 6,
+        "TEST_ONLY": 1
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "intent_router",
+      "label": "11) intent router",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/intent-router.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          303
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/brain/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            4
+          ]
+        },
+        {
+          "rel": "src/lib/ai/cognitive-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            12
+          ]
+        },
+        {
+          "rel": "src/lib/ai/intent-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            303
+          ]
+        },
+        {
+          "rel": "src/lib/ai/tool-discovery.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            7,
+            12,
+            84
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/best-practices.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            434
+          ]
+        },
+        {
+          "rel": "src/lib/strategies/ZellaAirBStrategy.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            169,
+            199,
+            226,
+            371,
+            377
+          ]
+        },
+        {
+          "rel": "src/lib/whatsapp-ai-responder.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            4
+          ]
+        },
+        {
+          "rel": "CLAUDE.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            164
+          ]
+        },
+        {
+          "rel": "docs/META_ZELLA_ARCHITECTURE.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            26
+          ]
+        },
+        {
+          "rel": "docs/ZELLA_BRAIN_META_PIPELINE.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            18
+          ]
+        },
+        {
+          "rel": "graft/src/lib/ai/intent-router.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            1
+          ]
+        },
+        {
+          "rel": "tests/ml-architecture-validation.test.ts",
+          "class": "TEST_ONLY",
+          "lineHits": [
+            82,
+            83
+          ]
+        }
+      ],
+      "totalFiles": 12,
+      "counts": {
+        "REAL_CODE": 7,
+        "DOC_ONLY": 4,
+        "TEST_ONLY": 1
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "cerebro",
+      "label": "12) Cérebro",
+      "found": true,
+      "primary": {
+        "rel": "src/app/api/brain/health/route.ts",
+        "class": "REAL_CODE",
+        "lineHits": []
+      },
+      "files": [
+        {
+          "rel": "src/app/api/airb-pro/yield-suggestion/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            16
+          ]
+        },
+        {
+          "rel": "src/app/api/airb-test/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            1
+          ]
+        },
+        {
+          "rel": "src/app/api/auth/m2m/token/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            25,
+            28
+          ]
+        },
+        {
+          "rel": "src/app/api/brain/health/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": []
+        },
+        {
+          "rel": "src/app/api/brain/intents/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": []
+        },
+        {
+          "rel": "src/app/api/brain/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": []
+        },
+        {
+          "rel": "src/app/api/cron/cerebro-analyze/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            8,
+            9,
+            20,
+            24
+          ]
+        },
+        {
+          "rel": "src/app/api/cron/cerebro-budget-forecast/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            6,
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "rel": "src/app/api/cron/cerebro-churn-predict/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            11,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "rel": "src/app/api/cron/cerebro-cleanup/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            6,
+            7,
+            8,
+            21
+          ]
+        },
+        {
+          "rel": "src/app/api/cron/cerebro-distill/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            13,
+            17,
+            18,
+            19
+          ]
+        },
+        {
+          "rel": "src/app/api/cron/cerebro-learning/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            13,
+            15,
+            20,
+            26
+          ]
+        }
+      ],
+      "totalFiles": 454,
+      "counts": {
+        "REAL_CODE": 204,
+        "DOC_ONLY": 179,
+        "TEST_ONLY": 71
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "learning_engine",
+      "label": "13) learning engine",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/cerebro/learning-engine.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          144,
+          153,
+          234,
+          282,
+          298
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/cron/learning-cycle/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            13
+          ]
+        },
+        {
+          "rel": "src/app/api/ddc/cerebro/feedback/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            11
+          ]
+        },
+        {
+          "rel": "src/app/api/ddc/cerebro/learning/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            22
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/cerebro/status/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            17,
+            200,
+            560,
+            742
+          ]
+        },
+        {
+          "rel": "src/components/zcc/panels/cerebro-panel.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            59,
+            193,
+            875,
+            984
+          ]
+        },
+        {
+          "rel": "src/components/zcc/panels/cerebro-test-panel.tsx",
+          "class": "REAL_CODE",
+          "lineHits": [
+            604,
+            627
+          ]
+        },
+        {
+          "rel": "src/lib/cerebro/learning-engine.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            144,
+            153,
+            234,
+            282,
+            298
+          ]
+        },
+        {
+          "rel": "deploy/JORNADA-COMPLETA-CLIENTE.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            104,
+            105
+          ]
+        },
+        {
+          "rel": "deploy/ROADMAP-ZELLA-LLM-32B.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            76
+          ]
+        },
+        {
+          "rel": "graft/src/__tests__/cerebro/learning-engine.test.md",
+          "class": "TEST_ONLY",
+          "lineHits": [
+            1
+          ]
+        },
+        {
+          "rel": "graft/src/lib/cerebro/learning-engine.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            1
+          ]
+        },
+        {
+          "rel": "MEMORY_ARCHITECTURE_DECISION.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            120,
+            425,
+            603
+          ]
+        }
+      ],
+      "totalFiles": 19,
+      "counts": {
+        "REAL_CODE": 7,
+        "DOC_ONLY": 4,
+        "TEST_ONLY": 8
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "telemetry",
+      "label": "14) telemetry",
+      "found": true,
+      "primary": {
+        "rel": "src/app/api/telemetry/ingest/route.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          2,
+          4,
+          9,
+          10,
+          12
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/app/api/bim-vision/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            74,
+            80
+          ]
+        },
+        {
+          "rel": "src/app/api/cron/cerebro-cleanup/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            8
+          ]
+        },
+        {
+          "rel": "src/app/api/cron/learning-cycle/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            8
+          ]
+        },
+        {
+          "rel": "src/app/api/ddc/cerebro/learning/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            4,
+            35,
+            46,
+            47,
+            48
+          ]
+        },
+        {
+          "rel": "src/app/api/ddc/conversations/[id]/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            8
+          ]
+        },
+        {
+          "rel": "src/app/api/pinns-clifford/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            75,
+            81
+          ]
+        },
+        {
+          "rel": "src/app/api/telemetry/ingest/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            4,
+            9,
+            10,
+            12
+          ]
+        },
+        {
+          "rel": "src/app/api/telemetry/landing/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            46,
+            47
+          ]
+        },
+        {
+          "rel": "src/app/api/telemetry/query/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            2,
+            4,
+            17,
+            18,
+            82
+          ]
+        },
+        {
+          "rel": "src/app/api/webgl-bridge/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            72,
+            78
+          ]
+        },
+        {
+          "rel": "src/app/api/webhooks/payment/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            412
+          ]
+        },
+        {
+          "rel": "src/app/api/zcc/burn-rate/route.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            70
+          ]
+        }
+      ],
+      "totalFiles": 89,
+      "counts": {
+        "REAL_CODE": 42,
+        "DOC_ONLY": 24,
+        "TEST_ONLY": 23
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "provider_registration",
+      "label": "extra) ProviderRegistration",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/zaos-neuro-router.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          156,
+          182,
+          194,
+          503,
+          1039
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/lib/ai/zaos-neuro-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            156,
+            182,
+            194,
+            503,
+            1039
+          ]
+        },
+        {
+          "rel": "graft/src/lib/ai/zaos-neuro-router.md",
+          "class": "DOC_ONLY",
+          "lineHits": [
+            9,
+            15,
+            25,
+            49
+          ]
+        }
+      ],
+      "totalFiles": 2,
+      "counts": {
+        "REAL_CODE": 1,
+        "DOC_ONLY": 1
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "default_providers",
+      "label": "extra) DEFAULT_PROVIDERS",
+      "found": true,
+      "primary": {
+        "rel": "src/lib/ai/zaos-neuro-router.ts",
+        "class": "REAL_CODE",
+        "lineHits": [
+          194,
+          387,
+          389,
+          512
+        ]
+      },
+      "files": [
+        {
+          "rel": "src/lib/ai/zaos-neuro-router.ts",
+          "class": "REAL_CODE",
+          "lineHits": [
+            194,
+            387,
+            389,
+            512
+          ]
+        }
+      ],
+      "totalFiles": 1,
+      "counts": {
+        "REAL_CODE": 1
+      },
+      "primaryUnreferenced": false
+    },
+    {
+      "id": "provider_adapter",
+      "label": "extra) ProviderAdapter",
+      "found": false,
+      "primary": null,
+      "files": [],
+      "totalFiles": 0,
+      "counts": {},
+      "primaryUnreferenced": null
+    }
+  ],
+  "providerSearch": [
+    {
+      "term": "GLM",
+      "codeHits": 8,
+      "docHits": 8,
+      "testHits": 8,
+      "byClass": {
+        "REAL_CODE": [
+          "src/app/api/cron/cerebro-analyze/route.ts",
+          "src/app/api/cron/cerebro-budget-forecast/route.ts",
+          "src/app/api/cron/cerebro-learning/route.ts",
+          "src/app/api/cron/cerebro-night-audit/route.ts",
+          "src/app/api/cron/cerebro-refactor-check/route.ts",
+          "src/app/api/cron/security-scan/route.ts",
+          "src/app/api/zcc/brain/route.ts",
+          "src/app/api/zcc/burn-rate/route.ts"
+        ],
+        "DOC_ONLY": [
+          "00_MASTER_CONTROL/WAVE_2_3_MASTER_FORENSIC_RECONCILIATION_V2.md",
+          "99_AUDITS/DEAD_CODE_CANDIDATES.md",
+          "99_AUDITS/GITHUB_ACTIONS_FORENSIC.md",
+          "99_AUDITS/GLM_WAVE3/LOTE3_AUTH_SESSION_REVOCATION_AUDIT.md",
+          "99_AUDITS/GLM_WAVE3/LOTE3_MIDDLEWARE_WAF_ENV_AUDIT.md",
+          "99_AUDITS/GLM_WAVE3/LOTE3_MIGRATION_ESLINT_TESTS_AUDIT.md",
+          "99_AUDITS/GLM_WAVE3/LOTE3_MPAY011_ADMIN_FALLBACK_AUDIT.md",
+          "99_AUDITS/GLM_WAVE3/WAVE_3_LOTE_3_FORENSIC_RECONCILIATION_V1.md"
+        ],
+        "TEST_ONLY": [
+          "src/__tests__/cerebro/learning-engine.test.ts",
+          "src/__tests__/cerebro/orchestrator-real-tests.test.ts",
+          "tests/cerebro/learning-loop-certification.test.ts",
+          "tests/messaging/whatsapp-flow-certification.test.ts",
+          "tests/ml-architecture-validation.test.ts",
+          "tests/night-audit-system.test.ts",
+          "tests/observability-disaster-recovery.test.ts",
+          "tests/security/security-center-certification.test.ts"
+        ],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "Kimi",
+      "codeHits": 7,
+      "docHits": 1,
+      "testHits": 0,
+      "byClass": {
+        "REAL_CODE": [
+          "src/components/zcc/panels/live-agents-panel.tsx",
+          "src/lib/ai/cost-knowledge.ts",
+          "src/lib/ai/llm-adapters.ts",
+          "src/lib/ai/llm-router.ts",
+          "src/lib/ai/tool-calling.ts",
+          "src/lib/ai/zaos-neuro-router.ts",
+          "src/lib/env.ts"
+        ],
+        "DOC_ONLY": [
+          "DOCUMENTO_MASTER_PRE_PRODUCAO.md"
+        ],
+        "TEST_ONLY": [],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "OpenRouter",
+      "codeHits": 8,
+      "docHits": 4,
+      "testHits": 2,
+      "byClass": {
+        "REAL_CODE": [
+          "src/app/api/zcc/brain/route.ts",
+          "src/lib/ai/cost-knowledge.ts",
+          "src/lib/ai/llm-adapters.ts",
+          "src/lib/ai/llm-router.ts",
+          "src/lib/ai/llm-timeout.ts",
+          "src/lib/ai/tool-calling.ts",
+          "src/lib/ai/zaos-neuro-router.ts",
+          "src/lib/env.ts"
+        ],
+        "DOC_ONLY": [
+          "DOCUMENTO_MASTER_PRE_PRODUCAO.md",
+          "docs/SUPER_DOCUMENTO_DE_CONCLUSAO.md",
+          "graft/src/lib/ai/llm-adapters.md",
+          "graft/src/lib/ai/llm-router.md"
+        ],
+        "TEST_ONLY": [
+          "tests/cerebro-ml-modules.test.ts",
+          "tests/security/health-provider-regression.test.ts"
+        ],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "Ollama",
+      "codeHits": 8,
+      "docHits": 5,
+      "testHits": 3,
+      "byClass": {
+        "REAL_CODE": [
+          "src/components/zcc/panels/live-agents-panel.tsx",
+          "src/lib/ai/budget-guard.ts",
+          "src/lib/ai/cost-knowledge.ts",
+          "src/lib/ai/llm-router.ts",
+          "src/lib/ai/zaos-neuro-router.ts",
+          "src/lib/env.ts",
+          "src/lib/zcc/types.ts",
+          "src/types/index.ts"
+        ],
+        "DOC_ONLY": [
+          "DOCUMENTO_MASTER_PRE_PRODUCAO.md",
+          "deploy/ROADMAP-ZELLA-LLM-32B.md",
+          "docs/ROADMAP-ML-CEREBRO-ZELLA.md",
+          "docs/SUPER_DOCUMENTO_DE_CONCLUSAO.md",
+          "graft/src/lib/ai/llm-router.md"
+        ],
+        "TEST_ONLY": [
+          "src/__tests__/decision/ConvergenceProof.test.ts",
+          "src/__tests__/decision/RouterPipeline.test.ts",
+          "tests/cerebro-ml-modules.test.ts"
+        ],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "Anthropic",
+      "codeHits": 8,
+      "docHits": 7,
+      "testHits": 8,
+      "byClass": {
+        "REAL_CODE": [
+          "src/app/api/config/keys/route.ts",
+          "src/app/api/cron/security-scan/route.ts",
+          "src/app/api/zcc/brain/route.ts",
+          "src/app/api/zcc/finance/expenses/route.ts",
+          "src/components/zcc/panels/expenses-breakdown.tsx",
+          "src/components/zcc/panels/financeiro-panel.tsx",
+          "src/lib/ai/llm-adapters.ts",
+          "src/lib/ai/llm-router.ts"
+        ],
+        "DOC_ONLY": [
+          "99_AUDITS/GITHUB_ACTIONS_FORENSIC.md",
+          "CLAUDE.md",
+          "DOCUMENTO_MASTER_PRE_PRODUCAO.md",
+          "docs/SUPER_DOCUMENTO_DE_CONCLUSAO.md",
+          "graft/src/lib/ai/llm-adapters.md",
+          "graft/src/lib/ai/llm-router.md",
+          "graft/src/lib/ai/prompt-caching.md"
+        ],
+        "TEST_ONLY": [
+          "tests/cbm/evaluation-harness.test.ts",
+          "tests/cerebro/learning-loop-certification.test.ts",
+          "tests/cerebro/llm-timeout.test.ts",
+          "tests/inference-optimizations.test.ts",
+          "tests/messaging/whatsapp-flow-certification.test.ts",
+          "tests/security/certification-hardening.test.ts",
+          "tests/security/observability-infrastructure.test.ts",
+          "tests/security/security-scan-service.test.ts"
+        ],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "OpenAI",
+      "codeHits": 8,
+      "docHits": 8,
+      "testHits": 8,
+      "byClass": {
+        "REAL_CODE": [
+          "src/app/api/config/keys/route.ts",
+          "src/app/api/cron/budget-reset/route.ts",
+          "src/app/api/cron/security-scan/route.ts",
+          "src/app/api/zcc/brain/route.ts",
+          "src/app/api/zcc/cerebro/prompt-ide/route.ts",
+          "src/app/api/zcc/cerebro/status/route.ts",
+          "src/components/landing/IntegrationsSection.tsx",
+          "src/components/zcc/panels/live-agents-panel.tsx"
+        ],
+        "DOC_ONLY": [
+          "99_AUDITS/GITHUB_ACTIONS_FORENSIC.md",
+          "CLAUDE.md",
+          "DOCUMENTO_AUDITORIA_SEGURANCA.md",
+          "DOCUMENTO_MASTER_PRE_PRODUCAO.md",
+          "MEMORY_ARCHITECTURE_DECISION.md",
+          "docs/ADD-ZELLA-AIRB-v1.0.md",
+          "docs/Arquitetura-Mapeamento-Estrutural-SeuZella.md",
+          "docs/GO-LIVE-CHECKLIST-MVK4.md"
+        ],
+        "TEST_ONLY": [
+          "tests/cbm/evaluation-harness.test.ts",
+          "tests/cerebro/learning-loop-certification.test.ts",
+          "tests/cerebro/llm-timeout.test.ts",
+          "tests/cerebro-ml-anti-hacker.test.ts",
+          "tests/cerebro-ml-modules.test.ts",
+          "tests/dify-integration.test.ts",
+          "tests/inference-optimizations.test.ts",
+          "tests/llm-prompt-guard.test.ts"
+        ],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "Zhipu",
+      "codeHits": 8,
+      "docHits": 3,
+      "testHits": 1,
+      "byClass": {
+        "REAL_CODE": [
+          "src/app/api/zcc/cerebro/prompt-ide/route.ts",
+          "src/app/api/zcc/cerebro/runbook/route.ts",
+          "src/components/zcc/panels/live-agents-panel.tsx",
+          "src/lib/ai/batch-queue.ts",
+          "src/lib/ai/cost-knowledge.ts",
+          "src/lib/ai/llm-adapters.ts",
+          "src/lib/ai/llm-router.ts",
+          "src/lib/ai/tool-calling.ts"
+        ],
+        "DOC_ONLY": [
+          "DOCUMENTO_MASTER_PRE_PRODUCAO.md",
+          "docs/SUPER_DOCUMENTO_DE_CONCLUSAO.md",
+          "graft/src/lib/ai/llm-router.md"
+        ],
+        "TEST_ONLY": [
+          "tests/cerebro-ml-modules.test.ts"
+        ],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "Moonshot",
+      "codeHits": 8,
+      "docHits": 1,
+      "testHits": 1,
+      "byClass": {
+        "REAL_CODE": [
+          "src/components/zcc/panels/live-agents-panel.tsx",
+          "src/lib/ai/batch-queue.ts",
+          "src/lib/ai/cost-knowledge.ts",
+          "src/lib/ai/llm-adapters.ts",
+          "src/lib/ai/llm-router.ts",
+          "src/lib/ai/tool-calling.ts",
+          "src/lib/ai/zaos-neuro-router.ts",
+          "src/lib/env.ts"
+        ],
+        "DOC_ONLY": [
+          "DOCUMENTO_MASTER_PRE_PRODUCAO.md"
+        ],
+        "TEST_ONLY": [
+          "tests/cerebro-ml-modules.test.ts"
+        ],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "ProviderAdapter",
+      "codeHits": 0,
+      "docHits": 0,
+      "testHits": 0,
+      "byClass": {
+        "REAL_CODE": [],
+        "DOC_ONLY": [],
+        "TEST_ONLY": [],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "ProviderRegistration",
+      "codeHits": 1,
+      "docHits": 1,
+      "testHits": 0,
+      "byClass": {
+        "REAL_CODE": [
+          "src/lib/ai/zaos-neuro-router.ts"
+        ],
+        "DOC_ONLY": [
+          "graft/src/lib/ai/zaos-neuro-router.md"
+        ],
+        "TEST_ONLY": [],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "modelId",
+      "codeHits": 0,
+      "docHits": 0,
+      "testHits": 0,
+      "byClass": {
+        "REAL_CODE": [],
+        "DOC_ONLY": [],
+        "TEST_ONLY": [],
+        "MOCK": [],
+        "OTHER": []
+      }
+    },
+    {
+      "term": "providerId",
+      "codeHits": 8,
+      "docHits": 3,
+      "testHits": 5,
+      "byClass": {
+        "REAL_CODE": [
+          "src/app/api/brain/route.ts",
+          "src/app/api/router/providers/route.ts",
+          "src/app/api/webhooks/whatsapp/route.ts",
+          "src/app/api/zcc/semantica/decisions/route.ts",
+          "src/app/api/zcc/semantica/export/route.ts",
+          "src/components/zcc/panels/semantica-panel.tsx",
+          "src/lib/ai/cognitive-router.ts",
+          "src/lib/ai/cost-knowledge.ts"
+        ],
+        "DOC_ONLY": [
+          "graft/src/lib/ai/cost-knowledge.md",
+          "graft/src/lib/ai/zaos-neuro-router.md",
+          "graft/src/lib/fiscal/fiscal-engine.md"
+        ],
+        "TEST_ONLY": [
+          "tests/cerebro-ml-auto-adjustment.test.ts",
+          "tests/cerebro-ml-learning.test.ts",
+          "tests/cerebro-ml-modules.test.ts",
+          "tests/security/run6-platform-plane.test.ts",
+          "tests/semantica-lgpd.test.ts"
+        ],
+        "MOCK": [],
+        "OTHER": []
+      }
+    }
+  ],
+  "testFiles": [
+    "graft/src/__tests__/cerebro/contextual-bandits.test.md",
+    "graft/src/__tests__/cerebro/learning-engine.test.md",
+    "graft/src/__tests__/cerebro/orchestrator-real-tests.test.md",
+    "graft/src/__tests__/components/conquistas-tab.test.md",
+    "graft/src/__tests__/crons/cron-routes.test.md",
+    "graft/src/__tests__/decision/ConvergenceProof.test.md",
+    "graft/src/__tests__/decision/DomainModels.test.md",
+    "graft/src/__tests__/decision/RouterPipeline.test.md",
+    "graft/src/__tests__/e2e-pipeline.test.md",
+    "graft/src/__tests__/e2e/regression-e2e.test.md",
+    "graft/src/__tests__/firetests/fire.test.md",
+    "graft/src/__tests__/infrastructure/vps-scaling-ruler.test.md",
+    "graft/src/__tests__/integration/bridge-wiring.test.md",
+    "graft/src/__tests__/linkinbio/linkinbio-addon.test.md",
+    "graft/src/__tests__/mobile/notifications.test.md",
+    "graft/src/__tests__/notifications/bridges.test.md",
+    "graft/src/__tests__/notifications/catalog.test.md",
+    "graft/src/__tests__/notifications/plan-limits-checker.test.md",
+    "graft/src/__tests__/notifications/producer.test.md",
+    "graft/src/__tests__/pwa/sounds-and-sw.test.md",
+    "graft/src/__tests__/webhooks/booking-com-reviews.test.md",
+    "graft/tests/ai-prompt-eval-lgpd.test.md",
+    "graft/tests/airb-pro.test.md",
+    "graft/tests/architecture/real-adapter-stubs.test.md",
+    "graft/tests/asaas-billing.test.md",
+    "graft/tests/auth/password-reset-flow.test.md",
+    "graft/tests/brain/graph-rag-skills-finance.test.md",
+    "graft/tests/cbm/evaluation-harness.test.md",
+    "graft/tests/cerebro-ml-anti-hacker.test.md",
+    "graft/tests/cerebro-ml-auto-adjustment.test.md",
+    "graft/tests/cerebro-ml-bug-detection.test.md",
+    "graft/tests/cerebro-ml-learning.test.md",
+    "graft/tests/cerebro-ml-modules.test.md",
+    "graft/tests/cerebro/learning-loop-certification.test.md",
+    "graft/tests/cerebro/llm-timeout.test.md",
+    "graft/tests/data-governance-lgpd.test.md",
+    "graft/tests/dify-integration.test.md",
+    "graft/tests/dpo-collector.test.md",
+    "graft/tests/dspy-optimization-suite.test.md",
+    "graft/tests/dspy-optimizer.test.md",
+    "graft/tests/e2e-cascade-full.test.md",
+    "graft/tests/e2e/airbnb-full-flow.test.md",
+    "graft/tests/e2e/auth-flow.spec.md",
+    "graft/tests/e2e/checkout-locks-notifications.spec.md",
+    "graft/tests/e2e/ddc-navigation.spec.md",
+    "graft/tests/e2e/mobile-desktop-sync.spec.md",
+    "graft/tests/e2e/pousada-full-flow.test.md",
+    "graft/tests/e2e/reservation-flow.spec.md",
+    "graft/tests/e2e/wave3-fiscal-asaas.spec.md",
+    "graft/tests/e2e/wave3-lock-pin-lifecycle.spec.md",
+    "graft/tests/e2e/wave3-realtime-two-device.spec.md",
+    "graft/tests/e2e/wave3-reservation-payment.spec.md",
+    "graft/tests/e2e/wave3-whatsapp-inbound.spec.md",
+    "graft/tests/e2e/wave4-production-smoke-rollback.spec.md",
+    "graft/tests/e2e/wave4-webhook-replay.spec.md",
+    "graft/tests/e2e/wave4-whatsapp-delivery.spec.md",
+    "graft/tests/ecosystem-integration-suite.test.md",
+    "graft/tests/finance/operational-cost-config.test.md",
+    "graft/tests/finance/payment-state-machine.test.md",
+    "graft/tests/finance/saas-metrics-real.test.md",
+    "graft/tests/fiscal/fiscal-provider-capability.test.md",
+    "graft/tests/google-maps-concierge.test.md",
+    "graft/tests/graph-rag.test.md",
+    "graft/tests/graphrag-integration.test.md",
+    "graft/tests/helpers/locks-test-harness.md",
+    "graft/tests/high-stress-concurrency.test.md",
+    "graft/tests/humanized-dialogue.test.md",
+    "graft/tests/inference-optimizations.test.md",
+    "graft/tests/integration-db-cache.test.md",
+    "graft/tests/integration/wave3-push-vapid-contract.test.md",
+    "graft/tests/integration/wave3-redis-multinstance-contract.test.md",
+    "graft/tests/integration/wave4-finance-reconciliation.test.md",
+    "graft/tests/integration/wave4-readiness-environment.test.md",
+    "graft/tests/integration/wave4-redis-vapid-production.test.md",
+    "graft/tests/integrations/fiscal-engine.test.md",
+    "graft/tests/integrations/fiscal-whatsapp-contract.test.md",
+    "graft/tests/integrations/whatsapp-inbound-normalization.test.md",
+    "graft/tests/llm-prompt-guard.test.md",
+    "graft/tests/load/stress-10x.md",
+    "graft/tests/locks-authorization-hardening.test.md",
+    "graft/tests/locks-bottleneck-detection.test.md",
+    "graft/tests/locks-brand-matrix.test.md",
+    "graft/tests/locks-db-integration.test.md",
+    "graft/tests/locks-device-state-battery.test.md",
+    "graft/tests/locks-edge-cases.test.md",
+    "graft/tests/locks-integration.test.md",
+    "graft/tests/locks-lgpd-audit.test.md",
+    "graft/tests/locks-multi-tenant-scale.test.md",
+    "graft/tests/locks-panic-revoke-stress.test.md",
+    "graft/tests/locks-peak-season-simulation.test.md",
+    "graft/tests/locks-race-conditions.test.md",
+    "graft/tests/locks-real-life-flows.test.md",
+    "graft/tests/locks-stress-avalanche.test.md",
+    "graft/tests/locks-whatsapp-delivery.test.md",
+    "graft/tests/locks/alexa-adapter.test.md",
+    "graft/tests/locks/mobile-lock-boundary-contract.test.md",
+    "graft/tests/locks/pin-lifecycle-certification.test.md",
+    "graft/tests/locks/pin-rate-limit.test.md",
+    "graft/tests/locks/provider-capabilities-matrix.test.md",
+    "graft/tests/locks/system-pin-service-regression.test.md",
+    "graft/tests/m6-billing-lifecycle.test.md",
+    "graft/tests/m6-customer-health.test.md",
+    "graft/tests/m6-pilot-scorecard.test.md",
+    "graft/tests/marketing-google-ads-simulation.test.md",
+    "graft/tests/messaging/whatsapp-flow-certification.test.md",
+    "graft/tests/ml-architecture-validation.test.md",
+    "graft/tests/mobile-ddc-suite.test.md",
+    "graft/tests/mobile/ddc-mobile-data-boundary-contract.test.md",
+    "graft/tests/mobile/ddc-mobile-entry-parity-contract.test.md",
+    "graft/tests/mobile/ddc-mobile-live-bootstrap.test.md",
+    "graft/tests/mobile/ddc-mobile-live-context-contract.test.md",
+    "graft/tests/mobile/ddc-mobile-locks-security.test.md",
+    "graft/tests/mobile/ddc-mobile-operational-contracts.test.md",
+    "graft/tests/mobile/ddc-mobile-operational-summary-contract.test.md",
+    "graft/tests/mobile/ddc-mobile-security-contract.test.md",
+    "graft/tests/mobile/ddc-mobile-state-contract.test.md",
+    "graft/tests/mobile/ddc-mobile-tenant-boundary.test.md",
+    "graft/tests/mobile/mobile-api-auth-contract.test.md",
+    "graft/tests/mobile/mobile-data-integrity-contract.test.md",
+    "graft/tests/mobile/mobile-entry-security-contract.test.md",
+    "graft/tests/mobile/mobile-manifest-identity-contract.test.md",
+    "graft/tests/mobile/mobile-niche-parity-contract.test.md",
+    "graft/tests/mobile/mobile-no-client-tenant-contract.test.md",
+    "graft/tests/mobile/mobile-offline-safety-contract.test.md",
+    "graft/tests/mobile/mobile-production-security-contract.test.md",
+    "graft/tests/mobile/pwa-production-contract.test.md",
+    "graft/tests/mobile/use-tenant-state-sync.test.md",
+    "graft/tests/night-audit-system.test.md",
+    "graft/tests/observability-disaster-recovery.test.md",
+    "graft/tests/ops/provider-evidence.test.md",
+    "graft/tests/payments.test.md",
+    "graft/tests/payments/gateway-scope.test.md",
+    "graft/tests/payments/pricing.test.md",
+    "graft/tests/payments/reservation-idempotency-ledger.test.md",
+    "graft/tests/payments/webhook-domain-routing.test.md",
+    "graft/tests/payments/webhook-idempotency-certification.test.md",
+    "graft/tests/payments/webhook-reference-routing.test.md",
+    "graft/tests/production-hardening-contract.test.md",
+    "graft/tests/production-preflight-contract.test.md",
+    "graft/tests/production-readiness-master.test.md",
+    "graft/tests/pwa-mobile-manifest.test.md",
+    "graft/tests/pwa/ddc-ipad-layout-routing.test.md",
+    "graft/tests/pwa/ddc-ipad-stale-shell-guard.test.md",
+    "graft/tests/pwa/offline-queue-contract.test.md",
+    "graft/tests/pwa/production-build-contract.test.md",
+    "graft/tests/pwa/service-worker-registration-contract.test.md",
+    "graft/tests/pwa/service-worker-v3-contract.test.md",
+    "graft/tests/queue-bridge.test.md",
+    "graft/tests/realtime/behavioral.test.md",
+    "graft/tests/realtime/tenant-event-envelope.test.md",
+    "graft/tests/realtime/tenant-pubsub.test.md",
+    "graft/tests/realtime/use-ddc-initial-state.test.md",
+    "graft/tests/realtime/use-tenant-realtime-state.test.md",
+    "graft/tests/realtime/wave2-sync-contract.test.md",
+    "graft/tests/sast-static.test.md",
+    "graft/tests/seclists-integration.test.md",
+    "graft/tests/security-hardening-12-fronts.test.md",
+    "graft/tests/security/admin-surface-regression.test.md",
+    "graft/tests/security/agent-tool-policy.test.md",
+    "graft/tests/security/api-routes-sast.test.md",
+    "graft/tests/security/asaas-legacy-auth-regression.test.md",
+    "graft/tests/security/asaas-webhook-body-limit.test.md",
+    "graft/tests/security/asaas-webhook-hmac.test.md",
+    "graft/tests/security/auth-session-revocation-lote3.test.md",
+    "graft/tests/security/backup-vps-certification.test.md",
+    "graft/tests/security/behavioral-certification.test.md",
+    "graft/tests/security/billing-idempotency.test.md",
+    "graft/tests/security/browser-isolation.test.md",
+    "graft/tests/security/bulk-whatsapp-tenant-isolation.test.md",
+    "graft/tests/security/certification-hardening.test.md",
+    "graft/tests/security/checkout-webhook-mpay011.test.md",
+    "graft/tests/security/checkout-webhook-regression.test.md",
+    "graft/tests/security/codex-security-integration.test.md",
+    "graft/tests/security/cron-auth-unified.regression.test.md",
+    "graft/tests/security/cron-auth.test.md",
+    "graft/tests/security/cron-billing-idempotency.test.md",
+    "graft/tests/security/cron-error-regression.test.md",
+    "graft/tests/security/diagnostic-surface-regression.test.md",
+    "graft/tests/security/endpoint-protection-audit.test.md",
+    "graft/tests/security/export-surface-regression.test.md",
+    "graft/tests/security/health-check-regression.test.md",
+    "graft/tests/security/health-provider-regression.test.md",
+    "graft/tests/security/idor-c1-endpoints.test.md",
+    "graft/tests/security/idor-checkout-paths.test.md",
+    "graft/tests/security/internal-surface-regression.test.md",
+    "graft/tests/security/landing-telemetry-regression.test.md",
+    "graft/tests/security/lgpd-guest-tenant-binding.test.md",
+    "graft/tests/security/locks-hardening.test.md",
+    "graft/tests/security/lote4-tenant-idor-exhaustive.test.md",
+    "graft/tests/security/lote5-reservation-concurrency.test.md",
+    "graft/tests/security/lote6-special-dates-upsell-hitl.test.md",
+    "graft/tests/security/lote7-partner-zella-suite.test.md",
+    "graft/tests/security/m2m-argon2.test.md",
+    "graft/tests/security/magic-auth-regression.test.md",
+    "graft/tests/security/mercadopago-service-regression.test.md",
+    "graft/tests/security/notification-error-leak.test.md",
+    "graft/tests/security/observability-infrastructure.test.md",
+    "graft/tests/security/payment-env-regression.test.md",
+    "graft/tests/security/payment-scope-and-webhooks.test.md",
+    "graft/tests/security/payment-scope-no-stripe.test.md",
+    "graft/tests/security/production-auth-canary.test.md",
+    "graft/tests/security/production-surface-regression.test.md",
+    "graft/tests/security/readiness-regression.test.md",
+    "graft/tests/security/reconciliation-lote3r-adversarial.test.md",
+    "graft/tests/security/redactor.test.md",
+    "graft/tests/security/refund-cancellation-lifecycle.test.md",
+    "graft/tests/security/reservation-payment-contract.test.md",
+    "graft/tests/security/rls-canaries.test.md",
+    "graft/tests/security/secret-exposure-regression.test.md",
+    "graft/tests/security/security-center-certification.test.md",
+    "graft/tests/security/security-scan-service.test.md",
+    "graft/tests/security/security-typesafety-audit.test.md",
+    "graft/tests/security/ssrf.test.md",
+    "graft/tests/security/telemetry-body-regression.test.md",
+    "graft/tests/security/telemetry-ingest-regression.test.md",
+    "graft/tests/security/telemetry-query-regression.test.md",
+    "graft/tests/security/tenant-idor-routes.test.md",
+    "graft/tests/security/tenant-isolation-adversarial.test.md",
+    "graft/tests/security/tenant-isolation-matrix.test.md",
+    "graft/tests/security/tenant-isolation-regression.test.md",
+    "graft/tests/security/unsafe-execution-regression.test.md",
+    "graft/tests/security/virgin-zella-fire-test-contract.test.md",
+    "graft/tests/security/waf-regression.test.md",
+    "graft/tests/security/wave1-security-p0.test.md",
+    "graft/tests/security/webhook-verify-regression.test.md",
+    "graft/tests/security/zcc-auth-policy.test.md",
+    "graft/tests/security/zcc-metrics-regression.test.md",
+    "graft/tests/security/zero-trust-hardening.test.md",
+    "graft/tests/semantica-client.test.md",
+    "graft/tests/semantica-graph-rag.test.md",
+    "graft/tests/semantica-lgpd.test.md",
+    "graft/tests/smart-locks.test.md",
+    "graft/tests/stress-avalanche-k6.test.md",
+    "graft/tests/stress-neuro-router.test.md",
+    "graft/tests/subscription-lifecycle-idempotency.test.md",
+    "graft/tests/sustainability-growth-churn.test.md",
+    "graft/tests/tensorflow-integration.test.md",
+    "graft/tests/two-intelligences-governance.test.md",
+    "graft/tests/ui-visual-playwright.test.md",
+    "graft/tests/unit-autogen-engine.test.md",
+    "graft/tests/unit-business-logic.test.md",
+    "graft/tests/unit-metagpt-engine.test.md",
+    "graft/tests/upsell-engine.test.md",
+    "graft/tests/whatsapp/inbound-security-contract.test.md",
+    "graft/tests/zaos-yield-engine.test.md",
+    "graft/tests/zcc-digital-twin-financial-growth.test.md",
+    "graft/tests/zcc-digital-twin/adapter-swap.test.md",
+    "graft/tests/zcc-digital-twin/digital-twin.test.md",
+    "graft/tests/zcc-security.test.md",
+    "graft/tests/zecode-git-applier.test.md",
+    "graft/tests/zecode-github-gitops.test.md",
+    "graft/tests/zecode-persistence.test.md",
+    "graft/tests/zecode-review-flow.test.md",
+    "graft/tests/zelador-suporte-agent.test.md",
+    "graft/tests/zella-audio-fallback.test.md",
+    "graft/tests/zella-confidence-lock.test.md",
+    "graft/tests/zella-cross-talk.test.md",
+    "graft/tests/zella-double-booking.test.md",
+    "graft/tests/zella-multi-turn-drift.test.md",
+    "graft/tests/zella-red-teaming.test.md",
+    "graft/tests/zella-sales-brain.test.md",
+    "src/__tests__/cerebro/contextual-bandits.test.ts",
+    "src/__tests__/cerebro/learning-engine.test.ts",
+    "src/__tests__/cerebro/orchestrator-real-tests.test.ts",
+    "src/__tests__/components/conquistas-tab.test.ts",
+    "src/__tests__/crons/cron-routes.test.ts",
+    "src/__tests__/decision/ConvergenceProof.test.ts",
+    "src/__tests__/decision/DomainModels.test.ts",
+    "src/__tests__/decision/RouterPipeline.test.ts",
+    "src/__tests__/e2e-pipeline.test.ts",
+    "src/__tests__/e2e/regression-e2e.test.ts",
+    "src/__tests__/firetests/fire.test.ts",
+    "src/__tests__/infrastructure/vps-scaling-ruler.test.ts",
+    "src/__tests__/integration/bridge-wiring.test.ts",
+    "src/__tests__/linkinbio/linkinbio-addon.test.ts",
+    "src/__tests__/mobile/notifications.test.ts",
+    "src/__tests__/notifications/bridges.test.ts",
+    "src/__tests__/notifications/catalog.test.ts",
+    "src/__tests__/notifications/plan-limits-checker.test.ts",
+    "src/__tests__/notifications/producer.test.ts",
+    "src/__tests__/pwa/sounds-and-sw.test.ts",
+    "src/__tests__/webhooks/booking-com-reviews.test.ts",
+    "tests/README-cerebro-ml-tests.md",
+    "tests/ai-prompt-eval-lgpd.test.ts",
+    "tests/airb-pro.test.ts",
+    "tests/architecture/real-adapter-stubs.test.ts",
+    "tests/asaas-billing.test.ts",
+    "tests/auth/password-reset-flow.test.ts",
+    "tests/brain/graph-rag-skills-finance.test.ts",
+    "tests/cbm/evaluation-harness.test.ts",
+    "tests/cerebro-ml-anti-hacker.test.ts",
+    "tests/cerebro-ml-auto-adjustment.test.ts",
+    "tests/cerebro-ml-bug-detection.test.ts",
+    "tests/cerebro-ml-learning.test.ts",
+    "tests/cerebro-ml-modules.test.ts",
+    "tests/cerebro/learning-loop-certification.test.ts",
+    "tests/cerebro/llm-timeout.test.ts",
+    "tests/data-governance-lgpd.test.ts",
+    "tests/dify-integration.test.ts",
+    "tests/dpo-collector.test.ts",
+    "tests/dspy-optimization-suite.test.tsx",
+    "tests/dspy-optimizer.test.ts",
+    "tests/e2e-cascade-full.test.ts",
+    "tests/e2e/airbnb-full-flow.test.ts",
+    "tests/e2e/auth-flow.spec.ts",
+    "tests/e2e/checkout-locks-notifications.spec.ts",
+    "tests/e2e/ddc-navigation.spec.ts",
+    "tests/e2e/mobile-desktop-sync.spec.ts",
+    "tests/e2e/pousada-full-flow.test.ts",
+    "tests/e2e/reservation-flow.spec.ts",
+    "tests/e2e/wave16-synthetic-staging.test.ts",
+    "tests/e2e/wave3-fiscal-asaas.spec.ts",
+    "tests/e2e/wave3-lock-pin-lifecycle.spec.ts",
+    "tests/e2e/wave3-realtime-two-device.spec.ts",
+    "tests/e2e/wave3-reservation-payment.spec.ts",
+    "tests/e2e/wave3-whatsapp-inbound.spec.ts",
+    "tests/e2e/wave4-production-smoke-rollback.spec.ts",
+    "tests/e2e/wave4-webhook-replay.spec.ts",
+    "tests/e2e/wave4-whatsapp-delivery.spec.ts",
+    "tests/ecosystem-integration-suite.test.tsx",
+    "tests/finance/operational-cost-config.test.ts",
+    "tests/finance/payment-state-machine.test.ts",
+    "tests/finance/saas-metrics-real.test.ts",
+    "tests/fiscal/fiscal-provider-capability.test.ts",
+    "tests/google-maps-concierge.test.ts",
+    "tests/graph-rag.test.ts",
+    "tests/graphrag-integration.test.ts",
+    "tests/helpers/locks-test-harness.ts",
+    "tests/high-stress-concurrency.test.ts",
+    "tests/humanized-dialogue.test.ts",
+    "tests/inference-optimizations.test.ts",
+    "tests/integration-db-cache.test.ts",
+    "tests/integration/wave3-push-vapid-contract.test.ts",
+    "tests/integration/wave3-redis-multinstance-contract.test.ts",
+    "tests/integration/wave4-finance-reconciliation.test.ts",
+    "tests/integration/wave4-readiness-environment.test.ts",
+    "tests/integration/wave4-redis-vapid-production.test.ts",
+    "tests/integrations/fiscal-engine.test.ts",
+    "tests/integrations/fiscal-whatsapp-contract.test.ts",
+    "tests/integrations/whatsapp-inbound-normalization.test.ts",
+    "tests/llm-prompt-guard.test.ts",
+    "tests/locks-authorization-hardening.test.ts",
+    "tests/locks-bottleneck-detection.test.ts",
+    "tests/locks-brand-matrix.test.ts",
+    "tests/locks-db-integration.test.ts",
+    "tests/locks-device-state-battery.test.ts",
+    "tests/locks-edge-cases.test.ts",
+    "tests/locks-integration.test.ts",
+    "tests/locks-lgpd-audit.test.ts",
+    "tests/locks-multi-tenant-scale.test.ts",
+    "tests/locks-panic-revoke-stress.test.ts",
+    "tests/locks-peak-season-simulation.test.ts",
+    "tests/locks-race-conditions.test.ts",
+    "tests/locks-real-life-flows.test.ts",
+    "tests/locks-stress-avalanche.test.ts",
+    "tests/locks-whatsapp-delivery.test.ts",
+    "tests/locks/alexa-adapter.test.ts",
+    "tests/locks/mobile-lock-boundary-contract.test.ts",
+    "tests/locks/pin-lifecycle-certification.test.ts",
+    "tests/locks/pin-rate-limit.test.ts",
+    "tests/locks/provider-capabilities-matrix.test.ts",
+    "tests/locks/system-pin-service-regression.test.ts",
+    "tests/m6-billing-lifecycle.test.ts",
+    "tests/m6-customer-health.test.ts",
+    "tests/m6-pilot-scorecard.test.ts",
+    "tests/marketing-google-ads-simulation.test.ts",
+    "tests/messaging/whatsapp-flow-certification.test.ts",
+    "tests/meta/cloud-api-and-nft-hardening.test.ts",
+    "tests/meta/meta-audit-fixes.test.ts",
+    "tests/meta/meta-cost-multi-currency.test.ts",
+    "tests/meta/meta-foundation-certification.test.ts",
+    "tests/meta/meta-normalizer.test.ts",
+    "tests/meta/meta-rate-card.test.ts",
+    "tests/meta/meta-send-mode.test.ts",
+    "tests/meta/meta-wave3-hardening.test.ts",
+    "tests/meta/meta-wave3-signature.test.ts",
+    "tests/meta/meta-wave3-webhook-guard.test.ts",
+    "tests/meta/meta-wave4-regression.test.ts",
+    "tests/ml-architecture-validation.test.ts",
+    "tests/mobile-ddc-suite.test.tsx",
+    "tests/mobile/ddc-mobile-data-boundary-contract.test.ts",
+    "tests/mobile/ddc-mobile-entry-parity-contract.test.ts",
+    "tests/mobile/ddc-mobile-live-bootstrap.test.ts",
+    "tests/mobile/ddc-mobile-live-context-contract.test.ts",
+    "tests/mobile/ddc-mobile-locks-security.test.ts",
+    "tests/mobile/ddc-mobile-operational-contracts.test.ts",
+    "tests/mobile/ddc-mobile-operational-summary-contract.test.ts",
+    "tests/mobile/ddc-mobile-security-contract.test.ts",
+    "tests/mobile/ddc-mobile-state-contract.test.ts",
+    "tests/mobile/ddc-mobile-tenant-boundary.test.ts",
+    "tests/mobile/mobile-api-auth-contract.test.ts",
+    "tests/mobile/mobile-data-integrity-contract.test.ts",
+    "tests/mobile/mobile-entry-security-contract.test.ts",
+    "tests/mobile/mobile-manifest-identity-contract.test.ts",
+    "tests/mobile/mobile-niche-parity-contract.test.ts",
+    "tests/mobile/mobile-no-client-tenant-contract.test.ts",
+    "tests/mobile/mobile-offline-safety-contract.test.ts",
+    "tests/mobile/mobile-production-security-contract.test.ts",
+    "tests/mobile/pwa-production-contract.test.ts",
+    "tests/mobile/use-tenant-state-sync.test.ts",
+    "tests/night-audit-system.test.ts",
+    "tests/observability-disaster-recovery.test.ts",
+    "tests/ops/provider-evidence.test.ts",
+    "tests/payments.test.ts",
+    "tests/payments/gateway-scope.test.ts",
+    "tests/payments/pricing.test.ts",
+    "tests/payments/reservation-idempotency-ledger.test.ts",
+    "tests/payments/webhook-domain-routing.test.ts",
+    "tests/payments/webhook-idempotency-certification.test.ts",
+    "tests/payments/webhook-reference-routing.test.ts",
+    "tests/production-hardening-contract.test.ts",
+    "tests/production-preflight-contract.test.ts",
+    "tests/production-readiness-master.test.ts",
+    "tests/pwa-mobile-manifest.test.ts",
+    "tests/pwa/ddc-ipad-layout-routing.test.ts",
+    "tests/pwa/ddc-ipad-stale-shell-guard.test.ts",
+    "tests/pwa/offline-queue-contract.test.ts",
+    "tests/pwa/production-build-contract.test.ts",
+    "tests/pwa/service-worker-registration-contract.test.ts",
+    "tests/pwa/service-worker-v3-contract.test.ts",
+    "tests/queue-bridge.test.ts",
+    "tests/realtime/behavioral.test.ts",
+    "tests/realtime/tenant-event-envelope.test.ts",
+    "tests/realtime/tenant-pubsub.test.ts",
+    "tests/realtime/use-ddc-initial-state.test.ts",
+    "tests/realtime/use-tenant-realtime-state.test.ts",
+    "tests/realtime/wave2-sync-contract.test.ts",
+    "tests/sast-static.test.ts",
+    "tests/seclists-integration.test.ts",
+    "tests/security-hardening-12-fronts.test.ts",
+    "tests/security/admin-surface-regression.test.ts",
+    "tests/security/agent-tool-policy.test.ts",
+    "tests/security/api-routes-sast.test.ts",
+    "tests/security/asaas-legacy-auth-regression.test.ts",
+    "tests/security/asaas-webhook-body-limit.test.ts",
+    "tests/security/asaas-webhook-hmac.test.ts",
+    "tests/security/auth-session-revocation-lote3.test.ts",
+    "tests/security/backup-vps-certification.test.ts",
+    "tests/security/behavioral-certification.test.ts",
+    "tests/security/billing-idempotency.test.ts",
+    "tests/security/browser-isolation.test.ts",
+    "tests/security/bulk-whatsapp-tenant-isolation.test.ts",
+    "tests/security/certification-hardening.test.ts",
+    "tests/security/checkout-webhook-mpay011.test.ts",
+    "tests/security/checkout-webhook-regression.test.ts",
+    "tests/security/codex-security-integration.test.ts",
+    "tests/security/cron-auth-unified.regression.test.ts",
+    "tests/security/cron-auth.test.ts",
+    "tests/security/cron-billing-idempotency.test.ts",
+    "tests/security/cron-error-regression.test.ts",
+    "tests/security/ddc-demo-honesty.test.ts",
+    "tests/security/ddc-revenue-honesty.test.ts",
+    "tests/security/diagnostic-surface-regression.test.ts",
+    "tests/security/endpoint-protection-audit.test.ts",
+    "tests/security/export-surface-regression.test.ts",
+    "tests/security/frontend-revenue-honesty.test.ts",
+    "tests/security/handover-suppression-regression.test.ts",
+    "tests/security/health-check-regression.test.ts",
+    "tests/security/health-provider-regression.test.ts",
+    "tests/security/idor-c1-endpoints.test.ts",
+    "tests/security/idor-checkout-paths.test.ts",
+    "tests/security/internal-surface-regression.test.ts",
+    "tests/security/landing-telemetry-regression.test.ts",
+    "tests/security/lgpd-guest-tenant-binding.test.ts",
+    "tests/security/lgpd-log-redaction.test.ts",
+    "tests/security/locks-hardening.test.ts",
+    "tests/security/lote4-tenant-idor-exhaustive.test.ts",
+    "tests/security/lote5-reservation-concurrency.test.ts",
+    "tests/security/lote6-special-dates-upsell-hitl.test.ts",
+    "tests/security/lote7-partner-zella-suite.test.ts",
+    "tests/security/m2m-argon2.test.ts",
+    "tests/security/magic-auth-regression.test.ts",
+    "tests/security/mercadopago-service-regression.test.ts",
+    "tests/security/notification-error-leak.test.ts",
+    "tests/security/observability-infrastructure.test.ts",
+    "tests/security/payment-env-regression.test.ts",
+    "tests/security/payment-scope-and-webhooks.test.ts",
+    "tests/security/payment-scope-no-stripe.test.ts",
+    "tests/security/production-auth-canary.test.ts",
+    "tests/security/production-surface-regression.test.ts",
+    "tests/security/r3-f03-checkout-idempotency.test.ts",
+    "tests/security/readiness-regression.test.ts",
+    "tests/security/reconciliation-lote3r-adversarial.test.ts",
+    "tests/security/redactor.test.ts",
+    "tests/security/refund-cancellation-lifecycle.test.ts",
+    "tests/security/reservation-payment-contract.test.ts",
+    "tests/security/revenue-status-integrity.test.ts",
+    "tests/security/rls-canaries.test.ts",
+    "tests/security/run10-w1-invariants.test.ts",
+    "tests/security/run10-w2-invariants.test.ts",
+    "tests/security/run11-w1-invariants.test.ts",
+    "tests/security/run11-w2-audit.test.ts",
+    "tests/security/run11-w2-cache.test.ts",
+    "tests/security/run11-w2-health.test.ts",
+    "tests/security/run11-w2-invariants.test.ts",
+    "tests/security/run11-w2-queue.test.ts",
+    "tests/security/run11-w2-ratelimit.test.ts",
+    "tests/security/run11-w3-wiring.test.ts",
+    "tests/security/run12-hygiene.test.ts",
+    "tests/security/run13-wiring-lote1.test.ts",
+    "tests/security/run14-wiring-lote23.test.ts",
+    "tests/security/run18-mopup.test.ts",
+    "tests/security/run19-hygiene.test.ts",
+    "tests/security/run4-wave4a-checkout-adversarial.test.ts",
+    "tests/security/run4-wave4b-pat-vault.test.ts",
+    "tests/security/run4-wave4c-guest-concierge.test.ts",
+    "tests/security/run4-wave4f-tenant-authority-idor.test.ts",
+    "tests/security/run6-guest-registration-fnrh.test.ts",
+    "tests/security/run6-hardening.test.ts",
+    "tests/security/run6-platform-plane.test.ts",
+    "tests/security/run6-tenant-isolation.test.ts",
+    "tests/security/run6b-lgpd-isolation.test.ts",
+    "tests/security/run6b-m2m-roles.test.ts",
+    "tests/security/run6b-push-primitive.test.ts",
+    "tests/security/run6b-unknown-zero.test.ts",
+    "tests/security/run7-baseline-invariants.test.ts",
+    "tests/security/run7-w2-middleware-invariants.test.ts",
+    "tests/security/run8-w1-invariants.test.ts",
+    "tests/security/run8-w2-invariants.test.ts",
+    "tests/security/run9-w1-invariants.test.ts",
+    "tests/security/run9-w2-invariants.test.ts",
+    "tests/security/secret-exposure-regression.test.ts",
+    "tests/security/security-center-certification.test.ts",
+    "tests/security/security-scan-service.test.ts",
+    "tests/security/security-typesafety-audit.test.ts",
+    "tests/security/ssrf.test.ts",
+    "tests/security/telemetry-body-regression.test.ts",
+    "tests/security/telemetry-ingest-regression.test.ts",
+    "tests/security/telemetry-query-regression.test.ts",
+    "tests/security/tenant-idor-routes.test.ts",
+    "tests/security/tenant-isolation-adversarial.test.ts",
+    "tests/security/tenant-isolation-matrix.test.ts",
+    "tests/security/tenant-isolation-regression.test.ts",
+    "tests/security/unsafe-execution-regression.test.ts",
+    "tests/security/virgin-zella-fire-test-contract.test.ts",
+    "tests/security/waf-regression.test.ts",
+    "tests/security/wave-r2-database-hardening.test.ts",
+    "tests/security/wave-r2-monetary-inventory.test.ts",
+    "tests/security/wave1-security-p0.test.ts",
+    "tests/security/wave12-f05-payment-webhook-resilience.test.ts",
+    "tests/security/wave12-f06-financial-ledger-upsell.test.ts",
+    "tests/security/wave12-f07-payment-concurrency-stress.test.ts",
+    "tests/security/wave12-f08-sre-observability.test.ts",
+    "tests/security/wave12-fronts-hardening.test.ts",
+    "tests/security/wave13-f01-rule-a.test.ts",
+    "tests/security/wave13-f02-rls-context.test.ts",
+    "tests/security/wave13-f03-zero-trust-ownership.test.ts",
+    "tests/security/wave13-f04-reservation-boundary.test.ts",
+    "tests/security/wave13-f05-f08-production-hardening.test.ts",
+    "tests/security/webhook-verify-regression.test.ts",
+    "tests/security/zcc-auth-policy.test.ts",
+    "tests/security/zcc-metrics-regression.test.ts",
+    "tests/security/zero-trust-hardening.test.ts",
+    "tests/semantica-client.test.ts",
+    "tests/semantica-graph-rag.test.ts",
+    "tests/semantica-lgpd.test.ts",
+    "tests/smart-locks.test.ts",
+    "tests/stress-avalanche-k6.test.ts",
+    "tests/stress-neuro-router.test.ts",
+    "tests/subscription-lifecycle-idempotency.test.ts",
+    "tests/sustainability-growth-churn.test.ts",
+    "tests/tensorflow-integration.test.ts",
+    "tests/two-intelligences-governance.test.ts",
+    "tests/ui-visual-playwright.test.ts",
+    "tests/unit-autogen-engine.test.ts",
+    "tests/unit-business-logic.test.ts",
+    "tests/unit-metagpt-engine.test.ts",
+    "tests/upsell-engine.test.ts",
+    "tests/whatsapp/inbound-security-contract.test.ts",
+    "tests/zaos-yield-engine.test.ts",
+    "tests/zcc-digital-twin-financial-growth.test.ts",
+    "tests/zcc-digital-twin/adapter-swap.test.ts",
+    "tests/zcc-digital-twin/digital-twin.test.ts",
+    "tests/zcc-security.test.ts",
+    "tests/zecode-git-applier.test.ts",
+    "tests/zecode-github-gitops.test.ts",
+    "tests/zecode-persistence.test.ts",
+    "tests/zecode-review-flow.test.ts",
+    "tests/zelador-suporte-agent.test.ts",
+    "tests/zella-audio-fallback.test.ts",
+    "tests/zella-confidence-lock.test.ts",
+    "tests/zella-cross-talk.test.ts",
+    "tests/zella-double-booking.test.ts",
+    "tests/zella-multi-turn-drift.test.ts",
+    "tests/zella-red-teaming.test.ts",
+    "tests/zella-sales-brain.test.ts"
+  ],
+  "apiRoutes": [
+    "src/app/api/admin/faturamento-zehla/route.ts",
+    "src/app/api/admin/upsell-analytics/route.ts",
+    "src/app/api/agent-logs/route.ts",
+    "src/app/api/agents/route.ts",
+    "src/app/api/airb-pro/comparativo/route.ts",
+    "src/app/api/airb-pro/rentabilidade/route.ts",
+    "src/app/api/airb-pro/yield-suggestion/route.ts",
+    "src/app/api/airb-test/route.ts",
+    "src/app/api/alexa/smart-home/route.ts",
+    "src/app/api/auth/[...nextauth]/route.ts",
+    "src/app/api/auth/forgot-password/route.ts",
+    "src/app/api/auth/m2m/token/route.ts",
+    "src/app/api/auth/magic-link/route.ts",
+    "src/app/api/auth/register/route.ts",
+    "src/app/api/auth/reset-password/route.ts",
+    "src/app/api/bim-vision/route.ts",
+    "src/app/api/brain/health/route.ts",
+    "src/app/api/brain/intents/route.ts",
+    "src/app/api/brain/route.ts",
+    "src/app/api/bulk-whatsapp/route.ts",
+    "src/app/api/campaigns/[id]/route.ts",
+    "src/app/api/campaigns/route.ts",
+    "src/app/api/channel-manager/route.ts",
+    "src/app/api/checkout/cancel/route.ts",
+    "src/app/api/checkout/create/route.ts",
+    "src/app/api/checkout/downgrade/route.ts",
+    "src/app/api/checkout/pix-status/route.ts",
+    "src/app/api/checkout/success/route.ts",
+    "src/app/api/checkout/upgrade/route.ts",
+    "src/app/api/checkout/webhook/route.ts",
+    "src/app/api/config/keys/route.ts",
+    "src/app/api/conversations/route.ts",
+    "src/app/api/cron/achievements-check/route.ts",
+    "src/app/api/cron/backup-restore-drill/route.ts",
+    "src/app/api/cron/booking-daily/route.ts",
+    "src/app/api/cron/budget-reset/route.ts",
+    "src/app/api/cron/cerebro-analyze/route.ts",
+    "src/app/api/cron/cerebro-budget-forecast/route.ts",
+    "src/app/api/cron/cerebro-churn-predict/route.ts",
+    "src/app/api/cron/cerebro-cleanup/route.ts",
+    "src/app/api/cron/cerebro-distill/route.ts",
+    "src/app/api/cron/cerebro-learning/route.ts",
+    "src/app/api/cron/cerebro-night-audit/route.ts",
+    "src/app/api/cron/cerebro-night-pentest/route.ts",
+    "src/app/api/cron/cerebro-night-pulse/route.ts",
+    "src/app/api/cron/cerebro-orchestrator/route.ts",
+    "src/app/api/cron/cerebro-refactor-check/route.ts",
+    "src/app/api/cron/cerebro-watchdog/route.ts",
+    "src/app/api/cron/dlq-drain/route.ts",
+    "src/app/api/cron/housekeeping-dispatch/route.ts",
+    "src/app/api/cron/ical-sync/route.ts",
+    "src/app/api/cron/learning-cycle/route.ts",
+    "src/app/api/cron/lembrete-checkin/route.ts",
+    "src/app/api/cron/linkinbio-expiry-check/route.ts",
+    "src/app/api/cron/locks-maintenance/route.ts",
+    "src/app/api/cron/metrics-snapshot/route.ts",
+    "src/app/api/cron/monthly-billing/route.ts",
+    "src/app/api/cron/nps-checkout/route.ts",
+    "src/app/api/cron/ota-token-expiry/route.ts",
+    "src/app/api/cron/payment-confirmation/route.ts",
+    "src/app/api/cron/payment-overdue/route.ts",
+    "src/app/api/cron/plan-expiry/route.ts",
+    "src/app/api/cron/plan-limits-check/route.ts",
+    "src/app/api/cron/security-scan/route.ts",
+    "src/app/api/cron/sre-alerts/route.ts",
+    "src/app/api/cron/weekly-report/route.ts",
+    "src/app/api/dashboard/bookings/route.ts",
+    "src/app/api/dashboard/overview/route.ts",
+    "src/app/api/dashboard/route.ts",
+    "src/app/api/ddc/ai-status/route.ts",
+    "src/app/api/ddc/airb-pro/commissions/[id]/route.ts",
+    "src/app/api/ddc/airb-pro/commissions/route.ts",
+    "src/app/api/ddc/airb-pro/expenses/[id]/route.ts",
+    "src/app/api/ddc/airb-pro/expenses/route.ts",
+    "src/app/api/ddc/airb-pro/goals/[id]/route.ts",
+    "src/app/api/ddc/airb-pro/goals/route.ts",
+    "src/app/api/ddc/airb-pro/operations/[id]/route.ts",
+    "src/app/api/ddc/airb-pro/operations/route.ts",
+    "src/app/api/ddc/airb-pro/reports/route.ts",
+    "src/app/api/ddc/airb/conversations/route.ts",
+    "src/app/api/ddc/airb/notifications/route.ts",
+    "src/app/api/ddc/airb/onboarding/route.ts",
+    "src/app/api/ddc/airb/properties/route.ts",
+    "src/app/api/ddc/airb/regional/route.ts",
+    "src/app/api/ddc/airb/scrape/route.ts",
+    "src/app/api/ddc/billing/invoices/route.ts",
+    "src/app/api/ddc/booking-sync/route.ts",
+    "src/app/api/ddc/bookings/route.ts",
+    "src/app/api/ddc/cerebro/feedback/route.ts",
+    "src/app/api/ddc/cerebro/learning/route.ts",
+    "src/app/api/ddc/conversations/[id]/escalate/route.ts",
+    "src/app/api/ddc/conversations/[id]/messages/route.ts",
+    "src/app/api/ddc/conversations/[id]/route.ts",
+    "src/app/api/ddc/conversations/route.ts",
+    "src/app/api/ddc/credits/balance/route.ts",
+    "src/app/api/ddc/credits/codes/route.ts",
+    "src/app/api/ddc/credits/create-code/route.ts",
+    "src/app/api/ddc/credits/lite-milestone/route.ts",
+    "src/app/api/ddc/credits/referrals/route.ts",
+    "src/app/api/ddc/credits/track-click/route.ts",
+    "src/app/api/ddc/deliveries/route.ts",
+    "src/app/api/ddc/dpo-capture/route.ts",
+    "src/app/api/ddc/dynamic-pricing/calculate/route.ts",
+    "src/app/api/ddc/dynamic-pricing/route.ts",
+    "src/app/api/ddc/gerente-ia/route.ts",
+    "src/app/api/ddc/guest-guide/route.ts",
+    "src/app/api/ddc/guest-registration/route.ts",
+    "src/app/api/ddc/guests/[id]/route.ts",
+    "src/app/api/ddc/guests/route.ts",
+    "src/app/api/ddc/housekeeping/route.ts",
+    "src/app/api/ddc/learning-stats/route.ts",
+    "src/app/api/ddc/linkinbio/activate-standalone/route.ts",
+    "src/app/api/ddc/linkinbio/purchase-addon/route.ts",
+    "src/app/api/ddc/linkinbio/route.ts",
+    "src/app/api/ddc/linkinbio/stats/route.ts",
+    "src/app/api/ddc/live-feed/route.ts",
+    "src/app/api/ddc/locks/[id]/panic-revoke/route.ts",
+    "src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts",
+    "src/app/api/ddc/locks/[id]/pins/route.ts",
+    "src/app/api/ddc/locks/[id]/route.ts",
+    "src/app/api/ddc/locks/[id]/unlock/route.ts",
+    "src/app/api/ddc/locks/events/route.ts",
+    "src/app/api/ddc/locks/oauth/[provider]/callback/route.ts",
+    "src/app/api/ddc/locks/oauth/[provider]/devices/route.ts",
+    "src/app/api/ddc/locks/oauth/[provider]/start/route.ts",
+    "src/app/api/ddc/locks/route.ts",
+    "src/app/api/ddc/magic-link/route.ts",
+    "src/app/api/ddc/meta-connect/route.ts",
+    "src/app/api/ddc/metrics/route.ts",
+    "src/app/api/ddc/mobile/state/route.ts",
+    "src/app/api/ddc/notifications/read-all/route.ts",
+    "src/app/api/ddc/notifications/route.ts",
+    "src/app/api/ddc/notifications/v2/route.ts",
+    "src/app/api/ddc/onboarding-wizard/route.ts",
+    "src/app/api/ddc/partner-program/badge/route.ts",
+    "src/app/api/ddc/partner-program/claim/route.ts",
+    "src/app/api/ddc/partner-program/status/route.ts",
+    "src/app/api/ddc/partner-program/waitlist/route.ts",
+    "src/app/api/ddc/personality/route.ts",
+    "src/app/api/ddc/property-name/route.ts",
+    "src/app/api/ddc/realtime/tenant-state/route.ts",
+    "src/app/api/ddc/revenue-details/route.ts",
+    "src/app/api/ddc/runtime-version/route.ts",
+    "src/app/api/ddc/simulate-message/route.ts",
+    "src/app/api/ddc/special-dates/overrides/route.ts",
+    "src/app/api/ddc/special-dates/route.ts",
+    "src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts",
+    "src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts",
+    "src/app/api/ddc/training/[id]/route.ts",
+    "src/app/api/ddc/training/route.ts",
+    "src/app/api/ddc/upsell/charge/route.ts",
+    "src/app/api/ddc/upsell/metrics/route.ts",
+    "src/app/api/ddc/upsell/payment-method/route.ts",
+    "src/app/api/ddc/upsell/route.ts",
+    "src/app/api/debug-agent/github/route.ts",
+    "src/app/api/debug-agent/knowledge/route.ts",
+    "src/app/api/debug-agent/route.ts",
+    "src/app/api/diagnose/route.ts",
+    "src/app/api/download/[filename]/route.ts",
+    "src/app/api/export/leads/route.ts",
+    "src/app/api/feedback/route.ts",
+    "src/app/api/feedback/stats/route.ts",
+    "src/app/api/guide/[slug]/route.ts",
+    "src/app/api/health/route.ts",
+    "src/app/api/hunt-stream/route.ts",
+    "src/app/api/hunt/route.ts",
+    "src/app/api/ical/[syncToken]/route.ts",
+    "src/app/api/integrations/ical/[roomId]/route.ts",
+    "src/app/api/integrations/sync/route.ts",
+    "src/app/api/internal/flush-buffer/route.ts",
+    "src/app/api/knowledge/generate-embeddings/route.ts",
+    "src/app/api/landing/chat/route.ts",
+    "src/app/api/landing/contact/route.ts",
+    "src/app/api/leads/[id]/route.ts",
+    "src/app/api/leads/analytics/route.ts",
+    "src/app/api/leads/converted-pousadas/route.ts",
+    "src/app/api/leads/route.ts",
+    "src/app/api/leads/seed/route.ts",
+    "src/app/api/lgpd/consent/route.ts",
+    "src/app/api/lgpd/delete-my-data/route.ts",
+    "src/app/api/lgpd/dpa/route.ts",
+    "src/app/api/lgpd/export-my-data/route.ts",
+    "src/app/api/lgpd/forget-guest/route.ts",
+    "src/app/api/meta-costs/route.ts",
+    "src/app/api/mobile/devices-tracking-v2/route.ts",
+    "src/app/api/mobile/devices-tracking/route.ts",
+    "src/app/api/monitoring/route.ts",
+    "src/app/api/onboarding/route.ts",
+    "src/app/api/pinns-clifford/route.ts",
+    "src/app/api/properties/[id]/route.ts",
+    "src/app/api/properties/route.ts",
+    "src/app/api/proxy/[...path]/route.ts",
+    "src/app/api/pulse/io/route.ts",
+    "src/app/api/push/subscribe/route.ts",
+    "src/app/api/push/unsubscribe/route.ts",
+    "src/app/api/push/vapid-public-key/route.ts",
+    "src/app/api/readiness/route.ts",
+    "src/app/api/roi/route.ts",
+    "src/app/api/route.ts",
+    "src/app/api/router/budget/route.ts",
+    "src/app/api/router/providers/route.ts",
+    "src/app/api/scraping/route.ts",
+    "src/app/api/security/route.ts",
+    "src/app/api/swipe-templates/route.ts",
+    "src/app/api/targets/[id]/route.ts",
+    "src/app/api/targets/route.ts",
+    "src/app/api/telemetry/ingest/route.ts",
+    "src/app/api/telemetry/landing/route.ts",
+    "src/app/api/telemetry/query/route.ts",
+    "src/app/api/tenants/route.ts",
+    "src/app/api/v1/guest/ddc/notifications/route.ts",
+    "src/app/api/v1/guest/ddc/overview/route.ts",
+    "src/app/api/v1/latency/route.ts",
+    "src/app/api/v1/loops/route.ts",
+    "src/app/api/v1/metrics/route.ts",
+    "src/app/api/v1/reservations/[id]/payment/route.ts",
+    "src/app/api/v1/reservations/route.ts",
+    "src/app/api/webgl-bridge/route.ts",
+    "src/app/api/webhook-whatsapp/route.ts",
+    "src/app/api/webhooks/asaas/route.ts",
+    "src/app/api/webhooks/booking-com/reviews/route.ts",
+    "src/app/api/webhooks/mercadopago/route.ts",
+    "src/app/api/webhooks/payment/route.ts",
+    "src/app/api/webhooks/whatsapp/route.ts",
+    "src/app/api/yield/calculate/route.ts",
+    "src/app/api/yield/profit-summary/route.ts",
+    "src/app/api/zcc/adapters/route.ts",
+    "src/app/api/zcc/agents/[id]/run/route.ts",
+    "src/app/api/zcc/agents/route.ts",
+    "src/app/api/zcc/airbnb/oauth/route.ts",
+    "src/app/api/zcc/airbnb/webhook/route.ts",
+    "src/app/api/zcc/backup-drill/route.ts",
+    "src/app/api/zcc/brain/route.ts",
+    "src/app/api/zcc/burn-rate/route.ts",
+    "src/app/api/zcc/campaigns/route.ts",
+    "src/app/api/zcc/cerebro/analyses/route.ts",
+    "src/app/api/zcc/cerebro/anomalies/route.ts",
+    "src/app/api/zcc/cerebro/ask/route.ts",
+    "src/app/api/zcc/cerebro/llmops/route.ts",
+    "src/app/api/zcc/cerebro/ml-stats/route.ts",
+    "src/app/api/zcc/cerebro/prompt-ide/route.ts",
+    "src/app/api/zcc/cerebro/refactors/route.ts",
+    "src/app/api/zcc/cerebro/runbook/route.ts",
+    "src/app/api/zcc/cerebro/status/route.ts",
+    "src/app/api/zcc/cerebro/stream/route.ts",
+    "src/app/api/zcc/cerebro/test-alert/route.ts",
+    "src/app/api/zcc/cerebro/workflows/route.ts",
+    "src/app/api/zcc/code-reviewer/apply/route.ts",
+    "src/app/api/zcc/code-reviewer/config/route.ts",
+    "src/app/api/zcc/code-reviewer/review/route.ts",
+    "src/app/api/zcc/code-reviewer/reviews/[id]/route.ts",
+    "src/app/api/zcc/code-reviewer/reviews/route.ts",
+    "src/app/api/zcc/code-reviewer/stats/route.ts",
+    "src/app/api/zcc/cognitive-bus/route.ts",
+    "src/app/api/zcc/cognitive-memory/route.ts",
+    "src/app/api/zcc/conductor/route.ts",
+    "src/app/api/zcc/consent/route.ts",
+    "src/app/api/zcc/cortex/growth/route.ts",
+    "src/app/api/zcc/cortex/route.ts",
+    "src/app/api/zcc/dashboard-stats/route.ts",
+    "src/app/api/zcc/digital-twin/route.ts",
+    "src/app/api/zcc/dspy-compiler/route.ts",
+    "src/app/api/zcc/export/route.ts",
+    "src/app/api/zcc/finance/expenses/route.ts",
+    "src/app/api/zcc/github/apply-pr/route.ts",
+    "src/app/api/zcc/github/credentials/[id]/revoke/route.ts",
+    "src/app/api/zcc/github/credentials/[id]/rotate/route.ts",
+    "src/app/api/zcc/github/credentials/audit/route.ts",
+    "src/app/api/zcc/github/credentials/route.ts",
+    "src/app/api/zcc/github/credentials/validate/route.ts",
+    "src/app/api/zcc/github/expiry-check/route.ts",
+    "src/app/api/zcc/github/webhook/route.ts",
+    "src/app/api/zcc/health/route.ts",
+    "src/app/api/zcc/inference-simulation/route.ts",
+    "src/app/api/zcc/infra/scaling-ruler/route.ts",
+    "src/app/api/zcc/infrastructure/route.ts",
+    "src/app/api/zcc/leads/brain-analyze/route.ts",
+    "src/app/api/zcc/metrics/financial/route.ts",
+    "src/app/api/zcc/metrics/geographic/route.ts",
+    "src/app/api/zcc/metrics/periods/route.ts",
+    "src/app/api/zcc/metrics/route.ts",
+    "src/app/api/zcc/national-simulator/compare/route.ts",
+    "src/app/api/zcc/national-simulator/route.ts",
+    "src/app/api/zcc/night-audit/route.ts",
+    "src/app/api/zcc/night-audit/vulns/route.ts",
+    "src/app/api/zcc/observability/route.ts",
+    "src/app/api/zcc/onboarding-tracker/route.ts",
+    "src/app/api/zcc/partner-program/reopen/route.ts",
+    "src/app/api/zcc/personas/route.ts",
+    "src/app/api/zcc/pulse/analyze/route.ts",
+    "src/app/api/zcc/pulse/capture/route.ts",
+    "src/app/api/zcc/sales-funnel/route.ts",
+    "src/app/api/zcc/sandbox/route.ts",
+    "src/app/api/zcc/security/route.ts",
+    "src/app/api/zcc/semantica/conflicts/route.ts",
+    "src/app/api/zcc/semantica/decisions/route.ts",
+    "src/app/api/zcc/semantica/export/route.ts",
+    "src/app/api/zcc/semantica/graph/route.ts",
+    "src/app/api/zcc/semantica/ingest/route.ts",
+    "src/app/api/zcc/simulation-lab/route.ts",
+    "src/app/api/zcc/stats/route.ts",
+    "src/app/api/zcc/synthetic-brazil/generate/route.ts",
+    "src/app/api/zcc/synthetic-brazil/route.ts",
+    "src/app/api/zcc/targets/route.ts",
+    "src/app/api/zcc/tenants/[id]/status/route.ts",
+    "src/app/api/zcc/tenants/route.ts",
+    "src/app/api/zcc/vps-preflight/route.ts",
+    "src/app/api/zcc/whatsapp/simulate/route.ts",
+    "src/app/api/zcc/ze-code/apply/route.ts",
+    "src/app/api/zcc/ze-code/bottlenecks/route.ts",
+    "src/app/api/zcc/ze-code/evolve/route.ts",
+    "src/app/api/zcc/ze-code/gaps/route.ts",
+    "src/app/api/zcc/ze-code/refactors/route.ts",
+    "src/app/api/zcc/ze-code/review/route.ts",
+    "src/app/api/zcc/ze-code/stats/route.ts",
+    "src/app/api/zcc/zgs/decisions/route.ts",
+    "src/app/api/zelador-suporte/chat/route.ts",
+    "src/app/api/zelador-suporte/consultoria/route.ts",
+    "src/app/api/zelador-suporte/ticket/route.ts",
+    "src/app/api/zella/simulate/route.ts"
+  ]
+}

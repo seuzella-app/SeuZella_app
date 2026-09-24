@@ -1,0 +1,543 @@
+[
+ {
+  "id": "R10-1",
+  "area": "10A",
+  "sev": "P3",
+  "cat": "OBS",
+  "title": "chamadas LLM/embedding presentes no código (inventário para governança de custos)",
+  "evidence": "src/app/api/zcc/pulse/analyze/route.ts (chat.completions.create), src/lib/ai/embedder.ts (.embed(), src/lib/ai/llm-adapters.ts (generateContent), src/lib/cerebro/alert-bus.ts (messages.create), src/lib/zcc/agents/llm-engine.ts (chat.completions.create)",
+  "reason": "categoria OBS não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "RUN11 cobre métricas/custos; token budget na W3"
+ },
+ {
+  "id": "R10-2",
+  "area": "10B",
+  "sev": "P2",
+  "cat": "OTHER",
+  "title": "campo de score/confiança de ML como Float em model de IA (AgentConfig)",
+  "evidence": "AgentConfig: confidenceScore",
+  "reason": "categoria OTHER não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-3",
+  "area": "10B",
+  "sev": "P2",
+  "cat": "OBS",
+  "title": "campo de score/confiança de ML como Float em model de IA (AgentLog)",
+  "evidence": "AgentLog: costUsd",
+  "reason": "categoria OBS não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "RUN11 cobre métricas/custos; token budget na W3"
+ },
+ {
+  "id": "R10-4",
+  "area": "10B",
+  "sev": "P2",
+  "cat": "OBS",
+  "title": "campo de score/confiança de ML como Float em model de IA (ConversationLog)",
+  "evidence": "ConversationLog: aiConfidence",
+  "reason": "categoria OBS não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "RUN11 cobre métricas/custos; token budget na W3"
+ },
+ {
+  "id": "R10-5",
+  "area": "10B",
+  "sev": "P2",
+  "cat": "OBS",
+  "title": "campo de score/confiança de ML como Float em model de IA (AirBMessage)",
+  "evidence": "AirBMessage: costUsd",
+  "reason": "categoria OBS não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "RUN11 cobre métricas/custos; token budget na W3"
+ },
+ {
+  "id": "R10-6",
+  "area": "10B",
+  "sev": "P2",
+  "cat": "OBS",
+  "title": "campo de score/confiança de ML como Float em model de IA (AirbOperationTask)",
+  "evidence": "AirbOperationTask: cost",
+  "reason": "categoria OBS não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "RUN11 cobre métricas/custos; token budget na W3"
+ },
+ {
+  "id": "R10-7",
+  "area": "10B",
+  "sev": "P2",
+  "cat": "OTHER",
+  "title": "campo de score/confiança de ML como Float em model de IA (CerebroKnowledgeFact)",
+  "evidence": "CerebroKnowledgeFact: confidence",
+  "reason": "categoria OTHER não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-9",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/agents/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-10",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/airb-pro/comparativo/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-11",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/airb-pro/rentabilidade/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-12",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/airb-pro/yield-suggestion/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-13",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/airb-test/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-15",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/brain/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-16",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/campaigns/[id]/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-17",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/campaigns/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-18",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/campaigns/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-19",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/cron/booking-daily/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-20",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/cron/booking-daily/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-21",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/cron/cerebro-churn-predict/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-22",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/cron/cerebro-churn-predict/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-23",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/cron/dlq-drain/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-24",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/cron/dlq-drain/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-25",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/cron/locks-maintenance/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-26",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/cron/locks-maintenance/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-27",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/ai-status/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-28",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb/conversations/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-30",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb/notifications/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-32",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb/onboarding/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-34",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb/properties/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-35",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb/regional/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-37",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb/scrape/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-38",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb-pro/commissions/[id]/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-39",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb-pro/expenses/[id]/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-40",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb-pro/goals/[id]/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-41",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb-pro/goals/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-42",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb-pro/operations/[id]/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-43",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb-pro/operations/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-44",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/airb-pro/reports/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-45",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/partner-program/claim/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-46",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/ddc/partner-program/claim/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-47",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/partner-program/waitlist/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-48",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/ddc/partner-program/waitlist/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-49",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/training/[id]/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-50",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/ddc/training/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-51",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/debug-agent/github/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-52",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/debug-agent/github/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-53",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/debug-agent/knowledge/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-54",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/debug-agent/knowledge/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-55",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "RATELIMIT",
+  "title": "rota de IA sem sinal de rate limit (risco de custo descontrolado por abuso)",
+  "evidence": "src/app/api/debug-agent/route.ts",
+  "reason": "patch 10B/10C não tocou este arquivo (estrutura não reconhecida com segurança / ausente)",
+  "remediation": "classificar a partir do título/evidência"
+ },
+ {
+  "id": "R10-56",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/knowledge/generate-embeddings/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-57",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/landing/chat/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "R10-59",
+  "area": "10D",
+  "sev": "P2",
+  "cat": "GUARD",
+  "title": "rota de IA sem sinal de verificação de sessão/auth",
+  "evidence": "src/app/api/zcc/agents/[id]/run/route.ts",
+  "reason": "categoria GUARD não é autopatcheável com segurança (nunca patch cego)",
+  "remediation": "descobrir API de sessão do projeto (RUN7) e aplicar wrapper por rota com rehearsal"
+ },
+ {
+  "id": "RES-10A-1",
+  "area": "10C",
+  "sev": "P1",
+  "cat": "SECRET",
+  "title": "P1 R10-8 (secret-redactor.ts:L279) status: NO_LITERAL_FOUND",
+  "evidence": "src/lib/cerebro/code-reviewer/secret-redactor.ts",
+  "reason": "AST não encontrou literal com formato de chave — provável regex de detecção (falso-positivo do scan W1)",
+  "remediation": "revisão humana do arquivo; se confirmar chave REAL, rotacionar na provider e mover para env"
+ },
+ {
+  "id": "RES-10A-2",
+  "area": "10A",
+  "sev": "P3",
+  "cat": "OBS",
+  "file": "src/lib/cerebro/code-reviewer/secret-redactor.ts",
+  "title": "strings-exemplo com formato de chave dentro de template literal do redactor",
+  "evidence": "R10-8-EVID3 no log do apply (no=TEMPLATE_LITERAL; valor nunca impresso)",
+  "reason": "exemplos/fixture dentro de template literal — nao sao literais de codigo (AST), inertes em runtime; falso positivo do scan W1 pela extracao por aspas",
+  "remediation": "W3 (higiene): sanitizar exemplos do redactor (mascarar fixtures); nenhuma rotacao necessaria"
+ }
+]

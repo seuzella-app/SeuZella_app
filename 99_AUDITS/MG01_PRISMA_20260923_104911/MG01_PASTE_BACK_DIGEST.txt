@@ -1,0 +1,153 @@
+================================================================
+ SEUZELLA — MG01_PASTE_BACK_DIGEST (MG-01 — MASTER GATE FINAL: FORENSE PostgreSQL/Prisma)
+ Gerado em: 2026-09-23T13:50:31.310Z
+ Objetivo: varredura forense ESTÁTICA READ-ONLY do domínio de dados — 1ª onda
+ da campanha MASTER GATE FINAL (pré-RELEASE). Selo da fundação intocado.
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: 0cd14178fa105f0b2fb282e37ce9c1496a99a04e
+árvore: modified=0 untracked=28 | FORA de 99_AUDITS: 0
+
+--- B) DOCUMENTOS INSTALADOS (2, ADITIVOS em docs/ — nenhum existente editado, zero código de produção) ---
+docs/MG01_RELATORIO.md | 126 linhas | sha256=ae5fa5c4f36407d97b6789e3eb3f9262c34835a05e2e0c9717f541d8dfff4774
+docs/MG01_ACHADOS.md | 48 linhas | sha256=19eb92bb0fe94ed17e10a6259f2109e3ec905c333919508f3d9ed7e611c20d74
+
+
+--- C) FORENSE MG-01 (PostgreSQL/Prisma — READ-ONLY, sem banco, sem rede, sem credenciais) ---
+resumo: BLOQUEIOS=0 ATENÇÃO=2 INFO=13
+achados (contagens/arquivo:linha/presença de chaves — valores NUNCA exibidos):
+  [INFO] PRISMA_SCHEMA: presente (prisma/schema.prisma)
+  [INFO] estrutura: modelos=127 enums=2 @@index=291 @@unique=23 (nomes NUNCA exibidos nesta onda)
+  [INFO] datasource: provider=postgresql url=env() (x1) — sem credencial literal
+  [INFO] migrations: 22 pasta(s), 22 arquivo(s) .sql
+  **[ATENÇÃO]** operações potencialmente destrutivas em migrations: 5 (só arquivo:linha abaixo — conteúdo NUNCA exibido; reversibilidade profundada em MG-06)
+  [INFO] exemplo: 20260817000002_remove_caution_fields/migration.sql:7
+  [INFO] exemplo: 20260817000002_remove_caution_fields/migration.sql:8
+  [INFO] exemplo: 20260817000002_remove_caution_fields/migration.sql:9
+  [INFO] exemplo: 20260817000002_remove_caution_fields/migration.sql:10
+  [INFO] exemplo: 20260902000100_add_reservation_overlap_exclude/migration.sql:4
+  **[ATENÇÃO]** drift estático: 99 modelo(s) do schema sem CREATE TABLE correspondente em migrations (nomes não exibidos; investigar em MG-06)
+  [INFO] tabela(s) em migrations sem model no schema: 3 (nomes não exibidos — pode ser tabela de join implícita ou órfã; MG-06)
+  [INFO] menções a 'tenant' no schema: 249 (contagem apenas — isolamento profundado em MG-04)
+  [INFO] prisma no package.json: "prisma":{"seed":"npxtsxprisma/seed.ts"}, "@next-auth/prisma-adapter":"^1.0.7","@octokit/rest":"^22.0.1","@prisma/client":"^6.11.1","@radix-ui/react-accordion":"^1.2.11","@radix-ui/react-…[truncado]
+  [INFO] env [.env] DATABASE_URL: PRESENTE (valor NUNCA lido)
+  [INFO] env [.env] DIRECT_URL: ausente
+  [INFO] env [.env] SHADOW_DATABASE_URL: ausente
+  [INFO] env [.env.local] DATABASE_URL: ausente
+  [INFO] env [.env.local] DIRECT_URL: ausente
+  [INFO] env [.env.local] SHADOW_DATABASE_URL: ausente
+
+LEITURA: achados BLOQUEIO alimentam a decisão de RELEASE do dono (correções
+nascem em ondas próprias); a onda forense é GREEN quando conclui com a
+fundação íntegra. Nomes de modelos/tabelas NUNCA exibidos nesta onda.
+
+--- D) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- E) VITEST (8 suítes JEV — a fundação continua íntegra durante a campanha) ---
+resultado: 8 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (RUN26-A) + jev-cron (RUN27-A)
+
+--- F) MASTER SWEEP (a fundação re-verificada antes da onda instalar) ---
+  SELO: SEUZELLA_JEV_MASTER_CLOSURE_01 -> fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== commit do RUN29-A: SIM ✓)
+  ÂNCORAS: 16/16 ancestrais do HEAD por hash exato (RUN12..RUN19 + RUN22..RUN29)
+    RUN12-A=bede7de3 RUN13-A=480281d2 RUN14-A=aff5ca01 RUN15-A=2b53b8e9
+    RUN16-A=7d7f28f1 RUN17-A=1828090e RUN18-A=e5eeb65d RUN19-A=ffa3902b
+    RUN22-A=c6c07044 RUN23-A=7b3f9810 RUN24-A=de734569 RUN25-A=c6275fd8
+    RUN26-A=371a96cd RUN27-A=5e19649b RUN28-A=6261e3a5 RUN29-A=fc07fc8f
+  ARQUIVOS: 33/33 presentes (32 da fundação + certificado RUN29-A)
+  SHAPES-3 RE-VERIFY: 9 OK / 0 FALHA (exigido 9/9)
+  CONTENT VERIFY: 40 OK / 0 FALHA (exigido 40/40 — 16 âncoras +
+    9 ondas MG + 15 garantias canônicas conferidas no relatório do payload)
+  CONTENT RE-VERIFY (pós-instalação): 28/28 re-checagens nos documentos instalados
+  TSC: 0 erros novos | VITEST: 8/8 GREEN
+RESULTADO DO SWEEP: FUNDAÇÃO ÍNTEGRA SOBRE O SELO — onda MG-01 concluída.
+
+--- G) O SELO DA FUNDAÇÃO (permanece LOCAL — NUNCA push; NUNCA alterado pela campanha) ---
+nome: SEUZELLA_JEV_MASTER_CLOSURE_01
+alvo: fc07fc8fbd7822dda2d186981e21a218a6bfd642 (== fc07fc8f: SIM ✓)
+mensagem anotada: (verificar)
+tags SEUZELLA_* presentes no iMac:
+  - SEUZELLA_BASELINE_CLOSURE_01
+  - SEUZELLA_JEV_MASTER_CLOSURE_01
+  - SEUZELLA_RUN10_MASTER_CLOSURE_01
+  - SEUZELLA_RUN11_MASTER_CLOSURE_01
+  - SEUZELLA_RUN12_MASTER_CLOSURE_01
+  - SEUZELLA_RUN7_MASTER_CLOSURE_01
+  - SEUZELLA_RUN8_MASTER_CLOSURE_01
+  - SEUZELLA_RUN9_MASTER_CLOSURE_01
+A campanha MASTER GATE FINAL não nasce tag nenhuma: o selo é ÚNICO (RUN29-A).
+
+--- H) SEGURANÇA ---
+tokens de domínio proibido nos documentos: 0 | padrões de segredo literal: 0
+leituras de env nos documentos da onda: 0 (carrega NOMES de chaves, nunca valores)
+rede REAL: NENHUMA | banco: NÃO CONECTADO (varredura estática no filesystem)
+credenciais: NENHUMA pedida/lida | edição em arquivo existente: NENHUMA
+tenant puro: NUNCA aparece (nomes de modelos/tabelas também não — só contagens)
+push: NENHUM (commit apenas local)
+
+--- I) COMMIT LOCAL ---
+0cd14178fa105f0b2fb282e37ce9c1496a99a04e
+mensagem: MG-01 (MASTER GATE FINAL — PostgreSQL/Prisma): varredura forense estática READ-ONLY do domínio de dados (schema, migrations, drift estático, datasource, presença de chaves — sem banco, sem rede, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG01_RELATORIO + MG01_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed, sem domínio financeiro
+
+--- J) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (nada exposto nesta onda)
+secret handling ✓ (só NOMES de chaves; scrub duplo nos textos de evidência) | migração destrutiva EXECUTADA: NENHUMA (só detectada/relatada) ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ (checagem própria fica no MG-05) | rede real: NENHUMA ✓ | banco: NÃO CONECTADO nesta onda ✓
+vercel.json: NÃO EDITADO ✓ (agendamento é decisão do dono)
+
+--- K) CONTENT VERIFY (40 termos — lição RUN25-A/RUN28-A aplicada ao relatório) ---
+  OK   docs/MG01_RELATORIO.md :: bede7de3
+  OK   docs/MG01_RELATORIO.md :: 480281d2
+  OK   docs/MG01_RELATORIO.md :: aff5ca01
+  OK   docs/MG01_RELATORIO.md :: 2b53b8e9
+  OK   docs/MG01_RELATORIO.md :: 7d7f28f1
+  OK   docs/MG01_RELATORIO.md :: 1828090e
+  OK   docs/MG01_RELATORIO.md :: e5eeb65d
+  OK   docs/MG01_RELATORIO.md :: ffa3902b
+  OK   docs/MG01_RELATORIO.md :: c6c07044
+  OK   docs/MG01_RELATORIO.md :: 7b3f9810
+  OK   docs/MG01_RELATORIO.md :: de734569
+  OK   docs/MG01_RELATORIO.md :: c6275fd8
+  OK   docs/MG01_RELATORIO.md :: 371a96cd
+  OK   docs/MG01_RELATORIO.md :: 5e19649b
+  OK   docs/MG01_RELATORIO.md :: 6261e3a5
+  OK   docs/MG01_RELATORIO.md :: fc07fc8f
+  OK   docs/MG01_RELATORIO.md :: MG-01
+  OK   docs/MG01_RELATORIO.md :: MG-02
+  OK   docs/MG01_RELATORIO.md :: MG-03
+  OK   docs/MG01_RELATORIO.md :: MG-04
+  OK   docs/MG01_RELATORIO.md :: MG-05
+  OK   docs/MG01_RELATORIO.md :: MG-06
+  OK   docs/MG01_RELATORIO.md :: MG-07
+  OK   docs/MG01_RELATORIO.md :: MG-08
+  OK   docs/MG01_RELATORIO.md :: MG-09
+  OK   docs/MG01_RELATORIO.md :: READ-ONLY
+  OK   docs/MG01_RELATORIO.md :: NUNCA push
+  OK   docs/MG01_RELATORIO.md :: fail-closed
+  OK   docs/MG01_RELATORIO.md :: sem banco
+  OK   docs/MG01_RELATORIO.md :: sem rede
+  OK   docs/MG01_RELATORIO.md :: sem credenciais
+  OK   docs/MG01_RELATORIO.md :: MASTER GATE FINAL
+  OK   docs/MG01_RELATORIO.md :: RELEASE
+  OK   docs/MG01_RELATORIO.md :: SEUZELLA_JEV_MASTER_CLOSURE_01
+  OK   docs/MG01_RELATORIO.md :: PostgreSQL/Prisma
+  OK   docs/MG01_RELATORIO.md :: drift
+  OK   docs/MG01_RELATORIO.md :: migrations
+  OK   docs/MG01_RELATORIO.md :: datasource
+  OK   docs/MG01_RELATORIO.md :: SHAPES-3
+  OK   docs/MG01_RELATORIO.md :: valor NUNCA exibido
+RESULTADO: 40 termo(s) obrigatório(s) OK | 0 falha(s) (exigido 40/40)
+DOUTRINA: o relatório só entra — e o commit só nasce — se conferir com a
+realidade da campanha: mesmas disciplinas do SHAPES-3 VERIFY (rc=87) sobre
+código e do CONTENT VERIFY (rc=88) sobre documentação.
+
+CAMPAÑHA: MG-01/9 (PostgreSQL/Prisma) concluída — PRÓXIMO: MG-02 (Build
+forense). Sua janela de fechamento segue mapeada: MG-02 build, MG-03 CI,
+MG-04 tenant isolation, MG-05 billing (só ausência do domínio proibido),
+MG-06 migration profunda, MG-07 VPS/deploy, MG-08 testes, MG-09 wiring
+residual -> RELEASE. Nada de Asaas/refund/parcela. NUNCA push.
+================================================================

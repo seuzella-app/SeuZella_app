@@ -1,0 +1,75 @@
+================================================================
+ SEUZELLA — JEV_PASTE_BACK_DIGEST (JEV SHADOW LEDGER — RUN24-A, SHADOW_ONLY)
+ Gerado em: 2026-09-22T23:18:50.088Z
+ Objetivo: fechar a onda SHADOW LEDGER (persistência apend-only com retenção
+ e idempotência + ponte das amostras do Cérebro) e autorizar a próxima
+ (INTEGRAÇÃO TYPESAFE)
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: de7345693dd9c36d69394df20bb8d29a2fe142d5
+árvore: modified=0 untracked=21 | FORA de 99_AUDITS: 0
+
+--- B) ARQUIVOS INSTALADOS (4, ADITIVOS — nenhum existente editado) ---
+src/lib/ai/jev/jev-ledger.ts | 407 linhas | sha256=12cb11848b45efa3a38779b33d67808f9aaa32a2e4ecfae615a64a6d476b2d7f
+src/lib/ai/jev/jev-cerebro-samples.ts | 195 linhas | sha256=1723678fd30d5ebac57096ec9d00763b2b68dda0757245f4b55fda3876f36a4e
+src/lib/ai/jev/jev-ledger-sink.ts | 123 linhas | sha256=e718004205ba1abc2da6f1d69ea27ca19f85ed1fa2620ba369b938f22d83e3db
+src/__tests__/jev/jev-ledger.test.ts | 479 linhas | sha256=30617728bd8f8b84d087c6f4e9f8a83087aa01886408adf6cd19ae3190451a24
+
+
+--- C) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- D) VITEST (5 suítes JEV) ---
+resultado: 5 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (NOVA)
+
+--- E) LEDGER — PERSISTÊNCIA, IDEMPOTÊNCIA E RETENÇÃO (SHADOW_ONLY) ---
+ledger: total=9 | shadow-decision=6 cerebro-sample=3
+por modo: INTENT=3 SENTIMENT=2 CHURN=2 LEAD=1 UPSELL=1
+agreement (só pares local-vs-remoto decididos): match=2 mismatch=2 rate=50.0%
+amostras com rótulo de referência (expectedLabeled): 2
+retenção: capacityEntries=100 retentionMs=2592000000 lastPruned=1
+sink: file:jev-ledger.jsonl written=9 appendOnly=true
+
+INVARIANTES PROVADAS: seqMonotonic=true tenantHashOnly=true payloadNotSerialized=true appendOnlyFrozen=true idempotentAppends=true
+LEITURA: o ledger guarda SOMENTE labels/hash/contagens — payload NUNCA entra
+(recusado no append, provado sobre a serialização) e tenant nunca aparece puro.
+A extração REAL de amostras do Cérebro (leitura de dados existentes) acontece
+na onda de fiação, IMPLEMENTANDO a ponte desta onda (port + parser) num
+arquivo novo — sem editar código existente. Nada em produção chama o ledger
+ainda (opt-in total).
+
+--- F) CAMINHO DE EXECUÇÃO (mesmo de produção quando fiado) ---
+amostra Cérebro (crua) -> parser (firewall allowlist por modo + PII ofuscada +
+tenant -> hash + fingerprint de conteúdo) -> draft -> ledger (validação
+fail-closed + dedupe por contentHash SEM timestamp) -> janela em memória ->
+prune por retenção (idade 30d / capacidade; clock injetável) -> export JSONL
+-> sink local (memória ou arquivo append-only flag 'a', opt-in EXPLÍCITO).
+Shadow-decision entra direto no ledger com labels/hash/agreement — payload
+não existe no formato. Nada de rede; nenhuma env nova; nenhum fluxo de
+produção chama o ledger ainda.
+
+--- G) SEGURANÇA ---
+tokens de domínio proibido nos 4 arquivos: 0 | padrões de segredo literal: 0
+leituras de env nos arquivos de produção da onda: 0 | edição em arquivo existente: NENHUMA
+ledger: sem tenant puro (só hash 16-hex), sem payload (recusa no append,
+provada sobre a serialização), entradas congeladas (append-only)
+push: NENHUM (commit apenas local)
+
+--- H) COMMIT LOCAL ---
+de7345693dd9c36d69394df20bb8d29a2fe142d5
+mensagem: RUN24-A (JEV MASTER SHADOW LEDGER): ledger apend-only com retenção e idempotência + sinks JSONL locais + port/parser de amostras do Cérebro — aditivo, SHADOW_ONLY, sem domínio financeiro
+
+--- I) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (hash obrigatório no ledger e no parser)
+secret handling ✓ (sem env/chave nesta onda; sink exige caminho explícito) | migração destrutiva: NENHUMA ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ | rede: NENHUMA ✓ | banco: NÃO LIDO nesta onda ✓
+
+PRÓXIMA ONDA (após auditoria do agente): INTEGRAÇÃO TYPESAFE — remotePort
+acende (agreement local-vs-remoto), chave entra SÓ no .env.local do iMac
+nessa onda + security tests restantes (rate-limit do endpoint, auth M2M,
+fuzz do parser remoto). Nada de Asaas/refund/parcela. NUNCA push.
+================================================================

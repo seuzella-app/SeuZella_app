@@ -1,0 +1,3 @@
+src/lib/ai/jev/jev-remote-rate-limit.ts | 251 linhas | sha256=6519337a46fb7a993c343c0b719a3b3bc141d483f3ef1439d5ee4c89942ea0bc
+src/lib/ai/jev/jev-integration.ts | 157 linhas | sha256=ced547b04d67f897b1783e47df4cb9b5048852da6aab691db48efc642efbf781
+src/__tests__/jev/jev-integration.test.ts | 665 linhas | sha256=32b620c1939e22aaee638a638b9a3daf10f0c4e3656fd4ab026121b6cc3d078b

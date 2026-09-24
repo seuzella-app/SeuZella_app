@@ -1,0 +1,18 @@
+[
+ {
+  "id": "RES-9C-2",
+  "area": "9C",
+  "sev": "P2",
+  "title": "webhook booking-com/reviews com assinatura mas sem idempotência",
+  "reason": "idempotência exige chave de evento de negócio do payload (event-id) — não automatizável sem conhecer o contrato do emissor",
+  "remediation": "dedup por event-id em onda dedicada (W3 ou FASE de webhooks)"
+ },
+ {
+  "id": "RES-9D-1",
+  "area": "9D",
+  "sev": "P1",
+  "title": "Float money em 5 models de billing (6 campos) — conversão Decimal em staging",
+  "reason": "mudança de schema Float->Decimal(12,2) requer migração + ajuste de tipagem (number -> Prisma.Decimal) em todos os pontos de uso — não é patch cego",
+  "remediation": "RUN9-W3: onda dedicada com rehearsal (padrão 8C) — plano em RUN9_W3_REMEDIATION_PLAN.md"
+ }
+]

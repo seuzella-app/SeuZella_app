@@ -1,0 +1,98 @@
+================================================================
+ SEUZELLA — JEV_PASTE_BACK_DIGEST (JEV FIAÇÃO NO CÉREBRO — RUN26-A, SHADOW_ONLY)
+ Gerado em: 2026-09-23T01:38:40.011Z
+ Objetivo: fechar a onda FIAÇÃO NO CÉREBRO (fonte real read-only + chamador
+ do ciclo shadow + ledger/sink de ponta a ponta + shapes-2 read-only) e
+ autorizar a próxima (USO REAL NO CRON DO CÉREBRO)
+================================================================
+
+--- A) ESTADO GIT ---
+branch: feat/meta-zella-foundation | HEAD pós-onda: 371a96cdbd89c4cd0c6a1f13c796b5ad726a3a7e
+árvore: modified=0 untracked=24 | FORA de 99_AUDITS: 0
+
+--- B) ARQUIVOS INSTALADOS (3, ADITIVOS — nenhum existente editado) ---
+src/lib/ai/jev/jev-cerebro-file-source.ts | 76 linhas | sha256=451dc6d09e55b46fd25f4f4daa18f84cc3da2291baf49f453aa793af338a7e90
+src/lib/ai/jev/jev-cerebro-shadow-loop.ts | 222 linhas | sha256=a518e944697b4a7d3d1c9c87207064d391cca2d500a2f9f4556895d42c68fc99
+src/__tests__/jev/jev-wiring.test.ts | 433 linhas | sha256=e52097371b777690781242e9b58797b690a621cea3c4df3180f059bcd68b95cb
+
+
+--- C) TSC (npx tsc --noEmit) ---
+erros totais: 0
+residuais conhecidos RUN19-A (proxy TS2448/TS2454 + debug-agent TS2345): 0
+ERROS NOVOS: 0 (exigido 0 -> GREEN)
+
+--- D) VITEST (7 suítes JEV) ---
+resultado: 7 passed / 0 failed
+suítes: jev-contract, jev-registry, jev-shadow (RUN22-A) + jev-harness (RUN23-A) + jev-ledger (RUN24-A) + jev-integration (RUN25-A) + jev-wiring (NOVA)
+
+--- E) FIAÇÃO — FONTE REAL + CICLO SHADOW + LEDGER + SINK (SHADOW_ONLY) ---
+fonte real (export JSONL read-only): capBytes=5242880 | lidas=6 | aceitas=3 | recusadas=3
+  recusas tipadas do parser (demo/modo inválido/não-objeto) NUNCA entram — fail-closed da ponte RUN24-A
+ciclo shadow (cenário pinado): avaliadas=3 | remotas ok=3 | acordos=2 | divergências=1
+  fonte ausente/quebrada => ciclo INERTE tipado (provado): inertFailClosed=true
+ledger: appends no 1º ciclo=6 (3 cerebro-sample + 3 shadow-decision) | total=6
+  re-ciclo com a MESMA fonte: novos=0 duplicatas=6 — idempotência por contentHash provada de ponta a ponta
+sink local opt-in: ok=true | linhas escritas=6 | sem payload/tenant puro/chave=true
+
+INVARIANTES PROVADAS: tenantHashOnly=true payloadNotSerialized=true idempotentCycle=true networkOnlyMocked=true capRespected=true secretNeverInReport=true
+LEITURA: a ponte da RUN24-A e a fábrica da RUN25-A agora estão FIADAS num uso
+real de ponta a ponta (fonte -> parser -> ledger -> runner shadow -> ledger ->
+sink), tudo em arquivos NOVOS. Nada em produção chama o ciclo automaticamente
+— o USO REAL no cron do Cérebro é a PRÓXIMA onda, com as shapes-2 exatas
+extraídas nesta onda (seção K). Remoto continua SHADOW_ONLY e opt-in.
+
+--- F) ESTADO DO ACENDIMENTO E DO EXPORT (presença — NUNCA valores) ---
+TYPESAFE_API_KEY: AUSENTE
+JEV_ENABLED: não ligado
+SSRF_ALLOWLIST: AUSENTE
+=> remoto permanece INERTE (fail-closed): heurística local segue decidindo em shadow, nada quebra.
+EXPORT JSONL (opt-in, quando o DONO quiser o uso real):
+  Nada para fazer nesta onda — o ciclo está provado em teste e NADA em
+  produção o chama. Na próxima onda (uso real no cron), o fluxo real do
+  Cérebro passará a chamar runCerebroShadowCycle com a fonte apontada para
+  o export que VOCÊ gerar. Formato do export (1 amostra JSON por linha):
+    {"tenantId":"seu-tenant","mode":"INTENT","text":"texto real do cliente"}
+    {"tenantId":"seu-tenant","mode":"SENTIMENT","payload":{"text":"..."}}
+  Regras: tenant 'demo' é recusado; modo tem de ser um dos 7 do contrato;
+  payload passa pelo firewall (PII ofuscada, campos fora da allowlist
+  descartados); amostra que sobra vazia é RECUSADA (nada entra "para ver
+  se serve"). Cap do arquivo: 5 MB / 10.000 linhas por ciclo.
+
+--- G) SEGURANÇA ---
+tokens de domínio proibido nos 3 arquivos: 0 | padrões de segredo literal: 0
+leituras de env nos arquivos de produção da onda: 0 (config continua central em jev-config)
+rede REAL: NENHUMA (todos os testes com fetch injetado/mocked) | edição em arquivo existente: NENHUMA
+banco: NÃO LIDO (extração é via export JSONL do dono; shapes do prisma extraídas READ-ONLY para a próxima onda)
+tenant puro: NUNCA sai do ciclo (só hashes 16-hex no ledger/relatório/sink — provado)
+push: NENHUM (commit apenas local)
+
+--- H) COMMIT LOCAL ---
+371a96cdbd89c4cd0c6a1f13c796b5ad726a3a7e
+mensagem: RUN26-A (JEV MASTER FIAÇÃO NO CÉREBRO): fonte real read-only de amostras (export JSONL com caps) + chamador do ciclo shadow (usa createActiveShadowRunner da RUN25-A e alimenta o ledger da RUN24-A) + suíte de fiação com cenário pinado e re-ciclo idempotente — aditivo, SHADOW_ONLY, sem domínio financeiro
+
+--- I) STOP=RED RE-CHECADO ---
+registry estendível ✓ (zaos intocado) | tenant isolation ✓ (hash no runner/ledger/relatório/sink — provado)
+secret handling ✓ (kit não lê valores; fonte é caminho explícito opt-in) | migração destrutiva: NENHUMA ✓
+push: NENHUM ✓ | domínio financeiro: AUSENTE ✓ | rede real: NENHUMA ✓ | banco: NÃO LIDO nesta onda ✓
+
+--- K) SHAPES-2 PARA A PRÓXIMA ONDA (extração READ-ONLY) ---
+extração READ-ONLY concluída (árvore intocada — provado pelo motor)
+STATUS POR ALVO:
+  - budget-guard (TenantBudgetGuard + singleton): OK (8 exports; 9 métodos)
+  - circuit-breaker (estado/fusível do provider): OK (4 exports; 11 métodos)
+  - llm-timeout (withLlmTimeout/withLlmFallback): OK (3 exports)
+  - rota cron do Cérebro (ponto de chamada real): OK (34 rota(s) cron; corpo extraído (74 linhas))
+  - prisma schema (modelos + campos de tenant): OK (40 modelos; 20 com tenant)
+  - middleware.ts (prefixos PUBLIC/BLOCKED/PROTECTED): OK (39 linhas)
+  - internal-secret (auth de cron/webhook): OK (3 exports)
+  - flags USE_TF_* (interrupções por feature): OK (USE_TF_ANOMALY, USE_TF_CHURN, USE_TF_INTENT, USE_TF_LEAD, USE_TF_OCCUPANCY, USE_TF_PRICE, USE_TF_SENTIMENT, USE_TF_UPSELL)
+DETALHE COMPLETO: JEV_WIRING_SHAPES.md / JEV_WIRING_SHAPES.json (nesta evidência)
+USO: a próxima onda (USO REAL NO CRON DO CÉREBRO) usa estas assinaturas EXATAS
+para chamar o ciclo shadow do fluxo real — sem adivinhar shapes (lição
+RUN25-A: nunca presumir a política/assinatura interna de módulos da casa).
+
+PRÓXIMA ONDA (após auditoria do agente): USO REAL NO CRON DO CÉREBRO —
+aplicar as shapes-2 (circuit-breaker/budget/llm-timeout com assinaturas
+exatas) para chamar runCerebroShadowCycle do fluxo real, num arquivo novo.
+Nada de Asaas/refund/parcela. NUNCA push.
+================================================================

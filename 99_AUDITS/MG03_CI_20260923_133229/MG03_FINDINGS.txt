@@ -1,0 +1,18 @@
+INFO| workflows: 30 arquivo(s) em .github/workflows (nomes na evidência MG03_WORKFLOWS.txt)
+INFO| triggers (contagens de arquivos): push=4 pull_request=7 schedule=13 workflow_dispatch=27 workflow_call=0
+INFO| trigger schedule (cron) presente em 13 workflow(s) — expressões NUNCA exibidas (agendamento é decisão do dono)
+INFO| permissions explícitas em 30/30 workflow(s) (GITHUB_TOKEN sem permissão explícita herda default do repo)
+INFO| nenhum workflow com permissions: write-all (privilégio mínimo preservado)
+INFO| secrets referenciados em workflows: 8 NOME(s) (lista na evidência MG03_SECRET_NAMES.txt; valores NUNCA lidos — não existem no repositório)
+INFO| steps uses: (actions referenciadas): 41 ocorrência(s) — nomes/versões públicos (contagens)
+INFO| referências a deploy em CI: 1 arquivo(s) (.github/workflows/deploy.yml
+.github/workflows/master-ci-crons-webhooks.yml) — CI congelado (execução NENHUMA); deploy oficial é da janela MG-07, por decisão do dono
+INFO| workflows: 0 padrão de segredo literal
+INFO| dependabot.yml: presente (higiene de dependências versionada)
+INFO| CODEOWNERS: ausente (revisão de PR não é obrigada por arquivo — GitHub congelado, inerte)
+INFO| vercel.json: presente (SÓ LEITURA nesta onda — NUNCA editado pela campanha)
+INFO| vercel.json: chaves canônicas detectadas (NOMES): framework regions rewrites headers crons functions
+INFO| vercel.json: crons declarados = 34 (expressões/caminhos NUNCA exibidos — agendamento é decisão do dono)
+INFO| vercel.json: 0 padrão de segredo literal
+INFO| NENHUM workflow foi disparado nesta onda (GitHub congelado; a onda não toca em git remoto) — CI permanece INERTE por decisão da campanha
+RESUMO|BLOQUEIOS=0 ATENÇÃO=0 INFO=16

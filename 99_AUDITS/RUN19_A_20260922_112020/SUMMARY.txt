@@ -1,0 +1,20 @@
+   [WIRED] src/app/api/bim-vision/route.ts
+   [WIRED] src/app/api/pinns-clifford/route.ts
+   [DEFERRED_TSC] src/app/api/proxy/[...path]/route.ts — revertido no rollback fino por tsc (rodada 1) — ver RECON_DEFERRED2.txt
+   [WIRED] src/app/api/webgl-bridge/route.ts
+   [DEFERRED] src/app/api/ddc/runtime-version/route.ts — handler sem parâmetro de request — fiação manual
+   [WIRED] src/app/api/hunt-stream/route.ts
+   [DEFERRED] src/app/api/leads/analytics/route.ts — handler sem parâmetro de request — fiação manual
+   [DEFERRED] src/app/api/zcc/adapters/route.ts — handler sem parâmetro de request — fiação manual
+   [DEFERRED] src/app/api/zcc/brain/route.ts — handler sem parâmetro de request — fiação manual
+   [DEFERRED] src/app/api/zcc/cortex/growth/route.ts — handler sem parâmetro de request — fiação manual
+   [DEFERRED] src/app/api/zcc/cortex/route.ts — handler sem parâmetro de request — fiação manual
+   [DEFERRED] src/app/api/zcc/personas/route.ts — handler sem parâmetro de request — fiação manual
+   [DEFERRED] src/app/api/zcc/synthetic-brazil/route.ts — handler sem parâmetro de request — fiação manual
+   [SHADOW_WIRED] src/app/api/debug-agent/github/route.ts
+   [SHADOW_WIRED] src/app/api/debug-agent/knowledge/route.ts
+   [SHADOW_TSC] src/app/api/debug-agent/route.ts — revertido no rollback fino por tsc (rodada 1)
+   [SHADOW_WIRED] src/app/api/leads/seed/route.ts
+
+   resumo: retry {"WIRED":4,"DEFERRED_TSC":1,"DEFERRED":8} | shadow {"SHADOW_WIRED":3,"SHADOW_TSC":1}
+   módulos novos: 2 (ssrf-guard.ts, internal-secret.ts) | ssrf no proxy: fiado (targetUrl)
