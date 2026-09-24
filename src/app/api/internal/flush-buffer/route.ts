@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { handleFlushBufferRequest, type FlushBufferRequest } from '@/lib/message-bundler';
 import { processIncomingMessage } from '@/lib/whatsapp-ai-responder';
 
+// LOTE A (SECURITY): comparação timing-safe do token interno (padrão do codebase).
 function authorize(request: NextRequest): boolean {
   const expected = process.env.INTERNAL_ENDPOINT_TOKEN;
   const received = request.headers.get('x-internal-token');
-  return Boolean(expected && received && received === expected);
+  if (!expected || !received) return false;
+  const a = Buffer.from(received);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 export async function POST(request: NextRequest) {

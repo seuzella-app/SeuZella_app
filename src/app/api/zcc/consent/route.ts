@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+import { verifyZCCAccessOrReject, resolveZccTenantScope } from '@/lib/zcc-security';
 
 /**
  * GET /api/zcc/consent?tenantId=xxx
@@ -13,14 +13,21 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
+    const requestedTenantId = searchParams.get('tenantId');
 
-    if (!tenantId) {
+    if (!requestedTenantId) {
       return NextResponse.json(
         { success: false, error: 'Missing query param: tenantId' },
         { status: 400 }
       );
     }
+
+    // LOTE A (SECURITY): tenantId do cliente NÃO é autoridade — deriva da sessão
+    // ZCC: system_admin seleciona o tenant alvo; demais papéis têm o tenant da
+    // própria sessão forçado (divergência -> 403 fail-closed).
+    const scope = await resolveZccTenantScope(request, requestedTenantId);
+    if (!scope.allowed) return scope.response;
+    const tenantId = scope.tenantId;
 
     // Fetch ConsentRecord entries
     let consentRecords: Record<string, unknown>[] = [];
@@ -118,17 +125,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // LOTE A (SECURITY): tenantId do body NÃO é autoridade — deriva da sessão
+    // ZCC. system_admin pode direcionar qualquer tenant EXISTENTE (validado
+    // abaixo); demais papéis têm o tenant da própria sessão forçado.
+    const scope = await resolveZccTenantScope(request, tenantId);
+    if (!scope.allowed) return scope.response;
+    const scopedTenantId = scope.tenantId;
+    if (scope.isPlatformAdmin) {
+      const tenantExists = await db.tenant.findUnique({ where: { id: scopedTenantId }, select: { id: true } });
+      if (!tenantExists) {
+        return NextResponse.json(
+          { success: false, error: 'Tenant alvo não encontrado.', code: 'TENANT_NOT_FOUND' },
+          { status: 404 }
+        );
+      }
+    }
+
     // Upsert: update if record exists for (tenantId, guestPhone, consentType)
     const consentRecord = await db.consentRecord.upsert({
       where: {
         tenantId_guestPhone_consentType: {
-          tenantId,
+          tenantId: scopedTenantId,
           guestPhone,
           consentType,
         },
       },
       create: {
-        tenantId,
+        tenantId: scopedTenantId,
         guestPhone,
         consentType,
         status,
@@ -152,7 +175,7 @@ export async function POST(request: NextRequest) {
     try {
       await db.consentLog.create({
         data: {
-          tenantId,
+          tenantId: scopedTenantId,
           guestId: 'system', // No specific guest for ZCC-level consent
           type: status === 'granted' ? 'opt_in' : 'opt_out',
           channel: source,

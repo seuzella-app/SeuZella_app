@@ -25,6 +25,23 @@ export interface VerifiedCronPrincipal {
 }
 
 const TOKEN_TTL_SECONDS = 300;
+// LOTE A (SECURITY) [M2M]: proteção anti-replay em memória por jti dentro da
+// validade do token. Um mesmo jti apresentado duas vezes enquanto o token
+// ainda não expirou (com skew de relógio) é rejeitado com 401. O mapa é
+// limitado pela purga lazy (TTL curto de 300s), sem dependência nova.
+const REPLAY_SKEW_MS = 60_000;
+const usedJtis = new Map<string, number>();
+function isJtiReplayed(jti: string): boolean {
+  const now = Date.now();
+  for (const [k, expMs] of usedJtis) {
+    if (expMs + REPLAY_SKEW_MS < now) usedJtis.delete(k);
+  }
+  const seenExpMs = usedJtis.get(jti);
+  return seenExpMs !== undefined && seenExpMs + REPLAY_SKEW_MS >= now;
+}
+function markJtiUsed(jti: string, expSeconds: number): void {
+  usedJtis.set(jti, expSeconds * 1000);
+}
 const getPublicKeyPem = () => process.env.ZELLA_M2M_ED25519_PUBLIC_KEY || '';
 const getPrivateKeyPem = () => process.env.ZELLA_M2M_ED25519_PRIVATE_KEY || '';
 const getIssuer = () => process.env.ZELLA_M2M_ISSUER || 'https://auth.seuzella.com.br';
@@ -82,6 +99,11 @@ export async function verifyCronM2MToken(
     }
     if (isJtiRevoked(jti) || (await isSessionTokenRevoked(jti))) return unauthorized('token_revoked');
     if (typeof payload.iat !== 'number' || typeof payload.exp !== 'number') return unauthorized('invalid_temporal_claims');
+    // LOTE A (SECURITY) [M2M]: replay do mesmo jti dentro da validade -> 401.
+    if (isJtiReplayed(jti)) return unauthorized('token_replayed');
+
+    // Marca como usado somente após TODAS as verificações passarem.
+    markJtiUsed(jti, payload.exp);
 
     return { ok: true, principal: { clientId: azp, scope: scope!, issuedAt: new Date(payload.iat * 1000), expiresAt: new Date(payload.exp * 1000), jti } };
   } catch {

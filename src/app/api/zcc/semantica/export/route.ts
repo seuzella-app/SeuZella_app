@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyZCCAccessOrReject } from '@/lib/zcc-security';
+import { verifyZCCAccessOrReject, resolveZccTenantScope } from '@/lib/zcc-security';
 import { SemanticaClient } from '@/lib/semantica/client';
 
 /**
@@ -29,7 +29,12 @@ export async function GET(request: NextRequest) {
   if (!security.allowed) return security.response!;
 
   const { searchParams } = new URL(request.url);
-  const tenantId = searchParams.get('tenantId') || 'demo-tenant-001';
+  // LOTE A (SECURITY): tenantId do cliente NÃO é autoridade — deriva da sessão
+  // ZCC: system_admin seleciona o tenant alvo; demais papéis recebem o tenant
+  // da própria sessão (divergência -> 403 fail-closed).
+  const scope = await resolveZccTenantScope(request, searchParams.get('tenantId'), 'demo-tenant-001');
+  if (!scope.allowed) return scope.response;
+  const tenantId = scope.tenantId;
   const format = (searchParams.get('format') || 'prov-o') as 'prov-o' | 'json' | 'csv';
 
   try {

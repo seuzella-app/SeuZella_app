@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
@@ -34,6 +35,9 @@ export function withApiGuard<T = unknown>(options: GuardOptions<T>, handler: Gua
       const session = await getServerSession(authOptions);
       if (!session?.user) return response('UNAUTHORIZED', 401, requestId, 'Sessão não encontrada.');
 
+      // LOTE A (SECURITY): comparação de role mantida EXATAMENTE como em
+      // produção (RES-11 documentado em RUN 6B: string 'ADMIN' nunca ocorre,
+      // deny-safe, provado por tests/security/run6b-m2m-roles.test.ts).
       const role = String((session.user as { role?: string }).role || '');
       if (options.role === 'ADMIN' && role !== 'ADMIN' && role !== 'owner') {
         return response('FORBIDDEN', 403, requestId, 'Acesso restrito a administradores.');
@@ -79,7 +83,11 @@ export function withCronGuard(handler: (context: { requestId: string }) => Promi
 
     const authHeader = req.headers.get('authorization');
     const internalToken = req.headers.get('x-internal-token');
-    if (authHeader !== `Bearer ${secret}` && internalToken !== secret) return response('UNAUTHORIZED', 401, requestId);
+    // LOTE A (SECURITY): comparação timing-safe do segredo (padrão do codebase).
+    const expectedBearer = `Bearer ${secret}`;
+    const authOk = !!authHeader && authHeader.length === expectedBearer.length && crypto.timingSafeEqual(Buffer.from(authHeader), Buffer.from(expectedBearer));
+    const internalOk = !!internalToken && internalToken.length === secret.length && crypto.timingSafeEqual(Buffer.from(internalToken), Buffer.from(secret));
+    if (!authOk && !internalOk) return response('UNAUTHORIZED', 401, requestId);
 
     try { return await handler({ requestId }); } catch (error) {
       console.error('[CRON_GUARD]', error);

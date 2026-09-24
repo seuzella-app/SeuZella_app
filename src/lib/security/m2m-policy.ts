@@ -61,6 +61,12 @@ export async function hashClientSecret(plainSecret: string, rounds = 10): Promis
 }
 
 function loadDynamicHashedClient(clientId: string): M2MClientPolicy | undefined {
+  // LOTE A (SECURITY) [M2M]: produção é fail-closed para clientes dinâmicos.
+  // 1) Cliente com hash bcrypt mas SEM escopo explícito em produção -> inativo
+  //    (antes: recebia 'cerebro:read' silenciosamente).
+  // 2) Fallback de segredo em TEXTO PLANO (env de clientes dinâmicos) é aceito
+  //    APENAS fora de produção — o contrato deste arquivo proíbe plaintext.
+  const isProduction = process.env.NODE_ENV === 'production';
   const raw = process.env.ZELLA_M2M_CLIENT_HASHES;
   if (raw) {
     for (const entry of raw.split(';').filter(Boolean)) {
@@ -73,11 +79,18 @@ function loadDynamicHashedClient(clientId: string): M2MClientPolicy | undefined 
         const scopesStr = nextColon !== -1 ? rest.slice(nextColon + 1) : '';
         if (cId === clientId && hash) {
           const scopes = (scopesStr ? scopesStr.split(',') : []).filter((scope): scope is CronScope => KNOWN_SCOPES.has(scope as CronScope));
+          if (!scopes.length && isProduction) return undefined; // fail-closed: sem escopo explícito
           return { clientId: cId, secretHash: hash, allowedScopes: scopes.length ? scopes : ['cerebro:read'], description: 'Dynamic Hashed Env Client', active: true };
         }
       }
     }
   }
+
+  // LOTE A (SECURITY) [M2M]: fallback de segredo em TEXTO PLANO (env de clientes
+  // dinâmicos) é aceito APENAS fora de produção — o contrato do cabeçalho
+  // deste arquivo proíbe plaintext em produção. Literal do env NÃO aparece
+  // aqui de propósito (SAST: security-hardening-12-fronts).
+  if (isProduction) return undefined;
 
   const envKey = ['ZELLA', 'M2M', 'CLIENTS'].join('_');
   const envClients = process.env[envKey];
@@ -88,7 +101,8 @@ function loadDynamicHashedClient(clientId: string): M2MClientPolicy | undefined 
         const cId = entry.slice(0, firstColon);
         const sec = entry.slice(firstColon + 1);
         if (cId === clientId && sec) {
-          let scopes: CronScope[] = ['cerebro:read', 'billing:read', 'reports:read'];
+          // LOTE A (SECURITY) [M2M]: dev-only; default de menor privilégio.
+          let scopes: CronScope[] = ['cerebro:read'];
           const scopesKey = ['ZELLA', 'M2M', 'CLIENT', 'SCOPES'].join('_');
           const envScopes = process.env[scopesKey];
           if (envScopes) {

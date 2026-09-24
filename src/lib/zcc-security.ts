@@ -174,3 +174,52 @@ export async function verifyZCCAccessOrReject(request: NextRequest): Promise<ZCC
   if (!result.allowed && !result.response) result.response = NextResponse.json({ error: 'Not found' }, { status: 404 });
   return result;
 }
+
+// =============================================================================
+// LOTE A (SECURITY) — Escopo de tenant para rotas ZCC que recebem tenantId.
+// =============================================================================
+// O gate verifyZCCAccess autentica e autoriza o PRINCIPAL (sessão válida +
+// allow-list de admins). Porém o tenantId recebido por query/body NÃO é
+// autoridade (princípio zero trust deste arquivo):
+//   - system_admin (admin de plataforma) pode SELECIONAR o tenant alvo;
+//   - owner/admin/staff/client têm o tenant FORÇADO para o da sessão;
+//   - divergência entre tenant pedido e tenant da sessão -> 403 fail-closed;
+//   - sem tenant resolúvel -> 403 (ou 400 quando nenhum default faz sentido).
+export type ZccTenantScope =
+  | { allowed: true; tenantId: string; isPlatformAdmin: boolean }
+  | { allowed: false; response: NextResponse };
+
+export async function resolveZccTenantScope(
+  request: NextRequest,
+  requestedTenantId?: string | null,
+  defaultTenantId = '',
+): Promise<ZccTenantScope> {
+  const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+  if (!nextAuthSecret) {
+    return { allowed: false, response: NextResponse.json({ error: 'TENANT_CONTEXT_MISSING' }, { status: 403 }) };
+  }
+  try {
+    const token = await getToken({ req: request, secret: nextAuthSecret });
+    const role = typeof token?.role === 'string' ? token.role : '';
+    const sessionTenant = typeof token?.tenantId === 'string' && token.tenantId ? token.tenantId : '';
+
+    if (role === 'system_admin') {
+      const tenantId = (requestedTenantId || defaultTenantId || sessionTenant).trim();
+      if (!tenantId) {
+        return { allowed: false, response: NextResponse.json({ error: 'MISSING_TENANT' }, { status: 400 }) };
+      }
+      return { allowed: true, tenantId, isPlatformAdmin: true };
+    }
+
+    if (sessionTenant) {
+      if (requestedTenantId && requestedTenantId !== sessionTenant) {
+        return { allowed: false, response: NextResponse.json({ error: 'TENANT_SCOPE_VIOLATION' }, { status: 403 }) };
+      }
+      return { allowed: true, tenantId: sessionTenant, isPlatformAdmin: false };
+    }
+
+    return { allowed: false, response: NextResponse.json({ error: 'TENANT_CONTEXT_MISSING' }, { status: 403 }) };
+  } catch {
+    return { allowed: false, response: NextResponse.json({ error: 'TENANT_CONTEXT_MISSING' }, { status: 403 }) };
+  }
+}
