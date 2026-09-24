@@ -135,6 +135,10 @@ export async function POST(request: NextRequest) {
               customerEmail = cleanString(existingTenant.email, 254).toLowerCase();
             } else {
               try {
+                // MG-07FIX: restaura fail-closed anti-conta-duplicada no checkout de convidados
+                // (semantica original de e35bef80; perdida em 064db917/r3-f04 sem atualizar o gate — evidencia em 99_AUDITS/MG07FIX_*)
+                const existingTenantMG07 = await db.tenant.findUnique({ where: { email: requestedEmail } });
+                if (existingTenantMG07) return createError(409, 'ACCOUNT_EXISTS', 'Este e-mail já possui uma conta. Faça login para continuar.') as unknown as Record<string, unknown>;
                 const newTenant = await db.tenant.create({ data: { name: propertyName || name, email: requestedEmail, phone: phone || null, niche, plan: planType === 'parceiro' ? 'PARCEIRO' : planType.toUpperCase(), status: 'pending', role: 'owner' } });
                 resolvedTenantId = newTenant.id;
                 if (propertyName) {
