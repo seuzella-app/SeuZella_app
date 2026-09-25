@@ -404,6 +404,12 @@ export async function updateLockDevice(
   const dbAvailable = await isDatabaseAvailable();
   if (!dbAvailable) return null;
 
+  const device = await db.lockDevice.findFirst({
+    where: { id: deviceId, tenantId },
+    select: { id: true },
+  });
+  if (!device) return null;
+
   const updateData: Record<string, any> = {};
   if (updates.nickname !== undefined) updateData.nickname = updates.nickname;
   if (updates.location !== undefined) updateData.location = updates.location;
@@ -436,6 +442,12 @@ export async function deleteLockDevice(deviceId: string): Promise<boolean> {
 
   const dbAvailable = await isDatabaseAvailable();
   if (!dbAvailable) return true;
+
+  const device = await db.lockDevice.findFirst({
+    where: { id: deviceId, tenantId },
+    select: { id: true },
+  });
+  if (!device) return false;
 
   // Revoga todos os PINs ativos primeiro
   await db.lockCode.updateMany({
