@@ -1,0 +1,1100 @@
+AGENTE DE CÓDIGO — IMPLEMENTAÇÃO CIRÚRGICA LOTE B
+
+Você receberá abaixo o contexto REAL coletado do repositório local SeuZella.
+
+IMPORTANTE:
+- NÃO invente arquivos.
+- NÃO invente schema.
+- NÃO invente assinaturas.
+- NÃO faça apenas análise.
+- Produza o código completo das alterações necessárias.
+- A implementação será aplicada MANUALMENTE no repositório local depois da sua resposta.
+- NÃO faça commit.
+- NÃO faça push.
+- NÃO trabalhe em F-05, F-08, F-09, F-10, F-11 ou F-12.
+
+ESTADO CONHECIDO:
+
+HEAD: fe2c2cd8
+BRANCH: feat/meta-zella-foundation
+
+A2 JÁ FECHADO:
+updateLockDevice e deleteLockDevice possuem proteção de tenant:
+where: { id: deviceId, tenantId }
+e:
+if (!device) return null;
+if (!device) return false;
+
+NÃO remover esses guards.
+
+ESCOPO DESTA EXECUÇÃO:
+
+1. F-06 — revokeReservationPins
+2. F-07 — cron secret por query
+3. F-03 — fallback MockGateway
+4. T1 — testes diretos de update/delete
+5. corrigir warning await existente
+
+==================================================
+F-06
+==================================================
+
+Objetivo:
+
+revokeReservationPins NÃO pode aceitar tenantId fornecido pelo caller como autoridade.
+
+O tenant de autoridade precisa vir da reserva persistida.
+
+Fluxo obrigatório:
+
+reservationId
+→ buscar Reservation persistida
+→ obter reservation.tenantId
+→ somente depois consultar LockCode
+
+Requisitos:
+
+- ausência de reservation → não consultar lockCode;
+- reservation sem tenantId → fail-closed;
+- tenantId do payload/caller NÃO pode substituir reservation.tenantId;
+- lockCode lookup deve usar exclusivamente reservation.tenantId + reservationId;
+- preservar reason;
+- auditar TODOS os callers antes de alterar a assinatura;
+- migrar process-reservation-webhook.ts;
+- atualizar os 4 testes/callers afetados se a assinatura mudar.
+
+Provas obrigatórias:
+
+A) reservation tenant_A + PIN tenant_A → revoga.
+
+B) tenant alegado pelo caller não pode causar lookup de lockCode de outro tenant.
+
+C) reservation inexistente → zero lookup de lockCode.
+
+D) reservation sem tenant → fail-closed.
+
+E) reservation lookup ocorre antes de lockCode lookup.
+
+F) tenant enviado pelo caller não substitui reservation.tenantId.
+
+==================================================
+F-07
+==================================================
+
+Remover completamente autenticação por:
+
+?secret=<CRON_SECRET>
+
+Não pode permanecer:
+
+source: 'query'
+
+nem query dentro de CronAuthResult
+
+nem:
+
+searchParams.get('secret')
+
+nem:
+
+url.searchParams.get('secret')
+
+nem equivalente.
+
+Manter:
+
+Authorization: Bearer <CRON_SECRET>
+
+x-internal-token: <CRON_SECRET>
+
+preservando comparação timing-safe.
+
+Auditar:
+
+src/app/api/zcc/github/expiry-check/route.ts
+
+e todos os seus callers/schedulers.
+
+Se houver scheduler usando ?secret=, migrar no mesmo patch.
+
+Testar:
+
+1. Bearer válido aceita.
+2. x-internal-token válido aceita.
+3. ?secret= rejeita.
+4. query secret correto NÃO autentica.
+5. secret não aparece em logs.
+6. produção sem CRON_SECRET continua fail-closed.
+
+==================================================
+F-03
+==================================================
+
+gateway-factory.ts:
+
+PRODUÇÃO:
+
+- nenhum gateway real configurado → ERRO explícito;
+- nunca retornar MockGateway automaticamente;
+- DEFAULT_PAYMENT_GATEWAY inválido → fail-closed;
+- DEFAULT_PAYMENT_GATEWAY=mock em produção → fail-closed.
+
+DEV/TEST:
+
+- mock explícito continua permitido;
+- NÃO remover suporte aos testes.
+
+Usar o padrão de erro existente no projeto quando apropriado.
+
+Cobertura:
+
+NODE_ENV=production + nenhum gateway → erro.
+NODE_ENV=production + gateway real → gateway real.
+NODE_ENV=test/development + mock explícito → permitido.
+production + DEFAULT_PAYMENT_GATEWAY=mock → erro.
+gateway inválido → erro.
+
+==================================================
+T1
+==================================================
+
+Criar testes diretos:
+
+updateLockDevice:
+tenant A atualiza device A → permitido.
+tenant B tenta atualizar device A → não altera.
+
+deleteLockDevice:
+tenant A remove device A → permitido.
+tenant B tenta remover device A → false/não remove.
+
+Preservar integralmente os guards A2.
+
+Corrigir somente o warning existente:
+
+expect(resolveTenantId()).resolves.toBeNull();
+
+para:
+
+await expect(resolveTenantId()).resolves.toBeNull();
+
+==================================================
+CRITÉRIOS DE IMPLEMENTAÇÃO
+==================================================
+
+Antes de propor alterações:
+
+1. respeite o schema Prisma real fornecido;
+2. respeite as assinaturas reais fornecidas;
+3. respeite os callers reais fornecidos;
+4. não introduza fallback inseguro;
+5. não faça mudanças fora do escopo.
+
+Ao responder:
+
+1. liste arquivos que precisam ser modificados;
+2. forneça o conteúdo/diff completo de cada alteração;
+3. forneça testes novos/alterados completos;
+4. explique como C1, C2, C3 e C4 são satisfeitos;
+5. não faça commit;
+6. não faça push.
+
+A implementação deve ser aplicável diretamente ao repositório.
+
+==================================================
+CONTEXTO REAL DO REPOSITÓRIO
+==================================================
+
+
+===== CONTEXTO F-06 / F-07 / F-03 / T1 =====
+===== F-06 — REVOKE RESERVATION PINS =====
+
+/**
+ * Gera credencial temporária para uma reserva confirmada.
+ */
+export async function generateReservationPin(params: {
+  tenantId: string;
+  reservationId: string;
+  roomName?: string;
+  checkIn: Date;
+  checkOut: Date;
+  guestPhone?: string;
+  guestName?: string;
+}): Promise<{ success: boolean; passcode: string; status: string }> {
+  const pseudoPin = Math.floor(100000 + Math.random() * 900000).toString();
+  return {
+    success: true,
+    passcode: pseudoPin,
+    status: 'ACCESS_CONFIRMED',
+  };
+}
+
+/**
+ * Revoga todos os PINs associados a uma reserva cancelada/estornada (Segurança Física).
+ */
+export async function revokeReservationPins(
+  tenantIdOrParams: string | { tenantId?: string; reservationId: string; reason?: string },
+  reservationIdArg?: string,
+  reasonArg: string = 'Reserva cancelada ou estornada'
+): Promise<{ success: boolean; revokedCount: number; status: string }> {
+  let tenantId = 'default';
+  let reservationId: string;
+  let reason = reasonArg;
+
+  if (typeof tenantIdOrParams === 'object' && tenantIdOrParams !== null) {
+    tenantId = tenantIdOrParams.tenantId || 'default';
+    reservationId = tenantIdOrParams.reservationId;
+    reason = tenantIdOrParams.reason || reasonArg;
+  } else {
+    tenantId = tenantIdOrParams || 'default';
+    reservationId = reservationIdArg!;
+  }
+
+  const dbAvailable = await isDatabaseAvailable();
+  if (!dbAvailable) {
+    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+  }
+
+  try {
+    const codes = await (db as any).lockCode.findMany({
+      where: {
+        tenantId,
+        reservationId,
+        revokedAt: null,
+      },
+    });
+
+    let count = 0;
+    for (const code of codes) {
+      await revokePin(code.id, reason);
+      count++;
+    }
+
+    return { success: true, revokedCount: count, status: 'ACCESS_REVOKED' };
+  } catch (err: any) {
+    console.warn('[ORCHESTRATOR] Falha ao revogar PINs da reserva:', err);
+    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+  }
+}
+
+/** Lista eventos de auditoria (LGPD). */
+export async function listLockEvents(
+  deviceId?: string,
+  limit: number = 50,
+): Promise<Array<{
+  id: string;
+  deviceId: string;
+  codeId: string | null;
+  eventType: string;
+  message: string | null;
+  createdAt: string;
+}>> {
+  const tenantId = await resolveTenantId();
+  if (!tenantId) return [];
+
+  const dbAvailable = await isDatabaseAvailable();
+  if (!dbAvailable) return [];
+
+===== F-06 — PRODUCTION CALLER =====
+import { randomUUID } from 'crypto';
+import { db } from '@/lib/db';
+import {
+  activateReservationAccess,
+  createReservationPaymentConfirmationNotification,
+  createReservationRefundNotification,
+  writeReversalTransaction,
+} from './reservation-payment-effects';
+import { revokeReservationPins } from '@/lib/locks/orchestrator';
+import { bridgePaymentEvent } from '@/lib/notifications/bridges';
+import { validatePaymentWebhookTransition } from './webhook-transition';
+import type { WebhookEvent } from './types';
+
+export async function processReservationPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; reservationId: string }> {
+  const reservationId = event.referenceId || event.subscriptionId || '';
+  if (!event.providerEventId) throw new Error('RESERVATION_PAYMENT_EVENT_ID_MISSING');
+  if (!reservationId) throw new Error('RESERVATION_PAYMENT_REFERENCE_ID_MISSING');
+
+  const result = await db.$transaction(async (tx) => {
+    const lockKey = `reservation-payment-event:${event.gateway}:${event.providerEventId}`;
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+
+    const duplicate = await tx.$queryRaw<Array<{ id: string }>>`
+      SELECT "id" FROM "reservation_payments"
+      WHERE "gateway" = ${event.gateway}
+        AND "provider_event_id" = ${event.providerEventId}
+      LIMIT 1
+    `;
+    if (duplicate[0]) {
+      return {
+        deduplicated: true,
+        reservationId,
+        tenantId: '',
+        guestName: '',
+        guestPhone: '',
+        checkIn: new Date(0),
+        checkOut: new Date(0),
+        newlyApproved: false,
+        newlyRefunded: false,
+      };
+    }
+
+    const reservation = await tx.reservation.findUnique({
+      where: { id: reservationId },
+      select: {
+        id: true,
+        tenantId: true,
+        checkIn: true,
+        checkOut: true,
+        status: true,
+        guest: { select: { name: true, phone: true } },
+      },
+    });
+    if (!reservation) throw new Error('RESERVATION_NOT_FOUND');
+
+    const rows = await tx.$queryRaw<Array<{ id: string; status: string }>>`
+      SELECT "id", "status" FROM "reservation_payments"
+      WHERE "reservation_id" = ${reservation.id}
+        AND "gateway" = ${event.gateway}
+        AND "gateway_payment_id" = ${event.gatewayPaymentId}
+      ORDER BY "created_at" DESC
+      LIMIT 1
+    `;
+
+    const [existing] = rows;
+
+    // C4.3: Validação determinística de transição de máquina de estados
+    if (existing?.status) {
+      const transition = validatePaymentWebhookTransition(existing.status, event.status);
+      if (!transition.accepted) {
+        console.warn(`[RESERVATION_PAYMENT] Transição rejeitada: ${existing.status} -> ${event.status} (${transition.reason})`);
+        return {
+          deduplicated: true,
+          reservationId: reservation.id,
+          tenantId: reservation.tenantId,
+          guestName: reservation.guest.name,
+          guestPhone: reservation.guest.phone ?? '',
+          checkIn: reservation.checkIn,
+          checkOut: reservation.checkOut,
+          newlyApproved: false,
+          newlyRefunded: false,
+        };
+      }
+    }
+
+    if (!existing) {
+      const paymentId = randomUUID();
+      await tx.$executeRaw`
+        INSERT INTO "reservation_payments"
+          ("id", "tenant_id", "reservation_id", "gateway", "gateway_payment_id", "provider_event_id", "reference_type", "amount", "payment_method", "status", "metadata")
+        VALUES
+          (${paymentId}, ${reservation.tenantId}, ${reservation.id}, ${event.gateway}, ${event.gatewayPaymentId}, ${event.providerEventId}, 'reservation', ${event.amount ?? 0}, ${event.gateway}, ${event.status}, ${JSON.stringify({ event: event.event, raw: event.raw })})
+      `;
+    } else {
+      await tx.$executeRaw`
+        UPDATE "reservation_payments"
+        SET "provider_event_id" = ${event.providerEventId},
+            "status" = ${event.status},
+            "metadata" = ${JSON.stringify({ event: event.event, raw: event.raw })},
+            "updated_at" = CURRENT_TIMESTAMP
+        WHERE "id" = ${existing.id}
+      `;
+    }
+
+    const newlyApproved = event.status === 'approved' && (!existing || existing.status !== 'approved');
+    const newlyRefunded = (event.status === 'refunded' || event.status === 'cancelled') && (!existing || existing.status !== event.status);
+
+    if (newlyApproved) {
+      await tx.transaction.create({
+        data: {
+          tenantId: reservation.tenantId,
+          reservationId: reservation.id,
+          type: `RESERVATION_PAYMENT:${event.gateway}`,
+          amount: event.amount ?? 0,
+          method: event.gateway,
+          status: 'COMPLETED',
+        },
+      });
+
+      await tx.reservation.update({
+        where: { id: reservation.id },
+        data: { status: 'CONFIRMED' },
+      });
+    }
+
+    // C4.1: Registro de Reversão / Estorno Contábil no Ledger
+    if (newlyRefunded) {
+      await writeReversalTransaction(tx, {
+        tenantId: reservation.tenantId,
+        reservationId: reservation.id,
+        amount: event.amount ?? 0,
+        gateway: event.gateway,
+        providerEventId: event.providerEventId,
+        reason: event.status === 'refunded' ? 'refund' : 'cancellation',
+      });
+
+      await tx.reservation.update({
+        where: { id: reservation.id },
+        data: { status: event.status === 'refunded' ? 'REFUNDED' : 'CANCELLED' },
+      });
+    }
+
+    return {
+      deduplicated: false,
+      reservationId: reservation.id,
+      tenantId: reservation.tenantId,
+      guestName: reservation.guest.name,
+      guestPhone: reservation.guest.phone ?? '',
+      checkIn: reservation.checkIn,
+      checkOut: reservation.checkOut,
+      newlyApproved,
+      newlyRefunded,
+    };
+  });
+
+  if (!result.deduplicated && result.newlyApproved) {
+    try {
+      await createReservationPaymentConfirmationNotification({
+        tenantId: result.tenantId,
+        reservationId: result.reservationId,
+        guestName: result.guestName,
+        amount: event.amount ?? 0,
+        gateway: event.gateway,
+      });
+    } catch (notificationError) {
+      console.error('[RESERVATION_PAYMENT] confirmation notification failed:', notificationError);
+    }
+
+    try {
+      await activateReservationAccess({
+        tenantId: result.tenantId,
+        reservationId: result.reservationId,
+        guestName: result.guestName,
+        guestPhone: result.guestPhone || undefined,
+        checkIn: result.checkIn,
+        checkOut: result.checkOut,
+      });
+    } catch (accessError) {
+      console.error('[RESERVATION_PAYMENT] lock access automation failed:', accessError);
+    }
+  }
+
+  // C4.2 & C4.4: Revogação de Acesso Físico (PINs) e Notificações de Estorno
+  if (!result.deduplicated && result.newlyRefunded) {
+    try {
+      await revokeReservationPins({
+        tenantId: result.tenantId,
+        reservationId: result.reservationId,
+        reason: `Pagamento ${event.status === 'refunded' ? 'estornado' : 'cancelado'} via webhook ${event.gateway}`,
+      });
+    } catch (pinError) {
+      console.warn('[RESERVATION_PAYMENT] PIN revocation warning:', pinError);
+    }
+
+    try {
+      await createReservationRefundNotification({
+        tenantId: result.tenantId,
+        reservationId: result.reservationId,
+        guestName: result.guestName,
+        amount: event.amount ?? 0,
+        gateway: event.gateway,
+        reason: event.status === 'refunded' ? 'refund' : 'cancellation',
+      });
+    } catch (notificationError) {
+      console.error('[RESERVATION_PAYMENT] refund notification failed:', notificationError);
+    }
+
+    try {
+      bridgePaymentEvent({
+        niche: 'all',
+        paymentId: event.providerEventId,
+        amount: event.amount ?? 0,
+        guestName: result.guestName,
+        status: 'refunded',
+        tenantId: result.tenantId,
+      });
+    } catch (bridgeError) {
+      console.error('[RESERVATION_PAYMENT] bridgePaymentEvent error:', bridgeError);
+    }
+  }
+
+  return { deduplicated: result.deduplicated, reservationId: result.reservationId };
+}
+
+===== PRISMA — RESERVATION / LOCK CODE =====
+631-  @@unique([tenantId, phone])
+632-  @@index([tenantId])
+633-  @@index([tenantId, status])
+634-  @@index([tenantId, source])
+635-  @@index([bsuid])
+636-  @@index([realPhone])
+637-  @@index([realEmail])
+638-  @@map("guests")
+639-}
+640-
+641:model Reservation {
+642-  id         String   @id @default(cuid())
+643-  tenantId   String
+644-  guestId    String
+645-  roomId     String
+646-  checkIn    DateTime
+647-  checkOut   DateTime
+648-  status     String   @default("CONFIRMED")
+649-  totalPrice Float
+650-  source     String   @default("DIRECT")
+651-  createdAt  DateTime @default(now())
+652-  updatedAt  DateTime @updatedAt
+653-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+654-  guest  Guest  @relation(fields: [guestId], references: [id])
+655-  room   Room   @relation(fields: [roomId], references: [id])
+656-  transactions Transaction[]
+657-  @@index([tenantId])
+658-  @@index([guestId])
+659-  @@index([roomId])
+660-  @@map("reservations")
+661-}
+662-
+663-model Transaction {
+664-  id            String   @id @default(cuid())
+665-  tenantId      String
+666-  reservationId String?
+667-  type          String
+668-  amount        Float
+669-  method        String
+670-  status        String   @default("COMPLETED")
+671-  createdAt     DateTime @default(now())
+672-  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+673-  reservation Reservation? @relation(fields: [reservationId], references: [id])
+674-  @@index([tenantId])
+675-  @@index([reservationId])
+676-  @@map("transactions")
+677-}
+678-
+679-model RouterProvider {
+680-  id               String    @id @default(cuid())
+681-  provider         String    @unique
+682-  modelName        String
+683-  tier             String    @default("3")
+684-  alpha            Float     @default(1.0)
+685-  beta             Float     @default(1.0)
+686-  circuitStatus    String    @default("closed")
+2293-  events          LockEvent[]
+2294-  createdAt       DateTime @default(now())
+2295-  updatedAt       DateTime @updatedAt
+2296-  @@index([tenantId])
+2297-  @@index([propertyId])
+2298-  @@index([propertyType])
+2299-  @@index([brand])
+2300-  @@map("lock_devices")
+2301-}
+2302-
+2303:model LockCode {
+2304-  id              String   @id @default(cuid())
+2305-  deviceId        String
+2306-  tenantId        String?
+2307-  guestName       String?
+2308-  guestPhone      String?
+2309-  bookingId       String?
+2310-  code            String
+2311-  codeType        String   @default("online_pin")
+2312-  source          String   @default("manual")
+2313-  validFrom       DateTime
+2314-  validTo         DateTime
+2315-  usedAt          DateTime?
+2316-  revokedAt       DateTime?
+2317-  revokedReason   String?
+2318-  deliveredVia    String?
+2319-  deliveredAt     DateTime?
+2320-  status          String   @default("scheduled")
+2321-  note            String?
+2322-  externalCodeId  String?
+2323-  device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+2324-  tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+2325-  events          LockEvent[]
+2326-  createdAt       DateTime @default(now())
+2327-  @@index([deviceId])
+2328-  @@index([tenantId])
+2329-  @@index([bookingId])
+2330-  @@index([status])
+2331-  @@index([validFrom])
+2332-  @@index([validTo])
+2333-  @@unique([deviceId, code, validFrom])
+2334-  @@map("lock_codes")
+2335-}
+2336-
+2337-model LockEvent {
+2338-  id              String   @id @default(cuid())
+
+===== F-06 — CALLERS =====
+src/lib/locks/orchestrator.ts:864:export async function revokeReservationPins(
+src/lib/payments/process-reservation-webhook.ts:9:import { revokeReservationPins } from '@/lib/locks/orchestrator';
+src/lib/payments/process-reservation-webhook.ts:186:      await revokeReservationPins({
+tests/production-readiness-master.test.ts:28:import { revokeReservationPins, generateReservationPin } from '@/lib/locks/orchestrator';
+tests/production-readiness-master.test.ts:115:      const revokeResult = await revokeReservationPins({
+tests/security/wave12-f05-payment-webhook-resilience.test.ts:66:  revokeReservationPins: vi.fn().mockResolvedValue({ success: true, revokedCount: 1 }),
+tests/security/refund-cancellation-lifecycle.test.ts:44:    revokeReservationPins: vi.fn().mockResolvedValue({ success: true, revokedCount: 2, status: 'ACCESS_REVOKED' }),
+tests/security/refund-cancellation-lifecycle.test.ts:60:  revokeReservationPins: mockOrchestrator.revokeReservationPins,
+tests/security/refund-cancellation-lifecycle.test.ts:215:      expect(mockOrchestrator.revokeReservationPins).toHaveBeenCalledWith(
+tests/security/refund-cancellation-lifecycle.test.ts:264:      expect(mockOrchestrator.revokeReservationPins).toHaveBeenCalledWith(
+tests/two-intelligences-governance.test.ts:23:import { revokeReservationPins } from '@/lib/locks/orchestrator';
+tests/two-intelligences-governance.test.ts:155:      const res = await revokeReservationPins('tenant_canary', 'res_123', 'Reserva cancelada');
+
+===== F-07 — CRON SECRET =====
+===== F-07 — CRON SECRET =====
+// ============================================================
+// ZEHLA — Cron Secret Verification (simple shared-secret)
+// ============================================================
+//
+// Helper SIMPLIFICADO para validar requisições cron via CRON_SECRET.
+// Não substitui o cron-auth.ts (M2M Ed25519) — é um fallback prático
+// para proteção básica quando chaves M2M não estão configuradas.
+//
+// Padrões suportados:
+//   1. Header Authorization: Bearer <CRON_SECRET>
+//   2. Header x-internal-token: <CRON_SECRET>
+//   3. Query ?secret=<CRON_SECRET>
+//
+// Em desenvolvimento (NODE_ENV !== 'production' E sem CRON_SECRET configurado):
+//   - Permite acesso (para teste manual via curl)
+//
+// Em produção SEM CRON_SECRET configurado:
+//   - Rejeita com 503 Service Unavailable (fail-closed)
+//
+// Uso:
+//   import { verifyCronSecret } from '@/lib/security/cron-secret';
+//
+//   export async function GET(req: NextRequest) {
+//     const auth = verifyCronSecret(req);
+//     if (!auth.ok) return auth.response;
+//     // ... lógica do cron
+//   }
+// ============================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+
+export interface CronAuthResult {
+  ok: boolean;
+  response?: NextResponse;
+  source?: 'bearer' | 'header' | 'query' | 'dev-bypass';
+}
+
+/**
+ * Valida o secret do cron job.
+ * Em dev sem CRON_SECRET: permite (para teste manual).
+ * Em produção sem CRON_SECRET: rejeita com 503.
+ * Em produção com CRON_SECRET: valida via timing-safe comparison.
+ */
+export function verifyCronSecret(req: NextRequest): CronAuthResult {
+  const cronSecret = process.env.CRON_SECRET;
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Dev bypass: sem CRON_SECRET configurado, permite em desenvolvimento
+  if (!cronSecret && !isProduction) {
+    return { ok: true, source: 'dev-bypass' };
+  }
+
+  // Produção sem secret configurado → fail-closed
+  if (!cronSecret && isProduction) {
+    console.error('[cron-secret] CRÍTICO: CRON_SECRET não configurado em produção. Rejeitando requisição.');
+    return {
+      ok: false,
+      response: NextResponse.json(
+        {
+          error: 'service_unavailable',
+          message: 'CRON_SECRET não configurado. Configure a env var no Vercel.',
+        },
+        { status: 503 }
+      ),
+    };
+  }
+
+  // Tenta header Authorization: Bearer <secret>
+  const authHeader = req.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    if (timingSafeEqual(token, cronSecret!)) {
+      return { ok: true, source: 'bearer' };
+    }
+  }
+
+  // Tenta header x-internal-token
+  const internalToken = req.headers.get('x-internal-token');
+  if (internalToken && timingSafeEqual(internalToken, cronSecret!)) {
+    return { ok: true, source: 'header' };
+  }
+
+  // Tenta query ?secret= — com encadeamento opcional para compatibilidade com Request padrão
+  let querySecret: string | null = null;
+  try {
+    // NextRequest tem nextUrl; Request padrão não tem
+    if (req.nextUrl?.searchParams) {
+      querySecret = req.nextUrl.searchParams.get('secret');
+    } else if (req.url) {
+      const url = new URL(req.url);
+      querySecret = url.searchParams.get('secret');
+    }
+  } catch {
+    // Se não conseguir parsear URL, ignora silenciosamente
+  }
+  if (querySecret && timingSafeEqual(querySecret, cronSecret!)) {
+    return { ok: true, source: 'query' };
+  }
+
+  // Rejeita silenciosamente (não revela motivo) — payload padronizado
+  return {
+    ok: false,
+    response: NextResponse.json(
+      { error: 'UNAUTHORIZED', code: 'UNAUTHORIZED' },
+      { status: 401, headers: { 'WWW-Authenticate': 'Bearer' } }
+    ),
+  };
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+/**
+ * Helper para verificar Vercel Cron (envia header Authorization: Bearer <CRON_SECRET>)
+ * https://vercel.com/docs/cron-jobs#securing-cron-jobs
+ */
+export function verifyVercelCron(req: NextRequest): CronAuthResult {
+  // Vercel Cron envia Authorization: Bearer <CRON_SECRET>
+  return verifyCronSecret(req);
+}
+
+===== F-07 — EXPIRY CHECK =====
+/**
+ * API: Check PAT expiry (chamado por cron diário)
+ *
+ * GET /api/zcc/github/expiry-check
+ *   (sem params — verifica todas as credenciais ativas)
+ *
+ * Retorna lista de credenciais expirando em < 14 dias e auto-revogadas.
+ * Em modo produção, este endpoint deve ser protegido por CRON_SECRET.
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { checkPatExpiry } from '@/lib/github/pat-vault';
+
+export async function GET(req: NextRequest) {
+  // Em produção, exige CRON_SECRET
+  if (process.env.NODE_ENV === 'production') {
+    const url = new URL(req.url);
+    const secret = url.searchParams.get('secret') || req.headers.get('X-Cron-Secret');
+    if (secret !== process.env.CRON_SECRET) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+
+  try {
+    const result = await checkPatExpiry();
+
+    // Em produção, poderia disparar alertas via AlertBus aqui
+    // Por ora, apenas retorna para o cron processar
+
+    return NextResponse.json({
+      timestamp: new Date().toISOString(),
+      expiringSoon: result.expiringSoon,
+      expired: result.expired,
+      autoRevoked: result.autoRevoked,
+      summary: {
+        expiringSoonCount: result.expiringSoon.length,
+        expiredCount: result.expired.length,
+        autoRevokedCount: result.autoRevoked.length,
+      },
+    });
+  } catch (err: any) {
+    console.error('[expiry-check] error:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+===== F-07 — TODOS OS USOS DE QUERY SECRET =====
+===== F-07 — TODOS OS USOS DE QUERY SECRET =====
+src/app/api/zcc/github/expiry-check/route.ts:18:    const secret = url.searchParams.get('secret') || req.headers.get('X-Cron-Secret');
+src/lib/security/cron-secret.ts:89:      querySecret = req.nextUrl.searchParams.get('secret');
+src/lib/security/cron-secret.ts:92:      querySecret = url.searchParams.get('secret');
+src/lib/security/cron-secret.ts:98:    return { ok: true, source: 'query' };
+
+===== F-07 — EXPIRY CHECK CALLERS/SCHEDULERS =====
+===== F-07 — EXPIRY CHECK CALLERS/SCHEDULERS =====
+vercel.json:83:    {"path":"/api/cron/linkinbio-expiry-check","schedule":"0 13 * * *"},
+src/app/api/zcc/github/expiry-check/route.ts:4: * GET /api/zcc/github/expiry-check
+src/app/api/zcc/github/expiry-check/route.ts:42:    console.error('[expiry-check] error:', err);
+src/app/api/cron/linkinbio-expiry-check/route.ts:46:    console.error('[Cron:linkinbio-expiry-check] Error:', error);
+src/__tests__/linkinbio/linkinbio-addon.test.ts:115:  it('GET /api/cron/linkinbio-expiry-check returns 200 in dev mode', async () => {
+src/__tests__/linkinbio/linkinbio-addon.test.ts:116:    const { GET } = await import('@/app/api/cron/linkinbio-expiry-check/route');
+src/__tests__/linkinbio/linkinbio-addon.test.ts:117:    const req = new Request('http://localhost/api/cron/linkinbio-expiry-check');
+src/__tests__/linkinbio/linkinbio-addon.test.ts:128:  it('POST /api/cron/linkinbio-expiry-check also works', async () => {
+src/__tests__/linkinbio/linkinbio-addon.test.ts:129:    const { POST } = await import('@/app/api/cron/linkinbio-expiry-check/route');
+src/__tests__/linkinbio/linkinbio-addon.test.ts:130:    const req = new Request('http://localhost/api/cron/linkinbio-expiry-check', { method: 'POST' });
+src/__tests__/linkinbio/linkinbio-addon.test.ts:138:    const { GET } = await import('@/app/api/cron/linkinbio-expiry-check/route');
+src/__tests__/linkinbio/linkinbio-addon.test.ts:139:    const req = new Request('http://localhost/api/cron/linkinbio-expiry-check');
+src/__tests__/linkinbio/linkinbio-addon.test.ts:147:    const { GET } = await import('@/app/api/cron/linkinbio-expiry-check/route');
+src/__tests__/linkinbio/linkinbio-addon.test.ts:148:    const req = new Request('http://localhost/api/cron/linkinbio-expiry-check', {
+src/__tests__/linkinbio/linkinbio-addon.test.ts:156:    const mod = await import('@/app/api/cron/linkinbio-expiry-check/route');
+src/__tests__/linkinbio/linkinbio-addon.test.ts:272:describe('Cron integration — vps-crontab has linkinbio-expiry-check entry', () => {
+src/__tests__/linkinbio/linkinbio-addon.test.ts:273:  it('vps-crontab file includes linkinbio-expiry-check schedule', async () => {
+src/__tests__/linkinbio/linkinbio-addon.test.ts:279:      expect(content).toContain('linkinbio-expiry-check');
+
+===== F-03 — GATEWAY FACTORY =====
+===== F-03 — GATEWAY FACTORY =====
+// ==============================================================================
+// SEUZÉLLA — Payment Gateway Factory
+// Production payment scope: Asaas + Mercado Pago.
+// Mock remains available for development/testing only.
+// ==============================================================================
+
+import type { CreatePaymentInput, CreatePaymentResult, GatewayId, IPaymentGateway, PaymentStatus, WebhookEvent } from './types';
+import { PaymentGatewayError } from './types';
+import { MercadoPagoGateway } from './providers/mercadopago';
+import { AsaasGateway } from './providers/asaas';
+
+const gatewayInstances: Partial<Record<GatewayId, IPaymentGateway>> = {};
+
+function getGatewayInstance(id: GatewayId): IPaymentGateway {
+  if (gatewayInstances[id]) return gatewayInstances[id]!;
+  let instance: IPaymentGateway;
+  switch (id) {
+    case 'mercadopago': instance = new MercadoPagoGateway(); break;
+    case 'asaas': instance = new AsaasGateway(); break;
+    case 'mock': instance = new MockGateway(); break;
+    default: throw new PaymentGatewayError(`Unknown gateway: ${id}`, id, 'UNKNOWN_GATEWAY');
+  }
+  gatewayInstances[id] = instance;
+  return instance;
+}
+
+export function getGateway(id: GatewayId): IPaymentGateway { return getGatewayInstance(id); }
+
+const PREFERENCE_ORDER: GatewayId[] = ['asaas', 'mercadopago'];
+
+export function getDefaultGateway(): IPaymentGateway {
+  const envGateway = process.env.DEFAULT_PAYMENT_GATEWAY as GatewayId | undefined;
+  if (envGateway && ['asaas', 'mercadopago'].includes(envGateway)) {
+    const gateway = getGatewayInstance(envGateway);
+    if (gateway.isConfigured()) return gateway;
+  }
+  for (const id of PREFERENCE_ORDER) {
+    const gateway = getGatewayInstance(id);
+    if (gateway.isConfigured()) return gateway;
+  }
+  return getGatewayInstance('mock');
+}
+
+class MockGateway implements IPaymentGateway {
+  readonly id = 'mock' as const;
+  isConfigured(): boolean { return true; }
+
+  async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+    return {
+      gateway: 'mock',
+      gatewayPaymentId: `mock_${input.referenceType}_${input.referenceId}_${Date.now()}`,
+      status: 'approved',
+      checkoutUrl: `${input.successUrl}${input.successUrl.includes('?') ? '&' : '?'}mock=1`,
+      raw: { mock: true, input },
+    };
+  }
+
+  async getPaymentStatus(): Promise<PaymentStatus> { return 'approved'; }
+  async verifyWebhook(): Promise<boolean> { return true; }
+
+  async parseWebhookEvent(payload: string | Buffer): Promise<WebhookEvent> {
+    const body = JSON.parse(typeof payload === 'string' ? payload : payload.toString('utf8')) as Record<string, unknown>;
+    const referenceId = String(body?.referenceId ?? body?.subscriptionId ?? '');
+    return {
+      gateway: 'mock',
+      providerEventId: String(body?.eventId ?? body?.id ?? `mock-event-${Date.now()}`),
+      event: String(body?.event ?? 'mock.event'),
+      gatewayPaymentId: String(body?.paymentId ?? `mock_${Date.now()}`),
+      referenceId,
+      referenceType: body?.referenceType === 'reservation' ? 'reservation' : 'subscription',
+      subscriptionId: body?.subscriptionId ? String(body.subscriptionId) : undefined,
+      status: 'approved',
+      amount: typeof body?.amount === 'number' ? body.amount : undefined,
+      receivedAt: new Date().toISOString(),
+      raw: body,
+    };
+  }
+}
+
+export function listConfiguredGateways(): GatewayId[] {
+  const configured: GatewayId[] = [];
+  for (const id of PREFERENCE_ORDER) if (getGatewayInstance(id).isConfigured()) configured.push(id);
+  return configured;
+}
+
+export function getGatewayHealth(): Record<GatewayId, { configured: boolean; isDefault: boolean }> {
+  const def = getDefaultGateway();
+  const result: Record<string, { configured: boolean; isDefault: boolean }> = {};
+  for (const id of PREFERENCE_ORDER) {
+    const gateway = getGatewayInstance(id);
+    result[id] = { configured: gateway.isConfigured(), isDefault: gateway.id === def.id };
+  }
+  result.mock = { configured: true, isDefault: def.id === 'mock' };
+  return result as Record<GatewayId, { configured: boolean; isDefault: boolean }>;
+}
+
+===== F-03 — RESERVATION PAYMENT SERVICE =====
+===== F-03 — RESERVATION PAYMENT SERVICE =====
+1-import { randomUUID } from 'crypto';
+2-import { db } from '@/lib/db';
+3:import { getGateway } from './gateway-factory';
+4-import type { GatewayId, PaymentMethod, PaymentStatus } from './types';
+5-
+6-interface ReservationPaymentRow {
+7-  id: string;
+8-  tenant_id: string;
+9-  reservation_id: string;
+10-  gateway: string;
+11-  gateway_payment_id: string;
+12-  provider_event_id: string | null;
+13-  reference_type: string;
+14-  amount: number;
+15-  payment_method: string;
+16-  status: string;
+17-  checkout_url: string | null;
+18-  metadata: string;
+19-  created_at: Date;
+20-  updated_at: Date;
+21-}
+22-
+23-export interface CreateReservationPaymentInput {
+24-  tenantId: string;
+25-  reservationId: string;
+26-  gateway: Exclude<GatewayId, 'mock'> | 'mock';
+27-  paymentMethod: PaymentMethod;
+28-  customer: { name: string; email: string; phone?: string; document?: string };
+29-  successUrl: string;
+30-  cancelUrl: string;
+31-  webhookUrl: string;
+32-}
+33-
+34-export interface CreateReservationPaymentResult {
+35-  paymentId: string;
+36-  reservationId: string;
+37-  gateway: GatewayId;
+38-  gatewayPaymentId: string;
+--
+53-  const existing = await db.$queryRaw<ReservationPaymentRow[]>`
+54-    SELECT * FROM "reservation_payments"
+55-    WHERE "tenant_id" = ${input.tenantId}
+56-      AND "reservation_id" = ${input.reservationId}
+57-      AND "status" IN ('pending', 'in_progress', 'approved', 'authorized')
+58-    ORDER BY "created_at" DESC
+59-    LIMIT 1
+60-  `;
+61-  if (existing[0]) {
+62-    const current = existing[0];
+63-    return {
+64-      paymentId: current.id,
+65-      reservationId: current.reservation_id,
+66-      gateway: current.gateway as GatewayId,
+67-      gatewayPaymentId: current.gateway_payment_id,
+68-      status: current.status as PaymentStatus,
+69-      checkoutUrl: current.checkout_url ?? undefined,
+70-    };
+71-  }
+72-
+73:  const gateway = getGateway(input.gateway);
+74-  if (!gateway.isConfigured() && input.gateway !== 'mock') throw new Error('PAYMENT_GATEWAY_NOT_CONFIGURED');
+75:  if (input.gateway === 'mock' && process.env.NODE_ENV === 'production') throw new Error('MOCK_GATEWAY_FORBIDDEN');
+76-
+77-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
+78-  const result = await gateway.createPayment({
+79-    referenceId: reservation.id,
+80-    referenceType: 'reservation',
+81-    tenantId: input.tenantId,
+82-    amount: reservation.totalPrice,
+83-    paymentMethod: input.paymentMethod,
+84-    customer: input.customer,
+85-    description: `Seu Zélla - Reserva ${reservation.id}`,
+86-    successUrl: input.successUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=success`,
+87-    cancelUrl: input.cancelUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=cancelled`,
+88-    webhookUrl: input.webhookUrl,
+89-  });
+90-
+91-  if (!result.gatewayPaymentId) throw new Error('GATEWAY_PAYMENT_ID_MISSING');
+92-
+93-  const paymentId = randomUUID();
+94-  await db.$executeRaw`
+95-    INSERT INTO "reservation_payments"
+96-      ("id", "tenant_id", "reservation_id", "gateway", "gateway_payment_id", "reference_type", "amount", "payment_method", "status", "checkout_url", "metadata")
+97-    VALUES
+98-      (${paymentId}, ${input.tenantId}, ${reservation.id}, ${result.gateway}, ${result.gatewayPaymentId}, 'reservation', ${reservation.totalPrice}, ${input.paymentMethod}, ${result.status}, ${result.checkoutUrl ?? null}, ${JSON.stringify({ gateway: result.gateway, roomId: reservation.roomId, guestId: reservation.guestId })})
+99-  `;
+100-
+101-  return {
+102-    paymentId,
+103-    reservationId: reservation.id,
+104-    gateway: result.gateway,
+105-    gatewayPaymentId: result.gatewayPaymentId,
+106-    status: result.status,
+107-    checkoutUrl: result.checkoutUrl,
+108-    pix: result.pix,
+109-    boleto: result.boleto,
+110-  };
+
+===== F-03 — TESTES EXISTENTES =====
+===== F-03 — TESTES EXISTENTES =====
+import { describe, expect, it } from 'vitest';
+import { getGateway } from '@/lib/payments/gateway-factory';
+
+describe('payment gateway scope', () => {
+  it('supports only the declared production gateways plus mock', () => {
+    expect(getGateway('asaas').id).toBe('asaas');
+    expect(getGateway('mercadopago').id).toBe('mercadopago');
+    expect(getGateway('mock').id).toBe('mock');
+  });
+
+  it('keeps the checkout contract independent from provider-specific APIs', () => {
+    const asaas = getGateway('asaas');
+    const mercadoPago = getGateway('mercadopago');
+    expect(typeof asaas.createPayment).toBe('function');
+    expect(typeof mercadoPago.createPayment).toBe('function');
+    expect(typeof asaas.parseWebhookEvent).toBe('function');
+    expect(typeof mercadoPago.parseWebhookEvent).toBe('function');
+  });
+});
+
+===== F-03 — PAYMENT ENV REGRESSION =====
+===== F-03 — PAYMENT ENV REGRESSION =====
+import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+
+const source = fs.readFileSync('src/lib/env.ts', 'utf8');
+
+describe('production payment environment contract', () => {
+  it('supports only the approved production gateways', () => {
+    expect(source).toContain("DEFAULT_PAYMENT_GATEWAY === 'asaas'");
+    expect(source).toContain("DEFAULT_PAYMENT_GATEWAY === 'mercadopago'");
+    expect(source).not.toContain("DEFAULT_PAYMENT_GATEWAY === 'stripe'");
+  });
+
+  it('requires provider webhook secrets without Stripe legacy configuration', () => {
+    expect(source).toContain("requireProductionSecret('ASAAS_WEBHOOK_SECRET'");
+    expect(source).toContain("requireProductionSecret('PAYMENT_WEBHOOK_SECRET'");
+    expect(source).not.toContain("requireProductionSecret('STRIPE_WEBHOOK_SECRET'");
+  });
+});
+
+===== T1 — TESTES TENANT ISOLATION =====
+===== T1 — TESTES TENANT ISOLATION =====
+src/app/api/ddc/locks/[id]/route.ts:3:import { getLockDevice, updateLockDevice, deleteLockDevice } from '@/lib/locks/orchestrator';
+src/app/api/ddc/locks/[id]/route.ts:61:      const device = await updateLockDevice(id, updates);
+src/app/api/ddc/locks/[id]/route.ts:77:    const ok = await deleteLockDevice(id);
+src/lib/locks/orchestrator.ts:397:export async function updateLockDevice(
+src/lib/locks/orchestrator.ts:439:export async function deleteLockDevice(deviceId: string): Promise<boolean> {
+src/lib/locks/index.ts:33:  updateLockDevice,
+src/lib/locks/index.ts:34:  deleteLockDevice,
+
+===== TESTES A2 EXISTENTES =====
+===== TESTES A2 EXISTENTES =====
+
+===== PACKAGE SCRIPTS =====
+
+===== FIM DO PACOTE PARA GLM =====

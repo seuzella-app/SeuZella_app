@@ -1,0 +1,681 @@
+===== RESCATE ONDA A - SEU ZELLA - 28/09/2026 13:02:41 =====
+GIT_ANCHOR: 482412308e0b145c8fa962164eff72109835cc90 2026-09-25 17:08:39 -0300
+BRANCH: feat/meta-zella-foundation
+TRACKED_MODIFICADOS: 0  (esperado 0)
+
+===== [S1] cron-secret.ts COMPLETO =====
+     125 src/lib/security/cron-secret.ts
+     1	// ============================================================
+     2	// ZEHLA — Cron Secret Verification (simple shared-secret)
+     3	// ============================================================
+     4	//
+     5	// Helper SIMPLIFICADO para validar requisições cron via CRON_SECRET.
+     6	// Não substitui o cron-auth.ts (M2M Ed25519) — é um fallback prático
+     7	// para proteção básica quando chaves M2M não estão configuradas.
+     8	//
+     9	// Padrões suportados:
+    10	//   1. Header Authorization: Bearer <CRON_SECRET>
+    11	//   2. Header x-internal-token: <CRON_SECRET>
+    12	//   3. Query ?secret=<CRON_SECRET>
+    13	//
+    14	// Em desenvolvimento (NODE_ENV !== 'production' E sem CRON_SECRET configurado):
+    15	//   - Permite acesso (para teste manual via curl)
+    16	//
+    17	// Em produção SEM CRON_SECRET configurado:
+    18	//   - Rejeita com 503 Service Unavailable (fail-closed)
+    19	//
+    20	// Uso:
+    21	//   import { verifyCronSecret } from '@/lib/security/cron-secret';
+    22	//
+    23	//   export async function GET(req: NextRequest) {
+    24	//     const auth = verifyCronSecret(req);
+    25	//     if (!auth.ok) return auth.response;
+    26	//     // ... lógica do cron
+    27	//   }
+    28	// ============================================================
+    29	
+    30	import { NextRequest, NextResponse } from 'next/server';
+    31	import crypto from 'crypto';
+    32	
+    33	export interface CronAuthResult {
+    34	  ok: boolean;
+    35	  response?: NextResponse;
+    36	  source?: 'bearer' | 'header' | 'query' | 'dev-bypass';
+    37	}
+    38	
+    39	/**
+    40	 * Valida o secret do cron job.
+    41	 * Em dev sem CRON_SECRET: permite (para teste manual).
+    42	 * Em produção sem CRON_SECRET: rejeita com 503.
+    43	 * Em produção com CRON_SECRET: valida via timing-safe comparison.
+    44	 */
+    45	export function verifyCronSecret(req: NextRequest): CronAuthResult {
+    46	  const cronSecret = process.env.CRON_SECRET;
+    47	  const isProduction = process.env.NODE_ENV === 'production';
+    48	
+    49	  // Dev bypass: sem CRON_SECRET configurado, permite em desenvolvimento
+    50	  if (!cronSecret && !isProduction) {
+    51	    return { ok: true, source: 'dev-bypass' };
+    52	  }
+    53	
+    54	  // Produção sem secret configurado → fail-closed
+    55	  if (!cronSecret && isProduction) {
+    56	    console.error('[cron-secret] CRÍTICO: CRON_SECRET não configurado em produção. Rejeitando requisição.');
+    57	    return {
+    58	      ok: false,
+    59	      response: NextResponse.json(
+    60	        {
+    61	          error: 'service_unavailable',
+    62	          message: 'CRON_SECRET não configurado. Configure a env var no Vercel.',
+    63	        },
+    64	        { status: 503 }
+    65	      ),
+    66	    };
+    67	  }
+    68	
+    69	  // Tenta header Authorization: Bearer <secret>
+    70	  const authHeader = req.headers.get('authorization');
+    71	  if (authHeader?.startsWith('Bearer ')) {
+    72	    const token = authHeader.slice(7);
+    73	    if (timingSafeEqual(token, cronSecret!)) {
+    74	      return { ok: true, source: 'bearer' };
+    75	    }
+    76	  }
+    77	
+    78	  // Tenta header x-internal-token
+    79	  const internalToken = req.headers.get('x-internal-token');
+    80	  if (internalToken && timingSafeEqual(internalToken, cronSecret!)) {
+    81	    return { ok: true, source: 'header' };
+    82	  }
+    83	
+    84	  // Tenta query ?secret= — com encadeamento opcional para compatibilidade com Request padrão
+    85	  let querySecret: string | null = null;
+    86	  try {
+    87	    // NextRequest tem nextUrl; Request padrão não tem
+    88	    if (req.nextUrl?.searchParams) {
+    89	      querySecret = req.nextUrl.searchParams.get('secret');
+    90	    } else if (req.url) {
+    91	      const url = new URL(req.url);
+    92	      querySecret = url.searchParams.get('secret');
+    93	    }
+    94	  } catch {
+    95	    // Se não conseguir parsear URL, ignora silenciosamente
+    96	  }
+    97	  if (querySecret && timingSafeEqual(querySecret, cronSecret!)) {
+    98	    return { ok: true, source: 'query' };
+    99	  }
+   100	
+   101	  // Rejeita silenciosamente (não revela motivo) — payload padronizado
+   102	  return {
+   103	    ok: false,
+   104	    response: NextResponse.json(
+   105	      { error: 'UNAUTHORIZED', code: 'UNAUTHORIZED' },
+   106	      { status: 401, headers: { 'WWW-Authenticate': 'Bearer' } }
+   107	    ),
+   108	  };
+   109	}
+   110	
+   111	function timingSafeEqual(a: string, b: string): boolean {
+   112	  const bufA = Buffer.from(a);
+   113	  const bufB = Buffer.from(b);
+   114	  if (bufA.length !== bufB.length) return false;
+   115	  return crypto.timingSafeEqual(bufA, bufB);
+   116	}
+   117	
+   118	/**
+   119	 * Helper para verificar Vercel Cron (envia header Authorization: Bearer <CRON_SECRET>)
+   120	 * https://vercel.com/docs/cron-jobs#securing-cron-jobs
+   121	 */
+   122	export function verifyVercelCron(req: NextRequest): CronAuthResult {
+   123	  // Vercel Cron envia Authorization: Bearer <CRON_SECRET>
+   124	  return verifyCronSecret(req);
+   125	}
+
+===== [S2] gateway-factory.ts COMPLETO =====
+      95 src/lib/payments/gateway-factory.ts
+     1	// ==============================================================================
+     2	// SEUZÉLLA — Payment Gateway Factory
+     3	// Production payment scope: Asaas + Mercado Pago.
+     4	// Mock remains available for development/testing only.
+     5	// ==============================================================================
+     6	
+     7	import type { CreatePaymentInput, CreatePaymentResult, GatewayId, IPaymentGateway, PaymentStatus, WebhookEvent } from './types';
+     8	import { PaymentGatewayError } from './types';
+     9	import { MercadoPagoGateway } from './providers/mercadopago';
+    10	import { AsaasGateway } from './providers/asaas';
+    11	
+    12	const gatewayInstances: Partial<Record<GatewayId, IPaymentGateway>> = {};
+    13	
+    14	function getGatewayInstance(id: GatewayId): IPaymentGateway {
+    15	  if (gatewayInstances[id]) return gatewayInstances[id]!;
+    16	  let instance: IPaymentGateway;
+    17	  switch (id) {
+    18	    case 'mercadopago': instance = new MercadoPagoGateway(); break;
+    19	    case 'asaas': instance = new AsaasGateway(); break;
+    20	    case 'mock': instance = new MockGateway(); break;
+    21	    default: throw new PaymentGatewayError(`Unknown gateway: ${id}`, id, 'UNKNOWN_GATEWAY');
+    22	  }
+    23	  gatewayInstances[id] = instance;
+    24	  return instance;
+    25	}
+    26	
+    27	export function getGateway(id: GatewayId): IPaymentGateway { return getGatewayInstance(id); }
+    28	
+    29	const PREFERENCE_ORDER: GatewayId[] = ['asaas', 'mercadopago'];
+    30	
+    31	export function getDefaultGateway(): IPaymentGateway {
+    32	  const envGateway = process.env.DEFAULT_PAYMENT_GATEWAY as GatewayId | undefined;
+    33	  if (envGateway && ['asaas', 'mercadopago'].includes(envGateway)) {
+    34	    const gateway = getGatewayInstance(envGateway);
+    35	    if (gateway.isConfigured()) return gateway;
+    36	  }
+    37	  for (const id of PREFERENCE_ORDER) {
+    38	    const gateway = getGatewayInstance(id);
+    39	    if (gateway.isConfigured()) return gateway;
+    40	  }
+    41	  return getGatewayInstance('mock');
+    42	}
+    43	
+    44	class MockGateway implements IPaymentGateway {
+    45	  readonly id = 'mock' as const;
+    46	  isConfigured(): boolean { return true; }
+    47	
+    48	  async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+    49	    return {
+    50	      gateway: 'mock',
+    51	      gatewayPaymentId: `mock_${input.referenceType}_${input.referenceId}_${Date.now()}`,
+    52	      status: 'approved',
+    53	      checkoutUrl: `${input.successUrl}${input.successUrl.includes('?') ? '&' : '?'}mock=1`,
+    54	      raw: { mock: true, input },
+    55	    };
+    56	  }
+    57	
+    58	  async getPaymentStatus(): Promise<PaymentStatus> { return 'approved'; }
+    59	  async verifyWebhook(): Promise<boolean> { return true; }
+    60	
+    61	  async parseWebhookEvent(payload: string | Buffer): Promise<WebhookEvent> {
+    62	    const body = JSON.parse(typeof payload === 'string' ? payload : payload.toString('utf8')) as Record<string, unknown>;
+    63	    const referenceId = String(body?.referenceId ?? body?.subscriptionId ?? '');
+    64	    return {
+    65	      gateway: 'mock',
+    66	      providerEventId: String(body?.eventId ?? body?.id ?? `mock-event-${Date.now()}`),
+    67	      event: String(body?.event ?? 'mock.event'),
+    68	      gatewayPaymentId: String(body?.paymentId ?? `mock_${Date.now()}`),
+    69	      referenceId,
+    70	      referenceType: body?.referenceType === 'reservation' ? 'reservation' : 'subscription',
+    71	      subscriptionId: body?.subscriptionId ? String(body.subscriptionId) : undefined,
+    72	      status: 'approved',
+    73	      amount: typeof body?.amount === 'number' ? body.amount : undefined,
+    74	      receivedAt: new Date().toISOString(),
+    75	      raw: body,
+    76	    };
+    77	  }
+    78	}
+    79	
+    80	export function listConfiguredGateways(): GatewayId[] {
+    81	  const configured: GatewayId[] = [];
+    82	  for (const id of PREFERENCE_ORDER) if (getGatewayInstance(id).isConfigured()) configured.push(id);
+    83	  return configured;
+    84	}
+    85	
+    86	export function getGatewayHealth(): Record<GatewayId, { configured: boolean; isDefault: boolean }> {
+    87	  const def = getDefaultGateway();
+    88	  const result: Record<string, { configured: boolean; isDefault: boolean }> = {};
+    89	  for (const id of PREFERENCE_ORDER) {
+    90	    const gateway = getGatewayInstance(id);
+    91	    result[id] = { configured: gateway.isConfigured(), isDefault: gateway.id === def.id };
+    92	  }
+    93	  result.mock = { configured: true, isDefault: def.id === 'mock' };
+    94	  return result as Record<GatewayId, { configured: boolean; isDefault: boolean }>;
+    95	}
+
+===== [S3] orchestrator.ts - REGIOES =====
+    1199 src/lib/locks/orchestrator.ts
+--- S3.1 imports/tipos (1-60) ---
+// =============================================================================
+// 🔐 SEU ZÉLLA — Orquestrador de Fechaduras Eletrônicas
+// =============================================================================
+// Camada intermediária entre a UI/API e os providers concretos (TTLock, Tuya,
+// Igloohome, Nuki, August, ou fallback manual).
+//
+// Responsabilidade:
+// 1. Receber pedido de geração/revogação de PIN
+// 2. Decidir rota: API oficial vs manual
+// 3. Delegar ao provider correto
+// 4. Em caso de falha da API, cair graciosamente no modo manual
+// 5. Auditar tudo via LockEvent
+//
+// IMPORTANTE: Este módulo é server-only. Não importar em código client.
+// =============================================================================
+
+
+import { db, isDatabaseAvailable } from '@/lib/db';
+import { resolveTenantId } from '@/lib/ddc/auth-utils';
+import {
+  type LockBrand,
+  type LockDeviceData,
+  type LockCodeData,
+  type GeneratePinInput,
+  type GeneratePinResult,
+  BRAND_CATALOG,
+  getBrandInfo,
+} from './types';
+import { derivePinStatus } from './pin-generator';
+import { deliverPinViaWhatsApp } from './whatsapp-delivery';
+import { getProviderModule, hasCredentialsConfigured } from './providers';
+import * as manualProvider from './providers/manual';
+import * as ttlockProvider from './providers/ttlock';
+import * as tuyaProvider from './providers/tuya';
+import * as igloohomeProvider from './providers/igloohome';
+import * as nukiProvider from './providers/nuki';
+import * as augustProvider from './providers/august';
+
+/**
+ * Interface unificada que todos os providers (manual + API) implementam.
+ * Permite ao orchestrator chamar de forma polimórfica.
+ */
+interface UnifiedProviderModule {
+  generatePin(input: {
+    deviceId: string;
+    brand: LockBrand;
+    providerType: 'api' | 'manual';
+    externalDeviceId?: string | null;
+    oauthAccountId?: string | null;
+    validFrom: Date;
+    validTo: Date;
+    manualPin?: string;
+    autoGenerate?: boolean;
+    guestName?: string;
+  }): Promise<{
+    pin: string;
+    source: 'manual' | 'api';
+    codeType: 'online_pin' | 'offline_pin' | 'manual';
+    externalCodeId?: string;
+    warnings?: string[];
+--- S3.2 tenantIdOrParams (contexto amplo) ---
+857-    status: 'ACCESS_CONFIRMED',
+858-  };
+859-}
+860-
+861-/**
+862- * Revoga todos os PINs associados a uma reserva cancelada/estornada (Segurança Física).
+863- */
+864-export async function revokeReservationPins(
+865:  tenantIdOrParams: string | { tenantId?: string; reservationId: string; reason?: string },
+866-  reservationIdArg?: string,
+867-  reasonArg: string = 'Reserva cancelada ou estornada'
+868-): Promise<{ success: boolean; revokedCount: number; status: string }> {
+869-  let tenantId = 'default';
+870-  let reservationId: string;
+871-  let reason = reasonArg;
+872-
+873:  if (typeof tenantIdOrParams === 'object' && tenantIdOrParams !== null) {
+874:    tenantId = tenantIdOrParams.tenantId || 'default';
+875:    reservationId = tenantIdOrParams.reservationId;
+876:    reason = tenantIdOrParams.reason || reasonArg;
+877-  } else {
+878:    tenantId = tenantIdOrParams || 'default';
+879-    reservationId = reservationIdArg!;
+880-  }
+881-
+882-  const dbAvailable = await isDatabaseAvailable();
+883-  if (!dbAvailable) {
+884-    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+885-  }
+886-
+887-  try {
+888-    const codes = await (db as any).lockCode.findMany({
+889-      where: {
+890-        tenantId,
+891-        reservationId,
+892-        revokedAt: null,
+893-      },
+894-    });
+895-
+896-    let count = 0;
+897-    for (const code of codes) {
+898-      await revokePin(code.id, reason);
+899-      count++;
+900-    }
+901-
+902-    return { success: true, revokedCount: count, status: 'ACCESS_REVOKED' };
+903-  } catch (err: any) {
+904-    console.warn('[ORCHESTRATOR] Falha ao revogar PINs da reserva:', err);
+905-    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+906-  }
+907-}
+908-
+909-/** Lista eventos de auditoria (LGPD). */
+910-export async function listLockEvents(
+911-  deviceId?: string,
+912-  limit: number = 50,
+913-): Promise<Array<{
+--- S3.3 Math.random (contexto) ---
+847-  roomName?: string;
+848-  checkIn: Date;
+849-  checkOut: Date;
+850-  guestPhone?: string;
+851-  guestName?: string;
+852-}): Promise<{ success: boolean; passcode: string; status: string }> {
+853:  const pseudoPin = Math.floor(100000 + Math.random() * 900000).toString();
+854-  return {
+855-    success: true,
+856-    passcode: pseudoPin,
+857-    status: 'ACCESS_CONFIRMED',
+858-  };
+859-}
+860-
+861-/**
+862- * Revoga todos os PINs associados a uma reserva cancelada/estornada (Segurança Física).
+863- */
+864-export async function revokeReservationPins(
+865-  tenantIdOrParams: string | { tenantId?: string; reservationId: string; reason?: string },
+866-  reservationIdArg?: string,
+867-  reasonArg: string = 'Reserva cancelada ou estornada'
+868-): Promise<{ success: boolean; revokedCount: number; status: string }> {
+869-  let tenantId = 'default';
+870-  let reservationId: string;
+871-  let reason = reasonArg;
+872-
+873-  if (typeof tenantIdOrParams === 'object' && tenantIdOrParams !== null) {
+--- S3.4 revokeReservationPins (corpo) ---
+864:export async function revokeReservationPins(
+865-  tenantIdOrParams: string | { tenantId?: string; reservationId: string; reason?: string },
+866-  reservationIdArg?: string,
+867-  reasonArg: string = 'Reserva cancelada ou estornada'
+868-): Promise<{ success: boolean; revokedCount: number; status: string }> {
+869-  let tenantId = 'default';
+870-  let reservationId: string;
+871-  let reason = reasonArg;
+872-
+873-  if (typeof tenantIdOrParams === 'object' && tenantIdOrParams !== null) {
+874-    tenantId = tenantIdOrParams.tenantId || 'default';
+875-    reservationId = tenantIdOrParams.reservationId;
+876-    reason = tenantIdOrParams.reason || reasonArg;
+877-  } else {
+878-    tenantId = tenantIdOrParams || 'default';
+879-    reservationId = reservationIdArg!;
+880-  }
+881-
+882-  const dbAvailable = await isDatabaseAvailable();
+883-  if (!dbAvailable) {
+884-    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+885-  }
+886-
+887-  try {
+888-    const codes = await (db as any).lockCode.findMany({
+889-      where: {
+890-        tenantId,
+891-        reservationId,
+892-        revokedAt: null,
+893-      },
+894-    });
+895-
+896-    let count = 0;
+897-    for (const code of codes) {
+898-      await revokePin(code.id, reason);
+899-      count++;
+900-    }
+901-
+902-    return { success: true, revokedCount: count, status: 'ACCESS_REVOKED' };
+903-  } catch (err: any) {
+904-    console.warn('[ORCHESTRATOR] Falha ao revogar PINs da reserva:', err);
+905-    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+906-  }
+907-}
+908-
+909-/** Lista eventos de auditoria (LGPD). */
+910-export async function listLockEvents(
+911-  deviceId?: string,
+912-  limit: number = 50,
+913-): Promise<Array<{
+914-  id: string;
+915-  deviceId: string;
+916-  codeId: string | null;
+917-  eventType: string;
+918-  message: string | null;
+919-  createdAt: string;
+--- S3.5 lockCode.findMany ---
+669-
+670-  const dbAvailable = await isDatabaseAvailable();
+671-  if (!dbAvailable) return getDemoPins(deviceId);
+672-
+673:  const pins = await db.lockCode.findMany({
+674-    where: { deviceId, tenantId },
+675-    orderBy: { createdAt: 'desc' },
+676-    include: { device: { select: { id: true, nickname: true, brand: true, propertyType: true, propertyId: true } } },
+677-  });
+678-
+679-  // Re-deriva status (DB pode estar desatualizado)
+680-  const now = new Date();
+681-  return pins.map((p: any) => {
+682-    const derivedStatus = derivePinStatus({
+683-      validFrom: new Date(p.validFrom),
+684-      validTo: new Date(p.validTo),
+685-      usedAt: p.usedAt,
+686-      revokedAt: p.revokedAt,
+687-    });
+--
+766-  const dbAvailable = await isDatabaseAvailable();
+767-  if (!dbAvailable) return { revokedCount: 0, providerRevokesAttempted: 0, providerRevokesFailed: 0 };
+768-
+769-  // 1. Busca todos os PINs ativos com externalCodeId (gerados via API)
+770:  const activeApiPins = await db.lockCode.findMany({
+771-    where: {
+772-      deviceId,
+773-      tenantId,
+774-      revokedAt: null,
+775-      source: 'api',
+776-      externalCodeId: { not: null },
+777-    },
+778-    select: { id: true, externalCodeId: true },
+779-  });
+780-
+781-  // 2. Busca o dispositivo para saber a brand + externalDeviceId
+782-  const device = await db.lockDevice.findFirst({
+783-    where: { id: deviceId, tenantId },
+784-    select: { brand: true, externalDeviceId: true },
+--
+884-    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+885-  }
+886-
+887-  try {
+888:    const codes = await (db as any).lockCode.findMany({
+889-      where: {
+890-        tenantId,
+891-        reservationId,
+892-        revokedAt: null,
+893-      },
+
+===== [S4] CALLER WEBHOOK (src/lib/payments/process-reservation-webhook.ts) =====
+     223 src/lib/payments/process-reservation-webhook.ts
+import { randomUUID } from 'crypto';
+import { db } from '@/lib/db';
+import {
+  activateReservationAccess,
+  createReservationPaymentConfirmationNotification,
+  createReservationRefundNotification,
+  writeReversalTransaction,
+} from './reservation-payment-effects';
+import { revokeReservationPins } from '@/lib/locks/orchestrator';
+import { bridgePaymentEvent } from '@/lib/notifications/bridges';
+import { validatePaymentWebhookTransition } from './webhook-transition';
+import type { WebhookEvent } from './types';
+
+export async function processReservationPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; reservationId: string }> {
+  const reservationId = event.referenceId || event.subscriptionId || '';
+  if (!event.providerEventId) throw new Error('RESERVATION_PAYMENT_EVENT_ID_MISSING');
+  if (!reservationId) throw new Error('RESERVATION_PAYMENT_REFERENCE_ID_MISSING');
+
+  const result = await db.$transaction(async (tx) => {
+    const lockKey = `reservation-payment-event:${event.gateway}:${event.providerEventId}`;
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+
+    const duplicate = await tx.$queryRaw<Array<{ id: string }>>`
+      SELECT "id" FROM "reservation_payments"
+      WHERE "gateway" = ${event.gateway}
+147-      guestName: reservation.guest.name,
+148-      guestPhone: reservation.guest.phone ?? '',
+149-      checkIn: reservation.checkIn,
+150-      checkOut: reservation.checkOut,
+151-      newlyApproved,
+152-      newlyRefunded,
+153-    };
+154-  });
+155-
+156-  if (!result.deduplicated && result.newlyApproved) {
+157-    try {
+158-      await createReservationPaymentConfirmationNotification({
+159:        tenantId: result.tenantId,
+160-        reservationId: result.reservationId,
+161-        guestName: result.guestName,
+162-        amount: event.amount ?? 0,
+163-        gateway: event.gateway,
+164-      });
+165-    } catch (notificationError) {
+166-      console.error('[RESERVATION_PAYMENT] confirmation notification failed:', notificationError);
+167-    }
+168-
+169-    try {
+170-      await activateReservationAccess({
+171:        tenantId: result.tenantId,
+172-        reservationId: result.reservationId,
+173-        guestName: result.guestName,
+174-        guestPhone: result.guestPhone || undefined,
+175-        checkIn: result.checkIn,
+176-        checkOut: result.checkOut,
+177-      });
+178-    } catch (accessError) {
+179-      console.error('[RESERVATION_PAYMENT] lock access automation failed:', accessError);
+180-    }
+181-  }
+182-
+183-  // C4.2 & C4.4: Revogação de Acesso Físico (PINs) e Notificações de Estorno
+184-  if (!result.deduplicated && result.newlyRefunded) {
+185-    try {
+186-      await revokeReservationPins({
+187:        tenantId: result.tenantId,
+188-        reservationId: result.reservationId,
+189-        reason: `Pagamento ${event.status === 'refunded' ? 'estornado' : 'cancelado'} via webhook ${event.gateway}`,
+190-      });
+191-    } catch (pinError) {
+192-      console.warn('[RESERVATION_PAYMENT] PIN revocation warning:', pinError);
+193-    }
+194-
+195-    try {
+196-      await createReservationRefundNotification({
+197:        tenantId: result.tenantId,
+198-        reservationId: result.reservationId,
+199-        guestName: result.guestName,
+200-        amount: event.amount ?? 0,
+201-        gateway: event.gateway,
+202-        reason: event.status === 'refunded' ? 'refund' : 'cancellation',
+203-      });
+204-    } catch (notificationError) {
+205-      console.error('[RESERVATION_PAYMENT] refund notification failed:', notificationError);
+206-    }
+207-
+208-    try {
+209-      bridgePaymentEvent({
+210-        niche: 'all',
+211-        paymentId: event.providerEventId,
+212-        amount: event.amount ?? 0,
+213-        guestName: result.guestName,
+214-        status: 'refunded',
+215:        tenantId: result.tenantId,
+216-      });
+217-    } catch (bridgeError) {
+218-      console.error('[RESERVATION_PAYMENT] bridgePaymentEvent error:', bridgeError);
+219-    }
+220-  }
+221-
+222-  return { deduplicated: result.deduplicated, reservationId: result.reservationId };
+223-}
+
+===== [S5] EXPIRY-CHECK (src/app/api/cron/linkinbio-expiry-check/route.ts) =====
+      56 src/app/api/cron/linkinbio-expiry-check/route.ts
+
+===== [S6] TEST CALLERS revokeReservationPins =====
+tests/production-readiness-master.test.ts-26-import { enqueueBullJob, QUEUE_NAMES } from '@/lib/queue/bullmq-queue';
+tests/production-readiness-master.test.ts-27-import { validatePaymentTransition } from '@/lib/finance/payment-state-machine';
+tests/production-readiness-master.test.ts:28:import { revokeReservationPins, generateReservationPin } from '@/lib/locks/orchestrator';
+tests/production-readiness-master.test.ts-29-import { assertResourceBelongsToTenant, ResourceAccessDeniedError } from '@/lib/security/resource-authorization';
+tests/production-readiness-master.test.ts-30-import { verifyWhatsAppWebhook } from '@/lib/security/webhook-verify';
+tests/production-readiness-master.test.ts-31-import { checkSystemHealth } from '@/lib/monitoring/health';
+tests/production-readiness-master.test.ts-32-import { authorizeToolExecution } from '@/lib/ai/backend-tool-authorizer';
+tests/production-readiness-master.test.ts-33-import crypto from 'crypto';
+tests/production-readiness-master.test.ts-34-
+tests/production-readiness-master.test.ts-35-describe('🏛️ ZÉLLA — Production Readiness Master Suite (P0 Criteria)', () => {
+tests/production-readiness-master.test.ts-36-
+--
+tests/production-readiness-master.test.ts-113-
+tests/production-readiness-master.test.ts-114-    it('deve revogar atômica e imediatamente as senhas de fechadura em caso de cancelamento ou estorno', async () => {
+tests/production-readiness-master.test.ts:115:      const revokeResult = await revokeReservationPins({
+tests/production-readiness-master.test.ts-116-        tenantId: 'tenant_pousada_canary',
+tests/production-readiness-master.test.ts-117-        reservationId: 'res_cancelled_456',
+tests/production-readiness-master.test.ts-118-        reason: 'Hóspede cancelou a reserva',
+tests/production-readiness-master.test.ts-119-      });
+tests/production-readiness-master.test.ts-120-
+tests/production-readiness-master.test.ts-121-      expect(revokeResult.success).toBe(true);
+tests/production-readiness-master.test.ts-122-      expect(revokeResult.status).toBe('ACCESS_REVOKED');
+tests/production-readiness-master.test.ts-123-    });
+--
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-64-
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-65-vi.mock('@/lib/locks/orchestrator', () => ({
+tests/security/wave12-f05-payment-webhook-resilience.test.ts:66:  revokeReservationPins: vi.fn().mockResolvedValue({ success: true, revokedCount: 1 }),
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-67-}));
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-68-
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-69-vi.mock('@/lib/notifications/bridges', () => ({
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-70-  bridgePaymentEvent: mockBridges.bridgePaymentEvent,
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-71-}));
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-72-
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-73-import { processPaymentWebhookEvent } from '@/lib/payments/process-webhook';
+tests/security/wave12-f05-payment-webhook-resilience.test.ts-74-import { executeWithBillingIdempotency, buildIdempotencyKey } from '@/lib/payments/idempotency';
+--
+tests/security/refund-cancellation-lifecycle.test.ts-42-
+tests/security/refund-cancellation-lifecycle.test.ts-43-  const orchestratorInstance = {
+tests/security/refund-cancellation-lifecycle.test.ts:44:    revokeReservationPins: vi.fn().mockResolvedValue({ success: true, revokedCount: 2, status: 'ACCESS_REVOKED' }),
+tests/security/refund-cancellation-lifecycle.test.ts-45-  };
+tests/security/refund-cancellation-lifecycle.test.ts-46-
+tests/security/refund-cancellation-lifecycle.test.ts-47-  return {
+tests/security/refund-cancellation-lifecycle.test.ts-48-    mockDb: dbInstance,
+tests/security/refund-cancellation-lifecycle.test.ts-49-    mockTx: txInstance,
+tests/security/refund-cancellation-lifecycle.test.ts-50-    mockOrchestrator: orchestratorInstance,
+tests/security/refund-cancellation-lifecycle.test.ts-51-  };
+tests/security/refund-cancellation-lifecycle.test.ts-52-});
+--
+tests/security/refund-cancellation-lifecycle.test.ts-58-
+tests/security/refund-cancellation-lifecycle.test.ts-59-vi.mock('@/lib/locks/orchestrator', () => ({
+tests/security/refund-cancellation-lifecycle.test.ts:60:  revokeReservationPins: mockOrchestrator.revokeReservationPins,
+tests/security/refund-cancellation-lifecycle.test.ts-61-}));
+tests/security/refund-cancellation-lifecycle.test.ts-62-
+tests/security/refund-cancellation-lifecycle.test.ts-63-vi.mock('@/lib/notifications/bridges', async (importOriginal) => {
+tests/security/refund-cancellation-lifecycle.test.ts-64-  const actual = await importOriginal<typeof import('@/lib/notifications/bridges')>();
+tests/security/refund-cancellation-lifecycle.test.ts-65-  return {
+tests/security/refund-cancellation-lifecycle.test.ts-66-    ...actual,
+tests/security/refund-cancellation-lifecycle.test.ts-67-    bridgePaymentEvent: vi.fn(actual.bridgePaymentEvent),
+tests/security/refund-cancellation-lifecycle.test.ts-68-  };
+--
+tests/security/refund-cancellation-lifecycle.test.ts-213-
+tests/security/refund-cancellation-lifecycle.test.ts-214-      // Verifies physical security side-effect: PINs revoked with proper tenant boundary
+tests/security/refund-cancellation-lifecycle.test.ts:215:      expect(mockOrchestrator.revokeReservationPins).toHaveBeenCalledWith(
+tests/security/refund-cancellation-lifecycle.test.ts-216-        expect.objectContaining({
+tests/security/refund-cancellation-lifecycle.test.ts-217-          tenantId: 'tenant_hotel_1',
+tests/security/refund-cancellation-lifecycle.test.ts-218-          reservationId: 'res_booking_555',
+tests/security/refund-cancellation-lifecycle.test.ts-219-        })
+tests/security/refund-cancellation-lifecycle.test.ts-220-      );
+tests/security/refund-cancellation-lifecycle.test.ts-221-    });
+tests/security/refund-cancellation-lifecycle.test.ts-222-
+
+===== [S7] F-03 GREPS =====
+src/lib/payments/gateway-factory.ts:32:  const envGateway = process.env.DEFAULT_PAYMENT_GATEWAY as GatewayId | undefined;
+src/lib/env.ts:55:export const DEFAULT_PAYMENT_GATEWAY = process.env.DEFAULT_PAYMENT_GATEWAY as 'asaas' | 'mercadopago' | undefined;
+src/lib/env.ts:98:  if (DEFAULT_PAYMENT_GATEWAY === 'asaas') {
+src/lib/env.ts:102:  if (DEFAULT_PAYMENT_GATEWAY === 'mercadopago') {
+src/lib/payments/reservation-payment-service.ts:75:  if (input.gateway === 'mock' && process.env.NODE_ENV === 'production') throw new Error('MOCK_GATEWAY_FORBIDDEN');
+29:const PREFERENCE_ORDER: GatewayId[] = ['asaas', 'mercadopago'];
+37:  for (const id of PREFERENCE_ORDER) {
+82:  for (const id of PREFERENCE_ORDER) if (getGatewayInstance(id).isConfigured()) configured.push(id);
+89:  for (const id of PREFERENCE_ORDER) {
+
+===== FIM_DO_RESCATE_A =====

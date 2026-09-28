@@ -1,0 +1,90 @@
+==============================================================
+ RUN A2 COLLECT — 20260924_203430
+ repo : /Users/marciocau/SeuZella_project
+ saida: 99_AUDITS/RUN_A2_EXEC_20260924_203430
+==============================================================
+
+=== [1] PROVAS GIT ===
+HEAD_AGORA    : e46590a28e15c76455b065348eb05f875f0cc6e4
+HEAD_ESPERADO : e46590a28e15c76455b065348eb05f875f0cc6e4
+HEAD_UNCHANGED: YES
+BRANCH_AGORA  : feat/meta-zella-foundation (esperado: feat/meta-zella-foundation)
+ULTIMOS_COMMITS:
+e46590a2 security(LOTE A): escopo tenant ZCC fail-closed, anti-replay jti M2M, clientes dinâmicos fail-closed, segredos timing-safe (10 arquivos)
+82bf6047 chore: transfer current SeuZella project state
+a19e0e47 MG-07 FIX (V8): restaura fail-closed ACCOUNT_EXISTS no checkout de convidados (semantica original e35bef80; perdida em 064db917/r3-f04 sem atualizar o gate 17-20; run semantica auto-provada pelo tsc do alvo: erro nativo da arquitetura executeCheckout) + 2 docs aditivos — evidencias em 99_AUDITS/MG07FIX_* — NUNCA push, fail-closed
+STASH_LIST (deve ser vazio):
+REFLOG_CHECK:
+  REFLOG_UNCHANGED: YES
+ORIGIN_CHECK (push detection):
+  ORIGIN_UNCHANGED: YES (50c00280484bb44d3f444846c9372a57cee2d9ca)
+PROMPT_A2 (integridade pos-run):
+e06547e6cfcd16bc0028c56741d0e0787ec4fa43502ad69c4433ac4240b5e78a  /tmp/SEUZELLA_RUN_A2_SECURITY_ZERO_RESIDUAL.md
+
+=== [2] ARVORE DE TRABALHO ===
+?? 99_AUDITS/RUN_A2_EXEC_20260924_203430/
+?? 99_AUDITS/RUN_A2_RECON_20260924_220811/
+?? 99_AUDITS/RUN_A2_RECON_ANALISE_PRELIMINAR.md
+?? RUN_A2_RECON.sh
+?? SEUZELLA_LOTE_A_SECURITY/
+?? SZ_LOTE_A_SECURITY_V1.zip
+?? SZ_LOTE_A_SECURITY_V2.zip
+CONTAGEM POR CODIGO:
+   7 ??
+FILES_CHANGED (rastreados modificados): 0
+NOVOS ARQUIVOS NAO RASTREADOS (fora baseline conhecida):
+RUN_A2_RECON.sh
+(baseline conhecida: 99_AUDITS/, SEUZELLA_LOTE_A_SECURITY/, zips/kits na raiz.
+ arquivo novo criado pelo GLM NAO aparece em git diff — precisa ser listado no relatorio com [NEW])
+
+=== [3] DIFFS ===
+STAGED_DIFF_BYTES: 0  (esperado 0 — rider proibiu git add)
+DIFF_CHECK_LINES: 0
+FULL_DIFF_BYTES (unstaged): 0
+FULL_DIFF_VS_HEAD_BYTES (oraculo): 0
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  99_AUDITS/RUN_A2_EXEC_20260924_203430/FULL_DIFF_VS_HEAD.patch
+
+=== [4] FATIAS POR CLUSTER (C3>C2>C8>C5>C4>C6>C1>C7) ===
+  C3_LOCKS.patch : 0 bytes
+  C2_CRON.patch : 0 bytes
+  C8_WEBHOOKS.patch : 0 bytes
+  C5_TENANT.patch : 0 bytes
+  C4_ZCC.patch : 0 bytes
+  C6_MUTACOES.patch : 0 bytes
+  C1_LABS.patch : 0 bytes
+  C7_ADMIN.patch : 0 bytes
+(fatias sobre-poem arquivos ex: webhooks/whatsapp entra em C8 e C5 — intencional)
+
+=== [5] GUARDAS ADICIONADAS/REMOVIDAS ===
+--- [5a] contagem de linhas '+' com guarda, por cluster ---
+  C3_LOCKS: 0 linha(s) '+' com guarda
+  C2_CRON: 0 linha(s) '+' com guarda
+  C8_WEBHOOKS: 0 linha(s) '+' com guarda
+  C5_TENANT: 0 linha(s) '+' com guarda
+  C4_ZCC: 0 linha(s) '+' com guarda
+  C6_MUTACOES: 0 linha(s) '+' com guarda
+  C1_LABS: 0 linha(s) '+' com guarda
+  C7_ADMIN: 0 linha(s) '+' com guarda
+--- [5b] amostra '+' C3 (locks) ---
+--- [5c] amostra '+' C2 (cron) ---
+--- [5d] REMOCAO de padroes perigosos ('-') no diff inteiro ---
+--- [5e] REMOCAO de guardas ('-') — POSSIVEL REGRESSAO ---
+(vazio em 5d/5e = nada removido nesse eixo)
+
+=== [6] SCAN DE SEGREDES (luz) ===
+(vazio = nada obvio; scan profundo fica para a revisao forense)
+
+=== [7] PROXIMO PASSO — levar ao chat ===
+COLLECT_LOG : 99_AUDITS/RUN_A2_EXEC_20260924_203430/COLLECT_LOG.txt  (3413 bytes / 77 linhas)
+FULL_DIFF   : 99_AUDITS/RUN_A2_EXEC_20260924_203430/FULL_DIFF_VS_HEAD.patch — ORACULO no iMac, nao precisa colar inteiro
+
+1) Cole no chat o bloco de metricas do GLM (HEAD ... BLOCKERS).
+2) Cole este COLLECT_LOG em fatias de ~140 linhas:
+   sed -n '1,140p' 99_AUDITS/RUN_A2_EXEC_20260924_203430/COLLECT_LOG.txt
+   sed -n '141,280p' 99_AUDITS/RUN_A2_EXEC_20260924_203430/COLLECT_LOG.txt
+   ... e assim por diante ate o fim.
+3) Se a revisao pedir um cluster especifico:
+   sed -n '1,140p' 99_AUDITS/RUN_A2_EXEC_20260924_203430/C3_LOCKS.patch
+4) NAO committa. NAO pusha. A revisao forense decide o commit.
+
+=== FIM RUN A2 COLLECT 20260924_203430 ===

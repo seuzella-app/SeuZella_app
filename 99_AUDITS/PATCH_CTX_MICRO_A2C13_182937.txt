@@ -1,0 +1,2266 @@
+### PACOTE MICRO - PATCH LOTE B (F-06/F-07/F-03/T1/await) ###
+### Gerado: 2026-09-25 18:29:37 ###
+
+===== [M1] GIT ANCHORS =====
+48241230 feat(skills): add TypeSafe (Jev) AI architecture skill
+feat/meta-zella-foundation
+?? 99_AUDITS/LOTE_B_GLM_EXEC_20260925_162457.txt
+?? 99_AUDITS/LOTE_B_IMPL_CONTEXT_20260925_162120.txt
+?? 99_AUDITS/PATCH_CTX_A2C13_20260925_174133.txt
+?? 99_AUDITS/PATCH_CTX_MICRO_A2C13_182937.txt
+?? 99_AUDITS/PATCH_CTX_SLIM_A2C13_174757.txt
+?? 99_AUDITS/RUN_A2_EXEC_20260924_203430/
+?? 99_AUDITS/RUN_A2_RECON_20260924_220811/
+?? 99_AUDITS/RUN_A2_RECON_ANALISE_PRELIMINAR.md
+?? RUN_A2_RECON.sh
+?? SEUZELLA_LOTE_A_SECURITY/
+?? SZ_LOTE_A_SECURITY_V1.zip
+?? SZ_LOTE_A_SECURITY_V2.zip
+
+===== [M2] src/lib/locks/orchestrator.ts (COMPLETO) =====
+    1199 src/lib/locks/orchestrator.ts
+     1	// =============================================================================
+     2	// 🔐 SEU ZÉLLA — Orquestrador de Fechaduras Eletrônicas
+     3	// =============================================================================
+     4	// Camada intermediária entre a UI/API e os providers concretos (TTLock, Tuya,
+     5	// Igloohome, Nuki, August, ou fallback manual).
+     6	//
+     7	// Responsabilidade:
+     8	// 1. Receber pedido de geração/revogação de PIN
+     9	// 2. Decidir rota: API oficial vs manual
+    10	// 3. Delegar ao provider correto
+    11	// 4. Em caso de falha da API, cair graciosamente no modo manual
+    12	// 5. Auditar tudo via LockEvent
+    13	//
+    14	// IMPORTANTE: Este módulo é server-only. Não importar em código client.
+    15	// =============================================================================
+    16	
+    17	
+    18	import { db, isDatabaseAvailable } from '@/lib/db';
+    19	import { resolveTenantId } from '@/lib/ddc/auth-utils';
+    20	import {
+    21	  type LockBrand,
+    22	  type LockDeviceData,
+    23	  type LockCodeData,
+    24	  type GeneratePinInput,
+    25	  type GeneratePinResult,
+    26	  BRAND_CATALOG,
+    27	  getBrandInfo,
+    28	} from './types';
+    29	import { derivePinStatus } from './pin-generator';
+    30	import { deliverPinViaWhatsApp } from './whatsapp-delivery';
+    31	import { getProviderModule, hasCredentialsConfigured } from './providers';
+    32	import * as manualProvider from './providers/manual';
+    33	import * as ttlockProvider from './providers/ttlock';
+    34	import * as tuyaProvider from './providers/tuya';
+    35	import * as igloohomeProvider from './providers/igloohome';
+    36	import * as nukiProvider from './providers/nuki';
+    37	import * as augustProvider from './providers/august';
+    38	
+    39	/**
+    40	 * Interface unificada que todos os providers (manual + API) implementam.
+    41	 * Permite ao orchestrator chamar de forma polimórfica.
+    42	 */
+    43	interface UnifiedProviderModule {
+    44	  generatePin(input: {
+    45	    deviceId: string;
+    46	    brand: LockBrand;
+    47	    providerType: 'api' | 'manual';
+    48	    externalDeviceId?: string | null;
+    49	    oauthAccountId?: string | null;
+    50	    validFrom: Date;
+    51	    validTo: Date;
+    52	    manualPin?: string;
+    53	    autoGenerate?: boolean;
+    54	    guestName?: string;
+    55	  }): Promise<{
+    56	    pin: string;
+    57	    source: 'manual' | 'api';
+    58	    codeType: 'online_pin' | 'offline_pin' | 'manual';
+    59	    externalCodeId?: string;
+    60	    warnings?: string[];
+    61	  }>;
+    62	  revokePin?(input: {
+    63	    externalDeviceId?: string | null;
+    64	    externalCodeId?: string | null;
+    65	  }): Promise<void>;
+    66	}
+    67	
+    68	/**
+    69	 * Decide qual provider usar:
+    70	 * - Marcas manuais (intelbras, yale, papaiz, philco, samsung) → sempre manual
+    71	 * - Marcas com API mas sem credenciais configuradas → fallback manual
+    72	 * - Marcas com API + credenciais configuradas → adapter real (TTLock, Tuya, etc.)
+    73	 *
+    74	 * Retorna wrapper unificado para o orchestrator tratar igual.
+    75	 */
+    76	async function loadProvider(brand: LockBrand): Promise<UnifiedProviderModule | null> {
+    77	  try {
+    78	    const info = getBrandInfo(brand);
+    79	    if (!info) return null;
+    80	
+    81	    // Marcas sem API → sempre manual
+    82	    if (!info.apiAvailable) {
+    83	      return wrapManualProvider(brand);
+    84	    }
+    85	
+    86	    // Marcas com API mas sem credenciais no .env → cai no manual com warning
+    87	    if (!hasCredentialsConfigured(brand)) {
+    88	      console.info(`[locks] ${brand}: API disponível mas credenciais não configuradas — usando modo manual`);
+    89	      return wrapManualProvider(brand);
+    90	    }
+    91	
+    92	    // Marcas com API + credenciais → adapter real
+    93	    switch (brand) {
+    94	      case 'ttlock':
+    95	        return wrapApiProvider(brand, ttlockProvider);
+    96	      case 'tuya':
+    97	        return wrapApiProvider(brand, tuyaProvider);
+    98	      case 'igloohome':
+    99	        return wrapApiProvider(brand, igloohomeProvider);
+   100	      case 'nuki':
+   101	        return wrapApiProvider(brand, nukiProvider);
+   102	      case 'august':
+   103	        return wrapApiProvider(brand, augustProvider);
+   104	      default:
+   105	        return wrapManualProvider(brand);
+   106	    }
+   107	  } catch (err) {
+   108	    console.error(`[locks] Failed to load provider for ${brand}:`, err);
+   109	    return wrapManualProvider(brand);
+   110	  }
+   111	}
+   112	
+   113	/**
+   114	 * Wrapper para o provider manual — interface unificada.
+   115	 */
+   116	function wrapManualProvider(brand: LockBrand): UnifiedProviderModule {
+   117	  return {
+   118	    async generatePin(input) {
+   119	      const result = await manualProvider.generatePin({
+   120	        deviceId: input.deviceId,
+   121	        brand: input.brand,
+   122	        providerType: input.providerType,
+   123	        externalDeviceId: input.externalDeviceId,
+   124	        oauthAccountId: input.oauthAccountId,
+   125	        validFrom: input.validFrom,
+   126	        validTo: input.validTo,
+   127	        manualPin: input.manualPin,
+   128	        autoGenerate: input.autoGenerate,
+   129	      });
+   130	      return {
+   131	        pin: result.pin,
+   132	        source: result.source,
+   133	        codeType: result.codeType,
+   134	        warnings: result.warnings,
+   135	      };
+   136	    },
+   137	  };
+   138	}
+   139	
+   140	/**
+   141	 * Wrapper para providers de API reais (TTLock, Tuya, Igloohome, Nuki, August).
+   142	 * Encapsula o try/catch e o fallback gracioso para o modo manual em caso
+   143	 * de falha de comunicação com o provedor.
+   144	 *
+   145	 * CRÍTICO: se a API do provedor falhar (timeout, 5xx, OAuth expirado),
+   146	 * NÃO bloqueamos a geração de PIN — caímos no modo manual com warning,
+   147	 * para que o host ainda possa gerar um PIN criptográfico e cadastrá-lo
+   148	 * manualmente no app do fabricante.
+   149	 */
+   150	function wrapApiProvider(
+   151	  brand: LockBrand,
+   152	  providerModule:
+   153	    | typeof ttlockProvider
+   154	    | typeof tuyaProvider
+   155	    | typeof igloohomeProvider
+   156	    | typeof nukiProvider
+   157	    | typeof augustProvider,
+   158	): UnifiedProviderModule {
+   159	  return {
+   160	    async generatePin(input) {
+   161	      // Se host forneceu PIN manual → usa direto (não chama API)
+   162	      if (input.manualPin && input.manualPin.trim().length >= 4) {
+   163	        return wrapManualProvider(brand).generatePin(input);
+   164	      }
+   165	
+   166	      // Sem externalDeviceId → não pode chamar API (não sabemos qual lock)
+   167	      if (!input.externalDeviceId) {
+   168	        const warnings = [
+   169	          `Dispositivo ${brand} sem externalDeviceId cadastrado — usando modo manual fallback.`,
+   170	          `Cadastre o ID externo do dispositivo (lockId retornado pela API do provedor).`,
+   171	        ];
+   172	        const result = await manualProvider.generatePin({
+   173	          deviceId: input.deviceId,
+   174	          brand,
+   175	          providerType: 'manual',
+   176	          validFrom: input.validFrom,
+   177	          validTo: input.validTo,
+   178	          autoGenerate: true,
+   179	        });
+   180	        return {
+   181	          ...result,
+   182	          warnings: [...warnings, ...(result.warnings ?? [])],
+   183	        };
+   184	      }
+   185	
+   186	      // Tenta chamar a API do provedor
+   187	      try {
+   188	        const apiResult = await providerModule.generatePin({
+   189	          externalDeviceId: input.externalDeviceId,
+   190	          validFrom: input.validFrom,
+   191	          validTo: input.validTo,
+   192	          pin: input.manualPin,
+   193	          guestName: input.guestName,
+   194	        });
+   195	
+   196	        return {
+   197	          pin: apiResult.pin,
+   198	          source: 'api',
+   199	          codeType: apiResult.codeType,
+   200	          externalCodeId: apiResult.externalCodeId,
+   201	        };
+   202	      } catch (err) {
+   203	        // Fallback gracioso — gera PIN criptográfico para host cadastrar manualmente
+   204	        const errorMsg = (err as Error).message;
+   205	        console.error(`[locks] ${brand} API generatePin failed:`, errorMsg);
+   206	
+   207	        const fallbackResult = await manualProvider.generatePin({
+   208	          deviceId: input.deviceId,
+   209	          brand,
+   210	          providerType: 'manual',
+   211	          validFrom: input.validFrom,
+   212	          validTo: input.validTo,
+   213	          autoGenerate: true,
+   214	        });
+   215	
+   216	        return {
+   217	          ...fallbackResult,
+   218	          warnings: [
+   219	            `⚠️ API ${brand} indisponível (${errorMsg.slice(0, 100)}).`,
+   220	            `PIN gerado localmente — você precisa cadastrá-lo MANUALMENTE no app do provedor.`,
+   221	            ...(fallbackResult.warnings ?? []),
+   222	          ],
+   223	        };
+   224	      }
+   225	    },
+   226	
+   227	    async revokePin(input) {
+   228	      if (!input.externalDeviceId || !input.externalCodeId) return;
+   229	      try {
+   230	        await providerModule.revokePin({
+   231	          externalDeviceId: input.externalDeviceId,
+   232	          externalCodeId: input.externalCodeId,
+   233	        });
+   234	      } catch (err) {
+   235	        // Revoke soft-fail — PIN já está revogado no DB local
+   236	        console.warn(`[locks] ${brand} API revokePin soft-fail:`, (err as Error).message);
+   237	      }
+   238	    },
+   239	  };
+   240	}
+   241	
+   242	/** Cria um novo dispositivo de fechadura. */
+   243	export async function createLockDevice(
+   244	  input: {
+   245	    propertyId: string;
+   246	    propertyType: 'pousada' | 'airbnb';
+   247	    nickname: string;
+   248	    location?: string;
+   249	    brand: LockBrand;
+   250	    model?: string;
+   251	    providerType?: 'api' | 'manual';
+   252	    serialNumber?: string;
+   253	    externalDeviceId?: string;
+   254	    oauthAccountId?: string;
+   255	    notes?: string;
+   256	  },
+   257	): Promise<LockDeviceData | null> {
+   258	  const tenantId = await resolveTenantId();
+   259	  if (!tenantId) throw new Error('Unauthorized');
+   260	
+   261	  const dbAvailable = await isDatabaseAvailable();
+   262	  if (!dbAvailable) {
+   263	    // Demo mode — retorna objeto fake com ID gerado
+   264	    return {
+   265	      id: `demo-lock-${Date.now()}`,
+   266	      tenantId,
+   267	      propertyId: input.propertyId,
+   268	      propertyType: input.propertyType,
+   269	      nickname: input.nickname,
+   270	      location: input.location ?? null,
+   271	      brand: input.brand,
+   272	      model: input.model ?? null,
+   273	      providerType: input.providerType ?? (BRAND_CATALOG[input.brand]?.apiAvailable ? 'api' : 'manual'),
+   274	      externalDeviceId: input.externalDeviceId ?? null,
+   275	      oauthAccountId: input.oauthAccountId ?? null,
+   276	      serialNumber: input.serialNumber ?? null,
+   277	      status: 'active',
+   278	      batteryLevel: null,
+   279	      online: false,
+   280	      lastSeenAt: null,
+   281	      metadata: {},
+   282	      notes: input.notes ?? null,
+   283	      createdAt: new Date().toISOString(),
+   284	      updatedAt: new Date().toISOString(),
+   285	      _count: { codes: 0, activeCodes: 0 },
+   286	    };
+   287	  }
+   288	
+   289	  const info = getBrandInfo(input.brand);
+   290	  if (!info) throw new Error(`Unknown brand: ${input.brand}`);
+   291	
+   292	  // RUN 6 — resource ownership (P1): a propriedade informada precisa
+   293	  // pertencer ao tenant da sessão. Sem este check, um lock device podia ser
+   294	  // anexado a property de OUTRO tenant (integridade + cadeia para
+   295	  // guest-guide/PINs). Fail-closed se o registro não existir no tenant.
+   296	  const propertyTable = input.propertyType === 'airbnb'
+   297	    ? (db as unknown as Record<string, { findFirst: (args: unknown) => Promise<unknown> }>).airBProperty
+   298	    : (db as unknown as Record<string, { findFirst: (args: unknown) => Promise<unknown> }>).property;
+   299	  const ownedProperty = await propertyTable?.findFirst({
+   300	    where: { id: input.propertyId, tenantId },
+   301	    select: { id: true },
+   302	  });
+   303	  if (!ownedProperty) throw new Error('LOCK_PROPERTY_NOT_OWNED');
+   304	
+   305	  const providerType = input.providerType ?? (info.apiAvailable ? 'api' : 'manual');
+   306	
+   307	  const device = await db.lockDevice.create({
+   308	    data: {
+   309	      tenantId,
+   310	      propertyId: input.propertyId,
+   311	      propertyType: input.propertyType,
+   312	      nickname: input.nickname,
+   313	      location: input.location ?? null,
+   314	      brand: input.brand,
+   315	      model: input.model ?? null,
+   316	      providerType,
+   317	      externalDeviceId: input.externalDeviceId ?? null,
+   318	      oauthAccountId: input.oauthAccountId ?? null,
+   319	      serialNumber: input.serialNumber ?? null,
+   320	      notes: input.notes ?? null,
+   321	      status: 'active',
+   322	    },
+   323	  });
+   324	
+   325	  // Auditoria
+   326	  await db.lockEvent.create({
+   327	    data: {
+   328	      deviceId: device.id,
+   329	      tenantId,
+   330	      eventType: 'status_change',
+   331	      message: `Dispositivo "${input.nickname}" (${info.label}) cadastrado`,
+   332	      metadata: JSON.stringify({ brand: input.brand, providerType }),
+   333	    },
+   334	  });
+   335	
+   336	  return device as unknown as LockDeviceData;
+   337	}
+   338	
+   339	/** Lista todos os dispositivos de um tenant. */
+   340	export async function listLockDevices(propertyId?: string): Promise<LockDeviceData[]> {
+   341	  const tenantId = await resolveTenantId();
+   342	  if (!tenantId) return [];
+   343	
+   344	  const dbAvailable = await isDatabaseAvailable();
+   345	  if (!dbAvailable) {
+   346	    return getDemoDevices();
+   347	  }
+   348	
+   349	  const where: Record<string, any> = { tenantId };
+   350	  if (propertyId) where.propertyId = propertyId;
+   351	
+   352	  const devices = await db.lockDevice.findMany({
+   353	    where,
+   354	    orderBy: { createdAt: 'desc' },
+   355	    include: {
+   356	      _count: { select: { codes: true } },
+   357	    },
+   358	  });
+   359	
+   360	  // Para cada dispositivo, conta PINs ativos
+   361	  const now = new Date();
+   362	  const result: LockDeviceData[] = [];
+   363	  for (const d of devices) {
+   364	    const activeCodes = await db.lockCode.count({
+   365	      where: {
+   366	        deviceId: d.id,
+   367	        validFrom: { lte: now },
+   368	        validTo: { gte: now },
+   369	        revokedAt: null,
+   370	      },
+   371	    });
+   372	    result.push({
+   373	      ...(d as unknown as LockDeviceData),
+   374	      _count: { codes: (d as any)._count?.codes ?? 0, activeCodes },
+   375	    });
+   376	  }
+   377	  return result;
+   378	}
+   379	
+   380	/** Obtém um dispositivo pelo ID (com verificação de propriedade). */
+   381	export async function getLockDevice(deviceId: string): Promise<LockDeviceData | null> {
+   382	  const tenantId = await resolveTenantId();
+   383	  if (!tenantId) return null;
+   384	
+   385	  const dbAvailable = await isDatabaseAvailable();
+   386	  if (!dbAvailable) {
+   387	    return getDemoDevices().find((d) => d.id === deviceId) ?? null;
+   388	  }
+   389	
+   390	  const device = await db.lockDevice.findFirst({
+   391	    where: { id: deviceId, tenantId },
+   392	  });
+   393	  return device as unknown as LockDeviceData | null;
+   394	}
+   395	
+   396	/** Atualiza um dispositivo. */
+   397	export async function updateLockDevice(
+   398	  deviceId: string,
+   399	  updates: Partial<Pick<LockDeviceData, 'nickname' | 'location' | 'notes' | 'status' | 'model'>>,
+   400	): Promise<LockDeviceData | null> {
+   401	  const tenantId = await resolveTenantId();
+   402	  if (!tenantId) throw new Error('Unauthorized');
+   403	
+   404	  const dbAvailable = await isDatabaseAvailable();
+   405	  if (!dbAvailable) return null;
+   406	
+   407	  const device = await db.lockDevice.findFirst({
+   408	    where: { id: deviceId, tenantId },
+   409	    select: { id: true },
+   410	  });
+   411	  if (!device) return null;
+   412	
+   413	  const updateData: Record<string, any> = {};
+   414	  if (updates.nickname !== undefined) updateData.nickname = updates.nickname;
+   415	  if (updates.location !== undefined) updateData.location = updates.location;
+   416	  if (updates.notes !== undefined) updateData.notes = updates.notes;
+   417	  if (updates.status !== undefined) updateData.status = updates.status;
+   418	  if (updates.model !== undefined) updateData.model = updates.model;
+   419	
+   420	  const updated = await db.lockDevice.update({
+   421	    where: { id: deviceId },
+   422	    data: updateData,
+   423	  });
+   424	
+   425	  await db.lockEvent.create({
+   426	    data: {
+   427	      deviceId,
+   428	      tenantId,
+   429	      eventType: 'status_change',
+   430	      message: `Dispositivo atualizado`,
+   431	      metadata: JSON.stringify({ updates: updateData }),
+   432	    },
+   433	  });
+   434	
+   435	  return updated as unknown as LockDeviceData;
+   436	}
+   437	
+   438	/** Remove um dispositivo (com revogação de todos os PINs ativos). */
+   439	export async function deleteLockDevice(deviceId: string): Promise<boolean> {
+   440	  const tenantId = await resolveTenantId();
+   441	  if (!tenantId) throw new Error('Unauthorized');
+   442	
+   443	  const dbAvailable = await isDatabaseAvailable();
+   444	  if (!dbAvailable) return true;
+   445	
+   446	  const device = await db.lockDevice.findFirst({
+   447	    where: { id: deviceId, tenantId },
+   448	    select: { id: true },
+   449	  });
+   450	  if (!device) return false;
+   451	
+   452	  // Revoga todos os PINs ativos primeiro
+   453	  await db.lockCode.updateMany({
+   454	    where: {
+   455	      deviceId,
+   456	      revokedAt: null,
+   457	    },
+   458	    data: {
+   459	      revokedAt: new Date(),
+   460	      revokedReason: 'Dispositivo removido',
+   461	      status: 'revoked',
+   462	    },
+   463	  });
+   464	
+   465	  await db.lockEvent.create({
+   466	    data: {
+   467	      deviceId,
+   468	      tenantId,
+   469	      eventType: 'status_change',
+   470	      message: `Dispositivo removido — todos os PINs foram revogados`,
+   471	    },
+   472	  });
+   473	
+   474	  await db.lockDevice.delete({ where: { id: deviceId } });
+   475	  return true;
+   476	}
+   477	
+   478	/**
+   479	 * Gera um novo PIN para um dispositivo.
+   480	 *
+   481	 * Fluxo:
+   482	 * 1. Carrega o dispositivo
+   483	 * 2. Decide provider (API vs manual)
+   484	 * 3. Se manual: gera PIN criptográfico OU usa PIN colado pelo host
+   485	 * 4. Se API: chama o adapter específico
+   486	 * 5. Persiste PIN no DB
+   487	 * 6. Dispara entrega via WhatsApp (se guestPhone fornecido)
+   488	 * 7. Registra auditoria
+   489	 */
+   490	export async function generatePin(input: GeneratePinInput): Promise<GeneratePinResult> {
+   491	  const tenantId = await resolveTenantId();
+   492	  if (!tenantId) throw new Error('Unauthorized');
+   493	
+   494	  // ── Rate limit: 50 PINs/hour per tenant ──────────────────────────────
+   495	  // Prevents brute-force PIN enumeration and runaway scripts that would
+   496	  // exhaust provider API quotas. Idempotent manual-PIN requests (same
+   497	  // deviceId + same validFrom) are exempt via idempotency key.
+   498	  const { pinRatelimit } = await import('@/lib/rate-limit');
+   499	  const rateLimitKey = `pin:${tenantId}`;
+   500	  const rateLimitResult = await pinRatelimit.limit(rateLimitKey);
+   501	  if (!rateLimitResult.success) {
+   502	    throw new Error('PIN_RATE_LIMIT_EXCEEDED');
+   503	  }
+   504	
+   505	  const device = await getLockDevice(input.deviceId);
+   506	  if (!device) throw new Error('Dispositivo não encontrado');
+   507	
+   508	  const dbAvailable = await isDatabaseAvailable();
+   509	
+   510	  // Carrega o provider apropriado
+   511	  const provider = await loadProvider(device.brand);
+   512	  if (!provider) {
+   513	    throw new Error(`Não foi possível carregar o provider para a marca ${device.brand}`);
+   514	  }
+   515	
+   516	  // Gera o PIN via provider
+   517	  const providerResult = await provider.generatePin({
+   518	    deviceId: device.id,
+   519	    brand: device.brand,
+   520	    providerType: device.providerType,
+   521	    externalDeviceId: device.externalDeviceId,
+   522	    oauthAccountId: device.oauthAccountId,
+   523	    validFrom: input.validFrom,
+   524	    validTo: input.validTo,
+   525	    manualPin: input.manualPin,
+   526	    autoGenerate: input.autoGenerate,
+   527	    guestName: input.guestName,
+   528	  });
+   529	
+   530	  const codeStr = providerResult.pin;
+   531	  const {source} = providerResult;
+   532	  const {codeType} = providerResult;
+   533	  const {externalCodeId} = providerResult;
+   534	
+   535	  const status = derivePinStatus({
+   536	    validFrom: input.validFrom,
+   537	    validTo: input.validTo,
+   538	  });
+   539	
+   540	  let codeId: string;
+   541	  if (dbAvailable) {
+   542	    const code = await db.lockCode.create({
+   543	      data: {
+   544	        deviceId: device.id,
+   545	        tenantId,
+   546	        guestName: input.guestName ?? null,
+   547	        guestPhone: input.guestPhone ?? null,
+   548	        bookingId: input.bookingId ?? null,
+   549	        code: codeStr,
+   550	        codeType,
+   551	        source,
+   552	        validFrom: input.validFrom,
+   553	        validTo: input.validTo,
+   554	        status,
+   555	        note: input.note ?? null,
+   556	        externalCodeId: externalCodeId ?? null,
+   557	      },
+   558	    });
+   559	    codeId = code.id;
+   560	
+   561	    await db.lockEvent.create({
+   562	      data: {
+   563	        deviceId: device.id,
+   564	        codeId,
+   565	        tenantId,
+   566	        eventType: 'generated',
+   567	        message: `PIN ${source === 'api' ? 'gerado via API' : 'gerado manualmente'} para ${input.guestName ?? 'hóspede'}`,
+   568	        metadata: JSON.stringify({
+   569	          validFrom: input.validFrom.toISOString(),
+   570	          validTo: input.validTo.toISOString(),
+   571	          codeType,
+   572	          source,
+   573	        }),
+   574	      },
+   575	    });
+   576	  } else {
+   577	    codeId = `demo-pin-${Date.now()}`;
+   578	  }
+   579	
+   580	  // Tenta entregar via WhatsApp
+   581	  let delivered = false;
+   582	  let deliveryMethod: 'whatsapp' | 'email' | 'copy' | 'none' = 'none';
+   583	  const warnings: string[] = [];
+   584	
+   585	  if (input.guestPhone) {
+   586	    try {
+   587	      const result = await deliverPinViaWhatsApp({
+   588	        guestName: input.guestName,
+   589	        guestPhone: input.guestPhone,
+   590	        pin: codeStr,
+   591	        validFrom: input.validFrom,
+   592	        validTo: input.validTo,
+   593	        deviceNickname: device.nickname,
+   594	        brand: device.brand,
+   595	      });
+   596	      delivered = result.sent;
+   597	      deliveryMethod = 'whatsapp';
+   598	
+   599	      if (!result.sent) {
+   600	        warnings.push(`WhatsApp não enviado: ${result.reason}`);
+   601	      } else if (dbAvailable) {
+   602	        await db.lockCode.update({
+   603	          where: { id: codeId },
+   604	          data: {
+   605	            deliveredVia: 'whatsapp',
+   606	            deliveredAt: new Date(),
+   607	          },
+   608	        });
+   609	        await db.lockEvent.create({
+   610	          data: {
+   611	            deviceId: device.id,
+   612	            codeId,
+   613	            tenantId,
+   614	            eventType: 'delivered',
+   615	            message: `PIN enviado via WhatsApp para ${input.guestName ?? input.guestPhone}`,
+   616	            metadata: JSON.stringify({ method: 'whatsapp' }),
+   617	          },
+   618	        });
+   619	      }
+   620	    } catch (err) {
+   621	      warnings.push(`Erro ao enviar WhatsApp: ${(err as Error).message}`);
+   622	    }
+   623	  } else {
+   624	    warnings.push('Hóspede sem telefone — PIN disponível apenas para copiar');
+   625	  }
+   626	
+   627	  // Monta o resultado
+   628	  const codeData: LockCodeData = {
+   629	    id: codeId,
+   630	    deviceId: device.id,
+   631	    tenantId,
+   632	    guestName: input.guestName ?? null,
+   633	    guestPhone: input.guestPhone ?? null,
+   634	    bookingId: input.bookingId ?? null,
+   635	    code: codeStr,
+   636	    codeType,
+   637	    source,
+   638	    validFrom: input.validFrom.toISOString(),
+   639	    validTo: input.validTo.toISOString(),
+   640	    usedAt: null,
+   641	    revokedAt: null,
+   642	    revokedReason: null,
+   643	    deliveredVia: deliveryMethod,
+   644	    deliveredAt: delivered ? new Date().toISOString() : null,
+   645	    status,
+   646	    note: input.note ?? null,
+   647	    createdAt: new Date().toISOString(),
+   648	    device: {
+   649	      id: device.id,
+   650	      nickname: device.nickname,
+   651	      brand: device.brand,
+   652	      propertyType: device.propertyType,
+   653	      propertyId: device.propertyId,
+   654	    },
+   655	  };
+   656	
+   657	  return {
+   658	    code: codeData,
+   659	    delivered,
+   660	    deliveryMethod,
+   661	    warnings: warnings.length > 0 ? warnings : undefined,
+   662	  };
+   663	}
+   664	
+   665	/** Lista os PINs de um dispositivo. */
+   666	export async function listPins(deviceId: string): Promise<LockCodeData[]> {
+   667	  const tenantId = await resolveTenantId();
+   668	  if (!tenantId) return [];
+   669	
+   670	  const dbAvailable = await isDatabaseAvailable();
+   671	  if (!dbAvailable) return getDemoPins(deviceId);
+   672	
+   673	  const pins = await db.lockCode.findMany({
+   674	    where: { deviceId, tenantId },
+   675	    orderBy: { createdAt: 'desc' },
+   676	    include: { device: { select: { id: true, nickname: true, brand: true, propertyType: true, propertyId: true } } },
+   677	  });
+   678	
+   679	  // Re-deriva status (DB pode estar desatualizado)
+   680	  const now = new Date();
+   681	  return pins.map((p: any) => {
+   682	    const derivedStatus = derivePinStatus({
+   683	      validFrom: new Date(p.validFrom),
+   684	      validTo: new Date(p.validTo),
+   685	      usedAt: p.usedAt,
+   686	      revokedAt: p.revokedAt,
+   687	    });
+   688	    return {
+   689	      ...(p as any),
+   690	      status: derivedStatus,
+   691	    } as LockCodeData;
+   692	  });
+   693	}
+   694	
+   695	/** Revoga um PIN específico. */
+   696	export async function revokePin(pinId: string, reason: string): Promise<boolean> {
+   697	  const tenantId = await resolveTenantId();
+   698	  if (!tenantId) throw new Error('Unauthorized');
+   699	
+   700	  const dbAvailable = await isDatabaseAvailable();
+   701	  if (!dbAvailable) return true;
+   702	
+   703	  const pin = await db.lockCode.findFirst({
+   704	    where: { id: pinId, tenantId },
+   705	  });
+   706	  if (!pin) return false;
+   707	
+   708	  // Se o PIN foi gerado via API, tenta revogar no provedor também
+   709	  if (pin.source === 'api' && pin.externalCodeId) {
+   710	    const device = await db.lockDevice.findFirst({
+   711	      where: { id: pin.deviceId },
+   712	      select: { brand: true, externalDeviceId: true },
+   713	    });
+   714	    if (device) {
+   715	      const provider = await loadProvider(device.brand as LockBrand);
+   716	      if (provider?.revokePin) {
+   717	        await provider.revokePin({
+   718	          externalDeviceId: device.externalDeviceId,
+   719	          externalCodeId: pin.externalCodeId,
+   720	        });
+   721	      }
+   722	    }
+   723	  }
+   724	
+   725	  await db.lockCode.update({
+   726	    where: { id: pinId },
+   727	    data: {
+   728	      revokedAt: new Date(),
+   729	      revokedReason: reason,
+   730	      status: 'revoked',
+   731	    },
+   732	  });
+   733	
+   734	  await db.lockEvent.create({
+   735	    data: {
+   736	      deviceId: pin.deviceId,
+   737	      codeId: pinId,
+   738	      tenantId,
+   739	      eventType: 'revoked',
+   740	      message: `PIN revogado: ${reason}`,
+   741	      metadata: JSON.stringify({ reason, source: pin.source, externalCodeId: pin.externalCodeId }),
+   742	    },
+   743	  });
+   744	
+   745	  return true;
+   746	}
+   747	
+   748	/**
+   749	 * PÂNICO: Revoga TODOS os PINs ativos de um dispositivo.
+   750	 *
+   751	 * Use caso: hóspede relata vazamento de PIN, host suspeita de invasão,
+   752	 * ou qualquer emergência onde é mais seguro cortar tudo e reemitir.
+   753	 *
+   754	 * Em paralelo, chama revokePin do provider para cada PIN que foi gerado via API.
+   755	 * As chamadas ao provider são best-effort (soft-fail) — o DB local é a fonte
+   756	 * da verdade para o status do PIN.
+   757	 */
+   758	export async function panicRevokeAllPins(deviceId: string, reason: string = 'Pânico acionado pelo host'): Promise<{
+   759	  revokedCount: number;
+   760	  providerRevokesAttempted: number;
+   761	  providerRevokesFailed: number;
+   762	}> {
+   763	  const tenantId = await resolveTenantId();
+   764	  if (!tenantId) throw new Error('Unauthorized');
+   765	
+   766	  const dbAvailable = await isDatabaseAvailable();
+   767	  if (!dbAvailable) return { revokedCount: 0, providerRevokesAttempted: 0, providerRevokesFailed: 0 };
+   768	
+   769	  // 1. Busca todos os PINs ativos com externalCodeId (gerados via API)
+   770	  const activeApiPins = await db.lockCode.findMany({
+   771	    where: {
+   772	      deviceId,
+   773	      tenantId,
+   774	      revokedAt: null,
+   775	      source: 'api',
+   776	      externalCodeId: { not: null },
+   777	    },
+   778	    select: { id: true, externalCodeId: true },
+   779	  });
+   780	
+   781	  // 2. Busca o dispositivo para saber a brand + externalDeviceId
+   782	  const device = await db.lockDevice.findFirst({
+   783	    where: { id: deviceId, tenantId },
+   784	    select: { brand: true, externalDeviceId: true },
+   785	  });
+   786	
+   787	  // 3. Revoga todos no DB em paralelo
+   788	  const result = await db.lockCode.updateMany({
+   789	    where: {
+   790	      deviceId,
+   791	      tenantId,
+   792	      revokedAt: null,
+   793	    },
+   794	    data: {
+   795	      revokedAt: new Date(),
+   796	      revokedReason: reason,
+   797	      status: 'revoked',
+   798	    },
+   799	  });
+   800	
+   801	  // 4. Em paralelo, chama revokePin do provider para cada PIN de API
+   802	  let providerRevokesFailed = 0;
+   803	  if (device && activeApiPins.length > 0) {
+   804	    const provider = await loadProvider(device.brand as LockBrand);
+   805	    if (provider?.revokePin) {
+   806	      const revokePromises = activeApiPins.map((pin) =>
+   807	        provider.revokePin!({
+   808	          externalDeviceId: device.externalDeviceId,
+   809	          externalCodeId: pin.externalCodeId!,
+   810	        }).catch((err) => {
+   811	          console.warn(`[locks] panic revoke provider soft-fail for ${pin.id}:`, (err as Error).message);
+   812	          providerRevokesFailed++;
+   813	        }),
+   814	      );
+   815	      await Promise.allSettled(revokePromises);
+   816	    }
+   817	  }
+   818	
+   819	  await db.lockEvent.create({
+   820	    data: {
+   821	      deviceId,
+   822	      tenantId,
+   823	      eventType: 'panic_revoke',
+   824	      message: `PÂNICO: ${result.count} PIN(s) revogado(s) — ${reason}`,
+   825	      metadata: JSON.stringify({
+   826	        reason,
+   827	        count: result.count,
+   828	        providerRevokesAttempted: activeApiPins.length,
+   829	        providerRevokesFailed,
+   830	      }),
+   831	    },
+   832	  });
+   833	
+   834	  return {
+   835	    revokedCount: result.count,
+   836	    providerRevokesAttempted: activeApiPins.length,
+   837	    providerRevokesFailed,
+   838	  };
+   839	}
+   840	
+   841	/**
+   842	 * Gera credencial temporária para uma reserva confirmada.
+   843	 */
+   844	export async function generateReservationPin(params: {
+   845	  tenantId: string;
+   846	  reservationId: string;
+   847	  roomName?: string;
+   848	  checkIn: Date;
+   849	  checkOut: Date;
+   850	  guestPhone?: string;
+   851	  guestName?: string;
+   852	}): Promise<{ success: boolean; passcode: string; status: string }> {
+   853	  const pseudoPin = Math.floor(100000 + Math.random() * 900000).toString();
+   854	  return {
+   855	    success: true,
+   856	    passcode: pseudoPin,
+   857	    status: 'ACCESS_CONFIRMED',
+   858	  };
+   859	}
+   860	
+   861	/**
+   862	 * Revoga todos os PINs associados a uma reserva cancelada/estornada (Segurança Física).
+   863	 */
+   864	export async function revokeReservationPins(
+   865	  tenantIdOrParams: string | { tenantId?: string; reservationId: string; reason?: string },
+   866	  reservationIdArg?: string,
+   867	  reasonArg: string = 'Reserva cancelada ou estornada'
+   868	): Promise<{ success: boolean; revokedCount: number; status: string }> {
+   869	  let tenantId = 'default';
+   870	  let reservationId: string;
+   871	  let reason = reasonArg;
+   872	
+   873	  if (typeof tenantIdOrParams === 'object' && tenantIdOrParams !== null) {
+   874	    tenantId = tenantIdOrParams.tenantId || 'default';
+   875	    reservationId = tenantIdOrParams.reservationId;
+   876	    reason = tenantIdOrParams.reason || reasonArg;
+   877	  } else {
+   878	    tenantId = tenantIdOrParams || 'default';
+   879	    reservationId = reservationIdArg!;
+   880	  }
+   881	
+   882	  const dbAvailable = await isDatabaseAvailable();
+   883	  if (!dbAvailable) {
+   884	    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+   885	  }
+   886	
+   887	  try {
+   888	    const codes = await (db as any).lockCode.findMany({
+   889	      where: {
+   890	        tenantId,
+   891	        reservationId,
+   892	        revokedAt: null,
+   893	      },
+   894	    });
+   895	
+   896	    let count = 0;
+   897	    for (const code of codes) {
+   898	      await revokePin(code.id, reason);
+   899	      count++;
+   900	    }
+   901	
+   902	    return { success: true, revokedCount: count, status: 'ACCESS_REVOKED' };
+   903	  } catch (err: any) {
+   904	    console.warn('[ORCHESTRATOR] Falha ao revogar PINs da reserva:', err);
+   905	    return { success: true, revokedCount: 0, status: 'ACCESS_REVOKED' };
+   906	  }
+   907	}
+   908	
+   909	/** Lista eventos de auditoria (LGPD). */
+   910	export async function listLockEvents(
+   911	  deviceId?: string,
+   912	  limit: number = 50,
+   913	): Promise<Array<{
+   914	  id: string;
+   915	  deviceId: string;
+   916	  codeId: string | null;
+   917	  eventType: string;
+   918	  message: string | null;
+   919	  createdAt: string;
+   920	}>> {
+   921	  const tenantId = await resolveTenantId();
+   922	  if (!tenantId) return [];
+   923	
+   924	  const dbAvailable = await isDatabaseAvailable();
+   925	  if (!dbAvailable) return [];
+   926	
+   927	  const where: Record<string, any> = { tenantId };
+   928	  if (deviceId) where.deviceId = deviceId;
+   929	
+   930	  const events = await db.lockEvent.findMany({
+   931	    where,
+   932	    orderBy: { createdAt: 'desc' },
+   933	    take: limit,
+   934	  });
+   935	
+   936	  return events.map((e: any) => ({
+   937	    id: e.id,
+   938	    deviceId: e.deviceId,
+   939	    codeId: e.codeId ?? null,
+   940	    eventType: e.eventType,
+   941	    message: e.message ?? null,
+   942	    createdAt: e.createdAt.toISOString(),
+   943	  }));
+   944	}
+   945	
+   946	// =============================================================================
+   947	// REMOTE UNLOCK — Destrava fechadura remotamente (apenas Nuki e August)
+   948	// =============================================================================
+   949	
+   950	export async function remoteUnlock(deviceId: string): Promise<{ success: boolean; error?: string }> {
+   951	  try {
+   952	    const device = await getLockDevice(deviceId);
+   953	    if (!device) {
+   954	      return { success: false, error: 'Dispositivo não encontrado' };
+   955	    }
+   956	
+   957	    if (device.providerType !== 'api') {
+   958	      return { success: false, error: 'Destravamento remoto não suportado para este tipo de fechadura' };
+   959	    }
+   960	
+   961	    // Verifica se provider suporta remoteUnlock
+   962	    const { getProviderModule } = await import('./providers');
+   963	    const providerModule = getProviderModule(device.brand as any);
+   964	    if (!providerModule || typeof (providerModule as any).remoteUnlock !== 'function') {
+   965	      return { success: false, error: `${device.brand} não suporta destravamento remoto` };
+   966	    }
+   967	
+   968	    // Chama remoteUnlock do provider
+   969	    await (providerModule as any).remoteUnlock(device.externalDeviceId || device.id);
+   970	
+   971	    // Registra evento
+   972	    try {
+   973	      await db.lockEvent.create({
+   974	        data: {
+   975	          deviceId,
+   976	          tenantId: device.tenantId,
+   977	          eventType: 'remote_unlock',
+   978	          message: 'Destravamento remoto via DDC',
+   979	        },
+   980	      });
+   981	    } catch {}
+   982	
+   983	    return { success: true };
+   984	  } catch (err: any) {
+   985	    console.error('[ORCHESTRATOR] remoteUnlock falhou:', err);
+   986	    return { success: false, error: err?.message ?? 'erro desconhecido' };
+   987	  }
+   988	}
+   989	
+   990	export async function remoteLock(
+   991	  input: string | { lockId: string; tenantId?: string; actor?: string }
+   992	): Promise<{ success: boolean; error?: string }> {
+   993	  try {
+   994	    const deviceId = typeof input === 'string' ? input : input.lockId;
+   995	    const actor = typeof input === 'object' ? input.actor : 'DDC';
+   996	    const device = await getLockDevice(deviceId);
+   997	    if (!device) {
+   998	      return { success: false, error: 'Dispositivo não encontrado' };
+   999	    }
+  1000	
+  1001	    if (device.providerType !== 'api') {
+  1002	      return { success: false, error: 'Travamento remoto não suportado para este tipo de fechadura' };
+  1003	    }
+  1004	
+  1005	    const { getProviderModule } = await import('./providers');
+  1006	    const providerModule = getProviderModule(device.brand as any);
+  1007	    if (!providerModule || typeof (providerModule as any).remoteLock !== 'function') {
+  1008	      // Fallback gracioso caso provider só suporte unlock via API
+  1009	      try {
+  1010	        await db.lockEvent.create({
+  1011	          data: {
+  1012	            deviceId,
+  1013	            tenantId: device.tenantId,
+  1014	            eventType: 'remote_lock',
+  1015	            message: `Travamento remoto solicitado por ${actor || 'DDC'}`,
+  1016	          },
+  1017	        });
+  1018	      } catch {}
+  1019	      return { success: true };
+  1020	    }
+  1021	
+  1022	    await (providerModule as any).remoteLock(device.externalDeviceId || device.id);
+  1023	
+  1024	    try {
+  1025	      await db.lockEvent.create({
+  1026	        data: {
+  1027	          deviceId,
+  1028	          tenantId: device.tenantId,
+  1029	          eventType: 'remote_lock',
+  1030	          message: `Travamento remoto via ${actor || 'DDC'}`,
+  1031	        },
+  1032	      });
+  1033	    } catch {}
+  1034	
+  1035	    return { success: true };
+  1036	  } catch (err: any) {
+  1037	    console.error('[ORCHESTRATOR] remoteLock falhou:', err);
+  1038	    return { success: false, error: err?.message ?? 'erro desconhecido' };
+  1039	  }
+  1040	}
+  1041	
+  1042	export class LockOrchestrator {
+  1043	  static remoteLock = async (params: string | { lockId: string; tenantId: string; actor?: string }) => {
+  1044	    return remoteLock(params);
+  1045	  };
+  1046	
+  1047	  static remoteUnlock = async (params: string | { lockId: string; tenantId: string; actor?: string }) => {
+  1048	    const deviceId = typeof params === 'string' ? params : params.lockId;
+  1049	    return remoteUnlock(deviceId);
+  1050	  };
+  1051	}
+  1052	
+  1053	// =============================================================================
+  1054	// Dados demo (quando DB não está disponível — modo Vercel serverless)
+  1055	// =============================================================================
+  1056	
+  1057	function getDemoDevices(): LockDeviceData[] {
+  1058	  return [
+  1059	    {
+  1060	      id: 'demo-lock-1',
+  1061	      tenantId: 'demo',
+  1062	      propertyId: 'demo-prop-1',
+  1063	      propertyType: 'pousada',
+  1064	      nickname: 'Suíte Master 104',
+  1065	      location: 'Porta frontal',
+  1066	      brand: 'ttlock',
+  1067	      model: 'TTLock X15',
+  1068	      providerType: 'api',
+  1069	      externalDeviceId: null,
+  1070	      oauthAccountId: null,
+  1071	      serialNumber: 'TTL2024X15-001',
+  1072	      status: 'active',
+  1073	      batteryLevel: 87,
+  1074	      online: true,
+  1075	      lastSeenAt: new Date(Date.now() - 3600000).toISOString(),
+  1076	      metadata: {},
+  1077	      notes: 'Fechadura principal da suíte premium',
+  1078	      createdAt: new Date(Date.now() - 86400000 * 30).toISOString(),
+  1079	      updatedAt: new Date(Date.now() - 3600000).toISOString(),
+  1080	      _count: { codes: 12, activeCodes: 2 },
+  1081	    },
+  1082	    {
+  1083	      id: 'demo-lock-2',
+  1084	      tenantId: 'demo',
+  1085	      propertyId: 'demo-prop-1',
+  1086	      propertyType: 'pousada',
+  1087	      nickname: 'Suíte Standby 102',
+  1088	      location: 'Porta frontal',
+  1089	      brand: 'intelbras',
+  1090	      model: 'Intelbras FR 1100',
+  1091	      providerType: 'manual',
+  1092	      externalDeviceId: null,
+  1093	      oauthAccountId: null,
+  1094	      serialNumber: 'INT2024FR1100-002',
+  1095	      status: 'active',
+  1096	      batteryLevel: 92,
+  1097	      online: false,
+  1098	      lastSeenAt: new Date(Date.now() - 86400000).toISOString(),
+  1099	      metadata: {},
+  1100	      notes: 'Fechadura manual — host cola PIN do app Intelbras',
+  1101	      createdAt: new Date(Date.now() - 86400000 * 60).toISOString(),
+  1102	      updatedAt: new Date(Date.now() - 86400000).toISOString(),
+  1103	      _count: { codes: 8, activeCodes: 1 },
+  1104	    },
+  1105	    {
+  1106	      id: 'demo-lock-3',
+  1107	      tenantId: 'demo',
+  1108	      propertyId: 'demo-prop-1',
+  1109	      propertyType: 'pousada',
+  1110	      nickname: 'Portão Lateral',
+  1111	      location: 'Acesso externo',
+  1112	      brand: 'igloohome',
+  1113	      model: 'Igloohome Deadbolt 2S',
+  1114	      providerType: 'api',
+  1115	      externalDeviceId: null,
+  1116	      oauthAccountId: null,
+  1117	      serialNumber: 'IGL2024DB2S-003',
+  1118	      status: 'active',
+  1119	      batteryLevel: 65,
+  1120	      online: true,
+  1121	      lastSeenAt: new Date(Date.now() - 7200000).toISOString(),
+  1122	      metadata: {},
+  1123	      notes: 'Único PIN offline real do mercado',
+  1124	      createdAt: new Date(Date.now() - 86400000 * 15).toISOString(),
+  1125	      updatedAt: new Date(Date.now() - 7200000).toISOString(),
+  1126	      _count: { codes: 5, activeCodes: 1 },
+  1127	    },
+  1128	  ];
+  1129	}
+  1130	
+  1131	function getDemoPins(deviceId: string): LockCodeData[] {
+  1132	  const now = Date.now();
+  1133	  const day = 86400000;
+  1134	  return [
+  1135	    {
+  1136	      id: `demo-pin-${deviceId}-1`,
+  1137	      deviceId,
+  1138	      tenantId: 'demo',
+  1139	      guestName: 'João Silva',
+  1140	      guestPhone: '+5511999990001',
+  1141	      bookingId: 'BK-001',
+  1142	      code: '4821#',
+  1143	      codeType: 'online_pin',
+  1144	      source: 'api',
+  1145	      validFrom: new Date(now - 3600000).toISOString(),
+  1146	      validTo: new Date(now + day).toISOString(),
+  1147	      usedAt: null,
+  1148	      revokedAt: null,
+  1149	      revokedReason: null,
+  1150	      deliveredVia: 'whatsapp',
+  1151	      deliveredAt: new Date(now - 7200000).toISOString(),
+  1152	      status: 'active',
+  1153	      note: 'Check-in 14h / Check-out 11h',
+  1154	      createdAt: new Date(now - 7200000).toISOString(),
+  1155	    },
+  1156	    {
+  1157	      id: `demo-pin-${deviceId}-2`,
+  1158	      deviceId,
+  1159	      tenantId: 'demo',
+  1160	      guestName: 'Maria Souza',
+  1161	      guestPhone: '+5511999990002',
+  1162	      bookingId: 'BK-002',
+  1163	      code: '7729',
+  1164	      codeType: 'manual',
+  1165	      source: 'manual',
+  1166	      validFrom: new Date(now + 3600000).toISOString(),
+  1167	      validTo: new Date(now + day * 2).toISOString(),
+  1168	      usedAt: null,
+  1169	      revokedAt: null,
+  1170	      revokedReason: null,
+  1171	      deliveredVia: 'whatsapp',
+  1172	      deliveredAt: new Date(now - 3600000).toISOString(),
+  1173	      status: 'scheduled',
+  1174	      note: 'Check-in amanhã 14h',
+  1175	      createdAt: new Date(now - 3600000).toISOString(),
+  1176	    },
+  1177	    {
+  1178	      id: `demo-pin-${deviceId}-3`,
+  1179	      deviceId,
+  1180	      tenantId: 'demo',
+  1181	      guestName: 'Carlos Lima',
+  1182	      guestPhone: '+5511999990003',
+  1183	      bookingId: 'BK-003',
+  1184	      code: '1193#',
+  1185	      codeType: 'online_pin',
+  1186	      source: 'api',
+  1187	      validFrom: new Date(now - day * 2).toISOString(),
+  1188	      validTo: new Date(now - day).toISOString(),
+  1189	      usedAt: new Date(now - day * 1.5).toISOString(),
+  1190	      revokedAt: null,
+  1191	      revokedReason: null,
+  1192	      deliveredVia: 'whatsapp',
+  1193	      deliveredAt: new Date(now - day * 2).toISOString(),
+  1194	      status: 'used',
+  1195	      note: 'Hóspede já fez check-out',
+  1196	      createdAt: new Date(now - day * 2).toISOString(),
+  1197	    },
+  1198	  ];
+  1199	}
+
+===== [M3] src/lib/security/cron-secret.ts (COMPLETO) =====
+     125 src/lib/security/cron-secret.ts
+     1	// ============================================================
+     2	// ZEHLA — Cron Secret Verification (simple shared-secret)
+     3	// ============================================================
+     4	//
+     5	// Helper SIMPLIFICADO para validar requisições cron via CRON_SECRET.
+     6	// Não substitui o cron-auth.ts (M2M Ed25519) — é um fallback prático
+     7	// para proteção básica quando chaves M2M não estão configuradas.
+     8	//
+     9	// Padrões suportados:
+    10	//   1. Header Authorization: Bearer <CRON_SECRET>
+    11	//   2. Header x-internal-token: <CRON_SECRET>
+    12	//   3. Query ?secret=<CRON_SECRET>
+    13	//
+    14	// Em desenvolvimento (NODE_ENV !== 'production' E sem CRON_SECRET configurado):
+    15	//   - Permite acesso (para teste manual via curl)
+    16	//
+    17	// Em produção SEM CRON_SECRET configurado:
+    18	//   - Rejeita com 503 Service Unavailable (fail-closed)
+    19	//
+    20	// Uso:
+    21	//   import { verifyCronSecret } from '@/lib/security/cron-secret';
+    22	//
+    23	//   export async function GET(req: NextRequest) {
+    24	//     const auth = verifyCronSecret(req);
+    25	//     if (!auth.ok) return auth.response;
+    26	//     // ... lógica do cron
+    27	//   }
+    28	// ============================================================
+    29	
+    30	import { NextRequest, NextResponse } from 'next/server';
+    31	import crypto from 'crypto';
+    32	
+    33	export interface CronAuthResult {
+    34	  ok: boolean;
+    35	  response?: NextResponse;
+    36	  source?: 'bearer' | 'header' | 'query' | 'dev-bypass';
+    37	}
+    38	
+    39	/**
+    40	 * Valida o secret do cron job.
+    41	 * Em dev sem CRON_SECRET: permite (para teste manual).
+    42	 * Em produção sem CRON_SECRET: rejeita com 503.
+    43	 * Em produção com CRON_SECRET: valida via timing-safe comparison.
+    44	 */
+    45	export function verifyCronSecret(req: NextRequest): CronAuthResult {
+    46	  const cronSecret = process.env.CRON_SECRET;
+    47	  const isProduction = process.env.NODE_ENV === 'production';
+    48	
+    49	  // Dev bypass: sem CRON_SECRET configurado, permite em desenvolvimento
+    50	  if (!cronSecret && !isProduction) {
+    51	    return { ok: true, source: 'dev-bypass' };
+    52	  }
+    53	
+    54	  // Produção sem secret configurado → fail-closed
+    55	  if (!cronSecret && isProduction) {
+    56	    console.error('[cron-secret] CRÍTICO: CRON_SECRET não configurado em produção. Rejeitando requisição.');
+    57	    return {
+    58	      ok: false,
+    59	      response: NextResponse.json(
+    60	        {
+    61	          error: 'service_unavailable',
+    62	          message: 'CRON_SECRET não configurado. Configure a env var no Vercel.',
+    63	        },
+    64	        { status: 503 }
+    65	      ),
+    66	    };
+    67	  }
+    68	
+    69	  // Tenta header Authorization: Bearer <secret>
+    70	  const authHeader = req.headers.get('authorization');
+    71	  if (authHeader?.startsWith('Bearer ')) {
+    72	    const token = authHeader.slice(7);
+    73	    if (timingSafeEqual(token, cronSecret!)) {
+    74	      return { ok: true, source: 'bearer' };
+    75	    }
+    76	  }
+    77	
+    78	  // Tenta header x-internal-token
+    79	  const internalToken = req.headers.get('x-internal-token');
+    80	  if (internalToken && timingSafeEqual(internalToken, cronSecret!)) {
+    81	    return { ok: true, source: 'header' };
+    82	  }
+    83	
+    84	  // Tenta query ?secret= — com encadeamento opcional para compatibilidade com Request padrão
+    85	  let querySecret: string | null = null;
+    86	  try {
+    87	    // NextRequest tem nextUrl; Request padrão não tem
+    88	    if (req.nextUrl?.searchParams) {
+    89	      querySecret = req.nextUrl.searchParams.get('secret');
+    90	    } else if (req.url) {
+    91	      const url = new URL(req.url);
+    92	      querySecret = url.searchParams.get('secret');
+    93	    }
+    94	  } catch {
+    95	    // Se não conseguir parsear URL, ignora silenciosamente
+    96	  }
+    97	  if (querySecret && timingSafeEqual(querySecret, cronSecret!)) {
+    98	    return { ok: true, source: 'query' };
+    99	  }
+   100	
+   101	  // Rejeita silenciosamente (não revela motivo) — payload padronizado
+   102	  return {
+   103	    ok: false,
+   104	    response: NextResponse.json(
+   105	      { error: 'UNAUTHORIZED', code: 'UNAUTHORIZED' },
+   106	      { status: 401, headers: { 'WWW-Authenticate': 'Bearer' } }
+   107	    ),
+   108	  };
+   109	}
+   110	
+   111	function timingSafeEqual(a: string, b: string): boolean {
+   112	  const bufA = Buffer.from(a);
+   113	  const bufB = Buffer.from(b);
+   114	  if (bufA.length !== bufB.length) return false;
+   115	  return crypto.timingSafeEqual(bufA, bufB);
+   116	}
+   117	
+   118	/**
+   119	 * Helper para verificar Vercel Cron (envia header Authorization: Bearer <CRON_SECRET>)
+   120	 * https://vercel.com/docs/cron-jobs#securing-cron-jobs
+   121	 */
+   122	export function verifyVercelCron(req: NextRequest): CronAuthResult {
+   123	  // Vercel Cron envia Authorization: Bearer <CRON_SECRET>
+   124	  return verifyCronSecret(req);
+   125	}
+
+===== [M4] src/lib/payments/gateway-factory.ts (COMPLETO) =====
+      95 src/lib/payments/gateway-factory.ts
+     1	// ==============================================================================
+     2	// SEUZÉLLA — Payment Gateway Factory
+     3	// Production payment scope: Asaas + Mercado Pago.
+     4	// Mock remains available for development/testing only.
+     5	// ==============================================================================
+     6	
+     7	import type { CreatePaymentInput, CreatePaymentResult, GatewayId, IPaymentGateway, PaymentStatus, WebhookEvent } from './types';
+     8	import { PaymentGatewayError } from './types';
+     9	import { MercadoPagoGateway } from './providers/mercadopago';
+    10	import { AsaasGateway } from './providers/asaas';
+    11	
+    12	const gatewayInstances: Partial<Record<GatewayId, IPaymentGateway>> = {};
+    13	
+    14	function getGatewayInstance(id: GatewayId): IPaymentGateway {
+    15	  if (gatewayInstances[id]) return gatewayInstances[id]!;
+    16	  let instance: IPaymentGateway;
+    17	  switch (id) {
+    18	    case 'mercadopago': instance = new MercadoPagoGateway(); break;
+    19	    case 'asaas': instance = new AsaasGateway(); break;
+    20	    case 'mock': instance = new MockGateway(); break;
+    21	    default: throw new PaymentGatewayError(`Unknown gateway: ${id}`, id, 'UNKNOWN_GATEWAY');
+    22	  }
+    23	  gatewayInstances[id] = instance;
+    24	  return instance;
+    25	}
+    26	
+    27	export function getGateway(id: GatewayId): IPaymentGateway { return getGatewayInstance(id); }
+    28	
+    29	const PREFERENCE_ORDER: GatewayId[] = ['asaas', 'mercadopago'];
+    30	
+    31	export function getDefaultGateway(): IPaymentGateway {
+    32	  const envGateway = process.env.DEFAULT_PAYMENT_GATEWAY as GatewayId | undefined;
+    33	  if (envGateway && ['asaas', 'mercadopago'].includes(envGateway)) {
+    34	    const gateway = getGatewayInstance(envGateway);
+    35	    if (gateway.isConfigured()) return gateway;
+    36	  }
+    37	  for (const id of PREFERENCE_ORDER) {
+    38	    const gateway = getGatewayInstance(id);
+    39	    if (gateway.isConfigured()) return gateway;
+    40	  }
+    41	  return getGatewayInstance('mock');
+    42	}
+    43	
+    44	class MockGateway implements IPaymentGateway {
+    45	  readonly id = 'mock' as const;
+    46	  isConfigured(): boolean { return true; }
+    47	
+    48	  async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+    49	    return {
+    50	      gateway: 'mock',
+    51	      gatewayPaymentId: `mock_${input.referenceType}_${input.referenceId}_${Date.now()}`,
+    52	      status: 'approved',
+    53	      checkoutUrl: `${input.successUrl}${input.successUrl.includes('?') ? '&' : '?'}mock=1`,
+    54	      raw: { mock: true, input },
+    55	    };
+    56	  }
+    57	
+    58	  async getPaymentStatus(): Promise<PaymentStatus> { return 'approved'; }
+    59	  async verifyWebhook(): Promise<boolean> { return true; }
+    60	
+    61	  async parseWebhookEvent(payload: string | Buffer): Promise<WebhookEvent> {
+    62	    const body = JSON.parse(typeof payload === 'string' ? payload : payload.toString('utf8')) as Record<string, unknown>;
+    63	    const referenceId = String(body?.referenceId ?? body?.subscriptionId ?? '');
+    64	    return {
+    65	      gateway: 'mock',
+    66	      providerEventId: String(body?.eventId ?? body?.id ?? `mock-event-${Date.now()}`),
+    67	      event: String(body?.event ?? 'mock.event'),
+    68	      gatewayPaymentId: String(body?.paymentId ?? `mock_${Date.now()}`),
+    69	      referenceId,
+    70	      referenceType: body?.referenceType === 'reservation' ? 'reservation' : 'subscription',
+    71	      subscriptionId: body?.subscriptionId ? String(body.subscriptionId) : undefined,
+    72	      status: 'approved',
+    73	      amount: typeof body?.amount === 'number' ? body.amount : undefined,
+    74	      receivedAt: new Date().toISOString(),
+    75	      raw: body,
+    76	    };
+    77	  }
+    78	}
+    79	
+    80	export function listConfiguredGateways(): GatewayId[] {
+    81	  const configured: GatewayId[] = [];
+    82	  for (const id of PREFERENCE_ORDER) if (getGatewayInstance(id).isConfigured()) configured.push(id);
+    83	  return configured;
+    84	}
+    85	
+    86	export function getGatewayHealth(): Record<GatewayId, { configured: boolean; isDefault: boolean }> {
+    87	  const def = getDefaultGateway();
+    88	  const result: Record<string, { configured: boolean; isDefault: boolean }> = {};
+    89	  for (const id of PREFERENCE_ORDER) {
+    90	    const gateway = getGatewayInstance(id);
+    91	    result[id] = { configured: gateway.isConfigured(), isDefault: gateway.id === def.id };
+    92	  }
+    93	  result.mock = { configured: true, isDefault: def.id === 'mock' };
+    94	  return result as Record<GatewayId, { configured: boolean; isDefault: boolean }>;
+    95	}
+
+===== [M5] src/lib/payments/process-reservation-webhook.ts (caller F-06) =====
+     223 src/lib/payments/process-reservation-webhook.ts
+     1	import { randomUUID } from 'crypto';
+     2	import { db } from '@/lib/db';
+     3	import {
+     4	  activateReservationAccess,
+     5	  createReservationPaymentConfirmationNotification,
+     6	  createReservationRefundNotification,
+     7	  writeReversalTransaction,
+     8	} from './reservation-payment-effects';
+     9	import { revokeReservationPins } from '@/lib/locks/orchestrator';
+    10	import { bridgePaymentEvent } from '@/lib/notifications/bridges';
+    11	import { validatePaymentWebhookTransition } from './webhook-transition';
+    12	import type { WebhookEvent } from './types';
+    13	
+    14	export async function processReservationPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; reservationId: string }> {
+    15	  const reservationId = event.referenceId || event.subscriptionId || '';
+    16	  if (!event.providerEventId) throw new Error('RESERVATION_PAYMENT_EVENT_ID_MISSING');
+    17	  if (!reservationId) throw new Error('RESERVATION_PAYMENT_REFERENCE_ID_MISSING');
+    18	
+    19	  const result = await db.$transaction(async (tx) => {
+    20	    const lockKey = `reservation-payment-event:${event.gateway}:${event.providerEventId}`;
+    21	    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+    22	
+    23	    const duplicate = await tx.$queryRaw<Array<{ id: string }>>`
+    24	      SELECT "id" FROM "reservation_payments"
+    25	      WHERE "gateway" = ${event.gateway}
+    26	        AND "provider_event_id" = ${event.providerEventId}
+    27	      LIMIT 1
+    28	    `;
+    29	    if (duplicate[0]) {
+    30	      return {
+1-import { randomUUID } from 'crypto';
+2-import { db } from '@/lib/db';
+3-import {
+4-  activateReservationAccess,
+5-  createReservationPaymentConfirmationNotification,
+6-  createReservationRefundNotification,
+7-  writeReversalTransaction,
+8-} from './reservation-payment-effects';
+9:import { revokeReservationPins } from '@/lib/locks/orchestrator';
+10-import { bridgePaymentEvent } from '@/lib/notifications/bridges';
+11-import { validatePaymentWebhookTransition } from './webhook-transition';
+12-import type { WebhookEvent } from './types';
+13-
+14-export async function processReservationPaymentWebhookEvent(event: WebhookEvent): Promise<{ deduplicated: boolean; reservationId: string }> {
+15-  const reservationId = event.referenceId || event.subscriptionId || '';
+16-  if (!event.providerEventId) throw new Error('RESERVATION_PAYMENT_EVENT_ID_MISSING');
+17-  if (!reservationId) throw new Error('RESERVATION_PAYMENT_REFERENCE_ID_MISSING');
+18-
+19-  const result = await db.$transaction(async (tx) => {
+20-    const lockKey = `reservation-payment-event:${event.gateway}:${event.providerEventId}`;
+21-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+22-
+23-    const duplicate = await tx.$queryRaw<Array<{ id: string }>>`
+24-      SELECT "id" FROM "reservation_payments"
+25-      WHERE "gateway" = ${event.gateway}
+26-        AND "provider_event_id" = ${event.providerEventId}
+27-      LIMIT 1
+28-    `;
+29-    if (duplicate[0]) {
+30-      return {
+31-        deduplicated: true,
+32-        reservationId,
+33-        tenantId: '',
+34-        guestName: '',
+35-        guestPhone: '',
+36-        checkIn: new Date(0),
+37-        checkOut: new Date(0),
+38-        newlyApproved: false,
+39-        newlyRefunded: false,
+40-      };
+41-    }
+42-
+43-    const reservation = await tx.reservation.findUnique({
+44-      where: { id: reservationId },
+45-      select: {
+46-        id: true,
+47-        tenantId: true,
+48-        checkIn: true,
+49-        checkOut: true,
+50-        status: true,
+51-        guest: { select: { name: true, phone: true } },
+52-      },
+53-    });
+54-    if (!reservation) throw new Error('RESERVATION_NOT_FOUND');
+55-
+56-    const rows = await tx.$queryRaw<Array<{ id: string; status: string }>>`
+57-      SELECT "id", "status" FROM "reservation_payments"
+58-      WHERE "reservation_id" = ${reservation.id}
+59-        AND "gateway" = ${event.gateway}
+--
+174-        guestPhone: result.guestPhone || undefined,
+175-        checkIn: result.checkIn,
+176-        checkOut: result.checkOut,
+177-      });
+178-    } catch (accessError) {
+179-      console.error('[RESERVATION_PAYMENT] lock access automation failed:', accessError);
+180-    }
+181-  }
+182-
+183-  // C4.2 & C4.4: Revogação de Acesso Físico (PINs) e Notificações de Estorno
+184-  if (!result.deduplicated && result.newlyRefunded) {
+185-    try {
+186:      await revokeReservationPins({
+187-        tenantId: result.tenantId,
+188-        reservationId: result.reservationId,
+189-        reason: `Pagamento ${event.status === 'refunded' ? 'estornado' : 'cancelado'} via webhook ${event.gateway}`,
+190-      });
+191-    } catch (pinError) {
+192-      console.warn('[RESERVATION_PAYMENT] PIN revocation warning:', pinError);
+193-    }
+194-
+195-    try {
+196-      await createReservationRefundNotification({
+197-        tenantId: result.tenantId,
+198-        reservationId: result.reservationId,
+199-        guestName: result.guestName,
+200-        amount: event.amount ?? 0,
+201-        gateway: event.gateway,
+202-        reason: event.status === 'refunded' ? 'refund' : 'cancellation',
+203-      });
+204-    } catch (notificationError) {
+205-      console.error('[RESERVATION_PAYMENT] refund notification failed:', notificationError);
+206-    }
+207-
+208-    try {
+209-      bridgePaymentEvent({
+210-        niche: 'all',
+211-        paymentId: event.providerEventId,
+212-        amount: event.amount ?? 0,
+213-        guestName: result.guestName,
+214-        status: 'refunded',
+215-        tenantId: result.tenantId,
+216-      });
+217-    } catch (bridgeError) {
+218-      console.error('[RESERVATION_PAYMENT] bridgePaymentEvent error:', bridgeError);
+219-    }
+220-  }
+221-
+222-  return { deduplicated: result.deduplicated, reservationId: result.reservationId };
+223-}
+
+===== [M6] src/app/api/zcc/github/expiry-check/route.ts (COMPLETO) =====
+      45 src/app/api/zcc/github/expiry-check/route.ts
+     1	/**
+     2	 * API: Check PAT expiry (chamado por cron diário)
+     3	 *
+     4	 * GET /api/zcc/github/expiry-check
+     5	 *   (sem params — verifica todas as credenciais ativas)
+     6	 *
+     7	 * Retorna lista de credenciais expirando em < 14 dias e auto-revogadas.
+     8	 * Em modo produção, este endpoint deve ser protegido por CRON_SECRET.
+     9	 */
+    10	
+    11	import { NextRequest, NextResponse } from 'next/server';
+    12	import { checkPatExpiry } from '@/lib/github/pat-vault';
+    13	
+    14	export async function GET(req: NextRequest) {
+    15	  // Em produção, exige CRON_SECRET
+    16	  if (process.env.NODE_ENV === 'production') {
+    17	    const url = new URL(req.url);
+    18	    const secret = url.searchParams.get('secret') || req.headers.get('X-Cron-Secret');
+    19	    if (secret !== process.env.CRON_SECRET) {
+    20	      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    21	    }
+    22	  }
+    23	
+    24	  try {
+    25	    const result = await checkPatExpiry();
+    26	
+    27	    // Em produção, poderia disparar alertas via AlertBus aqui
+    28	    // Por ora, apenas retorna para o cron processar
+    29	
+    30	    return NextResponse.json({
+    31	      timestamp: new Date().toISOString(),
+    32	      expiringSoon: result.expiringSoon,
+    33	      expired: result.expired,
+    34	      autoRevoked: result.autoRevoked,
+    35	      summary: {
+    36	        expiringSoonCount: result.expiringSoon.length,
+    37	        expiredCount: result.expired.length,
+    38	        autoRevokedCount: result.autoRevoked.length,
+    39	      },
+    40	    });
+    41	  } catch (err: any) {
+    42	    console.error('[expiry-check] error:', err);
+    43	    return NextResponse.json({ error: err.message }, { status: 500 });
+    44	  }
+    45	}
+
+===== [M7] INVENTARIO C3: routes cron-secret + usos =====
+src/app/api/cron/lembrete-checkin/route.ts
+src/app/api/cron/nps-checkout/route.ts
+src/app/api/cron/housekeeping-dispatch/route.ts
+src/app/api/cron/payment-confirmation/route.ts
+src/app/api/cron/ical-sync/route.ts
+
+===== [M8] tests/security/tenant-isolation-adversarial.test.ts (regioes) =====
+     332 tests/security/tenant-isolation-adversarial.test.ts
+--- linhas 1-100 (imports/mocks) ---
+     1	/**
+     2	 * Tenant Isolation Adversarial Certification
+     3	 * ============================================================================
+     4	 *
+     5	 * Valida QUEBRANDO (não source-level) que tenant A não consegue acessar
+     6	 * dados de tenant B. Cada teste simula um ataque real.
+     7	 *
+     8	 * Estratégia: mock do resolveTenantId alternando entre tenant_A e tenant_B.
+     9	 * Cada query é executada como tenant_A tentando ler/escrever dados de tenant_B.
+    10	 *
+    11	 * Se QUALQUER teste passar (retornar dados de B), o sistema está comprometido.
+    12	 */
+    13	
+    14	import { describe, expect, it, beforeEach, vi } from 'vitest';
+    15	
+    16	// Mock resolveTenantId to return tenant_A
+    17	vi.mock('@/lib/ddc/auth-utils', () => ({
+    18	  resolveTenantId: vi.fn().mockResolvedValue('tenant_A'),
+    19	  mapConversation: vi.fn(),
+    20	}));
+    21	
+    22	// Mock db with tenant-filtered data
+    23	vi.mock('@/lib/db', () => { const mockDb = {
+    24	  lockDevice: {
+    25	    findMany: vi.fn(({ where }) => {
+    26	      const data = [
+    27	        { id: 'lock_A1', tenantId: 'tenant_A', nickname: 'Quarto 101' },
+    28	        { id: 'lock_A2', tenantId: 'tenant_A', nickname: 'Quarto 102' },
+    29	        { id: 'lock_B1', tenantId: 'tenant_B', nickname: 'Suite Premium' },
+    30	        { id: 'lock_B2', tenantId: 'tenant_B', nickname: 'Chalé' },
+    31	      ];
+    32	      const filtered = data.filter(d => d.tenantId === where?.tenantId);
+    33	      return Promise.resolve(filtered);
+    34	    }),
+    35	    findFirst: vi.fn(({ where }) => {
+    36	      const data = [
+    37	        { id: 'lock_A1', tenantId: 'tenant_A', nickname: 'Quarto 101' },
+    38	        { id: 'lock_B1', tenantId: 'tenant_B', nickname: 'Suite Premium' },
+    39	      ];
+    40	      const result = data.find(d => d.id === where?.id);
+    41	      // CRITICAL: if tenantId is in where, filter by it
+    42	      if (where?.tenantId && result && result.tenantId !== where.tenantId) {
+    43	        return Promise.resolve(null); // denied
+    44	      }
+    45	      return Promise.resolve(result ?? null);
+    46	    }),
+    47	    count: vi.fn(({ where }) => {
+    48	      const data = [
+    49	        { id: 'lock_A1', tenantId: 'tenant_A' },
+    50	        { id: 'lock_A2', tenantId: 'tenant_A' },
+    51	        { id: 'lock_B1', tenantId: 'tenant_B' },
+    52	        { id: 'lock_B2', tenantId: 'tenant_B' },
+    53	      ];
+    54	      return Promise.resolve(data.filter(d => d.tenantId === where?.tenantId).length);
+    55	    }),
+    56	  },
+    57	  guest: {
+    58	    findMany: vi.fn(({ where }) => {
+    59	      const data = [
+    60	        { id: 'guest_A1', tenantId: 'tenant_A', name: 'Maria' },
+    61	        { id: 'guest_B1', tenantId: 'tenant_B', name: 'João' },
+    62	      ];
+    63	      return Promise.resolve(data.filter(d => d.tenantId === where?.tenantId));
+    64	    }),
+    65	    findFirst: vi.fn(({ where }) => {
+    66	      const data = [
+    67	        { id: 'guest_A1', tenantId: 'tenant_A', name: 'Maria' },
+    68	        { id: 'guest_B1', tenantId: 'tenant_B', name: 'João' },
+    69	      ];
+    70	      const result = data.find(d => d.id === where?.id);
+    71	      if (where?.tenantId && result && result.tenantId !== where.tenantId) {
+    72	        return Promise.resolve(null);
+    73	      }
+    74	      return Promise.resolve(result ?? null);
+    75	    }),
+    76	  },
+    77	  booking: {
+    78	    findMany: vi.fn(({ where }) => {
+    79	      const data = [
+    80	        { id: 'booking_A1', tenantId: 'tenant_A', guestName: 'Maria' },
+    81	        { id: 'booking_B1', tenantId: 'tenant_B', guestName: 'João' },
+    82	      ];
+    83	      return Promise.resolve(data.filter(d => d.tenantId === where?.tenantId));
+    84	    }),
+    85	    create: vi.fn(({ data }) => {
+    86	      // CRITICAL: if creating with wrong tenantId, reject
+    87	      if (data.tenantId === 'tenant_A' && data.guestId === 'guest_B1') {
+    88	        throw new Error('TENANT_MISMATCH');
+    89	      }
+    90	      return Promise.resolve({ ...data, id: 'booking_new' });
+    91	    }),
+    92	  },
+    93	  transaction: {
+    94	    findMany: vi.fn(({ where }) => {
+    95	      const data = [
+    96	        { id: 'tx_A1', tenantId: 'tenant_A', amount: 197 },
+    97	        { id: 'tx_B1', tenantId: 'tenant_B', amount: 397 },
+    98	      ];
+    99	      return Promise.resolve(data.filter(d => d.tenantId === where?.tenantId));
+   100	    }),
+--- linhas 235-315 (regiao warning) ---
+   235	      expect(subs).toHaveLength(1);
+   236	      expect(subs.find(s => s.tenantId === 'tenant_B')).toBeUndefined();
+   237	      expect(subs[0].planType).toBe('pro'); // tenant_A's plan
+   238	    });
+   239	  });
+   240	
+   241	  describe('Symmetric — tenant_B cannot access tenant_A', () => {
+   242	    it('tenant_B CANNOT list tenant_A locks', async () => {
+   243	      vi.mocked(resolveTenantId).mockResolvedValue('tenant_B');
+   244	      const tenantId = await resolveTenantId();
+   245	
+   246	      const locks = await db.lockDevice.findMany({ where: { tenantId: tenantId! } });
+   247	
+   248	      expect(locks).toHaveLength(2);
+   249	      expect(locks.every(l => l.tenantId === 'tenant_B')).toBe(true);
+   250	      expect(locks.find(l => l.tenantId === 'tenant_A')).toBeUndefined();
+   251	    });
+   252	
+   253	    it('tenant_B CANNOT read tenant_A guest by ID', async () => {
+   254	      vi.mocked(resolveTenantId).mockResolvedValue('tenant_B');
+   255	      const tenantId = await resolveTenantId();
+   256	
+   257	      const guest = await db.guest.findFirst({
+   258	        where: { id: 'guest_A1', tenantId: tenantId! },
+   259	      });
+   260	
+   261	      expect(guest).toBeNull();
+   262	    });
+   263	  });
+   264	
+   265	  describe('Unauthenticated — no tenantId', () => {
+   266	    it('without tenantId, findMany returns empty', async () => {
+   267	      vi.mocked(resolveTenantId).mockResolvedValue(null);
+   268	
+   269	      const locks = await db.lockDevice.findMany({ where: {} });
+   270	
+   271	      // Without tenantId filter, ALL locks are returned
+   272	      // This is the RISK — the mock returns all if no tenantId
+   273	      // In production, resolveTenantId returns null → route returns 401 BEFORE db query
+   274	      expect(resolveTenantId()).resolves.toBeNull();
+   275	    });
+   276	  });
+   277	});
+   278	
+   279	describe('🔒 Tenant Isolation — source contracts', () => {
+   280	  it('resolveTenantId is used in ALL critical mutation routes', () => {
+   281	    const fs = require('fs');
+   282	    const path = require('path');
+   283	
+   284	    const criticalRoutes = [
+   285	      'src/app/api/ddc/locks/route.ts',
+   286	      'src/app/api/ddc/locks/[id]/route.ts',
+   287	      'src/app/api/ddc/locks/[id]/pins/route.ts',
+   288	      'src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts',
+   289	      'src/app/api/ddc/locks/[id]/unlock/route.ts',
+   290	      'src/app/api/ddc/locks/[id]/panic-revoke/route.ts',
+   291	      'src/app/api/ddc/guests/route.ts',
+   292	      'src/app/api/ddc/guests/[id]/route.ts',
+   293	      'src/app/api/ddc/bookings/route.ts',
+   294	      'src/app/api/ddc/housekeeping/route.ts',
+   295	    ];
+   296	
+   297	    for (const route of criticalRoutes) {
+   298	      const source = fs.readFileSync(path.resolve(process.cwd(), route), 'utf8');
+   299	      expect(
+   300	        source,
+   301	        `${route} must use resolveTenantId()`
+   302	      ).toContain('resolveTenantId');
+   303	    }
+   304	  });
+   305	
+   306	  it('tenant-prisma.ts has TENANT_MODELS with at least 30 entries', () => {
+   307	    const fs = require('fs');
+   308	    const path = require('path');
+   309	    const source = fs.readFileSync(
+   310	      path.resolve(process.cwd(), 'src/lib/db/tenant-prisma.ts'),
+   311	      'utf8'
+   312	    );
+   313	
+   314	    // Count entries in TENANT_MODELS array
+   315	    const match = source.match(/const TENANT_MODELS = \[([\s\S]*?)\]/);
+--- ultimas 50 linhas (fim, para append T1) ---
+   283	
+   284	    const criticalRoutes = [
+   285	      'src/app/api/ddc/locks/route.ts',
+   286	      'src/app/api/ddc/locks/[id]/route.ts',
+   287	      'src/app/api/ddc/locks/[id]/pins/route.ts',
+   288	      'src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts',
+   289	      'src/app/api/ddc/locks/[id]/unlock/route.ts',
+   290	      'src/app/api/ddc/locks/[id]/panic-revoke/route.ts',
+   291	      'src/app/api/ddc/guests/route.ts',
+   292	      'src/app/api/ddc/guests/[id]/route.ts',
+   293	      'src/app/api/ddc/bookings/route.ts',
+   294	      'src/app/api/ddc/housekeeping/route.ts',
+   295	    ];
+   296	
+   297	    for (const route of criticalRoutes) {
+   298	      const source = fs.readFileSync(path.resolve(process.cwd(), route), 'utf8');
+   299	      expect(
+   300	        source,
+   301	        `${route} must use resolveTenantId()`
+   302	      ).toContain('resolveTenantId');
+   303	    }
+   304	  });
+   305	
+   306	  it('tenant-prisma.ts has TENANT_MODELS with at least 30 entries', () => {
+   307	    const fs = require('fs');
+   308	    const path = require('path');
+   309	    const source = fs.readFileSync(
+   310	      path.resolve(process.cwd(), 'src/lib/db/tenant-prisma.ts'),
+   311	      'utf8'
+   312	    );
+   313	
+   314	    // Count entries in TENANT_MODELS array
+   315	    const match = source.match(/const TENANT_MODELS = \[([\s\S]*?)\]/);
+   316	    expect(match, 'TENANT_MODELS array must exist').not.toBeNull();
+   317	    const entries = match![1].split(',').filter((s: string) => s.trim());
+   318	    expect(entries.length, `TENANT_MODELS has ${entries.length} entries (expected >=30)`).toBeGreaterThanOrEqual(30);
+   319	  });
+   320	
+   321	  it('housekeeping route does NOT accept body.tenantId (security fix)', () => {
+   322	    const fs = require('fs');
+   323	    const path = require('path');
+   324	    const source = fs.readFileSync(
+   325	      path.resolve(process.cwd(), 'src/app/api/ddc/housekeeping/route.ts'),
+   326	      'utf8'
+   327	    );
+   328	    // body.tenantId should NOT be used (only in comments explaining it's ignored)
+   329	    const withoutComments = source.replace(/\/\/.*$/gm, '');
+   330	    expect(withoutComments).not.toMatch(/body\.tenantId/);
+   331	  });
+   332	});
+--- simbolos-chave ---
+8: * Estratégia: mock do resolveTenantId alternando entre tenant_A e tenant_B.
+16:// Mock resolveTenantId to return tenant_A
+18:  resolveTenantId: vi.fn().mockResolvedValue('tenant_A'),
+115:import { resolveTenantId } from '@/lib/ddc/auth-utils';
+120:    vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+125:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+126:      const tenantId = await resolveTenantId();
+137:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+138:      const tenantId = await resolveTenantId();
+150:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+151:      const tenantId = await resolveTenantId();
+163:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+164:      const tenantId = await resolveTenantId();
+173:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+174:      const tenantId = await resolveTenantId();
+186:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+187:      const tenantId = await resolveTenantId();
+204:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+205:      const tenantId = await resolveTenantId();
+218:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+219:      const tenantId = await resolveTenantId();
+230:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_A');
+231:      const tenantId = await resolveTenantId();
+243:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_B');
+244:      const tenantId = await resolveTenantId();
+254:      vi.mocked(resolveTenantId).mockResolvedValue('tenant_B');
+255:      const tenantId = await resolveTenantId();
+267:      vi.mocked(resolveTenantId).mockResolvedValue(null);
+273:      // In production, resolveTenantId returns null → route returns 401 BEFORE db query
+274:      expect(resolveTenantId()).resolves.toBeNull();
+280:  it('resolveTenantId is used in ALL critical mutation routes', () => {
+301:        `${route} must use resolveTenantId()`
+302:      ).toContain('resolveTenantId');
+
+===== [M9] CALLERS DE TESTE =====
+--- tests/production-readiness-master.test.ts ---
+25-import { describe, it, expect } from 'vitest';
+26-import { enqueueBullJob, QUEUE_NAMES } from '@/lib/queue/bullmq-queue';
+27-import { validatePaymentTransition } from '@/lib/finance/payment-state-machine';
+28:import { revokeReservationPins, generateReservationPin } from '@/lib/locks/orchestrator';
+29-import { assertResourceBelongsToTenant, ResourceAccessDeniedError } from '@/lib/security/resource-authorization';
+30-import { verifyWhatsAppWebhook } from '@/lib/security/webhook-verify';
+31-import { checkSystemHealth } from '@/lib/monitoring/health';
+32-import { authorizeToolExecution } from '@/lib/ai/backend-tool-authorizer';
+33-import crypto from 'crypto';
+34-
+35-describe('🏛️ ZÉLLA — Production Readiness Master Suite (P0 Criteria)', () => {
+36-
+37-  // ── Blocker 01, 02 & 03: Delivery Machine, BullMQ & Idempotency ──
+38-  describe('Blocker 01-03: Delivery Machine & Queue Resilience', () => {
+39-    it('deve enfileirar mensagens WhatsApp com jobId determinístico evitando duplicidades', async () => {
+40-      const tenantId = 'tenant_pousada_canary';
+--
+112-    });
+113-
+114-    it('deve revogar atômica e imediatamente as senhas de fechadura em caso de cancelamento ou estorno', async () => {
+115:      const revokeResult = await revokeReservationPins({
+116-        tenantId: 'tenant_pousada_canary',
+117-        reservationId: 'res_cancelled_456',
+118-        reason: 'Hóspede cancelou a reserva',
+119-      });
+120-
+121-      expect(revokeResult.success).toBe(true);
+122-      expect(revokeResult.status).toBe('ACCESS_REVOKED');
+123-    });
+124-  });
+125-
+126-  // ── Blocker 10: Webhook Security & HMAC Replay Protection ──
+127-  describe('Blocker 10: Webhook Security', () => {
+86:      const resourceOfTenantB = { id: 'booking_999', tenantId: 'tenant_b', totalValue: 500 };
+91:          tenantId: 'tenant_a',
+102:        tenantId: 'tenant_pousada_canary',
+116:        tenantId: 'tenant_pousada_canary',
+160:          tenantId: 'tenant_canary',
+--- tests/security/wave12-f05-payment-webhook-resilience.test.ts ---
+63-}));
+64-
+65-vi.mock('@/lib/locks/orchestrator', () => ({
+66:  revokeReservationPins: vi.fn().mockResolvedValue({ success: true, revokedCount: 1 }),
+67-}));
+68-
+69-vi.mock('@/lib/notifications/bridges', () => ({
+70-  bridgePaymentEvent: mockBridges.bridgePaymentEvent,
+71-}));
+72-
+73-import { processPaymentWebhookEvent } from '@/lib/payments/process-webhook';
+74-import { executeWithBillingIdempotency, buildIdempotencyKey } from '@/lib/payments/idempotency';
+75-import type { WebhookEvent } from '@/lib/payments/types';
+76-
+77-describe('⚡ F05: Payment Webhook Resilience & Exactly-Once Invariant Suite', () => {
+78-  beforeEach(() => {
+104:        tenantId: 'tenant_123',
+142:        tenantId: 'tenant_1',
+178:        tenantId: 'tenant_1',
+223:        tenantId: 'tenant_1',
+--- tests/security/refund-cancellation-lifecycle.test.ts ---
+41-  };
+42-
+43-  const orchestratorInstance = {
+44:    revokeReservationPins: vi.fn().mockResolvedValue({ success: true, revokedCount: 2, status: 'ACCESS_REVOKED' }),
+45-  };
+46-
+47-  return {
+48-    mockDb: dbInstance,
+49-    mockTx: txInstance,
+50-    mockOrchestrator: orchestratorInstance,
+51-  };
+52-});
+53-
+54-vi.mock('@/lib/db', () => ({
+55-  db: mockDb,
+56-  isDatabaseAvailable: vi.fn().mockResolvedValue(true),
+57-}));
+58-
+59-vi.mock('@/lib/locks/orchestrator', () => ({
+60:  revokeReservationPins: mockOrchestrator.revokeReservationPins,
+61-}));
+62-
+63-vi.mock('@/lib/notifications/bridges', async (importOriginal) => {
+64-  const actual = await importOriginal<typeof import('@/lib/notifications/bridges')>();
+65-  return {
+66-    ...actual,
+67-    bridgePaymentEvent: vi.fn(actual.bridgePaymentEvent),
+68-  };
+69-});
+70-
+71-import { validatePaymentWebhookTransition } from '@/lib/payments/webhook-transition';
+72-import { writeReversalTransaction } from '@/lib/payments/reservation-payment-effects';
+--
+212-      expect(result.reservationId).toBe('res_booking_555');
+213-
+214-      // Verifies physical security side-effect: PINs revoked with proper tenant boundary
+215:      expect(mockOrchestrator.revokeReservationPins).toHaveBeenCalledWith(
+216-        expect.objectContaining({
+217-          tenantId: 'tenant_hotel_1',
+218-          reservationId: 'res_booking_555',
+219-        })
+220-      );
+221-    });
+222-
+223-    it('processes cancellation webhook and invokes PIN revocation', async () => {
+127:        tenantId: 'tenant_alpha',
+138:          tenantId: 'tenant_alpha',
+157:        tenantId: 'tenant_alpha',
+193:              tenantId: 'tenant_hotel_1',
+217:          tenantId: 'tenant_hotel_1',
+245:              tenantId: 'tenant_hotel_2',
+266:          tenantId: 'tenant_hotel_2',
+294:              tenantId: 'tenant_hotel_3',
+--- tests/two-intelligences-governance.test.ts ---
+20-import { GuestResponderBrain } from '@/lib/cerebro/guest-responder-brain';
+21-import { enqueueJob, getJobStatus, getQueueStats } from '@/lib/queue/queue-service';
+22-import { validatePaymentTransition, type PaymentState } from '@/lib/finance/payment-state-machine';
+23:import { revokeReservationPins } from '@/lib/locks/orchestrator';
+24-import { checkSystemHealth } from '@/lib/monitoring/health';
+25-
+26-describe('🏛️ Governança das Duas Inteligências — Test Suite Master', () => {
+27-
+28-  // ── Frente 1: GuestMemory & Aprendizado Graduado ──
+29-  describe('Frente 1: GuestMemory & Aprendizado Graduado', () => {
+30-    it('deve armazenar preferências em Quarentena Provisória na primeira ocorrência', async () => {
+31-      const tenantId = 'tenant_pousada_canary';
+32-      const phone = '5511999998888';
+33-
+34-      const res1 = await GuestMemoryService.recordProvisionalPreference(
+35-        tenantId,
+--
+152-  // ── Frente 6: Smart Locks (Segurança Física) ──
+153-  describe('Frente 6: Smart Locks — Revogação de Acesso', () => {
+154-    it('deve executar revogação graciosa de PINs ao cancelar reserva', async () => {
+155:      const res = await revokeReservationPins('tenant_canary', 'res_123', 'Reserva cancelada');
+156-      expect(res).toBeDefined();
+157-      expect(typeof res.revokedCount).toBe('number');
+158-    });
+159-  });
+160-
+161-  // ── Frente 7: Health vs Readiness Probes ──
+162-  describe('Frente 7: Health vs Readiness Probes', () => {
+163-    it('deve retornar diagnóstico completo do sistema', async () => {
+164-      const health = await checkSystemHealth();
+165-      expect(health.checks.length).toBeGreaterThanOrEqual(3);
+166-      expect(health.version).toBeDefined();
+167-      expect(health.uptime).toBeDefined();
+63:        tenantId: 'tenant_canary',
+91:        tenantId: 'tenant_canary',
+
+===== [M10] MOCK_GATEWAY_FORBIDDEN (referencia F-03) =====
+70-    };
+71-  }
+72-
+73-  const gateway = getGateway(input.gateway);
+74-  if (!gateway.isConfigured() && input.gateway !== 'mock') throw new Error('PAYMENT_GATEWAY_NOT_CONFIGURED');
+75:  if (input.gateway === 'mock' && process.env.NODE_ENV === 'production') throw new Error('MOCK_GATEWAY_FORBIDDEN');
+76-
+77-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
+78-  const result = await gateway.createPayment({
+79-    referenceId: reservation.id,
+80-    referenceType: 'reservation',
+81-    tenantId: input.tenantId,
+82-    amount: reservation.totalPrice,
+83-    paymentMethod: input.paymentMethod,
+84-    customer: input.customer,
+85-    description: `Seu Zélla - Reserva ${reservation.id}`,
+86-    successUrl: input.successUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=success`,
+87-    cancelUrl: input.cancelUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=cancelled`,
+88-    webhookUrl: input.webhookUrl,
+89-  });
+90-
+91-  if (!result.gatewayPaymentId) throw new Error('GATEWAY_PAYMENT_ID_MISSING');
+92-
+93-  const paymentId = randomUUID();
+94-  await db.$executeRaw`
+95-    INSERT INTO "reservation_payments"
+96-      ("id", "tenant_id", "reservation_id", "gateway", "gateway_payment_id", "reference_type", "amount", "payment_method", "status", "checkout_url", "metadata")
+97-    VALUES
+
+===== [M11] ASSERTS F-03 EXISTENTES =====
+--- tests/payments/gateway-scope.test.ts ---
+1-import { describe, expect, it } from 'vitest';
+2:import { getGateway } from '@/lib/payments/gateway-factory';
+3-
+4-describe('payment gateway scope', () => {
+5:  it('supports only the declared production gateways plus mock', () => {
+6-    expect(getGateway('asaas').id).toBe('asaas');
+7-    expect(getGateway('mercadopago').id).toBe('mercadopago');
+8:    expect(getGateway('mock').id).toBe('mock');
+9-  });
+10-
+11-  it('keeps the checkout contract independent from provider-specific APIs', () => {
+12-    const asaas = getGateway('asaas');
+13-    const mercadoPago = getGateway('mercadopago');
+14-    expect(typeof asaas.createPayment).toBe('function');
+15-    expect(typeof mercadoPago.createPayment).toBe('function');
+16-    expect(typeof asaas.parseWebhookEvent).toBe('function');
+--- tests/security/payment-env-regression.test.ts ---
+6-describe('production payment environment contract', () => {
+7-  it('supports only the approved production gateways', () => {
+8:    expect(source).toContain("DEFAULT_PAYMENT_GATEWAY === 'asaas'");
+9:    expect(source).toContain("DEFAULT_PAYMENT_GATEWAY === 'mercadopago'");
+10:    expect(source).not.toContain("DEFAULT_PAYMENT_GATEWAY === 'stripe'");
+11-  });
+12-
+13-  it('requires provider webhook secrets without Stripe legacy configuration', () => {
+14-    expect(source).toContain("requireProductionSecret('ASAAS_WEBHOOK_SECRET'");
+15-    expect(source).toContain("requireProductionSecret('PAYMENT_WEBHOOK_SECRET'");
+16-    expect(source).not.toContain("requireProductionSecret('STRIPE_WEBHOOK_SECRET'");
+17-  });
+18-});
+
+===== [M12] GREPS FALLBACK =====
+src/lib/locks/orchestrator.ts:874:    tenantId = tenantIdOrParams.tenantId || 'default';
+src/lib/locks/orchestrator.ts:878:    tenantId = tenantIdOrParams || 'default';
+src/lib/payments/gateway-factory.ts:32:  const envGateway = process.env.DEFAULT_PAYMENT_GATEWAY as GatewayId | undefined;
+src/lib/env.ts:55:export const DEFAULT_PAYMENT_GATEWAY = process.env.DEFAULT_PAYMENT_GATEWAY as 'asaas' | 'mercadopago' | undefined;
+src/lib/env.ts:98:  if (DEFAULT_PAYMENT_GATEWAY === 'asaas') {
+src/lib/env.ts:102:  if (DEFAULT_PAYMENT_GATEWAY === 'mercadopago') {
+tests/security/payment-env-regression.test.ts:8:    expect(source).toContain("DEFAULT_PAYMENT_GATEWAY === 'asaas'");
+tests/security/payment-env-regression.test.ts:9:    expect(source).toContain("DEFAULT_PAYMENT_GATEWAY === 'mercadopago'");
+tests/security/payment-env-regression.test.ts:10:    expect(source).not.toContain("DEFAULT_PAYMENT_GATEWAY === 'stripe'");
+
+===== [M13] SCHEMA Reservation/LockCode =====
+model Reservation {
+  id         String   @id @default(cuid())
+  tenantId   String
+  guestId    String
+  roomId     String
+  checkIn    DateTime
+  checkOut   DateTime
+  status     String   @default("CONFIRMED")
+  totalPrice Float
+  source     String   @default("DIRECT")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  guest  Guest  @relation(fields: [guestId], references: [id])
+  room   Room   @relation(fields: [roomId], references: [id])
+  transactions Transaction[]
+  @@index([tenantId])
+  @@index([guestId])
+  @@index([roomId])
+  @@map("reservations")
+}
+model LockCode {
+  id              String   @id @default(cuid())
+  deviceId        String
+  tenantId        String?
+  guestName       String?
+  guestPhone      String?
+  bookingId       String?
+  code            String
+  codeType        String   @default("online_pin")
+  source          String   @default("manual")
+  validFrom       DateTime
+  validTo         DateTime
+  usedAt          DateTime?
+  revokedAt       DateTime?
+  revokedReason   String?
+  deliveredVia    String?
+  deliveredAt     DateTime?
+  status          String   @default("scheduled")
+  note            String?
+  externalCodeId  String?
+  device          LockDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  tenant          Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  events          LockEvent[]
+  createdAt       DateTime @default(now())
+  @@index([deviceId])
+  @@index([tenantId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([validFrom])
+  @@index([validTo])
+  @@unique([deviceId, code, validFrom])
+  @@map("lock_codes")
+}
+
+===== [M14] SCRIPTS + VITEST =====
+5:  "scripts": {
+6-    "dev": "next dev -p 3000 2>&1 | tee dev.log",
+7-    "postinstall": "prisma generate",
+8-    "build": "prisma generate && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
+9-    "start": "NODE_ENV=production node .next/standalone/server.js 2>&1 | tee server.log",
+10-    "lint": "eslint src/",
+11-    "typecheck": "tsc --noEmit",
+12-    "typecheck:extended": "tsc --noEmit -p tsconfig.extended.json",
+13-    "production:check": "npx tsx src/scripts/production-check.ts",
+14-    "test": "vitest run",
+15-    "test:sast": "vitest run tests/sast-static.test.ts",
+16-    "test:unit": "vitest run tests/unit-business-logic.test.ts",
+17-    "test:integration": "vitest run tests/integration-db-cache.test.ts",
+18-    "test:e2e-cascade": "vitest run tests/e2e-cascade-full.test.ts",
+19-    "test:ai-eval": "vitest run tests/ai-prompt-eval-lgpd.test.ts",
+20-    "test:stress": "vitest run tests/stress-avalanche-k6.test.ts",
+21-    "test:ui-visual": "vitest run tests/ui-visual-playwright.test.ts",
+22-    "test:all-suites": "vitest run tests/",
+23-    "test:cerebro-ml-learning": "vitest run tests/cerebro-ml-learning.test.ts",
+24-    "test:cerebro-ml-anti-hacker": "vitest run tests/cerebro-ml-anti-hacker.test.ts",
+25-    "test:cerebro-ml-bug-detection": "vitest run tests/cerebro-ml-bug-detection.test.ts",
+26-    "test:cerebro-ml-auto-adjustment": "vitest run tests/cerebro-ml-auto-adjustment.test.ts",
+27-    "test:cerebro-ml-all": "vitest run tests/cerebro-ml-learning.test.ts tests/cerebro-ml-anti-hacker.test.ts tests/cerebro-ml-bug-detection.test.ts tests/cerebro-ml-auto-adjustment.test.ts tests/cerebro-ml-modules.test.ts",
+28-    "test:zella-red-teaming": "vitest run tests/zella-red-teaming.test.ts",
+29-    "test:zella-cross-talk": "vitest run tests/zella-cross-talk.test.ts",
+30-    "test:zella-multi-turn-drift": "vitest run tests/zella-multi-turn-drift.test.ts",
+import { defineConfig } from 'vitest/config';
+import path from 'path';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node',
+    env: {
+      NEXTAUTH_SECRET: 'test-secret-for-vitest-12345678901234567890',
+    },
+    include: [
+      'tests/**/*.test.ts',
+      'tests/**/*.test.tsx',
+      'src/__tests__/**/*.test.ts',
+      'src/__tests__/**/*.test.tsx',
+    ],
+    coverage: {
+      provider: 'v8',
+      // Expand coverage to all src/lib modules. Previously only 2 files were
+      // tracked (zcc-security.ts and message-bundler.ts), which made the
+      // "94% test coverage" claim unmeasurable. With this expansion, the
+      // vitest --coverage command produces a real per-file number.
+      include: [
+        'src/lib/zcc-security.ts',
+        'src/lib/message-bundler.ts',
+        'src/lib/security/**/*.ts',
+        'src/lib/rate-limit.ts',
+        'src/lib/payments/**/*.ts',
+        'src/lib/locks/**/*.ts',
+        'src/lib/lgpd/**/*.ts',
+        'src/lib/queue/**/*.ts',
+        'src/lib/ai/llm-timeout.ts',
+        'src/lib/finance/**/*.ts',
+        'src/lib/credits/**/*.ts',
+      ],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/*.test.tsx',
+        'src/__tests__/**',
+        'node_modules/**',
+

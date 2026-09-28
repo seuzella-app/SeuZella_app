@@ -1,0 +1,346 @@
+===== FORENSE F0 v2 - SEU ZELLA - 28/09/2026 13:18:05 =====
+HEAD: 482412308e0b145c8fa962164eff72109835cc90
+BRANCH: feat/meta-zella-foundation
+TRACKED_MODIFICADOS: 0
+
+===== [A0] REGISTRO DE FRENTES =====
+DEAD_CODE_CANDIDATES.md
+FASE0_CLOSE_REPORT_20260917_233847.md
+FASE0_CONSOLIDATION_REPORT_20260917_231631.md
+FORENSE_F0_28SET_130215.txt
+FORENSE_F0_28SET_131804.txt
+GITHUB_ACTIONS_FORENSIC.md
+GLM_WAVE3
+JEV_ARCH_20260922_165500
+JEV_ARCH_20260922_180620
+JEV_ARCH_20260922_192517
+JEV_CRON_20260922_234402
+JEV_DOCS_20260923_001051
+JEV_HARNESS_20260922_195032
+JEV_INTEGRATION_20260922_214131
+JEV_INTEGRATION_20260922_220055
+JEV_LEDGER_20260922_201810
+JEV_MASTER_20260922_154233
+JEV_MASTERGATE_20260923_003939
+JEV_SHAPES_20260922_161606
+JEV_WIRING_20260922_223802
+LOTE_B_GLM_EXEC_20260925_162457.txt
+LOTE_B_IMPL_CONTEXT_20260925_162120.txt
+MG01_PRISMA_20260923_104911
+MG02_BUILD_20260923_121212
+MG03_CI_20260923_133229
+RUN42_DATABASE_TENANCY_DEEP_HARDENING.md
+
+===== [A1] MARCADORES DE SEGURANCA =====
+--- F-06 (fallback default presente = aberto) ---
+865:  tenantIdOrParams: string | { tenantId?: string; reservationId: string; reason?: string },
+873:  if (typeof tenantIdOrParams === 'object' && tenantIdOrParams !== null) {
+874:    tenantId = tenantIdOrParams.tenantId || 'default';
+875:    reservationId = tenantIdOrParams.reservationId;
+876:    reason = tenantIdOrParams.reason || reasonArg;
+878:    tenantId = tenantIdOrParams || 'default';
+2
+--- F-07 (source query presente = aberto) ---
+36:  source?: 'bearer' | 'header' | 'query' | 'dev-bypass';
+51:    return { ok: true, source: 'dev-bypass' };
+74:      return { ok: true, source: 'bearer' };
+81:    return { ok: true, source: 'header' };
+98:    return { ok: true, source: 'query' };
+--- F-03 service (E4: confirmar guard existe) ---
+72-
+73-  const gateway = getGateway(input.gateway);
+74-  if (!gateway.isConfigured() && input.gateway !== 'mock') throw new Error('PAYMENT_GATEWAY_NOT_CONFIGURED');
+75:  if (input.gateway === 'mock' && process.env.NODE_ENV === 'production') throw new Error('MOCK_GATEWAY_FORBIDDEN');
+76-
+77-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
+78-  const result = await gateway.createPayment({
+79-    referenceId: reservation.id,
+80-    referenceType: 'reservation',
+81-    tenantId: input.tenantId,
+82-    amount: reservation.totalPrice,
+83-    paymentMethod: input.paymentMethod,
+84-    customer: input.customer,
+85-    description: `Seu Zélla - Reserva ${reservation.id}`,
+86-    successUrl: input.successUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=success`,
+87-    cancelUrl: input.cancelUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=cancelled`,
+--- F-03 factory (E1/E2: fallback mock quando PREFERENCE_ORDER esgota) ---
+38-    const gateway = getGatewayInstance(id);
+39-    if (gateway.isConfigured()) return gateway;
+40-  }
+41:  return getGatewayInstance('mock');
+42-}
+43-
+44-class MockGateway implements IPaymentGateway {
+45-  readonly id = 'mock' as const;
+46-  isConfigured(): boolean { return true; }
+47-
+48-  async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+49-    return {
+--- F-04 (enforce interno) ---
+src/app/api/leads/seed/route.ts:4:import { requireInternalSecret } from '@/lib/infra/internal-secret';
+src/app/api/leads/seed/route.ts:12:  // RUN19-A (HYGIENE): segredo interno em modo sombra — defina INTERNAL_SECRET e SZ_ENFORCE_INTERNAL=1 para cobrar.
+src/app/api/leads/seed/route.ts:13:  const internalDeny = requireInternalSecret(req);
+src/app/api/debug-agent/github/route.ts:5:import { requireInternalSecret } from '@/lib/infra/internal-secret';
+src/app/api/debug-agent/github/route.ts:8:  // RUN19-A (HYGIENE): segredo interno em modo sombra — defina INTERNAL_SECRET e SZ_ENFORCE_INTERNAL=1 para cobrar.
+src/app/api/debug-agent/github/route.ts:9:  const internalDeny = requireInternalSecret(request);
+src/app/api/debug-agent/knowledge/route.ts:6:import { requireInternalSecret } from '@/lib/infra/internal-secret';
+src/app/api/debug-agent/knowledge/route.ts:9:  // RUN19-A (HYGIENE): segredo interno em modo sombra — defina INTERNAL_SECRET e SZ_ENFORCE_INTERNAL=1 para cobrar.
+--- F-05/F27 (Math.random em superficie de seguranca) ---
+src/lib/locks/orchestrator.ts:853:  const pseudoPin = Math.floor(100000 + Math.random() * 900000).toString();
+src/lib/locks/pin-generator.ts:4:// Implementa dois algoritmos REAIS (não a fórmula fake Math.random do teste
+src/lib/locks/pin-generator.ts:15:// CRÍTICO: usar randomInt (Node.js) — NUNCA Math.random() para PINs.
+src/lib/locks/pin-generator.ts:16:// Math.random não é CSPRNG e foi a causa do mock "849201" previsível.
+src/lib/security/api-shield.ts:124:      : `sec-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+src/lib/security/zdr-memory.ts:53:      this._buffer[i] = (Math.random() * 256) | 0;
+src/lib/security/security-context.ts:33:    requestId: requestId || `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+src/lib/security/security-context.ts:54:    requestId: params.requestId || `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+--- F-02/F-09 (bypass matrix) ---
+src/lib/security/production-mode.ts:17:  if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true') {
+src/lib/security/production-mode.ts:18:    throw new Error('BYPASS_MIDDLEWARE_AUTH must not be true in production');
+src/lib/security/tenant-context.ts:9: * In development with BYPASS_MIDDLEWARE_AUTH=true, uses the first tenant.
+src/lib/security/tenant-context.ts:35:    if (process.env.BYPASS_MIDDLEWARE_AUTH === 'true' && process.env.NODE_ENV !== 'production') {
+--- F19 (ts-nocheck residual) ---
+src/app/api/leads/analytics/route.ts
+src/app/api/cron/payment-confirmation/route.ts
+src/app/api/cron/ical-sync/route.ts
+src/components/zcc/panels/ddc-panel.tsx
+src/components/zcc/panels/settings-panel.tsx
+src/components/zcc/panels/live-leads-panel.tsx
+src/components/zcc/panels/security-panel.tsx
+src/components/zcc/panels/activity-panel.tsx
+src/components/zcc/panels/overview-panel.tsx
+src/components/zcc/panels/live-leads-map.tsx
+src/components/zcc/panels/live-leads-bulletproof.tsx
+src/components/zcc/panels/brazil-map.tsx
+src/components/zcc/zcc-shell.tsx
+src/lib/llm/llm-fallback-chain.ts
+src/lib/llm/llm-router.ts
+--- F27 (CSPRNG e CORS) ---
+src/app/api/ddc/live-feed/route.ts:84:      headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || 'https://seuzella.com.br' },
+src/app/api/ddc/live-feed/route.ts:177:      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || 'https://seuzella.com.br',
+src/app/api/ddc/realtime/tenant-state/route.ts:230:      'Access-Control-Allow-Origin': '*',
+
+===== [A2] MG RESIDUAIS =====
+MG-06 guard AUSENTE
+prisma/migrations/migration_lock.toml
+scripts/production/migrate-to-postgres.sh:51:# executada (nem db push, nem migrate deploy). Sem --accept-data-loss, sem
+scripts/production/migrate-to-postgres.sh:61:    RAISE EXCEPTION 'RUN5-GUARD: banco NAO-vazio (% tabelas) e sem _prisma_migrations — bootstrap recusado, estado preservado. NUNCA use --accept-data-loss para contornar.', t;
+scripts/production/migrate-to-postgres.sh:85:#    Sem --accept-data-loss: em DB vazio o comportamento é idêntico; em rerun
+scripts/production/backup-pre-migration.sh:13:#   - No destructive operations (no DROP, no migrate reset).
+scripts/deploy-mvk4.sh:36:#    O padrão destrutivo `|| npx prisma db push --accept-data-loss` foi
+scripts/deploy-mvk4.sh:41:  echo "🛑 Nenhum fallback destrutivo (db push --accept-data-loss) será executado."
+scripts/inventory-50-points.js:92:  if (content.includes('db push --accept-data-loss')) {
+scripts/inventory-50-points.js:146:console.log(`- db push --accept-data-loss occurrences: ${report.findings.dbPushAcceptDataLoss.length}`);
+
+===== [A3] WEBHOOKS / IDEMPOTENCIA (E4: confirmar advisory lock) =====
+16:  if (!event.providerEventId) throw new Error('RESERVATION_PAYMENT_EVENT_ID_MISSING');
+20:    const lockKey = `reservation-payment-event:${event.gateway}:${event.providerEventId}`;
+21:    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+26:        AND "provider_event_id" = ${event.providerEventId}
+92:          (${paymentId}, ${reservation.tenantId}, ${reservation.id}, ${event.gateway}, ${event.gatewayPaymentId}, ${event.providerEventId}, 'reservation', ${event.amount ?? 0}, ${event.gateway}, ${event.status}, ${JSON.stringify({ event: event.event, raw: event.raw })})
+97:        SET "provider_event_id" = ${event.providerEventId},
+133:        providerEventId: event.providerEventId,
+211:        paymentId: event.providerEventId,
+src/app/api/webhooks/payment/route.ts:520:    const signatureHeader = request.headers.get('x-signature')
+src/app/api/webhooks/payment/route.ts:522:      || request.headers.get('x-hub-signature-256');
+src/app/api/webhooks/payment/route.ts:778:      hmacVerification: true,
+src/app/api/webhooks/mercadopago/route.ts:27:    const signature = request.headers.get('x-signature') || '';
+src/app/api/webhooks/whatsapp/route.ts:542:  const signature = request.headers.get('x-hub-signature-256');
+1204:  // FK declarada no schema (paridade com o SQL idempotente da migration
+1205:  // 20260916130000_meta_tenant_fk_idempotent — evita drift em migrate dev/diff).
+1255:  // FK declarada no schema (paridade com o SQL idempotente da migration
+1256:  // 20260916130000_meta_tenant_fk_idempotent — evita drift em migrate dev/diff).
+1398:  idempotencyKey  String   @unique
+1408:  @@index([idempotencyKey])
+2823:  @@map("billing_idempotency")
+
+===== [A4] DDC / LOCALSTORAGE / REALTIME =====
+src/app/ddc/pousada/DDCPousadaContent.tsx:428:  // Replaces the broken localStorage approach (Onda 4) with a real SSE
+src/app/ddc/page.tsx:13:      savedNiche = localStorage.getItem('zehla_niche') || 'pousada';
+src/app/ddc/page.tsx:15:      // localStorage unavailable
+src/app/ddc/DDCDashboardContent.tsx:230:  // Load from localStorage on client-side mount
+src/app/ddc/DDCDashboardContent.tsx:233:      const saved = localStorage.getItem('zehla_ddc_onboarding');
+src/app/ddc/DDCDashboardContent.tsx:244:        localStorage.setItem('zehla_ddc_onboarding', JSON.stringify(initial));
+src/app/ddc/DDCDashboardContent.tsx:253:        localStorage.setItem('zehla_ddc_onboarding', JSON.stringify(next));
+src/app/api/ddc/realtime/tenant-state/route.ts:19: * REPLACES the broken localStorage-based "useTenantStateSync" approach
+src/components/ddc/use-tenant-realtime-state.ts:7: * REPLACES useTenantStateSync (localStorage-based, broken cross-device).
+src/components/ddc/DDCShell.tsx:358:  // Load collapsed state from localStorage
+src/app/api/ddc/live-feed/route.ts:84:      headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || 'https://seuzella.com.br' },
+src/app/api/ddc/live-feed/route.ts:174:      'Content-Type': 'text/event-stream',
+src/app/api/ddc/realtime/tenant-state/route.ts:54: *   const es = new EventSource('/api/ddc/realtime/tenant-state');
+src/app/api/ddc/realtime/tenant-state/route.ts:225:      'Content-Type': 'text/event-stream; charset=utf-8',
+
+===== [A5] PWA / PUSH =====
+public/manifest.json
+public/sw.js
+src/app/api/push/vapid-public-key/route.ts:9: * Returns the VAPID public key (safe to expose — it's PUBLIC).
+src/app/api/push/vapid-public-key/route.ts:11: *   applicationServerKey: <VAPID_PUBLIC_KEY>
+src/app/api/push/vapid-public-key/route.ts:14: * If VAPID keys are not configured, returns 503 (push disabled).
+src/app/api/push/vapid-public-key/route.ts:19:      { error: 'PUSH_DISABLED', reason: 'VAPID_NOT_CONFIGURED' },
+src/app/api/zcc/vps-preflight/route.ts:23: *   4. Push notifications configured (VAPID)
+
+===== [A6] CEREBRO / ML =====
+scripts/train_dpo.py
+src/lib/ai/redis-cache.ts:19:export class RedisSemanticCache {
+src/lib/api-hooks.ts:265: * (Thompson Sampling — atualiza alfa/beta do provider selecionado)
+src/lib/cerebro/contextual-bandits.ts:23:// Em modo live (quando ativo): usaria Thompson Sampling com distribuições Beta-Binomiais
+src/lib/cerebro/contextual-bandits.ts:163:// ─── Recompensar braço do bandit (Thompson Sampling update) ──────────────
+src/lib/cerebro/contextual-bandits.ts:214:// ─── Selecionar braço via Thompson Sampling ────────────────────────────────
+src/lib/cerebro/contextual-bandits.ts:216:export function selectArmThompsonSampling(): {
+src/lib/locks/alexa-security.ts:5: * SECURITY for /api/alexa/smart-home endpoint:
+src/lib/locks/alexa-adapter.ts:16:  endpoint?: {
+src/lib/locks/alexa-adapter.ts:17:    endpointId: string; // lockId no banco do Seu Zélla
+src/lib/locks/alexa-adapter.ts:37:    const endpoints = (locks || []).map((lock: any) => ({
+src/lib/locks/alexa-adapter.ts:38:      endpointId: lock.id,
+src/lib/locks/alexa-adapter.ts:56:          interface: 'Alexa.EndpointHealth',
+
+===== [A7] OBSERVABILITY / BACKUP =====
+backup.sh
+
+===== [A8] LGPD / CONSENT =====
+src/lib/ical-import-engine.ts
+src/lib/lgpd-consent.ts
+src/lib/locks/providers/august.ts
+src/lib/locks/orchestrator.ts
+src/lib/llm/llm-router.ts
+src/lib/llm/prompt-guard.ts
+src/lib/lgpd/retention-policy.ts
+src/lib/lgpd/lgpd-service.ts
+src/lib/phone-utils.ts
+src/lib/security/zehla-fortress-brain.ts
+
+===== [A9] WORKFLOWS / MIGRATIONS / SCRIPTS =====
+ci-airbnb-style-guide.yml
+ci-cd.yml
+ci-ddc-mobile-suite.yml
+ci-dify-integration.yml
+ci-locks-integration.yml
+ci-multi-agent-system.yml
+ci-night-audit-system.yml
+ci-production-build.yml
+ci-runner-smoke.yml
+ci-seclists-integration.yml
+ci-semantica-tests.yml
+ci-tensorflow-integration.yml
+20260901000004_add_security_findings
+20260901000005_add_booking_exclusion_constraint
+20260901000006_add_billing_idempotency
+20260901000007_add_payment_transaction_indexes_and_uniqueness
+20260901000008_add_revoked_sessions_and_password_changed_at
+20260902000000_wave13_rls_context_foundation
+20260902000100_add_reservation_overlap_exclude
+20260916000000_meta_foundation_connections_idempotency_attribution
+20260916120000_property_metadata_idempotent
+20260916130000_meta_tenant_fk_idempotent
+20260916140000_meta_tables_rls_wave13_pattern
+migration_lock.toml
+audit-tenant-models.ts
+backup.sh
+deploy-mvk4.sh
+dspy_prompt_optimizer.py
+dspy-optimizer
+export-dpo-dataset.ts
+full-simulation.ts
+generate_sounds.py
+github
+inventory-50-points.js
+production
+provider-smoke.ts
+simulate-zella-e2e.ts
+test-zlab-direct.ts
+train_dpo.py
+zecode-pr-review.ts
+
+===== [A10] ENV KEYS (SOMENTE NOMES) =====
+DATABASE_URL=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
+ZEHLA_MASTER_ADMIN_EMAIL=
+ZEHLA_MASTER_ADMIN_PASSWORD=
+ZCC_ADMIN_EMAILS=
+ALEXA_JWT_SECRET=
+NEXT_PUBLIC_PIX_KEY=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+ENCRYPTION_SECRET=
+CACHE_SIGNING_SECRET=
+ZCC_GODMODE_TOKEN=
+OLLAMA_URL=
+META_VERIFY_TOKEN=
+META_APP_SECRET=
+META_ACCESS_TOKEN=
+META_PHONE_NUMBER_ID=
+META_WABA_ID=
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=
+META_GRAPH_API_VERSION=
+META_CONNECT_ENABLED=
+META_INSTAGRAM_ENABLED=
+META_BUSINESS_AGENT_ENABLED=
+META_ATTRIBUTION_ENABLED=
+META_COST_TRACKING_ENABLED=
+META_LEARNING_ENABLED=
+META_CTM_WINDOW_DAYS=
+META_CAPI_ENABLED=
+META_CAPI_DATASET_ID=
+META_CAPI_TEST_EVENT_CODE=
+CALENDAR_SYNC_SECRET=
+ASAAS_ACCESS_TOKEN=
+ASAAS_ENVIRONMENT=
+ASAAS_WEBHOOK_SECRET=
+MP_ACCESS_TOKEN=
+MP_WEBHOOK_URL=
+MERCADOPAGO_WEBHOOK_SECRET=
+MP_WEBHOOK_SECRET=
+DEFAULT_PAYMENT_GATEWAY=
+NEXT_PUBLIC_WHATSAPP_COMMERCIAL=
+NEXT_PUBLIC_WHATSAPP_SUPPORT=
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+QSTASH_URL=
+QSTASH_TOKEN=
+NEXT_PUBLIC_APP_URL=
+INTERNAL_ENDPOINT_TOKEN=
+WEBHOOK_ALLOW_NO_SECRET=
+META_COST_RECORD_MOCK=
+
+===== [A11] TESTES E SKIPS =====
+total test files: 286
+MISSING: tests/payments/gateway-factory-f03.test.ts
+MISSING: tests/security/bypass-matrix.test.ts
+MISSING: tests/security/mg06-migrations.test.ts
+MISSING: tests/security/mg07-vps-deploy.test.ts
+MISSING: tests/cerebro/p1/router-race.test.ts
+MISSING: tests/meta/capi-wiring-contract.test.ts
+MISSING: tests/meta/marketing-messages-contract.test.ts
+--- motivos de skip (45 skipped) ---
+tests/security/rls-canaries.test.ts:126:const describeOrSkip = DB_AVAILABLE ? describe : describe.skip;
+tests/e2e/wave3-realtime-two-device.spec.ts:6:  test.skip(!e2ePassword, 'E2E_TEST_PASSWORD is required for the real-server suite');
+tests/e2e/wave3-realtime-two-device.spec.ts:10:    test.skip(!tenantId, 'E2E_TENANT_ID is required');
+tests/e2e/wave3-fiscal-asaas.spec.ts:4:  test.skip(!process.env.ASAAS_API_KEY, 'ASAAS_API_KEY is required for provider sandbox execution');
+tests/e2e/ddc-navigation.spec.ts:67:    test.skip(browserName === 'webkit', 'Safari mobile requires authenticated session');
+tests/e2e/wave4-whatsapp-delivery.spec.ts:4:  test.skip(!process.env.META_ACCESS_TOKEN, 'META_ACCESS_TOKEN is required');
+tests/e2e/wave4-whatsapp-delivery.spec.ts:7:    test.skip(!wamid, 'E2E_WAMID is required after a real sandbox send');
+tests/e2e/wave4-webhook-replay.spec.ts:4:  test.skip(!process.env.E2E_TEST_PASSWORD, 'E2E_TEST_PASSWORD is required');
+tests/e2e/wave4-webhook-replay.spec.ts:7:    test.skip(!reference, 'E2E_WEBHOOK_REFERENCE is required');
+tests/e2e/mobile-desktop-sync.spec.ts:19:  test.skip(!process.env.E2E_TEST_PASSWORD, 'Set E2E_TEST_PASSWORD to run cross-device tests');
+tests/e2e/mobile-desktop-sync.spec.ts:61:      test.skip(true, 'No lock devices seeded for testing');
+tests/e2e/mobile-desktop-sync.spec.ts:77:      test.skip(true, 'PIN generation failed — likely no provider configured');
+tests/e2e/mobile-desktop-sync.spec.ts:95:    test.skip(true, 'Requires 2 test tenants — configure via E2E_TENANT_A_PASSWORD + E2E_TENANT_B_PASSWORD');
+tests/e2e/mobile-desktop-sync.spec.ts:100:  test.skip(!process.env.E2E_TEST_PASSWORD, 'Set E2E_TEST_PASSWORD to run SSE tests');
+tests/e2e/wave3-reservation-payment.spec.ts:6:  test.skip(!e2ePassword, 'E2E_TEST_PASSWORD is required for the real-server suite');
+
+===== [A12] HISTORICO RECENTE =====
+48241230 feat(skills): add TypeSafe (Jev) AI architecture skill
+fe2c2cd8 security(locks): enforce tenant ownership on update and delete
+e46590a2 security(LOTE A): escopo tenant ZCC fail-closed, anti-replay jti M2M, clientes dinâmicos fail-closed, segredos timing-safe (10 arquivos)
+82bf6047 chore: transfer current SeuZella project state
+a19e0e47 MG-07 FIX (V8): restaura fail-closed ACCOUNT_EXISTS no checkout de convidados (semantica original e35bef80; perdida em 064db917/r3-f04 sem atualizar o gate 17-20; run semantica auto-provada pelo tsc do alvo: erro nativo da arquitetura executeCheckout) + 2 docs aditivos — evidencias em 99_AUDITS/MG07FIX_* — NUNCA push, fail-closed
+f749f190 MG-06 (MASTER GATE FINAL — migration): varredura forense estática READ-ONLY das migrations (segurança e reversibilidade em profundidade: inventário, migration_lock em presença, sinalizações construtivas em contagens, operações destrutivas/DELETE FROM/ALTER COLUMN TYPE em contagens e arquivo:linha, RLS/policy em arquivo:linha — aprofundamento do MG-04, migrations vazias e convenção de timestamp, segredo literal = BLOQUEIO com VALOR NUNCA exibido — NENHUMA execução, nenhuma migração executada, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG06_RELATORIO + MG06_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed
+ac0f730c MG-05 (MASTER GATE FINAL — billing): varredura forense estática READ-ONLY da ausência do domínio proibido (menções em src/ e next.config.ts em contagens e arquivo:linha — baseline conhecido do MG-02: next.config.ts e src/middleware.ts; ocorrências fora do baseline em arquivo:linha; rotas com o próprio token no caminho; dependências financeiras no package.json; schema e migrations em contagem; vercel.json em só leitura; documentos da campanha re-verificados; segredo literal em arquivo com menção = BLOQUEIO com VALOR NUNCA exibido — NENHUMA execução, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG05_RELATORIO + MG05_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed
+91e5d5ed MG-04 (MASTER GATE FINAL — tenant isolation): varredura forense estática READ-ONLY do isolamento de tenant (middleware em contagem, guards da casa por contagem de arquivos, menções a tenant, schema com tenantId em contagem, migrations com RLS em contagem, inventário de guards por rota de API, superfície tenant: segredo literal BLOQUEIO com valor NUNCA exibido, consulta raw e token proibido em arquivo:linha — NENHUMA consulta executada, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG04_RELATORIO + MG04_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed, sem domínio financeiro
+5d30e63e MG-03 (MASTER GATE FINAL — CI): varredura forense estática READ-ONLY do domínio de CI (.github/workflows: triggers, permissions, secrets por NOME, superfície de risco pull_request_target/write-all, referências a deploy; vercel.json só leitura com crons em contagem — NENHUM workflow disparado, GitHub congelado, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG03_RELATORIO + MG03_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed, sem domínio financeiro
+52b18b32 MG-02 (MASTER GATE FINAL — Build): varredura forense estática READ-ONLY do domínio de build (next.config, tsconfig, scripts, toolchain, lockfile, artefato .next, superfície de rotas, superfície de env de build por NOMES — next build NÃO executado, sem rede, sem banco, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG02_RELATORIO + MG02_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed, sem domínio financeiro
+0cd14178 MG-01 (MASTER GATE FINAL — PostgreSQL/Prisma): varredura forense estática READ-ONLY do domínio de dados (schema, migrations, drift estático, datasource, presença de chaves — sem banco, sem rede, sem credenciais, valores NUNCA exibidos) com 2 documentos aditivos em docs/ (MG01_RELATORIO + MG01_ACHADOS) sobre o selo SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, fail-closed, sem domínio financeiro
+fc07fc8f RUN29-A (JEV MASTER GATE): certificação final da fundação JEV (varredura completa: 15 âncoras de cadeia + 32 arquivos RUN22..RUN28 + 9 assinaturas SHAPES-3 re-verificadas + 8 suítes GREEN + tsc 0 novos + 29 provas) com 1 certificado aditivo em docs/ e nascimento da tag LOCAL SEUZELLA_JEV_MASTER_CLOSURE_01 — NUNCA push, SHADOW_ONLY, sem domínio financeiro
+
+===== FIM_FORENSE_F0 =====

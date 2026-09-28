@@ -1,0 +1,569 @@
+== RUN A2 RECON — PROVA GIT — 2026-09-24T22:08:12Z ==
+A) HEAD:
+e46590a28e15c76455b065348eb05f875f0cc6e4
+B) BRANCH:
+feat/meta-zella-foundation
+C) LOG -3:
+e46590a2 security(LOTE A): escopo tenant ZCC fail-closed, anti-replay jti M2M, clientes dinâmicos fail-closed, segredos timing-safe (10 arquivos)
+82bf6047 chore: transfer current SeuZella project state
+a19e0e47 MG-07 FIX (V8): restaura fail-closed ACCOUNT_EXISTS no checkout de convidados (semantica original e35bef80; perdida em 064db917/r3-f04 sem atualizar o gate 17-20; run semantica auto-provada pelo tsc do alvo: erro nativo da arquitetura executeCheckout) + 2 docs aditivos — evidencias em 99_AUDITS/MG07FIX_* — NUNCA push, fail-closed
+D) OBJETO HEAD (parent prova pureza do commit LOTE A):
+tree 9d3b22958bda493a5351a29b8d849f1aaf555b60
+parent 82bf6047bdac00d256c0d3d20041e79a8cea800f
+author MarcioCau14 <marciocau14@users.noreply.github.com> 1790270920 -0300
+committer MarcioCau14 <marciocau14@users.noreply.github.com> 1790270920 -0300
+
+security(LOTE A): escopo tenant ZCC fail-closed, anti-replay jti M2M, clientes dinâmicos fail-closed, segredos timing-safe (10 arquivos)
+E) DIFF 82bf6047..HEAD --stat (deve ser o LOTE A: 10 files, 158+/17-):
+ src/app/api/internal/flush-buffer/route.ts   |  7 +++-
+ src/app/api/zcc/consent/route.ts             | 35 ++++++++++++++++----
+ src/app/api/zcc/semantica/conflicts/route.ts |  9 +++--
+ src/app/api/zcc/semantica/decisions/route.ts |  9 +++--
+ src/app/api/zcc/semantica/export/route.ts    |  9 +++--
+ src/app/api/zcc/semantica/graph/route.ts     |  9 +++--
+ src/lib/security/api-guard.ts                | 10 +++++-
+ src/lib/security/cron-auth.ts                | 22 +++++++++++++
+ src/lib/security/m2m-policy.ts               | 16 ++++++++-
+ src/lib/zcc-security.ts                      | 49 ++++++++++++++++++++++++++++
+ 10 files changed, 158 insertions(+), 17 deletions(-)
+F) STATUS --short:
+?? 99_AUDITS/RUN_A2_RECON_20260924_220811/
+?? RUN_A2_RECON.sh
+?? SEUZELLA_LOTE_A_SECURITY/
+?? SZ_LOTE_A_SECURITY_V1.zip
+?? SZ_LOTE_A_SECURITY_V2.zip
+G) QUANTIDADE DE ROTAS:
+     321
+src/app/api/admin/faturamento-zehla/route.ts||verifyZCCAccess|66l
+src/app/api/admin/upsell-analytics/route.ts||verifyZCCAccess|112l
+src/app/api/agent-logs/route.ts|GET|getServerSession|53l
+src/app/api/agents/route.ts||getServerSession,mutation|76l
+src/app/api/airb-pro/comparativo/route.ts||getServerSession|80l
+src/app/api/airb-pro/rentabilidade/route.ts||getServerSession|105l
+src/app/api/airb-pro/yield-suggestion/route.ts||getServerSession|72l
+src/app/api/airb-test/route.ts|POST,GET|LABNAME,nodeEnvCheck|55l
+src/app/api/alexa/smart-home/route.ts|POST||54l
+src/app/api/auth/[...nextauth]/route.ts|||5l
+src/app/api/auth/forgot-password/route.ts|POST|nodeEnvCheck,mutation|62l
+src/app/api/auth/m2m/token/route.ts|POST,GET|mutation|119l
+src/app/api/auth/magic-link/route.ts|POST,GET|nodeEnvCheck,mutation|109l
+src/app/api/auth/register/route.ts|POST|mutation|198l
+src/app/api/auth/reset-password/route.ts|POST|mutation|54l
+src/app/api/bim-vision/route.ts||tenantFromRequest|101l
+src/app/api/brain/health/route.ts|GET|getServerSession|26l
+src/app/api/brain/intents/route.ts|GET|getServerSession|26l
+src/app/api/brain/route.ts|||55l
+src/app/api/bulk-whatsapp/route.ts|POST|mutation|95l
+src/app/api/campaigns/[id]/route.ts|GET,PUT,DELETE|mutation|162l
+src/app/api/campaigns/route.ts||mutation|96l
+src/app/api/channel-manager/route.ts|||87l
+src/app/api/checkout/cancel/route.ts|GET|getServerSession|39l
+src/app/api/checkout/create/route.ts|POST|getServerSession,nodeEnvCheck,mutation|274l
+src/app/api/checkout/downgrade/route.ts|POST|getServerSession,mutation|94l
+src/app/api/checkout/pix-status/route.ts|GET|getServerSession|86l
+src/app/api/checkout/success/route.ts|GET|getServerSession,timingSafe,mutation|119l
+src/app/api/checkout/upgrade/route.ts|POST|getServerSession,nodeEnvCheck,mutation|114l
+src/app/api/checkout/webhook/route.ts|POST|nodeEnvCheck,mutation|119l
+src/app/api/config/keys/route.ts|GET,POST,PUT,PATCH|mutation|160l
+src/app/api/conversations/route.ts|GET|getServerSession|69l
+src/app/api/cron/achievements-check/route.ts|GET,POST||95l
+src/app/api/cron/backup-restore-drill/route.ts|GET,POST||85l
+src/app/api/cron/booking-daily/route.ts|GET,POST||129l
+src/app/api/cron/budget-reset/route.ts|GET|mutation|75l
+src/app/api/cron/cerebro-analyze/route.ts|GET,POST|verifyCronM2MToken|232l
+src/app/api/cron/cerebro-budget-forecast/route.ts|GET,POST|verifyCronM2MToken|235l
+src/app/api/cron/cerebro-churn-predict/route.ts|GET,POST||131l
+src/app/api/cron/cerebro-cleanup/route.ts|GET,POST|mutation|98l
+src/app/api/cron/cerebro-distill/route.ts|GET,POST||91l
+src/app/api/cron/cerebro-learning/route.ts|GET,POST|verifyCronM2MToken|75l
+src/app/api/cron/cerebro-night-audit/route.ts|GET,POST|verifyCronM2MToken,nodeEnvCheck|92l
+src/app/api/cron/cerebro-night-pentest/route.ts|GET,POST|LABNAME,verifyCronM2MToken|77l
+src/app/api/cron/cerebro-night-pulse/route.ts|GET,POST|verifyCronM2MToken|73l
+src/app/api/cron/cerebro-orchestrator/route.ts|GET,POST||119l
+src/app/api/cron/cerebro-refactor-check/route.ts|GET,POST||211l
+src/app/api/cron/cerebro-watchdog/route.ts|GET,POST|nodeEnvCheck|174l
+src/app/api/cron/dlq-drain/route.ts|GET,POST||39l
+src/app/api/cron/housekeeping-dispatch/route.ts|GET||60l
+src/app/api/cron/ical-sync/route.ts|GET|mutation|71l
+src/app/api/cron/jev-shadow-pulse/route.ts|GET|verifyCronM2MToken|45l
+src/app/api/cron/learning-cycle/route.ts|GET,POST|tenantFromRequest|63l
+src/app/api/cron/lembrete-checkin/route.ts|GET|mutation|125l
+src/app/api/cron/linkinbio-expiry-check/route.ts|GET,POST||56l
+src/app/api/cron/locks-maintenance/route.ts|GET,POST|mutation|122l
+src/app/api/cron/metrics-snapshot/route.ts|GET|mutation|173l
+src/app/api/cron/monthly-billing/route.ts|GET,POST||216l
+src/app/api/cron/nps-checkout/route.ts|GET|mutation|106l
+src/app/api/cron/ota-token-expiry/route.ts|GET,POST||92l
+src/app/api/cron/payment-confirmation/route.ts|GET|mutation|121l
+src/app/api/cron/payment-overdue/route.ts|GET,POST||109l
+src/app/api/cron/plan-expiry/route.ts|GET,POST||95l
+src/app/api/cron/plan-limits-check/route.ts|GET,POST||77l
+src/app/api/cron/security-scan/route.ts|GET,POST||60l
+src/app/api/cron/sre-alerts/route.ts|GET,POST||79l
+src/app/api/cron/weekly-report/route.ts|GET|verifyCronM2MToken|808l
+src/app/api/dashboard/bookings/route.ts|||23l
+src/app/api/dashboard/overview/route.ts|||33l
+src/app/api/dashboard/route.ts|GET||135l
+src/app/api/ddc/ai-status/route.ts|GET||100l
+src/app/api/ddc/airb-pro/commissions/[id]/route.ts|PATCH,DELETE|mutation|102l
+src/app/api/ddc/airb-pro/commissions/route.ts|GET,POST|withApiGuard,getServerSession,mutation|268l
+src/app/api/ddc/airb-pro/expenses/[id]/route.ts|PATCH,DELETE|mutation|107l
+src/app/api/ddc/airb-pro/expenses/route.ts|GET,POST|withApiGuard,getServerSession,mutation|203l
+src/app/api/ddc/airb-pro/goals/[id]/route.ts|PATCH,DELETE|mutation|94l
+src/app/api/ddc/airb-pro/goals/route.ts|GET,POST|mutation|327l
+src/app/api/ddc/airb-pro/operations/[id]/route.ts|PATCH,DELETE|mutation|114l
+src/app/api/ddc/airb-pro/operations/route.ts|GET,POST|mutation|203l
+src/app/api/ddc/airb-pro/reports/route.ts|GET,POST|mutation|842l
+src/app/api/ddc/airb/conversations/route.ts|GET,POST||173l
+src/app/api/ddc/airb/notifications/route.ts|POST,GET|mutation|227l
+src/app/api/ddc/airb/onboarding/route.ts|GET,POST|mutation|245l
+src/app/api/ddc/airb/properties/route.ts|GET,POST,PATCH,DELETE|mutation|314l
+src/app/api/ddc/airb/regional/route.ts|GET,POST,DELETE|mutation|163l
+src/app/api/ddc/airb/scrape/route.ts|POST|mutation|251l
+src/app/api/ddc/billing/invoices/route.ts|GET|getServerSession|103l
+src/app/api/ddc/booking-sync/route.ts||mutation|195l
+src/app/api/ddc/bookings/route.ts|GET,POST|mutation|110l
+src/app/api/ddc/cerebro/feedback/route.ts|POST||80l
+src/app/api/ddc/cerebro/learning/route.ts|GET||68l
+src/app/api/ddc/conversations/[id]/escalate/route.ts|POST|mutation|106l
+src/app/api/ddc/conversations/[id]/messages/route.ts|GET,POST|mutation|84l
+src/app/api/ddc/conversations/[id]/route.ts|GET,PATCH|mutation|118l
+src/app/api/ddc/conversations/route.ts|GET,DELETE|nodeEnvCheck,mutation|275l
+src/app/api/ddc/credits/balance/route.ts|GET|withApiGuard,getServerSession|29l
+src/app/api/ddc/credits/codes/route.ts|GET|withApiGuard,getServerSession,nodeEnvCheck|33l
+src/app/api/ddc/credits/create-code/route.ts|POST|withApiGuard,getServerSession|41l
+src/app/api/ddc/credits/lite-milestone/route.ts|GET||20l
+src/app/api/ddc/credits/referrals/route.ts|GET||20l
+src/app/api/ddc/credits/track-click/route.ts|POST||49l
+src/app/api/ddc/deliveries/route.ts|GET||391l
+src/app/api/ddc/dpo-capture/route.ts|POST|withApiGuard,getServerSession,mutation|136l
+src/app/api/ddc/dynamic-pricing/calculate/route.ts|||205l
+src/app/api/ddc/dynamic-pricing/route.ts||mutation|250l
+src/app/api/ddc/gerente-ia/route.ts|POST|getServerSession,mutation|301l
+src/app/api/ddc/guest-guide/route.ts||mutation|307l
+src/app/api/ddc/guest-registration/route.ts|GET,POST,PATCH|withApiGuard,getServerSession|115l
+src/app/api/ddc/guests/[id]/route.ts|GET,PUT,DELETE|mutation|84l
+src/app/api/ddc/guests/route.ts|GET,POST|withApiGuard,getServerSession,mutation|118l
+src/app/api/ddc/housekeeping/route.ts|GET,POST,PATCH|withApiGuard,tenantFromRequest|99l
+src/app/api/ddc/learning-stats/route.ts|GET||111l
+src/app/api/ddc/linkinbio/activate-standalone/route.ts|POST||50l
+src/app/api/ddc/linkinbio/purchase-addon/route.ts|POST||65l
+src/app/api/ddc/linkinbio/route.ts|GET,POST|mutation|146l
+src/app/api/ddc/linkinbio/stats/route.ts|GET||60l
+src/app/api/ddc/live-feed/route.ts|POST,GET|mutation|180l
+src/app/api/ddc/locks/[id]/panic-revoke/route.ts|POST||38l
+src/app/api/ddc/locks/[id]/pins/[pinId]/route.ts|DELETE||39l
+src/app/api/ddc/locks/[id]/pins/route.ts|GET,POST||163l
+src/app/api/ddc/locks/[id]/route.ts|GET,PATCH,DELETE||80l
+src/app/api/ddc/locks/[id]/unlock/route.ts|POST||62l
+src/app/api/ddc/locks/events/route.ts|GET|withApiGuard,getServerSession|30l
+src/app/api/ddc/locks/oauth/[provider]/callback/route.ts|GET,POST|mutation|90l
+src/app/api/ddc/locks/oauth/[provider]/devices/route.ts|GET|LABNAME|71l
+src/app/api/ddc/locks/oauth/[provider]/start/route.ts|GET|nodeEnvCheck|64l
+src/app/api/ddc/locks/route.ts|GET,POST||85l
+src/app/api/ddc/magic-link/route.ts|POST|getServerSession,nodeEnvCheck|185l
+src/app/api/ddc/meta-connect/route.ts|GET||102l
+src/app/api/ddc/metrics/route.ts|GET||167l
+src/app/api/ddc/mobile/state/route.ts|||83l
+src/app/api/ddc/notifications/read-all/route.ts|PUT|mutation|30l
+src/app/api/ddc/notifications/route.ts|GET,PUT|mutation|67l
+src/app/api/ddc/notifications/v2/route.ts|GET,PUT,POST||238l
+src/app/api/ddc/onboarding-wizard/route.ts|GET,POST|getServerSession,mutation|289l
+src/app/api/ddc/partner-program/badge/route.ts||tenantFromRequest|34l
+src/app/api/ddc/partner-program/claim/route.ts|||40l
+src/app/api/ddc/partner-program/status/route.ts|||14l
+src/app/api/ddc/partner-program/waitlist/route.ts|||41l
+src/app/api/ddc/personality/route.ts|GET,POST|withApiGuard,getServerSession,mutation|130l
+src/app/api/ddc/property-name/route.ts|GET,POST|mutation|60l
+src/app/api/ddc/realtime/tenant-state/route.ts|GET|getServerSession|235l
+src/app/api/ddc/revenue-details/route.ts|GET|withApiGuard,getServerSession|135l
+src/app/api/ddc/runtime-version/route.ts|GET||37l
+src/app/api/ddc/simulate-message/route.ts|POST|LABNAME,getServerSession|65l
+src/app/api/ddc/special-dates/overrides/route.ts|||21l
+src/app/api/ddc/special-dates/route.ts|||59l
+src/app/api/ddc/special-dates/suggestions/[id]/approve/route.ts|POST||39l
+src/app/api/ddc/special-dates/suggestions/[id]/reject/route.ts|POST||38l
+src/app/api/ddc/training/[id]/route.ts|PUT,DELETE,POST|mutation|174l
+src/app/api/ddc/training/route.ts|GET,POST|mutation|66l
+src/app/api/ddc/upsell/charge/route.ts||withApiGuard,getServerSession|54l
+src/app/api/ddc/upsell/metrics/route.ts||getServerSession|74l
+src/app/api/ddc/upsell/payment-method/route.ts||withApiGuard,getServerSession|42l
+src/app/api/ddc/upsell/route.ts||withApiGuard,getServerSession|119l
+src/app/api/debug-agent/github/route.ts||LABNAME|60l
+src/app/api/debug-agent/knowledge/route.ts||LABNAME|57l
+src/app/api/debug-agent/route.ts||LABNAME|80l
+src/app/api/diagnose/route.ts||LABNAME,mutation|57l
+src/app/api/download/[filename]/route.ts|GET|nodeEnvCheck|77l
+src/app/api/export/leads/route.ts|POST||66l
+src/app/api/feedback/route.ts||mutation|57l
+src/app/api/feedback/stats/route.ts|GET||69l
+src/app/api/guide/[slug]/route.ts|GET|mutation|336l
+src/app/api/health/route.ts|GET||69l
+src/app/api/hunt-stream/route.ts|GET||108l
+src/app/api/hunt/route.ts|POST|mutation|156l
+src/app/api/ical/[syncToken]/route.ts|GET||29l
+src/app/api/integrations/ical/[roomId]/route.ts|GET||73l
+src/app/api/integrations/sync/route.ts|POST|verifyCronM2MToken|86l
+src/app/api/internal/flush-buffer/route.ts|POST,GET|timingSafe|36l
+src/app/api/knowledge/generate-embeddings/route.ts|POST||71l
+src/app/api/landing/chat/route.ts|POST||35l
+src/app/api/landing/contact/route.ts|POST|mutation|172l
+src/app/api/leads/[id]/route.ts|GET,PUT,DELETE|mutation|147l
+src/app/api/leads/analytics/route.ts|GET||57l
+src/app/api/leads/converted-pousadas/route.ts|GET|verifyZCCAccess|102l
+src/app/api/leads/route.ts||mutation|152l
+src/app/api/leads/seed/route.ts|POST|LABNAME,nodeEnvCheck|48l
+src/app/api/lgpd/consent/route.ts||withApiGuard,tenantFromRequest|67l
+src/app/api/lgpd/delete-my-data/route.ts||withApiGuard,tenantFromRequest|76l
+src/app/api/lgpd/dpa/route.ts|||23l
+src/app/api/lgpd/export-my-data/route.ts||getServerSession|42l
+src/app/api/lgpd/forget-guest/route.ts|POST|verifyZCCAccess,mutation|105l
+src/app/api/meta-costs/route.ts|GET|getServerSession|45l
+src/app/api/mobile/devices-tracking-v2/route.ts|POST|LABNAME,mutation|98l
+src/app/api/mobile/devices-tracking/route.ts|POST,GET|LABNAME,verifyZCCAccess,mutation|619l
+src/app/api/monitoring/route.ts||verifyZCCAccess,nodeEnvCheck|84l
+src/app/api/onboarding/route.ts|GET,POST|getServerSession,mutation|146l
+src/app/api/pinns-clifford/route.ts||tenantFromRequest|98l
+src/app/api/properties/[id]/route.ts|GET,PUT,DELETE|getServerSession,mutation|130l
+src/app/api/properties/route.ts|GET,POST|mutation|133l
+src/app/api/proxy/[...path]/route.ts|GET,POST|nodeEnvCheck|135l
+src/app/api/pulse/io/route.ts|GET,POST||31l
+src/app/api/push/subscribe/route.ts|POST||49l
+src/app/api/push/unsubscribe/route.ts|POST||37l
+src/app/api/push/vapid-public-key/route.ts|GET||24l
+src/app/api/readiness/route.ts|GET|nodeEnvCheck|88l
+src/app/api/roi/route.ts|POST||101l
+src/app/api/route.ts|GET||28l
+src/app/api/router/budget/route.ts||verifyZCCAccess,timingSafe,mutation|136l
+src/app/api/router/providers/route.ts||verifyZCCAccess,timingSafe,mutation|109l
+src/app/api/scraping/route.ts|POST||62l
+src/app/api/security/route.ts||verifyZCCAccess|51l
+src/app/api/swipe-templates/route.ts|GET|getServerSession|47l
+src/app/api/targets/[id]/route.ts|GET,PUT,DELETE|getServerSession,mutation|163l
+src/app/api/targets/route.ts||mutation|98l
+src/app/api/telemetry/ingest/route.ts|POST|tenantFromRequest,mutation|85l
+src/app/api/telemetry/landing/route.ts|POST,GET||65l
+src/app/api/telemetry/query/route.ts|GET|verifyZCCAccess,tenantFromRequest|88l
+src/app/api/tenants/route.ts||verifyZCCAccess|37l
+src/app/api/v1/guest/ddc/notifications/route.ts|||180l
+src/app/api/v1/guest/ddc/overview/route.ts||getServerSession|293l
+src/app/api/v1/latency/route.ts|GET|verifyZCCAccess|57l
+src/app/api/v1/loops/route.ts||timingSafe|40l
+src/app/api/v1/metrics/route.ts|||47l
+src/app/api/v1/reservations/[id]/payment/route.ts||nodeEnvCheck|74l
+src/app/api/v1/reservations/route.ts||mutation|171l
+src/app/api/webgl-bridge/route.ts||tenantFromRequest|91l
+src/app/api/webhook-whatsapp/route.ts|GET,POST|timingSafe,nodeEnvCheck|111l
+src/app/api/webhooks/asaas/route.ts|POST||39l
+src/app/api/webhooks/booking-com/reviews/route.ts|POST,GET|timingSafe,nodeEnvCheck,mutation|148l
+src/app/api/webhooks/mercadopago/route.ts|POST,GET||53l
+src/app/api/webhooks/payment/route.ts|POST,GET|timingSafe,nodeEnvCheck,mutation|783l
+src/app/api/webhooks/whatsapp/route.ts|GET,POST|timingSafe,tenantFromRequest,nodeEnvCheck,mutation|1018l
+src/app/api/yield/calculate/route.ts||withApiGuard|176l
+src/app/api/yield/profit-summary/route.ts||withApiGuard|120l
+src/app/api/zcc/adapters/route.ts|GET||30l
+src/app/api/zcc/agents/[id]/run/route.ts|POST|verifyZCCAccess|44l
+src/app/api/zcc/agents/route.ts|GET|verifyZCCAccess|24l
+src/app/api/zcc/airbnb/oauth/route.ts|POST|verifyZCCAccess,mutation|139l
+src/app/api/zcc/airbnb/webhook/route.ts|POST|verifyZCCAccess,mutation|76l
+src/app/api/zcc/backup-drill/route.ts|GET,POST|verifyZCCAccess|154l
+src/app/api/zcc/brain/route.ts|GET||124l
+src/app/api/zcc/burn-rate/route.ts|POST,GET|verifyZCCAccess|602l
+src/app/api/zcc/campaigns/route.ts|GET|verifyZCCAccess|33l
+src/app/api/zcc/cerebro/analyses/route.ts||verifyZCCAccess|205l
+src/app/api/zcc/cerebro/anomalies/route.ts||verifyZCCAccess|182l
+src/app/api/zcc/cerebro/ask/route.ts|POST|verifyZCCAccess|99l
+src/app/api/zcc/cerebro/llmops/route.ts|GET|verifyZCCAccess|32l
+src/app/api/zcc/cerebro/ml-stats/route.ts|GET|getServerSession|81l
+src/app/api/zcc/cerebro/prompt-ide/route.ts|POST|verifyZCCAccess,mutation|108l
+src/app/api/zcc/cerebro/refactors/route.ts||verifyZCCAccess|226l
+src/app/api/zcc/cerebro/runbook/route.ts|GET|verifyZCCAccess|237l
+src/app/api/zcc/cerebro/status/route.ts|GET|verifyZCCAccess|760l
+src/app/api/zcc/cerebro/stream/route.ts|||215l
+src/app/api/zcc/cerebro/test-alert/route.ts||LABNAME,verifyZCCAccess|96l
+src/app/api/zcc/cerebro/workflows/route.ts|GET,POST|verifyZCCAccess|62l
+src/app/api/zcc/code-reviewer/apply/route.ts|POST|verifyZCCAccess,mutation|117l
+src/app/api/zcc/code-reviewer/config/route.ts|GET,PUT|verifyZCCAccess,mutation|129l
+src/app/api/zcc/code-reviewer/review/route.ts|POST|verifyZCCAccess|77l
+src/app/api/zcc/code-reviewer/reviews/[id]/route.ts|GET,PATCH|verifyZCCAccess,mutation|101l
+src/app/api/zcc/code-reviewer/reviews/route.ts|GET|verifyZCCAccess|71l
+src/app/api/zcc/code-reviewer/stats/route.ts|GET|verifyZCCAccess|60l
+src/app/api/zcc/cognitive-bus/route.ts|GET||32l
+src/app/api/zcc/cognitive-memory/route.ts|GET||40l
+src/app/api/zcc/conductor/route.ts|POST|verifyZCCAccess|64l
+src/app/api/zcc/consent/route.ts|GET,POST|verifyZCCAccess,resolveZccTenantScope,tenantFromRequest,mutation|207l
+src/app/api/zcc/cortex/growth/route.ts|GET||29l
+src/app/api/zcc/cortex/route.ts|GET||64l
+src/app/api/zcc/dashboard-stats/route.ts|GET|verifyZCCAccess|34l
+src/app/api/zcc/digital-twin/route.ts|GET,POST||45l
+src/app/api/zcc/dspy-compiler/route.ts|GET,POST||73l
+src/app/api/zcc/export/route.ts|POST|verifyZCCAccess|516l
+src/app/api/zcc/finance/expenses/route.ts|GET|verifyZCCAccess|540l
+src/app/api/zcc/github/apply-pr/route.ts|POST|verifyZCCAccess|49l
+src/app/api/zcc/github/credentials/[id]/revoke/route.ts|POST|verifyZCCAccess|50l
+src/app/api/zcc/github/credentials/[id]/rotate/route.ts|POST|verifyZCCAccess|60l
+src/app/api/zcc/github/credentials/audit/route.ts|GET|verifyZCCAccess|63l
+src/app/api/zcc/github/credentials/route.ts|GET,POST|verifyZCCAccess|121l
+src/app/api/zcc/github/credentials/validate/route.ts|POST|verifyZCCAccess|58l
+src/app/api/zcc/github/expiry-check/route.ts|GET|nodeEnvCheck|45l
+src/app/api/zcc/github/webhook/route.ts|POST,GET|timingSafe,nodeEnvCheck,mutation|446l
+src/app/api/zcc/health/route.ts|GET||23l
+src/app/api/zcc/inference-simulation/route.ts|GET|LABNAME,verifyZCCAccess|36l
+src/app/api/zcc/infra/scaling-ruler/route.ts|GET||48l
+src/app/api/zcc/infrastructure/route.ts|GET|verifyZCCAccess|144l
+src/app/api/zcc/leads/brain-analyze/route.ts|POST||97l
+src/app/api/zcc/metrics/financial/route.ts|GET|verifyZCCAccess|352l
+src/app/api/zcc/metrics/geographic/route.ts|GET|verifyZCCAccess|261l
+src/app/api/zcc/metrics/periods/route.ts|GET|verifyZCCAccess|651l
+src/app/api/zcc/metrics/route.ts|GET|verifyZCCAccess|97l
+src/app/api/zcc/national-simulator/compare/route.ts|POST||36l
+src/app/api/zcc/national-simulator/route.ts|GET,POST||54l
+src/app/api/zcc/night-audit/route.ts|GET,POST|verifyZCCAccess|96l
+src/app/api/zcc/night-audit/vulns/route.ts|GET,POST|verifyZCCAccess,mutation|120l
+src/app/api/zcc/observability/route.ts|GET|verifyZCCAccess|31l
+src/app/api/zcc/onboarding-tracker/route.ts|GET|verifyZCCAccess|155l
+src/app/api/zcc/partner-program/reopen/route.ts||verifyZCCAccess|22l
+src/app/api/zcc/personas/route.ts|GET||19l
+src/app/api/zcc/pulse/analyze/route.ts|POST|verifyZCCAccess,mutation|97l
+src/app/api/zcc/pulse/capture/route.ts|POST,GET|verifyZCCAccess|75l
+src/app/api/zcc/sales-funnel/route.ts|GET|verifyZCCAccess|591l
+src/app/api/zcc/sandbox/route.ts|GET,POST|LABNAME,verifyZCCAccess,nodeEnvCheck,mutation|218l
+src/app/api/zcc/security/route.ts|GET,POST|verifyZCCAccess|109l
+src/app/api/zcc/semantica/conflicts/route.ts|GET|verifyZCCAccess,resolveZccTenantScope,tenantFromRequest|76l
+src/app/api/zcc/semantica/decisions/route.ts|GET|verifyZCCAccess,resolveZccTenantScope,tenantFromRequest|157l
+src/app/api/zcc/semantica/export/route.ts|GET|verifyZCCAccess,resolveZccTenantScope,tenantFromRequest|271l
+src/app/api/zcc/semantica/graph/route.ts|GET|verifyZCCAccess,resolveZccTenantScope,tenantFromRequest|102l
+src/app/api/zcc/semantica/ingest/route.ts|POST|verifyZCCAccess|76l
+src/app/api/zcc/simulation-lab/route.ts|GET,POST|LABNAME|44l
+src/app/api/zcc/stats/route.ts|GET|verifyZCCAccess|41l
+src/app/api/zcc/synthetic-brazil/generate/route.ts|POST|LABNAME|54l
+src/app/api/zcc/synthetic-brazil/route.ts|GET|LABNAME|22l
+src/app/api/zcc/targets/route.ts|GET|verifyZCCAccess|35l
+src/app/api/zcc/tenants/[id]/status/route.ts|PATCH|verifyZCCAccess,mutation|138l
+src/app/api/zcc/tenants/route.ts|GET|verifyZCCAccess|201l
+src/app/api/zcc/vps-preflight/route.ts|GET|verifyZCCAccess|151l
+src/app/api/zcc/whatsapp/simulate/route.ts|POST|LABNAME,verifyZCCAccess,mutation|104l
+src/app/api/zcc/ze-code/apply/route.ts|POST|verifyZCCAccess|254l
+src/app/api/zcc/ze-code/bottlenecks/route.ts|GET|verifyZCCAccess|115l
+src/app/api/zcc/ze-code/evolve/route.ts|POST|verifyZCCAccess|100l
+src/app/api/zcc/ze-code/gaps/route.ts|GET|verifyZCCAccess|115l
+src/app/api/zcc/ze-code/refactors/route.ts|GET,POST|verifyZCCAccess,mutation|180l
+src/app/api/zcc/ze-code/review/route.ts|POST,GET|verifyZCCAccess|130l
+src/app/api/zcc/ze-code/stats/route.ts|GET|verifyZCCAccess|48l
+src/app/api/zcc/zgs/decisions/route.ts|GET,PATCH|verifyZCCAccess|62l
+src/app/api/zelador-suporte/chat/route.ts|POST||44l
+src/app/api/zelador-suporte/consultoria/route.ts|POST||41l
+src/app/api/zelador-suporte/ticket/route.ts|POST||81l
+src/app/api/zella/simulate/route.ts|POST|LABNAME|291l
+H) SUITES DE TESTE (arquivos + linhas):
+     105 tests/security/idor-checkout-paths.test.ts
+      18 tests/security/payment-env-regression.test.ts
+     186 tests/security/checkout-webhook-mpay011.test.ts
+     107 tests/security/run11-w2-audit.test.ts
+      93 tests/security/run11-w2-cache.test.ts
+      21 tests/security/checkout-webhook-regression.test.ts
+     174 tests/security/run4-wave4f-tenant-authority-idor.test.ts
+     223 tests/security/run19-hygiene.test.ts
+      82 tests/security/reconciliation-lote3r-adversarial.test.ts
+     226 tests/security/api-routes-sast.test.ts
+      15 tests/security/wave13-f02-rls-context.test.ts
+      14 tests/security/lgpd-guest-tenant-binding.test.ts
+     135 tests/security/run18-mopup.test.ts
+      15 tests/security/telemetry-ingest-regression.test.ts
+     560 tests/security/wave1-security-p0.test.ts
+      17 tests/security/landing-telemetry-regression.test.ts
+      13 tests/security/export-surface-regression.test.ts
+      25 tests/security/magic-auth-regression.test.ts
+     123 tests/security/run7-w2-middleware-invariants.test.ts
+      33 tests/security/security-typesafety-audit.test.ts
+      50 tests/security/frontend-revenue-honesty.test.ts
+     104 tests/security/lote4-tenant-idor-exhaustive.test.ts
+      13 tests/security/notification-error-leak.test.ts
+      78 tests/security/revenue-status-integrity.test.ts
+      15 tests/security/wave13-f04-reservation-boundary.test.ts
+      12 tests/security/readiness-regression.test.ts
+     336 tests/security/wave-r2-monetary-inventory.test.ts
+     145 tests/security/wave12-f06-financial-ledger-upsell.test.ts
+     202 tests/security/security-center-certification.test.ts
+     226 tests/security/run6b-unknown-zero.test.ts
+     208 tests/security/zero-trust-hardening.test.ts
+      94 tests/security/run11-w2-ratelimit.test.ts
+      21 tests/security/health-provider-regression.test.ts
+      91 tests/security/handover-suppression-regression.test.ts
+      76 tests/security/run11-w2-health.test.ts
+      13 tests/security/bulk-whatsapp-tenant-isolation.test.ts
+      13 tests/security/cron-error-regression.test.ts
+     336 tests/security/lote7-partner-zella-suite.test.ts
+      29 tests/security/wave13-f01-rule-a.test.ts
+     112 tests/security/run13-wiring-lote1.test.ts
+     148 tests/security/wave12-f07-payment-concurrency-stress.test.ts
+     115 tests/security/codex-security-integration.test.ts
+     163 tests/security/security-scan-service.test.ts
+      79 tests/security/agent-tool-policy.test.ts
+      41 tests/security/wave13-f05-f08-production-hardening.test.ts
+     102 tests/security/run11-w2-invariants.test.ts
+      76 tests/security/run7-baseline-invariants.test.ts
+     158 tests/security/certification-hardening.test.ts
+      39 tests/security/ssrf.test.ts
+     407 tests/security/idor-c1-endpoints.test.ts
+      34 tests/security/payment-scope-and-webhooks.test.ts
+     147 tests/security/run11-w2-queue.test.ts
+     182 tests/security/run9-w2-invariants.test.ts
+     320 tests/security/wave12-f05-payment-webhook-resilience.test.ts
+     199 tests/security/run6b-lgpd-isolation.test.ts
+      76 tests/security/run9-w1-invariants.test.ts
+      46 tests/security/tenant-idor-routes.test.ts
+      15 tests/security/health-check-regression.test.ts
+     373 tests/security/behavioral-certification.test.ts
+      82 tests/security/locks-hardening.test.ts
+      43 tests/security/run11-w1-invariants.test.ts
+      26 tests/security/waf-regression.test.ts
+      36 tests/security/tenant-isolation-matrix.test.ts
+      53 tests/security/tenant-isolation-regression.test.ts
+     179 tests/security/run4-wave4a-checkout-adversarial.test.ts
+      64 tests/security/production-auth-canary.test.ts
+      25 tests/security/asaas-legacy-auth-regression.test.ts
+     147 tests/security/run14-wiring-lote23.test.ts
+     240 tests/security/wave12-fronts-hardening.test.ts
+     105 tests/security/backup-vps-certification.test.ts
+     162 tests/security/run6-guest-registration-fnrh.test.ts
+     254 tests/security/run6b-m2m-roles.test.ts
+     241 tests/security/run6-tenant-isolation.test.ts
+      17 tests/security/diagnostic-surface-regression.test.ts
+     285 tests/security/cron-auth.test.ts
+     128 tests/security/wave12-f08-sre-observability.test.ts
+      13 tests/security/virgin-zella-fire-test-contract.test.ts
+      54 tests/security/ddc-revenue-honesty.test.ts
+     401 tests/security/billing-idempotency.test.ts
+     332 tests/security/tenant-isolation-adversarial.test.ts
+     120 tests/security/run12-hygiene.test.ts
+     148 tests/security/r3-f03-checkout-idempotency.test.ts
+      14 tests/security/telemetry-query-regression.test.ts
+      16 tests/security/telemetry-body-regression.test.ts
+     114 tests/security/run11-w3-wiring.test.ts
+      27 tests/security/admin-surface-regression.test.ts
+      87 tests/security/ddc-demo-honesty.test.ts
+      19 tests/security/asaas-webhook-body-limit.test.ts
+     159 tests/security/observability-infrastructure.test.ts
+     335 tests/security/refund-cancellation-lifecycle.test.ts
+      39 tests/security/production-surface-regression.test.ts
+      20 tests/security/webhook-verify-regression.test.ts
+     172 tests/security/run6-hardening.test.ts
+      18 tests/security/internal-surface-regression.test.ts
+     407 tests/security/cron-billing-idempotency.test.ts
+      26 tests/security/zcc-metrics-regression.test.ts
+     377 tests/security/lote6-special-dates-upsell-hitl.test.ts
+      26 tests/security/zcc-auth-policy.test.ts
+      54 tests/security/cron-auth-unified.regression.test.ts
+      40 tests/security/redactor.test.ts
+     139 tests/security/run6b-push-primitive.test.ts
+      19 tests/security/wave13-f03-zero-trust-ownership.test.ts
+      93 tests/security/run8-w2-invariants.test.ts
+      16 tests/security/mercadopago-service-regression.test.ts
+      71 tests/security/lgpd-log-redaction.test.ts
+     449 tests/security/rls-canaries.test.ts
+      25 tests/security/browser-isolation.test.ts
+     105 tests/security/asaas-webhook-hmac.test.ts
+      15 tests/security/unsafe-execution-regression.test.ts
+      38 tests/security/wave-r2-database-hardening.test.ts
+      50 tests/security/m2m-argon2.test.ts
+     167 tests/security/run10-w2-invariants.test.ts
+     232 tests/security/run6-platform-plane.test.ts
+     110 tests/security/run10-w1-invariants.test.ts
+      81 tests/security/run4-wave4c-guest-concierge.test.ts
+      20 tests/security/secret-exposure-regression.test.ts
+     146 tests/security/endpoint-protection-audit.test.ts
+      79 tests/security/run8-w1-invariants.test.ts
+     103 tests/security/run4-wave4b-pat-vault.test.ts
+     171 tests/security/auth-session-revocation-lote3.test.ts
+       9 tests/security/payment-scope-no-stripe.test.ts
+      61 tests/security/reservation-payment-contract.test.ts
+     331 tests/security/lote5-reservation-concurrency.test.ts
+      40 tests/auth/password-reset-flow.test.ts
+     484 tests/realtime/behavioral.test.ts
+     431 tests/realtime/use-ddc-initial-state.test.ts
+     157 tests/realtime/use-tenant-realtime-state.test.ts
+     187 tests/realtime/tenant-pubsub.test.ts
+      31 tests/realtime/wave2-sync-contract.test.ts
+      21 tests/realtime/tenant-event-envelope.test.ts
+      30 tests/whatsapp/inbound-security-contract.test.ts
+     166 tests/meta/meta-audit-fixes.test.ts
+      95 tests/meta/meta-wave4-regression.test.ts
+     183 tests/meta/meta-normalizer.test.ts
+      98 tests/meta/meta-wave3-webhook-guard.test.ts
+     299 tests/meta/meta-foundation-certification.test.ts
+     338 tests/meta/meta-wave3-hardening.test.ts
+      58 tests/meta/cloud-api-and-nft-hardening.test.ts
+      69 tests/meta/meta-cost-multi-currency.test.ts
+      76 tests/meta/meta-send-mode.test.ts
+     136 tests/meta/meta-rate-card.test.ts
+     127 tests/meta/meta-wave3-signature.test.ts
+      37 tests/mobile/ddc-mobile-tenant-boundary.test.ts
+      19 tests/mobile/mobile-no-client-tenant-contract.test.ts
+      21 tests/mobile/pwa-production-contract.test.ts
+      20 tests/mobile/mobile-offline-safety-contract.test.ts
+      20 tests/mobile/ddc-mobile-data-boundary-contract.test.ts
+      18 tests/mobile/mobile-api-auth-contract.test.ts
+     113 tests/mobile/use-tenant-state-sync.test.ts
+      31 tests/mobile/ddc-mobile-locks-security.test.ts
+      13 tests/mobile/mobile-manifest-identity-contract.test.ts
+      20 tests/mobile/mobile-production-security-contract.test.ts
+      32 tests/mobile/ddc-mobile-live-bootstrap.test.ts
+      19 tests/mobile/mobile-data-integrity-contract.test.ts
+      22 tests/mobile/mobile-entry-security-contract.test.ts
+      23 tests/mobile/ddc-mobile-operational-summary-contract.test.ts
+      36 tests/mobile/ddc-mobile-entry-parity-contract.test.ts
+      30 tests/mobile/ddc-mobile-state-contract.test.ts
+      28 tests/mobile/ddc-mobile-live-context-contract.test.ts
+      21 tests/mobile/mobile-niche-parity-contract.test.ts
+      24 tests/mobile/ddc-mobile-security-contract.test.ts
+      28 tests/mobile/ddc-mobile-operational-contracts.test.ts
+      42 tests/security-hardening-12-fronts.test.ts
+     457 tests/zcc-security.test.ts
+     295 tests/semantica-client.test.ts
+     171 tests/semantica-lgpd.test.ts
+      49 tests/sast-static.test.ts
+     393 tests/locks-lgpd-audit.test.ts
+     309 tests/locks-multi-tenant-scale.test.ts
+I) LIBS DE SEGURANCA (arquivos + linhas):
+      72 src/lib/security/pii-scanner.ts
+      30 src/lib/security/canary-detector.ts
+     199 src/lib/security/webhook-signature.ts
+      79 src/lib/security/pii-sanitizer.ts
+     347 src/lib/security/api-shield.ts
+     135 src/lib/security/resource-guard.ts
+      20 src/lib/security/production-mode.ts
+     125 src/lib/security/cron-secret.ts
+     139 src/lib/security/zdr-memory.ts
+      96 src/lib/security/tenant-authorization.ts
+      27 src/lib/security/guardian-alert.ts
+     121 src/lib/security/zehla-fortress-brain.ts
+     179 src/lib/security/safe-fetch.ts
+      53 src/lib/security/cache-signer.ts
+     141 src/lib/security/cron-auth.ts
+     288 src/lib/security/seclists-loader.ts
+     174 src/lib/security/ssrf-protection.ts
+     130 src/lib/security/api-guard.ts
+     149 src/lib/security/redactor.ts
+      85 src/lib/security/cron-auth-unified.ts
+      59 src/lib/security/resource-authorization.ts
+     210 src/lib/security/input-sanitizer.ts
+     164 src/lib/security/waf-middleware.ts
+     908 src/lib/security/security-scan-service.ts
+     122 src/lib/security/rate-limit.ts
+      91 src/lib/security/webhook-verify.ts
+      84 src/lib/security/secret-vault.ts
+      63 src/lib/security/security-context.ts
+     166 src/lib/security/m2m-policy.ts
+     115 src/lib/security/prompt-guard.ts
+      60 src/lib/security/tenant-context.ts
+      64 src/lib/auth/jwt.ts
+     225 src/lib/zcc-security.ts
+      38 src/middleware.ts
+     249 src/lib/auth.ts
+      44 src/lib/auth-guard.ts
+     108 src/lib/db.ts
+J) PATCH LOTE A ORIGINAL (se o kit ainda estiver aqui):
+4b9ae67180d3f9675fbac50339727d6d8ee9f6c6a874a80249c165829c6621b6  SEUZELLA_LOTE_A_SECURITY/LOTEA_SECURITY.patch
+K) PAYLOAD: payload.tar.gz = 403940 bytes; blocos base64 = 12
+L) RECON rc=0 — cole no chat: DIGEST.txt + PAYLOAD.sha256 + os blocos PAYLOAD_b64_*
