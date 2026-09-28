@@ -13,6 +13,11 @@
 
 export function importOptional<T = unknown>(moduleName: string): Promise<T | null> {
   try {
+    // no-new-func intencional: new Function é o ÚNICO mecanismo que impede o
+    // Next.js de resolver estaticamente `import()` (build deve passar com ou
+    // sem o pacote opcional — invariante run11-w2). Não substituir por import()
+    // direto: quebra o build quando o pacote não está instalado.
+    // eslint-disable-next-line no-new-func
     const opaqueImport = new Function('m', 'return import(m);') as (m: string) => Promise<T>;
     return opaqueImport(moduleName).then(
       (mod) => mod,

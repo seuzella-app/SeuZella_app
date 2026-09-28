@@ -362,7 +362,7 @@ describe('JevRateLimitedPort — decorator fail-closed', () => {
 
   it('gate negado: inner NUNCA é chamado e a resposta é unavailable JEV_REMOTE_ERROR', async () => {
     const counter = { n: 0 };
-    let t = 0;
+    const t = 0;
     const lim = new JevRemoteRateLimiter({ maxPerWindow: 1, windowMs: 60000, cooldownMs: 1000, now: () => t });
     const port = new JevRateLimitedPort(innerPort('X', counter), lim);
     const first = await port.decide(req('INTENT', { text: 'oi' }));

@@ -7,6 +7,7 @@ import { authRatelimit } from '@/lib/rate-limit';
 import { migratePlanLegacy, type PlanTier } from '@/lib/plan-features';
 import { getPrice, isMethodAllowed } from '@/lib/payments/pricing';
 import { getDefaultGateway } from '@/lib/payments/gateway-factory';
+import { PaymentGatewayError } from '@/lib/payments/types';
 import { withAdvisoryLock } from '@/lib/db/concurrency';
 
 const PLAN_ORDER: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
@@ -71,7 +72,18 @@ export async function POST(request: NextRequest) {
 
       const transaction = await tx.paymentTransaction.create({ data: { subscriptionId: subscription.id, amount: amountToPay, status: 'pending', paymentMethod: method, metadata: JSON.stringify({ type: 'upgrade', fromPlan: currentPlan, toPlan: newPlanType, proratedCost, totalCredit, remainingDays }) } });
       const tenant = await tx.tenant.findUnique({ where: { id: tenantId } });
-      const gateway = getDefaultGateway();
+      let gateway;
+      try {
+        // F03: a factory lança PaymentGatewayError em produção sem gateway real
+        // configurado (fail-closed) — bookkeeping do transaction preservado.
+        gateway = getDefaultGateway();
+      } catch (gatewayError) {
+        if (gatewayError instanceof PaymentGatewayError) {
+          await tx.paymentTransaction.update({ where: { id: transaction.id }, data: { status: 'gateway_error' } });
+          return { error: createError(503, 'PAYMENT_GATEWAY_NOT_CONFIGURED', 'Nenhum gateway de pagamento real está configurado.') } as const;
+        }
+        throw gatewayError;
+      }
       if (process.env.NODE_ENV === 'production' && gateway.id === 'mock') {
         await tx.paymentTransaction.update({ where: { id: transaction.id }, data: { status: 'gateway_error' } });
         return { error: createError(503, 'PAYMENT_GATEWAY_NOT_CONFIGURED', 'Nenhum gateway de pagamento real está configurado.') } as const;

@@ -10,16 +10,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { checkPatExpiry } from '@/lib/github/pat-vault';
+import { verifyCronSecret } from '@/lib/security/cron-secret';
 
 export async function GET(req: NextRequest) {
-  // Em produção, exige CRON_SECRET
-  if (process.env.NODE_ENV === 'production') {
-    const url = new URL(req.url);
-    const secret = url.searchParams.get('secret') || req.headers.get('X-Cron-Secret');
-    if (secret !== process.env.CRON_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  // F07: autenticação padronizada via verifyCronSecret —
+  // Bearer/x-internal-token (timing-safe), dev-bypass em dev sem CRON_SECRET,
+  // fail-closed 503 em produção sem secret. Query ?secret= NUNCA é aceito.
+  const auth = verifyCronSecret(req);
+  if (!auth.ok) return auth.response!;
 
   try {
     const result = await checkPatExpiry();

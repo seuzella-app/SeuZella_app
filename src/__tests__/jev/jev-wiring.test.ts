@@ -136,7 +136,7 @@ afterAll(() => {
 // ---------------------------------------------------------------------------
 
 let tmpDir: string | null = null;
-let exportPath = '';
+const exportPath = '';
 
 function sampleLine(tenant: string, text: string): string {
   return JSON.stringify({ tenantId: tenant, mode: 'INTENT', text });

@@ -3,6 +3,7 @@ import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId, mapConversation } from '@/lib/ddc/ddc-mapper';
 import { createError, apiSuccess } from '@/lib/error-handler';
 import { apiRatelimit } from '@/lib/rate-limit';
+import { buildSseCorsHeaders } from '@/lib/security/origin-allowlist';
 import { z } from 'zod';
 
 const messageSchema = z.object({
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
       },
     });
     return new Response(stream, {
-      headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || 'https://seuzella.com.br' },
+      headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', ...buildSseCorsHeaders(request) },
     });
   }
 
@@ -174,7 +175,7 @@ export async function GET(request: NextRequest) {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || 'https://seuzella.com.br',
+      ...buildSseCorsHeaders(request),
     }
   });
 }

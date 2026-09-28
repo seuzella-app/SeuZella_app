@@ -6,10 +6,12 @@
 // Não substitui o cron-auth.ts (M2M Ed25519) — é um fallback prático
 // para proteção básica quando chaves M2M não estão configuradas.
 //
-// Padrões suportados:
+// Padrões suportados (F07):
 //   1. Header Authorization: Bearer <CRON_SECRET>
 //   2. Header x-internal-token: <CRON_SECRET>
-//   3. Query ?secret=<CRON_SECRET>
+//
+// Query ?secret= NÃO é mais aceito (F07): secrets em URL vazam para logs de
+// acesso, proxies e histórico. Removido em definitivo — não há fallback.
 //
 // Em desenvolvimento (NODE_ENV !== 'production' E sem CRON_SECRET configurado):
 //   - Permite acesso (para teste manual via curl)
@@ -33,7 +35,7 @@ import crypto from 'crypto';
 export interface CronAuthResult {
   ok: boolean;
   response?: NextResponse;
-  source?: 'bearer' | 'header' | 'query' | 'dev-bypass';
+  source?: 'bearer' | 'header' | 'dev-bypass';
 }
 
 /**
@@ -81,22 +83,8 @@ export function verifyCronSecret(req: NextRequest): CronAuthResult {
     return { ok: true, source: 'header' };
   }
 
-  // Tenta query ?secret= — com encadeamento opcional para compatibilidade com Request padrão
-  let querySecret: string | null = null;
-  try {
-    // NextRequest tem nextUrl; Request padrão não tem
-    if (req.nextUrl?.searchParams) {
-      querySecret = req.nextUrl.searchParams.get('secret');
-    } else if (req.url) {
-      const url = new URL(req.url);
-      querySecret = url.searchParams.get('secret');
-    }
-  } catch {
-    // Se não conseguir parsear URL, ignora silenciosamente
-  }
-  if (querySecret && timingSafeEqual(querySecret, cronSecret!)) {
-    return { ok: true, source: 'query' };
-  }
+  // F07: query ?secret= foi REMOVIDO — secrets em URL vazam via logs/proxies/histórico.
+  // Qualquer secret recebido via query é ignorado e a requisição é rejeitada abaixo.
 
   // Rejeita silenciosamente (não revela motivo) — payload padronizado
   return {

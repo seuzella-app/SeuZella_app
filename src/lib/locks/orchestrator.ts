@@ -17,6 +17,7 @@
 
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
+import { randomInt } from 'crypto';
 import {
   type LockBrand,
   type LockDeviceData,
@@ -840,6 +841,9 @@ export async function panicRevokeAllPins(deviceId: string, reason: string = 'Pâ
 
 /**
  * Gera credencial temporária para uma reserva confirmada.
+ * F27 CSPRNG: PIN físico usa crypto.randomInt (CSPRNG) — PRNG previsível não
+ * pode proteger acesso físico. Contrato preservado:
+ * exatamente 6 dígitos, 100000 <= PIN <= 999999.
  */
 export async function generateReservationPin(params: {
   tenantId: string;
@@ -850,33 +854,44 @@ export async function generateReservationPin(params: {
   guestPhone?: string;
   guestName?: string;
 }): Promise<{ success: boolean; passcode: string; status: string }> {
-  const pseudoPin = Math.floor(100000 + Math.random() * 900000).toString();
+  // randomInt(min, max): inteiro uniforme em [min, max) — 100000..999999 = sempre 6 dígitos.
+  const securePin = randomInt(100000, 1000000).toString();
   return {
     success: true,
-    passcode: pseudoPin,
+    passcode: securePin,
     status: 'ACCESS_CONFIRMED',
   };
 }
 
 /**
  * Revoga todos os PINs associados a uma reserva cancelada/estornada (Segurança Física).
+ * F06: tenantId é OBRIGATÓRIO — operações de produção NUNCA assumem
+ * silenciosamente tenant 'default'. Chamada sem tenant explícito falha com
+ * TENANT_ID_REQUIRED (fail-closed). Todos os callers conhecidos (webhook de
+ * pagamento e testes) já passam tenantId explícito — contrato sem quebra.
  */
 export async function revokeReservationPins(
   tenantIdOrParams: string | { tenantId?: string; reservationId: string; reason?: string },
   reservationIdArg?: string,
   reasonArg: string = 'Reserva cancelada ou estornada'
 ): Promise<{ success: boolean; revokedCount: number; status: string }> {
-  let tenantId = 'default';
+  let tenantId: string;
   let reservationId: string;
   let reason = reasonArg;
 
   if (typeof tenantIdOrParams === 'object' && tenantIdOrParams !== null) {
-    tenantId = tenantIdOrParams.tenantId || 'default';
+    tenantId = tenantIdOrParams.tenantId ?? '';
     reservationId = tenantIdOrParams.reservationId;
     reason = tenantIdOrParams.reason || reasonArg;
   } else {
-    tenantId = tenantIdOrParams || 'default';
+    tenantId = typeof tenantIdOrParams === 'string' ? tenantIdOrParams : '';
     reservationId = reservationIdArg!;
+  }
+
+  if (!tenantId || !reservationId) {
+    // Fail-closed: sem tenant/reserva explícitos a revogação não pode escopor a query.
+    console.error('[ORCHESTRATOR] revokeReservationPins sem tenantId/reservationId explícitos — rejeitado (F06).');
+    throw new Error('TENANT_ID_REQUIRED');
   }
 
   const dbAvailable = await isDatabaseAvailable();

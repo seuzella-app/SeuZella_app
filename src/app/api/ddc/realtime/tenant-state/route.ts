@@ -4,6 +4,7 @@ import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { subscribeTenantEvents, type TenantStateEvent } from '@/lib/realtime/tenant-pubsub';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
+import { buildSseCorsHeaders } from '@/lib/security/origin-allowlist';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -118,6 +119,11 @@ function sendError(controller: SSEController, message: string): void {
   controller.enqueue(`event: error\ndata: ${JSON.stringify({ message })}\n\n`);
 }
 
+export async function OPTIONS(request: NextRequest): Promise<Response> {
+  // F27: preflight explícito — nunca reflete Origin desconhecida, nunca wildcard.
+  return new Response(null, { status: 204, headers: buildSseCorsHeaders(request) });
+}
+
 export async function GET(request: NextRequest): Promise<Response> {
   // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
   const rlDeny = guardRequest(request, 'ddc.realtime.tenant-state', { points: 60, windowMs: 60000 });
@@ -223,12 +229,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     status: 200,
     headers: {
       'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
-      // Allow SSE to be embedded cross-origin (mobile PWA served from
-      // different origin in dev). In prod, same-origin.
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Last-Event-ID',
+      ...buildSseCorsHeaders(request),
       'X-Accel-Buffering': 'no', // disable nginx buffering
     },
   });

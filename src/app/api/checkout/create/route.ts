@@ -226,7 +226,19 @@ async function doCheckoutCreate(tenantId: string, planType: PlanTier, paymentMet
 
   if (!subscription) throw new Error('CHECKOUT_SUBSCRIPTION_UNAVAILABLE');
 
-  const gateway = requestedGateway ? getGateway(requestedGateway) : getDefaultGateway();
+  let gateway;
+  try {
+    // F03: a factory agora lança PaymentGatewayError em produção quando mock é
+    // solicitado ou quando nenhum gateway real está configurado (fail-closed).
+    gateway = requestedGateway ? getGateway(requestedGateway) : getDefaultGateway();
+  } catch (error) {
+    if (error instanceof PaymentGatewayError) {
+      // Preserva o bookkeeping do subscription antes de propagar o erro
+      // (mapeado no catch de topo: NOT_CONFIGURED→503, MOCK_GATEWAY_FORBIDDEN→403).
+      await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
+    }
+    throw error;
+  }
   if (!gateway.isConfigured()) {
     await db.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'gateway_error' } });
     throw new Error('PAYMENT_GATEWAY_NOT_CONFIGURED');

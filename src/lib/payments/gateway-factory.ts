@@ -24,10 +24,27 @@ function getGatewayInstance(id: GatewayId): IPaymentGateway {
   return instance;
 }
 
-export function getGateway(id: GatewayId): IPaymentGateway { return getGatewayInstance(id); }
+export function getGateway(id: GatewayId): IPaymentGateway {
+  // F03: Mock NUNCA pode ser gateway efetivo em produção — bloqueio centralizado
+  // na factory (não apenas nos consumers downstream). Falha explícita, sem mask.
+  if (id === 'mock' && process.env.NODE_ENV === 'production') {
+    throw new PaymentGatewayError(
+      'MOCK_GATEWAY_FORBIDDEN: Mock gateway não pode ser usado como gateway de pagamento efetivo em produção.',
+      'mock',
+      'MOCK_GATEWAY_FORBIDDEN',
+      403,
+    );
+  }
+  return getGatewayInstance(id);
+}
 
 const PREFERENCE_ORDER: GatewayId[] = ['asaas', 'mercadopago'];
 
+/**
+ * F03: em produção, sem gateway real configurado → FAIL CLOSED (throw).
+ * Nunca retorna Mock como máscara de configuração ausente.
+ * Em dev/test, Mock permanece disponível (compatibilidade com testes).
+ */
 export function getDefaultGateway(): IPaymentGateway {
   const envGateway = process.env.DEFAULT_PAYMENT_GATEWAY as GatewayId | undefined;
   if (envGateway && ['asaas', 'mercadopago'].includes(envGateway)) {
@@ -37,6 +54,14 @@ export function getDefaultGateway(): IPaymentGateway {
   for (const id of PREFERENCE_ORDER) {
     const gateway = getGatewayInstance(id);
     if (gateway.isConfigured()) return gateway;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new PaymentGatewayError(
+      'PAYMENT_GATEWAY_NOT_CONFIGURED: nenhum gateway real (asaas/mercadopago) está configurado em produção. Configure credenciais ou DEFAULT_PAYMENT_GATEWAY.',
+      'mock',
+      'NOT_CONFIGURED',
+      503,
+    );
   }
   return getGatewayInstance('mock');
 }
@@ -84,12 +109,22 @@ export function listConfiguredGateways(): GatewayId[] {
 }
 
 export function getGatewayHealth(): Record<GatewayId, { configured: boolean; isDefault: boolean }> {
-  const def = getDefaultGateway();
+  // Resolução NÃO-lançável: health check deve reportar estado, não derrubar rota.
+  let defaultId: GatewayId | 'none' = 'none';
+  const envGateway = process.env.DEFAULT_PAYMENT_GATEWAY as GatewayId | undefined;
+  if (envGateway && ['asaas', 'mercadopago'].includes(envGateway) && getGatewayInstance(envGateway).isConfigured()) {
+    defaultId = envGateway;
+  } else {
+    for (const id of PREFERENCE_ORDER) {
+      if (getGatewayInstance(id).isConfigured()) { defaultId = id; break; }
+    }
+  }
+  if (process.env.NODE_ENV !== 'production' && defaultId === 'none') defaultId = 'mock';
   const result: Record<string, { configured: boolean; isDefault: boolean }> = {};
   for (const id of PREFERENCE_ORDER) {
     const gateway = getGatewayInstance(id);
-    result[id] = { configured: gateway.isConfigured(), isDefault: gateway.id === def.id };
+    result[id] = { configured: gateway.isConfigured(), isDefault: gateway.id === defaultId };
   }
-  result.mock = { configured: true, isDefault: def.id === 'mock' };
+  result.mock = { configured: true, isDefault: defaultId === 'mock' };
   return result as Record<GatewayId, { configured: boolean; isDefault: boolean }>;
 }
