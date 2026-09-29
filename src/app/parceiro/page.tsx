@@ -116,8 +116,8 @@ const timelineSteps = [
   },
   {
     step: '04',
-    title: 'Preço Fundador R$ 297/mês',
-    desc: 'Após o primeiro mês, plano PRO por R$ 297/mês congelado por 24 meses.',
+    title: 'Preço Fundador R$ 247/mês',
+    desc: 'Após o primeiro mês, plano PRO por R$ 247/mês congelado por 24 meses.',
     icon: Crown,
   },
 ];
@@ -286,7 +286,7 @@ export default function ParceiroPage() {
                   <Crown className="w-7 h-7 text-emerald-400" />
                 </div>
                 <h3 className="text-white font-bold text-xl mb-2">Preço de Fundador Congelado</h3>
-                <span className="text-emerald-400 text-sm font-bold">R$ 297,00/mês por 24 meses</span>
+                <span className="text-emerald-400 text-sm font-bold">R$ 247,00/mês por 24 meses</span>
                 <p className="text-zinc-500 text-sm leading-relaxed mt-4 group-hover:text-zinc-400 transition-colors">
                   Garanta acesso às funcionalidades completas do plano PRO com preço especial de parceiro. Valor congelado por 24 meses enquanto sua assinatura estiver ativa. O plano PRO custa R$ 397/mês no preço regular — você economiza R$ 150 todos os meses.
                 </p>

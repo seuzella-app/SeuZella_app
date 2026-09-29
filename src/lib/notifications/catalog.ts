@@ -98,6 +98,13 @@ export const NOTIFICATION_CATALOG: CatalogEntry[] = [
   { type: 'system.plan_expiring', category: 'system', defaultPriority: 'high', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Plano expira em {days} dias', messageTemplate: 'Renove {plan} para manter todos os recursos' },
   { type: 'system.plan_expired', category: 'system', defaultPriority: 'urgent', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Plano expirado', messageTemplate: 'Recursos do plano {plan} foram desativados' },
   { type: 'system.plan_upgraded', category: 'system', defaultPriority: 'medium', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Plano atualizado', messageTemplate: 'Bem-vindo ao plano {plan}!' },
+  // F28-C: LITE quota notifications — previously MISSING from the catalog, so
+  // notify() silently rejected every plan-limits alert as invalid_input and
+  // users NEVER received them (surfaced by the F28 entitlement refactor tests).
+  { type: 'plan.lite_guests_limit', category: 'system', defaultPriority: 'high', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Limite de hóspedes se aproximando', messageTemplate: '{count} de {limit} hóspedes atendidos neste mês ({percent}% do plano LITE)' },
+  { type: 'plan.lite_messages_limit', category: 'system', defaultPriority: 'high', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Limite de mensagens se aproximando', messageTemplate: '{count} de {limit} mensagens usadas neste mês ({percent}% do plano LITE)' },
+  { type: 'plan.lite_exceeded', category: 'system', defaultPriority: 'urgent', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Limite do plano LITE excedido', messageTemplate: '{message}' },
+  { type: 'plan.upgrade_suggestion', category: 'system', defaultPriority: 'medium', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Hora de considerar o plano PRO', messageTemplate: 'Uso acima de 60% no LITE: hóspedes {guestsPercent}%, mensagens {messagesPercent}% — o PRO é ilimitado' },
   { type: 'system.invoice_ready', category: 'system', defaultPriority: 'medium', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Fatura disponível', messageTemplate: 'Fatura de R$ {amount} referente a {period}' },
   { type: 'system.payment_failed', category: 'system', defaultPriority: 'urgent', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Falha no pagamento da assinatura', messageTemplate: 'Cartão final {last4} foi recusado' },
   { type: 'system.security_alert', category: 'system', defaultPriority: 'urgent', defaultPlan: 'ALL', source: 'plan_system', titleTemplate: 'Alerta de segurança', messageTemplate: 'Login suspeito bloqueado de {ip}' },

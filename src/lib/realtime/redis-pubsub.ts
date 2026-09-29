@@ -95,6 +95,11 @@ dispatchEmitter.setMaxListeners(1000);
 // subscriptions when multiple SSE connections listen to the same tenant).
 const subscribedChannels = new Set<string>();
 
+// F28-E dedup watermark (per tenant, monotonic global seq): the publishing
+// instance delivers locally at publish time; the Redis echo of its own message
+// must not double-deliver to the same in-process listeners.
+const dispatchWatermarks = new Map<string, number>();
+
 function channelName(tenantId: string): string {
   return `tenant:${tenantId}`;
 }
@@ -120,8 +125,9 @@ function ensureRedisSubscriber(): void {
 
   // BullMQ's getRedisConnection returns a shared connection. For subscribing
   // we need a separate connection because once a connection enters subscriber
-    // eslint-disable-next-line no-labels -- labeled break for nested loop clarity
-  mode: try {
+  // mode it can no longer issue regular commands. We duplicate the shared
+  // connection so the publisher connection isn't blocked.
+  try {
     const conn = getRedisConnection();
     if (!conn) return;
 
@@ -132,6 +138,11 @@ function ensureRedisSubscriber(): void {
     redisSubscriber.on('message', (channel, message) => {
       try {
         const event = JSON.parse(message) as TenantStateEvent;
+        // F28-E dedup: skip the echo of an event this instance already
+        // delivered locally (same monotonic global seq watermark).
+        const watermark = dispatchWatermarks.get(event.tenantId) ?? 0;
+        if (event.seq > 0 && event.seq <= watermark) return;
+        if (event.seq > 0) dispatchWatermarks.set(event.tenantId, event.seq);
         // Dispatch to in-process listeners (SSE connections).
         dispatchEmitter.emit(channel, event);
         // Also dispatch on the global audit channel.
@@ -160,17 +171,27 @@ function ensureRedisSubscriber(): void {
   }
 }
 
+function dispatchLocal(channel: string, event: TenantStateEvent): void {
+  const watermark = dispatchWatermarks.get(event.tenantId) ?? 0;
+  if (event.seq > 0 && event.seq <= watermark) return;
+  if (event.seq > 0) dispatchWatermarks.set(event.tenantId, event.seq);
+  dispatchEmitter.emit(channel, event);
+  dispatchEmitter.emit('tenant:any', event);
+}
+
 /**
  * Publish a tenant state event. Called by API route handlers AFTER the
  * PostgreSQL write succeeds.
  *
- * - If Redis is available: publishes to `tenant:${tenantId}` channel.
- *   All Vercel instances with subscribers on that channel receive the event.
- * - If Redis is unavailable (dev/test): falls back to in-memory EventEmitter.
+ * - If Redis is available: assigns a GLOBAL per-tenant sequence via Redis
+ *   INCR (F28-E — seq values are comparable across instances, enabling real
+ *   client gap detection) and publishes to `tenant:${tenantId}`. All Vercel
+ *   instances with subscribers on that channel receive the event.
+ * - If Redis is unavailable (dev/test): falls back to in-memory EventEmitter
+ *   with an in-process sequence.
  *
- * The seq counter is in-process. For true global ordering across instances,
- * the seq should be derived from a Redis INCR — but in-process is sufficient
- * for gap detection on the client (which reconciles via snapshot on reconnect).
+ * Delivery to in-process subscribers happens once the global seq is known
+ * (microtask) so local and remote subscribers observe the SAME seq value.
  */
 export function publishTenantEvent(
   tenantId: string,
@@ -182,33 +203,37 @@ export function publishTenantEvent(
     return;
   }
 
-  const event: TenantStateEvent = {
+  const base = {
     type,
     tenantId,
     payload,
     timestamp: new Date().toISOString(),
-    seq: nextSeq(tenantId),
   };
 
   if (isRedisAvailable()) {
     ensureRedisSubscriber();
     const channel = channelName(tenantId);
     try {
-      // publish() returns the number of subscribers that received the message.
-      // We don't await it — publishing is fire-and-forget.
-      const msg = JSON.stringify(event);
-      void redisPublisher?.publish(channel, msg).catch((err) => {
-        logger.error('[RedisPubSub] publish() failed, falling back to in-memory', {
-          channel,
-          error: err instanceof Error ? err.message : 'unknown',
+      void Promise.resolve()
+        .then(async () => {
+          const seq = Number((await redisPublisher?.incr(`tenant:seq:${tenantId}`)) ?? 0);
+          const event: TenantStateEvent = { ...base, seq };
+          try {
+            await redisPublisher?.publish(channel, JSON.stringify(event));
+          } catch (err) {
+            logger.error('[RedisPubSub] publish() failed — delivering locally only', {
+              channel,
+              error: err instanceof Error ? err.message : 'unknown',
+            });
+          }
+          dispatchLocal(channel, event);
+        })
+        .catch((err) => {
+          logger.error('[RedisPubSub] publish pipeline failed — local fallback', {
+            error: err instanceof Error ? err.message : 'unknown',
+          });
+          dispatchLocal(channel, { ...base, seq: nextSeq(tenantId) });
         });
-        fallbackEmitter.emit(channel, event);
-        fallbackEmitter.emit('tenant:any', event);
-      });
-      // Also dispatch locally so subscribers on THIS instance receive
-      // immediately (Redis pub/sub does NOT echo back to the publisher).
-      dispatchEmitter.emit(channel, event);
-      dispatchEmitter.emit('tenant:any', event);
       return;
     } catch (err) {
       logger.error('[RedisPubSub] publish threw, falling back to in-memory', {
@@ -221,9 +246,8 @@ export function publishTenantEvent(
   // Use ONLY the dispatchEmitter for delivery — SSE connections listen on
   // dispatchEmitter regardless of transport. Emitting on fallbackEmitter
   // too would cause double-delivery when subscribers are on dispatchEmitter.
-  const channel = channelName(tenantId);
-  dispatchEmitter.emit(channel, event);
-  dispatchEmitter.emit('tenant:any', event);
+  const event: TenantStateEvent = { ...base, seq: nextSeq(tenantId) };
+  dispatchLocal(channelName(tenantId), event);
 }
 
 /**
@@ -327,6 +351,7 @@ export function __resetForTests(): void {
   dispatchEmitter.removeAllListeners();
   seqCounters.clear();
   subscribedChannels.clear();
+  dispatchWatermarks.clear();
   // Don't close the Redis connection — it's shared with BullMQ and may be
   // used by other tests. Just reset the in-process state.
   redisSubInitialized = false;

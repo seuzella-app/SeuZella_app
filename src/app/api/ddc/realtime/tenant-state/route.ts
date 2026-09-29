@@ -2,6 +2,7 @@ import { logger } from '@/lib/infra/logger';
 import { NextRequest } from 'next/server';
 import { resolveTenantId } from '@/lib/ddc/auth-utils';
 import { subscribeTenantEvents, type TenantStateEvent } from '@/lib/realtime/tenant-pubsub';
+import { TenantReplayBuffer } from '@/lib/realtime/replay';
 import { db, isDatabaseAvailable } from '@/lib/db';
 import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 import { buildSseCorsHeaders } from '@/lib/security/origin-allowlist';
@@ -40,9 +41,12 @@ export const maxDuration = 300; // 5 min — Vercel serverless SSE cap
  *
  * RECONNECT / RESUME
  * ------------------
- * Clients send `Last-Event-ID: <seq>` on reconnect. The endpoint replays
- * any events with seq > lastEventId that are still in the in-memory buffer
- * (limited to last 100 events per tenant).
+ * Clients send `Last-Event-ID: <seq>` (native EventSource reconnect) or
+ * `?afterSeq=<seq>` (manual reconnects — EventSource cannot send custom
+ * headers). The endpoint replays any events with seq > lastEventId that are
+ * still in the per-instance buffer (last 100 events per tenant). If the
+ * buffer cannot prove continuity (gap), a FRESH SNAPSHOT is sent instead of
+ * a partial replay — the client never silently misses events.
  *
  * HEARTBEAT
  * ---------
@@ -58,34 +62,20 @@ export const maxDuration = 300; // 5 min — Vercel serverless SSE cap
  *     // data: { deviceId, pin, guestName, validFrom, validTo, seq, timestamp }
  *   });
  *
- * MULTI-INSTANCE LIMITATION
- * -------------------------
- * Vercel serverless functions may run on multiple instances. This endpoint
- * uses in-memory pub/sub — events published on instance A are NOT visible
- * to subscribers on instance B. For full multi-instance sync, replace the
- * pub/sub backend with Redis (see tenant-pubsub.ts comment block).
+ * MULTI-INSTANCE (F28-E)
+ * ----------------------
+ * Transport is Redis pub/sub (via tenant-pubsub → redis-pubsub): events
+ * published on instance A ARE visible to subscribers on instance B. The
+ * per-tenant seq is GLOBAL (Redis INCR), so Last-Event-ID resume and gap
+ * detection work across instances. The per-instance replay buffer covers
+ * the last 100 events; anything older is bridged by the snapshot resync.
+ * Dev/test without REDIS_URL transparently uses the in-memory transport.
  */
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
-const MAX_BUFFER_PER_TENANT = 100;
 
-// In-memory replay buffer per tenant (last N events).
-// Used when a client reconnects with Last-Event-ID to deliver missed events.
-const replayBuffers = new Map<string, TenantStateEvent[]>();
-
-function bufferEvent(tenantId: string, event: TenantStateEvent): void {
-  const buf = replayBuffers.get(tenantId) ?? [];
-  buf.push(event);
-  if (buf.length > MAX_BUFFER_PER_TENANT) {
-    buf.shift();
-  }
-  replayBuffers.set(tenantId, buf);
-}
-
-function getReplayEvents(tenantId: string, afterSeq: number): TenantStateEvent[] {
-  const buf = replayBuffers.get(tenantId) ?? [];
-  return buf.filter((e) => e.seq > afterSeq);
-}
+// F28-E: replay strategy extracted to @/lib/realtime/replay (unit-testable).
+const replayBuffers = new TenantReplayBuffer();
 
 // Subscribe to all tenant events to populate the replay buffer.
 // This runs once per server instance (module-level side-effect).
@@ -95,7 +85,7 @@ if (!g.__tenantStateBufferInitialized) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy require to avoid circular dependency
   const { subscribeAllTenantEvents } = require('@/lib/realtime/tenant-pubsub') as typeof import('@/lib/realtime/tenant-pubsub');
   subscribeAllTenantEvents((event) => {
-    bufferEvent(event.tenantId, event);
+    replayBuffers.bufferEvent(event.tenantId, event);
   });
   g.__tenantStateBufferInitialized = true;
 }
@@ -124,6 +114,29 @@ export async function OPTIONS(request: NextRequest): Promise<Response> {
   return new Response(null, { status: 204, headers: buildSseCorsHeaders(request) });
 }
 
+async function fetchSnapshot(tenantId: string): Promise<Record<string, unknown> | null> {
+  // Initial state snapshot (best-effort, may fail if DB unavailable).
+  if (!(await isDatabaseAvailable())) return null;
+  try {
+    const [tenant, lockCount, reservationCount] = await Promise.all([
+      db.tenant.findUnique({
+        where: { id: tenantId },
+        select: { id: true, name: true, niche: true, plan: true, status: true },
+      }),
+      db.lockDevice.count({ where: { tenantId } }).catch(() => 0),
+      db.reservation.count({ where: { tenantId } }).catch(() => 0),
+    ]);
+    return {
+      tenant,
+      counts: { locks: lockCount, reservations: reservationCount },
+      serverTime: new Date().toISOString(),
+    };
+  } catch (err) {
+    console.warn('[tenant-state SSE] Snapshot fetch failed:', err);
+    return null;
+  }
+}
+
 export async function GET(request: NextRequest): Promise<Response> {
   // RUN14-A (W2): anti-flood fail-closed por IP — 60 req/1min.
   const rlDeny = guardRequest(request, 'ddc.realtime.tenant-state', { points: 60, windowMs: 60000 });
@@ -139,31 +152,17 @@ export async function GET(request: NextRequest): Promise<Response> {
     });
   }
 
-  // ── Last-Event-ID for resume ──
-  const lastEventId = Number(request.headers.get('Last-Event-ID') || 0);
+  // ── Last-Event-ID for resume: native SSE header OR ?afterSeq= (manual
+  // reconnects — EventSource cannot send custom headers). F28-E.
+  const lastEventId = Number(
+    request.headers.get('Last-Event-ID') ||
+      request.nextUrl.searchParams.get('afterSeq') ||
+      0,
+  );
   const encoder = new TextEncoder();
 
   // ── Initial state snapshot (best-effort, may fail if DB unavailable) ──
-  let initialState: Record<string, unknown> | null = null;
-  if (await isDatabaseAvailable()) {
-    try {
-      const [tenant, lockCount, reservationCount] = await Promise.all([
-        db.tenant.findUnique({
-          where: { id: tenantId },
-          select: { id: true, name: true, niche: true, plan: true, status: true },
-        }),
-        db.lockDevice.count({ where: { tenantId } }).catch(() => 0),
-        db.reservation.count({ where: { tenantId } }).catch(() => 0),
-      ]);
-      initialState = {
-        tenant,
-        counts: { locks: lockCount, reservations: reservationCount },
-        serverTime: new Date().toISOString(),
-      };
-    } catch (err) {
-      console.warn('[tenant-state SSE] Initial state fetch failed:', err);
-    }
-  }
+  const initialState = await fetchSnapshot(tenantId);
 
   const stream = new ReadableStream({
     start(controller) {
@@ -187,11 +186,23 @@ export async function GET(request: NextRequest): Promise<Response> {
         );
       }
 
-      // 2. Replay any events the client missed (Last-Event-ID > 0)
+      // 2. Replay any events the client missed (Last-Event-ID > 0).
+      // F28-E: if the buffer cannot prove continuity (gap), send a FRESH
+      // snapshot instead of a partial replay — the client never silently
+      // skips events it does not know it missed.
       if (lastEventId > 0) {
-        const missed = getReplayEvents(tenantId, lastEventId);
-        for (const event of missed) {
-          sendEvent(sseController, event);
+        const plan = replayBuffers.planReplay(tenantId, lastEventId);
+        if (plan.gap) {
+          // Fire-and-forget: enqueue() tolera chegada tardia (stream aberto).
+          void fetchSnapshot(tenantId).then((resync) => {
+            if (resync) {
+              sseController.enqueue(`event: snapshot\ndata: ${JSON.stringify(resync)}\n\n`);
+            }
+          });
+        } else {
+          for (const event of plan.events) {
+            sendEvent(sseController, event);
+          }
         }
       }
 
