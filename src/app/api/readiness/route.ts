@@ -69,6 +69,16 @@ export async function GET(request: NextRequest) {
   checks.push({ name: 'Database connection', passed: dbAvailable, required: true, hint: dbAvailable ? `Connected (${dbLatency}ms)` : 'Cannot connect to DATABASE_URL' });
   checks.push({ name: 'BullMQ (Redis)', passed: isBullMQAvailable(), required: false, hint: 'Requires REDIS_URL' });
 
+  // F28-E: non-silent production signal — a multi-instance production deploy
+  // must never rely on in-memory pub/sub without an explicit warning.
+  const realtimeTransport = getActiveTransport();
+  const productionWarnings: string[] = [];
+  if (process.env.NODE_ENV === 'production' && realtimeTransport !== 'redis') {
+    productionWarnings.push(
+      'REALTIME_MEMORY_TRANSPORT: production is running the in-memory pub/sub fallback — cross-instance DDC events will NOT sync. Set REDIS_URL to enable multi-instance transport.',
+    );
+  }
+
   const requiredChecks = checks.filter(c => c.required);
   const failedRequired = requiredChecks.filter(c => !c.passed);
   const allPassed = failedRequired.length === 0;
@@ -78,6 +88,7 @@ export async function GET(request: NextRequest) {
       status: allPassed ? 'ready' : 'not_ready',
       summary: { total: checks.length, passed: checks.filter(c => c.passed).length, failed: checks.filter(c => !c.passed).length, requiredFailed: failedRequired.length },
       checks,
+      productionWarnings,
       timestamp: new Date().toISOString(),
       infra: await infraReadinessPayload(),
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',

@@ -204,10 +204,16 @@ function verifyWebhookSignature(
 
 // ── Plan Tier Resolver (amount → planTier) 
 
-const AMOUNT_TO_TIER: Array<{ minAmount: number; maxAmount: number; tier: string }> = [
+// Exported (F28) so the commercial canonicalization contract is testable.
+export const AMOUNT_TO_TIER: Array<{ minAmount: number; maxAmount: number; tier: string }> = [
   { minAmount: 0, maxAmount: 0, tier: 'gratuito' },
-  { minAmount: 197, maxAmount: 247, tier: 'lite' },
-  { minAmount: 247.01, maxAmount: 396.99, tier: 'parceiro' },
+  // F28: PARCEIRO canônico = R$247/mês (24 meses, paridade PRO). A banda de
+  // 197–246.99 continua LITE (PIX 197, boleto 207); 247 passa a ser PARCEIRO.
+  // Colisão teórica LITE-cartão(247) × PARCEIRO(247) resolve-se a favor de
+  // PARCEIRO — e é irrelevante na prática: o provisioning usa metadata.planType
+  // do checkout (sempre presente) e resolvePlanTier é apenas fallback.
+  { minAmount: 197, maxAmount: 246.99, tier: 'lite' },
+  { minAmount: 247, maxAmount: 396.99, tier: 'parceiro' },
   { minAmount: 397, maxAmount: 796.99, tier: 'pro' },
   { minAmount: 797, maxAmount: Infinity, tier: 'max' },
 ];

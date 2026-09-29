@@ -32,9 +32,12 @@
  *
  * RECONNECT / RESUME
  * -------------------
- * EventSource auto-reconnects natively. On reconnect, the hook sends
- * Last-Event-ID with the highest seq seen — the server replays any
- * events the client missed.
+ * EventSource auto-reconnects natively with `Last-Event-ID`. For MANUAL
+ * reconnects (onerror → new EventSource), EventSource cannot send custom
+ * headers — so the hook appends `?afterSeq=<lastSeq>` to the SSE URL
+ * (F28-E: the comment previously promised this but never did it).
+ * On gap (events too old / other instance), the server answers with a
+ * fresh snapshot instead of a partial replay.
  *
  * The hook also exposes `connectionState` so the UI can show "reconnecting"
  * indicators to the user.
@@ -114,6 +117,8 @@ export function useTenantRealtimeState(): TenantRealtimeState {
   const eventSourceRef = useRef<EventSource | null>(null);
   const pollingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  // F28-E: highest seq seen — used as ?afterSeq= on manual reconnects.
+  const lastSeqRef = useRef(0);
 
   const cleanup = useCallback(() => {
     if (eventSourceRef.current) {
@@ -164,7 +169,13 @@ export function useTenantRealtimeState(): TenantRealtimeState {
 
     setConnectionState('connecting');
 
-    const es = new EventSource(SSE_URL, { withCredentials: true });
+    // F28-E: resume where we left off. Native reconnects carry the SSE
+    // Last-Event-ID header automatically; manual reconnects (new EventSource
+    // after onerror) cannot send headers, so we use ?afterSeq= instead.
+    const url = lastSeqRef.current > 0
+      ? `${SSE_URL}?afterSeq=${encodeURIComponent(String(lastSeqRef.current))}`
+      : SSE_URL;
+    const es = new EventSource(url, { withCredentials: true });
     eventSourceRef.current = es;
 
     es.onopen = () => {
@@ -195,7 +206,10 @@ export function useTenantRealtimeState(): TenantRealtimeState {
         try {
           const payload = JSON.parse(e.data) as Record<string, unknown>;
           const seq = Number(e.lastEventId || 0);
-          if (seq > 0) setLastSeq(seq);
+          if (seq > 0) {
+            lastSeqRef.current = seq;
+            setLastSeq(seq);
+          }
           setLastEvent({
             type,
             payload,

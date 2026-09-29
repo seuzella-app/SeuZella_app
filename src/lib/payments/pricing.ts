@@ -22,6 +22,9 @@ import type { PaymentMethod } from './types';
 //   - PRO:  R$397 flat (PIX or card — premium plan absorbs card fees)
 //   - MAX:  R$797 flat
 //   - PARCEIRO: R$247 flat (treated as subscription, PIX or card)
+//     REGRA COMERCIAL CANÔNICA (LOTE7 + decisão do dono, F28):
+//     PARCEIRO ZÉLLA = R$247,00/mês, preço/contrato congelado por 24 meses,
+//     paridade funcional com PRO. R$297 NÃO é preço válido de nenhum pacote.
 //   - GRATUITO: R$0 (free trial, no payment required)
 //
 // NOTE: ARPU math from the 18-month strategic report assumed R$330 ARPU.
@@ -36,7 +39,7 @@ export const PRICING_MATRIX: Record<PlanTier, Record<PaymentMethod, number>> = {
   lite: { pix: 197, cartao: 247, boleto: 207 },
   pro: { pix: 397, cartao: 397, boleto: 407 },
   max: { pix: 797, cartao: 797, boleto: 807 },
-  parceiro: { pix: 297, cartao: 297, boleto: 307 },
+  parceiro: { pix: 247, cartao: 247, boleto: 257 },
 };
 
 // ── Payment methods allowed per plan ──────────────────────────────────────────

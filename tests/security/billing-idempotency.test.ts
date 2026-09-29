@@ -322,7 +322,7 @@ describe('C6: Billing Idempotency & Concurrency Shield', () => {
       event: 'payment.created',
       paymentId: 'pay_e2e_123',
       status: 'approved',
-      amount: 297,
+      amount: 247,
       metadata: {
         customerName: 'Hotel Teste',
         niche: 'pousada',

@@ -122,11 +122,18 @@ describe('useTenantRealtimeState — SSE endpoint integration contract', () => {
     expect(source).toContain(':heartbeat');
   });
 
-  it('SSE endpoint supports Last-Event-ID for resume on reconnect', () => {
-    const source = read('src/app/api/ddc/realtime/tenant-state/route.ts');
-    expect(source).toContain("Last-Event-ID");
-    expect(source).toContain('getReplayEvents');
-    expect(source).toContain('MAX_BUFFER_PER_TENANT');
+  it('SSE endpoint supports Last-Event-ID resume with gap-aware replay (F28-E)', () => {
+    const route = read('src/app/api/ddc/realtime/tenant-state/route.ts');
+    expect(route).toContain("Last-Event-ID");
+    expect(route).toContain('afterSeq'); // manual reconnects cannot send headers
+    expect(route).toContain('TenantReplayBuffer'); // replay strategy extracted + testable
+    expect(route).toContain('planReplay');
+    expect(route).toContain('plan.gap'); // gap → fresh snapshot, never a partial replay
+    expect(route).toContain('fetchSnapshot(tenantId)');
+    // buffer cap moved to the planner module (still enforced):
+    const replay = read('src/lib/realtime/replay.ts');
+    expect(replay).toContain('MAX_REPLAY_BUFFER_PER_TENANT = 100');
+    expect(replay).toContain('buf.shift()');
   });
 
   it('SSE endpoint sends initial snapshot event on connect', () => {
