@@ -228,10 +228,31 @@ function isRedisConfigured(): boolean {
   return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 }
 
-function redisKey(tenantId: string, guestPhone: string): string {
+export function redisKey(tenantId: string, guestPhone: string): string {
   // Sanitiza para uso como key Redis (sem caracteres especiais)
   const sanitizedPhone = guestPhone.replace(/[^a-zA-Z0-9]/g, '_');
   return `mb:${tenantId}:${sanitizedPhone}`;
+}
+
+/**
+ * RBW v2 (item 3.8): builder PURO e exportado da Upstash-Deduplication-Id.
+ *
+ * Janela = BUNDLE_WINDOW_MS (3s) — NÃO mais (a v1 usava 10× = 30s, o que
+ * SUPRIMIA publishes legítimos de janelas diferentes: mensagem chegando
+ * até ~27s depois herdava o mesmo id e o flush dela nunca era agendado,
+ * ficando presa no buffer até o TTL de 30s).
+ *
+ * Prova de liveness com janela = BUNDLE_WINDOW_MS:
+ *   Toda mensagem cujo publish é suprimido (mesmo bucket do criador do
+ *   ciclo) chega ANTES do flush do criador disparar (criador + 3s), e por
+ *   isso é reclamada atomicamente pelo LPOP desse flush. Mensagem que chega
+ *   depois do flush cai em bucket NOVO → publish próprio → flush próprio.
+ *   Logo: dedup nunca suprime entrega, apenas jobs redundantes do MESMO
+ *   ciclo. Duplicatas residuais são no-op pelo claim atômico (LPOP).
+ */
+export function buildFlushDeduplicationId(tenantId: string, guestPhone: string, nowMs: number = Date.now()): string {
+  const bucket = Math.floor(nowMs / BUNDLE_WINDOW_MS);
+  return `rbw-flush:${tenantId}:${guestPhone}:${bucket}`;
 }
 
 /**
@@ -321,6 +342,12 @@ async function bufferMessageViaQStash(
         Authorization: `Bearer ${qstashToken}`,
         'Content-Type': 'application/json',
         'Upstash-Delay': `${BUNDLE_WINDOW_MS / 1000}s`,
+        // ── RBW Fase N + v2: idempotency key determinística por buffer+CICLO ──
+        // "publish accepted + HTTP timeout" NÃO significa job não aceito.
+        // Janela determinística = BUNDLE_WINDOW_MS (vê builder acima): nunca
+        // suprime flush de janela futura; duplicata do MESMO ciclo é absorvida
+        // pelo QStash, e flush tardio duplicado encontra buffer vazio (LPOP).
+        'Upstash-Deduplication-Id': buildFlushDeduplicationId(payload.tenantId, payload.guestPhone),
       },
       body: JSON.stringify({
         url: callbackUrl,
@@ -390,18 +417,23 @@ async function flushBufferSynchronous(
   let intentSnapshot: string | undefined;
 
   try {
-    // LRANGE 0 -1 — pega todas as mensagens pendentes sem removê-las
-    const res = await fetch(`${redisUrl}/lrange/${key}/0/-1`, {
+    // ── RBW Fase N: CLAIM ATÔMICO (LPOP count) ────────────────────────────────
+    // Antes: LRANGE (leitura) → process → DEL — dois workers liam o MESMO
+    // buffer e processavam em dobro. Agora: LPOP remove-e-entrega
+    // atomicamente; o segundo worker recebe lista vazia e NÃO reprocessa.
+    // Falha do processor → RPUSH de volta (requeue, ordem preservada) + TTL
+    // renovado, para o próximo flush tentar de novo.
+    const res = await fetch(`${redisUrl}/lpop/${key}/100`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${redisToken}` },
       signal: AbortSignal.timeout(3000),
     });
 
     if (!res.ok) {
-      throw new Error(`Redis LRANGE HTTP ${res.status}`);
+      throw new Error(`Redis LPOP HTTP ${res.status}`);
     }
 
-    const data = (await res.json()) as { result: string[] };
+    const data = (await res.json()) as { result: string[] | null };
     const messageStrings = data.result || [];
 
     if (messageStrings.length === 0) {
@@ -417,14 +449,25 @@ async function flushBufferSynchronous(
       messageContent: concatenatedContent,
     };
 
-    await processor(batchPayload);
-
-    // Limpa a key no Redis (DEL)
-    await fetch(`${redisUrl}/del/${key}`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${redisToken}` },
-      signal: AbortSignal.timeout(2000),
-    }).catch(() => { /* Non-fatal: TTL de 30s vai limpar */ });
+    try {
+      await processor(batchPayload);
+    } catch (procErr) {
+      // Requeue honesto: devolve as mensagens reclamadas para o próximo flush.
+      // (No design antigo o DEL ficava após o process — a falha mantinha as
+      // mensagens; preservamos a mesma garantia com o claim atômico.)
+      console.error('[message-bundler] processor falhou — requeue do buffer reclamado:', procErr);
+      await fetch(`${redisUrl}/rpush/${key}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${redisToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(messageStrings.map(s => JSON.parse(s))),
+        signal: AbortSignal.timeout(3000),
+      }).catch(() => { /* TTL de 30s evita acúmulo infinito */ });
+      await fetch(`${redisUrl}/expire/${key}/${BUNDLE_BUFFER_TTL_SECONDS}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${redisToken}` },
+        signal: AbortSignal.timeout(2000),
+      }).catch(() => { /* Non-fatal */ });
+    }
   } catch (err) {
     console.error('[message-bundler] flushBufferSynchronous falhou:', err);
   }
@@ -522,20 +565,21 @@ export async function handleFlushBufferRequest(
   const key = redisKey(req.tenantId, req.guestPhone);
 
   try {
-    // LRANGE pega todas as mensagens; DEL remove atomicamente depois
-    const [lrangeRes] = await Promise.all([
-      fetch(`${redisUrl}/lrange/${key}/0/-1`, {
+    // ── RBW Fase N: CLAIM ATÔMICO (LPOP count) — mesmo contrato do flush
+    // síncrono: dois workers/concorrências NUNCA processam o mesmo buffer.
+    const [lpopRes] = await Promise.all([
+      fetch(`${redisUrl}/lpop/${key}/100`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${redisToken}` },
         signal: AbortSignal.timeout(3000),
       }),
     ]);
 
-    if (!lrangeRes.ok) {
-      return { success: false, messageCount: 0, error: `Redis HTTP ${lrangeRes.status}` };
+    if (!lpopRes.ok) {
+      return { success: false, messageCount: 0, error: `Redis HTTP ${lpopRes.status}` };
     }
 
-    const data = (await lrangeRes.json()) as { result: string[] };
+    const data = (await lpopRes.json()) as { result: string[] | null };
     const messageStrings = data.result || [];
 
     if (messageStrings.length === 0) {
@@ -549,14 +593,24 @@ export async function handleFlushBufferRequest(
       messageContent: concatenatedContent,
     };
 
-    await processor(batchPayload);
-
-    // Limpa o buffer após processamento bem-sucedido
-    await fetch(`${redisUrl}/del/${key}`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${redisToken}` },
-      signal: AbortSignal.timeout(2000),
-    }).catch(() => { /* TTL vai limpar */ });
+    try {
+      await processor(batchPayload);
+    } catch (procErr) {
+      // Requeue: mensagens reclamadas voltam para o próximo flush tentar.
+      console.error('[message-bundler] processor falhou — requeue do buffer reclamado:', procErr);
+      await fetch(`${redisUrl}/rpush/${key}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${redisToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(messageStrings.map(s => JSON.parse(s))),
+        signal: AbortSignal.timeout(3000),
+      }).catch(() => { /* TTL evita acúmulo infinito */ });
+      await fetch(`${redisUrl}/expire/${key}/${BUNDLE_BUFFER_TTL_SECONDS}`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${redisToken}` },
+        signal: AbortSignal.timeout(2000),
+      }).catch(() => { /* Non-fatal */ });
+      return { success: false, messageCount: 0, error: 'PROCESSOR_FAILED_REQUEUED' };
+    }
 
     // Registra estatística de custo
     await addMessageToBundle(req.tenantId, 'inbound', {

@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
 import { getGateway } from './gateway-factory';
+import { withAdvisoryLock } from '@/lib/db/concurrency';
 import type { GatewayId, PaymentMethod, PaymentStatus } from './types';
 
 interface ReservationPaymentRow {
@@ -50,62 +51,74 @@ export async function createReservationPayment(input: CreateReservationPaymentIn
   if (!reservation) throw new Error('RESERVATION_NOT_FOUND');
   if (['CANCELLED', 'cancelled', 'NO_SHOW', 'no_show'].includes(reservation.status)) throw new Error('RESERVATION_NOT_PAYABLE');
 
-  const existing = await db.$queryRaw<ReservationPaymentRow[]>`
-    SELECT * FROM "reservation_payments"
-    WHERE "tenant_id" = ${input.tenantId}
-      AND "reservation_id" = ${input.reservationId}
-      AND "status" IN ('pending', 'in_progress', 'approved', 'authorized')
-    ORDER BY "created_at" DESC
-    LIMIT 1
-  `;
-  if (existing[0]) {
-    const current = existing[0];
-    return {
-      paymentId: current.id,
-      reservationId: current.reservation_id,
-      gateway: current.gateway as GatewayId,
-      gatewayPaymentId: current.gateway_payment_id,
-      status: current.status as PaymentStatus,
-      checkoutUrl: current.checkout_url ?? undefined,
-    };
-  }
-
   const gateway = getGateway(input.gateway);
   if (!gateway.isConfigured() && input.gateway !== 'mock') throw new Error('PAYMENT_GATEWAY_NOT_CONFIGURED');
   if (input.gateway === 'mock' && process.env.NODE_ENV === 'production') throw new Error('MOCK_GATEWAY_FORBIDDEN');
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
-  const result = await gateway.createPayment({
-    referenceId: reservation.id,
-    referenceType: 'reservation',
-    tenantId: input.tenantId,
-    amount: reservation.totalPrice,
-    paymentMethod: input.paymentMethod,
-    customer: input.customer,
-    description: `Seu Zélla - Reserva ${reservation.id}`,
-    successUrl: input.successUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=success`,
-    cancelUrl: input.cancelUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=cancelled`,
-    webhookUrl: input.webhookUrl,
-  });
 
-  if (!result.gatewayPaymentId) throw new Error('GATEWAY_PAYMENT_ID_MISSING');
+  // ── Fase G (RBW): elimina a race condition consulta→create→persist ────────
+  // Idempotência determinística por tenantId + reservationId + purpose
+  // ('reservation' — cobrança da estadia). A consulta de pagamento existente é
+  // REPETIDA DENTRO do advisory lock: REQUEST A e REQUEST B simultâneos
+  // serializam — quem chega segundo reencontra o pagamento de A e NÃO cobra
+  // de novo. Reutiliza o advisory lock existente (sem mecanismo paralelo).
+  return withAdvisoryLock(
+    `reservation-payment-create:${input.tenantId}:${input.reservationId}:reservation`,
+    async () => {
+      const existing = await db.$queryRaw<ReservationPaymentRow[]>`
+        SELECT * FROM "reservation_payments"
+        WHERE "tenant_id" = ${input.tenantId}
+          AND "reservation_id" = ${input.reservationId}
+          AND "status" IN ('pending', 'in_progress', 'approved', 'authorized')
+        ORDER BY "created_at" DESC
+        LIMIT 1
+      `;
+      if (existing[0]) {
+        const current = existing[0];
+        return {
+          paymentId: current.id,
+          reservationId: current.reservation_id,
+          gateway: current.gateway as GatewayId,
+          gatewayPaymentId: current.gateway_payment_id,
+          status: current.status as PaymentStatus,
+          checkoutUrl: current.checkout_url ?? undefined,
+        };
+      }
 
-  const paymentId = randomUUID();
-  await db.$executeRaw`
-    INSERT INTO "reservation_payments"
-      ("id", "tenant_id", "reservation_id", "gateway", "gateway_payment_id", "reference_type", "amount", "payment_method", "status", "checkout_url", "metadata")
-    VALUES
-      (${paymentId}, ${input.tenantId}, ${reservation.id}, ${result.gateway}, ${result.gatewayPaymentId}, 'reservation', ${reservation.totalPrice}, ${input.paymentMethod}, ${result.status}, ${result.checkoutUrl ?? null}, ${JSON.stringify({ gateway: result.gateway, roomId: reservation.roomId, guestId: reservation.guestId })})
-  `;
+      const result = await gateway.createPayment({
+        referenceId: reservation.id,
+        referenceType: 'reservation',
+        tenantId: input.tenantId,
+        amount: reservation.totalPrice,
+        paymentMethod: input.paymentMethod,
+        customer: input.customer,
+        description: `Seu Zélla - Reserva ${reservation.id}`,
+        successUrl: input.successUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=success`,
+        cancelUrl: input.cancelUrl || `${baseUrl ?? ''}/ddc?reservation_id=${encodeURIComponent(reservation.id)}&payment=cancelled`,
+        webhookUrl: input.webhookUrl,
+      });
 
-  return {
-    paymentId,
-    reservationId: reservation.id,
-    gateway: result.gateway,
-    gatewayPaymentId: result.gatewayPaymentId,
-    status: result.status,
-    checkoutUrl: result.checkoutUrl,
-    pix: result.pix,
-    boleto: result.boleto,
-  };
+      if (!result.gatewayPaymentId) throw new Error('GATEWAY_PAYMENT_ID_MISSING');
+
+      const paymentId = randomUUID();
+      await db.$executeRaw`
+        INSERT INTO "reservation_payments"
+          ("id", "tenant_id", "reservation_id", "gateway", "gateway_payment_id", "reference_type", "amount", "payment_method", "status", "checkout_url", "metadata")
+        VALUES
+          (${paymentId}, ${input.tenantId}, ${reservation.id}, ${result.gateway}, ${result.gatewayPaymentId}, 'reservation', ${reservation.totalPrice}, ${input.paymentMethod}, ${result.status}, ${result.checkoutUrl ?? null}, ${JSON.stringify({ gateway: result.gateway, roomId: reservation.roomId, guestId: reservation.guestId })})
+      `;
+
+      return {
+        paymentId,
+        reservationId: reservation.id,
+        gateway: result.gateway,
+        gatewayPaymentId: result.gatewayPaymentId,
+        status: result.status,
+        checkoutUrl: result.checkoutUrl,
+        pix: result.pix,
+        boleto: result.boleto,
+      };
+    },
+  );
 }

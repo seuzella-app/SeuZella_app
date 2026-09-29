@@ -67,6 +67,15 @@ vi.mock('@/lib/db/concurrency', () => ({ withAdvisoryLock: vi.fn((_key: string, 
 vi.mock('@/lib/payments/pricing', () => ({
   isMethodAllowed: vi.fn().mockReturnValue(true),
   getPrice: vi.fn().mockImplementation((planType: string) => ({ amount: planType === 'max' ? 497 : 197 })),
+  // RBW Fase I: a rota agora importa a fonte canônica de métodos do pricing.
+  // Mock modela a API real (valores canônicos da matriz).
+  ALLOWED_METHODS: {
+    gratuito: ['pix'],
+    lite: ['pix', 'boleto', 'cartao'],
+    pro: ['pix', 'cartao', 'boleto'],
+    max: ['pix', 'cartao', 'boleto'],
+    parceiro: ['pix', 'boleto', 'cartao'],
+  },
 }));
 vi.mock('@/lib/payments/gateway-factory', () => ({
   getDefaultGateway: vi.fn().mockReturnValue({

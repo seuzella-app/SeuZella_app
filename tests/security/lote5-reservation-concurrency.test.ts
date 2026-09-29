@@ -15,14 +15,14 @@ interface MockReservation {
 
 // In-memory persistent state for realistic concurrency simulation
 let reservationsStore: MockReservation[] = [];
-let roomsStore = [
+const roomsStore = [
   { id: 'room_101', tenantId: 'tenant_pousada_mar_azul', price: 300, propertyId: 'prop_1' },
   { id: 'room_202', tenantId: 'tenant_pousada_sol_e_mar', price: 450, propertyId: 'prop_2' },
 ];
-let guestsStore = [
-  { id: 'guest_A', tenantId: 'tenant_pousada_mar_azul', name: 'Hóspede A' },
-  { id: 'guest_B', tenantId: 'tenant_pousada_mar_azul', name: 'Hóspede B' },
-  { id: 'guest_C', tenantId: 'tenant_pousada_sol_e_mar', name: 'Hóspede C' },
+const guestsStore = [
+  { id: 'guest_A', tenantId: 'tenant_pousada_mar_azul', name: 'Hóspede A', phone: '5511999990001' },
+  { id: 'guest_B', tenantId: 'tenant_pousada_mar_azul', name: 'Hóspede B', phone: '5511999990002' },
+  { id: 'guest_C', tenantId: 'tenant_pousada_sol_e_mar', name: 'Hóspede C', phone: '5511999990003' },
 ];
 
 // Async lock simulator mimicking PostgreSQL transaction advisory lock (pg_advisory_xact_lock)
@@ -61,6 +61,12 @@ vi.mock('@/lib/db', () => ({
           findFirst: vi.fn(async ({ where }: any) => {
             return guestsStore.find((g) => g.id === where.id && (!where.tenantId || g.tenantId === where.tenantId)) || null;
           }),
+        },
+        booking: {
+          // RBW Fase E: a criação operacional agora também consulta estadias de
+          // canais externos (Booking) para impedir dupla representação da mesma
+          // estadia. Nenhuma estadia externa neste cenário de certificação.
+          findFirst: vi.fn(async () => null),
         },
         reservation: {
           findFirst: vi.fn(async ({ where }: any) => {
@@ -105,6 +111,15 @@ vi.mock('@/lib/db', () => ({
       }),
       count: vi.fn().mockResolvedValue(10),
     },
+    guest: {
+      findUnique: vi.fn(async ({ where, select }: any) => {
+        const guest = guestsStore.find((g) => g.id === where.id) || null;
+        if (!guest) return null;
+        if (where.tenantId && guest.tenantId !== where.tenantId) return null;
+        if (select?.phone) return { phone: guest.phone };
+        return guest;
+      }),
+    },
     reservation: {
       count: vi.fn().mockResolvedValue(1),
       findMany: vi.fn(async ({ where }: any) => {
@@ -113,6 +128,10 @@ vi.mock('@/lib/db', () => ({
     },
   },
   isDatabaseAvailable: vi.fn().mockResolvedValue(true),
+}));
+
+vi.mock('@/lib/meta/meta-attribution', () => ({
+  linkReservationToMetaAttribution: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock('@/lib/db/concurrency', () => ({
@@ -149,7 +168,7 @@ vi.mock('@/lib/security/api-shield', () => ({
   withSecurity: (handler: any) => handler,
 }));
 
-import { POST as createReservation, GET as listReservations } from '@/app/api/v1/reservations/route';
+import { POST as createReservation } from '@/app/api/v1/reservations/route';
 import { requireTenant } from '@/lib/auth';
 
 describe('🔒 LOTE 5: Reservations Concurrency & Zero Double Booking Suite', () => {

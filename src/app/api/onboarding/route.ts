@@ -3,6 +3,21 @@
 // =============================================================================
 // POST /api/onboarding — Completa o onboarding do tenant
 // GET  /api/onboarding — Verifica status do onboarding
+//
+// MISSÃO RBW (Fases A+B):
+//  A) ONBOARDING NÃO É AUTORIDADE COMERCIAL. O cliente NÃO define plano pago:
+//     planSlug pro/max enviado pelo corpo NUNCA ativa plano. A autoridade
+//     comercial é PAYMENT/SUBSCRIPTION AUTORIZADA (checkout success / webhook
+//     aprovado elevam tenant.plan). Tenant criado aqui nasce 'gratuito'.
+//  B) ISOLAMENTO DE TENANT: o GET resolve tenant EXCLUSIVAMENTE da sessão
+//     (session → user → tenantId). NUNCA findFirst({status:'active'}) global
+//     (retornava o primeiro tenant ativo do banco — vazamento entre tenants).
+//
+// Consumidores reais localizados na auditoria RBW: NENHUM consumidor interno
+// em src/ chama /api/onboarding (rota legada de setup). Portanto:
+//  - fluxo AUTENTICADO (RUN 6, pós-Google-signup) permanece — consumidor legítimo;
+//  - criação ANÔNIMA de conta+tenant é fechada em produção (fail-closed) e
+//    mantida em dev/teste com plano FORÇADO para gratuito (compat de dev).
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,11 +27,20 @@ import { authOptions } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const tenant = await db.tenant.findFirst({ where: { status: 'active' } });
-    if (!tenant) {
+    // ── Fase B (RBW): sessão é a única autoridade de identificação ──
+    const session = await getServerSession(authOptions);
+    const tenantId = (session?.user as { tenantId?: string } | undefined)?.tenantId;
+    if (!session?.user || !tenantId) {
+      return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
+    const tenant = await db.tenant.findUnique({ where: { id: String(tenantId) } });
+    if (!tenant || tenant.status !== 'active') {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
     }
 
+    // Tenant A → A = PASS (própria sessão). A → B = DENY (não existe caminho
+    // para passar outro tenantId: a resolução é session-bound por construção).
     return NextResponse.json({
       onboardingComplete: true,
       mode: tenant.niche,
@@ -61,11 +85,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ── Fase A (RBW): plano do cliente NÃO é autoridade comercial ──
+    // planSlug continua aceito no contrato (compat) mas é IGNORADO para
+    // ativação. A elevação de plano só ocorre por pagamento autorizado
+    // (webhook aprovado / checkout success com assinatura válida).
+    void planSlug;
+    void password; // nunca persistido (comportamento pré-existente preservado)
+
+    const cleanEmail = email.trim().toLowerCase();
+
     // Check if email already exists
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {
-      const cleanEmail = email.trim().toLowerCase();
-
       // RUN 6 — tenant authority (P0):
       // ANTES: um POST anônimo com o email de uma vítima reescrevia o tenant
       // dela (name/niche/plan — escalada de plano gratuita) ou conectava a
@@ -93,33 +124,51 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Create tenant for the authenticated existing user
+      // Create tenant for the authenticated existing user — plano inicial
+      // SEMPRE 'gratuito' (Fase A): pagamento é a autoridade de elevação.
       const tenant = await db.tenant.create({
         data: {
           name,
           niche: mode,
-          plan: planSlug,
+          plan: 'gratuito',
           users: { connect: { id: existingUser.id } },
         },
       });
 
       return NextResponse.json({
         success: true,
-        tenant: { id: tenant.id, name, mode, planSlug },
+        tenant: { id: tenant.id, name, mode, planSlug: tenant.plan },
         message: 'Onboarding completado com sucesso!',
       });
     }
 
-    // Create new user + tenant
+    // ── Criação anônima de conta+tenant (sem usuário existente) ──
+    // Auditoria RBW: NENHUM consumidor interno chama este caminho. É fail-open
+    // de provisionamento comercial (qualquer anônimo minta tenant 'pro'/'max')
+    // e cria conta sem credencial utilizável (password ignorado).
+    // Produção: fail-closed — onboarding de conta nova exige principal
+    // autenticado (signup/Google), e o plano nasce gratuito.
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        {
+          error: 'ONBOARDING_AUTH_REQUIRED',
+          message: 'Criação de conta anônima desabilitada. Autentique-se (signup/login) para concluir o onboarding.',
+        },
+        { status: 403 }
+      );
+    }
+
+    // Dev/teste: mantém compatibilidade com plano FORÇADO para gratuito
+    // (nunca plano pago sem assinatura autorizada — mesmo em dev).
     const user = await db.user.create({
       data: {
-        email,
+        email: cleanEmail,
         name: name,
         tenant: {
           create: {
             name,
             niche: mode,
-            plan: planSlug,
+            plan: 'gratuito',
           },
         },
       },

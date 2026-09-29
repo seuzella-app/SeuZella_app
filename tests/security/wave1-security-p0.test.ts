@@ -172,7 +172,10 @@ describe('🔒 Wave 1 — P0 Security Remediations Certification', () => {
 
     it('derives tenant authority from database Subscription record rather than spoofed metadata.tenantId', async () => {
       process.env.PAYMENT_WEBHOOK_SECRET = '';
-      mockDb.subscription.findUnique.mockResolvedValueOnce({
+      // RBW v2: o dono único lê o estado da assinatura DENTRO da transação
+      // (mesma model/mock) — o mock atende AMBAS as leituras (rota + apply).
+      // Asserções do teste permanecem intocadas.
+      mockDb.subscription.findUnique.mockResolvedValue({
         id: 'sub_real_123',
         tenantId: 'tenant_authoritative_A',
       });

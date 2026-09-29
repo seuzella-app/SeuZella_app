@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 // Hoist mocks
-const { mockDb, mockVerifyMercadoPagoWebhook } = vi.hoisted(() => ({
-  mockDb: {
+const { mockDb, mockVerifyMercadoPagoWebhook } = vi.hoisted(() => {
+  const db: Record<string, any> = {
     paymentTransaction: {
       findFirst: vi.fn(),
       update: vi.fn(),
@@ -17,9 +17,12 @@ const { mockDb, mockVerifyMercadoPagoWebhook } = vi.hoisted(() => ({
       update: vi.fn(),
       create: vi.fn(),
     },
-  },
-  mockVerifyMercadoPagoWebhook: vi.fn(),
-}));
+  };
+  // RBW C+D: a rota agora aplica o estado via dono único dentro de transação
+  // (API real do Prisma). O mock passa a modelar $transaction fielmente.
+  db.$transaction = vi.fn(async (fn: any) => fn(db));
+  return { mockDb: db, mockVerifyMercadoPagoWebhook: vi.fn() };
+});
 
 vi.mock('@/lib/db', () => ({
   db: mockDb,

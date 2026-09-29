@@ -18,6 +18,7 @@
  * ============================================================================
  */
 import { metaGraphUrl, ACTIVE_META_GRAPH_API_VERSION } from '@/lib/meta/meta-config';
+import { resolveTenantWhatsAppCredentials } from '@/lib/whatsapp/tenant-whatsapp-credentials';
 
 export interface SendWhatsAppResponse {
   success: boolean;
@@ -83,7 +84,52 @@ export async function sendWhatsAppMessage(
   options: SendWhatsAppOptions = {}
 ): Promise<SendWhatsAppResponse> {
   const correlationId = options.correlationId || newCorrelationId();
-  const sendMode = resolveSendMode();
+
+  // ── RBW Fase K: número de envio POR TENANT ──
+  // tenantId presente → MetaConnection do próprio tenant é a autoridade do
+  // phoneNumberId (nunca o número global). Sem tenantId → comportamento
+  // legado preservado (env global).
+  const tenantResolution = options.tenantId
+    ? await resolveTenantWhatsAppCredentials(options.tenantId)
+    : null;
+  const tenantPhoneNumberId = tenantResolution && tenantResolution.mode === 'tenant'
+    ? tenantResolution.phoneNumberId
+    : null;
+
+  // ── RBW v2 (item 3.5): FAIL-CLOSED DE PRODUÇÃO ANTES DE QUALQUER FALLBACK ──
+  // Tenant com tenantId em produção SEM resolução 'tenant' (sem conexão ou
+  // conexão não verificada) NUNCA envia pelo número global — o global é de
+  // OUTRO dono (plataforma/outro tenant) e quebraria o isolamento de respostas.
+  // Em dev/teste o fallback global/mock pré-existente é preservado.
+  if (
+    tenantResolution &&
+    tenantResolution.mode === 'none' &&
+    tenantPhoneNumberId === null &&
+    process.env.NODE_ENV === 'production'
+  ) {
+    const errorCode = tenantResolution.reason === 'tenant_connection_not_verified_in_production'
+      ? 'WHATSAPP_TENANT_CONNECTION_NOT_VERIFIED_IN_PRODUCTION'
+      : 'WHATSAPP_TENANT_NOT_CONNECTED_IN_PRODUCTION';
+    console.error(
+      `[whatsapp-send] ❌ PRODUÇÃO: tenant ${options.tenantId} SEM conexão própria verificada ` +
+      `(${tenantResolution.reason}). Envio bloqueado — nunca enviamos pelo número global de OUTRO dono. correlationId=${correlationId}`
+    );
+    return {
+      success: false,
+      isMock: false,
+      error: errorCode,
+      correlationId,
+      graphApiVersion: ACTIVE_META_GRAPH_API_VERSION,
+    };
+  }
+
+  let sendMode = resolveSendMode();
+
+  // Tenant com conexão própria + token de sistema: envio viável mesmo sem
+  // WHATSAPP_PHONE_NUMBER_ID global (produção multi-tenant real).
+  if (sendMode.mode === 'fail' && tenantPhoneNumberId && process.env.WHATSAPP_ACCESS_TOKEN) {
+    sendMode = { mode: 'live' };
+  }
 
   // ── Modo DB-only / Mock (dev/teste explicitamente permitido) ──
   if (sendMode.mode === 'mock') {
@@ -106,6 +152,10 @@ export async function sendWhatsAppMessage(
 
   // ── Produção sem credenciais: FALHA OPERACIONAL CLARA (Fase 20) ──
   if (sendMode.mode === 'fail') {
+    // RBW Fase K/v2: distingue "tenant sem conexão verificada" (falha de
+    // provisionamento do tenant) de "sistema sem credenciais" (falha de
+    // plataforma). O caso tenant-sem-conexão em produção JÁ retornou acima
+    // (fail-closed antes do fallback); aqui sobra apenas plataforma.
     console.error(
       `[whatsapp-send] ❌ PRODUÇÃO SEM CREDENCIAIS WHATSAPP (WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID). ` +
       `Envio bloqueado — mock NÃO é permitido em produção. correlationId=${correlationId}`
@@ -120,7 +170,8 @@ export async function sendWhatsAppMessage(
   }
 
   const token = process.env.WHATSAPP_ACCESS_TOKEN as string;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID as string;
+  // RBW Fase K: phoneNumberId do TENANT tem prioridade sobre o global.
+  const phoneNumberId = (tenantPhoneNumberId || process.env.WHATSAPP_PHONE_NUMBER_ID) as string;
 
   try {
     // Dividir a mensagem em blocos de no máximo 4000 caracteres para segurança

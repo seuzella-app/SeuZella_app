@@ -3,6 +3,7 @@ import { META_APP_SECRET, META_VERIFY_TOKEN } from '@/lib/env';
 import { resolveTenantByPhone } from '@/lib/resolve-tenant-by-phone';
 import { verifyWhatsAppWebhook, validateWebhookTenant } from '@/lib/security/webhook-verify';
 import { normalizeWhatsAppInboundMessage } from '@/lib/whatsapp/inbound-message';
+import { claimMetaEvent, completeMetaEvent } from '@/lib/meta/meta-events';
 import { webhookRatelimit } from '@/lib/rate-limit';
 import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
@@ -87,6 +88,21 @@ export async function POST(request: NextRequest) {
       timestamp: message.timestamp,
     });
 
+    // ── RBW Fase M: idempotência UNIFICADA entre as duas rotas de webhook ──
+    // A MESMA mensagem entregue às DUAS rotas (/api/webhooks/whatsapp canônica
+    // e /api/webhook-whatsapp legada) não pode ser processada duas vezes. A
+    // autoridade é a MESMA da rota canônica: claimMetaEvent('inbound_message',
+    // messageId). Claim negado = duplicata (processada pela canônica ou retry
+    // da Meta) → ack sem reprocessamento.
+    const inboundClaim = await claimMetaEvent('inbound_message', message.id, {
+      destination: displayPhoneNumber,
+      from: fromPhone,
+      source: 'webhook-whatsapp-legacy',
+    });
+    if (!inboundClaim.claimed) {
+      return NextResponse.json({ success: true, queued: false, deduplicated: true }, { headers: { 'X-Security-Shield': 'zero-trust-v2' } });
+    }
+
     const { enqueueJob, QUEUE_NAMES } = await import('@/lib/queue/queue-service');
     try {
       await enqueueJob(
@@ -98,8 +114,11 @@ export async function POST(request: NextRequest) {
         },
         { jobId: normalized.idempotencyKey, tenantId: normalized.message.tenantId },
       );
+      await completeMetaEvent('inbound_message', message.id, 'processed');
     } catch (queueError) {
       console.error('[whatsapp-webhook] Queue unavailable; requesting provider retry:', queueError);
+      // Libera o claim para o retry da Meta reprocessar mais tarde.
+      await completeMetaEvent('inbound_message', message.id, 'failed').catch(() => {});
       return NextResponse.json({ error: 'QUEUE_UNAVAILABLE' }, { status: 503, headers: { 'Retry-After': '5' } });
     }
 

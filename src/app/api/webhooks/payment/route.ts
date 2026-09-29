@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { sendEmail } from '@/lib/email-sender';
 import { generateWelcomeEmailHtml } from '@/lib/email-templates/welcome-email';
 import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+import { applySubscriptionPaymentStatus } from '@/lib/payments/subscription-state-apply';
 import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 // ══
@@ -245,30 +246,25 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
     if (subscription) {
       const existingTenant = await db.tenant.findUnique({ where: { id: subscription.tenantId } });
       if (existingTenant) {
-        const now = new Date();
-        const periodEnd = new Date(now);
-        periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-        await db.tenant.update({
-          where: { id: existingTenant.id },
-          data: {
-            plan: planTier,
-            status: 'active',
-            subscriptionAt: now,
-            niche: niche as string,
-          },
-        });
-
-        await db.subscription.update({
-          where: { id: subscription.id },
-          data: {
-            status: 'active',
-            paymentStatus: 'approved',
-            paymentId: payload.paymentId || null,
-            currentPeriodStart: now,
-            currentPeriodEnd: periodEnd,
-            planType: planTier,
-          },
+        // RBW C+D: ativação via dono ÚNICO (máquina de estados). O nicho é
+        // detalhe de perfil (não financeiro) e continua sendo atualizado aqui.
+        await db.$transaction(async (tx) => {
+          const apply = await applySubscriptionPaymentStatus({
+            subscriptionId: subscription.id,
+            tenantId: existingTenant.id,
+            planTier,
+            canonicalStatus: 'approved',
+            gateway: 'asaas',
+            gatewayPaymentId: payload.paymentId || null,
+            currentPaymentStatus: subscription.paymentStatus || null,
+            tx: tx as unknown as Parameters<typeof applySubscriptionPaymentStatus>[0]['tx'],
+          });
+          if (!apply.applied) {
+            throw new Error(`PROVISION_TRANSITION_REJECTED:${apply.reason}`);
+          }
+          if (niche && niche !== existingTenant.niche) {
+            await tx.tenant.update({ where: { id: existingTenant.id }, data: { niche: niche as string } });
+          }
         });
 
         return {
@@ -285,8 +281,16 @@ async function provisionNewCustomer(payload: WebhookPayload): Promise<Provisioni
   }
 
   // ══
-  // 🪄 PROVISIONAMENTO MÁGICO — Novo Cliente (Tenant Isolado)
+  // PROVISIONAMENTO INICIAL (RBW v2 — classificação obrigatória, item 3.4)
   // Sem subscriptionId autorizada prévia, nunca mutamos um tenant existente por meta.tenantId.
+  //
+  // Isto NÃO é ATIVAÇÃO FINANCEIRA de entidade existente (essa acontece
+  // EXCLUSIVAMENTE via applySubscriptionPaymentStatus — dono único): é o
+  // NASCIMENTO das entidades de um cliente novo pago na landing, alcançável
+  // SOMENTE por este webhook autenticado (HMAC), com idempotência C6
+  // (executeWithBillingIdempotency por paymentId) + backstop de unique
+  // constraint em PaymentTransaction(paymentMethod, externalId). Replay
+  // 1x → provisiona · 2x/10x → dedup (nenhum tenant/property/user duplicado).
   // ══
 
   const now = new Date();
@@ -623,67 +627,55 @@ export async function POST(request: NextRequest) {
                 data: { status: payload.status },
               });
 
-              if (payload.status === 'approved') {
+              if (payload.status === 'approved' || payload.status === 'rejected') {
                 const subscription = await db.subscription.findUnique({
                   where: { id: transaction.subscriptionId },
                 });
 
                 if (subscription) {
-                  const now = new Date();
-                  const periodEnd = new Date(now);
-                  periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-                  await db.subscription.update({
-                    where: { id: subscription.id },
-                    data: {
-                      status: 'active',
-                      paymentStatus: 'approved',
-                      currentPeriodStart: now,
-                      currentPeriodEnd: periodEnd,
-                    },
-                  });
-
-                  await db.tenant.update({
-                    where: { id: subscription.tenantId },
-                    data: { plan: subscription.planType, subscriptionAt: now, status: 'active' },
-                  });
-
-                  // ── Notification bridge: payment received
-                  try {
-                    bridgePaymentEvent({
-                      niche: 'all',
-                      paymentId: String(payload.paymentId),
-                      amount: Number(transaction.amount ?? 0),
-                      guestName: subscription.tenantId,
-                      method: 'pix',
-                      status: 'received',
+                  // RBW C+D: mutação via dono ÚNICO (máquina de estados).
+                  const apply = await db.$transaction(async (tx) =>
+                    applySubscriptionPaymentStatus({
+                      subscriptionId: subscription.id,
                       tenantId: subscription.tenantId,
-                    });
-                  } catch (notifErr) {
-                    console.error('[webhooks/payment] bridgePaymentEvent error:', notifErr);
-                  }
-                }
-              } else if (payload.status === 'rejected') {
-                const subscription = await db.subscription.findUnique({
-                  where: { id: transaction.subscriptionId },
-                });
-                if (subscription) {
-                  await db.subscription.update({
-                    where: { id: subscription.id },
-                    data: { paymentStatus: 'rejected' },
-                  });
-                  // ── Notification bridge: payment failed
-                  try {
-                    bridgePaymentEvent({
-                      niche: 'all',
-                      paymentId: String(payload.paymentId),
-                      amount: Number(transaction.amount ?? 0),
-                      guestName: subscription.tenantId,
-                      status: 'failed',
-                      tenantId: subscription.tenantId,
-                    });
-                  } catch (notifErr) {
-                    console.error('[webhooks/payment] bridgePaymentEvent rejected error:', notifErr);
+                      planTier: subscription.planType,
+                      canonicalStatus: payload.status as 'approved' | 'rejected',
+                      gateway: 'asaas',
+                      gatewayPaymentId: String(payload.paymentId),
+                      currentPaymentStatus: subscription.paymentStatus || null,
+                      tx: tx as unknown as Parameters<typeof applySubscriptionPaymentStatus>[0]['tx'],
+                    })
+                  );
+
+                  if (apply.applied && payload.status === 'approved') {
+                    // ── Notification bridge: payment received
+                    try {
+                      bridgePaymentEvent({
+                        niche: 'all',
+                        paymentId: String(payload.paymentId),
+                        amount: Number(transaction.amount ?? 0),
+                        guestName: subscription.tenantId,
+                        method: 'pix',
+                        status: 'received',
+                        tenantId: subscription.tenantId,
+                      });
+                    } catch (notifErr) {
+                      console.error('[webhooks/payment] bridgePaymentEvent error:', notifErr);
+                    }
+                  } else if (apply.applied && payload.status === 'rejected') {
+                    // ── Notification bridge: payment failed
+                    try {
+                      bridgePaymentEvent({
+                        niche: 'all',
+                        paymentId: String(payload.paymentId),
+                        amount: Number(transaction.amount ?? 0),
+                        guestName: subscription.tenantId,
+                        status: 'failed',
+                        tenantId: subscription.tenantId,
+                      });
+                    } catch (notifErr) {
+                      console.error('[webhooks/payment] bridgePaymentEvent rejected error:', notifErr);
+                    }
                   }
                 }
               }

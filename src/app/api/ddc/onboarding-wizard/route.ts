@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { resolveWhatsAppConnectionState, whatsappConnectedFromState } from '@/lib/whatsapp/connection-state';
 
 /**
  * Helper seguro para parse de JSON sem risco de SyntaxError
@@ -82,6 +83,10 @@ export async function GET(request: NextRequest) {
       ? meta.onboardingStepsCompleted
       : [];
 
+    // ── RBW Fase L: estado REAL da conexão WhatsApp (autoridade server-side) ──
+    // Derivado de MetaConnection (banco), NUNCA do auto-relato do wizard.
+    const connectionState = await resolveWhatsAppConnectionState(String(tenantId));
+
     return NextResponse.json({
       success: true,
       data: {
@@ -99,7 +104,12 @@ export async function GET(request: NextRequest) {
           petPolicy: meta.petPolicy || 'not_allowed',
           cancellationPolicy: meta.cancellationPolicy || 'flexible',
           aiTone: meta.aiTone || 'descontraida',
-          whatsappConnected: Boolean(meta.whatsappConnected),
+          // Legado (UI): agora DERIVADO do estado real — auto-declaração nunca
+          // produz true. Novos consumidores devem usar whatsappConnectionState.
+          whatsappConnected: whatsappConnectedFromState(connectionState.state),
+          whatsappConnectionState: connectionState.state,
+          whatsappConnectionSource: connectionState.source,
+          whatsappExternalValidation: connectionState.externalValidation,
           autoPinActive: Boolean(meta.autoPinActive),
           highSeasonMultiplierPercent: Number(meta.highSeasonMultiplierPercent) || 40,
           notifyBeforePriceChange: meta.notifyBeforePriceChange ?? true,
@@ -230,7 +240,20 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'whatsapp':
-        meta.whatsappConnected = Boolean(data.connected);
+        // ── RBW Fase L: cliente NÃO é autoridade de conexão real ──
+        // `data.connected=true` marca INTENÇÃO (PENDING_VERIFICATION). O estado
+        // VERIFIED só existe com evidência server-side (MetaConnection —
+        // gravada pelo fluxo de onboarding da Meta / webhook). Nunca gravamos
+        // "verificado" só porque o cliente disse.
+        if (Boolean(data.connected)) {
+          const currentState = await resolveWhatsAppConnectionState(String(tenantId));
+          meta.whatsappConnectionState = currentState.state === 'VERIFIED' || currentState.state === 'HEALTHY'
+            ? currentState.state
+            : 'PENDING_VERIFICATION';
+        } else {
+          meta.whatsappConnectionState = 'NOT_CONFIGURED';
+        }
+        meta.whatsappConnected = Boolean(data.connected) ? meta.whatsappConnectionState === 'VERIFIED' || meta.whatsappConnectionState === 'HEALTHY' : false;
         updateData.metadata = JSON.stringify(meta);
         break;
 

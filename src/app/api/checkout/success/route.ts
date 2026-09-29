@@ -1,12 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import crypto from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getNextAuthSecret } from '@/lib/env';
-import { registerConversion } from '@/lib/credits/engine';
-import type { PlanTier } from '@/lib/plan-features';
+import { verifyCheckoutSubscriptionSignature } from '@/lib/payments/checkout-signature';
 import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RBW v2 — CHECKOUT SUCCESS É OBSERVADOR, NUNCA AUTORIDADE FINANCEIRA
+// ═══════════════════════════════════════════════════════════════════════════
+// Correção da auditoria do kit v1 (item 3.1): esta rota AINDA ativava
+// subscription+tenant e criava período financeiro por um GET do navegador —
+// autoridade paralela ao webhook. A partir da v2:
+//
+//   CHECKOUT/SUCCESS (GET do cliente)  =  LEITURA + UX de retorno
+//   WEBHOOK DO PROVIDER                =  ÚNICA AUTORIDADE DE MUTAÇÃO
+//     → verificação → idempotência → normalização → state machine
+//     → applySubscriptionPaymentStatus (dono único)
+//
+// Contrato desta rota (NADA além disto):
+//   1. valida subscription_id presente;
+//   2. valida assinatura HMAC (timing-safe);
+//   3. valida sessão/tenant;
+//   4. LÊ o estado atual da assinatura;
+//   5. NÃO ativa subscription;      6. NÃO ativa tenant;
+//   7. NÃO altera plano;            8. NÃO altera período financeiro;
+//   9. NÃO transforma pendente em aprovado;
+//  10. NÃO cria autoridade financeira paralela (nem Property, nem tenant).
+//
+// Estados:
+//   pending/sem estado   → /ddc?payment=pending   (sem mutação)
+//   rejected             → /ddc?payment=rejected (sem mutação)
+//   refunded/cancelled/
+//   expired/chargeback   → /ddc?payment=failed   (sem mutação)
+//   active + approved    → /ddc?payment=success  (NO-OP financeiro)
+//
+// REPLAY GARANTIDO: refresh/reenvio do link nunca cria nem estende
+// currentPeriodStart/currentPeriodEnd — a rota não escreve nada no banco
+// financeiro.
+// ═══════════════════════════════════════════════════════════════════════════
 
 export async function GET(request: NextRequest) {
   // RUN13-A (W2): anti-flood fail-closed por IP — 60 req/1min.
@@ -33,12 +65,9 @@ export async function GET(request: NextRequest) {
     }
 
     const secret = getNextAuthSecret();
-    const expectedSig = crypto
-      .createHmac('sha256', secret)
-      .update(subscriptionId)
-      .digest('hex');
-
-    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) {
+    // Fase H (RBW): verificação canônica única (timing-safe, comprimento
+    // comparado antes de timingSafeEqual — evita throw em sig de tamanho errado).
+    if (!verifyCheckoutSubscriptionSignature(subscriptionId, sig, secret)) {
       return NextResponse.redirect(new URL('/?error=invalid_signature', request.url));
     }
 
@@ -50,69 +79,45 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/?error=subscription_not_found', request.url));
     }
 
+    // Isolamento por tenant: assinatura de OUTRO tenant é bloqueada
+    // (o link vazado/forjado não dá acesso nem visibilidade de outro tenant).
     if (subscription.tenantId !== session.user.tenantId) {
       return NextResponse.redirect(new URL('/?error=forbidden', request.url));
     }
 
-    await db.subscription.update({
-      where: { id: subscriptionId },
-      data: {
-        status: 'active',
-        paymentStatus: 'approved',
-        currentPeriodStart: new Date(),
-        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    // ── RBW v2: LEITURA de estado — sem NENHUMA mutação financeira ─────────
+    // A ativação (subscription active + tenant active + período) acontece
+    // EXCLUSIVAMENTE no fluxo canônico: provider webhook → state machine →
+    // applySubscriptionPaymentStatus. Aqui apenas classificamos o estado
+    // para o redirect de UX.
+    const isActiveApproved =
+      subscription.status === 'active' && subscription.paymentStatus === 'approved';
+
+    if (!isActiveApproved) {
+      const paymentStatus = subscription.paymentStatus || 'pending';
+      let redirectPath: string;
+      if (paymentStatus === 'rejected') {
+        redirectPath = '/ddc?payment=rejected';
+      } else if (
+        paymentStatus === 'refunded' ||
+        paymentStatus === 'chargeback' ||
+        paymentStatus === 'cancelled' ||
+        paymentStatus === 'expired'
+      ) {
+        redirectPath = '/ddc?payment=failed';
+      } else {
+        // pending e qualquer estado desconhecido: pagamento ainda não
+        // confirmado — NUNCA transformamos pendente em aprovado aqui.
+        redirectPath = '/ddc?payment=pending';
       }
-    });
-
-    const tenant = await db.tenant.update({
-      where: { id: subscription.tenantId },
-      data: {
-        plan: subscription.planType as any,
-        status: 'active',
-        subscriptionAt: new Date()
-      }
-    });
-
-    const propertyCount = await db.property.count({
-      where: { tenantId: tenant.id }
-    });
-
-    if (propertyCount === 0) {
-      await db.property.create({
-        data: {
-          tenantId: tenant.id,
-          name: `${tenant.name} - Principal`,
-          slug: `${tenant.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}-principal`,
-          type: 'pousada'
-        }
-      });
+      return NextResponse.redirect(new URL(redirectPath, request.url));
     }
 
-    // ── Programa de Amortização: registra conversão se houver cookie de indicação ──
-    // Anti-fraude: cookie zella_ref presente = lead veio de uma indicação rastreada.
-    // O engine valida auto-indicação (mesmo email/tenant) e bloqueia se for o caso.
-    try {
-      const referrerCode = request.cookies.get('zella_ref')?.value;
-      if (referrerCode && subscription.planType && subscription.planType !== 'gratuito') {
-        await registerConversion({
-          referrerCode,
-          newTenantId: tenant.id,
-          newTenantEmail: tenant.email || session.user.email || '',
-          newTenantPlan: subscription.planType as Exclude<PlanTier, 'gratuito'>,
-          paymentAmountCents: Math.round(subscription.amount * 100),
-        });
-        // Limpa o cookie após registrar a conversão (não pode reusar)
-        const response = NextResponse.redirect(new URL('/ddc?payment=success', request.url));
-        response.cookies.delete('zella_ref');
-        response.cookies.delete('zella_rch');
-        return response;
-      }
-    } catch (convErr) {
-      // Não bloqueia o checkout por erro no tracking de indicação
-      console.error('[checkout/success] conversion tracking error:', convErr);
-    }
-
+    // ── Estado ATIVO+APROVADO (atividade feita pelo WEBHOOK, não por aqui) ──
+    // RBW v2.1: este GET é estritamente observador. Não registra conversão,
+    // não cria tracking, não atualiza qualquer entidade e não dispara workflow.
     return NextResponse.redirect(new URL('/ddc?payment=success', request.url));
+
   } catch (error) {
     console.error('Payment success error:', error);
     return NextResponse.redirect(new URL('/?error=payment_failed', request.url));

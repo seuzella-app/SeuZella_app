@@ -4,6 +4,7 @@
 // ==============================================================================
 
 import { db } from '@/lib/db';
+import { applySubscriptionPaymentStatus } from '@/lib/payments/subscription-state-apply';
 
 export interface IdempotencyOptions {
   provider: 'asaas' | 'mercadopago' | 'generic';
@@ -294,6 +295,13 @@ export async function recordWebhookEvent(
   });
 }
 
+/**
+ * RBW v2 (correção da auditoria do kit v1 — item 3.3): esta função era uma
+ * 4ª autoridade de ativação paralela (escrevia active/approved direto, sem
+ * máquina de estados, SEM chamadores em src/ — código morto latente).
+ * Agora é um DELEGANTE fino do dono ÚNICO (applySubscriptionPaymentStatus):
+ * mesma assinatura/retorno, validação da máquina + replay no-op garantidos.
+ */
 export async function activateSubscriptionIfNotActive(
   subscriptionId: string,
   planTier: string,
@@ -309,13 +317,19 @@ export async function activateSubscriptionIfNotActive(
       select: { id: true, status: true, paymentStatus: true, tenantId: true },
     });
     if (!subscription) return { activated: false, reason: 'subscription_not_found' };
-    if (subscription.status === 'active' && subscription.paymentStatus === 'approved') return { activated: false, reason: 'already_active' };
 
-    await tx.subscription.update({
-      where: { id: subscriptionId },
-      data: { status: 'active', paymentStatus: 'approved', paymentId: gatewayPaymentId },
+    const apply = await applySubscriptionPaymentStatus({
+      subscriptionId,
+      tenantId: subscription.tenantId,
+      planTier,
+      canonicalStatus: 'approved',
+      gateway,
+      gatewayPaymentId,
+      tx,
     });
-    await tx.tenant.update({ where: { id: subscription.tenantId }, data: { status: 'active' } });
+
+    if (apply.transition === 'idempotent_noop') return { activated: false, reason: 'already_active' };
+    if (!apply.applied) return { activated: false, reason: 'transition_rejected' };
     return { activated: true, reason: 'activated' };
   });
 }

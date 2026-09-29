@@ -6,16 +6,22 @@ import { authOptions } from '@/lib/auth';
 import { createError } from '@/lib/error-handler';
 import { authRatelimit } from '@/lib/rate-limit';
 import { type PlanTier } from '@/lib/plan-features';
-import { isMethodAllowed, getPrice } from '@/lib/payments/pricing';
+import { isMethodAllowed, getPrice, ALLOWED_METHODS } from '@/lib/payments/pricing';
 import { getDefaultGateway, getGateway } from '@/lib/payments/gateway-factory';
 import { PaymentGatewayError, type GatewayId, type PaymentMethod } from '@/lib/payments/types';
 import { measureLatency } from '@/lib/observability/latency-tracker';
 import { withAdvisoryLock } from '@/lib/db/concurrency';
 import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+import { buildCheckoutSuccessUrl } from '@/lib/payments/checkout-signature';
 import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 const VALID_PLANS: PlanTier[] = ['gratuito', 'lite', 'pro', 'max', 'parceiro'];
-const VALID_METHODS: PaymentMethod[] = ['pix', 'cartao'];
+// Fase I (RBW): fonte canônica ÚNICA de métodos — derivada da matriz de pricing
+// (ALLOWED_METHODS), eliminando a divergência "pricing vende boleto, checkout
+// rejeita boleto". Método só aparece aqui se o pricing o vender ativamente.
+const VALID_METHODS: PaymentMethod[] = Array.from(
+  new Set(Object.values(ALLOWED_METHODS).flat())
+) as PaymentMethod[];
 const VALID_NICHES = ['pousada', 'airbnb'] as const;
 const VALID_GATEWAYS: GatewayId[] = ['asaas', 'mercadopago', 'mock'];
 const MAX_IDEMPOTENCY_KEY_LENGTH = 255;
@@ -259,14 +265,16 @@ async function doCheckoutCreate(tenantId: string, planType: PlanTier, paymentMet
       paymentMethod,
       customer: { name, email: customerEmail, phone: phone || undefined, document: document || undefined },
       description: `ZELLA SmartHotel - Plano ${planType.toUpperCase()}`,
-      successUrl: `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}`,
+      // Fase H (RBW): o produtor do checkout GERA a assinatura que o success
+      // exige (subscription_id + sig) — não se remove validação, se gera o par.
+      successUrl: buildCheckoutSuccessUrl(baseUrl, subscription.id),
       cancelUrl: `${baseUrl}/checkout/cancel?subscription_id=${encodeURIComponent(subscription.id)}`,
       webhookUrl: `${baseUrl}/api/webhooks/payment`,
     });
 
     if (!result.gatewayPaymentId) throw new Error('Gateway did not return payment id');
 
-    const responseData: Record<string, unknown> = { subscriptionId: subscription.id, amount, paymentMethod, gateway: result.gateway, planType, status: result.status, checkoutUrl: result.checkoutUrl || `${baseUrl}/checkout/success?subscription_id=${encodeURIComponent(subscription.id)}` };
+    const responseData: Record<string, unknown> = { subscriptionId: subscription.id, amount, paymentMethod, gateway: result.gateway, planType, status: result.status, checkoutUrl: result.checkoutUrl || buildCheckoutSuccessUrl(baseUrl, subscription.id) };
     if (result.pix) responseData.pix = result.pix;
     if (result.boleto) responseData.boleto = result.boleto;
 

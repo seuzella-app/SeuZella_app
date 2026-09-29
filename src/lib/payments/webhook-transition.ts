@@ -15,6 +15,10 @@ export function normalizePaymentState(status: PaymentStatus | string | null | un
   if (normalized === 'CANCELLED' || normalized === 'EXPIRED') return 'CANCELLED';
   if (normalized === 'REFUNDED') return 'REFUNDED';
   if (normalized === 'CONFIRMED' || normalized === 'ACTIVE') return 'CONFIRMED';
+  // RBW Fase D: CHARGEBACK é estado real da máquina (terminal, nunca reativa) —
+  // antes caía no default CREATED e a validação de transição de chargeback
+  // ficava impossível.
+  if (normalized === 'CHARGEBACK') return 'CHARGEBACK';
   return 'CREATED';
 }
 

@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { processReservationPaymentWebhookEvent } from './process-reservation-webhook';
-import { validatePaymentWebhookTransition } from './webhook-transition';
+import { applySubscriptionPaymentStatus } from './subscription-state-apply';
 import type { WebhookEvent } from './types';
 
 /**
@@ -63,15 +63,10 @@ async function processSubscriptionWebhookEvent(event: WebhookEvent): Promise<{ d
     });
     if (!subscription) throw new Error('PAYMENT_WEBHOOK_SUBSCRIPTION_NOT_FOUND');
 
-    // C4.3: Validação determinística de transição de máquina de estados para assinaturas
-    if (subscription.paymentStatus) {
-      const transition = validatePaymentWebhookTransition(subscription.paymentStatus, event.status);
-      if (!transition.accepted) {
-        console.warn(`[SUBSCRIPTION_PAYMENT] Transição rejeitada: ${subscription.paymentStatus} -> ${event.status} (${transition.reason})`);
-        return { deduplicated: true, subscriptionId: subscription.id };
-      }
-    }
-
+    // RBW C+D: validação de transição + mutação de subscription/tenant passam
+    // pelo dono ÚNICO (applySubscriptionPaymentStatus) — a aplicação ocorre
+    // APÓS o dedup e o registro do evento bruto; estado da assinatura nunca
+    // regride e evento fora de ordem é tratado como dedup.
     const lockKey = `payment-event:${event.gateway}:${event.providerEventId}`;
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
 
@@ -101,32 +96,26 @@ async function processSubscriptionWebhookEvent(event: WebhookEvent): Promise<{ d
       },
     });
 
-    switch (event.status) {
-      case 'approved':
-        await tx.subscription.update({
-          where: { id: subscription.id },
-          data: { status: 'active', paymentStatus: 'approved', paymentId: event.gatewayPaymentId },
-        });
-        await tx.tenant.update({
-          where: { id: subscription.tenantId },
-          data: { plan: subscription.planType as never, status: 'active', subscriptionAt: new Date() },
-        });
-        break;
-      case 'pending':
-      case 'in_progress':
-        await tx.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'pending', paymentId: event.gatewayPaymentId } });
-        break;
-      case 'rejected':
-        await tx.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'rejected', paymentId: event.gatewayPaymentId } });
-        break;
-      case 'cancelled':
-        await tx.subscription.update({ where: { id: subscription.id }, data: { status: 'cancelled', paymentStatus: 'cancelled', paymentId: event.gatewayPaymentId, cancelAtPeriodEnd: true } });
-        break;
-      case 'refunded':
-        await tx.subscription.update({ where: { id: subscription.id }, data: { paymentStatus: 'refunded', paymentId: event.gatewayPaymentId } });
-        break;
-      default:
-        break;
+    // RBW C+D: aplicação canônica do estado (única porta de mutação).
+    const applyResult = await applySubscriptionPaymentStatus({
+      subscriptionId: subscription.id,
+      tenantId: subscription.tenantId,
+      planTier: subscription.planType,
+      canonicalStatus: event.status,
+      gateway: event.gateway,
+      gatewayPaymentId: event.gatewayPaymentId,
+      currentPaymentStatus: subscription.paymentStatus || null,
+      tx,
+    });
+    if (!applyResult.applied) {
+      // Evento bruto já registrado acima; estado NÃO é mutado fora da máquina.
+      // RBW v2: noop idempotente (replay) é normal e silencioso; rejeição de
+      // transição (fora de ordem/terminal) é anômala e warn.
+      if (applyResult.transition === 'idempotent_noop') {
+        return { deduplicated: true, subscriptionId: subscription.id };
+      }
+      console.warn(`[SUBSCRIPTION_PAYMENT] Transição rejeitada: ${subscription.paymentStatus || '(vazio)'} -> ${event.status} (${applyResult.reason})`);
+      return { deduplicated: true, subscriptionId: subscription.id };
     }
 
     return { deduplicated: false, subscriptionId: subscription.id };

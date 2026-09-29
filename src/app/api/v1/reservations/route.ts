@@ -76,6 +76,22 @@ async function postHandler(request: NextRequest, _ctx: any) {
             where: { tenantId, roomId, status: { notIn: ['CANCELLED', 'cancelled', 'REJECTED', 'rejected', 'NO_SHOW', 'no_show'] }, AND: [{ checkIn: { lt: targetCheckOut } }, { checkOut: { gt: targetCheckIn } }] },
           });
           if (overlapping) throw new Error('ROOM_UNAVAILABLE_OVERLAPPING_DATES');
+
+          // ── RBW Fase E: consistência Booking × Reservation ──────────────────
+          // Domínios distintos por design: Reservation = reserva operacional
+          // (pagamento/PIN/check-in); Booking = estadia importada de canais
+          // externos (iCal/OTA, externalUid). Uma MESMA estadia não pode existir
+          // como Booking ativo E Reservation CONFIRMED ao mesmo tempo — aqui
+          // a criação operacional respeita as estadias já importadas dos canais.
+          const overlappingExternal = await tx.booking.findFirst({
+            where: {
+              tenantId,
+              roomId,
+              status: { in: ['confirmed', 'checked_in', 'blocked'] },
+              AND: [{ checkIn: { lt: targetCheckOut } }, { checkOut: { gt: targetCheckIn } }],
+            },
+          });
+          if (overlappingExternal) throw new Error('ROOM_UNAVAILABLE_EXTERNAL_BOOKING');
         }
 
         if (guestId) {
@@ -88,6 +104,14 @@ async function postHandler(request: NextRequest, _ctx: any) {
         const numericTotalPrice = totalPrice === undefined || totalPrice === null ? baseDailyRate * nights : Number(totalPrice);
         if (!Number.isFinite(numericTotalPrice) || numericTotalPrice < 0) throw new Error('INVALID_TOTAL_PRICE');
 
+        // ── RBW Fase F: semântica do status na criação (política EXISTENTE,
+        // documentada — não inventada): reserva criada direto pelo OPERADOR do
+        // tenant (venda telefônica/balcão/whatsapp) nasce CONFIRMED sem
+        // cobrança — pagamento NÃO é obrigatório neste caminho. No caminho do
+        // HÓSPEDE (reservation_payments), CONFIRMED é consequência do pagamento
+        // aprovado (process-reservation-webhook), e refund/cancel reverte para
+        // REFUNDED/CANCELLED. Manipular status por fora destes dois caminhos
+        // permanece proibido.
         return tx.reservation.create({ data: { tenantId, guestId, roomId, checkIn: targetCheckIn, checkOut: targetCheckOut, totalPrice: numericTotalPrice, source: source || 'DIRECT', status: 'CONFIRMED' } });
       });
     } catch (txErr: any) {
@@ -95,6 +119,7 @@ async function postHandler(request: NextRequest, _ctx: any) {
       if (mapped) return NextResponse.json({ error: mapped.message, code: mapped.code }, { status: mapped.status });
       if (txErr?.message === 'INVALID_TOTAL_PRICE') return NextResponse.json({ error: 'Preço total inválido' }, { status: 400 });
       if (txErr?.message === 'ROOM_NOT_FOUND_OR_NOT_OWNED' || txErr?.message === 'GUEST_NOT_FOUND_OR_NOT_OWNED') return NextResponse.json({ error: 'Recurso não encontrado ou não pertence ao tenant' }, { status: 403 });
+      if (txErr?.message === 'ROOM_UNAVAILABLE_EXTERNAL_BOOKING') return NextResponse.json({ error: 'Quarto indisponível: já existe estadia de canal externo (iCal/OTA) no período', code: 'ROOM_UNAVAILABLE_EXTERNAL_BOOKING' }, { status: 409 });
       throw txErr;
     }
 

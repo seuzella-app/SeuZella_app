@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { verifyMercadoPagoWebhook } from '@/lib/security/webhook-verify';
 import { bridgePaymentEvent, bridgeSecurityAlert } from '@/lib/notifications/bridges';
 import { executeWithBillingIdempotency } from '@/lib/payments/idempotency';
+import { applySubscriptionPaymentStatus } from '@/lib/payments/subscription-state-apply';
 import { guardRequest, auditRouteEvent } from '@/lib/infra/wiring';
 
 const MAX_WEBHOOK_BYTES = 1024 * 1024;
@@ -85,17 +86,26 @@ export async function POST(request: NextRequest) {
             async () => {
               await db.paymentTransaction.update({ where: { id: transaction.id }, data: { status: newStatus } });
 
-              if (newStatus === 'approved') {
-                const subscription = await db.subscription.findUnique({ where: { id: transaction.subscriptionId } });
-                if (subscription) {
-                  const now = new Date();
-                  const periodEnd = new Date(now); periodEnd.setMonth(periodEnd.getMonth() + 1);
-                  await db.subscription.update({ where: { id: subscription.id }, data: { status: 'active', paymentStatus: 'approved', paymentId, currentPeriodStart: now, currentPeriodEnd: periodEnd } });
-                  await db.tenant.update({ where: { id: subscription.tenantId }, data: { plan: subscription.planType, subscriptionAt: now, status: 'active' } });
+              // RBW C+D: ativação via dono ÚNICO (máquina de estados + campos
+              // canônicos). Antes: writes diretos sem validação de transição.
+              const subscription = await db.subscription.findUnique({ where: { id: transaction.subscriptionId } });
+              if (subscription) {
+                const canonical = newStatus === 'approved' ? 'approved' : newStatus === 'rejected' ? 'rejected' : newStatus === 'refunded' ? 'refunded' : newStatus === 'cancelled' ? 'cancelled' : 'pending';
+                const apply = await db.$transaction(async (tx) =>
+                  applySubscriptionPaymentStatus({
+                    subscriptionId: subscription.id,
+                    tenantId: subscription.tenantId,
+                    planTier: subscription.planType,
+                    canonicalStatus: canonical as 'approved' | 'rejected' | 'refunded' | 'cancelled' | 'pending',
+                    gateway: 'mercadopago',
+                    gatewayPaymentId: paymentId,
+                    currentPaymentStatus: subscription.paymentStatus || null,
+                    tx: tx as unknown as Parameters<typeof applySubscriptionPaymentStatus>[0]['tx'],
+                  })
+                );
+                if (apply.applied && newStatus === 'approved') {
                   try { bridgePaymentEvent({ niche: 'all', paymentId, amount: Number(transaction.amount ?? 0), guestName: subscription.tenantId, method: 'pix', status: 'received', tenantId: subscription.tenantId }); } catch (notifErr) { console.error('[checkout-webhook] payment bridge error:', notifErr); }
                 }
-              } else if (newStatus === 'rejected') {
-                await db.subscription.update({ where: { id: transaction.subscriptionId }, data: { paymentStatus: 'rejected' } });
               }
 
               return { updated: true, paymentId, status: newStatus };
