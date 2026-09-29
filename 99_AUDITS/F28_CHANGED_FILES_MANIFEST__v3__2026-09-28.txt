@@ -1,0 +1,22 @@
+F28 v2 — CHANGED FILES MANIFEST (19 arquivos · patch sha256 9c31455c39b0622edb39057f37ef7b830f557c9e5b5a3813a40b23559f9582c9)
+Estado v1→v2: 17 arquivos idênticos ao v1 · 2 alterados (plan-limits-checker.ts: comentário; tenant-pubsub-multiinstance.test.ts: waits determinísticos)
+
+M src/__tests__/notifications/plan-limits-checker.test.ts
+M src/app/api/ddc/realtime/tenant-state/route.ts
+M src/app/api/readiness/route.ts
+M src/app/api/webhooks/payment/route.ts
+M src/app/parceiro/page.tsx
+M src/components/ddc/use-tenant-realtime-state.ts
+M src/components/landing/PricingSection.tsx
+N src/lib/entitlements/index.ts
+M src/lib/notifications/catalog.ts
+M src/lib/notifications/plan-limits-checker.ts
+M src/lib/payments/pricing.ts
+M src/lib/realtime/redis-pubsub.ts
+N src/lib/realtime/replay.ts
+N tests/commercial/parceiro-pricing-canonical.test.ts
+N tests/entitlements/entitlements-engine.test.ts
+N tests/realtime/replay-gap.test.ts
+N tests/realtime/tenant-pubsub-multiinstance.test.ts
+M tests/realtime/use-tenant-realtime-state.test.ts
+M tests/security/billing-idempotency.test.ts
