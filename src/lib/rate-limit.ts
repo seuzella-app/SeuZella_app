@@ -1,5 +1,6 @@
 // ==============================================================================
 // ZÉLLA — API Rate Limiter (Serverless-Safe, Upstash Redis Required in Prod)
+import { hasUpstashRestCredentials } from '@/lib/infra/redis-config';
 // ==============================================================================
 // Em ambiente Vercel Serverless, Map em memória NÃO FUNCIONA: cada lambda tem
 // sua própria instância do Map, então 1000 requisições paralelas verão 1000
@@ -156,7 +157,7 @@ function parseWindowToWindowStr(windowMs: number): string {
 }
 
 // ── Factory com fail-loud em produção ──
-const hasRedis = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+const hasRedis = hasUpstashRestCredentials();
 const isProduction = process.env.NODE_ENV === 'production';
 
 if (isProduction && !hasRedis) {

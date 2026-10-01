@@ -4,6 +4,8 @@
  * Development/test may use the bounded in-memory implementation.
  */
 
+import { hasUpstashRestCredentials } from '@/lib/infra/redis-config';
+
 let Ratelimit: any = null;
 let Redis: any = null;
 
@@ -20,7 +22,7 @@ try {
 const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || '';
 const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const REDIS_CONFIGURED = Boolean(UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN && Ratelimit && Redis);
+const REDIS_CONFIGURED = Boolean(hasUpstashRestCredentials() && Ratelimit && Redis);
 
 let redisClient: any = null;
 const ratelimiters: Record<string, any> = {};
