@@ -12,6 +12,7 @@
     "typecheck:extended": "tsc --noEmit -p tsconfig.extended.json",
     "production:check": "npx tsx src/scripts/production-check.ts",
     "production:redis-config": "bash scripts/production/preflight-redis-config.sh",
+    "production:go-live-gate": "bash scripts/production/go-live-gate.sh",
     "test": "vitest run",
     "test:sast": "vitest run tests/sast-static.test.ts",
     "test:unit": "vitest run tests/unit-business-logic.test.ts",
