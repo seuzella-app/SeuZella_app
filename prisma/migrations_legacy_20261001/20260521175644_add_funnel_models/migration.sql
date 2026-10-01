@@ -3,8 +3,8 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "email" TEXT NOT NULL,
     "name" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
@@ -14,8 +14,8 @@ CREATE TABLE "Post" (
     "content" TEXT,
     "published" BOOLEAN NOT NULL DEFAULT false,
     "authorId" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -37,8 +37,8 @@ CREATE TABLE "leads" (
     "source" TEXT NOT NULL DEFAULT 'SECRETARIA_AI',
     "status" TEXT NOT NULL DEFAULT 'PROSPECT',
     "metadata" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "latitude" REAL,
     "longitude" REAL,
     "scoreValid" INTEGER NOT NULL DEFAULT 0,
@@ -56,7 +56,7 @@ CREATE TABLE "leads" (
     "validationStatus" TEXT NOT NULL DEFAULT 'pendente',
     "conversionScore" INTEGER NOT NULL DEFAULT 0,
     "funnelStage" TEXT NOT NULL DEFAULT 'NEUTRAL',
-    "lastInteractionAt" DATETIME,
+    "lastInteractionAt" TIMESTAMP(3),
     "behavioralProfile" TEXT,
     "cluster" TEXT NOT NULL DEFAULT 'COLD',
     "previousCluster" TEXT,
@@ -64,7 +64,7 @@ CREATE TABLE "leads" (
     "lastSwipeUsedId" TEXT,
     "tierConfidence" REAL,
     "tierSugerido" TEXT,
-    "tierSugeridoEm" DATETIME,
+    "tierSugeridoEm" TIMESTAMP(3),
     "roomsCount" INTEGER NOT NULL DEFAULT 0,
     "instagramFollowers" INTEGER NOT NULL DEFAULT 0,
     "googleReviewsCount" INTEGER NOT NULL DEFAULT 0,
@@ -83,7 +83,7 @@ CREATE TABLE "email_tracking" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "leadId" TEXT NOT NULL,
     "campaignId" TEXT,
-    "openedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "openedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "ip" TEXT,
     "userAgent" TEXT,
     CONSTRAINT "email_tracking_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "leads" ("id") ON DELETE CASCADE ON UPDATE CASCADE
@@ -102,7 +102,7 @@ CREATE TABLE "agent_logs" (
     "cost" REAL NOT NULL DEFAULT 0,
     "duration" INTEGER NOT NULL DEFAULT 0,
     "status" TEXT NOT NULL DEFAULT 'SUCCESS',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -112,7 +112,7 @@ CREATE TABLE "security_alerts" (
     "alertType" TEXT NOT NULL,
     "severity" TEXT NOT NULL,
     "metadata" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -130,13 +130,13 @@ CREATE TABLE "swipe_templates" (
     "timesUsed" INTEGER NOT NULL DEFAULT 0,
     "conversions" INTEGER NOT NULL DEFAULT 0,
     "convRate" REAL NOT NULL DEFAULT 0,
-    "lastUsedAt" DATETIME,
+    "lastUsedAt" TIMESTAMP(3),
     "isAiGenerated" BOOLEAN NOT NULL DEFAULT false,
     "provenByConversion" BOOLEAN NOT NULL DEFAULT false,
     "createdBy" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
@@ -149,7 +149,7 @@ CREATE TABLE "swipe_usages" (
     "agentId" TEXT,
     "responseTimeMs" INTEGER,
     "feedback" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "swipe_usages_swipeId_fkey" FOREIGN KEY ("swipeId") REFERENCES "swipe_templates" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "swipe_usages_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "leads" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -163,8 +163,8 @@ CREATE TABLE "trend_keywords" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "tier" TEXT NOT NULL DEFAULT 'pro',
     "checkFrequencyHours" INTEGER NOT NULL DEFAULT 6,
-    "lastCheckedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "lastCheckedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -175,7 +175,7 @@ CREATE TABLE "trend_data_points" (
     "interestDelta" REAL,
     "volume" INTEGER,
     "geo" TEXT,
-    "date" DATETIME NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL,
     "source" TEXT NOT NULL,
     CONSTRAINT "trend_data_points_keywordId_fkey" FOREIGN KEY ("keywordId") REFERENCES "trend_keywords" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -190,13 +190,13 @@ CREATE TABLE "trend_signals" (
     "deltaPercent" REAL NOT NULL,
     "severity" TEXT NOT NULL DEFAULT 'media',
     "geo" TEXT,
-    "dateDetected" DATETIME NOT NULL,
+    "dateDetected" TIMESTAMP(3) NOT NULL,
     "previousScore" INTEGER,
     "agentsNotified" TEXT NOT NULL DEFAULT '[]',
     "actionTaken" BOOLEAN NOT NULL DEFAULT false,
     "actionDetails" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "resolvedAt" DATETIME
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolvedAt" TIMESTAMP(3)
 );
 
 -- CreateTable
@@ -213,8 +213,8 @@ CREATE TABLE "funnel_campaigns" (
     "openRate" REAL NOT NULL DEFAULT 0,
     "clickRate" REAL NOT NULL DEFAULT 0,
     "conversionRate" REAL NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
@@ -226,7 +226,7 @@ CREATE TABLE "funnel_events" (
     "painCluster" TEXT,
     "score" INTEGER NOT NULL DEFAULT 0,
     "metadata" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "funnel_events_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "leads" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "funnel_events_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "funnel_campaigns" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -241,11 +241,11 @@ CREATE TABLE "funnel_scores" (
     "fitScore" INTEGER NOT NULL DEFAULT 0,
     "cluster" TEXT NOT NULL DEFAULT 'COLD',
     "painCluster" TEXT,
-    "lastEventAt" DATETIME,
-    "lastClusterChange" DATETIME,
+    "lastEventAt" TIMESTAMP(3),
+    "lastClusterChange" TIMESTAMP(3),
     "previousCluster" TEXT,
-    "updatedAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "funnel_scores_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "leads" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -257,10 +257,10 @@ CREATE TABLE "webhook_logs" (
     "eventType" TEXT NOT NULL,
     "payload" TEXT NOT NULL,
     "processed" BOOLEAN NOT NULL DEFAULT false,
-    "processedAt" DATETIME,
+    "processedAt" TIMESTAMP(3),
     "error" TEXT,
     "retries" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "webhook_logs_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "funnel_campaigns" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
