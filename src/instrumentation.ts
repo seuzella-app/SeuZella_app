@@ -1,3 +1,4 @@
+import { assertProductionCredentialsReady } from "./lib/credentials/production-gate";
 // ============================================================================
 // ZÉLLA — Next.js Instrumentation Hook
 // ============================================================================
@@ -11,6 +12,12 @@
 // ============================================================================
 
 export async function register(): Promise<void> {
+// W1_GATE_MARKER:BEGIN — WAVE 1 FASE 1: production credential gate (fail-closed)
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    assertProductionCredentialsReady();
+  }
+// W1_GATE_MARKER:END
+
   // Só executa no server (Node.js runtime)
   if (typeof window !== 'undefined') return;
 
